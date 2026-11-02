@@ -1,0 +1,7 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/831905e911ac04884ed2b301da500874a3fc5820/check-runs --jq .check_runs[] | "\(.name)  status=\(.status)  conclusion=\(.conclusion)  head_sha=\(.head_sha)"
+Agent ownership check  status=completed  conclusion=success  head_sha=831905e911ac04884ed2b301da500874a3fc5820
+Frontend (lint, test, build)  status=completed  conclusion=success  head_sha=831905e911ac04884ed2b301da500874a3fc5820
+Python M0 unit tests  status=completed  conclusion=success  head_sha=831905e911ac04884ed2b301da500874a3fc5820
+Go (vet, gofmt, test, build)  status=completed  conclusion=success  head_sha=831905e911ac04884ed2b301da500874a3fc5820
+
+[exit code 0]

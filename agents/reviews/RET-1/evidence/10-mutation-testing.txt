@@ -1,0 +1,20 @@
+$ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/bin/mutate.sh /home/claude/wt/RET-1
+M1 stable->unstable sort: CAUGHT  (--- FAIL: TestHybridSearchRerankTiesKeepRRFOrder (0.00s))
+M2 drop the sort: CAUGHT  (vet: internal/query/search.go:9:2: "sort" imported and not used)
+M3 sort ascending: CAUGHT  (--- FAIL: TestHybridSearchRerankOrdersByScore (0.00s))
+M4 pool = limit (no max): CAUGHT  (--- FAIL: TestHybridSearchRerankOrdersByScore (0.00s))
+M5 RerankPool 20->10: CAUGHT  (--- FAIL: TestHybridSearchRerankOrdersByScore (0.00s))
+M6 fallback not truncated: CAUGHT  (--- FAIL: TestHybridSearchRerankFallback (0.00s))
+M7 success not truncated: CAUGHT  (--- FAIL: TestHybridSearchRerankOrdersByScore (0.00s))
+M8 count check only 'fewer': CAUGHT  (--- FAIL: TestHybridSearchRerankFallback (0.00s))
+M9 no NaN check: CAUGHT  (--- FAIL: TestHybridSearchRerankFallback (0.00s))
+M10 log raw error: CAUGHT  (--- FAIL: TestHybridSearchRerankFallback (0.00s))
+M11 rerank=false uses pool: CAUGHT  (--- FAIL: TestHybridSearchNoRerankUnchanged (0.00s))
+M12 rerank=false also reranks: CAUGHT  (--- FAIL: TestHybridSearchNoRerankUnchanged (0.00s))
+M13 fallback returns error: CAUGHT  (--- FAIL: TestHybridSearchRerankFallback (0.00s))
+M14 trace id dropped from log: CAUGHT  (--- FAIL: TestHybridSearchRerankFallback (0.00s))
+M15 ctx trace id ignored: CAUGHT  (--- FAIL: TestHybridSearchRerankFallback (0.00s))
+M16 fallback keeps partial scores: CAUGHT  (--- FAIL: TestHybridSearchRerankFallback (0.00s))
+M17 empty pool still calls rerank: CAUGHT  (--- FAIL: TestHybridSearchRerankPoolSize (0.00s))
+
+[exit code 0]

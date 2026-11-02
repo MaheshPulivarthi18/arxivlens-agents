@@ -1,0 +1,11 @@
+$ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/bin/parity.sh
+EVAL-1 @ d83a4c0; search.go from PR head 831905e
+== 1. parity test against PR head search.go (expect pass)
+.                                                                        [100%]
+1 passed in 0.16s
+== 2. negative control: same file + one comment line containing 'LIMIT 50' (expect FAIL)
+=========================== short test summary info ============================
+FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - assert...
+1 failed in 0.05s
+
+[exit code 1]

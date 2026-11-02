@@ -1,0 +1,23 @@
+$ bash -c grep -nE '^// AC[0-9]|^func Test' internal/query/search_test.go; /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/bin/harness.sh /home/claude/wt/RET-1 -count=1 -cover
+99:// AC1
+100:func TestHybridSearchRerankOrdersByScore(t *testing.T) {
+113:// AC4
+114:func TestHybridSearchRerankTiesKeepRRFOrder(t *testing.T) {
+127:// AC2
+128:func TestHybridSearchRerankPoolSize(t *testing.T) {
+157:// AC3
+158:func TestHybridSearchRerankFallback(t *testing.T) {
+219:func TestTraceIDFrom(t *testing.T) {
+240:// AC5
+241:func TestHybridSearchNoRerankUnchanged(t *testing.T) {
+262:func TestHybridSearchFetchError(t *testing.T) {
+278:func TestNewSearchEngineWiresSeams(t *testing.T) {
+harness: /tmp/tmp.cMhwqRyihF (go.mod 'go 1.24', stub internal/db; query files copied verbatim from /home/claude/wt/RET-1 @ 831905e)
+1c36ce6f8ffe0fce05515dd4f0ea741c2c823f85546ed891e37768b6d47fb855  /home/claude/wt/RET-1/internal/query/search.go
+1c36ce6f8ffe0fce05515dd4f0ea741c2c823f85546ed891e37768b6d47fb855  <harness>/internal/query/search.go
+270789120e3f1b13d28f28b2e2a4f6f5b614f0951f3e97854f3cf50fcd6c5367  /home/claude/wt/RET-1/internal/query/search_test.go
+270789120e3f1b13d28f28b2e2a4f6f5b614f0951f3e97854f3cf50fcd6c5367  <harness>/internal/query/search_test.go
+go version go1.24.7 linux/amd64
+ok  	arxivlens/internal/query	0.009s	coverage: 22.6% of statements
+
+[exit code 0]

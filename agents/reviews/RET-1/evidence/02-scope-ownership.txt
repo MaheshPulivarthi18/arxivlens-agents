@@ -1,0 +1,10 @@
+$ bash -c git rev-parse HEAD; git diff --stat origin/main...HEAD; git diff --numstat origin/main...HEAD | awk "{a+=\$1;d+=\$2} END {print \"changed lines:\", a+d}"; bash .github/scripts/ownership-check.sh origin/main agent/backend/RET-1; echo "ownership exit=$?"
+831905e911ac04884ed2b301da500874a3fc5820
+ internal/query/search.go      | 107 ++++++++++++++--
+ internal/query/search_test.go | 284 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 378 insertions(+), 13 deletions(-)
+changed lines: 391
+Ownership OK for role=backend (391 changed lines)
+ownership exit=0
+
+[exit code 0]

@@ -1,0 +1,31 @@
+$ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/bin/harness.sh /home/claude/wt/RET-1 -count=1 -v -run TestHybridSearchRerankFallback$|TestTraceIDFrom$
+harness: /tmp/tmp.kOafeFtlEb (go.mod 'go 1.24', stub internal/db; query files copied verbatim from /home/claude/wt/RET-1 @ 831905e)
+1c36ce6f8ffe0fce05515dd4f0ea741c2c823f85546ed891e37768b6d47fb855  /home/claude/wt/RET-1/internal/query/search.go
+1c36ce6f8ffe0fce05515dd4f0ea741c2c823f85546ed891e37768b6d47fb855  <harness>/internal/query/search.go
+270789120e3f1b13d28f28b2e2a4f6f5b614f0951f3e97854f3cf50fcd6c5367  /home/claude/wt/RET-1/internal/query/search_test.go
+270789120e3f1b13d28f28b2e2a4f6f5b614f0951f3e97854f3cf50fcd6c5367  <harness>/internal/query/search_test.go
+go version go1.24.7 linux/amd64
+=== RUN   TestHybridSearchRerankFallback
+=== RUN   TestHybridSearchRerankFallback/rerank_error
+=== RUN   TestHybridSearchRerankFallback/timeout
+=== RUN   TestHybridSearchRerankFallback/too_few_scores
+=== RUN   TestHybridSearchRerankFallback/too_many_scores
+=== RUN   TestHybridSearchRerankFallback/NaN_score
+--- PASS: TestHybridSearchRerankFallback (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/rerank_error (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/timeout (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/too_few_scores (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/too_many_scores (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/NaN_score (0.00s)
+=== RUN   TestTraceIDFrom
+=== RUN   TestTraceIDFrom/from_ctx
+=== RUN   TestTraceIDFrom/empty_ctx_value
+=== RUN   TestTraceIDFrom/no_value
+--- PASS: TestTraceIDFrom (0.00s)
+    --- PASS: TestTraceIDFrom/from_ctx (0.00s)
+    --- PASS: TestTraceIDFrom/empty_ctx_value (0.00s)
+    --- PASS: TestTraceIDFrom/no_value (0.00s)
+PASS
+ok  	arxivlens/internal/query	0.006s
+
+[exit code 0]

@@ -1,0 +1,22 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/125308163004/logs | grep -E 'Complete job name|go version go|Run make|go vet|go test|^\S+ (ok|\?|FAIL|---)|go build|Process completed|##\[error\]'
+2026-11-02T13:38:04.1754005Z Complete job name: Go (vet, gofmt, test, build)
+2026-11-02T13:38:18.9591939Z go version go1.25.0 linux/amd64
+2026-11-02T13:38:18.9936795Z ##[group]Run make lint-go
+2026-11-02T13:38:19.0051324Z go vet ./...
+2026-11-02T13:38:19.9411637Z ##[group]Run make test-go
+2026-11-02T13:38:19.9480070Z go test ./...
+2026-11-02T13:38:20.3745218Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-02T13:38:20.3746409Z ?   	arxivlens/internal/config	[no test files]
+2026-11-02T13:38:21.3974539Z ok  	arxivlens/internal/crawler	0.006s
+2026-11-02T13:38:21.3998455Z ?   	arxivlens/internal/db	[no test files]
+2026-11-02T13:38:21.3999012Z ?   	arxivlens/internal/dlq	[no test files]
+2026-11-02T13:38:21.3999541Z ?   	arxivlens/internal/downloader	[no test files]
+2026-11-02T13:38:21.7345705Z ok  	arxivlens/internal/kafka	0.003s
+2026-11-02T13:38:21.9417139Z ok  	arxivlens/internal/query	0.005s
+2026-11-02T13:38:21.9417754Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-02T13:38:21.9418492Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-02T13:38:21.9419143Z ?   	arxivlens/shared/events	[no test files]
+2026-11-02T13:38:21.9541848Z ##[group]Run make build-go
+2026-11-02T13:38:21.9608844Z go build -o bin/arxivlens ./cmd/arxivlens
+
+[exit code 0]

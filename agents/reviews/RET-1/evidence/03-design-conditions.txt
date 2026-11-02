@@ -1,0 +1,67 @@
+$ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/bin/conditions.sh
+== C1: hybrid SQL literal, origin/main vs HEAD (extracted from 'querySQL := `' to closing backtick)
+  34 sql_main.txt
+  34 sql_head.txt
+  68 total
+b8886c380fad99489c08ffe868b3f547a054ed928ae7fd6eaecb7699f0eedec4  sql_main.txt
+b8886c380fad99489c08ffe868b3f547a054ed928ae7fd6eaecb7699f0eedec4  sql_head.txt
+diff: EMPTY (character-identical)
+  count "LIMIT 50"             main=2 head=2
+  count "WHERE ce.model = $2"  main=1 head=1
+  count "1.0/(60 + v.rank)"    main=1 head=1
+  count "1.0/(60 + k.rank)"    main=1 head=1
+  count "LIMIT $5"             main=1 head=1
+  Query call: 146:	rows, err := s.database.Pool.Query(ctx, querySQL, vecStr, s.modelName, catArray, queryString, n)
+  SQL in other files of internal/query? internal/query/search.go 
+
+== C3: no OpenTelemetry import / go.mod change
+  otel refs in search.go: 0
+  go.mod/go.sum changed vs main: 0
+  imports added:
++	"errors"
++	"log"
++	"math"
++	"sort"
+
+== C4: new exported identifiers in the diff (expect only RerankPool)
++const RerankPool = 20
++type reranker interface 
++func (s *SearchEngine) fetchCandidates(ctx context.Context, queryString string, categories []string, n int) ([]SearchHit, error) 
++func rerankAndSort(ctx context.Context, rr reranker, query string, hits []SearchHit, limit int) []SearchHit 
++type traceIDKey struct{}
++func withTraceID(ctx context.Context, id string) context.Context 
++func traceIDFrom(ctx context.Context) (id, source string) 
++type fakeReranker struct 
++func (f *fakeReranker) Rerank(_ context.Context, _ string, passages []string) ([]float32, error) 
++func rrfHits(n int) []SearchHit 
++func newEngine(rr *fakeReranker, available int, gotN *int) *SearchEngine 
++func byRank(fn func(r int) float32) func([]string) []float32 
++func ids(hits []SearchHit) []int64 
++type orderCase struct 
++func runOrderCases(t *testing.T, cases []orderCase) 
++func TestHybridSearchRerankOrdersByScore(t *testing.T) 
++func TestHybridSearchRerankTiesKeepRRFOrder(t *testing.T) 
++func TestHybridSearchRerankPoolSize(t *testing.T) 
++func TestHybridSearchRerankFallback(t *testing.T) 
++func TestTraceIDFrom(t *testing.T) 
++func TestHybridSearchNoRerankUnchanged(t *testing.T) 
++func TestHybridSearchFetchError(t *testing.T) 
++func TestNewSearchEngineWiresSeams(t *testing.T) 
+
+== C5: fallback log line (format + args) and any log call in search.go
+198:		log.Printf("[Query Service] rerank fallback trace_id=%s trace_id_source=%s reason=%q pool=%d scores=%d",
+199-			id, src, reason, len(hits), len(scores))
+  err.Error() occurrences in search.go:
+184:		// Not err.Error(): it can carry the embedder's response body, which may echo query/passages.
+
+== C6: error messages, origin/main vs HEAD
+  identical:
+    fmt.Errorf("failed to get query vector: %w"
+    fmt.Errorf("no vector returned for query"
+    fmt.Errorf("hybrid search query failed: %w"
+    fmt.Errorf("failed to scan search hit: %w"
+  NewSearchEngine signature main: func NewSearchEngine(database *db.DB, embedClient *EmbedClient, modelName string) *SearchEngine {
+  NewSearchEngine signature head: func NewSearchEngine(database *db.DB, embedClient *EmbedClient, modelName string) *SearchEngine {
+  HybridSearch signature unchanged: yes
+
+[exit code 0]

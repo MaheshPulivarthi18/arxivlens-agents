@@ -1,0 +1,25 @@
+$ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/bin/harness.sh /home/claude/wt/RET-1 -count=1 -v -run TestHybridSearchRerankPoolSize$
+harness: /tmp/tmp.Co6YPW0w4V (go.mod 'go 1.24', stub internal/db; query files copied verbatim from /home/claude/wt/RET-1 @ 831905e)
+1c36ce6f8ffe0fce05515dd4f0ea741c2c823f85546ed891e37768b6d47fb855  /home/claude/wt/RET-1/internal/query/search.go
+1c36ce6f8ffe0fce05515dd4f0ea741c2c823f85546ed891e37768b6d47fb855  <harness>/internal/query/search.go
+270789120e3f1b13d28f28b2e2a4f6f5b614f0951f3e97854f3cf50fcd6c5367  /home/claude/wt/RET-1/internal/query/search_test.go
+270789120e3f1b13d28f28b2e2a4f6f5b614f0951f3e97854f3cf50fcd6c5367  <harness>/internal/query/search_test.go
+go version go1.24.7 linux/amd64
+=== RUN   TestHybridSearchRerankPoolSize
+=== RUN   TestHybridSearchRerankPoolSize/limit_5_reranks_pool_of_20
+=== RUN   TestHybridSearchRerankPoolSize/limit_20
+=== RUN   TestHybridSearchRerankPoolSize/limit_50_above_pool
+=== RUN   TestHybridSearchRerankPoolSize/limit_0_defaults_to_20
+=== RUN   TestHybridSearchRerankPoolSize/only_7_candidates
+=== RUN   TestHybridSearchRerankPoolSize/no_candidates_no_call
+--- PASS: TestHybridSearchRerankPoolSize (0.00s)
+    --- PASS: TestHybridSearchRerankPoolSize/limit_5_reranks_pool_of_20 (0.00s)
+    --- PASS: TestHybridSearchRerankPoolSize/limit_20 (0.00s)
+    --- PASS: TestHybridSearchRerankPoolSize/limit_50_above_pool (0.00s)
+    --- PASS: TestHybridSearchRerankPoolSize/limit_0_defaults_to_20 (0.00s)
+    --- PASS: TestHybridSearchRerankPoolSize/only_7_candidates (0.00s)
+    --- PASS: TestHybridSearchRerankPoolSize/no_candidates_no_call (0.00s)
+PASS
+ok  	arxivlens/internal/query	0.006s
+
+[exit code 0]
