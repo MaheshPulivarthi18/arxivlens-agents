@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git -C app push origin main:*)",
+      "Bash(git -C app push origin HEAD:main:*)",
+      "Bash(git -C app push --force:*)",
+      "Bash(git -C app push -f:*)",
+      "Bash(cd app && git push origin main:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh api -X PUT repos/MaheshPulivarthi18/ArxivLens/pulls/*/merge:*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./app/.env)",
+      "Read(./app/.env.*)"
+    ]
+  }
+}

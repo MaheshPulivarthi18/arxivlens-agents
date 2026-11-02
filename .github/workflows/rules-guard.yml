@@ -1,0 +1,40 @@
+name: rules-guard
+
+# Agents commit bookkeeping (tasks, board, progress, reviews, designs, new Proposed ADRs) straight to main.
+# Rule and product changes must come through a PR that Mahesh merges. This turns main red if they don't.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  protected-paths:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Rule/PRD changes must arrive via a merged PR
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then echo "initial push"; exit 0; fi
+          PROTECTED='^(\.claude/|AGENTS\.md$|CLAUDE\.md$|agents/templates/|agents/tools/|agents/jira\.md$|agents/area-notes/|docs/PRD-|\.github/)'
+          # Commits that arrived through a PR: the 2nd-parent side of merge commits, or squash commits ending in "(#N)".
+          from_pr=$(for m in $(git rev-list --merges "$BEFORE..$AFTER"); do git rev-list "$m^1..$m^2"; done)
+          fail=0
+          for c in $(git rev-list --no-merges "$BEFORE..$AFTER"); do
+            if echo "$from_pr" | grep -q "$c"; then continue; fi
+            if git log -1 --format=%s "$c" | grep -Eq '\(#[0-9]+\)$'; then continue; fi
+            files=$(git diff-tree --no-commit-id --name-only -r "$c" | grep -E "$PROTECTED" || true)
+            if [ -n "$files" ]; then
+              echo "::error::commit $c changed protected files directly on main: $files"; fail=1
+            fi
+          done
+          # ADR status changes to Accepted/Rejected must come from Mahesh (via PR or his own commit message tag)
+          if git diff "$BEFORE" "$AFTER" -- docs/adr/ | grep -Eq '^\+.*\*\*Status:\*\* *(Accepted|Rejected)' \
+             && ! git log --format=%B "$BEFORE..$AFTER" | grep -q 'Decided-by: Mahesh'; then
+            echo "::error::ADR set to Accepted/Rejected without a 'Decided-by: Mahesh' trailer"; fail=1
+          fi
+          exit $fail
