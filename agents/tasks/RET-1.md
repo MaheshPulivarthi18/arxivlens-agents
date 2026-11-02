@@ -39,3 +39,4 @@ make eval   # when infra is available
 
 ## Notes
 - Created 2026-11-02 from Mahesh's decision (ADR-0010) on his PR #2 review, blocker 2.
+- 2026-11-02 (pm-lead, EVAL-1 round-3 PM review; QA r3 finding 7): **how ADR-0010 is read.** The reranked, sorted, truncated list is what `search.go` returns. `rag.go`'s relevance filters (drop rerank < 0.45; appendix/table/supplementary < 0.70) stay in `rag.go` and apply **after** the sort. Do not move them into `search.go`. The EVAL-1 retrieval gate measures the ranking only (pool → rerank → sort → top 5), and the filters are covered end to end by the answer/refusal eval through `/v1/ask`. If you change the `search.go` SQL fragments, update `test_rrf_pool_sql_mirrors_search_go` in `app/tests/test_evals_data.py` via ai-engineer in the same cycle (or pair the PRs).

@@ -6,7 +6,7 @@
 | **Priority** | P0 (QA-8 cannot be judged without it) |
 | **PRD ref** | Product PRD §8 Success metrics |
 | **Depends on** | — (runs against whatever corpus is indexed; works best after OPS-H1) |
-| **Status** | In QA (round 3 pushed as `d83a4c0` on PR #2, still draft; awaiting QA round 3. R3-7/R3-8 are pm-lead's) |
+| **Status** | Ready to merge (QA PASS r3 + PM APPROVE r3; PR #2 ready for review at `d83a4c0`) |
 
 ## Goal
 The PRD's quality targets (Recall@5 ≥ 0.80, supported ≥ 90%, refusal ≥ 95%) have no versioned dataset behind them.
@@ -68,9 +68,9 @@ make stack-up && python scripts/eval_gate.py   # when infra is available
         any rerank, and that a failed check produces no summary (stub psycopg/embedder/urlopen).
   - [x] R3-6 (QA r2 finding 4): coverage counts a paper only if its chunks have embeddings for the current model
         (`chunk_embeddings` with `model` filter), not just `paper_chunks`.
-  - [ ] R3-7 (review should-fix "no Fixes #N"): no GitHub issue exists. The PR body links Jira **KAN-8** and the
+  - [x] R3-7 (review should-fix "no Fixes #N"): no GitHub issue exists. The PR body links Jira **KAN-8** and the
         spec instead; say so explicitly in the PR description.
-  - [ ] R3-8 (QA r2 finding 6): the PR description reflects round 3 (pm-lead does this when raising).
+  - [x] R3-8 (QA r2 finding 6): the PR description reflects round 3 (pm-lead does this when raising).
   - [x] R3-9 (repo split): PR #2 contains **no** `agents/` files; tickets and reviews now live in arxivlens-agents.
   - Already done in round 2 (keep): production `/internal/rerank` endpoint + `/healthz` guard; per-paper coverage (review major 3).
 - 2026-11-02 (ai-engineer, round 3) app commit `d83a4c0` on `agent/ai/EVAL-1` (PR #2, left in draft). Files changed:
@@ -130,3 +130,4 @@ make stack-up && python scripts/eval_gate.py   # when infra is available
     there are no before/after numbers; `evals/BASELINE.md` still says "not run". The round-3 diff alone is about 616 lines
     (465+/151−), over the 400 target; most of it is the tests the review asked for.
   - **Still open, not mine:** R3-7/R3-8 (pm-lead, PR description). AC5 / tests in CI → OPS-H4. Production ordering → RET-1.
+- 2026-11-02 (pm-lead, round-3 final review): **APPROVE.** R3-7/R3-8 done: the PR #2 description was rewritten with a review → resolution table, the "No GitHub issue; Jira KAN-8 + spec" line, the ADR-0010/RET-1 statement, and evidence pinned to `b9059b2`. The PR is marked ready for review and labelled `ready-to-merge`. QA r3 nits 2–5 → EVAL-2 AC6–AC9. AC5 and CI for the eval tests → OPS-H4 (AC5 added). ADR-0010 filter reading → RET-1 Notes. Decision: `agents/reviews/EVAL-1/report.md` § "PM decision — round 3".

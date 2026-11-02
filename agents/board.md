@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-02 by orchestrator (repo split; Mahesh's PR #2 review triaged)
+Last updated: 2026-11-02 by pm-lead (EVAL-1 round 3 APPROVE; PR #2 raised; EVAL-2 re-scoped)
 
 WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 
@@ -18,7 +18,7 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | [AI-2](tasks/AI-2.md) | Fail closed when support-check embedding fails in `rag.go` | ai-engineer | P1 | AI-1 |
 | [AI-3](tasks/AI-3.md) | Batch embedding in RAG validation | ai-engineer | P1 | AI-1, AI-2 |
 | [RET-1](tasks/RET-1.md) | `/v1/ask` + `/v1/search` rerank a 20-candidate pool and sort by rerank score (ADR-0010) | backend-engineer | P0 | ADR-0010 ✅; merge after EVAL-1 |
-| [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate + remaining eval tests (**needs re-scoping**: EVAL-1 now calls `/internal/rerank`) | ai-engineer | P2 | EVAL-1 |
+| [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate + eval-test hardening (EVAL-1 QA r3 nits, AC6–AC9) | ai-engineer | P2 | EVAL-1 |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -27,7 +27,6 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
-| [EVAL-1](tasks/EVAL-1.md) | Versioned golden eval sets + `make eval` gate: round 3 pushed (`d83a4c0`; R3-1..6, R3-9 done; R3-7/8 pm-lead) → QA round 3 | ai-engineer | PR [#2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2) (draft) |
 
 ## PM review
 | ID | Title | Owner | PR |
@@ -36,6 +35,7 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
+| [EVAL-1](tasks/EVAL-1.md) | Versioned golden eval sets + `make eval` gate (round 3, `d83a4c0`) | ai-engineer | [#2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2) (ready for review, `ready-to-merge`) | QA PASS r3 · PM APPROVE r3 ([report](reviews/EVAL-1/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -46,6 +46,7 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## Backlog (not yet specced — pm-lead grooms these)
 - From the OPS-H3 review: `ExtractCleanArxivID` should match only a whole ID and support old-style IDs the crawler stores (needs a product decision); add more pinning tests; add `go test -cover` to CI; make the retry sleep injectable (see OPS-H3 Notes)
 - From the #8 review: some code comments cite PRD sections (`§4`, `§6 Tier 1`) that now live in this repo; reword or link them (backend/ai, nit)
+- pm-lead docs PR after PR #2 merges: Product PRD §8 rows 156–157 (ADR-0006 Accepted, paper-level; drop the bi-encoder caveat; add the RET-1 caveat), line 151 fallback note, the AGENTS.md §5 eval gotcha
 - QA-9 Streaming answers (frontend + ai) — after QA-8
 - OTLP span export to Jaeger/Tempo (backend) — Technical PRD §11 P1
 - Prometheus metrics: consumer lag, DLQ depth, stage latency (backend) + OPS-6 dashboard (frontend)

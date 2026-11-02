@@ -228,3 +228,55 @@ The PRD §8 "Recall@5 ≥ 0.80" row is now gated with the definition Mahesh acce
 
 ## Hand-off
 **PASS → pm-lead final review.** Before marking PR #2 ready, rewrite the PR description per finding 1 (R3-7, R3-8, the ADR-0010 RET-1 statement, and fixing the broken links) and link these round-3 images. The nits (2–5) can go to EVAL-2 / OPS-H4; none of them blocks this PR.
+
+---
+
+## PM decision — round 3 — pm-lead, 2026-11-02
+
+**Verdict: APPROVE.** PR #2 raised for Mahesh's review at `d83a4c0` (PR description rewritten, marked ready for review).
+
+**Inputs read:** Mahesh's PR #2 review (on `5001cce`), the ticket and its R3 checklist, ADR-0006 and ADR-0010 (both Accepted),
+the QA round-3 section above, the current PR body, and EVAL-2 / OPS-H4 / RET-1. I opened all 14 round-3 images (300–313) myself.
+
+### Mahesh's review, item by item (the bar for this round)
+| Review item | Closed? | What proves it |
+|---|---|---|
+| Blocker 1: gated Recall@5 was precision@5-like, and needed an Accepted ADR | ✅ ADR-0006 option 3 is Accepted. `score_case` dedupes chunks to papers and `compute_recall_at_k` divides by `|relevant|`. MRR and NDCG use the paper ranking. `chunk_precision@5` is reported and not gated. The recall/precision tests Mahesh asked for exist, and the denominator mutant is caught | 305 (code), 306 (QA's own scenarios, including the ADR example 1.0 / 0.2 and 6 relevant giving 0.833), 309, 310 (M01–M03, M08, M09 caught) |
+| Blocker 2: gated rerank was a bi-encoder, not production | ✅ One `POST /internal/rerank` call (the production cross-encoder) over an RRF pool of 20 built with `search.go`'s SQL (50 per arm, `ce.model`, k=60). Stable sort, then top 5. A `/healthz` guard runs before any DB or rerank work. The test Mahesh asked for ("gated mode invokes the production rerank path") exists, along with ordering and parity tests. The production `/v1/ask` mismatch is now a decided target (ADR-0010) with its own ticket (RET-1), and it is disclosed in `evals/README.md` and `BASELINE.md` | 307 (normalised SQL diff; the only differences are the category filter, the projection, the section join and a disclosed `c.id` tiebreak), 308, 309, 310 (M04–M06, M10–M12, M14) |
+| Major 3: partial coverage treated as covered | ✅ Coverage is per arXiv ID and per embedding model. Missing IDs are reported, and coverage below 1.0 fails the gate. The two-paper / one-indexed test exists | 308, 309, 310 (M07, M15, M18, M21) |
+| Should-fix: no "Fixes #N" | ✅ (done by me now) There is no GitHub issue. The PR body now says so and links Jira KAN-8 and the spec (R3-7) | PR description |
+
+### Scope, ACs, and evidence quality
+- **Scope is right.** There are 12 files, all in ai-engineer paths (303). Threshold values and eval cases are byte-identical to round 2 (304); only the `_source` text changed. No contract files are touched. Size is 1610 lines in total, which is over the 400 target. I accept this without a split because almost all of the growth is tests and fixes Mahesh's review asked for, and splitting now would cost another review cycle for no benefit.
+- **AC1, AC2 and AC4 are proven** (311, 304). **AC3 is partly proven:** `--help` exits 0 and a no-stack run exits 2 with no results file. The 0/1 threshold logic is unit-tested on fixed numbers, and the gate has never run against a live stack. This "⚠ unverified" is acceptable for raising the PR because the gate fails closed (exit 2) when it cannot measure. It is the first thing Mahesh should run. **AC5** (`evals/results/` ignored) is delegated to OPS-H4, which the ticket explicitly allows. Its owner (backend) is correct.
+- **The evidence is real and specific.** Every image shows the command, the commit `d83a4c0` and the exit code, and the .txt files hold the full output. The 312 and 313 images show the review inputs rather than results, and I used them only for that. I reject none of the images.
+- **Docs:** `evals/README.md`, `evals/BASELINE.md` and one line of the app README are updated. The Product PRD §8 rows (line 156 "ADR-0006 (Proposed)", line 157 "bi-encoder caveat → EVAL-2") and the AGENTS.md §5 gotcha are stale. They live in this repo and change via a `docs/` PR, so this is a pm-lead follow-up after merge (board backlog), not a blocker on the code PR.
+
+### QA finding 7 ([spec]): how ADR-0010 should be read (PM interpretation, recorded)
+ADR-0010's Decision bullets define what the eval mirrors: pool of 20, the same SQL limits and `ce.model` filter, one
+`/internal/rerank` call, a stable sort, then truncation. The Options sentence "`/v1/ask` keeps its relevance filters ... The eval gates
+exactly that" is read as follows:
+- **The retrieval gate (`recall@5`, MRR, NDCG@5) measures ranking only:** pool → rerank → sort → top 5. It deliberately does
+  **not** apply `rag.go`'s rerank-score filters (drop < 0.45; drop appendix/table/supplementary < 0.70). Recall is a property of the
+  ranked list, and applying answer-time filters would mix two concerns into one number.
+- **The `rag.go` relevance filters are covered by the answer and refusal eval** (`scripts/evaluate_answers.py`), which calls the live
+  `/v1/ask` end to end. Supported-citation rate, expected-paper hit rate and correct-refusal rate therefore already include the filters'
+  effect, with whatever ordering production has at the time.
+- So the round-3 code meets ADR-0010 as written, and no ADR change is needed. I recorded this reading in RET-1's Notes so the backend
+  design doesn't push the filters into `search.go`. If Mahesh reads it differently, the ADR text changes via a PR and EVAL-2 picks up the code.
+
+### Routing of QA nits and spec findings
+| QA r3 finding | Routed to |
+|---|---|
+| 2 rerank error inside `rerank_pool` / `run_retrieval_evaluation` must stop the run (M13) | EVAL-2 AC6 (KAN-12) |
+| 3 SQL parity test only checks substrings (M16, M17) | EVAL-2 AC7 |
+| 4 half-embedded paper passes coverage silently | EVAL-2 AC8 |
+| 5 `EMBEDDING_MODEL` (eval) vs query `--model` configured separately | EVAL-2 AC9 |
+| 6 size | accepted (above) |
+| 7 ADR-0010 filters | interpretation above; noted in RET-1 |
+| 8 `tests/test_evals_data.py` not in CI; AC5 | OPS-H4 (KAN-16). Confirmed: CI's Python job runs `make test-py` (`.github/workflows/ci.yml:44`), so OPS-H4's Makefile change puts the 47 tests in CI. I added an AC that the CI job log shows them |
+| QA r2 finding 7 (EVAL-2 overlap) | EVAL-2 re-scoped: the rerank-endpoint work is done in EVAL-1 and removed from scope |
+
+### Not verified (carried into the PR description)
+No live `make eval` run and no baseline numbers, so there is no before/after. `make test-unit` and `make lint` are covered by CI only.
+The SQL has never run against a real Postgres. Until RET-1 merges, a gate PASS describes the ADR-0010 target ordering, not today's `/v1/ask`.
