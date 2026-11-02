@@ -1,6 +1,6 @@
 # AGENTS.md — Operating manual for the ArxivLens agent team
 
-This repo (`arxivlens-agents`, private) is the team's **workspace and memory**: product docs, decisions, tickets,
+This repo (`arxivlens-agents`, public) is the team's **workspace and memory**: product docs, decisions, tickets,
 designs, QA evidence, agent definitions and the sprint loop. The product itself lives in a separate repo,
 [`MaheshPulivarthi18/ArxivLens`](https://github.com/MaheshPulivarthi18/ArxivLens) (public), which contains **only
 runnable code, tests, evals and CI**. Agents have no memory between sessions; everything they need is in these two repos.
@@ -119,4 +119,4 @@ agents/templates/      task, design, PR, QA     agents/tools/         render_evi
 - Processor and embedder workers are not yet in `docker-compose.yml` (OPS-H1), so `make test-full` needs them by hand.
 - `/v1/ask` answers are templated, not LLM-generated (QA-8), and it does not yet sort by rerank score (ADR-0010, RET-1).
 - Agent sandboxes can't upload files to Jira (media host blocked); link evidence instead.
-- Evidence images live in this **private** repo, so they render in ArxivLens PRs only for people with access to it.
+- Both repos are public: never commit secrets, tokens, credentials or private data to either one. Evidence images render in ArxivLens PRs for everyone.
