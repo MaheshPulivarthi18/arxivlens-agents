@@ -11,5 +11,5 @@ agents/reviews/<TASK-ID>/
     ...
 ```
 
-The Jira ticket links to these files; pm-lead embeds the images (commit-pinned URLs into this private repo) in the
+The Jira ticket links to these files; pm-lead embeds the images (commit-pinned URLs into this repo) in the
 ArxivLens PR description when raising the PR, so the reviewer sees the evidence inside the PR.

@@ -1,6 +1,6 @@
 # arxivlens-agents
 
-Private workspace and memory for the AI agent team that builds
+Public workspace and memory for the AI agent team that builds
 [ArxivLens](https://github.com/MaheshPulivarthi18/ArxivLens). The product repo holds only runnable code; everything
 about *how* it gets built lives here.
 
