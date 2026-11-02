@@ -150,3 +150,81 @@ The PRD §8 Quality target "Recall@5 ≥ 0.80" is still gated with a chunk-level
 
 ## Hand-off
 FAIL → back to ai-engineer. Finding 1 cannot be worked until **Mahesh decides ADR-0006** (PR #3), so the task stays `Blocked (needs ADR-0006)`. For finding 2, pm-lead needs to decide, with the human, between "production sorts by rerank" (a backend and ai change) and "gate what `/v1/ask` actually does" (an ADR), or record that the endpoint fix is enough for this PR. Major 3 is done.
+
+---
+
+# QA report — EVAL-1 · PR #2 · round 3
+
+**Verdict:** PASS (code and tests). **Before the PR is marked ready, pm-lead must update the PR description (R3-7, R3-8; finding 1).**
+**Reviewed commit:** `d83a4c055caa5f9b219d901caedfd71fdcb434ba` · **Date:** 2026-11-02
+**Ticket:** `agents/tasks/EVAL-1.md` · **PRD:** Product PRD §8 Success metrics · **Decisions:** ADR-0006 (Accepted, option 3), ADR-0010 (Accepted, option 1)
+**Inputs used:** Mahesh's PR #2 review ([313](evidence/313-mahesh-review-items.png)), the ticket ACs and the R3 checklist, both ADRs, the diff, and evidence I produced myself. I did not use the developer's round-3 report as evidence. Every claim below comes from my own runs.
+
+**Why PASS:** Every item in Mahesh's review is resolved in code. The gated Recall@5 is now paper-level as ADR-0006 requires. The gated mode follows ADR-0010: a pool of 20 built with the same SQL limits and `ce.model` filter as `search.go`, one cross-encoder call, a stable sort, then the top 5. Coverage is checked per paper and per model. CI is green on the head commit, including the new ownership job. My own mutation run caught 18 of 21 mutants, and the 3 survivors are test-strength nits in code that I checked by reading it. Thresholds and eval cases are unchanged. The one open item from the review, "no Fixes #N", belongs to the PR description. pm-lead owns that (R3-7/R3-8) and has not done it yet.
+
+## Test results
+| Check | Source | Result |
+|---|---|---|
+| Go (vet, gofmt, test, build) | CI | ✅ success on `d83a4c0` ([300](evidence/300-ci-checks.png)) |
+| Python M0 unit tests | CI | ✅ success, but the job only runs `pytest tests/test_m0.py` (3 passed). **`tests/test_evals_data.py` does not run in CI** until OPS-H4 lands ([301](evidence/301-ci-job-logs.png)) |
+| Frontend (lint, test, build) | CI | ✅ success ([300](evidence/300-ci-checks.png)) |
+| Agent ownership check (new) | CI + local | ✅ CI: `Ownership OK for role=ai (1610 changed lines)` with a >400-line warning ([301](evidence/301-ci-job-logs.png)). The local run is identical, exit 0 ([303](evidence/303-scope-ownership.png)) |
+| `python3 -m pytest tests/test_evals_data.py` | local | ✅ 47 passed (round 2 had 33) ([302](evidence/302-unit-tests.png)). The round-3 targeted subset also passes ([309](evidence/309-targeted-tests.png)) |
+| QA mutation testing (21 mutants, scratch copy) | local | 18/21 caught. Survivors: M13, M16, M17 ([310](evidence/310-qa-mutations.png)) |
+| `eval_gate.py --help` / run with no stack | local | ✅ exit 0 / exit 2 "could not run", and no results file is written ([311](evidence/311-acs-at-head.png)) |
+| `make test-unit`, `make lint` | not run locally | No Go 1.25 or npm in the sandbox. CI's Go and Frontend jobs cover them |
+| `make eval` | not run | No Docker, Postgres, HF models or psycopg in the sandbox. No baseline exists, so there are no before/after numbers. `BASELINE.md` says "not run" |
+
+## Mahesh's review (PR #2, on `5001cce`)
+| Item | Status at `d83a4c0` | Evidence |
+|---|---|---|
+| **Blocker 1**: the gated Recall@5 was precision@5-like (`/ min(|rel chunks|,5)`), and an Accepted ADR was needed | ✅ **Resolved.** ADR-0006 is Accepted (option 3). `score_case` dedupes chunks to arXiv IDs in rank order, and `compute_recall_at_k` = `|top-5 papers ∩ rel| / |rel|`. MRR and NDCG@5 use the same paper ranking. `chunk_precision@5` = `|top-5 chunks from rel papers| / 5`. The gate reads only `recall@5` and prints chunk precision as "(info, not gated)". My own scenarios: the ADR example gives recall 1.0 and precision 0.2; duplicate chunks don't raise recall; 6 relevant papers give 0.833. Mutants M01/M02/M03/M08/M09 are caught | [305](evidence/305-adr0006-metric-code.png), [306](evidence/306-adr0006-recall-vs-precision.png), [310](evidence/310-qa-mutations.png) |
+| **Blocker 2**: the gated rerank was a bi-encoder, not the production path | ✅ **Resolved, with the disclosed RET-1 caveat that ADR-0010 allows.** The gate calls `POST /internal/rerank` once over the RRF pool of 20, after a `/healthz` check for `reranker: true`. It stable-sorts and keeps the top 5. A normalised diff against `search.go` shows the same arms (50 each, `ce.model = $2`, k = 60). The only differences are the category filter (a no-op when categories are NULL), the projection, a LEFT JOIN to sections, and the disclosed `c.id` tiebreak. Dropping the `papers` join in the arms doesn't change any rows, because `paper_chunks.paper_id` is `NOT NULL REFERENCES papers`. Production `/v1/ask` still takes only the RRF top 5 unsorted until RET-1 merges. `evals/README.md` and `BASELINE.md` say so explicitly | [307](evidence/307-adr0010-sql-parity.png), [308](evidence/308-rerank-healthz-coverage-code.png), [309](evidence/309-targeted-tests.png) |
+| **Major 3**: partial coverage was treated as covered | ✅ **Resolved, and stricter than before.** Coverage is per arXiv ID and needs at least one `chunk_embeddings` row for the current model. Missing IDs are reported per case, and coverage below 1.0 fails the gate. Mutants M07/M15/M18/M21 are caught | [308](evidence/308-rerank-healthz-coverage-code.png), [310](evidence/310-qa-mutations.png) |
+| **Should-fix**: no "Fixes #N" | ❌ **Not yet handled (pm-lead, R3-7).** The PR body has no "Fixes/Closes #", no statement that there is no GitHub issue, and only a passing KAN-8 link in the header line | [312](evidence/312-pr-description-state.png) |
+
+## Round-3 checklist
+| Item | Status | Evidence |
+|---|---|---|
+| R3-1 paper-level recall; MRR/NDCG on the same ranking | ✅ | [305](evidence/305-adr0006-metric-code.png), [306](evidence/306-adr0006-recall-vs-precision.png) |
+| R3-2 `chunk_precision@5` reported, not gated | ✅ The gate ignores it (M03 is caught) | [305](evidence/305-adr0006-metric-code.png), [310](evidence/310-qa-mutations.png) |
+| R3-3 tests that tell recall from precision; the denominator mutation fails a test | ✅ 7 new metric tests. M01 (`min(|rel|,5)`) is caught | [309](evidence/309-targeted-tests.png), [310](evidence/310-qa-mutations.png) |
+| R3-4 ADR-0010 parity (pool 20, 50/arm, `ce.model`, one call, stable sort, top 5); docs say RET-1 | ✅ M05/M06/M10/M11/M12 are caught. The README and BASELINE state the RET-1 caveat. Finding 3 covers weaknesses in the SQL test | [307](evidence/307-adr0010-sql-parity.png), [310](evidence/310-qa-mutations.png) |
+| R3-5 `/healthz` before any rerank; a failed check gives no summary | ✅ The end-to-end stubbed test checks the order. M04/M14 are caught | [308](evidence/308-rerank-healthz-coverage-code.png), [309](evidence/309-targeted-tests.png) |
+| R3-6 coverage needs embeddings for the current model | ✅ M07/M15 are caught | [308](evidence/308-rerank-healthz-coverage-code.png) |
+| R3-7 PR body: no GitHub issue, link KAN-8 + spec (pm-lead) | ❌ not done yet | [312](evidence/312-pr-description-state.png) |
+| R3-8 PR body reflects round 3 (pm-lead) | ❌ not done. The body still says "BLOCKED… waits for ADR-0006 (Proposed)", never mentions ADR-0010 or RET-1, and has 9 lines of broken link markup in its evidence table | [312](evidence/312-pr-description-state.png) |
+| R3-9 no `agents/` (or docs/.claude/AGENTS.md) files in the PR | ✅ 12 files, all in ai-engineer paths | [303](evidence/303-scope-ownership.png) |
+
+## Acceptance criteria (re-checked at `d83a4c0`)
+| AC | Met? | Evidence |
+|---|---|---|
+| AC1 no hardcoded queries | ✅ | [311](evidence/311-acs-at-head.png) |
+| AC2 sizes (34/22/22, 31 corpus IDs) and corpus membership | ✅ The case files are byte-identical to round 2 | [311](evidence/311-acs-at-head.png), [304](evidence/304-thresholds-cases-unchanged.png) |
+| AC3 `--help` with no infra; with a stack, prints metrics and exits 0/1 | ⚠ partly: `--help` exits 0 and a no-stack run exits 2. The exit-0/1 logic is unit-tested. **Never run against a live stack** | [311](evidence/311-acs-at-head.png), [302](evidence/302-unit-tests.png) |
+| AC4 baseline or "not run" plus the commands | ✅ Rows were updated to the paper-level definition. The file says to re-record after RET-1 | [311](evidence/311-acs-at-head.png) |
+| AC5 `evals/results/` git-ignored | ⚠ delegated to OPS-H4, as allowed by the ticket. It is still not ignored | [311](evidence/311-acs-at-head.png) |
+
+## Regression check
+Threshold values are unchanged (0.80 / 0.90 / 0.95 / 3000 / true). Only the `_source` text changed. `retrieval/answer/refusal.jsonl` and `corpus.txt` are unchanged since round 2 ([304](evidence/304-thresholds-cases-unchanged.png)). No contract files were touched (`shared/events`, `server.go`, `migrations/`).
+
+## PRD fit
+The PRD §8 "Recall@5 ≥ 0.80" row is now gated with the definition Mahesh accepted, on paper-labelled cases, measured with the production cross-encoder in the ADR-0010 ordering. Until RET-1 merges, a PASS on that row describes the target retrieval path, not what `/v1/ask` returns today. The repo docs say this plainly, and the PR description must say it too (ADR-0010).
+
+## Findings
+1. [spec] (pm-lead, required before marking the PR ready) **The PR description is stale** (R3-7, R3-8). It still says "BLOCKED — waits for ADR-0006 (Proposed)". It doesn't mention ADR-0010, RET-1 or round 3, and 9 lines of its evidence table have broken link markup. ADR-0010 says "until RET-1 merges … the PR must say so", so the RET-1 caveat has to be in the body. The body also needs an explicit "No GitHub issue; tracked as Jira KAN-8 + spec" line ([312](evidence/312-pr-description-state.png)).
+2. [nit] **Fail-closed rerank in `rerank_pool` is not tested.** M13 (catch `RerankError` in `rerank_pool` and fall back to tie scores, i.e. RRF order) passes all 47 tests. `make_http_rerank` raising is tested, but no test checks that the error propagates through `run_modes_for_case` / `run_retrieval_evaluation`. Add a test where the rerank function raises and assert that the run raises.
+3. [nit] **The SQL parity test only checks substrings.** It passes when the vector arm's `ORDER BY … LIMIT 50` is removed (M16, the round-2 bug), because the same text appears inside `ROW_NUMBER() OVER (ORDER BY …)`. It also passes with `ORDER BY rrf_score ASC` (M17). The code is correct today ([307](evidence/307-adr0010-sql-parity.png)), but the drift guard is weak. A stronger test would compare the normalised CTE text against `search.go`, as I did in 307, or run the SQL in an OPS-H1 integration test.
+4. [nit] **Partially embedded papers count as covered.** `COVERAGE_SQL` needs only one embedded chunk per paper. A paper that is half-embedded passes coverage, but dense/RRF can see only part of it, so recall may come out low with no warning. Consider adding embedded and total chunk counts per paper to the summary.
+5. [nit] **Where the model name comes from.** The eval reads `EMBEDDING_MODEL` (Python config), while the Go query service uses its `--model` flag (default `BAAI/bge-base-en-v1.5`). They agree by default but are configured separately. `embedding_model` is recorded in the summary, which helps.
+6. [nit] Size: 1610 changed lines in total (CI warning). The round-3 delta is mostly the tests the review asked for, so I don't recommend a split.
+7. [spec] (pm-lead) **ADR-0010 wording.** The Options text says "/v1/ask keeps its relevance filters … The eval gates exactly that", but the Decision bullets list only the pool, limits, filter, endpoint, sort and ties. The retrieval gate does not apply the `rag.go` rerank-score filters (< 0.45, and appendix/table < 0.70). The answer eval covers them end to end through `/v1/ask`. Please confirm that reading in the ADR or in RET-1.
+8. [spec] Still open from rounds 1–2: `tests/test_evals_data.py` and AC5 are not in CI or `.gitignore` until OPS-H4 (KAN-16) lands ([301](evidence/301-ci-job-logs.png)). Nothing in CI protects the 47 eval tests today.
+
+## Missing tests
+- A rerank error inside `run_modes_for_case` / `run_retrieval_evaluation` propagates (M13).
+- A normalised SQL comparison against `search.go`, or a Postgres integration test, that catches ORDER BY or LIMIT drift (M16, M17).
+- A live `make eval` against a seeded stack (AC3 exit 0/1 and the first baseline). This needs OPS-H1 infra and a human run.
+
+## Hand-off
+**PASS → pm-lead final review.** Before marking PR #2 ready, rewrite the PR description per finding 1 (R3-7, R3-8, the ADR-0010 RET-1 statement, and fixing the broken links) and link these round-3 images. The nits (2–5) can go to EVAL-2 / OPS-H4; none of them blocks this PR.

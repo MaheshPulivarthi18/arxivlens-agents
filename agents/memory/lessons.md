@@ -28,3 +28,4 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 
 ## qa-reviewer
 - [2026-11-02][EVAL-1] Round-1 QA passed a gate whose PRD metric definition was pending ADR-0006 (flagged only as [spec]) → a gated metric that doesn't match the PRD definition is [blocking] until the ADR is Accepted. (seen 1×)
+- [2026-11-02][EVAL-1] A SQL "parity" test built from substring asserts passed with the vector arm's `ORDER BY … LIMIT` removed, because the same text sits inside `ROW_NUMBER() OVER (ORDER BY …)` → to check SQL mirroring, diff the normalised query text against the source of truth (QA r3 evidence 307) and mutate the ORDER BY/LIMIT clauses specifically. (seen 1×)

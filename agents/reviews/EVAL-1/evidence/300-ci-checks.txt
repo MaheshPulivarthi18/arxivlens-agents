@@ -1,0 +1,6 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/d83a4c0.../check-runs --jq '.check_runs[] | name|status|conclusion|head_sha|url'
+Agent ownership check | completed | success | head_sha=d83a4c0 | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41451207215/job/125296581931
+Go (vet, gofmt, test, build) | completed | success | head_sha=d83a4c0 | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41451207215/job/125296581555
+Python M0 unit tests | completed | success | head_sha=d83a4c0 | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41451207215/job/125296581496
+Frontend (lint, test, build) | completed | success | head_sha=d83a4c0 | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41451207215/job/125296581102
+

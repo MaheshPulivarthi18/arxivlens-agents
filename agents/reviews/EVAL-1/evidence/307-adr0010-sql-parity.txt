@@ -1,0 +1,38 @@
+$ python3 /tmp/claude-0/qa3/sql_parity.py
+Placeholders normalised: $1/%(vec)s=<vec> $2/%(model)s=<model> $4/%(query)s=<query> $5/%(pool)s=<limit>
+--- internal/query/search.go (production HybridSearch)
++++ scripts/evaluate_retrieval.py RRF_POOL_SQL (eval)
+@@ -5,5 +5,3 @@
+ JOIN paper_chunks pc ON pc.id = ce.chunk_id
+-JOIN papers p ON p.id = pc.paper_id
+ WHERE ce.model = <model>
+-AND ($3::text[] IS NULL OR p.categories && $3)
+ ORDER BY ce.embedding <=> <vec>::halfvec
+@@ -14,7 +12,4 @@
+ ROW_NUMBER() OVER (ORDER BY ts_rank_cd(pc.content_tsv, q) DESC) AS rank
+-FROM paper_chunks pc
+-JOIN papers p ON p.id = pc.paper_id,
+-websearch_to_tsquery('english', <query>) q
++FROM paper_chunks pc, websearch_to_tsquery('english', <query>) q
+ WHERE pc.content_tsv @@ q
+-AND ($3::text[] IS NULL OR p.categories && $3)
+ ORDER BY ts_rank_cd(pc.content_tsv, q) DESC
+@@ -22,3 +17,3 @@
+ )
+-SELECT c.id, c.content, p.arxiv_id, p.title, COALESCE(ps.title, '') AS section_title,
++SELECT c.id, p.arxiv_id, c.content,
+ COALESCE(1.0/(60 + v.rank), 0) + COALESCE(1.0/(60 + k.rank), 0) AS rrf_score
+@@ -26,3 +21,2 @@
+ JOIN papers p ON p.id = c.paper_id
+-LEFT JOIN paper_sections ps ON ps.id = c.section_id
+ LEFT JOIN vector_hits v ON v.chunk_id = c.id
+@@ -30,3 +24,3 @@
+ WHERE v.chunk_id IS NOT NULL OR k.chunk_id IS NOT NULL
+-ORDER BY rrf_score DESC
++ORDER BY rrf_score DESC, c.id
+ LIMIT <limit>;
+
+Eval pool parameters: RRF_POOL_SIZE=20 RESULT_LIMIT=5 RRF_ARM_LIMIT=50 RRF_K=60 K=5
+Production /v1/ask today: rag.go:66 HybridSearch(ctx, question, categories, maxCitations(=5), true); search.go:128-139 attaches RerankScore, no sort (RET-1 pending)
+
+[exit code 0]

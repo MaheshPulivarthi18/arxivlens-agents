@@ -1,0 +1,37 @@
+$ python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k recall or precision or dedupe or adr0010 or rerank_pool or mirrors or healthz or coverage or partially or production or cross_encoder
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+rootdir: /home/claude/arxivlens-agents/app
+plugins: platformdirs-4.13.3, anyio-4.15.1
+collecting ... collected 47 items / 21 deselected / 26 selected
+
+tests/test_evals_data.py::test_gate_fails_when_rerank_not_from_production_path PASSED [  3%]
+tests/test_evals_data.py::test_gated_mode_calls_production_rerank_endpoint PASSED [  7%]
+tests/test_evals_data.py::test_adr0010_parity_pool_one_call_stable_ties_top5 PASSED [ 11%]
+tests/test_evals_data.py::test_rerank_pool_empty_makes_no_call PASSED    [ 15%]
+tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go PASSED     [ 19%]
+tests/test_evals_data.py::test_one_relevant_paper_filling_top5_is_full_recall PASSED [ 23%]
+tests/test_evals_data.py::test_best_chunk_first_then_other_papers_is_full_recall_low_precision PASSED [ 26%]
+tests/test_evals_data.py::test_two_relevant_papers_one_retrieved_is_half_recall PASSED [ 30%]
+tests/test_evals_data.py::test_duplicate_chunks_do_not_raise_recall PASSED [ 34%]
+tests/test_evals_data.py::test_paper_level_mrr_and_ndcg_use_deduped_ranking PASSED [ 38%]
+tests/test_evals_data.py::test_recall_denominator_is_all_relevant_papers_not_capped_at_k PASSED [ 42%]
+tests/test_evals_data.py::test_chunk_precision_divides_by_k_even_with_fewer_hits PASSED [ 46%]
+tests/test_evals_data.py::test_gate_ignores_chunk_precision PASSED       [ 50%]
+tests/test_evals_data.py::test_production_rerank_bad_response_raises[payload0] PASSED [ 53%]
+tests/test_evals_data.py::test_production_rerank_bad_response_raises[payload1] PASSED [ 57%]
+tests/test_evals_data.py::test_production_rerank_bad_response_raises[payload2] PASSED [ 61%]
+tests/test_evals_data.py::test_production_rerank_http_error_raises PASSED [ 65%]
+tests/test_evals_data.py::test_require_cross_encoder_rejects_bi_encoder_fallback[health0-True] PASSED [ 69%]
+tests/test_evals_data.py::test_require_cross_encoder_rejects_bi_encoder_fallback[health1-False] PASSED [ 73%]
+tests/test_evals_data.py::test_require_cross_encoder_rejects_bi_encoder_fallback[health2-False] PASSED [ 76%]
+tests/test_evals_data.py::test_coverage_two_paper_case_with_one_indexed_reports_missing_id PASSED [ 80%]
+tests/test_evals_data.py::test_coverage_requires_embeddings_for_current_model PASSED [ 84%]
+tests/test_evals_data.py::test_gate_fails_when_a_two_paper_case_is_partially_indexed PASSED [ 88%]
+tests/test_evals_data.py::test_run_checks_healthz_before_any_rerank_and_reports_metrics PASSED [ 92%]
+tests/test_evals_data.py::test_run_with_failed_healthz_yields_no_summary[health0] PASSED [ 96%]
+tests/test_evals_data.py::test_run_with_failed_healthz_yields_no_summary[health1] PASSED [100%]
+
+====================== 26 passed, 21 deselected in 0.12s =======================
+
+[exit code 0]

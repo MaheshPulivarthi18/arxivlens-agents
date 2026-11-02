@@ -1,0 +1,27 @@
+$ python3 /tmp/claude-0/qa3/mutate.py
+baseline (unmutated copy): rc=0 47 passed in 0.23s
+M01 recall denominator -> min(|rel|,5)                  CAUGHT   1 failed, 25 passed in 0.19s
+M02 skip paper dedupe in score_case                     CAUGHT   1 failed, 20 passed in 0.20s
+M03 gate reads chunk_precision@5 as recall              CAUGHT   1 failed, 7 passed in 0.13s
+M04 remove /healthz cross-encoder check                 CAUGHT   1 failed, 44 passed in 0.21s
+M05 rerank pool size 20 -> 10                           CAUGHT   1 failed, 16 passed in 0.13s
+M06 unstable sort (ties reversed)                       CAUGHT   1 failed, 17 passed in 0.15s
+M07 coverage without ce.model filter                    CAUGHT   1 failed, 37 passed in 0.16s
+M08 MRR on chunk ranking                                CAUGHT   1 failed, 24 passed in 0.14s
+M09 NDCG on chunk ranking                               CAUGHT   1 failed, 20 passed in 0.12s
+M10 rerank only RRF top-5                               CAUGHT   1 failed, 16 passed in 0.14s
+M11 drop ce.model in RRF pool vector arm                CAUGHT   1 failed, 19 passed in 0.12s
+M12 no top-5 truncation after rerank                    CAUGHT   1 failed, 16 passed in 0.13s
+M13 rerank failure falls back to RRF order              SURVIVED 47 passed in 0.18s
+M14 healthz accepts missing 'reranker' key              CAUGHT   1 failed, 35 passed in 0.16s
+M15 coverage on paper_chunks only                       CAUGHT   1 failed, 37 passed in 0.14s
+M16 vector arm: drop ORDER BY before LIMIT (round-2 bug) SURVIVED 47 passed in 0.18s
+M17 pool ORDER BY rrf_score ASC                         SURVIVED 47 passed in 0.18s
+M18 skip case only if ALL relevant papers missing       CAUGHT   1 failed, 44 passed in 0.22s
+M19 Dense mode drops ce.model filter                    CAUGHT   1 failed, 19 passed in 0.13s
+M20 version suffix not normalised                       CAUGHT   1 failed, 24 passed in 0.14s
+M21 gate: coverage >= 0.9 instead of == 1.0             CAUGHT   1 failed, 12 passed in 0.12s
+
+18/21 applied mutants caught
+
+[exit code 0]

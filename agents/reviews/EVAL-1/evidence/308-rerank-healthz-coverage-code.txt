@@ -1,0 +1,43 @@
+$ bash -c echo "--- scripts/evaluate_retrieval.py:101-112 (rerank_pool) ---"; sed -n "101,112p" scripts/evaluate_retrieval.py; echo "--- :184-191 (COVERAGE_SQL) ---"; sed -n "184,191p" scripts/evaluate_retrieval.py; echo "--- :297-303, 310-319 (run_retrieval_evaluation) ---"; sed -n "297,303p;310,319p" scripts/evaluate_retrieval.py
+--- scripts/evaluate_retrieval.py:101-112 (rerank_pool) ---
+def rerank_pool(query: str, pool: Sequence[Tuple[int, str, str]], rerank: RerankFn,
+                limit: int = RESULT_LIMIT) -> List[Hit]:
+    """ADR-0010 ordering: one rerank call over the whole (chunk_id, arxiv_id, content) RRF pool, stable sort by
+    score descending (ties keep RRF order), truncate to `limit`. A rerank failure raises (production falls back
+    to RRF order; the eval must fail closed instead of measuring that fallback as the reranker)."""
+    if not pool:
+        return []
+    scores = rerank(query, [c[2] for c in pool])
+    order = sorted(range(len(pool)), key=lambda i: -scores[i])  # sorted() is stable
+    return [(pool[i][0], pool[i][1]) for i in order[:limit]]
+
+
+--- :184-191 (COVERAGE_SQL) ---
+# A paper is covered only if some chunk has an embedding for the current model (dense/RRF can't return it otherwise).
+COVERAGE_SQL = """
+    SELECT DISTINCT p.arxiv_id
+    FROM papers p
+    JOIN paper_chunks pc ON pc.paper_id = p.id
+    JOIN chunk_embeddings ce ON ce.chunk_id = pc.id
+    WHERE ce.model = %(model)s AND p.arxiv_id = ANY(%(ids)s);
+"""
+--- :297-303, 310-319 (run_retrieval_evaluation) ---
+    missing_by_case: Dict[str, List[str]] = {}
+
+    # Before any DB work or rerank call: refuse to measure the bi-encoder fallback as the reranker.
+    require_cross_encoder(embedder_url, timeout_s)
+    rerank = make_http_rerank(embedder_url, timeout_s)
+    conn = psycopg.connect(config.postgres_url)
+    embedder = BGEEmbedder(model_name=model)
+            query = q_item["query"]
+            relevant_arxiv_ids = list(q_item["relevant_arxiv_ids"])
+
+            missing = missing_for_case(cur, relevant_arxiv_ids, model)
+            if missing:
+                # Skipped cases make coverage < 1.0, which fails the gate.
+                skipped.append(q_item["id"])
+                missing_by_case[q_item["id"]] = missing
+                continue
+
+
+[exit code 0]

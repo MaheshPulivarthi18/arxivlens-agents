@@ -1,0 +1,12 @@
+$ python3 /tmp/claude-0/qa3/adr0006_demo.py
+scenario                                           recall@5    mrr  ndcg@5  chunkP@5
+1 relevant paper fills top 5 (5 chunks of A)          1.000  1.000   1.000     1.000
+ADR example: best chunk first, 4 other papers         1.000  1.000   1.000     0.200
+2 relevant (A,B), only A retrieved (x5)               0.500  1.000   0.613     1.000
+2 relevant (A,B): A, C                                0.500  1.000   0.613     0.200
+2 relevant (A,B): A, A, A, C (duplicate chunks)       0.500  1.000   0.613     0.600
+6 relevant, 5 retrieved (denominator |rel|)           0.833  1.000   1.000     1.000
+relevant A at paper-rank 3: C C C D A                 1.000  0.333   0.500     0.200
+versioned id A+'v7' at rank 1                         1.000  1.000   1.000     0.200
+
+[exit code 0]

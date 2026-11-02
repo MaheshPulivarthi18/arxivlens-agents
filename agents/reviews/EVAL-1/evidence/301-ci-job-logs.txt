@@ -1,0 +1,12 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/{125296581931,125296581496}/logs | grep (ownership / test-py lines)
+== Agent ownership check (job 125296581931) ==
+##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+.github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+##[warning]1610 changed lines (> 400). Consider splitting the change.
+Ownership OK for role=ai (1610 changed lines)
+
+== Python M0 unit tests (job 125296581496): test command and result ==
+##[group]Run make test-py
+python3 -m pytest -q tests/test_m0.py
+3 passed in 6.06s
+

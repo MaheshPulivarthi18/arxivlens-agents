@@ -1,0 +1,26 @@
+$ bash -c echo "\$ git diff --name-only origin/main...HEAD"; git diff --name-only origin/main...HEAD; echo; echo "\$ git diff --name-only origin/main...HEAD | grep -E \"^(agents|docs)/|\.claude/|(AGENTS|CLAUDE)\.md\" (expect none)"; git diff --name-only origin/main...HEAD | grep -E "^(agents|docs)/|\.claude/|(AGENTS|CLAUDE)\.md" || echo "(none)"; echo; echo "\$ .github/scripts/ownership-check.sh origin/main agent/ai/EVAL-1"; .github/scripts/ownership-check.sh origin/main agent/ai/EVAL-1; echo "exit=$?"; echo; git diff --shortstat origin/main...HEAD
+$ git diff --name-only origin/main...HEAD
+README.md
+evals/BASELINE.md
+evals/README.md
+evals/answer.jsonl
+evals/corpus.txt
+evals/refusal.jsonl
+evals/retrieval.jsonl
+evals/thresholds.json
+scripts/eval_gate.py
+scripts/evaluate_answers.py
+scripts/evaluate_retrieval.py
+tests/test_evals_data.py
+
+$ git diff --name-only origin/main...HEAD | grep -E "^(agents|docs)/|\.claude/|(AGENTS|CLAUDE)\.md" (expect none)
+(none)
+
+$ .github/scripts/ownership-check.sh origin/main agent/ai/EVAL-1
+::warning::1610 changed lines (> 400). Consider splitting the change.
+Ownership OK for role=ai (1610 changed lines)
+exit=0
+
+ 12 files changed, 1432 insertions(+), 178 deletions(-)
+
+[exit code 0]

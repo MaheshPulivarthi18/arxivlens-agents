@@ -1,0 +1,70 @@
+$ bash -c echo "--- scripts/evaluate_retrieval.py:126-180 ---"; sed -n "126,180p" scripts/evaluate_retrieval.py; echo; echo "--- scripts/eval_gate.py:66-70, 96-99 ---"; sed -n "66,70p;96,99p" scripts/eval_gate.py
+--- scripts/evaluate_retrieval.py:126-180 ---
+def dedupe_to_papers(ranked_arxiv_ids: Iterable[str]) -> List[str]:
+    """Collapse a chunk ranking to a paper ranking: each arXiv ID once, at its best (first) rank."""
+    seen, papers = set(), []
+    for a in ranked_arxiv_ids:
+        a = normalize_arxiv_id(a)
+        if a not in seen:
+            seen.add(a)
+            papers.append(a)
+    return papers
+
+
+def compute_mrr(ranked_doc_ids: Sequence[Hashable], relevant_doc_ids: Iterable[Hashable]) -> float:
+    relevant = set(relevant_doc_ids)
+    for rank, doc_id in enumerate(ranked_doc_ids, start=1):
+        if doc_id in relevant:
+            return 1.0 / rank
+    return 0.0
+
+
+def compute_recall_at_k(ranked_doc_ids: Sequence[Hashable], relevant_doc_ids: Iterable[Hashable],
+                        k: int = K) -> float:
+    """Standard recall: |top-k ∩ relevant| / |relevant|. Pass a deduped paper ranking (ADR-0006)."""
+    relevant = set(relevant_doc_ids)
+    if not relevant:
+        return 0.0
+    return len(set(ranked_doc_ids[:k]) & relevant) / len(relevant)
+
+
+def compute_ndcg_at_k(ranked_doc_ids: Sequence[Hashable], relevant_doc_ids: Iterable[Hashable],
+                      k: int = K) -> float:
+    relevant = set(relevant_doc_ids)
+    dcg = sum(1.0 / math.log2(i + 2) for i, doc_id in enumerate(ranked_doc_ids[:k]) if doc_id in relevant)
+    idcg = sum(1.0 / math.log2(i + 2) for i in range(min(len(relevant), k)))
+    return (dcg / idcg) if idcg > 0 else 0.0
+
+
+def compute_chunk_precision_at_k(ranked_chunk_arxiv_ids: Sequence[str], relevant_arxiv_ids: Iterable[str],
+                                 k: int = K) -> float:
+    """Diagnostic only (ADR-0006, not gated): share of the top-k chunks that come from any relevant paper."""
+    relevant = {normalize_arxiv_id(a) for a in relevant_arxiv_ids}
+    return sum(1 for a in ranked_chunk_arxiv_ids[:k] if normalize_arxiv_id(a) in relevant) / k
+
+
+def score_case(hits: Sequence[Hit], relevant_arxiv_ids: Sequence[str]) -> Dict[str, float]:
+    """All metrics for one mode on one case. `hits` = ranked (chunk_id, arxiv_id)."""
+    chunk_papers = [a for _, a in hits]
+    papers = dedupe_to_papers(chunk_papers)
+    relevant = dedupe_to_papers(relevant_arxiv_ids)
+    return {
+        "recall@5": compute_recall_at_k(papers, relevant, K),
+        "mrr": compute_mrr(papers, relevant),
+        "ndcg@5": compute_ndcg_at_k(papers, relevant, K),
+        "chunk_precision@5": compute_chunk_precision_at_k(chunk_papers, relevant, K),
+    }
+
+
+--- scripts/eval_gate.py:66-70, 96-99 ---
+    gated = modes.get(GATED_MODE) if production_rerank else None
+    checks.append(_check("retrieval_coverage", None if retrieval is None else
+                         retrieval["cases_evaluated"] / max(1, retrieval["cases_total"]), "==", 1.0))
+    checks.append(_check(f"recall@5 ({GATED_MODE})", None if gated is None else gated["recall@5"],
+                         ">=", thresholds["retrieval_recall_at_5_min"]))
+        print(f"{c['metric']:<48} | {val:>9} | {c['op'] + ' ' + str(c['target']):>10} | {result}")
+    cp = ((retrieval or {}).get("modes", {}).get(GATED_MODE) or {}).get("chunk_precision@5")
+    if cp is not None:
+        print(f"{'(info, not gated) chunk_precision@5 (' + GATED_MODE + ')':<48} | {cp:>9.4f} |")
+
+[exit code 0]

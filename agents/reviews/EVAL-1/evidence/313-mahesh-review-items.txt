@@ -1,0 +1,16 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/pulls/2/reviews --jq '.[0]' (first 14 lines)
+review by MaheshPulivarthi18, state=COMMENTED, submitted 2026-11-01T18:56:34Z, on commit 5001cce
+
+**Needs work before review.**
+
+## Must fix
+
+- Review (blocker): `scripts/evaluate_retrieval.py:45`: The value gated as PRD Recall@5 is not recall over the paper-labelled eval set. The caller expands each relevant paper to all of its chunks, and compute_recall_at_k divides hits by min(relevant_chunks, 5); once a paper has at least five chunks, this is effectively precision@5 and rewards retrieving duplicate chunks from one paper. The PR itself notes that the definition is awaiting ADR-0006, but repository rules require an Accepted ADR before establishing this shared quality contract.
+- Review (blocker): `scripts/evaluate_retrieval.py:189`: The mode gated as “Hybrid RRF + Rerank” reranks candidates with another BGE bi-encoder dot product, while production /v1/ask uses the /internal/rerank cross-encoder. Consequently, the PRD comparison can pass or fail independently of the production retrieval path, despite eval_gate.py describing this as the configuration /v1/ask uses.
+
+## Should fix
+
+- No linked issue: the description has no "Fixes #N" or "Closes #N".
+- Review (major): `scripts/evaluate_retrieval.py:95`: Retrieval coverage only marks a case skipped when none of its relevant papers has chunks. For a valid case with multiple relevant_arxiv_ids, one indexed paper and one missing paper is treated as fully covered, and metrics are calculated after silently dropping the missing paper. This violates the gate's fail-closed coverage claim.
+
+

@@ -1,0 +1,32 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/pulls/2 --jq .body | head/grep (counts per pattern)
+PR #2: draft=true  head=d83a4c0  updated_at=2026-11-02T13:14:03Z
+
+--- first 6 lines of PR body ---
+> **Status (2026-11-02): BLOCKED — not ready to merge.** Your review (3 items) was reworked in f750bb9; QA round 2 = **FAIL** ([report](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2#issuecomment-6566346713)).
+> - Blocker 1 (Recall@5 ≈ precision@5): waits for **your decision on ADR-0006** (Proposed, PR #3). Definition intentionally unchanged.
+> - Blocker 2 (rerank): the gated mode now calls production `/internal/rerank` (fails closed). Remaining gap: `/v1/ask` never sorts by rerank score (`internal/query/search.go`), so the gated ordering ≠ what users get. **Needs yo
+> - Major 3 (per-paper coverage): fixed.
+> The sections below describe round 1 and are kept for history; the "fixed later in EVAL-2" note on the bi-encoder is superseded.
+
+
+--- grep -niE 'fixes #|closes #|KAN-8|github issue|round 3|d83a4c0|ADR-0006|ADR-0010|RET-1' (count per pattern) ---
+fixes #: 0
+closes #: 0
+KAN-8: 1
+github issue: 0
+round 3: 0
+d83a4c0: 0
+ADR-0006: 3
+ADR-0010: 0
+RET-1: 0
+Proposed: 2
+bi-encoder: 2
+
+--- lines mentioning ADR-0006 / Proposed ---
+2:> - Blocker 1 (Recall@5 ≈ precision@5): waits for **your decision on ADR-0006** (Proposed, PR #3). Definition intentionally unchanged.
+62:| Recall@5 is chunk-level (precision@5-like) | ADR-0006 (Proposed, on PR #3). **Needs your decision** |
+74:**Reviewer focus:** (1) decide ADR-0006 (Recall@5 definition) before the first baseline is recorded; (2) confirm the strict gate semantics (coverage = 1.0, any `/v1/ask` error fails); (3) spot-chec
+
+--- malformed link markup (lines containing '``'''') ---
+9
+

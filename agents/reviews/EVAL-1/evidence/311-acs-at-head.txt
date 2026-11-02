@@ -1,0 +1,32 @@
+$ bash /tmp/claude-0/qa3/acs.sh
+$ pytest -k "hardcoded or schema_size or corpus_ids or unique_across"   # AC1 + AC2 tests
+6 passed, 41 deselected in 0.04s
+
+$ wc -l evals/{retrieval,answer,refusal}.jsonl; corpus IDs
+  34 evals/retrieval.jsonl
+  22 evals/answer.jsonl
+  22 evals/refusal.jsonl
+  78 total
+corpus IDs: 31
+
+$ PYTHONPATH=. python3 scripts/eval_gate.py --help | head -4
+usage: eval_gate.py [-h] [--api-url API_URL] [--embedder-url EMBEDDER_URL]
+                    [--thresholds THRESHOLDS] [--results-dir RESULTS_DIR]
+                    [--timeout TIMEOUT] [--skip-retrieval] [--skip-answers]
+
+exit=0
+
+$ PYTHONPATH=. python3 scripts/eval_gate.py --results-dir /tmp/claude-0/qa3/res   # no stack in sandbox
+eval could not run: ModuleNotFoundError: No module named 'psycopg'
+exit=2
+ls: cannot access '/tmp/claude-0/qa3/res': No such file or directory
+
+$ grep -n "not run" evals/BASELINE.md | head -3
+3:**Status: not run: infra unavailable in agent sandbox** (2026-11-01, EVAL-1; definitions updated 2026-11-02)
+22:| Recall@5, paper-level (ADR-0006), Hybrid RRF + Rerank | ≥ 0.80 | not run |
+23:| (info, not gated) chunk_precision@5, Hybrid RRF + Rerank | — | not run |
+
+$ git check-ignore -v evals/results/x.json
+exit=1 (1 = not ignored; AC5 delegated to OPS-H4)
+
+[exit code 0]
