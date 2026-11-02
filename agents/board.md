@@ -36,7 +36,6 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
-| [OPS-H3](tasks/OPS-H3.md) | Baseline Go unit tests (arXiv ID, Atom parsing, retry backoff) | backend-engineer | [#6](https://github.com/MaheshPulivarthi18/ArxivLens/pull/6) | QA PASS r1 · PM APPROVE (KAN-15) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -45,6 +44,8 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the OPS-H3 review: `ExtractCleanArxivID` should match only a whole ID and support old-style IDs the crawler stores (needs a product decision); add more pinning tests; add `go test -cover` to CI; make the retry sleep injectable (see OPS-H3 Notes)
+- From the #8 review: some code comments cite PRD sections (`§4`, `§6 Tier 1`) that now live in this repo; reword or link them (backend/ai, nit)
 - QA-9 Streaming answers (frontend + ai) — after QA-8
 - OTLP span export to Jaeger/Tempo (backend) — Technical PRD §11 P1
 - Prometheus metrics: consumer lag, DLQ depth, stage latency (backend) + OPS-6 dashboard (frontend)
@@ -61,4 +62,6 @@ Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and 
 ## Done
 | ID | Title | PR |
 |---|---|---|
+| [OPS-H3](tasks/OPS-H3.md) | Baseline Go unit tests (arXiv ID, Atom parsing, retry backoff) | ArxivLens [#6](https://github.com/MaheshPulivarthi18/ArxivLens/pull/6) → 72c82ac (KAN-15) |
+| REPO-SPLIT | ArxivLens is code-only; planning moved here | ArxivLens [#8](https://github.com/MaheshPulivarthi18/ArxivLens/pull/8) → 18a3cf9 |
 | [PM-1](tasks/PM-1.md) | Reconcile PRD status columns + acceptance criteria (QA PASS r2 · PM APPROVE) | ArxivLens #3 closed; content landed in arxivlens-agents' first commit (repo split, approved by Mahesh 2026-11-02) |

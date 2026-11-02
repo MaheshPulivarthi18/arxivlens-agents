@@ -6,7 +6,7 @@
 | **Priority** | P1 |
 | **PRD ref** | ING-1, ING-4, ING-7, OPS-1 |
 | **Depends on** | — |
-| **Status** | Ready |
+| **Status** | Done (ArxivLens #6 squash-merged as 72c82ac on 2026-11-02, after an independent review) |
 
 ## Goal
 The Go codebase has no `_test.go` files, so CI can only check that it compiles. Add fast, infra-free tests around
@@ -51,3 +51,13 @@ may not run locally. In that case `gofmt -l .` is the only local check; AC1–AC
   could not run (Go 1.24.7, module deps not cached, proxy blocked). New tests pass under Go 1.24 in a stdlib-only scratch
   copy, and the real `crawler.go` passes `go vet` against stubbed db/kafka/events. `tests/test_m2_pipeline.py` not run (no infra).
   AC1 awaits the CI run on the PR.
+- 2026-11-02 (orchestrator) **Merged**: an independent review by a fresh-context agent re-proved that behaviour is unchanged
+  (old loop vs `parseAtomFeed` on identical edge-case inputs gave identical records and errors) and confirmed the new tests
+  ran in CI on the head. Verdict MERGE WITH FOLLOW-UPS. It was squash-merged so the temporary evidence files that were in
+  the branch history stay out of ArxivLens. Follow-ups for pm-lead to spec (see board backlog):
+  - `ExtractCleanArxivID` matches IDs inside longer numbers (`2307.086912` → `2307.08691`, `12307.08691` → `2307.08691`)
+    and takes the first of several IDs. It also rejects old-style IDs that the crawler stores (`cs/0601001`,
+    `math.GT/0309136`). This needs a product decision (F3).
+  - More pinning tests: non-RFC3339 `<published>`, an empty category term, an old-style `<id>`, `arxiv:primary_category`
+    in the fixture, and `arXiv:`/`export.arxiv.org` ID inputs (F2). Rename the misleading `1706.0376` case.
+  - `go test -cover` in CI (F1). Make the consumer's sleep injectable so the real retry loop and DLQ path are testable.
