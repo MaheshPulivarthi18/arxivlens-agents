@@ -20,6 +20,7 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-01][SETUP] Eval queries are hardcoded inside `scripts/evaluate_retrieval.py` → don't add more there; EVAL-1 moves them to `evals/`. (seen 1×)
 - [2026-11-01][EVAL-1] The first gate draft let failed /v1/ask calls drop out of the gated metrics, so a dead service could PASS → eval gates must fail closed: count errors, put failures into latency (timeouts at ≥ timeout), and add a test where some requests fail. (seen 1×)
 - [2026-11-02][EVAL-1] Calling the production rerank endpoint still didn't measure production, because `/v1/ask` never orders by the rerank score → when a gate claims to measure "the production path", trace the whole path (candidate pool, filters, ordering), not just the model call. (seen 1×)
+- [2026-11-02][EVAL-1] When copying production SQL into the eval, copy it literally: the round-2 eval's vector CTE had `LIMIT` with no `ORDER BY`, so it returned arbitrary rows. Add a test that reads the Go source and asserts the mirrored fragments, so drift fails CI. (seen 1×)
 
 ## backend-engineer
 

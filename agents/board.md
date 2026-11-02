@@ -23,11 +23,11 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## In progress
 | ID | Title | Owner | Branch |
 |---|---|---|---|
-| [EVAL-1](tasks/EVAL-1.md) | Versioned golden eval sets + `make eval` gate: **rework round 3** from Mahesh's review (checklist R3-1..R3-9 in the spec) | ai-engineer | `agent/ai/EVAL-1` · PR [#2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2) (back to draft) |
 
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
+| [EVAL-1](tasks/EVAL-1.md) | Versioned golden eval sets + `make eval` gate: round 3 pushed (`d83a4c0`; R3-1..6, R3-9 done; R3-7/8 pm-lead) → QA round 3 | ai-engineer | PR [#2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2) (draft) |
 
 ## PM review
 | ID | Title | Owner | PR |
