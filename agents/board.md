@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-02 by pm-lead (EVAL-1 round 3 APPROVE; PR #2 raised; EVAL-2 re-scoped)
+Last updated: 2026-11-02 by pm-lead (RET-1 design approved; AI-4 specced)
 
 WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 
@@ -17,12 +17,12 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | [OPS-H4](tasks/OPS-H4.md) | `.gitignore` evals/results + run eval data tests in `make test-unit` | backend-engineer | P1 | EVAL-1 |
 | [AI-2](tasks/AI-2.md) | Fail closed when support-check embedding fails in `rag.go` | ai-engineer | P1 | AI-1 |
 | [AI-3](tasks/AI-3.md) | Batch embedding in RAG validation | ai-engineer | P1 | AI-1, AI-2 |
-| [RET-1](tasks/RET-1.md) | `/v1/ask` + `/v1/search` rerank a 20-candidate pool and sort by rerank score (ADR-0010) | backend-engineer | P0 | ADR-0010 ✅; merge after EVAL-1 |
 | [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate + eval-test hardening (EVAL-1 QA r3 nits, AC6–AC9) | ai-engineer | P2 | EVAL-1 |
 
 ## In progress
 | ID | Title | Owner | Branch |
 |---|---|---|---|
+| [RET-1](tasks/RET-1.md) | `/v1/ask` + `/v1/search` rerank a 20-candidate pool and sort by rerank score (ADR-0010) — design approved 2026-11-02 with 8 conditions | backend-engineer | `agent/backend/RET-1` |
 
 ## In QA
 | ID | Title | Owner | PR |
@@ -41,6 +41,7 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
 | [QA-8](tasks/QA-8.md) | LLM answer synthesis behind citation validation | ai-engineer | ADR-0001, ADR-0002 (human decision), EVAL-1, AI-1 |
+| [AI-4](tasks/AI-4.md) | `/v1/ask` passes trace ID to `HybridSearch`; harden ADR-0010 parity guard | ai-engineer | RET-1, EVAL-1 merged |
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)

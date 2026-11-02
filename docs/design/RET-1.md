@@ -1,6 +1,6 @@
 # Tech design — RET-1: `/v1/ask` and `/v1/search` rerank a candidate pool and return results sorted by rerank score
 
-**Author:** backend-engineer · **Ticket:** `agents/tasks/RET-1.md` · **PRD:** QA-1, QA-2 (Product PRD §6.2); Technical PRD §7.1; ADR-0010 (Accepted) · **Status:** Draft
+**Author:** backend-engineer · **Ticket:** `agents/tasks/RET-1.md` · **PRD:** QA-1, QA-2 (Product PRD §6.2); Technical PRD §7.1; ADR-0010 (Accepted) · **Status:** Approved (pm-lead, 2026-11-02, with binding conditions below)
 
 ## Problem
 `SearchEngine.HybridSearch(rerank=true)` asks Postgres for exactly `limit` RRF hits, calls the cross-encoder, and
@@ -150,4 +150,58 @@ Also `make test-unit` and `make lint` (gofmt, vet) in CI; `make test-full` M3 qu
 Estimated diff: ~70 lines in `search.go`, ~220 in `search_test.go`.
 
 ## PM decision
-_(pm-lead fills)_ Approved / Changes requested — reasons.
+**Approved** — pm-lead, 2026-11-02. Binding conditions for the build are numbered below; QA checks each one.
+
+**Why approved.** The flow matches ADR-0010 point by point: pool `max(20, limit)` via a `RerankPool` const, exactly one
+`Rerank` call over the whole pool, `sort.SliceStable` by `RerankScore` desc (ties keep the SQL's `rrf_score DESC`
+order), truncate to `limit`, and on error / count mismatch fall back to RRF order with a logged trace ID and no error to
+the caller. `rerank=false` keeps `LIMIT $5 = limit`, no call, no sort. The 0.45 / 0.70 filters stay in `rag.go` after
+the sort, per the ticket note. Scope is `search.go` + new `search_test.go` (backend-owned); no `rag.go`, `server.go`,
+`client.go`, schema, event or response-shape change; the only API change is the ordering ADR-0010 approved. The test
+plan maps every AC (AC1–AC5 unit, AC6 manual with "not run" fallback, AC7 via pm-lead). Two unexported seams (`rr`,
+`fetch`) are the minimum needed to test without Postgres; the func field over a `db.Querier` interface is the right call.
+Estimated ~290 lines is under the 400 target.
+
+**EVAL-1 parity test, checked concretely.** `test_rrf_pool_sql_mirrors_search_go` (PR #2 branch `agent/ai/EVAL-1`,
+`tests/test_evals_data.py`) reads `internal/query/search.go` as plain text and asserts only:
+`src.count("LIMIT 50") == 2`, `"WHERE ce.model = $2" in src`, and both `1.0/(60 + v.rank)` / `1.0/(60 + k.rank)`.
+Moving the SQL literal verbatim into `fetchCandidates` *inside `search.go`* keeps all four true, so the refactor as
+designed does not break it. Raising the pool from 5 to 20 is a bound-parameter change (`$5`) and isn't checked by the
+test at all. I ran it from an archive of the EVAL-1 branch: passes on current `search.go`; **fails** if one extra
+comment containing `LIMIT 50` is added to `search.go`; and **silently passes** if `search.go` is moved/renamed (the
+`os.path.exists` guard). Hence conditions 1–2, and the guard-hardening follow-up in AI-4.
+
+**Binding conditions**
+1. The hybrid SQL literal stays in `internal/query/search.go` (same file, character-identical text, still bound with
+   `$1..$5`, pool passed as `$5`, never interpolated). `search.go` must not gain any other occurrence of the strings
+   `LIMIT 50` or `WHERE ce.model = $2`, including in comments or the `RerankPool` doc comment (one extra `LIMIT 50`
+   fails the parity test). Don't move the SQL to another file or package.
+2. Because the parity test is not on `main` yet, RET-1's CI won't run it. The developer runs it against the branch's
+   `search.go` and pastes the output in the PR; QA reruns it:
+   ```bash
+   cd app && git fetch -q origin agent/ai/EVAL-1 && D=$(mktemp -d) && git archive FETCH_HEAD | tar -x -C "$D" \
+     && cp internal/query/search.go "$D/internal/query/search.go" \
+     && (cd "$D" && python -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go)
+   ```
+   If EVAL-1 has merged by build time, rebase on `main` instead and let CI run it. Merge order stays EVAL-1 then RET-1.
+3. Drop the OpenTelemetry branch from `traceIDFrom`: telemetry isn't wired into the query server, and importing
+   `go.opentelemetry.io/otel/trace` directly would promote an indirect dependency in `go.mod` for dead code. Two steps
+   only: the ctx value, else a generated ID. Wiring OTel is a separate task when telemetry reaches the server.
+4. The trace-ID helpers are **unexported** (`withTraceID`, `traceIDFrom`): `rag.go` is in package `query`, so nothing
+   needs to be exported. `RerankPool` stays the only new exported identifier.
+5. Fallback log line keeps the ID grep-able: `trace_id=<32 hex>` plus a separate `trace_id_source=ctx|generated`
+   field (don't append "(generated)" to the ID). Log the reason, pool size and score count only — never the query text
+   or passage content.
+6. `rerank=false` and the fetch path keep today's error messages verbatim (`failed to get query vector: ...`,
+   `no vector returned for query`, `hybrid search query failed: ...`, `failed to scan search hit: ...`); AC5's
+   "byte-for-byte" covers errors too. `NewSearchEngine` signature unchanged.
+7. `RerankPool = 20` is the ADR value. If AC6's p95 forces a smaller pool, don't just change the constant: say so in
+   the PR and the ticket Notes so pm-lead records it in ADR-0010 (and EVAL-1's `RRF_POOL_SIZE` must follow).
+8. The NaN-score fallback is fine (defensive, same fallback path). No cap on `/v1/search` `limit` in this PR (that's an
+   API change; pm-lead tracks it as a possible Proposed follow-up, not part of RET-1).
+
+**Follow-ups (not RET-1 dependencies)**
+- `agents/tasks/AI-4.md` (ai-engineer, P2): pass `rag.go`'s `traceID` into ctx before `HybridSearch` so `/v1/ask`
+  fallback logs carry the user-visible `trace_id`; harden the parity drift guard (fail if `search.go` is missing,
+  assert `RerankPool = 20` matches `RRF_POOL_SIZE`).
+- AC7: pm-lead raises the Technical PRD §7.1 diagram `docs/` PR from the note in this design at final review.
