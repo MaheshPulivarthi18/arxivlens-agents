@@ -6,7 +6,7 @@
 | **Priority** | P1 |
 | **PRD ref** | Product PRD §8; EVAL-1 AC5 + Notes follow-up request |
 | **Depends on** | EVAL-1 (PR #2 merged) |
-| **Status** | Ready to merge (QA r2 PASS + PM APPROVE, PR #12) |
+| **Status** | Done (PR #12 merged by Mahesh as `211adbf`, 2026-11-03) |
 
 ## Goal
 Each `make eval` run writes `evals/results/<timestamp>.json`, so the directory must never be committed. The eval dataset

@@ -33,7 +33,6 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
 | [AI-2](tasks/AI-2.md) | Fail closed when citation support can't be verified, `c9ae07c` (KAN-10) | ai-engineer | [#11](https://github.com/MaheshPulivarthi18/ArxivLens/pull/11) (ready for review) | QA PASS r1 · PM APPROVE r1 ([report](reviews/AI-2/report.md)) |
-| [OPS-H4](tasks/OPS-H4.md) | Ignore `evals/results/` + eval-data tests in `make test-py`, `0edd8fd` (KAN-16) | backend-engineer | [#12](https://github.com/MaheshPulivarthi18/ArxivLens/pull/12) (ready for review) | QA PASS r1 · PM CHANGES r1 (docs lines) · QA PASS r2 · PM APPROVE r2 ([report](reviews/OPS-H4/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -68,6 +67,7 @@ Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and 
 ## Done
 | ID | Title | PR |
 |---|---|---|
+| [OPS-H4](tasks/OPS-H4.md) | Ignore `evals/results/` + eval-data tests in `make test-py` | ArxivLens [#12](https://github.com/MaheshPulivarthi18/ArxivLens/pull/12) → 211adbf (KAN-16) |
 | [RET-1](tasks/RET-1.md) | Rerank a 20-candidate pool and sort by rerank score (ADR-0010) | ArxivLens [#9](https://github.com/MaheshPulivarthi18/ArxivLens/pull/9) → bb9ee90 (KAN-24) |
 | [AI-1](tasks/AI-1.md) | Unit tests for `rag.go` filtering and citation validation | ArxivLens [#10](https://github.com/MaheshPulivarthi18/ArxivLens/pull/10) → 4702daa (KAN-9) |
 | [EVAL-1](tasks/EVAL-1.md) | Versioned golden eval sets + `make eval` gate | ArxivLens [#2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2) → a959d03 (KAN-8) |

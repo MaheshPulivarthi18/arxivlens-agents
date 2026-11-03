@@ -150,3 +150,6 @@ Format:
 - Setup: both repos attached, push to arxivlens-agents verified (`push --dry-run`), app cloned at `app/` (origin/main `bb9ee90`).
 - Sync: open agent PRs ArxivLens #11 (AI-2, `c9ae07c`) and #12 (OPS-H4, `0edd8fd`) still ready for review, mergeable clean, label `ready-to-merge`, QA PASS + PM APPROVE for their current heads; no reviews or untagged comments from Mahesh (only `[qa-reviewer]` comments). No open arxivlens-agents PRs. Jira: no `arxivlens` issue updated since cycle 4, no intake, no untagged comments. No ADR status changed (0006, 0010 Accepted; rest Proposed).
 - No rework, no review queue. No new task: ai-engineer (#11) and backend-engineer (#12) at WIP limit; FE-1 still needs registry.npmjs.org (times out, as do proxy.golang.org and huggingface.co; no Docker daemon). Nothing invented; retro skipped (no new friction).
+
+## 2026-11-03 — OPS-H4 — done
+- PR #12 merged by Mahesh as `211adbf`; Jira KAN-16 → Done. `make test-py` now runs the eval-data tests on every PR.
