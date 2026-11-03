@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | KAN-28 (`labels = "task-OPS-H6"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics (what is committed when, and what happens on redelivery) |
-| **Status** | Built: draft PR [#15](https://github.com/MaheshPulivarthi18/ArxivLens/pull/15), head `7814563`, CI green, AC10 mutations done; ready for QA (design approved 2026-11-03 with C1–C7) |
+| **Status** | In Progress (rework round 1: PM final review CHANGES 2026-11-03, see `agents/reviews/OPS-H6/report.md`); draft PR [#15](https://github.com/MaheshPulivarthi18/ArxivLens/pull/15), QA round 1 PASS at `7814563` |
 
 ## Goal
 Technical PRD §8.1 promises L4 for the Go consumer: an offset is committed only after the handler succeeds or the
@@ -66,6 +66,9 @@ Found by an external review of ArxivLens at `bb9ee90` (see PROGRESS 2026-11-03);
 - [ ] AC6: **ctx cancelled during backoff → returns promptly.** With a backoff of ≥ 5 s injected and ctx cancelled
   during the first wait, `Start` returns within 200 ms. The record is neither committed nor sent to the DLQ. There is no
   `time.Sleep` left in the retry path (`grep -n "time.Sleep" internal/kafka/consumer.go` is empty).
+  **AC6b** (added 2026-11-03 at PM final review round 1; the approved design §3 case 2 and its test plan already promised it): if ctx is
+  cancelled while the handler runs on its **last** attempt and the handler then returns an error, there is no `PublishDLQ` call and no commit,
+  and `Start` returns nil. Named test, plus mutation (e) "drop the `ctx.Err()` check after a failed attempt" red in CI.
 - [ ] AC7: The retry tests exercise the real loop. `TestRetrySleepSchedule` currently mirrors the loop. Replace it with a
   test that drives `Start` (or the extracted per-record function) through the injected wait function and asserts the waits
   `[200ms, 400ms]` for `maxRetries = 3`. `TestRetryBackoff` stays.
@@ -141,3 +144,9 @@ CI is the source of truth for Go: local sandboxes have Go 1.24.7, so a stdlib-on
     On restart/rebalance, everything after the last committed offset is redelivered; L1–L3 keep row counts unchanged.
     ```
     With this, §8.1 L4 holds for the Go consumer. The Python consumer doesn't hold it until OPS-H8.
+- 2026-11-03 (pm-lead, final review round 1): **CHANGES** (QA PASS at `7814563`). Rework checklist (details in `agents/reviews/OPS-H6/report.md`):
+  - [ ] 1. AC6b test: handler cancels ctx on its 3rd call and returns an error → 0 `PublishDLQ` calls, 0 commits, `Start` returns nil. Fake publisher must **not** check ctx (so the test fails if the branch is removed).
+  - [ ] 2. Mutation (e) `mutation(AC6b): drop ctx check after failed attempt` + `revert mutation(AC6b)`, same method as AC10 (wait for each CI run; list SHA + run URL here).
+  - [ ] 3. Design doc (this repo): fix the test plan's "a mutex in the fakes" sentence (there is none; state why `-race` is clean) and record the AC6b test in §7a.
+  - Diff cap: ≤ 420 changed lines, for the added test only (design C1 amended). No other code changes this round.
+  - Not changes: C2 closes as "verified by Mahesh at PR review" (design PM decision addendum); shutdown "Poll error … context canceled" log → Backlog; revert `36d6ef5` without CI accepted (tree = green `b6b9383`).

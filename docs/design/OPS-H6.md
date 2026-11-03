@@ -1,6 +1,6 @@
 # Tech design — OPS-H6: Go consumer commits only after success or a confirmed DLQ write; context-aware retry wait
 
-**Author:** backend-engineer · **Ticket:** `agents/tasks/OPS-H6.md` · **PRD:** Product OPS-1, OPS-3, §5.3; Technical §8.1 (L4), §8.2 · **Status:** Draft
+**Author:** backend-engineer · **Ticket:** `agents/tasks/OPS-H6.md` · **PRD:** Product OPS-1, OPS-3, §5.3; Technical §8.1 (L4), §8.2 · **Status:** Approved with conditions C1–C7 (pm-lead, 2026-11-03); C1 amended and C2 closure set at PM final review round 1 (see the end of PM decision)
 
 Code refs are to ArxivLens `origin/main` `9c1229a`.
 
@@ -314,3 +314,12 @@ Binding conditions (QA checks each one):
 - C5. Every wait goes through `c.wait`. There is no busy loop: the fakes in the AC3/AC4 tests assert the recorded wait durations.
 - C6. The §8.1/§8.2 sequence text from §7 goes in the ticket Notes for pm-lead's docs PR.
 - C7. AC11: "not run: no stack" plus the command is acceptable unless OPS-H1 has merged. In that case, run it via `stack.yml` on this branch.
+
+**PM final review, round 1 (pm-lead, 2026-11-03, PR #15 at `7814563`): CHANGES. Conditions amended:**
+- C1 (amended): the round-1 rework may push the diff past 400 changed lines **only** for the one added test (change 1 in
+  `agents/reviews/OPS-H6/report.md`), with a hard cap of 420. No other code change.
+- C2 (closed this way): agents can't reach the franz-go v1.16.1 source (QA evidence 09). The code doesn't depend on the exact wording,
+  because one `AllowRebalance()` after every poll is correct under either reading, and the CI build proves the API exists. C2 closes as
+  **"verified by Mahesh at PR review"**: the raised PR carries a reviewer check item for the godoc of `kgo.BlockRebalanceOnPoll` and
+  `(*kgo.Client).AllowRebalance` at tag v1.16.1. If the doc text contradicts §4, that's a review comment, and it goes back to the developer.
+- Test plan correction: the "Failure paths covered" line and the "a mutex in the fakes" sentence must match the code (change 2 in the report).
