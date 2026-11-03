@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-1 (PR #2 merged `a959d03`), RET-1 (PR #9 merged `bb9ee90`) |
 | **Jira** | find with JQL `labels = "task-EVAL-5"` (orchestrator to create under the Retrieval/Eval epic) |
 | **Design required** | no (P2, no gate, threshold or contract change) |
-| **Status** | In QA (draft PR [#17](https://github.com/MaheshPulivarthi18/ArxivLens/pull/17), head `910f2f8`) |
+| **Status** | Ready to merge (PR [#17](https://github.com/MaheshPulivarthi18/ArxivLens/pull/17) raised, head `557f4e1`; QA PASS r1, PM APPROVE; merge gates G1 H3 real-pgvector run, G2 merge order with #16) |
 
 ## Goal
 Make the existing Recall@5 eval fail loudly instead of silently when the rerank endpoint errors, when the mirrored RRF
@@ -41,6 +41,8 @@ parity-test half of [AI-4](AI-4.md) (its old AC2) also moved here, because AC4 b
   `EMBEDDING_MODEL` (`services/common/config.py`) while the Go query service uses its `--model` flag (default
   `BAAI/bge-base-en-v1.5`), and that both must match. The results JSON keeps `embedding_model`. The eval prints a
   warning when `EMBEDDING_MODEL` differs from `BAAI/bge-base-en-v1.5`. Warning only, no gate change. Unit test for the warning.
+  *(pm-lead 2026-11-03: superseded by H2. The warning compares `EMBEDDING_MODEL` with the resolved query-service model
+  (`--query-model` / `ARXIVLENS_QUERY_MODEL`, else the `--model` default parsed from `cmd/arxivlens/main.go`), not a hard-coded string.)*
 - [x] AC4 (finding 3, mutants M16/M17; plus old AI-4 AC2) — `test_rrf_pool_sql_mirrors_search_go` is robust to drift:
   - (a) it **fails** if `internal/query/search.go` is missing (drop the silent `if os.path.exists(go):` skip at
     `tests/test_evals_data.py:241`);
@@ -93,14 +95,14 @@ make test-unit && make lint      # CI is the source of truth (sandbox lacks Go 1
   (stubbed cursor only). `make lint` locally (no Go 1.25), but the CI Go job ran vet/gofmt.
 - 2026-11-03 19:02Z cycle (orchestrator): **Human review** from Mahesh on PR #17 (2026-11-03T17:59Z, head `910f2f8`) —
   top priority. PR stays draft; Jira → In Progress. Rework checklist (QA checks each item explicitly next round):
-  - [ ] H1 (P2, required): one source of truth for the Go default model — the test must **extract the default from
+  - [x] H1 (P2, required): one source of truth for the Go default model — the test must **extract the default from
     `cmd/arxivlens/main.go`** and assert parity with the Python side (or Python reads it from Go), so a Go-side change
     fails the test. Shown by a temporary edit of the Go default (output pasted, edit not committed).
-  - [ ] H2 (P2, required): explicit `--model` override — the evaluator must compare against the model actually used
+  - [x] H2 (P2, required): explicit `--model` override — the evaluator must compare against the model actually used
     when an override is supplied, not the duplicated default; tests for default parity **and** an explicit override.
     ("Preferably" the query service reports its runtime model — that is `internal/query/server.go`, backend-owned and
     an HTTP API change → backlog follow-up / ADR, not this PR.)
-  - [ ] H3 (P2): run `CHUNK_COUNTS_SQL` against the **real schema** in PostgreSQL+pgvector with a paper with zero
+  - [ ] H3 (P2, **open, merge gate G1**): run `CHUNK_COUNTS_SQL` against the **real schema** in PostgreSQL+pgvector with a paper with zero
     embedded chunks and one partially embedded; attach output. Sandbox has no pgvector; needs a DB-backed CI job
     (backend, being added in OPS-H5 rework) → may stay open with "not run: <reason>" and is then a merge gate.
 
@@ -125,3 +127,11 @@ make test-unit && make lint      # CI is the source of truth (sandbox lacks Go 1
   It needs the DB-backed CI job (OPS-H5) or a manual run, and remains a merge gate.
 - Observation (not changed): `CHUNK_COUNTS_SQL` groups by `arxiv_id`, so if `papers` ever holds two versions of a paper,
   both versions' chunks are summed.
+
+### pm-lead, 2026-11-03 (final review, head `557f4e1`)
+- **APPROVE.** PR #17 raised for Mahesh's review. Verdict and reasoning are in [`agents/reviews/EVAL-5/report.md`](../reviews/EVAL-5/report.md) (PM section).
+- H1 and H2 (Mahesh's Required items) are met, with mutation evidence 07/08. H3 is **not run** and is merge gate **G1**: Mahesh waits, runs it, or waives it.
+  The PR does not claim coverage is verified against pgvector.
+- Merge gate **G2**: #16 (OPS-H5, head `f69f340`) still renames `querySQL`. Whichever PR merges second rebases and re-runs CI. If #16 goes first, ai-engineer updates the parity extraction.
+- Follow-ups F1–F5 are listed in the report (F1 runtime model reporting needs an ADR; F2 a `db.yml` pytest step closes H3).
+
