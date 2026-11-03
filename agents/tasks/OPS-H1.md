@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | find with JQL `labels = "task-OPS-H1"` |
 | **Design required** | **yes** (pm-lead 2026-11-03): P0, adds three compose services and a CI workflow that runs the full stack on GitHub runners. Design in `docs/design/OPS-H1.md`; pm-lead approves before code. |
-| **Status** | Ready for rework (pm-lead 2026-11-03: binding condition 1 amended so OPS-H1 fixes the `minio-init` image; see the design's PM decision addendum and the rework checklist in Notes). Draft PR #14 stays draft. After the rerun it is still expected to go `Blocked (needs OPS-H5 merged)`. |
+| **Status** | **Blocked (needs decision: MinIO image source)** (backend-engineer 2026-11-03, rework round 1): neither MinIO-published reference pulls on the GitHub runner (R7). PR #14 stays draft at `7522eab`. After a pullable source is decided: one image-line push, then the R9 run, which is still expected to end `Blocked (needs OPS-H5 merged)`. |
 
 ## Goal
 Today `make test-full` only works if someone starts three Python processes by hand. Agents can't verify pipeline or
@@ -129,20 +129,60 @@ Agent sandboxes have the Docker CLI but no daemon: AC1–AC4 are proven only by 
   amended (design "PM decision", addendum 2026-11-03): only the `image:` line of `minio-init`, and of `minio` if needed, may change
   in the infra blocks. Scope now includes that change. No file overlap with OPS-H6 (#15: `internal/kafka/`, `ci.yml`).
   **Rework checklist (QA checks each item):**
-  - [ ] R1: Rebase `agent/backend/OPS-H1` on current `origin/main`. Keep PR #14 in **draft**.
-  - [ ] R2: Replace `minio/mc:latest` with a **pinned** image that MinIO publishes (e.g. a `RELEASE.*` tag of `quay.io/minio/mc`,
+  - [x] R1: Rebase `agent/backend/OPS-H1` on current `origin/main`. Keep PR #14 in **draft**.
+  - [x] R2: Replace `minio/mc:latest` with a **pinned** image that MinIO publishes (e.g. a `RELEASE.*` tag of `quay.io/minio/mc`,
         or the same pinned `quay.io/minio/minio` server image, which ships `/usr/bin/mc`). No `latest`, no third-party mirror.
         A digest is preferred.
-  - [ ] R3: Change the `minio` `image:` line only if it fails to pull, lacks `mc` (the healthcheck runs `mc ready local`), or you
+  - [x] R3: Change the `minio` `image:` line only if it fails to pull, lacks `mc` (the healthcheck runs `mc ready local`), or you
         reuse it for `minio-init`. Say which case applies in the PR.
-  - [ ] R4: No other infra-block edits: `git diff origin/main -- docker-compose.yml` evidence shows at most those two lines
+  - [x] R4: No other infra-block edits: `git diff origin/main -- docker-compose.yml` evidence shows at most those two lines
         changed inside the infra blocks.
-  - [ ] R5: `stack.yml` has no pre-pull, retag, `docker login` or mirror workaround, and doesn't reference a MinIO image directly.
+  - [x] R5: `stack.yml` has no pre-pull, retag, `docker login` or mirror workaround, and doesn't reference a MinIO image directly.
   - [ ] R6: Prove that the image exists in the next `stack.yml` run: AC1 step log shows the pinned reference `Pulled`, AC2
         evidence includes `docker compose images` (or `RepoDigests`) for minio + minio-init, `minio` `(healthy)` and
         `minio-init` `Exited (0)`.
-  - [ ] R7: If no MinIO-published image pulls: stop, `Blocked (needs decision: MinIO image source)`, list the references you
+  - [x] R7: If no MinIO-published image pulls: stop, `Blocked (needs decision: MinIO image source)`, list the references you
         tried with their errors. Don't switch S3 servers.
-  - [ ] R8: PR description gets a "Fixes on `main`" line (old and new reference; `make infra-up` was broken for everyone).
+  - [x] R8: PR description gets a "Fixes on `main`" line (old and new reference; `make infra-up` was broken for everyone).
   - [ ] R9: Then continue the original plan: AC1–AC4 evidence from the run, full unfiltered `make test-full` summary (only allowed
         failure: the M5 HNSW test), diff < 400 lines, then `Blocked (needs OPS-H5 merged)` per design decision 1.
+- 2026-11-03 (backend-engineer, rework round 1): **Blocked (needs decision: MinIO image source).** No MinIO-published image pulls.
+  Branch `agent/backend/OPS-H1` `bb5ce42` → `5896745` → **`7522eab`**, PR #14 still **draft**. 2 files touched this round
+  (`docker-compose.yml`: 2 image lines; `.github/workflows/stack.yml`: +6 lines of AC2 image/digest evidence). Ownership check:
+  `Ownership OK for role=backend (378 changed lines)`.
+  - R1: `origin/main` is still `9c1229a` (the branch base), so the rebase was a no-op.
+  - R2/R3: both `minio` and `minio-init` use **one pinned MinIO server image** (R3 case: *reuse*, because the server image ships
+    `/usr/bin/mc` and `/bin/sh`, so the unchanged `entrypoint` and `mc ready local` healthcheck still work). No digest:
+    the sandbox can't reach quay.io or Docker Hub (proxy 403), so the AC2 step was set up to print the digest.
+  - **Attempt 1** `quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z`: stack.yml run 41670021121, job 126035577598, failed at AC1:
+    ```
+    Image quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z Error unknown: failed to resolve reference "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 UNAUTHORIZED
+    ```
+    (Anonymous quay returns 401 for a missing or private *repository*; a missing tag in a public repo would be 404. So
+    `quay.io/minio/mc` is very likely in the same state. I didn't try it, because only 2 image pushes were allowed.)
+  - **Attempt 2** `minio/minio:RELEASE.2025-04-22T22-12-26Z` (MinIO's own Docker Hub repo): stack.yml run 41670533303, job 126037375691, failed at AC1:
+    ```
+    Image minio/minio:RELEASE.2025-04-22T22-12-26Z Error pull access denied for minio/minio, repository does not exist or may require 'docker login'
+    Error response from daemon: pull access denied for minio/minio, repository does not exist or may require 'docker login'
+    ```
+    **New finding:** the `minio/minio` *server* repo is gone from Docker Hub too (not only `minio/mc`). So on `main`
+    `minio/minio:latest` is broken as well, and `make infra-up` can't start MinIO at all.
+  - ci.yml on both heads is green: run 41670021062 (5896745) and run 41670533256 (7522eab). Go, Python M0, Frontend and Agent
+    ownership all `success`. In stack.yml every step before AC1 passed both times (actionlint, `compose config`, `make setup-py`,
+    pre-fetch, Go build). Diagnostics, artifact and teardown ran.
+  - R4: `git diff origin/main -- docker-compose.yml` changes exactly 2 lines inside the infra blocks
+    (`-image: minio/minio:latest` / `-image: minio/mc:latest` → `+image: minio/minio:RELEASE.2025-04-22T22-12-26Z` ×2); every other change is an added line.
+  - R5: `stack.yml` has no pre-pull, retag, login or mirror, and names no MinIO image. The evidence loop reads the image from the containers.
+  - R6: **not met**. The AC2 step now prints `docker compose images minio minio-init` and each container's `RepoDigests`, but AC1
+    never got past the pull, so no `Pulled`, `(healthy)` or `Exited (0)` exists.
+  - R7: done. Stopped after 2 references, no S3-server switch.
+  - R8: PR body has a "Fixes on `main`" section listing the old refs, both attempted refs with errors and run links, and the blocked status.
+    Note: after my PATCH something rewrote the PR footer to end with `---` / `_Generated by [Claude Code](https://claude.ai/code)_`
+    (the session URL line stayed). It wasn't from my request body.
+  - R9: **not reached**. AC1–AC4 have no evidence and `make test-full` never ran (no pytest summary).
+  - **Decision needed (pm-lead / Mahesh):** where the S3 image comes from. Options: (a) a MinIO-published reference someone has
+    confirmed pulls anonymously (e.g. a specific `quay.io/minio/mc` or `quay.io/minio/minio` tag, or a digest from a registry
+    MinIO documents now). Check with `docker manifest inspect` from a machine with registry access. (b) Build MinIO from source in
+    compose. (c) Another S3-compatible server, which is Mahesh's call per the addendum. Whatever is chosen should also update
+    `README`/area notes, since `make infra-up` is broken on `main` for everyone today.
+

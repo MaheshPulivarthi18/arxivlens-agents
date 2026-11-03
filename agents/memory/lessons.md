@@ -37,6 +37,7 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-03][OPS-H6] Under a mutation, a test that indexes a result slice (`f.payloads[2]`) panicked, and the panic stopped every later test in the package → in tests, guard indexes (`len(x) != n ||`, `x[:min(n, len(x))]`) so a mutant fails assertions instead. (seen 1×)
 - [2026-11-03][OPS-H6] `git revert … -q` is not a valid option; with `;` chaining, the following `commit --amend` renamed an already-pushed commit (the push was rejected, so nothing was lost) → chain revert/amend steps with `&&` and check the tree with `git diff --quiet <base> HEAD`, not `--stat`. (seen 1×)
 - [2026-11-03][OPS-H6] Extracting a loop body into a function re-indents every line, so the diff doubled (~570 vs 392). To stay under 400, keep changed code at its original indentation (for example a labelled `break`) and record the shape change in the design. (seen 1×)
+- [2026-11-03][OPS-H1] When a registry pull fails in CI, read the status code before picking the next reference. quay.io answers anonymous requests with `401 UNAUTHORIZED` for a missing or private *repo* (a missing tag is 404), and Docker Hub's "repository does not exist" covers the whole repo. A different tag in the same repo won't help, so spend the limited attempts on a different repo or registry. (seen 1×)
 
 ## frontend-engineer
 
