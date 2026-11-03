@@ -1,0 +1,19 @@
+$ python3 /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/qa-r1/mutate_qa.py AC2
+mutation run on 910f2f8: pytest -q tests/test_evals_data.py per mutant (scratch export, nothing committed)
+
+[AC2] AC2a never print partial-embedding warnings
+    -> KILLED: 1 failed, 54 passed in 0.24s
+       FAILED test_partial_embedding_recorded_and_warned_without_failing
+[AC2] AC2b drop chunk_coverage from summary
+    -> KILLED: 1 failed, 54 passed in 0.31s
+       FAILED test_partial_embedding_recorded_and_warned_without_failing
+[AC2] AC2c INNER JOIN embeddings (embedded == total)
+    -> KILLED: 1 failed, 54 passed in 0.30s
+       FAILED test_chunk_counts_fully_embedded_and_unknown_papers
+[AC2] AC2d partly embedded paper makes the case skipped (gate change)
+    -> KILLED: 1 failed, 54 passed in 0.24s
+       FAILED test_partial_embedding_recorded_and_warned_without_failing
+
+4/4 mutants killed
+
+[exit code 0]

@@ -1,0 +1,48 @@
+$ python3 /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/qa-r1/mutate_qa.py AC4
+mutation run on 910f2f8: pytest -q tests/test_evals_data.py per mutant (scratch export, nothing committed)
+
+[AC4] AC4a rename search.go
+    -> KILLED: 1 failed, 54 passed in 0.20s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4b RerankPool 20 -> 25 in search.go
+    -> KILLED: 1 failed, 54 passed in 0.20s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4b' RRF_POOL_SIZE 20 -> 25 in eval
+    -> KILLED: 3 failed, 52 passed in 0.23s
+       FAILED test_adr0010_parity_pool_one_call_stable_ties_top5
+       FAILED test_rrf_pool_sql_mirrors_search_go
+       FAILED test_run_checks_healthz_before_any_rerank_and_reports_metrics
+[AC4] AC4c1 drop vector-arm ORDER BY+LIMIT 50 in search.go
+    -> KILLED: 1 failed, 54 passed in 0.32s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4c1' drop vector-arm ORDER BY+LIMIT in eval
+    -> KILLED: 1 failed, 54 passed in 0.29s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4c1'' drop vector-arm ORDER BY only in search.go (LIMIT 50 count stays 2)
+    -> KILLED: 1 failed, 54 passed in 0.27s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4c2 ORDER BY rrf_score ASC in search.go
+    -> KILLED: 1 failed, 54 passed in 0.30s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4c2' ORDER BY rrf_score ASC in eval
+    -> KILLED: 1 failed, 54 passed in 0.20s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4c3 keyword arm LIMIT 50 -> 40 in search.go
+    -> KILLED: 1 failed, 54 passed in 0.26s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4c3' RRF_ARM_LIMIT 50 -> 40 in eval
+    -> KILLED: 1 failed, 54 passed in 0.21s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4x RRF k 60 -> 61 in search.go vector term
+    -> KILLED: 1 failed, 54 passed in 0.25s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4y keyword arm ts_rank_cd -> ts_rank in search.go ORDER BY
+    -> KILLED: 1 failed, 54 passed in 0.20s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+[AC4] AC4z extra WHERE filter in search.go outer query
+    -> KILLED: 1 failed, 54 passed in 0.20s
+       FAILED test_rrf_pool_sql_mirrors_search_go
+
+13/13 mutants killed
+
+[exit code 0]

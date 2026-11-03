@@ -1,0 +1,37 @@
+$ bash /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/qa-r1/ac5.sh
+== removed lines in tests/test_evals_data.py (9c1229a...910f2f8) ==
+-    def __init__(self, pool, embedded=("1706.03762", "1810.04805")):
+-    if os.path.exists(go):  # drift guard: production still uses the values mirrored above
+-        with open(go, encoding="utf-8") as f:
+-            src = f.read()
+-        assert src.count("LIMIT 50") == 2
+-        assert "WHERE ce.model = $2" in src
+-        assert "1.0/(60 + v.rank)" in src and "1.0/(60 + k.rank)" in src
+
+== test functions: base vs head ==
+base: 36  head: 41  removed: 0
+added:
+  def test_chunk_counts_fully_embedded_and_unknown_papers
+  def test_model_mismatch_warning
+  def test_partial_embedding_recorded_and_warned_without_failing
+  def test_rerank_failure_in_run_modes_for_case_raises
+  def test_rerank_failure_stops_run_with_no_summary
+
+== base test file (9c1229a) against head code ==
+E       AssertionError: unexpected SQL: 
+FAILED tests/test_evals_data.py::test_run_checks_healthz_before_any_rerank_and_reports_metrics
+1 failed, 46 passed in 0.20s
+
+== head test file against base code (9c1229a) ==
+FAILED tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_short]
+FAILED tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_long]
+FAILED tests/test_evals_data.py::test_rerank_failure_stops_run_with_no_summary[_bad_rerank_short]
+FAILED tests/test_evals_data.py::test_partial_embedding_recorded_and_warned_without_failing
+FAILED tests/test_evals_data.py::test_chunk_counts_fully_embedded_and_unknown_papers
+FAILED tests/test_evals_data.py::test_model_mismatch_warning
+6 failed, 49 passed in 0.31s
+
+== AC6 diff size ==
+ 3 files changed, 196 insertions(+), 8 deletions(-)
+
+[exit code 0]

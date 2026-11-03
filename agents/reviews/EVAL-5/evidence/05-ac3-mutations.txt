@@ -1,0 +1,13 @@
+$ python3 /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/qa-r1/mutate_qa.py AC3
+mutation run on 910f2f8: pytest -q tests/test_evals_data.py per mutant (scratch export, nothing committed)
+
+[AC3] AC3a never print model-mismatch warning
+    -> KILLED: 1 failed, 54 passed in 0.20s
+       FAILED test_model_mismatch_warning
+[AC3] AC3b GO_DEFAULT_MODEL wrong
+    -> KILLED: 1 failed, 54 passed in 0.20s
+       FAILED test_model_mismatch_warning
+
+2/2 mutants killed
+
+[exit code 0]
