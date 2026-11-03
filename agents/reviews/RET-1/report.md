@@ -64,3 +64,67 @@ No blocking findings.
 
 ## Hand-off
 **PASS → pm-lead final review.** pm-lead: decide finding 3 (measure latency and eval before or after merge), raise the AC7 docs PR, and keep the merge order EVAL-1 → RET-1.
+
+## PM decision (round 1)
+
+**Verdict: APPROVE**: pm-lead, 2026-11-03. Reviewed head `831905e911ac04884ed2b301da500874a3fc5820` (PR #9). Inputs I checked myself: the ticket, ADR-0010 (Accepted), the approved design and its 8 conditions, Product PRD QA-1/QA-2, Technical PRD §7.1, the full `search.go` diff and the `search_test.go` AC1–AC3 tests, `rag.go` on the branch, and the CI check runs (re-queried: all 4 `completed/success` on `831905e`). I opened all 26 evidence files (13 `.png` + 13 `.txt`).
+
+### Product fit
+ADR-0010 option 1 is delivered as written. `/v1/ask` (`rag.go:66`, `HybridSearch(..., maxCitations, true)`) and `/v1/search?rerank=true` now return the cross-encoder's order over a 20-candidate pool. A passage at RRF rank 6–20 can now reach a user's citations, which is the point of QA-2 ("cross-encoder reranking of top candidates") for the Product PRD §7 evidence-first principle. On fallback, `RerankScore` stays 0, so `rag.go`'s filters (`> 0 && < 0.45`; appendix/table `< 0.70`) behave exactly as on `main` today. That's not a new regression. Rerank failures now leave a trace-ID log line instead of failing silently, and the log never carries query or passage text (the leak check is in the test, and mutant M10 is caught). The API shape is unchanged. The only API change is the ordering ADR-0010 approved. QA-1/QA-2 stay ✅ in the Product PRD; no status-column change is needed.
+
+### Scope
+Two backend-owned files, 391 changed lines (under 400), ownership CI green. Nothing is missing that the ticket intended (AC6 and AC7 are handled below). Nothing extra: no `rag.go`, schema, event, API-shape, `go.mod` or CI change. The fixed reason class in the log (never `err.Error()`) is a justified tightening of design condition 5, not scope creep. The app README makes no claim about result ordering, so nothing there is stale. Its "Known limitations" line ("top reranked chunks") becomes accurate with this PR.
+
+### Per AC
+| AC | PM view |
+|---|---|
+| AC1 | Met. I read the test: `rrf_rank_8_has_top_score` expects `[8 1 2 3 4]`, plus reversed and sorted cases. Mutants M3/M4/M5/M7 are caught, and CI `ok internal/query` on go1.25. |
+| AC2 | Met. The `[fetch n, calls, passages, len]` table covers limit 5/20/50/0, a short pool and an empty pool. `max(RerankPool, limit)` is in code. |
+| AC3 | Met. Error, timeout, both mismatch directions and NaN all give RRF top 5, `err == nil`, `RerankScore == 0`, and a log line with `trace_id=<32hex> `, `trace_id_source=ctx`, the reason and `pool=20`, with no leak. The `context.Canceled` reason is untested (QA nit 1), which is non-blocking because it shares the same fallback branch. `/v1/ask` logs a *generated* ID until AI-4 (nit 2, accepted at design time). |
+| AC4 | Met. The interleaved tied pairs give `[2 5 3 7 1 4]`, and the unstable-sort mutant M1 is caught, so the test really pins stability. |
+| AC5 | Met. JSON bytes are equal, fetch n == limit, 0 calls, and fetch errors pass through. Below the seam: the SQL sha256 is identical, the error strings are identical, and the signatures are unchanged (evidence 03). |
+| AC6 | Met in the allowed "not run: infra unavailable + exact commands" form (ticket wording, DoD §4.3). The measurement becomes an explicit follow-up: see decision on finding 3. |
+| AC7 | pm-lead's item, not the developer's. Done as a docs PR in arxivlens-agents (see below). It merges after PR #9. |
+
+### Per evidence file
+| File | Proves | Accepted? |
+|---|---|---|
+| 00-ci-checks | 4/4 check runs `success`, `head_sha` = `831905e` | yes |
+| 01-ci-go-job-log | go1.25.0 in CI; `make lint-go` (vet), `go test ./...` → `ok arxivlens/internal/query`; `make build-go` | yes. This is the authoritative run of the real module. |
+| 02-scope-ownership | 2 files, 391 lines, `Ownership OK for role=backend` | yes |
+| 03-design-conditions | C1 (SQL sha256 identical; `LIMIT 50` 2/2, `WHERE ce.model = $2` 1/1), C3 (no otel, go.mod untouched), C4 (only `RerankPool` exported; the rest are lowercase or `Test*`), C5 (log format; `err.Error()` only in a comment), C6 (error strings and signatures identical) | yes. The C4 heading says "exported" but lists every new identifier. Reading the names, only `RerankPool` is exported, as QA states. |
+| 04-c2-parity-test | EVAL-1 @ d83a4c0 parity test: `1 passed` on PR `search.go`; the negative control fails as designed | yes. Exit code 1 comes from the intended control. |
+| 05-ac1-order-by-score | AC1 subtests pass; sha256 shows the harness used the PR's files verbatim | yes, backed by the CI run in 01 |
+| 06-ac2-pool-one-call | AC2 6 subtests pass | yes |
+| 07-ac3-fallback-log | AC3 5 subtests + `TestTraceIDFrom` 3 subtests pass | yes. The red highlighting is the renderer colouring the word "error", not a failure. |
+| 08-ac4-ties-rrf-order | AC4 2 subtests pass | yes |
+| 09-ac5-no-rerank-unchanged | AC5 3 subtests + fetch-error passthrough + seam wiring pass | yes (red lines are again renderer highlighting of "Error") |
+| 10-mutation-testing | 17/17 QA mutants caught, each mapped to the AC test that kills it | yes. This is the strongest evidence that the tests have teeth. |
+| 11-test-map-and-full-run | Test-to-AC map; full package run in the harness `ok` | yes. 22.6% coverage is for the whole `query` package (server/rag untested before this PR); the changed logic is covered by the mutants. |
+| 12-local-gofmt-toolchain | gofmt clean; why the real module can't build locally (go1.24.7, no toolchain download) | yes. It explains the harness, and CI covers the gap. |
+
+### Decision on QA finding 3: merge before measuring p95 and eval? **Yes, merge without the measurement**, with an explicit follow-up.
+Reasons:
+1. ADR-0010 itself sets the order: implement pool 20, keep the latency budget, and "if reranking 20 passages breaks it, reduce the pool and record the number". The pool constant is one line and is pinned by EVAL-1's parity guard (AI-4 asserts `RerankPool == RRF_POOL_SIZE`), so a later reduction is cheap and visible.
+2. The gated retrieval metric doesn't depend on this PR. EVAL-1's gated mode already computes pool → `/internal/rerank` → stable sort → top 5 in the eval itself (ADR-0010: "until RET-1 merges, the gate measures the *target* behaviour"). After RET-1, production matches the gate. Only the end-to-end answer/refusal eval and `/v1/ask` latency can move.
+3. No agent can produce the number: there's no Docker, corpus or HF model in the sandboxes, and `make test-full`/M3 is blocked on OPS-H1. Holding a P0 correctness fix for an environment we don't have would block indefinitely.
+4. Mahesh can still measure before merging if he wants. The PR's reviewer-focus section gives the exact commands.
+
+**Follow-up recorded** as a new AC on an existing task, not a new task: `agents/tasks/EVAL-2.md` **AC10** (ai-engineer). The first `make eval` run on a stack with EVAL-1 and RET-1 merged records `/v1/ask` p50/p95 (gated `< 3 s` by EVAL-1's `ask_p95`), `/v1/search?rerank=true` p95, and the answer-eval numbers against the pre-RET-1 `evals/BASELINE.md`. If either latency budget is breached, the PR stops and reports to pm-lead. Pool changes go through ADR-0010 (design condition 7), never by editing the constant alone. A one-line pointer was also added to OPS-H1 Notes: its AC4 full-stack run should include `make eval` once EVAL-1 and RET-1 are on `main`.
+
+### Decision on QA finding 4: merge order EVAL-1 (#2) → RET-1 (#9). **Kept.**
+- PR #2 is ready-to-merge (PM APPROVE r3), and PR #9 depends on it only for evidence and the parity guard, not for compilation. Merging #9 first wouldn't break `main`, but it would leave the parity guard un-run in CI against the new `search.go`, and the RET-1 caveat in EVAL-1's docs would be stale for a while.
+- After #2 merges: re-run CI on #9 (or update the branch from `main`) so `test_rrf_pool_sql_mirrors_search_go` runs in CI against this `search.go`. If #2's parity test changes before it merges (it's at d83a4c0 now), QA re-runs evidence 04.
+- This is in the PR description's merge-order note.
+
+### Non-blocking nits (no new task; fold into the next `search.go` change by backend-engineer)
+1. Add a `context.Canceled` case to `TestHybridSearchRerankFallback` (QA finding 1).
+2. Pin the `±Inf` score behaviour in a test (QA missing tests).
+3. `fetchCandidates` has no unit test because it needs Postgres. M3 covers it once OPS-H1 lands (QA finding 5).
+
+### Docs
+- AC7: the Technical PRD §7.1 sequence diagram is updated in a `docs/RET-1-sequence` PR in arxivlens-agents. It merges after ArxivLens PR #9.
+- After #9 merges (pm-lead, rules PR): drop the AGENTS.md §6 gotcha "does not yet sort by rerank score (ADR-0010, RET-1)". The pending Product PRD §8 "RET-1 caveat" (board note) is then no longer needed.
+
+### Raise
+PR #9: description rewritten with the Evidence section, marked ready for review, label `ready-to-merge`. Jira KAN-24 → Ready to merge (orchestrator).

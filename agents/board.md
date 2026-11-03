@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-02 by pm-lead (RET-1 design approved; AI-4 specced)
+Last updated: 2026-11-03 by pm-lead (RET-1 PM APPROVE r1, PR #9 raised; EVAL-2 AC10 added)
 
 WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 
@@ -17,12 +17,11 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | [OPS-H4](tasks/OPS-H4.md) | `.gitignore` evals/results + run eval data tests in `make test-unit` | backend-engineer | P1 | EVAL-1 |
 | [AI-2](tasks/AI-2.md) | Fail closed when support-check embedding fails in `rag.go` | ai-engineer | P1 | AI-1 |
 | [AI-3](tasks/AI-3.md) | Batch embedding in RAG validation | ai-engineer | P1 | AI-1, AI-2 |
-| [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate + eval-test hardening (EVAL-1 QA r3 nits, AC6–AC9) | ai-engineer | P2 | EVAL-1 |
+| [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate + eval-test hardening (EVAL-1 QA r3 nits, AC6–AC9) + RET-1 p95/eval measurement (AC10) | ai-engineer | P2 | EVAL-1 (AC10: RET-1 merged + infra) |
 
 ## In progress
 | ID | Title | Owner | Branch |
 |---|---|---|---|
-| [RET-1](tasks/RET-1.md) | `/v1/ask` + `/v1/search` rerank a 20-candidate pool and sort by rerank score (ADR-0010) — design approved 2026-11-02 with 8 conditions | backend-engineer | `agent/backend/RET-1` |
 
 ## In QA
 | ID | Title | Owner | PR |
@@ -36,6 +35,7 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
 | [EVAL-1](tasks/EVAL-1.md) | Versioned golden eval sets + `make eval` gate (round 3, `d83a4c0`) | ai-engineer | [#2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2) (ready for review, `ready-to-merge`) | QA PASS r3 · PM APPROVE r3 ([report](reviews/EVAL-1/report.md)) |
+| [RET-1](tasks/RET-1.md) | Rerank a 20-candidate pool and sort by rerank score (ADR-0010), `831905e`. **Merge after #2.** | backend-engineer | [#9](https://github.com/MaheshPulivarthi18/ArxivLens/pull/9) (ready for review) | QA PASS r1 · PM APPROVE r1 ([report](reviews/RET-1/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -47,7 +47,9 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## Backlog (not yet specced — pm-lead grooms these)
 - From the OPS-H3 review: `ExtractCleanArxivID` should match only a whole ID and support old-style IDs the crawler stores (needs a product decision); add more pinning tests; add `go test -cover` to CI; make the retry sleep injectable (see OPS-H3 Notes)
 - From the #8 review: some code comments cite PRD sections (`§4`, `§6 Tier 1`) that now live in this repo; reword or link them (backend/ai, nit)
-- pm-lead docs PR after PR #2 merges: Product PRD §8 rows 156–157 (ADR-0006 Accepted, paper-level; drop the bi-encoder caveat; add the RET-1 caveat), line 151 fallback note, the AGENTS.md §5 eval gotcha
+- pm-lead docs PR after PR #2 merges: Product PRD §8 rows 156–157 (ADR-0006 Accepted, paper-level; drop the bi-encoder caveat; add the RET-1 caveat **only if #9 hasn't merged by then**), line 151 fallback note, the AGENTS.md §5 eval gotcha
+- pm-lead rules PR after PR #9 merges: drop the AGENTS.md §6 gotcha "`/v1/ask` does not yet sort by rerank score (ADR-0010, RET-1)"; merge the §7.1 diagram docs PR (`docs/RET-1-sequence`)
+- backend nits from the RET-1 review (fold into the next `search.go` change): `context.Canceled` fallback test case, `±Inf` score test
 - QA-9 Streaming answers (frontend + ai) — after QA-8
 - OTLP span export to Jaeger/Tempo (backend) — Technical PRD §11 P1
 - Prometheus metrics: consumer lag, DLQ depth, stage latency (backend) + OPS-6 dashboard (frontend)

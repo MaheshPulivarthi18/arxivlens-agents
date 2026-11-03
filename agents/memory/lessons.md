@@ -15,6 +15,7 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-01][PM-1] A PRD edit quietly added a policy (which machine gates latency) → anything that changes what a gate or threshold means must be labelled Proposed or go into an ADR. (seen 1×)
 - [2026-11-01][PM-1] `migrations/` didn't match the PRD data model (no HNSW index) and "Recall@5" computes something closer to precision@5 → grep migrations and the metric code, not just names. (seen 2×: OPS-H3 spec described a backoff schedule and old-style ID support the code doesn't have)
 - [2026-11-02][EVAL-1] PM APPROVEd a gate whose gated metric's meaning depended on a still-Proposed ADR (0006); Mahesh's review sent it back → never APPROVE work whose gate semantics wait on a Proposed ADR; mark it Blocked (needs ADR) instead. (seen 1×)
+- [2026-11-03][RET-1] An AC allowed "not run: infra unavailable" for a measurement an Accepted ADR depends on (p95 for pool 20), so it would have floated with no owner → when you accept a deferred measurement, attach it as a numbered AC on an existing task with a stop-and-report rule, and say in the PR where it went. (seen 1×)
 
 ## ai-engineer
 - [2026-11-01][SETUP] Eval queries are hardcoded inside `scripts/evaluate_retrieval.py` → don't add more there; EVAL-1 moves them to `evals/`. (seen 1×)
