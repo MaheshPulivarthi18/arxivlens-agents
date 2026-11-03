@@ -170,3 +170,41 @@ FAIL → back to backend-engineer for finding 1 (a one-to-two-line assertion; th
 
 ### Hand-off
 PASS → pm-lead final review. Before raising: resolve items 2 to 4 and route item 1 to Mahesh. H4 evidence stays owed after OPS-H1 merges.
+
+---
+
+# PM final review: OPS-H5 · PR #16 · round 1
+
+**Verdict: APPROVE.** Reviewed head `d442c4c3c75bcce67d7ed2508822eed48a60ae2e` · pm-lead · 2026-11-03
+
+**Inputs checked:** the ticket (ACs and Mahesh's checklist H1–H5), Technical PRD §5, Product PRD §8, QA rounds 1–3, the PR
+file list (10 files, +583/−38), and evidence 10–24 (txt and png; 23 opened as an image). All evidence is real CI job output
+on pgvector 0.8.7, tied to job IDs on the head or on its byte-identical twin `f69f340`.
+
+| Item | PM view |
+|---|---|
+| H1 / AC1 / AC2 | Met. Fresh DB → 000001, 000002 → valid index with the exact name and params. A second run gives an identical schema (evidence 11, 23). This is the real `./bin/arxivlens migrate`, the same path `make migrate` uses. |
+| H2 / AC4 | Met. EXPLAIN of the production constants, not look-alikes (14 = byte-identical SQL). HNSW is used under custom plans and not under generic plans (12, 23). AC4 asked for a follow-up rather than a query change, and that is done (F1). |
+| H3 | Met. Recall/row-count table (13). The shipped settings prevent a regression this PR would otherwise introduce (40 / ~10 rows instead of 50). The guard now fails without them (22, mutant red). |
+| H4 / AC5 | Not met, and allowed by the AC5 text: owed post-merge from OPS-H1 `stack.yml`. The stop-and-report rule stands. H1 already closes the "index only exists if the benchmark ran" risk at the migration level. |
+| H5 | Met for the doc (18). The ledger backlog line is filed in the ticket Notes (QA r2 #6). |
+| AC3 | Met in r1 (01–03), and still green in CI on the head (20). |
+
+**Scope:** amended in the ticket to cover `db.yml`, the CONTRIBUTING H5/CI lines, the `search.go` constants and the
+settings/transaction, and the integration test (QA r2 #7). 619 lines vs the 400 target is accepted: 365 are the harness
+Mahesh asked for, and splitting it now would remove the evidence he requested.
+
+**PRD fit:** Technical PRD §5 holds on a fresh `make migrate`. Search results stay exact today (Recall@5 1.00 in steady
+state). That serves Product PRD §7 trustworthiness. Product PRD §8 p95 at scale is not yet served by the index. This is
+the F1 trade-off, now **ADR-0013 (Proposed)**. Mahesh decides, and it doesn't block this merge.
+
+**Merge gates / decisions for Mahesh (stated in the PR):**
+1. H4/AC5 post-merge from OPS-H1 #14.
+2. F1 → ADR-0013 (recall vs p95). pm-lead recommends Option 1 now, then revisit with EVAL-3 real-corpus numbers.
+3. Merge order with #17 (EVAL-5): its drift guard parses `querySQL :=`, which this PR renames. Whichever PR merges second
+   rebases and reruns CI. If #16 goes first, #17 must read `hybridSearchSQL` before it merges.
+4. A runtime requirement of pgvector ≥ 0.8.0 (`hnsw.iterative_scan`). CI and compose resolve to 0.8.7 today. Doc/pin
+   backlog line filed.
+
+**Non-blocking backlog (ticket Notes):** version ledger (needs an ADR), pgvector ≥ 0.8 doc/pin, integration-test seeding
+isolation, and F2 (eval measures both plan regimes).

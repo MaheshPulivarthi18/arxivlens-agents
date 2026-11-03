@@ -8,7 +8,7 @@
 | **Depends on** | — (soft: OPS-H1 for AC5; without it, start the workers by hand per AGENTS.md §6) |
 | **Jira** | find with JQL `labels = "task-OPS-H5"` |
 | **Design required** | no (P1; additive index migration, no new command/table/service; `migrate` keeps its existing flag) |
-| **Status** | In QA (draft PR #16, rework r1 done; H4 blocked on OPS-H1) |
+| **Status** | Ready to merge (PR #16 raised at `d442c4c`; QA PASS r3, PM APPROVE r1). H4/AC5 owed post-merge (OPS-H1). F1 → ADR-0013 (Proposed) |
 
 ## Goal
 Technical PRD §5 promises an HNSW cosine index on `chunk_embeddings.embedding`, but no migration creates it. Only
@@ -32,6 +32,20 @@ passes only if the benchmark script happened to run first. Also, `arxivlens migr
 - The index must use exactly the existing name and params: `CREATE INDEX IF NOT EXISTS chunk_embeddings_hnsw_idx ON chunk_embeddings USING hnsw (embedding halfvec_cosine_ops) WITH (m = 16, ef_construction = 64);`, so that existing databases where the benchmark already created it stay a no-op. Changing the params is out of scope (ADR-0008).
 - Migrations must stay idempotent (`IF NOT EXISTS`), because there is no schema-version table. Adding a version table is out of scope.
 - Never edit `000001_init_schema.*.sql`.
+- **Scope amendment (pm-lead 2026-11-03, after Mahesh's review H1–H5; resolves QA r2 findings 7 / r3 item 4).** These
+  supersede the "do not edit" and "out of scope" lines above where they conflict:
+  - `.github/workflows/db.yml` (new file, `pgvector/pgvector:pg16` service) is in scope. It is the DB harness for H1–H3,
+    because the sandbox has no pgvector. It does not touch `ci.yml` or #14's `stack.yml`.
+  - `CONTRIBUTING.md` is in scope for the H5 note only (DB-schema bullet: migrate re-applies every `*.up.sql`, so
+    migrations must be idempotent) plus the matching CI/DB-workflow line. Hunks at `@@ -49`/`@@ -74`, no overlap with #14 (`@@ -24`).
+  - `internal/query/search.go` is in scope for two things. (a) Lift the SQL into `vectorHitsSQL`/`hybridSearchSQL` constants
+    with **byte-identical text** (evidence 14), so the integration test plans the real query. (b) Run `fetchCandidates`
+    in a read-only transaction with `hnswSearchSettings` (`SET LOCAL hnsw.ef_search = 100; SET LOCAL hnsw.iterative_scan
+    = strict_order`) plus a `rows.Err()` check. (b) is needed because the new index would otherwise return 40 rows
+    (or about 10 with a category filter) instead of 50 under custom plans (H3, evidence 13). The query plan / plan-cache
+    behaviour is still out of scope (F1 → ADR-0013).
+  - `internal/query/search_integration_test.go` (`//go:build integration`, run only by `db.yml`) is in scope.
+  - Diff is 619 changed lines vs the 400 target. Accepted: 365 are the harness Mahesh asked for.
 - Out of scope: `scripts/benchmark_hnsw.py` (ai-engineer may later drop its CREATE INDEX), and query SQL changes.
 
 ## Acceptance criteria
@@ -136,3 +150,17 @@ make test-full
     job 126170424459 **success**; CI run 41708597966 (Go, Python M0, Frontend, ownership) all success.
   - [x] Nit 9: `000002_*.up.sql` comment no longer says the params are "fixed by ADR-0008" (comment only; 000002 isn't merged yet).
   - Not taken (per instructions): F1/finding 3 (Mahesh), findings 2/6/7 (pm-lead), nits 4/5/8, F2.
+- 2026-11-03 (pm-lead, final review): **APPROVE** at `d442c4c` (see `agents/reviews/OPS-H5/report.md`, PM section).
+  Spec findings resolved. Scope amended above (QA r2 #7). F1 written as **ADR-0013 (Proposed)**, Mahesh decides, and it
+  doesn't block this PR. The #17 merge-order gate is stated on #16 and #17 (whichever merges second rebases; if #16 merges
+  first, #17's drift guard must read `hybridSearchSQL`). Version-ledger backlog line handed to the orchestrator (QA r2 #6).
+  Still owed: H4/AC5 post-merge evidence from OPS-H1 `stack.yml` (stop-and-report rule in AC5 stands).
+  Backlog lines (not yet specced):
+  - backend, P2: migration version ledger (`schema_migrations` table; `migrate` applies only unapplied `*.up.sql` and
+    records them; existing DBs are backfilled as 000001/000002 applied). Removes the "every migration must be idempotent"
+    rule in CONTRIBUTING. Needs an ADR first, because it adds a table that defines migration semantics (a shared contract).
+  - backend, P2: README prerequisite "pgvector ≥ 0.8.0" (`hnsw.iterative_scan`), and pin the `pgvector/pgvector` tag
+    in compose/db.yml after OPS-H1 merges (QA nit 4).
+  - backend, P2: `TestHNSWVectorHits` seeds a scratch schema or skips on a non-empty `papers` table (QA nit 8).
+  - ai-engineer, P1: F2, `scripts/evaluate_retrieval.py` applies `hnswSearchSettings` and reports both plan regimes
+    (input for ADR-0013).
