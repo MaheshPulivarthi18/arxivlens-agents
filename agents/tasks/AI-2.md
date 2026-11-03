@@ -6,7 +6,7 @@
 | **Priority** | P1 (it inflates the gated supported-citation metric) |
 | **PRD ref** | QA-4; Product PRD §7 "Say I don't know"; Product PRD §8 supported ≥ 90% |
 | **Depends on** | AI-1 (test harness and fakes for `rag.go`; same file, so do it after AI-1 to avoid conflicts) |
-| **Status** | Ready (start after AI-1 merges) |
+| **Status** | Ready |
 
 ## Goal
 In `internal/query/rag.go`, when the sentence embedding call fails or the cited chunk has no embedding, the citation is
@@ -37,4 +37,5 @@ make eval   # when infra is available
 
 ## Notes
 - Specced by pm-lead in PM-1 from EVAL-1 finding (c). AI-1 locks existing behaviour with tests and allows only small bug fixes (≤ 20 lines). The AI-2 code change is about 3 lines, but it is a separate task because failing closed is a product-behaviour decision (QA-4 trust promise, affects the gated supported-citation metric), not a bug fix found while testing.
-- Verified on main: `rag.go` lines ~146–154 (`score = 0.75 // Fallback if embedding service unavailable`, `supported = true`).
+- ~~Verified on main: `rag.go` lines ~146–154~~ (stale after AI-1/RET-1).
+- 2026-11-03 (pm-lead): AI-1 merged (ArxivLens #10) → Ready. Re-checked on origin/main `bb9ee90`: the fail-open branch is `rag.go:182-184` (`score = 0.75 // Fallback if embedding service unavailable`, `supported = true`); the verified path is `rag.go:178-181` (`supported = score >= SupportThreshold`). So AC1's grep must return nothing after the change. **Existing test to flip:** AI-1 locked today's behaviour in `TestValidateCitationsFallbackWhenUnverifiable` (`rag_test.go:245`, asserts `Score == 0.75 && Supported`). Changing that test's expectation to `Score == 0 && !Supported` is the point of this ticket and is **not** weakening a test; extend it (rename if you like) with the empty-vector case so all three AC2 cases live there. Use AI-1's `fakeEmbedder` (`rag_test.go:28`: `err` field for the error case, `vec` returning nil for the missing-vector case). Run the Verification commands from inside `app/`. Local Go is 1.24.7 and Go 1.25 can't be downloaded, so CI on the draft PR is the source of truth for `go vet`/`go test`.

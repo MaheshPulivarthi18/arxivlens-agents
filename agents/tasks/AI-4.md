@@ -8,7 +8,7 @@
 | **Depends on** | RET-1 (adds `withTraceID` in `search.go`), EVAL-1 (adds `test_rrf_pool_sql_mirrors_search_go`); both merged |
 | **Jira** | find with JQL `labels = "task-AI-4"` |
 | **Design required** | no (P2, no contract change) |
-| **Status** | Blocked (needs RET-1 and EVAL-1 merged) |
+| **Status** | Ready (start after AI-2 merges: same files `rag.go`/`rag_test.go`, same owner) |
 
 ## Goal
 When reranking falls back to RRF order during `/v1/ask`, the log line should carry the same `trace_id` the user gets in
@@ -38,3 +38,4 @@ make test-unit && make lint
 
 ## Notes
 - Created 2026-11-02 by pm-lead at the RET-1 design gate (`docs/design/RET-1.md` → PM decision, follow-ups).
+- 2026-11-03 (pm-lead): dependencies met (RET-1 = ArxivLens #9, EVAL-1 = #2, both merged; origin/main `bb9ee90`) → Ready. Checked against `bb9ee90`: `traceID := generateTraceID()` is `rag.go:73` and `HybridSearch` is called at `rag.go:76`; `withTraceID`/`traceIDFrom` are at `search.go:213-224`; the fallback log is `search.go:198` (`rerank fallback trace_id=%s trace_id_source=%s ...`); `const RerankPool = 20` is `search.go:17`; `RRF_POOL_SIZE = 20` is `scripts/evaluate_retrieval.py:50`; the silent skip is `tests/test_evals_data.py:241` (`if os.path.exists(go):`). For AC1, `rag_test.go`'s `fakeSearcher` bypasses `search.go`, so build a real `&SearchEngine{rr: <failing fake reranker>, fetch: <fake fetch>}` (unexported seams, same package) and pass it as `RAGService.searchEngine`; capture `log` output with `log.SetOutput`. Ordering: AI-2 first (P1, same files), then AI-4. No Jira story found (`labels = "task-AI-4"` returns nothing); orchestrator to create one under the Retrieval/Eval epic.

@@ -6,7 +6,7 @@
 | **Priority** | P1 |
 | **PRD ref** | Product PRD §8; EVAL-1 AC5 + Notes follow-up request |
 | **Depends on** | EVAL-1 (PR #2 merged) |
-| **Status** | Ready (start once PR #2 is merged) |
+| **Status** | Ready |
 
 ## Goal
 Each `make eval` run writes `evals/results/<timestamp>.json`, so the directory must never be committed. The eval dataset
@@ -36,3 +36,4 @@ git diff --stat origin/main
 ## Notes
 - Specced by pm-lead in PM-1 from the EVAL-1 follow-up requests.
 - 2026-11-02 (pm-lead, EVAL-1 round-3 PM review): confirmed this ticket covers EVAL-1 AC5 and CI for the eval tests (QA r3 finding 8). CI calls `make test-py`, so the Makefile change is enough; AC5 added to prove it from the CI log. Today nothing in CI runs the 47 eval tests (EVAL-1 evidence `301-ci-job-logs.png`).
+- 2026-11-03 (pm-lead): EVAL-1 merged → Ready. Re-checked on origin/main `bb9ee90`: `Makefile:47-48` `test-py` runs only `tests/test_m0.py` (help text "M0 Python unit tests (downloads BGE model on first run)", which needs updating for AC3); `.github/workflows/ci.yml:44` runs `make test-py` after installing `requirements-m0.txt minio ulid-py fastapi uvicorn`; `.gitignore` has no `evals/` entry; `.gitignore` is in backend's allow-list in `.github/scripts/ownership-check.sh`. `python3 -m pytest -q tests/test_evals_data.py` in the PM sandbox: `47 passed in 0.46s` (stdlib + pytest only; `scripts/evaluate_retrieval.py` imports heavy deps lazily), so no extra CI package is expected.
