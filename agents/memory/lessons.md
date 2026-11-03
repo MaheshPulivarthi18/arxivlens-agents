@@ -11,6 +11,8 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-01][SPRINT] Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and Hugging Face → check which tasks the environment can verify before picking them; prefer Python/docs tasks there and state that Go/frontend checks rely on CI. Go unit-test tasks are fine (CI runs Go 1.25); npm-dependency and Docker tasks are not. Never route around egress blocks. (seen 2× — promote via retro PR)
 - [2026-11-01][SPRINT] Builder subagents edited board/PROGRESS during the build step, which collides with the separate record branch → tell builders to touch only their task spec under agents/. (seen 1×)
 
+- [2026-11-03][AI-1] qa-reviewer's harness blocked writing `agents/reviews/<ID>/report.md` (also RET-1) → orchestrator saves the report verbatim from the QA PR comment with a provenance note; QA returns the full text. (seen 2× — rules PR opened)
+
 ## pm-lead
 - [2026-11-01][PM-1] A PRD edit quietly added a policy (which machine gates latency) → anything that changes what a gate or threshold means must be labelled Proposed or go into an ADR. (seen 1×)
 - [2026-11-01][PM-1] `migrations/` didn't match the PRD data model (no HNSW index) and "Recall@5" computes something closer to precision@5 → grep migrations and the metric code, not just names. (seen 2×: OPS-H3 spec described a backoff schedule and old-style ID support the code doesn't have)
@@ -23,6 +25,8 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-01][EVAL-1] The first gate draft let failed /v1/ask calls drop out of the gated metrics, so a dead service could PASS → eval gates must fail closed: count errors, put failures into latency (timeouts at ≥ timeout), and add a test where some requests fail. (seen 1×)
 - [2026-11-02][EVAL-1] Calling the production rerank endpoint still didn't measure production, because `/v1/ask` never orders by the rerank score → when a gate claims to measure "the production path", trace the whole path (candidate pool, filters, ordering), not just the model call. (seen 1×)
 - [2026-11-02][EVAL-1] When copying production SQL into the eval, copy it literally: the round-2 eval's vector CTE had `LIMIT` with no `ORDER BY`, so it returned arbitrary rows. Add a test that reads the Go source and asserts the mirrored fragments, so drift fails CI. (seen 1×)
+
+- [2026-11-03][AI-1] Go 1.25 unavailable locally → run the real files in a stdlib-only scratch module (stub non-stdlib imports, `GOTOOLCHAIN=local GOPROXY=off`) for vet/test/per-file coverage; CI stays the source of truth. (seen 2×: OPS-H3, AI-1)
 
 ## backend-engineer
 
