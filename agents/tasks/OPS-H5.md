@@ -125,3 +125,14 @@ make test-full
     category filter. Follow-up F2 (ai-engineer): `scripts/evaluate_retrieval.py` (psycopg client-side binding) always
     gets custom plans at ef_search=40, so `make eval` measures neither production regime. Apply `hnswSearchSettings`.
   - Risk: `hnsw.iterative_scan` needs pgvector ≥ 0.8.0; compose image `pgvector/pgvector:pg16` is unpinned.
+- 2026-11-03 QA r2 rework (backend-engineer, finding 1 + nit 9 only): head `d442c4c3c75bcce67d7ed2508822eed48a60ae2e`
+  (PR #16 still draft; H3 line in the body updated with the three runs).
+  - [x] Finding 1: `search_integration_test.go:160` now fails when the query path (`hnswSearchSettings`) returns fewer
+    rows than the exact scan for any filter under **custom plans** (`DISCARD PLANS` + `force_custom_plan`), as well as auto.
+    Fix `f69f340`: DB run 41708010366 / job 126168367800 **success** (custom: 50/50 rows, 0/20 short, all three filters).
+    Mutant `d0e1123` (`hnswSearchSettings = ""`): DB run 41708319216 / job 126169467011 **failure**: `no category
+    filter / query path / custom plan: 20 queries returned fewer rows than the exact scan` (cs.CL as well; cs.DL is exact
+    under custom plans, so it can't fail there). Revert `d442c4c` (tree identical to `f69f340`): DB run 41708597979 /
+    job 126170424459 **success**; CI run 41708597966 (Go, Python M0, Frontend, ownership) all success.
+  - [x] Nit 9: `000002_*.up.sql` comment no longer says the params are "fixed by ADR-0008" (comment only; 000002 isn't merged yet).
+  - Not taken (per instructions): F1/finding 3 (Mahesh), findings 2/6/7 (pm-lead), nits 4/5/8, F2.
