@@ -1,0 +1,64 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/125970111255/logs | sed -n '95,125p;205,235p'
+2026-11-03T14:12:21.5485675Z  * [new ref]         84d362e5b85ba0380ef8b14238230598b3eb3061 -> pull/13/merge
+2026-11-03T14:12:21.5489626Z ##[endgroup]
+2026-11-03T14:12:21.5490861Z ##[group]Determining the checkout info
+2026-11-03T14:12:21.5492006Z ##[endgroup]
+2026-11-03T14:12:21.5495353Z [command]/usr/bin/git sparse-checkout disable
+2026-11-03T14:12:21.5599562Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-03T14:12:21.5624725Z ##[group]Checking out the ref
+2026-11-03T14:12:21.5627161Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/13/merge
+2026-11-03T14:12:21.5718230Z Note: switching to 'refs/remotes/pull/13/merge'.
+2026-11-03T14:12:21.5719212Z 
+2026-11-03T14:12:21.5720052Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-03T14:12:21.5721412Z changes and commit them, and you can discard any commits you make in this
+2026-11-03T14:12:21.5722900Z state without impacting any branches by switching back to a branch.
+2026-11-03T14:12:21.5723636Z 
+2026-11-03T14:12:21.5724242Z If you want to create a new branch to retain commits you create, you may
+2026-11-03T14:12:21.5725434Z do so (now or later) by using -c with the switch command. Example:
+2026-11-03T14:12:21.5726585Z 
+2026-11-03T14:12:21.5727237Z   git switch -c <new-branch-name>
+2026-11-03T14:12:21.5727958Z 
+2026-11-03T14:12:21.5728470Z Or undo this operation with:
+2026-11-03T14:12:21.5729342Z 
+2026-11-03T14:12:21.5729801Z   git switch -
+2026-11-03T14:12:21.5730329Z 
+2026-11-03T14:12:21.5731282Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-03T14:12:21.5732529Z 
+2026-11-03T14:12:21.5733996Z HEAD is now at 84d362e Merge ff9e7c1f95a27652dafc8ed8dca4b431c45ba9de into 9c1229a184d0d1befe997524c990fcc8ee9f016b
+2026-11-03T14:12:21.6221124Z ##[endgroup]
+2026-11-03T14:12:21.6257521Z [command]/usr/bin/git log -1 --format=%H
+2026-11-03T14:12:21.6278591Z 84d362e5b85ba0380ef8b14238230598b3eb3061
+2026-11-03T14:12:21.6590106Z ##[group]Run actions/setup-go@v5
+2026-11-03T14:12:21.6591046Z with:
+2026-11-03T14:12:31.2099689Z ##[endgroup]
+2026-11-03T14:12:31.2438075Z ##[group]Run make lint-go
+2026-11-03T14:12:31.2438396Z [36;1mmake lint-go[0m
+2026-11-03T14:12:31.2470770Z shell: /usr/bin/bash -e {0}
+2026-11-03T14:12:31.2471093Z ##[endgroup]
+2026-11-03T14:12:31.2557240Z go vet ./...
+2026-11-03T14:12:32.0707092Z ##[group]Run make test-go
+2026-11-03T14:12:32.0707371Z [36;1mmake test-go[0m
+2026-11-03T14:12:32.0734979Z shell: /usr/bin/bash -e {0}
+2026-11-03T14:12:32.0735195Z ##[endgroup]
+2026-11-03T14:12:32.0789783Z go test ./...
+2026-11-03T14:12:32.4226197Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-03T14:12:32.4227064Z ?   	arxivlens/internal/config	[no test files]
+2026-11-03T14:12:33.3066034Z ok  	arxivlens/internal/crawler	0.004s
+2026-11-03T14:12:33.3075428Z ?   	arxivlens/internal/db	[no test files]
+2026-11-03T14:12:33.3076433Z ?   	arxivlens/internal/dlq	[no test files]
+2026-11-03T14:12:33.3077361Z ?   	arxivlens/internal/downloader	[no test files]
+2026-11-03T14:12:33.6004146Z ok  	arxivlens/internal/kafka	0.003s
+2026-11-03T14:12:33.8437171Z ok  	arxivlens/internal/query	0.006s
+2026-11-03T14:12:33.8437608Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-03T14:12:33.8438024Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-03T14:12:33.8438368Z ?   	arxivlens/shared/events	[no test files]
+2026-11-03T14:12:33.8599901Z ##[group]Run make build-go
+2026-11-03T14:12:33.8600143Z [36;1mmake build-go[0m
+2026-11-03T14:12:33.8627031Z shell: /usr/bin/bash -e {0}
+2026-11-03T14:12:33.8627247Z ##[endgroup]
+2026-11-03T14:12:33.8682233Z go build -o bin/arxivlens ./cmd/arxivlens
+2026-11-03T14:12:34.6648488Z Post job cleanup.
+2026-11-03T14:12:34.7644043Z (node:2674) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-03T14:12:34.7644651Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-03T14:12:34.7696502Z [command]/opt/hostedtoolcache/go/1.25.0/x64/bin/go env GOMODCACHE
+

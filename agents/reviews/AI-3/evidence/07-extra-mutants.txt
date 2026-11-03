@@ -1,0 +1,97 @@
+$ bash /tmp/claude-0/-home-claude/a7846b55-0dcb-5cc1-9dde-fa9d12c10390/scratchpad/bin/extra_mutants.sh
+================ M2-per-sentence-calls
+@@ -187,7 +187,15 @@
+ 			chunkMissing++
+ 		}
+ 	}
+-	sentEmbeddings, sentErr := r.embedBatch(ctx, sentTexts)
++	sentEmbeddings := make([][]float32, len(sentTexts))
++	var sentErr error
++	for i := range sentTexts {
++		one, err := r.embedBatch(ctx, sentTexts[i:i+1])
++		if err != nil {
++			sentErr = err
++		}
++		sentEmbeddings[i] = one[0]
++	}
+ 
+ 	// 3. Verify support (§9) per citation. Fail closed (QA-4, AI-2): if either vector is missing,
+ 	// the citation stays unsupported with score 0.
+--- FAIL: TestAskBatchesEmbeddingCalls (0.00s)
+    rag_test.go:502: EmbedTexts called 3 times, want <= 2 (one per batch): [["chunk Method" "chunk Results" "chunk Discussion"] ["Based on the indexed research, the paper \"Paper\" addresses this in the Method section ."] ["Furthermore, experimental evaluation in Results demonstrates relevant improvements ."]]
+--- FAIL: TestValidateCitationsBatchMatchesPerItem (0.00s)
+        rag_test.go:549: calls = 3 ([["chunk A" "chunk B"] ["Strong claim ."] ["Weak claim ."]]), want 2
+        rag_test.go:549: calls = 3 ([["chunk A" "chunk B"] ["Claim ."] ["Other ."]]), want 2
+--- FAIL: TestAskBatchFailClosed (0.00s)
+        rag_test.go:603: EmbedTexts called 3 times, want 2
+        rag_test.go:599: marker 2 score=0.8 supported=true, want 0 false
+        rag_test.go:603: EmbedTexts called 3 times, want 2
+        rag_test.go:607: log = "[Query Service] citation support unverified trace_id=818d4a42bffd81cf145d17387459934c trace_id_source=generated unverified=1 citations=2 chunks_without_vector=0/3 sentence_embed_errors=1\n", want one line containing "unverified=2 citations=2 chunks_without_vector=0/3 sentence_embed_errors=2"
+        rag_test.go:603: EmbedTexts called 3 times, want 2
+        rag_test.go:599: marker 2 score=0.8 supported=true, want 0 false
+        rag_test.go:603: EmbedTexts called 3 times, want 2
+        rag_test.go:607: log = "[Query Service] citation support unverified trace_id=07ee558efd68ed3c69d1a099b8c5a93b trace_id_source=generated unverified=1 citations=2 chunks_without_vector=0/3 sentence_embed_errors=0\n", want one line containing "unverified=2 citations=2 chunks_without_vector=0/3 sentence_embed_errors=0"
+        rag_test.go:603: EmbedTexts called 3 times, want 2
+FAIL
+FAIL	scratch/query	0.006s
+FAIL
+exit=1
+================ M3-no-length-check
+@@ -243,9 +243,6 @@
+ 	if err != nil {
+ 		return out, err
+ 	}
+-	if len(vecs) != len(texts) {
+-		return out, nil
+-	}
+ 	copy(out, vecs)
+ 	return out, nil
+ }
+--- FAIL: TestAskBatchFailClosed (0.00s)
+        rag_test.go:599: marker 1 score=0.9939 supported=true, want 0 false
+        rag_test.go:599: marker 2 score=0.8 supported=true, want 0 false
+        rag_test.go:607: log = "", want one line containing "unverified=2 citations=2 chunks_without_vector=3/3 sentence_embed_errors=0"
+        rag_test.go:599: marker 1 score=0.9939 supported=true, want 0 false
+        rag_test.go:607: log = "[Query Service] citation support unverified trace_id=1932568fff10bde6e30161b99e4ccaf5 trace_id_source=generated unverified=1 citations=2 chunks_without_vector=0/3 sentence_embed_errors=0\n", want one line containing "unverified=2 citations=2 chunks_without_vector=0/3 sentence_embed_errors=0"
+        rag_test.go:599: marker 1 score=0.9939 supported=true, want 0 false
+        rag_test.go:599: marker 2 score=0.8 supported=true, want 0 false
+        rag_test.go:607: log = "", want one line containing "unverified=2 citations=2 chunks_without_vector=3/3 sentence_embed_errors=0"
+FAIL
+FAIL	scratch/query	0.006s
+FAIL
+exit=1
+================ M4-no-dedupe
+@@ -163,6 +163,7 @@
+ 			}
+ 			cleanSent := strings.TrimSpace(markerRegex.ReplaceAllString(sent, ""))
+ 			idx, ok := sentIndex[cleanSent]
++			ok = false
+ 			if !ok {
+ 				idx = len(sentTexts)
+ 				sentIndex[cleanSent] = idx
+--- FAIL: TestValidateCitationsBatchMatchesPerItem (0.00s)
+        rag_test.go:552: sentence batch = ["X  and Y  and Z ." "X  and Y  and Z ."], want ["X  and Y  and Z ."]
+        rag_test.go:552: sentence batch = ["Same ." "Same ." "Same ."], want ["Same ."]
+FAIL
+FAIL	scratch/query	0.005s
+FAIL
+exit=1
+================ M5-reversed-chunk-order
+@@ -178,7 +178,7 @@
+ 	// 2. One call for all chunks, one for all distinct sentences.
+ 	chunkTexts := make([]string, k)
+ 	for i, h := range hits {
+-		chunkTexts[i] = h.Content
++		chunkTexts[k-1-i] = h.Content
+ 	}
+ 	chunkEmbeddings, _ := r.embedBatch(ctx, chunkTexts)
+ 	chunkMissing := 0
+--- FAIL: TestAskBatchesEmbeddingCalls (0.00s)
+    rag_test.go:506: calls = [["chunk Discussion" "chunk Results" "chunk Method"] ["Based on the indexed research, the paper \"Paper\" addresses this in the Method section ." "Furthermore, experimental evaluation in Results demonstrates relevant improvements ."]], want [all 3 chunks in hit order] then [2 sentences]
+    rag_test.go:511: batched [{Marker:1 ChunkID:1 Score:0.6847 Supported:true} {Marker:2 ChunkID:2 Score:0.8 Supported:true}], per-item [{Marker:1 ChunkID:1 Score:0.9939 Supported:true} {Marker:2 ChunkID:2 Score:0.8 Supported:true}]
+FAIL
+FAIL	scratch/query	0.006s
+FAIL
+exit=1
+
+[exit code 0]

@@ -1,0 +1,33 @@
+$ bash /tmp/claude-0/-home-claude/a7846b55-0dcb-5cc1-9dde-fa9d12c10390/scratchpad/bin/ac1_ac4_head.sh TestAskBatchesEmbeddingCalls|TestValidateCitationsBatchMatchesPerItem
+$ git rev-parse HEAD
+ff9e7c1f95a27652dafc8ed8dca4b431c45ba9de
+$ gofmt -l internal/query/
+(empty = formatted)
+$ sha256sum (worktree vs scratch copy)
+a0ec86c3f730cedef788998f64ff75da6a4b5f216f7866d6a442f9e25248c415  internal/query/rag.go
+2f61ec540d595000507b021278b3dd1c83ac12342b3f1869e2a9f867946008e0  internal/query/rag_test.go
+a0ec86c3f730cedef788998f64ff75da6a4b5f216f7866d6a442f9e25248c415  <scratch>/ev-head/query/rag.go
+2f61ec540d595000507b021278b3dd1c83ac12342b3f1869e2a9f867946008e0  <scratch>/ev-head/query/rag_test.go
+$ go version
+go version go1.24.7 linux/amd64
+$ go vet ./...
+vet: clean
+$ go test -race -count=1 -run 'TestAskBatchesEmbeddingCalls|TestValidateCitationsBatchMatchesPerItem' -v ./query/
+=== RUN   TestAskBatchesEmbeddingCalls
+--- PASS: TestAskBatchesEmbeddingCalls (0.00s)
+=== RUN   TestValidateCitationsBatchMatchesPerItem
+=== RUN   TestValidateCitationsBatchMatchesPerItem/per-sentence_support
+=== RUN   TestValidateCitationsBatchMatchesPerItem/multiple_markers_one_sentence_embedded_once
+=== RUN   TestValidateCitationsBatchMatchesPerItem/repeated_identical_sentence_embedded_once
+=== RUN   TestValidateCitationsBatchMatchesPerItem/threshold_edge
+=== RUN   TestValidateCitationsBatchMatchesPerItem/no_in-range_marker_makes_no_call
+--- PASS: TestValidateCitationsBatchMatchesPerItem (0.00s)
+    --- PASS: TestValidateCitationsBatchMatchesPerItem/per-sentence_support (0.00s)
+    --- PASS: TestValidateCitationsBatchMatchesPerItem/multiple_markers_one_sentence_embedded_once (0.00s)
+    --- PASS: TestValidateCitationsBatchMatchesPerItem/repeated_identical_sentence_embedded_once (0.00s)
+    --- PASS: TestValidateCitationsBatchMatchesPerItem/threshold_edge (0.00s)
+    --- PASS: TestValidateCitationsBatchMatchesPerItem/no_in-range_marker_makes_no_call (0.00s)
+PASS
+ok  	scratch/query	1.022s
+
+[exit code 0]

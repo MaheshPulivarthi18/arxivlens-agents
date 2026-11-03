@@ -1,0 +1,31 @@
+$ bash /tmp/claude-0/-home-claude/a7846b55-0dcb-5cc1-9dde-fa9d12c10390/scratchpad/bin/ac1_ac4_head.sh TestAskBatchFailClosed
+$ git rev-parse HEAD
+ff9e7c1f95a27652dafc8ed8dca4b431c45ba9de
+$ gofmt -l internal/query/
+(empty = formatted)
+$ sha256sum (worktree vs scratch copy)
+a0ec86c3f730cedef788998f64ff75da6a4b5f216f7866d6a442f9e25248c415  internal/query/rag.go
+2f61ec540d595000507b021278b3dd1c83ac12342b3f1869e2a9f867946008e0  internal/query/rag_test.go
+a0ec86c3f730cedef788998f64ff75da6a4b5f216f7866d6a442f9e25248c415  <scratch>/ev-head/query/rag.go
+2f61ec540d595000507b021278b3dd1c83ac12342b3f1869e2a9f867946008e0  <scratch>/ev-head/query/rag_test.go
+$ go version
+go version go1.24.7 linux/amd64
+$ go vet ./...
+vet: clean
+$ go test -race -count=1 -run 'TestAskBatchFailClosed' -v ./query/
+=== RUN   TestAskBatchFailClosed
+=== RUN   TestAskBatchFailClosed/(a)_chunk_batch_errors
+=== RUN   TestAskBatchFailClosed/(b)_sentence_batch_errors
+=== RUN   TestAskBatchFailClosed/(c)_chunk_batch_returns_fewer_vectors
+=== RUN   TestAskBatchFailClosed/(c)_sentence_batch_returns_fewer_vectors
+=== RUN   TestAskBatchFailClosed/chunk_batch_returns_more_vectors
+--- PASS: TestAskBatchFailClosed (0.00s)
+    --- PASS: TestAskBatchFailClosed/(a)_chunk_batch_errors (0.00s)
+    --- PASS: TestAskBatchFailClosed/(b)_sentence_batch_errors (0.00s)
+    --- PASS: TestAskBatchFailClosed/(c)_chunk_batch_returns_fewer_vectors (0.00s)
+    --- PASS: TestAskBatchFailClosed/(c)_sentence_batch_returns_fewer_vectors (0.00s)
+    --- PASS: TestAskBatchFailClosed/chunk_batch_returns_more_vectors (0.00s)
+PASS
+ok  	scratch/query	1.021s
+
+[exit code 0]

@@ -1,0 +1,19 @@
+$ bash /tmp/claude-0/-home-claude/a7846b55-0dcb-5cc1-9dde-fa9d12c10390/scratchpad/bin/ac3.sh
+$ make -n eval
+if [ -f scripts/eval_gate.py ]; then python3 scripts/eval_gate.py; else python3 scripts/evaluate_retrieval.py; fi
+
+$ command -v docker psql
+/usr/bin/docker
+/usr/bin/psql
+$ python3 -c 'import psycopg'
+ModuleNotFoundError: No module named 'psycopg'
+$ curl -sS -m 3 http://localhost:8001/health
+curl: (7) Failed to connect to localhost port 8001 after 0 ms: Couldn't connect to server
+$ curl -sS -m 3 http://localhost:8080/v1/health
+curl: (7) Failed to connect to localhost port 8080 after 0 ms: Couldn't connect to server
+$ docker info
+failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory
+$ curl -sS -m 8 -o /dev/null -w '%{http_code}' https://huggingface.co/BAAI/bge-base-en-v1.5/resolve/main/config.json
+000
+
+[exit code 0]

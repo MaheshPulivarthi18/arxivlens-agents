@@ -1,0 +1,38 @@
+$ bash /tmp/claude-0/-home-claude/a7846b55-0dcb-5cc1-9dde-fa9d12c10390/scratchpad/bin/ac5.sh
+# AC5 mutant A: literal revert - pre-AI-3 rag.go (9c1229a, one EmbedTexts call per hit and per sentence) + PR-head rag_test.go
+$ go test -count=1 -run TestAskBatchesEmbeddingCalls -v ./query/
+=== RUN   TestAskBatchesEmbeddingCalls
+    rag_test.go:502: EmbedTexts called 5 times, want <= 2 (one per batch): [["chunk Method"] ["chunk Results"] ["chunk Discussion"] ["Based on the indexed research, the paper \"Paper\" addresses this in the Method section ."] ["Furthermore, experimental evaluation in Results demonstrates relevant improvements ."]]
+--- FAIL: TestAskBatchesEmbeddingCalls (0.00s)
+FAIL
+FAIL	scratch/query	0.003s
+FAIL
+exit=1
+
+# AC5 mutant B: PR-head rag.go with ONLY the chunk batch reverted to one EmbedTexts call per hit
+$ diff -u rag.go mutant
+--- internal/query/rag.go	2026-11-03 14:12:46.055002595 +0000
++++ <scratch>/mut_rag.go	2026-11-03 14:14:58.286838964 +0000
+@@ -180,7 +180,11 @@
+ 	for i, h := range hits {
+ 		chunkTexts[i] = h.Content
+ 	}
+-	chunkEmbeddings, _ := r.embedBatch(ctx, chunkTexts)
++	chunkEmbeddings := make([][]float32, k)
++	for i := range chunkTexts {
++		one, _ := r.embedBatch(ctx, chunkTexts[i:i+1])
++		chunkEmbeddings[i] = one[0]
++	}
+ 	chunkMissing := 0
+ 	for _, v := range chunkEmbeddings {
+ 		if len(v) == 0 {
+$ go test -count=1 -run TestAskBatchesEmbeddingCalls -v ./query/
+=== RUN   TestAskBatchesEmbeddingCalls
+    rag_test.go:502: EmbedTexts called 4 times, want <= 2 (one per batch): [["chunk Method"] ["chunk Results"] ["chunk Discussion"] ["Based on the indexed research, the paper \"Paper\" addresses this in the Method section ." "Furthermore, experimental evaluation in Results demonstrates relevant improvements ."]]
+--- FAIL: TestAskBatchesEmbeddingCalls (0.00s)
+FAIL
+FAIL	scratch/query	0.003s
+FAIL
+exit=1
+
+[exit code 0]

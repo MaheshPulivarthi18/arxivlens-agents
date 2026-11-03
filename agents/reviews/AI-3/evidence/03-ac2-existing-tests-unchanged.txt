@@ -1,0 +1,132 @@
+$ bash /tmp/claude-0/-home-claude/a7846b55-0dcb-5cc1-9dde-fa9d12c10390/scratchpad/bin/ac2.sh
+$ git diff --numstat 9c1229a HEAD -- internal/query/rag_test.go   (added  removed  file)
+215	0	internal/query/rag_test.go
+$ git diff 9c1229a HEAD -- internal/query/rag_test.go | grep -c '^-[^-]'   (removed lines)
+0
+
+# Pre-AI-3 test file (9c1229a, the AI-1/AI-2 tests, byte-for-byte) against the PR-head rag.go:
+$ go test -race -count=1 -v ./query/
+=== RUN   TestFilterRelevantHits
+=== RUN   TestFilterRelevantHits/below_relevance_cutoff_dropped
+=== RUN   TestFilterRelevantHits/at_relevance_cutoff_kept
+=== RUN   TestFilterRelevantHits/zero_rerank_score_bypasses_relevance_cutoff
+=== RUN   TestFilterRelevantHits/appendix_below_aux_cutoff_dropped
+=== RUN   TestFilterRelevantHits/appendix_at_aux_cutoff_kept
+=== RUN   TestFilterRelevantHits/supplementary_case-insensitive_dropped
+=== RUN   TestFilterRelevantHits/table_section_dropped
+=== RUN   TestFilterRelevantHits/table_section_strongly_relevant_kept
+=== RUN   TestFilterRelevantHits/appendix_with_zero_rerank_dropped
+=== RUN   TestFilterRelevantHits/mixed_keeps_order_of_survivors
+=== RUN   TestFilterRelevantHits/empty_input
+--- PASS: TestFilterRelevantHits (0.00s)
+    --- PASS: TestFilterRelevantHits/below_relevance_cutoff_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/at_relevance_cutoff_kept (0.00s)
+    --- PASS: TestFilterRelevantHits/zero_rerank_score_bypasses_relevance_cutoff (0.00s)
+    --- PASS: TestFilterRelevantHits/appendix_below_aux_cutoff_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/appendix_at_aux_cutoff_kept (0.00s)
+    --- PASS: TestFilterRelevantHits/supplementary_case-insensitive_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/table_section_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/table_section_strongly_relevant_kept (0.00s)
+    --- PASS: TestFilterRelevantHits/appendix_with_zero_rerank_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/mixed_keeps_order_of_survivors (0.00s)
+    --- PASS: TestFilterRelevantHits/empty_input (0.00s)
+=== RUN   TestAskRefusesWhenNothingPasses
+=== RUN   TestAskRefusesWhenNothingPasses/no_hits
+=== RUN   TestAskRefusesWhenNothingPasses/all_below_relevance_cutoff
+=== RUN   TestAskRefusesWhenNothingPasses/only_weak_auxiliary_sections
+--- PASS: TestAskRefusesWhenNothingPasses (0.00s)
+    --- PASS: TestAskRefusesWhenNothingPasses/no_hits (0.00s)
+    --- PASS: TestAskRefusesWhenNothingPasses/all_below_relevance_cutoff (0.00s)
+    --- PASS: TestAskRefusesWhenNothingPasses/only_weak_auxiliary_sections (0.00s)
+=== RUN   TestAskAnswersWithValidatedCitations
+--- PASS: TestAskAnswersWithValidatedCitations (0.00s)
+=== RUN   TestValidateCitationsMarkers
+=== RUN   TestValidateCitationsMarkers/in_range
+=== RUN   TestValidateCitationsMarkers/marker_above_K_discarded
+=== RUN   TestValidateCitationsMarkers/marker_zero_discarded
+=== RUN   TestValidateCitationsMarkers/overflowing_marker_discarded
+=== RUN   TestValidateCitationsMarkers/multiple_markers_per_sentence
+=== RUN   TestValidateCitationsMarkers/multiple_markers_mixed_valid_and_fabricated
+=== RUN   TestValidateCitationsMarkers/repeated_marker_across_sentences
+=== RUN   TestValidateCitationsMarkers/non-numeric_brackets_ignored
+--- PASS: TestValidateCitationsMarkers (0.00s)
+    --- PASS: TestValidateCitationsMarkers/in_range (0.00s)
+    --- PASS: TestValidateCitationsMarkers/marker_above_K_discarded (0.00s)
+    --- PASS: TestValidateCitationsMarkers/marker_zero_discarded (0.00s)
+    --- PASS: TestValidateCitationsMarkers/overflowing_marker_discarded (0.00s)
+    --- PASS: TestValidateCitationsMarkers/multiple_markers_per_sentence (0.00s)
+    --- PASS: TestValidateCitationsMarkers/multiple_markers_mixed_valid_and_fabricated (0.00s)
+    --- PASS: TestValidateCitationsMarkers/repeated_marker_across_sentences (0.00s)
+    --- PASS: TestValidateCitationsMarkers/non-numeric_brackets_ignored (0.00s)
+=== RUN   TestValidateCitationsSupportThreshold
+=== RUN   TestValidateCitationsSupportThreshold/0.49_unsupported
+=== RUN   TestValidateCitationsSupportThreshold/0.4999_unsupported
+=== RUN   TestValidateCitationsSupportThreshold/0.50_supported
+=== RUN   TestValidateCitationsSupportThreshold/negative_unsupported
+--- PASS: TestValidateCitationsSupportThreshold (0.00s)
+    --- PASS: TestValidateCitationsSupportThreshold/0.49_unsupported (0.00s)
+    --- PASS: TestValidateCitationsSupportThreshold/0.4999_unsupported (0.00s)
+    --- PASS: TestValidateCitationsSupportThreshold/0.50_supported (0.00s)
+    --- PASS: TestValidateCitationsSupportThreshold/negative_unsupported (0.00s)
+=== RUN   TestValidateCitationsFailClosedWhenUnverifiable
+=== RUN   TestValidateCitationsFailClosedWhenUnverifiable/embedder_down_for_every_call
+=== RUN   TestValidateCitationsFailClosedWhenUnverifiable/sentence_embed_error
+=== RUN   TestValidateCitationsFailClosedWhenUnverifiable/chunk_embed_error
+=== RUN   TestValidateCitationsFailClosedWhenUnverifiable/sentence_returns_no_vector
+=== RUN   TestValidateCitationsFailClosedWhenUnverifiable/sentence_returns_empty_vector
+=== RUN   TestValidateCitationsFailClosedWhenUnverifiable/chunk_returns_no_vector
+=== RUN   TestValidateCitationsFailClosedWhenUnverifiable/chunk_returns_empty_vector
+--- PASS: TestValidateCitationsFailClosedWhenUnverifiable (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/embedder_down_for_every_call (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/sentence_embed_error (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/chunk_embed_error (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/sentence_returns_no_vector (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/sentence_returns_empty_vector (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/chunk_returns_no_vector (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/chunk_returns_empty_vector (0.00s)
+=== RUN   TestSplitIntoSentences
+=== RUN   TestSplitIntoSentences/empty
+=== RUN   TestSplitIntoSentences/no_terminator
+=== RUN   TestSplitIntoSentences/two_sentences
+=== RUN   TestSplitIntoSentences/question_and_exclamation
+=== RUN   TestSplitIntoSentences/decimal_not_split
+=== RUN   TestSplitIntoSentences/et_al._not_split
+=== RUN   TestSplitIntoSentences/e.g._not_split
+=== RUN   TestSplitIntoSentences/i.e._in_parens_not_split
+=== RUN   TestSplitIntoSentences/vs._and_Fig._not_split
+=== RUN   TestSplitIntoSentences/abbreviation_suffix_inside_a_word_still_splits
+=== RUN   TestSplitIntoSentences/abbreviation_at_end_of_text
+--- PASS: TestSplitIntoSentences (0.00s)
+    --- PASS: TestSplitIntoSentences/empty (0.00s)
+    --- PASS: TestSplitIntoSentences/no_terminator (0.00s)
+    --- PASS: TestSplitIntoSentences/two_sentences (0.00s)
+    --- PASS: TestSplitIntoSentences/question_and_exclamation (0.00s)
+    --- PASS: TestSplitIntoSentences/decimal_not_split (0.00s)
+    --- PASS: TestSplitIntoSentences/et_al._not_split (0.00s)
+    --- PASS: TestSplitIntoSentences/e.g._not_split (0.00s)
+    --- PASS: TestSplitIntoSentences/i.e._in_parens_not_split (0.00s)
+    --- PASS: TestSplitIntoSentences/vs._and_Fig._not_split (0.00s)
+    --- PASS: TestSplitIntoSentences/abbreviation_suffix_inside_a_word_still_splits (0.00s)
+    --- PASS: TestSplitIntoSentences/abbreviation_at_end_of_text (0.00s)
+=== RUN   TestCosineSimilarity
+=== RUN   TestCosineSimilarity/both_zero
+=== RUN   TestCosineSimilarity/one_zero
+=== RUN   TestCosineSimilarity/empty
+=== RUN   TestCosineSimilarity/length_mismatch
+=== RUN   TestCosineSimilarity/identical
+=== RUN   TestCosineSimilarity/orthogonal
+=== RUN   TestCosineSimilarity/opposite
+--- PASS: TestCosineSimilarity (0.00s)
+    --- PASS: TestCosineSimilarity/both_zero (0.00s)
+    --- PASS: TestCosineSimilarity/one_zero (0.00s)
+    --- PASS: TestCosineSimilarity/empty (0.00s)
+    --- PASS: TestCosineSimilarity/length_mismatch (0.00s)
+    --- PASS: TestCosineSimilarity/identical (0.00s)
+    --- PASS: TestCosineSimilarity/orthogonal (0.00s)
+    --- PASS: TestCosineSimilarity/opposite (0.00s)
+=== RUN   TestAskResponseShapeAndConstructor
+--- PASS: TestAskResponseShapeAndConstructor (0.00s)
+PASS
+ok  	scratch/query	1.035s
+
+[exit code 0]
