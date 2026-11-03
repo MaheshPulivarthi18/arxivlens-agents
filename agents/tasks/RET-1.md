@@ -29,7 +29,7 @@ a better passage. Make reranking actually decide the order users see, as ADR-001
 - [x] AC4: ties keep RRF order (unit test).
 - [x] AC5: `rerank=false` behaviour is byte-for-byte unchanged (unit test or golden).
 - [x] AC6 (not run: infra unavailable; follow-up EVAL-2 AC10): `make eval` before/after numbers in the PR (or "not run: infra unavailable" plus the exact commands); `/v1/ask` p95 stays < 3 s when measured.
-- [x] AC7 (pm-lead docs PR `docs/RET-1-sequence`): Technical PRD §7.1 sequence diagram updated via a `docs/` PR in arxivlens-agents (pm-lead can do it from your note).
+- [x] AC7 (pm-lead docs PR [arxivlens-agents#2](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/2), merge after #9): Technical PRD §7.1 sequence diagram updated via a `docs/` PR in arxivlens-agents (pm-lead can do it from your note).
 
 ## Verification
 ```bash

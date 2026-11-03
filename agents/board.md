@@ -48,7 +48,7 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 - From the OPS-H3 review: `ExtractCleanArxivID` should match only a whole ID and support old-style IDs the crawler stores (needs a product decision); add more pinning tests; add `go test -cover` to CI; make the retry sleep injectable (see OPS-H3 Notes)
 - From the #8 review: some code comments cite PRD sections (`§4`, `§6 Tier 1`) that now live in this repo; reword or link them (backend/ai, nit)
 - pm-lead docs PR after PR #2 merges: Product PRD §8 rows 156–157 (ADR-0006 Accepted, paper-level; drop the bi-encoder caveat; add the RET-1 caveat **only if #9 hasn't merged by then**), line 151 fallback note, the AGENTS.md §5 eval gotcha
-- pm-lead rules PR after PR #9 merges: drop the AGENTS.md §6 gotcha "`/v1/ask` does not yet sort by rerank score (ADR-0010, RET-1)"; merge the §7.1 diagram docs PR (`docs/RET-1-sequence`)
+- pm-lead rules PR after PR #9 merges: drop the AGENTS.md §6 gotcha "`/v1/ask` does not yet sort by rerank score (ADR-0010, RET-1)"; merge the §7.1 diagram docs PR [arxivlens-agents#2](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/2)
 - backend nits from the RET-1 review (fold into the next `search.go` change): `context.Canceled` fallback test case, `±Inf` score test
 - QA-9 Streaming answers (frontend + ai) — after QA-8
 - OTLP span export to Jaeger/Tempo (backend) — Technical PRD §11 P1
