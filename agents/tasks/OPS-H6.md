@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | KAN-28 (`labels = "task-OPS-H6"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics (what is committed when, and what happens on redelivery) |
-| **Status** | In Progress (rework round 1: PM final review CHANGES 2026-11-03, see `agents/reviews/OPS-H6/report.md`); draft PR [#15](https://github.com/MaheshPulivarthi18/ArxivLens/pull/15), QA round 1 PASS at `7814563` |
+| **Status** | Ready to merge: PR [#15](https://github.com/MaheshPulivarthi18/ArxivLens/pull/15) at `a8a2cf5` raised for Mahesh (QA r1+r2 PASS, PM APPROVE round 2, 2026-11-03). Open after merge: AC11 M4 once OPS-H1 merges; `Makefile test-go -race` follow-up |
 
 ## Goal
 Technical PRD §8.1 promises L4 for the Go consumer: an offset is committed only after the handler succeeds or the
@@ -158,3 +158,4 @@ CI is the source of truth for Go: local sandboxes have Go 1.24.7, so a stdlib-on
     (Go job 125994581866; `go vet` passed; the only failure is `--- FAIL: TestConsumerCancelInsideHandlerNoDLQ` with `log = [poll dlq 0@5 err=<nil> commit 0@5 allow]`). The run finished before the next push.
     `a8a2cf5` `revert mutation(AC6b)` → green, [run 41658732637](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41658732637) (run completed, success). `git diff aa4ed67 a8a2cf5` is empty.
   - Item 3: `docs/design/OPS-H6.md` now says there is no mutex, and why `-race` is clean. AC6b is in the test plan and §7a.
+- 2026-11-03 (pm-lead, final review round 2): **APPROVE** at `a8a2cf5`. Rework items 1–3 verified (QA r2 evidence 20–26). PR raised; C2 handed to Mahesh as a reviewer check in the PR description.

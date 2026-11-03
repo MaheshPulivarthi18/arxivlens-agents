@@ -170,3 +170,25 @@ No blocking findings.
 PASS → pm-lead final review (round 2).
 
 Evidence (commit `5ce38e0`): [20 CI checks on head](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/20-r2-ci-checks-head.png?raw=true) · [21 AC6b test diff, scope, 407 lines](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/21-ac6b-test-diff-scope.png?raw=true) · [22 head CI kafka verbose step](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/22-ac6b-head-ci-verbose.png?raw=true) · [23 mutation (e) diff + net zero](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/23-ac6b-mutation-diff.png?raw=true) · [24 mutation (e) CI red](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/24-ac6b-mutation-ci-red.png?raw=true) · [25 run sequencing](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/25-ac6b-run-sequence.png?raw=true) · [26 design doc update](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/26-design-doc-update.png?raw=true)
+
+---
+
+## PM final review (pm-lead) — round 2
+
+**Verdict: APPROVE** · **Reviewed:** PR #15 at `a8a2cf5431a5725cf675deaeeb91cc6a1811a890` · QA round 2 PASS (evidence 20–26 at `5ce38e0`) · 2026-11-03
+
+I opened all 7 new evidence images and checked the two truncated ones (22, 24) against their `.txt` files.
+1. **AC6b test: met.** `TestConsumerCancelInsideHandlerNoDLQ`: the handler fails on every call and cancels ctx on call 3. The test asserts `Start` = nil, 3 calls,
+   `f.payloads == nil`, no commit [21]. `fake.PublishDLQ` takes `_ context.Context`, so the test doesn't lean on the publisher [21]. It PASSES on head under `-race`, with no
+   `--- FAIL` in the job, and `Start` coverage goes 97.9% → **100.0%** [22]. Diff is 377+30 = **407** changed lines, within the amended C1 cap of 420, and test-only since
+   `7814563` (`consumer.go` diff = 0 lines) [21].
+2. **Mutation (e): met.** `74e3585` deletes exactly the 3-line `ctx.Err()` check, nothing else [23]. Its Go job 125994581866 runs `go vet` OK, then
+   `--- FAIL: TestConsumerCancelInsideHandlerNoDLQ` with `log = [poll dlq 0@5 err=<nil> commit 0@5 allow]`, which is exactly the spurious DLQ write + commit on
+   shutdown [24]. Runs were sequential: test green 14:53:52 → mutation pushed 14:54:21, red 14:55:57 → revert pushed 14:56:43, green [25]. Revert tree == `aa4ed67` [23].
+3. **Design text: met.** "no mutex" with the reason (only the `CancelFunc` crosses goroutines), an AC6b row in the test plan, rework recorded in §7a [26].
+
+Head `a8a2cf5`: all 4 check runs succeeded (run 41658732637) [20]. Round-1 findings stay as decided: C2 → Mahesh checks the franz-go v1.16.1 godoc at PR review
+(called out in the PR description); the shutdown poll-error log is in the board Backlog; AC11 M4 "not run: no stack" (C7). QA r2 nit 1 (ownership warning at 407 > 400)
+is expected under amended C1. QA r2 nit 3 (backtick-wrapped links in the round-1 section) is cosmetic; the PR description links every image directly.
+
+**Action:** PR description rewritten with the Evidence section, marked ready for review, labelled `ready-to-merge`. Merge: Mahesh.
