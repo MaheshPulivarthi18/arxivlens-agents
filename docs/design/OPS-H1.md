@@ -169,6 +169,11 @@ jobs:
 | 15 | Diagnostics, `if: failure()` | `docker compose --profile workers ps -a`, `docker compose --profile workers logs --no-color --timestamps`, `downloader.log`, `query.log`, and `arxivlens dlq list` per DLQ topic, printed to the log **and** uploaded as artifact `stack-logs` (`retention-days: 7`). | 5 min |
 | 16 | Teardown, `if: always()` | Kill the background PIDs, `docker compose --profile workers down -v`, `sudo chown -R runner ~/.cache/huggingface` (so the `actions/cache` post-step can save it). | 5 min |
 
+*2026-11-03 (build): step 12 still prints `arxivlens dlq list` per DLQ topic. The "empty" assertion uses
+`kafka-get-offsets.sh --time -1` (sum of end offsets = 0), because `dlq list` stops after a 1 s poll / 2 s deadline and can
+print `Total: 0` on a slow first fetch. This makes the check stricter. First runs: AC1 `docker compose up -d` fails because
+`minio/mc:latest` (infra `minio-init`) is no longer on Docker Hub, which is pre-existing; see the task Notes.*
+
 **Secrets:** none. **Triggers:** `pull_request` (not `_target`) with the paths filter, plus `workflow_dispatch` (usable once the file is on
 `main`). `ci.yml` doesn't change. EVAL-3 can copy steps 1–11 into `eval.yml`, or pull them into a composite action then; I'm not doing it
 now, to keep this diff small.

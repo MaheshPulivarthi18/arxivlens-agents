@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | find with JQL `labels = "task-OPS-H1"` |
 | **Design required** | **yes** (pm-lead 2026-11-03): P0, adds three compose services and a CI workflow that runs the full stack on GitHub runners. Design in `docs/design/OPS-H1.md`; pm-lead approves before code. |
-| **Status** | Ready — design approved 2026-11-03 with binding conditions (`docs/design/OPS-H1.md` "PM decision"). Expected to go `Blocked (needs OPS-H5 merged)` after the first `stack.yml` run. |
+| **Status** | Blocked (needs minio-init image decision: `minio/mc:latest` no longer pullable from Docker Hub, infra block is frozen by binding condition 1). Built; draft PR #14. After that fix, still expected to go `Blocked (needs OPS-H5 merged)`. |
 
 ## Goal
 Today `make test-full` only works if someone starts three Python processes by hand. Agents can't verify pipeline or
@@ -90,3 +90,38 @@ Agent sandboxes have the Docker CLI but no daemon: AC1–AC4 are proven only by 
   `.dockerignore` is a follow-up, with a README note for now. Follow-ups in the board Backlog: arXiv politeness for the
   downloader and ingester, verifying the `2608.20331` fixture, `.dockerignore` plus its allow-list rules PR, and the
   AGENTS.md §6 workers gotcha (pm-lead rules PR after merge).
+- 2026-11-03 (backend-engineer, build): branch `agent/backend/OPS-H1`, head `bb5ce42`, **draft PR #14**
+  (https://github.com/MaheshPulivarthi18/ArxivLens/pull/14). 7 files, 343+/25− (ownership-check: `Ownership OK for role=backend (368 changed lines)`).
+  - `ci.yml` run 41652931263: Go, Python M0, Frontend and Agent ownership all **success** (so `make lint` / `make test-unit` green).
+  - `stack.yml` run 41652931431 (https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41652931431), attempt 1 (job 125975570178)
+    and attempt 2 = one rerun to rule out flakiness (job 125978544535): **both failed at the AC1 step** (`docker compose up -d`) with the
+    same error. That's before any OPS-H1 service starts, so `make test-full` **never ran** (no pytest summary exists):
+    ```
+    Image minio/mc:latest Error pull access denied for minio/mc, repository does not exist or may require 'docker login'
+    Image minio/minio:latest Interrupted
+    Error response from daemon: pull access denied for minio/mc, repository does not exist or may require 'docker login'
+    ##[error]Process completed with exit code 1.
+    ```
+    Other Docker Hub pulls on the same runner work (`rhysd/actionlint:1.7.7` pulled in step 5), so this is the image, not the
+    runner. It is a **pre-existing break of the infra stack on `main`** (`minio-init` service, `image: minio/mc:latest`): plain
+    `docker compose up -d` / `make infra-up` fails for everyone. `minio/minio:latest` was interrupted, not refused, so whether it
+    still pulls is **unverified** (the sandbox can't reach Docker Hub: proxy 403).
+  - **Why I stopped instead of fixing it:** the fix is a change to an infra service block, and binding condition 1 requires those
+    blocks to stay byte-identical. A workflow-only pre-pull and retag (e.g. from another registry) would turn AC1 green while
+    `make infra-up` stayed broken for developers, so I didn't do that either. **Decision needed (pm-lead / Mahesh):** either
+    allow OPS-H1 to change the `minio-init` (and, if needed, `minio`) image to a pullable, pinned source (e.g. `quay.io/minio/mc`,
+    after someone checks it exists), or open a separate backend task for it that OPS-H1 depends on. The second run of this task
+    should then be the first that reaches AC2–AC4.
+  - Verified by the runs so far: step "Lint the harness" passed (actionlint 1.7.7 on `stack.yml`, `docker compose config --quiet`,
+    `--profiles` = `workers`). `make setup-py` installed `opentelemetry-sdk-1.45.2` and `torch-2.15.0+cpu` (AC7). Pre-fetch and Go build passed.
+    Diagnostics, artifact upload and teardown ran on failure.
+  - **Not verified (blocked by the above):** AC1 output, AC2 `ps -a` health, worker consumer-group healthcheck (binding condition 3:
+    still the group check, no fallback yet), AC3 crawl → `embedded`, fixture ingest (D1/D3), `make test-full` (D2, M5 HNSW).
+  - AC5 docs are done in the PR. `README.md:39` and `CONTRIBUTING.md:50-60` are unchanged. In `docker-compose.yml` the diff adds lines only.
+  - One small deviation from design step 12, recorded in the design: `arxivlens dlq list` is printed, but the "DLQ empty" assertion
+    uses `kafka-get-offsets.sh` end offsets, because `dlq list` gives up after a 1 s / 2 s poll and can report 0 on a slow first fetch.
+  - For pm-lead (per Scope): root `AGENTS.md` §6 still says "Processor and embedder workers are not yet in `docker-compose.yml`
+    (OPS-H1)". Update it in the rules PR after merge.
+  - Not run locally: `make lint` / `make test-unit` (sandbox Go 1.24, no PyPI/HF), actionlint (not installed), and anything that
+    needs a Docker daemon. Locally checked: `docker compose config` (5 services without the profile, 8 with it), `make -n stack-up`,
+    and `bash -n` on every workflow `run:` block.
