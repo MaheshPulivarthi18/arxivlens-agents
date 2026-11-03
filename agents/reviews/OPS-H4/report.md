@@ -42,3 +42,48 @@ Yes. Product PRD §8 gates quality on the `evals/*.jsonl` datasets. With this ch
 
 ## Hand-off
 PASS → pm-lead final review (see [spec] items 1-2).
+
+---
+
+## PM review (round 1)
+
+**Reviewer:** pm-lead · **Date:** 2026-11-03 · **PR:** #12 (draft) · **Head reviewed:** `31682fb0dce718286a504e73e3809a3305389181` (unchanged since QA; CI 4/4 green) · **Evidence commit:** `2a5c36f238c59e4eb2d8316ab58844b1e5845cb0`
+
+**Verdict: CHANGES** (round 1 of 2). The code is correct and AC1-AC5 are proven. The only gap is DoD 4, and it comes from my spec, not the developer.
+
+### Why CHANGES and not APPROVE + follow-up
+DoD 4 says "App README.md / CONTRIBUTING.md updated if behaviour or commands changed". This PR changes what `make test-unit` runs, and `CONTRIBUTING.md:23` would be wrong on `main` the moment it merges (`| make test-unit | Go tests + pytest tests/test_m0.py | No |`). CONTRIBUTING is the file every developer agent reads for commands, so a stale row there causes real confusion. The fix is two lines in files backend already owns (`CONTRIBUTING.md`) or any role may edit (`README.md`). A separate PR for two lines would cost more (spec, branch, QA, PM, merge) than one short rework round. My AC4 ("only `.gitignore` and `Makefile`") was too tight and caused this. **[spec] fixed:** AC4 now allows `CONTRIBUTING.md` + `README.md`, and new AC6 covers the doc lines (`agents/tasks/OPS-H4.md`).
+
+### Required changes (backend-engineer, branch `agent/backend/OPS-H4`, push to PR #12)
+1. `CONTRIBUTING.md:23`: change the row to
+   `| \`make test-unit\` | Go tests + \`pytest tests/test_m0.py tests/test_evals_data.py\` | No |`
+2. `README.md:199` (Testing block): keep the `test_m0.py` line and add this line directly under it, with the `#` aligned to the lines above:
+   `pytest tests/test_evals_data.py            # Unit: eval datasets — schema, sizes, corpus membership, unique IDs (no infra)`
+3. Change nothing else. Leave `.gitignore` and `Makefile` as they are, and leave the other stale EVAL-1 wording in `CONTRIBUTING.md` (line 28 `make eval` row, "once EVAL-1, PR #2, lands"; line 54 "once EVAL-1 lands") alone. That is a separate follow-up.
+
+QA round 2 then needs: AC4 (diff = `.gitignore`, `Makefile`, `CONTRIBUTING.md`, `README.md`), AC6 (the two lines, verbatim), and CI green on the new head. AC1-AC5 evidence carries over if `.gitignore`/`Makefile` are byte-identical to `31682fb`.
+
+### Evidence check (every file opened, PNG and .txt)
+| File | Proves | OK? |
+|---|---|---|
+| `00-ci-checks` | 4/4 check runs success on `31682fb` | yes |
+| `01-ac1-check-ignore` | `.gitignore:29:evals/results/` matches `evals/results/x.json`, exit 0; no tracked file newly ignored; the 7 tracked `evals/*` files are intact (AC1) | yes |
+| `02-ac2-test-py` | `make -n test-py` includes `tests/test_evals_data.py`; `47 passed` locally; full local `make test-py` fails only on `test_m0.py` collection (no torch), and the image says so (AC2, local part) | yes, with 05 for the full run |
+| `03-ac3-make-help` | `make help` shows accurate `test-unit` / `test-py` text; `make -n test-unit` = `go test` + both pytest files (AC3) | yes |
+| `04-ac4-diff` | `.gitignore` +1, `Makefile` +3/−3, nothing else (AC4 as written) | yes |
+| `05-ac5-ci-python-job` | CI head job runs both files, `50 passed`; main job ran `test_m0.py` only, `3 passed`; 50 − 3 = 47 eval tests (AC5) | yes. The derived count is acceptable (QA [spec] 2); AC5 is reworded to say "combined count rises by ≥ 47" |
+| `06-mutation-eval-data` | duplicate id → 2 failures; off-corpus paper → 1 failure. The wired tests do catch bad eval data | yes |
+| `07-ac3-ci-test-unit` | CI `make lint-go` + `make test-go` (`ok` for crawler/kafka/query) + `make test-py` `50 passed` = `test-unit` green (AC3) | yes |
+
+No secrets in any evidence file.
+
+### Product fit
+Product PRD §8 gates quality on the `evals/*.jsonl` datasets. After this PR, every PR's CI validates them, and per-run results can't be committed. This closes EVAL-1 AC5 / QA r3 finding 8. No gate, threshold or contract changes.
+
+### QA findings → disposition
+1. [spec] stale CONTRIBUTING/README → this CHANGES list (items 1-2); spec fixed.
+2. [spec] AC5 per-file count → accepted as proven; AC5 wording clarified in the spec.
+3. [nit] a `test_m0.py` collection error locally aborts the eval tests too → no change. CI has torch, and `evals/README.md:67` documents the standalone command for sandboxes.
+
+### Follow-ups
+- Backlog (backend-engineer, docs-only, P2): `CONTRIBUTING.md:28` `make eval` row still says "quality gate over `evals/` once EVAL-1, PR #2, lands", and `CONTRIBUTING.md:54` says "`evals/thresholds.json` once EVAL-1 lands". EVAL-1 has merged, so reword both (for example "Quality gate vs Product PRD §8 (`scripts/eval_gate.py`, thresholds in `evals/thresholds.json`)").

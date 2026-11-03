@@ -31,3 +31,4 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
 ```
 
 ## Notes
+- 2026-11-03 (pm-lead, from AI-2 PM review): concrete AC3 case. `ReferencesStack.jsx:70-73` renders `<ShieldCheck/> {score}% Verified` for every citation and changes only the badge variant when `supported` is false. Once AI-2 (ArxivLens #11) merges, an embedder outage shows "0.0% Verified". An unsupported citation must not be labelled "Verified" (QA-4, §7), so a test with `supported: false` should assert the badge text does not say "Verified" (e.g. "Unsupported · 0.0%"). Fix it frontend-only under AC3. The `/v1/ask` shape is unchanged.
