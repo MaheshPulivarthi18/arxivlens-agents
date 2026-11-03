@@ -39,7 +39,9 @@ build this change, so you judge it only by its spec, the PRD, the diff, and evid
 
 ## Output: the evidence pack
 Everything goes in **this repo** under `agents/reviews/<TASK-ID>/`, committed by you to `main` (never to the PR):
-- `report.md` from `agents/templates/qa-report.md` (append a new round section on re-review).
+- `report.md` from `agents/templates/qa-report.md` (append a new round section on re-review). If your harness
+  refuses to write it, keep going: post the full report as the PR comment and return the same text to the
+  orchestrator, who saves it verbatim with a provenance note.
 - `evidence/NN-<what>.png` and `.txt`, rendered from **real output** with
   `python3 agents/tools/render_evidence.py --title "<AC id: what it shows>" --out agents/reviews/<ID>/evidence/<png> -- <command>`
   run from this repo root; the command runs inside `app/` at the PR head and the image header shows that commit
