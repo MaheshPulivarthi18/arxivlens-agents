@@ -31,6 +31,7 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 
 - [2026-11-03][AI-1] Go 1.25 unavailable locally → run the real files in a stdlib-only scratch module (stub non-stdlib imports, `GOTOOLCHAIN=local GOPROXY=off`) for vet/test/per-file coverage; CI stays the source of truth. (seen 3×: OPS-H3, AI-1, AI-3)
 - [2026-11-03][AI-3] To prove a refactor (e.g. batching) keeps results, keep the old algorithm as a per-item reference helper in the test and compare outputs, then run the new tests against the old file from git as the mutation check. (seen 1×)
+- [2026-11-03][ING-8] A dataset task needing hand labels from external sources (arXiv PDFs, licence pages) can't be finished in a sandbox without that host → ship the scorer + rule validator unit-tested on fixtures, let the real-dataset test skip with an explicit "AC NOT met" reason, and never write labels from memory. Specs that need external labelling should name who labels and where. (seen 1×)
 
 ## backend-engineer
 
