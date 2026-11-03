@@ -237,11 +237,16 @@ sequenceDiagram
     Q->>EA: POST /internal/embed (is_query=true)
     EA-->>Q: 768-d vector
     Q->>PG: Hybrid SQL (vector top-50 ∪ BM25 top-50 → RRF k=60)
-    PG-->>Q: candidates ranked by rrf_score
-    Q->>EA: POST /internal/rerank (query, passages)
+    PG-->>Q: top max(20, limit) candidates by rrf_score (rerank pool)
+    Q->>EA: POST /internal/rerank (query, all pool passages, one call)
     EA-->>Q: cross-encoder scores (bge-reranker-base)
+    Note over Q: stable sort by rerank_score desc (ties keep RRF order), truncate to limit.<br/>On rerank error, wrong score count or NaN: keep RRF order, log trace_id, no error to caller.
     Q-->>UI: hits[] {chunk, arxiv_id, title, section, rrf_score, rerank_score}
 ```
+
+With `rerank:false` the SQL returns the top `limit` by `rrf_score` and there is no rerank call. The pool size is
+`RerankPool = 20` in `internal/query/search.go` (ADR-0010). If the latency budget forces a smaller pool, ADR-0010 records
+the change, and the eval's `RRF_POOL_SIZE` must follow.
 
 ```sql
 WITH vec AS (
@@ -257,14 +262,14 @@ WITH vec AS (
   ORDER BY ts_rank_cd(pc.content_tsv, q) DESC LIMIT 50
 )
 SELECT ..., COALESCE(1.0/(60+v.rank),0) + COALESCE(1.0/(60+k.rank),0) AS rrf_score
-FROM ... ORDER BY rrf_score DESC LIMIT $5;
+FROM ... ORDER BY rrf_score DESC LIMIT $5;  -- $5 = max(20, limit) when rerank=true, else limit
 ```
 
 ### 7.2 `/v1/ask`: grounded answer with citation validation
 
 ```mermaid
 flowchart TD
-    A[Question] --> B["HybridSearch + rerank<br/>top max_citations"]
+    A[Question] --> B["HybridSearch: rerank pool of max(20, max_citations),<br/>sort by rerank score, top max_citations"]
     B --> C{Filter}
     C -->|"rerank &lt; 0.45"| X[drop]
     C -->|"appendix/supplementary/table<br/>and rerank &lt; 0.70"| X
