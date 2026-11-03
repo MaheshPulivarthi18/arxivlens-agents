@@ -1,0 +1,18 @@
+$ bash -c git diff --numstat origin/main...HEAD; echo; git diff origin/main...HEAD -- internal/query/rag.go
+1	0	internal/query/rag.go
+45	0	internal/query/rag_test.go
+
+diff --git a/internal/query/rag.go b/internal/query/rag.go
+index 9f2ab9f..00da789 100644
+--- a/internal/query/rag.go
++++ b/internal/query/rag.go
+@@ -72,6 +72,7 @@ func (r *RAGService) Ask(
+ 		maxCitations = 5
+ 	}
+ 	traceID := generateTraceID()
++	ctx = withTraceID(ctx, traceID)
+ 
+ 	// 1. Retrieve top-K chunks via Hybrid Search
+ 	hits, err := r.searchEngine.HybridSearch(ctx, question, categories, maxCitations, true)
+
+[exit code 0]

@@ -1,0 +1,55 @@
+$ bash /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/qa-AI-4/run-mutants.sh
+### mutant: M1 revert the AI-4 line (origin/main behaviour)
+@@ -72,7 +72,6 @@
+ 		maxCitations = 5
+ 	}
+ 	traceID := generateTraceID()
+-	ctx = withTraceID(ctx, traceID)
+ 
+ 	// 1. Retrieve top-K chunks via Hybrid Search
+ 	hits, err := r.searchEngine.HybridSearch(ctx, question, categories, maxCitations, true)
+--- FAIL: TestAskRerankFallbackLogsResponseTraceID (0.00s)
+    rag_test.go:653: fallback log "[Query Service] rerank fallback trace_id=2d4d0fd2a507f530aaa674836a79050f trace_id_source=generated reason=\"rerank error\" pool=2 scores=0" missing "trace_id=23f2c45720c7932b37fce1fcbde695b3 "
+    rag_test.go:653: fallback log "[Query Service] rerank fallback trace_id=2d4d0fd2a507f530aaa674836a79050f trace_id_source=generated reason=\"rerank error\" pool=2 scores=0" missing "trace_id_source=ctx"
+FAIL
+FAIL	arxivlens/internal/query	0.005s
+FAIL
+
+### mutant: M2 ctx carries a different trace ID than the response
+@@ -72,7 +72,7 @@
+ 		maxCitations = 5
+ 	}
+ 	traceID := generateTraceID()
+-	ctx = withTraceID(ctx, traceID)
++	ctx = withTraceID(ctx, generateTraceID())
+ 
+ 	// 1. Retrieve top-K chunks via Hybrid Search
+ 	hits, err := r.searchEngine.HybridSearch(ctx, question, categories, maxCitations, true)
+--- FAIL: TestAskRerankFallbackLogsResponseTraceID (0.00s)
+    rag_test.go:653: fallback log "[Query Service] rerank fallback trace_id=5a3ba7d1ad628d93a10dd2fcaf0a5819 trace_id_source=ctx reason=\"rerank error\" pool=2 scores=0" missing "trace_id=0ea3cf8bc5e0444ae4a2e0720a989eab "
+FAIL
+FAIL	arxivlens/internal/query	0.004s
+FAIL
+
+### mutant: M3 trace ID attached only after HybridSearch
+@@ -72,10 +72,10 @@
+ 		maxCitations = 5
+ 	}
+ 	traceID := generateTraceID()
+-	ctx = withTraceID(ctx, traceID)
+ 
+ 	// 1. Retrieve top-K chunks via Hybrid Search
+ 	hits, err := r.searchEngine.HybridSearch(ctx, question, categories, maxCitations, true)
++	ctx = withTraceID(ctx, traceID)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("retrieval failed: %w", err)
+ 	}
+--- FAIL: TestAskRerankFallbackLogsResponseTraceID (0.00s)
+    rag_test.go:653: fallback log "[Query Service] rerank fallback trace_id=6eabac4e947f4883778f8ef0cf178309 trace_id_source=generated reason=\"rerank error\" pool=2 scores=0" missing "trace_id=a84d0b5acf93bf0af94767d7326d1841 "
+    rag_test.go:653: fallback log "[Query Service] rerank fallback trace_id=6eabac4e947f4883778f8ef0cf178309 trace_id_source=generated reason=\"rerank error\" pool=2 scores=0" missing "trace_id_source=ctx"
+FAIL
+FAIL	arxivlens/internal/query	0.017s
+FAIL
+
+
+[exit code 0]

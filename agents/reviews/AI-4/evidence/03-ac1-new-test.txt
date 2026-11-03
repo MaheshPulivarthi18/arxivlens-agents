@@ -1,0 +1,8 @@
+$ bash -c cd /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/qa-AI-4/mod && cmp /root/wt/qa-AI-4/internal/query/rag.go internal/query/rag.go && cmp /root/wt/qa-AI-4/internal/query/rag_test.go internal/query/rag_test.go && echo 'rag.go, rag_test.go identical to PR head' && GOTOOLCHAIN=local GOPROXY=off go test -count=1 -v -run TestAskRerankFallbackLogsResponseTraceID ./internal/query/
+rag.go, rag_test.go identical to PR head
+=== RUN   TestAskRerankFallbackLogsResponseTraceID
+--- PASS: TestAskRerankFallbackLogsResponseTraceID (0.00s)
+PASS
+ok  	arxivlens/internal/query	0.005s
+
+[exit code 0]

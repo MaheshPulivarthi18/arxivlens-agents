@@ -1,0 +1,32 @@
+$ gh api .../actions/jobs/126146729066/logs ; .../jobs/126146728646/logs (excerpts)
+##[group]Run make lint-go
+[36;1mmake lint-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go vet ./...
+##[group]Run make test-go
+[36;1mmake test-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go test ./...
+?   	arxivlens/cmd/arxivlens	[no test files]
+?   	arxivlens/internal/config	[no test files]
+ok  	arxivlens/internal/crawler	0.003s
+?   	arxivlens/internal/db	[no test files]
+?   	arxivlens/internal/dlq	[no test files]
+?   	arxivlens/internal/downloader	[no test files]
+ok  	arxivlens/internal/kafka	0.031s
+ok  	arxivlens/internal/query	0.005s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+##[group]Run make build-go
+[36;1mmake build-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go build -o bin/arxivlens ./cmd/arxivlens
+Post job cleanup.
+##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+[36;1m.github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"[0m
+Ownership OK for role=ai (46 changed lines)
+

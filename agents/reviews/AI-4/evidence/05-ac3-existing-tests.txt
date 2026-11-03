@@ -1,0 +1,30 @@
+$ bash -c cd /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/qa-AI-4/mod && for f in rag.go search.go client.go rag_test.go search_test.go; do cmp /root/wt/qa-AI-4/internal/query/$f internal/query/$f || exit 1; done; echo 'query files identical to PR head'; export GOTOOLCHAIN=local GOPROXY=off; go vet ./internal/query/ && echo 'go vet OK'; echo "gofmt -l: [$(gofmt -l internal/query)]"; go test -count=1 -cover -v ./internal/query/ 2>&1 | grep -E '^(--- |ok|FAIL|PASS|coverage)'
+query files identical to PR head
+go vet OK
+gofmt -l: []
+--- PASS: TestFilterRelevantHits (0.00s)
+--- PASS: TestAskRefusesWhenNothingPasses (0.00s)
+--- PASS: TestAskAnswersWithValidatedCitations (0.00s)
+--- PASS: TestValidateCitationsMarkers (0.00s)
+--- PASS: TestValidateCitationsSupportThreshold (0.00s)
+--- PASS: TestValidateCitationsFailClosedWhenUnverifiable (0.00s)
+--- PASS: TestSplitIntoSentences (0.00s)
+--- PASS: TestCosineSimilarity (0.00s)
+--- PASS: TestAskResponseShapeAndConstructor (0.00s)
+--- PASS: TestAskBatchesEmbeddingCalls (0.00s)
+--- PASS: TestValidateCitationsBatchMatchesPerItem (0.00s)
+--- PASS: TestAskBatchFailClosed (0.00s)
+--- PASS: TestAskRerankFallbackLogsResponseTraceID (0.00s)
+--- PASS: TestHybridSearchRerankOrdersByScore (0.00s)
+--- PASS: TestHybridSearchRerankTiesKeepRRFOrder (0.00s)
+--- PASS: TestHybridSearchRerankPoolSize (0.00s)
+--- PASS: TestHybridSearchRerankFallback (0.00s)
+--- PASS: TestTraceIDFrom (0.00s)
+--- PASS: TestHybridSearchNoRerankUnchanged (0.00s)
+--- PASS: TestHybridSearchFetchError (0.00s)
+--- PASS: TestNewSearchEngineWiresSeams (0.00s)
+PASS
+coverage: 69.0% of statements
+ok  	arxivlens/internal/query	0.011s	coverage: 69.0% of statements
+
+[exit code 0]
