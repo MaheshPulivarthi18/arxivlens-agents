@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-1 (PR #2 merged `a959d03`), RET-1 (PR #9 merged `bb9ee90`) |
 | **Jira** | find with JQL `labels = "task-EVAL-5"` (orchestrator to create under the Retrieval/Eval epic) |
 | **Design required** | no (P2, no gate, threshold or contract change) |
-| **Status** | Ready to merge (PR [#17](https://github.com/MaheshPulivarthi18/ArxivLens/pull/17) raised, head `557f4e1`; QA PASS r1, PM APPROVE; merge gates G1 H3 real-pgvector run, G2 merge order with #16) |
+| **Status** | Ready to merge (PR [#17](https://github.com/MaheshPulivarthi18/ArxivLens/pull/17) raised; QA PASS r1 + PM APPROVE at `557f4e1`; G2 rework pushed at `f24e1da` (merge of main after #16), needs QA/PM re-check of that delta; merge gate G1 H3 real-pgvector run still open) |
 
 ## Goal
 Make the existing Recall@5 eval fail loudly instead of silently when the rerank endpoint errors, when the mirrored RRF
@@ -135,3 +135,23 @@ make test-unit && make lint      # CI is the source of truth (sandbox lacks Go 1
 - Merge gate **G2**: #16 (OPS-H5, head `f69f340`) still renames `querySQL`. Whichever PR merges second rebases and re-runs CI. If #16 goes first, ai-engineer updates the parity extraction.
 - Follow-ups F1–F5 are listed in the report (F1 runtime model reporting needs an ADR; F2 a `db.yml` pytest step closes H3).
 
+### ai-engineer, 2026-11-04 (G2: #16 OPS-H5 merged first as `e67354c`)
+- Head `f24e1da75d89bc519077bee4a263ebe89ab4d5ec` on `agent/ai/EVAL-5`: merge commit `95556da` (origin/main, no conflicts, no rebase/force-push)
+  plus `f24e1da`. Delta on top of the merge: `tests/test_evals_data.py` +50/-4, `scripts/evaluate_retrieval.py` +9/-2, `evals/README.md` +4/-1.
+  Diff vs main: 3 files, 379 changed lines (ownership-check OK for role=ai). No `internal/` or `.github/` change.
+- Before: `pytest tests/test_evals_data.py` 1 failed (`HybridSearch querySQL not found exactly once`), 57 passed, 1 skipped. After: 59 passed, 1 skipped.
+- Parity guard: `_go_string_const()` rebuilds `hybridSearchSQL` from the Go consts (raw/plain strings, `+`, identifiers resolved recursively;
+  each const must be declared exactly once; comments are not part of the value). Added: `LIMIT 50` count and `ce.model = $2` on the resolved
+  SQL, `vectorHitsSQL` spliced in, `fetchCandidates` runs `Exec(ctx, hnswSearchSettings)` once before `Query(ctx, hybridSearchSQL,` once.
+  The raw-`src` asserts are kept as-is (nothing weakened).
+- SET LOCAL decision: **mirror.** ADR-0010 says the gated mode mirrors production, and production now runs ef_search=100 + strict_order
+  before the hybrid query. With the default ef_search=40 the eval's vector arm can return < 50 rows after the `ce.model` filter, so its RRF
+  pool would differ from production's. The eval runs `RRF_HNSW_SETTINGS` (same text as `hnswSearchSettings`, asserted) right before
+  `RRF_POOL_SQL` and `RESET`s after it, so the ungated BM25/dense baselines keep server defaults. Like production, it now needs pgvector >= 0.8.0.
+  New test `test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets`.
+- Mutants (temporary, not committed), 23/23 caught: G1 rename search.go, G2 RerankPool 25, G3 vectorHitsSQL LIMIT 40, G4 G3 + `// LIMIT 50`
+  comment (raw count stays 2; caught by the resolved-const count), G5 drop vector ORDER BY+LIMIT, G6 rrf_score ASC, G7 keyword LIMIT 40,
+  G8 drop ce.model filter, G9 Go ef_search 200, G10 drop iterative_scan, G11 Query not on hybridSearchSQL, G12 settings Exec removed,
+  G13 inline vector arm instead of the const, G14 main.go model default (H1); E1 eval ef_search 40, E2 settings not run, E3 no reset,
+  E4 settings before BM25, E5 eval arm LIMIT 40, E6 eval ASC, E7 RRF_POOL_SIZE 25, E8 eval drops ce.model, E9 eval drops vector ORDER BY.
+- Not run: `make eval` (no stack), `make test-unit`/`make lint` locally (no Go 1.25); CI on `f24e1da` is the source of truth. H3/G1 still open.
