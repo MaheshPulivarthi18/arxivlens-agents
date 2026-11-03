@@ -186,3 +186,16 @@ Agent sandboxes have the Docker CLI but no daemon: AC1–AC4 are proven only by 
     compose. (c) Another S3-compatible server, which is Mahesh's call per the addendum. Whatever is chosen should also update
     `README`/area notes, since `make infra-up` is broken on `main` for everyone today.
 
+- 2026-11-03 19:02Z cycle (orchestrator): **Human review** from Mahesh on PR #14 (2026-11-03T17:59Z, head `7522eab`).
+  Mahesh then pushed 9 commits himself to `agent/backend/OPS-H1` (18:04Z–19:07Z, head `5c79c43`: Chainguard MinIO
+  images, YAML fixes, init script, worker health diagnostics) and was still pushing when this cycle started, so agents
+  did **not** touch the branch this cycle (no rework push over his work, no QA of a moving head). Checklist:
+  - [ ] H1 (P1): pinned image pullable by an unauthenticated GH runner; full-stack `stack.yml` run green; attach run +
+    resolved digests; AC1–AC4 stay unchecked until then. *(Mahesh's commits target this — QA to verify on a settled head.)*
+  - [ ] H2 (P2): worker health check must prove **this** container is the consumer-group member (unique `client.id`
+    checked, or a worker-local heartbeat); test: stopping the compose worker fails its health check while another
+    consumer stays in the group.
+  - [ ] H3 (P2): `stack.yml` `paths` filter includes worker sources (`services/processor/**`, `services/embedder/**`),
+    `services/common/**`, `shared/**`, `migrations/**`.
+  - [ ] H4: arXiv rate limiter + identifying User-Agent stay explicit tracked follow-ups (board Backlog item exists).
+  - Next cycle: if no Mahesh commits for ≥1 h, backend reworks H2/H3 on top of `5c79c43` (never rewriting his commits), then QA.

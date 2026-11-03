@@ -91,3 +91,15 @@ make test-unit && make lint      # CI is the source of truth (sandbox lacks Go 1
 - Local: `python3 -m pytest -q tests/test_evals_data.py` 55 passed (47 before); `py_compile` ok; `--help` ok; ownership-check OK.
 - Not run: `make eval` (no stack, no behaviour change on a healthy stack). `CHUNK_COUNTS_SQL` is not executed against real Postgres
   (stubbed cursor only). `make lint` locally (no Go 1.25), but the CI Go job ran vet/gofmt.
+- 2026-11-03 19:02Z cycle (orchestrator): **Human review** from Mahesh on PR #17 (2026-11-03T17:59Z, head `910f2f8`) —
+  top priority. PR stays draft; Jira → In Progress. Rework checklist (QA checks each item explicitly next round):
+  - [ ] H1 (P2, required): one source of truth for the Go default model — the test must **extract the default from
+    `cmd/arxivlens/main.go`** and assert parity with the Python side (or Python reads it from Go), so a Go-side change
+    fails the test. Shown by a temporary edit of the Go default (output pasted, edit not committed).
+  - [ ] H2 (P2, required): explicit `--model` override — the evaluator must compare against the model actually used
+    when an override is supplied, not the duplicated default; tests for default parity **and** an explicit override.
+    ("Preferably" the query service reports its runtime model — that is `internal/query/server.go`, backend-owned and
+    an HTTP API change → backlog follow-up / ADR, not this PR.)
+  - [ ] H3 (P2): run `CHUNK_COUNTS_SQL` against the **real schema** in PostgreSQL+pgvector with a paper with zero
+    embedded chunks and one partially embedded; attach output. Sandbox has no pgvector; needs a DB-backed CI job
+    (backend, being added in OPS-H5 rework) → may stay open with "not run: <reason>" and is then a merge gate.

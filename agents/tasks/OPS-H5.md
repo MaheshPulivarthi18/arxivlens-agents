@@ -79,3 +79,19 @@ make test-full
   - AC5: not run (no infra). Commands in the PR. Owed post-merge from #14 `stack.yml`.
   - Caveat: the lexical-order test can't catch a removed `sort.Strings`, because `os.ReadDir` already returns entries
     sorted by name. The sort is kept so the order stays explicit.
+- 2026-11-03 19:02Z cycle (orchestrator): **Human review** from Mahesh on PR #16 (2026-11-03T17:58Z, head `47e8451`) —
+  top priority. PR stays draft; Jira → In Progress. Rework checklist (QA checks each item explicitly next round):
+  - [ ] H1 (AC1/AC2): `make migrate` (or `arxivlens migrate`) on a **fresh real PostgreSQL + pgvector** DB; show
+    `chunk_embeddings_hnsw_idx` exists; run it a second time, succeeds, index set unchanged. Output attached.
+  - [ ] H2 (AC4): `EXPLAIN (ANALYZE, BUFFERS)` of the **actual** `vector_hits` query from `internal/query/search.go`
+    (not a hand-written look-alike); attach the plan and state whether the HNSW index is selected.
+  - [ ] H3 (recall/filtering): measure Recall@5 of the real query with the index vs an exact scan; LIMIT 50 vs default
+    `hnsw.ef_search=40` and the model/category filters can shrink the candidate set. Document the chosen `ef_search` /
+    iterative-scan behaviour if recall or result count is insufficient.
+  - [ ] H4 (AC5): fresh-stack integration path without first running `scripts/benchmark_hnsw.py` — the migration must
+    create the index. Needs OPS-H1 (#14) green → stays open, **blocked on OPS-H1**, post-merge evidence allowed.
+  - [ ] H5 (note): runner re-applies every `*.up.sql` each run; document in `CONTRIBUTING.md`/README that new
+    migrations must be idempotent until a version ledger exists (ledger itself → backlog).
+  - Sandbox has PostgreSQL 16 binaries but no pgvector (no server headers, apt/GitHub archives unreachable), so H1–H3
+    run on GitHub runners: backend adds a DB-backed workflow (e.g. `.github/workflows/db.yml` with a
+    `pgvector/pgvector:pg16` service) — no overlap with #14's `stack.yml`.
