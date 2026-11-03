@@ -147,14 +147,14 @@ Status: ✅ done (verified against the code 2026-11-01, PM-1) · ◐ partial · 
 
 ## 8. Success metrics
 
-Datasets and the gate come from EVAL-1 — **pending EVAL-1 ([PR #2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2), not merged yet)**.
-Until it merges, `make eval` falls back to `scripts/evaluate_retrieval.py` with its hardcoded queries.
+Datasets and the gate come from EVAL-1 ([PR #2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2), merged as `a959d03`).
+`make eval` runs `scripts/eval_gate.py`, which runs the retrieval and answer evals and exits non-zero unless every gated check passes.
 Thresholds are mirrored in `evals/thresholds.json`; change them only through an Accepted ADR.
 
 | Category | Metric | Target (v1) | Dataset | Measured by |
 |---|---|---|---|---|
-| **Quality** | Retrieval Recall@5 on eval set | ≥ 0.80 | `evals/retrieval.jsonl` (papers in `evals/corpus.txt`) | `make eval` → `scripts/evaluate_retrieval.py`, gated on the "Hybrid RRF + Rerank" mode (`retrieval_recall_at_5_min`). Definition of Recall@5: [ADR-0006](adr/0006-recall-at-5-definition.md) (Proposed) |
-| | MRR / NDCG@5 (hybrid + rerank vs. BM25 baseline) | Hybrid+rerank beats both single-mode baselines | `evals/retrieval.jsonl` | `make eval` (`hybrid_rerank_beats_baselines`). Caveat: the eval's rerank mode uses the BGE bi-encoder, not the `/internal/rerank` cross-encoder — fixed by [EVAL-2](../agents/tasks/EVAL-2.md) |
+| **Quality** | Retrieval Recall@5 on eval set | ≥ 0.80 | `evals/retrieval.jsonl` (papers in `evals/corpus.txt`) | `make eval` → `scripts/evaluate_retrieval.py`, gated on the "Hybrid RRF + Rerank" mode (`retrieval_recall_at_5_min`). Recall@5 is paper-level ([ADR-0006](adr/0006-recall-at-5-definition.md), Accepted): ranked chunks deduped to arXiv IDs, `\|top-5 papers ∩ relevant\| / \|relevant\|`; chunk precision@5 is reported but not gated. Caveat: the gated mode reranks a 20-candidate RRF pool and sorts by rerank score (ADR-0010), but `/v1/ask` doesn't sort by rerank score until [RET-1](../agents/tasks/RET-1.md) ([PR #9](https://github.com/MaheshPulivarthi18/ArxivLens/pull/9)) merges, so until then the gate measures the target ordering |
+| | MRR / NDCG@5 (hybrid + rerank vs. BM25 baseline) | Hybrid+rerank beats both single-mode baselines | `evals/retrieval.jsonl` | `make eval` (`hybrid_rerank_beats_baselines`): beats BM25 and dense on both MRR and NDCG@5, on the same paper-level ranking (ADR-0006) |
 | | % citations marked *supported* | ≥ 90% | `evals/answer.jsonl` | `make eval` → `scripts/evaluate_answers.py` (`supported_citation_rate_min`). Caveat: inflated while `rag.go` marks citations supported when the embedder call fails — fixed by [AI-2](../agents/tasks/AI-2.md) |
 | | Correct refusal rate on out-of-corpus questions | ≥ 95% | `evals/refusal.jsonl` | `make eval` → `scripts/evaluate_answers.py` (`correct_refusal_rate_min`) |
 | **Latency** | `/v1/search` p95 | < 1.5 s | `evals/retrieval.jsonl` queries | Not gated yet — [EVAL-2](../agents/tasks/EVAL-2.md). Reference hardware: Technical PRD §9 (Proposed) |
