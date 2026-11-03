@@ -41,3 +41,4 @@ make test-full
 ## Notes
 - Specced by pm-lead in PM-1 after finding that no migration creates the HNSW index (`grep -rni hnsw migrations/` is empty).
 - Adding an index through a new migration needs no ADR (AGENTS.md §1).
+- 2026-11-03 (pm-lead, OPS-H1 design gate): OPS-H5 is now on the P0 OPS-H1 critical path, because OPS-H1's `stack.yml` can't be green until this index migration merges. **Take the next free backend slot for OPS-H5**, ahead of OPS-H7, OPS-H2, OPS-H8 and ING-6. Its files don't overlap OPS-H1's. If OPS-H1 isn't merged, AC5 may say "not run: infra unavailable" (as above). OPS-H1's green rerun after this merges is filed as post-merge AC5 evidence in `agents/reviews/OPS-H5/`.

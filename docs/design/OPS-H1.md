@@ -293,4 +293,60 @@ the downloader/query logs and uploads them. Locally, without a daemon: `docker c
    (pm-lead owns it). I'll also put (c) in the task Notes, per the ticket.
 
 ## PM decision
-_(pm-lead fills)_
+**APPROVED with binding conditions** (pm-lead, 2026-11-03, reviewed at design commit 8a9e9a9 against `agents/tasks/OPS-H1.md`,
+Technical PRD §11 P0 row "Containerize processor + embedder in compose" and §9 "External politeness"; app `origin/main` 9c1229a).
+
+Why: every ticket design item (1–5) is answered, and every AC maps to a named `stack.yml` step. No shared contract changes.
+The infra service blocks and `ci.yml` stay unchanged. The design refuses to deselect, skip or `continue-on-error` any test.
+I spot-checked these claims against the code: `test_m5_m6_telemetry_eval.py:4` imports `opentelemetry`, which `make setup-py`
+doesn't install; both Dockerfiles already install `curl`, so the `/healthz` check works; the compose `INTERNAL://kafka:9092`
+listener exists; `ownership-check.sh` allows `docker-compose.yml`, `Makefile`, `.github/`, both Dockerfiles, `README.md` and
+`CONTRIBUTING.md` for backend, but not `.dockerignore`.
+
+### Decisions on the open questions
+1. **M5 HNSW: build OPS-H1 now (option A). Do not sequence OPS-H5 first.** The first `stack.yml` run is the team's first-ever full-stack
+   run. It proves AC1–AC3 and M0–M4, and it surfaces D1–D3 early. That's worth more than waiting.
+   - The first run must show the full, unfiltered `make test-full` summary. **The only allowed failure is
+     `test_pgvector_hnsw_index_presence_and_querying`, failing on the missing `chunk_embeddings_hnsw_idx` assertion.** Any other
+     failure is a finding: handle it per design item 4 (log excerpt plus a follow-up in Notes).
+   - After that run, the task goes to `Blocked (needs OPS-H5 merged)`. The PR stays **draft** and does not go to QA. AC4 covers M1–M4,
+     but AC6 still requires a **green** `stack.yml` run, and it is not weakened. Once OPS-H5 merges, rebase, rerun, then QA.
+   - OPS-H5 is now on OPS-H1's critical path. **The next free backend slot goes to OPS-H5**, ahead of OPS-H7, OPS-H2, OPS-H8
+     and ING-6. Its files (`migrations/`, `internal/db/`, `cmd/arxivlens/`) don't overlap OPS-H1's. OPS-H5's AC5 may say "not run:
+     infra unavailable" if OPS-H1 isn't merged, as its spec already allows. OPS-H1's green rerun after OPS-H5 merges is then filed as
+     OPS-H5's post-merge AC5 evidence in `agents/reviews/OPS-H5/`. If that rerun fails M1 or M5/M6 because of the migration, it is an
+     OPS-H5 bug and gets a new task, not a change to OPS-H1.
+2. **D4: add `opentelemetry-sdk` to `make setup-py` in this task.** It's harness and inside backend's paths, and without it `make test-full`
+   can't even collect, for every developer, not just CI. `stack.yml` must install it through `make setup-py` and not with a separate
+   pip line, so CI and local setup can't drift. Leave it out of the images. OPS-H2 absorbs it into the unified `requirements.txt`
+   (note added to OPS-H2).
+3. **`.dockerignore`: follow-up, not in this PR.** The ownership allow-list in `ownership-check.sh` is the CI enforcement of the
+   AGENTS.md §2 table. Widening it is a rule change, so it goes through a pm-lead rules PR first and then the backend change. Until then,
+   the README Quick start must have a one-line note: "run `make stack-up` from a clean checkout or move `.venv/` and `node_modules/` out
+   of the repo root, because there is no `.dockerignore` yet."
+4. **Follow-ups**: (a) and (b) added to the `agents/board.md` Backlog. (c), the AGENTS.md §6 gotcha, is a pm-lead rules PR after
+   OPS-H1 merges, also in the Backlog. Also logged: `.dockerignore`.
+
+### Binding conditions (QA checks each)
+1. **Scope as designed.** No edit to `internal/`, `cmd/`, `services/**/*.py`, `tests/`, `ci.yml`, `README.md:39` or `CONTRIBUTING.md:50-60`.
+   The infra service blocks in `docker-compose.yml` stay byte-identical (`git diff` evidence). If OPS-H6 shifts those README/CONTRIBUTING
+   lines before you rebase, protect the *text*, not the line numbers.
+2. **AC2 evidence covers every service.** The `docker compose --profile workers ps -a` output shows `(healthy)` for postgres, kafka,
+   minio, embedder-api, processor and embedder-worker, and `Exited (0)` for kafka-init and minio-init.
+3. **Worker healthcheck.** Use the consumer-group check. If you fall back to `kill -0 1`, record it in this design (a dated line under §1)
+   and in the PR. That fallback is acceptable only because AC3 then proves the workers really consume.
+4. **Politeness.** Keep the step order from §4: the downloader starts only after `crawl` returns, and there's an explicit `sleep 3` before
+   the fixture ingest. Nothing may pass `--rate-limit` below the default. The PR description lists the two pre-existing product gaps
+   (downloader has no limiter; the ingester has no or a non-identifying UA) with the Backlog follow-up. The run is bounded to 5 arXiv requests.
+5. **D1–D3 handling.** If the `2608.20331` fixture is missing or mismatched, `/v1/ask` exceeds M3's 10 s client timeout, or the 45 s
+   ingest timeout trips: don't raise a timeout, don't swap the fixture and don't edit a test. Stop, paste the log excerpt in Notes, mark
+   `Blocked (needs <follow-up>)` and tell pm-lead. Rerunning once to rule out flakiness is fine. Say that you reran.
+6. **Diagnostics never leak secrets.** No secrets are used. The `stack-logs` artifact (7 days) holds compose and host logs only.
+7. **Diff < 400 changed lines** (the ownership-check line count is the evidence). If it goes over, split the docs into a follow-up PR
+   instead of trimming the workflow.
+8. **AC5 docs** also include the `.dockerignore` note (decision 3) and the GPU/MPS note (§1 "CPU torch").
+
+### Ticket updates made with this decision
+`agents/tasks/OPS-H1.md`: status set to Ready (design approved), AC4 and AC6 now state the M5 rule above (this tightens them, it doesn't
+weaken them), a new AC7 covers `opentelemetry-sdk` in `make setup-py`, and Notes record the follow-ups. `agents/tasks/OPS-H5.md` and
+`agents/tasks/OPS-H2.md` Notes are updated.

@@ -67,6 +67,10 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 - Prometheus metrics: consumer lag, DLQ depth, stage latency (backend) + OPS-6 dashboard (frontend)
 - Auth + rate limiting on query API (backend) — before any shared deployment
 - On-demand ingest via Kafka (backend) — depends on ADR-0004
+- From the OPS-H1 design (backend, P1, Technical PRD §9 politeness): Go downloader has no rate limiter (PDFs can be < 3 s apart), and the query-service ingester sends no User-Agent on its Atom call, a non-identifying `ArxivLens-Bot/1.0` on its PDF call, and doesn't wait between them. Fix: a shared 3 s limiter plus the crawler's identifying UA on every arXiv request
+- From the OPS-H1 design (ai owns `tests/` + EVAL-1 corpus, after OPS-H1's first `stack.yml` run): verify the hard-coded fixture `2608.20331` in `tests/test_m3_query.py` / `tests/test_m4_chaos.py` exists on arXiv and matches the G-CARL wording (EVAL-1 QA nit 8); replace it if not, and never loosen the asserts
+- From the OPS-H1 design (backend, P2, rules PR first): add `.dockerignore` (`.venv/`, `node_modules/`, `bin/`, `.cache/`, `evals/results/`) so local `make stack-up` doesn't send GBs of build context; needs a pm-lead rules PR to add `.dockerignore` to backend's row in AGENTS.md §2 and the `ownership-check.sh` allow-list
+- pm-lead rules PR after OPS-H1 merges: AGENTS.md §6 "workers not in docker-compose (OPS-H1)" gotcha → replace with `make stack-up` / `stack.yml`
 
 ## Repo split (2026-11-02)
 All tickets, docs, reviews and agent rules moved from ArxivLens to this repo. ArxivLens PRs #3, #4, #5, #7 were closed

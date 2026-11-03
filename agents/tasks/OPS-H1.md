@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | find with JQL `labels = "task-OPS-H1"` |
 | **Design required** | **yes** (pm-lead 2026-11-03): P0, adds three compose services and a CI workflow that runs the full stack on GitHub runners. Design in `docs/design/OPS-H1.md`; pm-lead approves before code. |
-| **Status** | Ready (design first) |
+| **Status** | Ready — design approved 2026-11-03 with binding conditions (`docs/design/OPS-H1.md` "PM decision"). Expected to go `Blocked (needs OPS-H5 merged)` after the first `stack.yml` run. |
 
 ## Goal
 Today `make test-full` only works if someone starts three Python processes by hand. Agents can't verify pipeline or
@@ -54,10 +54,17 @@ GitHub runner (agent sandboxes have no Docker daemon, so CI is the only place th
 - [ ] AC4: `make test-full` passes M1–M4 against the compose stack in the workflow (paste the pytest summary). How the Go
   query service and downloader are started is documented in README/CONTRIBUTING. A failure caused by something outside
   this task: stop and report per design item 4; never weaken or skip a test.
+  The pasted summary is the full, unfiltered `make test-full` run. Until OPS-H5 merges, the only allowed failure is
+  `tests/test_m5_m6_telemetry_eval.py::test_pgvector_hnsw_index_presence_and_querying` (missing `chunk_embeddings_hnsw_idx`).
+  Any other failure in any suite is a finding to report.
 - [ ] AC5: README Quick start shows the one-command path; host-run path kept as "Apple-silicon MPS acceleration" option.
   Known-limitations bullet updated. CONTRIBUTING commands table lists `make stack-up` and the workflow.
 - [ ] AC6: `stack.yml` runs on the PR itself (the paths filter includes the workflow file) and is green; link the run.
   `make lint` and `make test-unit` (CI `ci.yml`) are green. Diff < 400 changed lines.
+  "Green" means the whole job, M5/M6 included. With the known HNSW failure the PR stays draft and the task is
+  `Blocked (needs OPS-H5 merged)`. After OPS-H5 merges, rebase and rerun, and only then go to QA.
+- [ ] AC7: `make setup-py` installs `opentelemetry-sdk`, so `make test-full` collects every suite, and `stack.yml` installs
+  host deps only through `make setup-py`.
 
 ## Verification
 ```bash
@@ -78,3 +85,8 @@ Agent sandboxes have the Docker CLI but no daemon: AC1–AC4 are proven only by 
 - 2026-11-03 14:00 cycle (pm-lead): deferred for six cycles because nothing could run Docker. GitHub runners can, so the
   task now ships its own verification (`stack.yml`, AC6) and is design-required (P0 + CI workflow, per the task template).
   Started in parallel with OPS-H6: OPS-H1 must not touch `README.md:39`, `CONTRIBUTING.md:50-60`, `internal/` or `ci.yml`.
+- 2026-11-03 (pm-lead, design gate): design APPROVED with 8 binding conditions (see the design's "PM decision").
+  Decisions: build now and block on OPS-H5 for the green run; `opentelemetry-sdk` goes in `make setup-py` (AC7);
+  `.dockerignore` is a follow-up, with a README note for now. Follow-ups in the board Backlog: arXiv politeness for the
+  downloader and ingester, verifying the `2608.20331` fixture, `.dockerignore` plus its allow-list rules PR, and the
+  AGENTS.md §6 workers gotcha (pm-lead rules PR after merge).

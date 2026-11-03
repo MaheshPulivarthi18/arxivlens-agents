@@ -32,3 +32,4 @@ grep -rn "ulid-py fastapi" . --exclude-dir=.git
 ```
 
 ## Notes
+- 2026-11-03 (pm-lead, OPS-H1 design gate): OPS-H1 adds `opentelemetry-sdk` to `make setup-py`, because `tests/test_m5_m6_telemetry_eval.py` imports `opentelemetry`. Fold it into the unified `requirements.txt` (test/dev deps) and keep `make test-full` collecting every suite.
