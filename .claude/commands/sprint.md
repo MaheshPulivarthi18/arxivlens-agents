@@ -88,7 +88,8 @@ the PRD, the design, the diff and the evidence.
   `evidence/NN-<name>.png` (+ `.txt` with the full output) rendered from real output with
   `python3 agents/tools/render_evidence.py`: one image per acceptance criterion where possible, plus the CI check
   runs for the head commit. UI changes also need screenshots of the actual page when the environment can produce them;
-  otherwise the report says so. QA commits the pack, posts the report as a PR comment, and on the Jira ticket adds a
+  otherwise the report says so. QA commits the pack, posts the report as a PR comment (if QA's harness can't write
+  `report.md`, the orchestrator saves the PR comment body there verbatim, with a provenance line, before PM review), and on the Jira ticket adds a
   role-tagged comment listing every evidence file link plus a web link "QA evidence" to the folder
   (`createJiraIssueRemoteIssueLink`). Agent sandboxes cannot upload files to Jira (the media host is blocked), so
   evidence is linked, never pasted or summarised from memory.
