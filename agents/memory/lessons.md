@@ -11,7 +11,6 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-01][SPRINT] Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and Hugging Face → check which tasks the environment can verify before picking them; prefer Python/docs tasks there and state that Go/frontend checks rely on CI. Go unit-test tasks are fine (CI runs Go 1.25); npm-dependency and Docker tasks are not. Never route around egress blocks. (seen 2× — promote via retro PR)
 - [2026-11-01][SPRINT] Builder subagents edited board/PROGRESS during the build step, which collides with the separate record branch → tell builders to touch only their task spec under agents/. (seen 1×)
 
-- [2026-11-03][AI-1] qa-reviewer's harness blocked writing `agents/reviews/<ID>/report.md` (also RET-1) → orchestrator saves the report verbatim from the QA PR comment with a provenance note; QA returns the full text. (seen 2× — rules PR opened)
 
 ## pm-lead
 - [2026-11-01][PM-1] A PRD edit quietly added a policy (which machine gates latency) → anything that changes what a gate or threshold means must be labelled Proposed or go into an ADR. (seen 1×)

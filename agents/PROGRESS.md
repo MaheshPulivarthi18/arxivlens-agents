@@ -110,3 +110,6 @@ Format:
 
 ## 2026-11-03 — AI-1 — done
 - PR #10 merged by Mahesh as `4702daa`; Jira KAN-9 → Done. AI-2 now has its dependency met (Ready next cycle).
+
+## 2026-11-03 — retro rules PR — merged
+- arxivlens-agents#4 (orchestrator saves QA `report.md` when the QA harness can't) merged by Mahesh; lesson promoted into `.claude/agents/qa-reviewer.md` + `sprint.md` Step 5 and removed from `lessons.md`.
