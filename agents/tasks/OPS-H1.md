@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | find with JQL `labels = "task-OPS-H1"` |
 | **Design required** | **yes** (pm-lead 2026-11-03): P0, adds three compose services and a CI workflow that runs the full stack on GitHub runners. Design in `docs/design/OPS-H1.md`; pm-lead approves before code. |
-| **Status** | **Blocked (needs OPS-H5 merged + decision on CPU latency findings F1/F2)** (backend-engineer 2026-11-03, human-review rework H1–H3): `stack.yml` now gets through AC1–AC3 and runs `make test-full`. Run 41722155825 attempt 1: 68 passed, 3 failed (M5 HNSW, which is allowed, plus 2 M3 `/v1/ask` 10 s timeouts, F1). Attempt 2: the fixture ingest timed out (F2). PR #14 stays draft at `e79867a`. |
+| **Status** | **Blocked (needs OPS-H5 merged + Mahesh decision on F1/F2)** (pm-lead 2026-11-03 21:02Z cycle; rework H1–H4 at `e79867a`). Design deviation (conditions 1/3/7) confirmed and amended in `docs/design/OPS-H1.md` "PM decision on addendum". QA does not start and PR #14 stays draft until OPS-H5 (#16) is merged **and** Mahesh has answered Q-F1/Q-F2 in Notes. Last run 41722155825: attempt 1 had 68 passed / 3 failed (M5 HNSW allowed + 2 M3 `/v1/ask` 10 s timeouts = F1); attempt 2 hit the fixture ingest timeout (F2). |
 
 ## Goal
 Today `make test-full` only works if someone starts three Python processes by hand. Agents can't verify pipeline or
@@ -256,3 +256,23 @@ Agent sandboxes have the Docker CLI but no daemon: AC1–AC4 are proven only by 
       `confluent_kafka`/`ulid` (6 passed; 2 mutants killed); the rendered probe against fresh, 301 s-old and missing files; `docker compose config`; `bash -n` on every `run:` block.
     - Jira sync skipped: connector unavailable in this session (KAN-13 should get the PR head, run link and Blocked status).
 
+- 2026-11-03 21:02Z cycle (pm-lead): reviewed the addendum and decided (`docs/design/OPS-H1.md` "PM decision on addendum").
+  Condition 1 is amended (heartbeat-only hunk in `services/common/kafka_client.py` + new `tests/test_worker_heartbeat.py` allowed;
+  Mahesh's Chainguard digest pins accepted). Condition 3 is replaced by the heartbeat, and the H2 stack.yml step is required evidence. Condition 7 is waived at 465
+  lines, with a note in the PR description, no further growth, and docs not split. Conditions 2/4/5/6/8 stand. OPS-H8 now depends on this PR being merged (file overlap).
+  **Questions for Mahesh** (on PR #14 when it is next touched; the team changes no timeout, test or rerank setting until he answers):
+  - **Q-F1 (M3 `/v1/ask` latency on CPU):** with RET-1's 20-candidate cross-encoder rerank on the CPU GitHub runner, one `/v1/ask`
+    takes about 10 s (embedder-api `/internal/rerank` 21:38:04.63 → 21:38:14.56), and `tests/test_m3_query.py`'s 10 s client timeout trips
+    (`test_rag_ask_with_groundedness_support`, `test_rag_early_refusal_on_unrelated_query`). Is the 10 s M3 timeout a latency gate
+    that CPU CI must meet? (a) Yes: keep it. OPS-H1 waits on a new ai-engineer task to bring CPU `/v1/ask` under 10 s (for example rerank batching,
+    a smaller CPU pool, or a lighter cross-encoder; any Recall@5/eval change gets before/after numbers). (b) No: it's a client timeout. Write a Proposed ADR for a
+    CPU-CI value (ai-engineer changes the test) and let EVAL-3 track p95. (c) Run `stack.yml` on a larger or GPU runner. pm-lead recommends **(a)**:
+    p95 latency is a product requirement, so a CPU-only self-host user would see the same 10 s.
+  - **Q-F2 (on-demand ingest on CPU):** `/internal/ingest` for `2608.20331` (57 chunks) took about 46 s in attempt 1 and exceeded the
+    ingester's 45 s HTTP client timeout in attempt 2 (`context deadline exceeded`, HTTP 500). The endpoint builds a new `ProcessorWorker` + `EmbedderWorker`
+    (each loads models) on every call. Which fix? (a) An ai-engineer task: `/internal/ingest` reuses the already-loaded models (no per-call worker construction),
+    measured against the Product PRD §8 "< 60 s on-demand" target. (b) A backend task: raise or configure the ingester timeout in `internal/query/`.
+    (c) A larger runner. (d) Seed the fixture another way in `stack.yml`. pm-lead recommends **(a)**, with (b) only as a stop-gap: the per-call model load
+    is a real product cost, and raising the timeout would only hide it.
+  - **Q-merge:** do you want OPS-H1 to wait for the F1/F2 fixes before merging (AC6 green, as specced), or merge once OPS-H5 lands, with F1/F2
+    recorded as known red like M5 was? The second option changes AC6, so it needs your explicit say-so.

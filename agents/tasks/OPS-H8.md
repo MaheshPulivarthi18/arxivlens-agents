@@ -5,10 +5,10 @@
 | **Owner** | backend-engineer |
 | **Priority** | P0 (silent message loss in the processor and embedder stages) |
 | **PRD ref** | Product PRD OPS-1, OPS-3, §5.3; Technical PRD §8.1 (L4 commit-after-process: "All consumers"), §8.2 (retry and DLQ) |
-| **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror) |
+| **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror); **OPS-H1 (ArxivLens #14) merged**: #14 adds a worker heartbeat hook (`_heartbeat`, about 16 lines) to `services/common/kafka_client.py`, the file this task rewrites (AGENTS.md §3 independence). The design must keep that hook (touch after every `poll()` while assigned; no-op when `WORKER_HEARTBEAT_FILE` is unset) |
 | **Jira** | to be created by orchestrator (`labels = "task-OPS-H8"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics for both Python workers |
-| **Status** | Ready (specced 2026-11-03 21:02Z cycle by pm-lead) — next stage: Design (`docs/design/OPS-H8.md`) |
+| **Status** | Ready (specced 2026-11-03 21:02Z cycle by pm-lead) — next stage: Design (`docs/design/OPS-H8.md`). Doesn't start until OPS-H1 (#14) is merged (added 21:02Z cycle, pm-lead) |
 
 ## Goal
 Technical PRD §8.1 promises L4 for **all** consumers: the offset is committed only after the handler succeeds or the

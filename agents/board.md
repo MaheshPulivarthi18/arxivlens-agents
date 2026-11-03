@@ -1,13 +1,13 @@
 # Board
 
-Last updated: 2026-11-03 21:10 UTC by pm-lead (cycle 21:02Z grooming: OPS-H8 specced → Ready; no ai task independent of #17/#18 this cycle)
+Last updated: 2026-11-03 21:20 UTC by pm-lead (cycle 21:02Z: OPS-H1 addendum decided, conditions 1/3 amended, 7 waived; OPS-H8 now depends on #14 merged)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 
 ## Ready
 | ID | Title | Owner | Pri | Depends on |
 |---|---|---|---|---|
-| [OPS-H8](tasks/OPS-H8.md) | Python consumer: commit only after success or confirmed DLQ write; checked `publish`; interruptible waits; poison records to DLQ (design-required) | backend-engineer | P0 | OPS-H6 (Done) |
+| [OPS-H8](tasks/OPS-H8.md) | Python consumer: commit only after success or confirmed DLQ write; checked `publish`; interruptible waits; poison records to DLQ (design-required) | backend-engineer | P0 | OPS-H6 (Done); OPS-H1 (#14) merged (shares `services/common/kafka_client.py`) |
 | [EVAL-3](tasks/EVAL-3.md) | GitHub Actions full-stack `make eval` (manual + nightly), results artifact, first numbers; carries RET-1 AC6 (design-required) | backend-engineer (ai pairs on design) | P1 | OPS-H1 |
 | [OPS-H7](tasks/OPS-H7.md) | DLQ list/replay: offset checkpoints, paging, replay lock, idempotent replay (design-required) | backend-engineer | P1 | OPS-H6 |
 | [FE-1](tasks/FE-1.md) | Frontend test harness (Vitest) + tests for answer/citation states — needs registry.npmjs.org to regenerate `package-lock.json` | frontend-engineer | P1 | — |
@@ -18,7 +18,7 @@ WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENT
 ## In progress
 | ID | Title | Owner | Branch |
 |---|---|---|---|
-| [OPS-H1](tasks/OPS-H1.md) | Workers in docker-compose + `stack.yml`. Human-review rework H1–H4 done on top of Mahesh's commits (head `e79867a`): workers healthy (heartbeat check, H2 test green), AC1–AC3 green; `make test-full` 68 passed / 3 failed (HNSW allowed + F1 M3 `/v1/ask` 10 s timeouts from about 10 s CPU rerank); rerun hit F2 (ingest timeout). **Blocked (needs OPS-H5 merged + decision on F1/F2)**; pm-lead to confirm design deviation (conditions 1/3/7). Touches `services/common/kafka_client.py`: OPS-H8 overlap | backend-engineer | `agent/backend/OPS-H1` draft [#14](https://github.com/MaheshPulivarthi18/ArxivLens/pull/14) (KAN-13) |
+| [OPS-H1](tasks/OPS-H1.md) | Workers in docker-compose + `stack.yml`. Human-review rework H1–H4 done on top of Mahesh's commits (head `e79867a`): workers healthy (heartbeat check, H2 test green), AC1–AC3 green; `make test-full` 68 passed / 3 failed (HNSW allowed + F1 M3 `/v1/ask` 10 s timeouts from about 10 s CPU rerank); rerun hit F2 (ingest timeout). **Blocked (needs OPS-H5 merged + Mahesh decision on F1/F2)**. pm-lead confirmed the design deviation (conditions 1/3 amended, 7 waived at 465 lines). Questions Q-F1/Q-F2/Q-merge for Mahesh are in the ticket Notes. OPS-H8 now depends on this PR being merged | backend-engineer | `agent/backend/OPS-H1` draft [#14](https://github.com/MaheshPulivarthi18/ArxivLens/pull/14) (KAN-13) |
 
 ## In QA
 | ID | Title | Owner | PR |

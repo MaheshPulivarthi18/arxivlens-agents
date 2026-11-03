@@ -417,3 +417,40 @@ binding conditions 1 and 3. pm-lead needs to confirm or amend them.**
   tag part floats and the digest pins.
 - **Also changed.** `make stack-up` fails as soon as a worker turns `unhealthy` and prints its health log. The `stack.yml` `paths` filter adds
   `services/processor/**`, `services/embedder/**`, `services/common/**`, `shared/**`, `migrations/**` (H3).
+
+### PM decision on addendum (pm-lead, 2026-11-03 21:02Z cycle, reviewed at PR #14 head `e79867a`, design commit `a153203`)
+**Approved, with conditions 1, 3 and 7 amended as below.** Mahesh's PR #14 review (H1–H4) outranks this design. H2 asks for
+proof that *this* container's worker is the member, and a group-level check can't give that. Run 41719506286 shows
+`describe_consumer_groups(...).result(timeout=10)` timing out on every probe while Kafka reports the group as stable. So the
+approved group check doesn't work and can't meet H2 anyway. The deviation is a correct response to the review, not scope creep.
+Conditions 2, 4, 5, 6 and 8 stand as written. Condition 5 worked as intended: F1/F2 were stopped and reported, and nothing was raised.
+
+1. **Condition 1 (scope): amended.** Two more paths are allowed, for the heartbeat only:
+   - `services/common/kafka_client.py`: only the heartbeat hook (`_heartbeat`, stale-file removal at construction, the call after
+     `poll()`). Nothing may change how or when offsets are committed, retries, DLQ routing, `publish`, or `poll` timeouts. With
+     `WORKER_HEARTBEAT_FILE` unset, behaviour must be identical to `origin/main`, and an `OSError` is logged and never stops consumption.
+     QA checks this on the `git diff origin/main -- services/common/kafka_client.py` hunk (it should be about 16 added lines and no removed logic lines).
+   - New `tests/test_worker_heartbeat.py` (no infra, runs in `make test-py`). No existing test file is edited.
+   Everything else in condition 1 stands: no edits to `internal/`, `cmd/`, other `services/**/*.py`, existing `tests/`, `ci.yml`, or the
+   protected README/CONTRIBUTING reliability text. The infra-block rule is amended again for Mahesh's own image change: `minio`/`minio-init`
+   now use his Chainguard references (`cgr.dev/chainguard/minio:latest@sha256:3c60a2a8…`, `cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4…`),
+   and `minio-data-init` is his. Those are Mahesh's commits, so addendum rules 1–2 ("explicit release tag", "MinIO-published") give way to
+   his choice. The digest is the pin. The PR description must name the risk that Chainguard garbage-collects the digest.
+2. **Condition 3 (worker healthcheck): replaced** by the worker-local heartbeat in the addendum: touched after every `poll()` while
+   `assignment()` is non-empty, the file on a `tmpfs`, healthy when it is younger than 300 s (= `max.poll.interval.ms`). Required evidence:
+   the `stack.yml` step "Worker health follows this container, not the group" stays in the workflow and passes (two members → probe passes;
+   processor stopped while a host member keeps the group → probe fails; processor restarted → healthy again). The `kill -0 1` fallback is
+   no longer allowed. The PR description must state the known limit: a frozen process (SIGSTOP) reads healthy for up to 300 s while
+   Kafka drops it after the 45 s session timeout.
+3. **Condition 7 (diff < 400): waived for this PR at 465 changed lines. Don't split the docs now.** Mahesh reviewed this PR with its
+   docs in it, so moving them to another PR would separate them from the review he already gave. About 30 lines are his commits and about
+   90 are the heartbeat code and test his H2 required. Without those the PR would be about 345. Conditions: (a) the PR description says
+   "465 changed lines (> 400 target): docs kept in, since they were reviewed in this PR; ask if you want them split" so Mahesh can still ask
+   for a split; (b) no growth beyond about 465 except what his F1/F2 decision needs. Anything else becomes a follow-up task; (c) QA
+   records the ownership-check line count.
+
+**Still blocked.** QA doesn't start, and the PR stays draft, until both of these are true: OPS-H5 (#16) is merged, and Mahesh has decided F1 and F2
+(exact questions in `agents/tasks/OPS-H1.md` Notes, "Questions for Mahesh"). AC6 needs a green `stack.yml` run and isn't weakened. Nobody
+on the team raises a timeout, shrinks the rerank pool or edits M3/M4 without that decision.
+
+**Overlap:** #14 now changes `services/common/kafka_client.py`, which OPS-H8 owns. OPS-H8 `Depends on` now includes OPS-H1 (#14) merged (AGENTS.md §3).

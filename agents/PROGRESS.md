@@ -217,3 +217,8 @@ Format:
 - Run 41722155825 a1: AC1–AC3 + H2 green. `make test-full`: 68 passed, 3 failed (HNSW allowed; 2× M3 `/v1/ask` 10 s timeouts, F1: about 10 s CPU rerank, pool=20). a2: fixture ingest timeout (F2, D3). Status **Blocked (needs OPS-H5 merged + decision on F1/F2)**.
 - For pm-lead: deviation from binding conditions 1/3 (heartbeat touches `services/common` + `tests/`), diff 465 > 400 (condition 7), file overlap with Ready OPS-H8 (`kafka_client.py`).
 - Jira sync skipped: connector unavailable.
+
+## 2026-11-03 21:02Z cycle — pm-lead: OPS-H1 addendum decision, OPS-H8 dependency
+- OPS-H1 design addendum (`a153203`) approved in "PM decision on addendum": condition 1 amended (heartbeat-only hunk in `services/common/kafka_client.py` + new `tests/test_worker_heartbeat.py`; Mahesh's Chainguard digest pins accepted), condition 3 replaced by the heartbeat (the H2 stack.yml step is required evidence), condition 7 waived at 465 lines (PR note, no further growth). Conditions 2/4/5/6/8 stand.
+- OPS-H1 stays **Blocked (needs OPS-H5 merged + Mahesh decision on F1/F2)**. Q-F1 (M3 10 s vs ~10 s CPU rerank), Q-F2 (46 s ingest vs 45 s timeout) and Q-merge (wait for the fixes, or merge with known red) are written in the ticket Notes for Mahesh. No timeout or test changed.
+- OPS-H8 `Depends on` now includes OPS-H1 (#14) merged (shared `kafka_client.py`); board Ready row updated. It doesn't start this cycle.
