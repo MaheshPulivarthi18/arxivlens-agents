@@ -117,6 +117,6 @@ agents/templates/      task, design, PR, QA     agents/tools/         render_evi
 - `go.mod` requires Go 1.25; older local toolchains try to download it (blocked in agent sandboxes).
 - `tests/test_m0.py` downloads `BAAI/bge-base-en-v1.5` (~440 MB) on first run.
 - Processor and embedder workers are not yet in `docker-compose.yml` (OPS-H1), so `make test-full` needs them by hand.
-- `/v1/ask` answers are templated, not LLM-generated (QA-8), and it does not yet sort by rerank score (ADR-0010, RET-1).
+- `/v1/ask` answers are templated, not LLM-generated (QA-8).
 - Agent sandboxes can't upload files to Jira (media host blocked); link evidence instead.
 - Both repos are public: never commit secrets, tokens, credentials or private data to either one. Evidence images render in ArxivLens PRs for everyone.
