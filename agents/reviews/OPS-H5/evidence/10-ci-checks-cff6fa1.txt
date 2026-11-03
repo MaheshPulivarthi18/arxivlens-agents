@@ -1,0 +1,11 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/cff6fa1380406cbedb01652f90f9919f2d2c8051/check-runs --jq '.check_runs[] | "\(.name) | \(.status) | \(.conclusion) | job=\(.id) | \(.html_url)"'; echo; echo 'merge commit tested by CI:'; grep -h 'HEAD is now at' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/ci/job-126157913475.log | cut -c30-
+Python M0 unit tests | completed | success | job=126157913991 | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41705022138/job/126157913991
+Agent ownership check | completed | success | job=126157913891 | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41705022138/job/126157913891
+Frontend (lint, test, build) | completed | success | job=126157913888 | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41705022138/job/126157913888
+Go (vet, gofmt, test, build) | completed | success | job=126157913608 | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41705022138/job/126157913608
+DB (migrate twice, HNSW plan + recall) | completed | success | job=126157913475 | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41705021838/job/126157913475
+
+merge commit tested by CI:
+HEAD is now at 377922f Merge cff6fa1380406cbedb01652f90f9919f2d2c8051 into 8b0a2d2aa38cc9d6c95534554c382626df6abd56
+
+[exit code 0]

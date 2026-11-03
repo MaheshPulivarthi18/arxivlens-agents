@@ -1,0 +1,50 @@
+$ bash -c MB=$(git merge-base HEAD origin/main); echo merge-base=$MB; git diff --stat $MB HEAD; echo; echo '== 000001 / Makefile / compose / benchmark untouched? =='; git diff --name-only $MB HEAD -- migrations/000001_init_schema.up.sql migrations/000001_init_schema.down.sql Makefile docker-compose.yml scripts/ | wc -l; echo; echo '== ownership CI job 126157913891 =='; grep -E 'changed lines' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/ci/job-126157913891.log | cut -c30-; echo; echo '== open PRs and their files =='; for p in 14 17 18; do echo "#$p:"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/$p/files --jq '.[].filename' | sed 's/^/  /'; done; echo; echo '== CONTRIBUTING hunks: #16 vs #14 =='; git diff $MB HEAD -- CONTRIBUTING.md | grep '^@@'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/14/files --jq '.[] | select(.filename=="CONTRIBUTING.md") | .patch' | grep '^@@'; echo; echo '== merge with current origin/main =='; git merge-tree --write-tree origin/main HEAD >/dev/null && echo clean; echo; echo '== gofmt -l cmd internal (local gofmt) =='; gofmt -l cmd internal; echo "(empty above = formatted)"
+merge-base=9c1229a184d0d1befe997524c990fcc8ee9f016b
+ .github/workflows/db.yml                         |  71 ++++++
+ CONTRIBUTING.md                                  |   6 +-
+ README.md                                        |   2 +-
+ cmd/arxivlens/main.go                            |  28 ++-
+ internal/db/db.go                                |  30 +++
+ internal/db/db_test.go                           |  96 ++++++++
+ internal/query/search.go                         |  86 ++++---
+ internal/query/search_integration_test.go        | 293 +++++++++++++++++++++++
+ migrations/000002_chunk_embeddings_hnsw.down.sql |   1 +
+ migrations/000002_chunk_embeddings_hnsw.up.sql   |   6 +
+ 10 files changed, 581 insertions(+), 38 deletions(-)
+
+== 000001 / Makefile / compose / benchmark untouched? ==
+0
+
+== ownership CI job 126157913891 ==
+##[warning]619 changed lines (> 400). Consider splitting the change.
+Ownership OK for role=backend (619 changed lines)
+
+== open PRs and their files ==
+#14:
+  .github/workflows/stack.yml
+  CONTRIBUTING.md
+  Makefile
+  README.md
+  docker-compose.yml
+  services/embedder/Dockerfile
+  services/processor/Dockerfile
+#17:
+  evals/README.md
+  scripts/evaluate_retrieval.py
+  tests/test_evals_data.py
+#18:
+  internal/query/rag.go
+  internal/query/rag_test.go
+
+== CONTRIBUTING hunks: #16 vs #14 ==
+@@ -49,7 +49,9 @@ frontend/        React 19 + Vite UI
+@@ -74,6 +76,6 @@ frontend/        React 19 + Vite UI
+@@ -24,11 +24,13 @@ make setup-fe                              # frontend deps (npm ci)
+
+== merge with current origin/main ==
+clean
+
+== gofmt -l cmd internal (local gofmt) ==
+(empty above = formatted)
+
+[exit code 0]

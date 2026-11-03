@@ -1,0 +1,111 @@
+$ bash -c grep -E 'EXPLAIN |PLAN-HNSW-SELECTED' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/ci/job-126157913475.log | cut -c30- | sed 's/search_integration_test.go:213: //'; echo; echo '--- custom plan, query path, no filter (excerpt, job log lines 547-582) ---'; sed -n '547,582p' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/ci/job-126157913475.log | cut -c30-; echo '--- generic plan, query path, no filter (excerpt, job log lines 583-609) ---'; sed -n '583,609p' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/ci/job-126157913475.log | cut -c30-
+    EXPLAIN vectorHitsSQL [exact, custom plan, no category filter]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN vectorHitsSQL [default, custom plan, no category filter]
+        PLAN-HNSW-SELECTED=true
+    EXPLAIN vectorHitsSQL [default, generic plan, no category filter]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN vectorHitsSQL [query path, custom plan, no category filter]
+        PLAN-HNSW-SELECTED=true
+    EXPLAIN vectorHitsSQL [query path, generic plan, no category filter]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN hybridSearchSQL [query path, custom plan, no category filter]
+        PLAN-HNSW-SELECTED=true
+    EXPLAIN hybridSearchSQL [query path, generic plan, no category filter]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN vectorHitsSQL [exact, custom plan, cs.CL (~25% of papers)]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN vectorHitsSQL [default, custom plan, cs.CL (~25% of papers)]
+        PLAN-HNSW-SELECTED=true
+    EXPLAIN vectorHitsSQL [default, generic plan, cs.CL (~25% of papers)]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN vectorHitsSQL [query path, custom plan, cs.CL (~25% of papers)]
+        PLAN-HNSW-SELECTED=true
+    EXPLAIN vectorHitsSQL [query path, generic plan, cs.CL (~25% of papers)]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN hybridSearchSQL [query path, custom plan, cs.CL (~25% of papers)]
+        PLAN-HNSW-SELECTED=true
+    EXPLAIN hybridSearchSQL [query path, generic plan, cs.CL (~25% of papers)]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN vectorHitsSQL [exact, custom plan, cs.DL (~2% of papers)]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN vectorHitsSQL [default, custom plan, cs.DL (~2% of papers)]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN vectorHitsSQL [default, generic plan, cs.DL (~2% of papers)]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN vectorHitsSQL [query path, custom plan, cs.DL (~2% of papers)]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN vectorHitsSQL [query path, generic plan, cs.DL (~2% of papers)]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN hybridSearchSQL [query path, custom plan, cs.DL (~2% of papers)]
+        PLAN-HNSW-SELECTED=false
+    EXPLAIN hybridSearchSQL [query path, generic plan, cs.DL (~2% of papers)]
+        PLAN-HNSW-SELECTED=false
+
+--- custom plan, query path, no filter (excerpt, job log lines 547-582) ---
+    search_integration_test.go:213: EXPLAIN vectorHitsSQL [query path, custom plan, no category filter]
+        PLAN-HNSW-SELECTED=true
+        Limit  (cost=883.20..1004.98 rows=50 width=24) (actual time=0.628..0.977 rows=50 loops=1)
+          Buffers: shared hit=814
+          ->  WindowAgg  (cost=883.20..25238.83 rows=10000 width=24) (actual time=0.627..0.973 rows=50 loops=1)
+                Buffers: shared hit=814
+                ->  Nested Loop  (cost=883.20..25063.83 rows=10000 width=16) (actual time=0.625..0.956 rows=50 loops=1)
+                      Buffers: shared hit=814
+                      ->  Nested Loop  (cost=882.91..24487.04 rows=10000 width=1560) (actual time=0.617..0.835 rows=50 loops=1)
+                            Buffers: shared hit=664
+                            ->  Index Scan using chunk_embeddings_hnsw_idx on chunk_embeddings ce  (cost=882.62..20800.00 rows=10000 width=1552) (actual time=0.606..0.6...]
+                                  Order By: (embedding <=> '[0.22741699,-0.13598633,0.43237305,-0.43920898,-0.41186523,-0.26342773,-0.014862061,-0.13378906,0.08013916,0...]
+                                  Filter: (model = 'BAAI/bge-base-en-v1.5'::text)
+                                  Rows Removed by Filter: 50
+                                  Buffers: shared hit=514
+                            ->  Memoize  (cost=0.30..0.41 rows=1 width=16) (actual time=0.003..0.003 rows=1 loops=50)
+                                  Cache Key: ce.chunk_id
+                                  Cache Mode: logical
+                                  Hits: 0  Misses: 50  Evictions: 0  Overflows: 0  Memory Usage: 6kB
+                                  Buffers: shared hit=150
+                                  ->  Index Scan using paper_chunks_pkey on paper_chunks pc  (cost=0.29..0.40 rows=1 width=16) (actual time=0.002..0.002 rows=1 loops=50...]
+                                        Index Cond: (id = ce.chunk_id)
+                                        Buffers: shared hit=150
+                      ->  Memoize  (cost=0.29..0.31 rows=1 width=8) (actual time=0.002..0.002 rows=1 loops=50)
+                            Cache Key: pc.paper_id
+                            Cache Mode: logical
+                            Hits: 0  Misses: 50  Evictions: 0  Overflows: 0  Memory Usage: 6kB
+                            Buffers: shared hit=150
+                            ->  Index Only Scan using papers_pkey on papers p  (cost=0.28..0.30 rows=1 width=8) (actual time=0.001..0.001 rows=1 loops=50)
+                                  Index Cond: (id = pc.paper_id)
+                                  Heap Fetches: 50
+                                  Buffers: shared hit=150
+        Planning:
+          Buffers: shared hit=25
+        Planning Time: 0.451 ms
+        Execution Time: 1.047 ms
+--- generic plan, query path, no filter (excerpt, job log lines 583-609) ---
+    search_integration_test.go:213: EXPLAIN vectorHitsSQL [query path, generic plan, no category filter]
+        PLAN-HNSW-SELECTED=false
+        Limit  (cost=348.76..349.76 rows=50 width=24) (actual time=23.021..23.044 rows=50 loops=1)
+          Buffers: shared hit=33240
+          ->  WindowAgg  (cost=348.76..350.72 rows=98 width=24) (actual time=23.019..23.038 rows=50 loops=1)
+                Buffers: shared hit=33240
+                ->  Sort  (cost=348.76..349.00 rows=98 width=16) (actual time=23.012..23.022 rows=50 loops=1)
+                      Sort Key: ((ce.embedding <=> $1))
+                      Sort Method: quicksort  Memory: 775kB
+                      Buffers: shared hit=33240
+                      ->  Nested Loop  (cost=0.57..345.52 rows=98 width=16) (actual time=0.033..20.817 rows=10000 loops=1)
+                            Buffers: shared hit=33240
+                            ->  Nested Loop  (cost=0.29..138.90 rows=150 width=8) (actual time=0.019..3.452 rows=10000 loops=1)
+                                  Buffers: shared hit=3240
+                                  ->  Seq Scan on papers p  (cost=0.00..30.50 rows=15 width=8) (actual time=0.012..0.210 rows=1000 loops=1)
+                                        Filter: (($3 IS NULL) OR (categories && $3))
+                                        Buffers: shared hit=18
+                                  ->  Index Scan using idx_paper_chunks_paper_id on paper_chunks pc  (cost=0.29..7.13 rows=10 width=16) (actual time=0.001..0.002 rows=1...]
+                                        Index Cond: (paper_id = p.id)
+                                        Buffers: shared hit=3222
+                            ->  Index Scan using chunk_embeddings_pkey on chunk_embeddings ce  (cost=0.29..1.38 rows=1 width=1552) (actual time=0.001..0.001 rows=1 loop...]
+                                  Index Cond: ((chunk_id = pc.id) AND (model = $2))
+                                  Buffers: shared hit=30000
+        Planning:
+          Buffers: shared hit=25
+        Planning Time: 0.831 ms
+        Execution Time: 23.097 ms
+
+[exit code 0]

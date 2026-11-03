@@ -1,0 +1,32 @@
+$ bash -c MB=$(git merge-base HEAD origin/main); git diff $MB HEAD -- CONTRIBUTING.md; echo; echo '== backlog task for a migration version ledger in arxivlens-agents? (grep ledger|schema_migrations|version table, excl. OPS-H5) =='; grep -rliE 'schema_migrations|version table|version ledger' /home/claude/arxivlens-agents/agents/tasks /home/claude/arxivlens-agents/agents/board.md | grep -v OPS-H5 || echo 'none found'; echo; echo '== PR #14 (OPS-H1, stack.yml) state =='; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/14 --jq '"state=\(.state) draft=\(.draft) merged_at=\(.merged_at) head=\(.head.sha)"'
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index aa9825a..e629169 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -49,7 +49,9 @@ frontend/        React 19 + Vite UI
+ **Contracts** (change only with an agreed design decision, and update both sides in one PR):
+ - Event envelope and topics: `shared/events/events.go` and `shared/events/events.py`
+ - HTTP API: routes in `internal/query/server.go` and the API table in `README.md`
+-- DB schema: new numbered migrations may only *add* tables or indexes; never edit an applied migration
++- DB schema: new numbered migrations may only *add* tables or indexes; never edit an applied migration.
++  `arxivlens migrate` re-applies every `*.up.sql` on each run (no version table yet), so each migration must be
++  idempotent (`IF NOT EXISTS`) and safe to re-run
+ - Embedding model + dimension: `BAAI/bge-base-en-v1.5`, 768-d `halfvec`
+ - Quality gates: thresholds (`evals/thresholds.json` once EVAL-1 lands) are never lowered to make a change pass
+ 
+@@ -74,6 +76,6 @@ frontend/        React 19 + Vite UI
+ ## Pull requests
+ 
+ - One branch per change; PRs start as drafts while CI runs. Never push to `main`; a maintainer merges.
+-- CI must be green: Go (vet, gofmt, test, build), Python M0, frontend (lint, test, build).
++- CI must be green: Go (vet, gofmt, test, build), Python M0, frontend (lint, test, build), DB (migrations + HNSW query on real pgvector).
+ - Branches named `agent/<role>/<task>` are produced by the project's AI agents. CI checks that each touches only its
+   role's code area and adds no planning or review files (`.github/scripts/ownership-check.sh`).
+
+== backlog task for a migration version ledger in arxivlens-agents? (grep ledger|schema_migrations|version table, excl. OPS-H5) ==
+none found
+
+== PR #14 (OPS-H1, stack.yml) state ==
+state=open draft=true merged_at=null head=5c79c43050781edf0b5639254a0d17321bb2979c
+
+[exit code 0]

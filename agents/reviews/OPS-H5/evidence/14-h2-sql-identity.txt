@@ -1,0 +1,36 @@
+$ bash -c python3 -I /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/tools/sqldiff.py /root/wt/qa-OPS-H5; echo; grep -nE 'vectorHitsSQL|hybridSearchSQL|hnswSearchSettings' internal/query/search_integration_test.go internal/query/search.go
+old querySQL (9c1229a) bytes: 1249 sha256: 174c63901a3bd4b3
+new hybridSearchSQL (cff6fa1) bytes: 1249 sha256: 174c63901a3bd4b3
+byte-identical: True
+whitespace-normalised identical: True
+new vectorHitsSQL occurs verbatim inside new hybridSearchSQL: True
+SET string: SET LOCAL hnsw.ef_search = 100; SET LOCAL hnsw.iterative_scan = strict_order
+
+internal/query/search_integration_test.go:8:// It plans and runs the production constants (vectorHitsSQL, hybridSearchSQL, hnswSearchSettings),
+internal/query/search_integration_test.go:108:		{"query path (hnswSearchSettings)", hnswSearchSettings},
+internal/query/search_integration_test.go:132:			base[i], _ = itRun(t, ctx, conn, exact+"; "+modes[0].settings, vectorHitsSQL, q, itModel, f.cats)
+internal/query/search_integration_test.go:137:				g0, c0 := plans(vectorHitsSQL)
+internal/query/search_integration_test.go:144:					got, took := itRun(t, ctx, conn, settings, vectorHitsSQL, q, itModel, f.cats)
+internal/query/search_integration_test.go:154:				g1, c1 := plans(vectorHitsSQL)
+internal/query/search_integration_test.go:159:				if c.settings == hnswSearchSettings && m.settings == "" && short > 0 {
+internal/query/search_integration_test.go:164:		// The production statement: hybridSearchSQL after hnswSearchSettings, default plan_cache_mode.
+internal/query/search_integration_test.go:166:		g0, c0 := plans(hybridSearchSQL)
+internal/query/search_integration_test.go:168:			itRun(t, ctx, conn, hnswSearchSettings, hybridSearchSQL, q, itModel, f.cats, "synthetic chunk", 20)
+internal/query/search_integration_test.go:170:		g1, c1 := plans(hybridSearchSQL)
+internal/query/search_integration_test.go:171:		t.Logf("RESULT filter=%q hybridSearchSQL x%d (query path, auto): plans(generic=%d custom=%d)", f.name, len(queries), g1-g0, c1-c0)
+internal/query/search_integration_test.go:220:		for _, c := range []struct{ name, settings string }{{"exact", exact}, {"default", ""}, {"query path", hnswSearchSettings}} {
+internal/query/search_integration_test.go:225:				explain(fmt.Sprintf("vectorHitsSQL [%s, %s, %s]", c.name, m.name, f.name),
+internal/query/search_integration_test.go:226:					strings.Trim(c.settings+"; "+m.settings, "; "), vectorHitsSQL, vh)
+internal/query/search_integration_test.go:230:			explain(fmt.Sprintf("hybridSearchSQL [query path, %s, %s]", m.name, f.name),
+internal/query/search_integration_test.go:231:				hnswSearchSettings+"; "+m.settings, hybridSearchSQL, vh+", 'synthetic chunk', 20")
+internal/query/search.go:83:// vectorHitsSQL is the vector arm of hybridSearchSQL ($1 query halfvec, $2 model, $3 categories or NULL).
+internal/query/search.go:85:const vectorHitsSQL = `
+internal/query/search.go:97:// hybridSearchSQL is the hybrid RRF query (Technical PRD §8); $4 is the keyword query, $5 the limit.
+internal/query/search.go:98:const hybridSearchSQL = `
+internal/query/search.go:99:		WITH vector_hits AS (` + vectorHitsSQL + `		),
+internal/query/search.go:123:// hnswSearchSettings run with SET LOCAL before hybridSearchSQL (OPS-H5). With pgvector's default
+internal/query/search.go:127:const hnswSearchSettings = `SET LOCAL hnsw.ef_search = 100; SET LOCAL hnsw.iterative_scan = strict_order`
+internal/query/search.go:167:	if _, err := tx.Exec(ctx, hnswSearchSettings); err != nil {
+internal/query/search.go:171:	rows, err := tx.Query(ctx, hybridSearchSQL, vecStr, s.modelName, catArray, queryString, n)
+
+[exit code 0]

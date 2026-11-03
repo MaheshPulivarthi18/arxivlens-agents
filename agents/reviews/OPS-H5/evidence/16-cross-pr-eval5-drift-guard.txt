@@ -1,0 +1,23 @@
+$ bash -c echo '== #17 head 557f4e1 alone (control) =='; cd /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/ctl17 && python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py -k mirrors_search_go 2>&1 | tail -2; echo; echo '== #17 head 557f4e1 + internal/query/search.go from #16 head cff6fa1 (no file overlap; = merged state) =='; cd /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/merge17 && python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py -k mirrors_search_go 2>&1 | tail -12; echo; echo '== Makefile: test-py runs this file (Python M0 / make test-unit) =='; grep -n 'test_evals_data' /root/wt/qa-OPS-H5/Makefile
+== #17 head 557f4e1 alone (control) ==
+.                                                                        [100%]
+1 passed, 58 deselected in 0.03s
+
+== #17 head 557f4e1 + internal/query/search.go from #16 head cff6fa1 (no file overlap; = merged state) ==
+    
+        # (c) whole-query parity: normalised search.go SQL with only the listed differences == RRF_POOL_SQL
+        go_sql = re.findall(r"querySQL := `(.*?)`", src, re.S)
+>       assert len(go_sql) == 1, "HybridSearch querySQL not found exactly once in search.go"
+E       AssertionError: HybridSearch querySQL not found exactly once in search.go
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+tests/test_evals_data.py:285: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+1 failed, 58 deselected in 0.06s
+
+== Makefile: test-py runs this file (Python M0 / make test-unit) ==
+48:	$(PYTEST) -q tests/test_m0.py tests/test_evals_data.py
+
+[exit code 0]

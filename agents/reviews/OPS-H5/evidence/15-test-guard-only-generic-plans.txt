@@ -1,0 +1,29 @@
+$ bash -c echo '== guard in search_integration_test.go =='; sed -n '98,103p;159,161p' internal/query/search_integration_test.go; echo; echo '== CI: query path rows, all plan modes (DB job 126157913475) =='; grep 'config="query path' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/ci/job-126157913475.log | cut -c30- | sed -E 's/.*filter=/filter=/; s/ recall@50=[0-9.]+//; s/ exact_mean_rows=[0-9.]+//'; echo; echo '== CI: hybridSearchSQL on a fresh prepared statement (production pattern) =='; grep 'hybridSearchSQL x20' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/ci/job-126157913475.log | cut -c30- | sed -E 's/.*filter=/filter=/'
+== guard in search_integration_test.go ==
+	const exact = "SET LOCAL enable_indexscan = off"
+	modes := []struct{ name, settings string }{
+		{"custom plan", "SET LOCAL plan_cache_mode = force_custom_plan"},
+		{"generic plan", "SET LOCAL plan_cache_mode = force_generic_plan"},
+		{"auto (production)", ""},
+	}
+				if c.settings == hnswSearchSettings && m.settings == "" && short > 0 {
+					t.Errorf("%s / query path / auto: %d queries returned fewer rows than the exact scan", f.name, short)
+				}
+
+== CI: query path rows, all plan modes (DB job 126157913475) ==
+filter="no category filter" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 mean_ms=1.23 plans(generic=0 custom=20)
+filter="no category filter" config="query path (hnswSearchSettings)" plan_mode="generic plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 mean_ms=20.60 plans(generic=20 custom=0)
+filter="no category filter" config="query path (hnswSearchSettings)" plan_mode="auto (production)" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 mean_ms=20.72 plans(generic=20 custom=0)
+filter="cs.CL (~25% of papers)" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.760 mean_ms=3.01 plans(generic=0 custom=20)
+filter="cs.CL (~25% of papers)" config="query path (hnswSearchSettings)" plan_mode="generic plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 mean_ms=6.07 plans(generic=20 custom=0)
+filter="cs.CL (~25% of papers)" config="query path (hnswSearchSettings)" plan_mode="auto (production)" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 mean_ms=5.96 plans(generic=20 custom=0)
+filter="cs.DL (~2% of papers)" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 mean_ms=1.09 plans(generic=0 custom=20)
+filter="cs.DL (~2% of papers)" config="query path (hnswSearchSettings)" plan_mode="generic plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 mean_ms=0.87 plans(generic=20 custom=0)
+filter="cs.DL (~2% of papers)" config="query path (hnswSearchSettings)" plan_mode="auto (production)" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 mean_ms=0.88 plans(generic=20 custom=0)
+
+== CI: hybridSearchSQL on a fresh prepared statement (production pattern) ==
+filter="no category filter" hybridSearchSQL x20 (query path, auto): plans(generic=15 custom=5)
+filter="cs.CL (~25% of papers)" hybridSearchSQL x20 (query path, auto): plans(generic=20 custom=0)
+filter="cs.DL (~2% of papers)" hybridSearchSQL x20 (query path, auto): plans(generic=20 custom=0)
+
+[exit code 0]

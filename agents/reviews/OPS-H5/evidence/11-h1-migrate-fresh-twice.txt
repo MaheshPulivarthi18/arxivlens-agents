@@ -1,0 +1,63 @@
+$ bash -c sed -n '50,52p;103,105p;329,382p' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/ci/job-126157913475.log | cut -c30- | grep -v '^\[36;1m' 
+##[endgroup]
+##[group]Starting postgres service container
+##[command]/usr/bin/docker pull pgvector/pgvector:pg16
+Digest: sha256:0dd3149a06e4579a0d70d8fef9945636cd514005e7237deb27f9b67886f8dc4f
+Status: Downloaded newer image for pgvector/pgvector:pg16
+docker.io/pgvector/pgvector:pg16
+  DATABASE_URL: ***localhost:5432/arxivlens?sslmode=disable
+##[endgroup]
+Objects before migrate (fresh DB):
+extension|plpgsql|1.0
+##[group]Run ./bin/arxivlens migrate
+[36;1m./bin/arxivlens migrate[0m
+[36;1m$PSQL -At < /tmp/snapshot.sql > /tmp/run1.txt[0m
+[36;1m$PSQL -c '\d chunk_embeddings'[0m
+[36;1m$PSQL -c "SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'chunk_embeddings' ORDER BY 1;"[0m
+[36;1mgrep -E '^index\|chunk_embeddings_hnsw_idx\|.*USING hnsw \(embedding halfvec_cosine_ops\) WITH \(m=.?16.?, ef_construction=.?64.?\)' /tmp/run1.txt[0m
+[36;1mgrep -E '^index_valid\|chunk_embeddings_hnsw_idx\|true$' /tmp/run1.txt[0m
+shell: /usr/bin/bash -e {0}
+env:
+  DATABASE_URL: ***localhost:5432/arxivlens?sslmode=disable
+  PSQL: docker exec -i 21baec5c1ad798187fcebb21b9a0c182bb1717747d018f0869f825d48f4df9ff psql -U postgres -d arxivlens -v ON_ERROR_STOP=1
+##[endgroup]
+2026/11/03 19:38:13 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026/11/03 19:38:13 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+2026/11/03 19:38:13 [Migration] Database schema migrated successfully (2 file(s))
+                    Table "public.chunk_embeddings"
+   Column   |           Type           | Collation | Nullable | Default 
+------------+--------------------------+-----------+----------+---------
+ chunk_id   | bigint                   |           | not null | 
+ model      | text                     |           | not null | 
+ embedding  | halfvec(768)             |           | not null | 
+ created_at | timestamp with time zone |           | not null | now()
+Indexes:
+    "chunk_embeddings_pkey" PRIMARY KEY, btree (chunk_id, model)
+    "chunk_embeddings_hnsw_idx" hnsw (embedding halfvec_cosine_ops) WITH (m='16', ef_construction='64')
+Foreign-key constraints:
+    "chunk_embeddings_chunk_id_fkey" FOREIGN KEY (chunk_id) REFERENCES paper_chunks(id) ON DELETE CASCADE
+
+         indexname         |                                                                    indexdef                                                                     
+---------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------
+ chunk_embeddings_hnsw_idx | CREATE INDEX chunk_embeddings_hnsw_idx ON public.chunk_embeddings USING hnsw (embedding halfvec_cosine_ops) WITH (m='16', ef_construction='64')
+ chunk_embeddings_pkey     | CREATE UNIQUE INDEX chunk_embeddings_pkey ON public.chunk_embeddings USING btree (chunk_id, model)
+(2 rows)
+
+index|chunk_embeddings_hnsw_idx|CREATE INDEX chunk_embeddings_hnsw_idx ON public.chunk_embeddings USING hnsw (embedding halfvec_cosine_ops) WITH (m='16', ef_construction='64')
+index_valid|chunk_embeddings_hnsw_idx|true
+##[group]Run ./bin/arxivlens migrate
+[36;1m./bin/arxivlens migrate[0m
+[36;1m$PSQL -At < /tmp/snapshot.sql > /tmp/run2.txt[0m
+[36;1mdiff -u /tmp/run1.txt /tmp/run2.txt[0m
+[36;1mecho "Schema identical after run 2: $(wc -l < /tmp/run2.txt) objects (extensions, columns, indexes)"[0m
+shell: /usr/bin/bash -e {0}
+env:
+  DATABASE_URL: ***localhost:5432/arxivlens?sslmode=disable
+  PSQL: docker exec -i 21baec5c1ad798187fcebb21b9a0c182bb1717747d018f0869f825d48f4df9ff psql -U postgres -d arxivlens -v ON_ERROR_STOP=1
+##[endgroup]
+2026/11/03 19:38:13 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026/11/03 19:38:13 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+2026/11/03 19:38:13 [Migration] Database schema migrated successfully (2 file(s))
+Schema identical after run 2: 67 objects (extensions, columns, indexes)
+
+[exit code 0]
