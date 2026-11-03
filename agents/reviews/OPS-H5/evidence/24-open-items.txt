@@ -1,0 +1,30 @@
+$ bash -c for p in 14 16 17; do gh api repos/MaheshPulivarthi18/ArxivLens/pulls/$p --jq "\"#\(.number) state=\(.state) draft=\(.draft) merged=\(.merged) mergeable=\(.mergeable) head=\(.head.sha[0:7]) \(.title)\""; done; echo "== #17 still parses querySQL from search.go?"; gh api "repos/MaheshPulivarthi18/ArxivLens/contents/tests/test_evals_data.py?ref=$(gh api repos/MaheshPulivarthi18/ArxivLens/pulls/17 --jq .head.sha)" --jq .content | base64 -d | grep -nE "querySQL|hybridSearchSQL|vectorHitsSQL" || echo "no match"; echo "== ledger task in agents/tasks or board:"; grep -rliE "version ledger|schema_migrations|migration ledger" /home/claude/arxivlens-agents/agents/tasks /home/claude/arxivlens-agents/agents/board.md | grep -v OPS-H5.md || echo "none found"; echo "== ticket Scope section:"; sed -n "/^## Scope/,/^## /p" /home/claude/arxivlens-agents/agents/tasks/OPS-H5.md | head -20
+#14 state=open draft=true merged=false mergeable=true head=5c79c43 OPS-H1: Run processor + embedder workers in compose; make stack-up; Full stack workflow
+#16 state=open draft=true merged=false mergeable=true head=d442c4c OPS-H5: HNSW index migration; migrate applies all *.up.sql in order
+#17 state=open draft=false merged=false mergeable=true head=557f4e1 EVAL-5: Harden retrieval eval tests and the ADR-0010 parity drift guard
+== #17 still parses querySQL from search.go?
+284:    go_sql = re.findall(r"querySQL := `(.*?)`", src, re.S)
+285:    assert len(go_sql) == 1, "HybridSearch querySQL not found exactly once in search.go"
+== ledger task in agents/tasks or board:
+none found
+== ticket Scope section:
+## Scope
+- Files: new `migrations/000002_chunk_embeddings_hnsw.up.sql` and `.down.sql`, `internal/db/db.go` and/or `cmd/arxivlens/main.go` (`migrate` applies every `*.up.sql` in lexical order), and a Go unit test for the file ordering (no DB).
+- CLI shape (pm-lead 2026-11-03 16:00, settles the open choice): `arxivlens migrate` with no flags applies every `*.up.sql`
+  in `--dir` (new flag, default `migrations`) in lexical order. The existing `--file <path>` keeps working and, when set,
+  applies only that file (backward compatible). Put the file selection in a pure function in `internal/db` (e.g.
+  `MigrationFiles(dir string) ([]string, error)`) so AC3 needs no DB; new test file `internal/db/db_test.go`
+  (picked up by `go test ./...`, no CI change).
+- Docs: app `README.md` CLI reference line `arxivlens migrate  [--file ...]` (`README.md:166` at `9c1229a`) → show
+  `[--dir migrations] [--file <one .up.sql>]`. That line is outside every README hunk of open PR #14 (hunks at old lines
+  89–100, 108–127, 131–144, 198–204, 214–219, 227–231); touch nothing else in README.
+- **Do not edit `Makefile`, `CONTRIBUTING.md`, `docker-compose.yml` or `.github/`**: all are changed by open PR #14
+  (OPS-H1). `make migrate` already runs `./bin/arxivlens migrate` with no flags, so it picks up the new default unchanged.
+- The index must use exactly the existing name and params: `CREATE INDEX IF NOT EXISTS chunk_embeddings_hnsw_idx ON chunk_embeddings USING hnsw (embedding halfvec_cosine_ops) WITH (m = 16, ef_construction = 64);`, so that existing databases where the benchmark already created it stay a no-op. Changing the params is out of scope (ADR-0008).
+- Migrations must stay idempotent (`IF NOT EXISTS`), because there is no schema-version table. Adding a version table is out of scope.
+- Never edit `000001_init_schema.*.sql`.
+- Out of scope: `scripts/benchmark_hnsw.py` (ai-engineer may later drop its CREATE INDEX), and query SQL changes.
+
+## Acceptance criteria
+
+[exit code 0]

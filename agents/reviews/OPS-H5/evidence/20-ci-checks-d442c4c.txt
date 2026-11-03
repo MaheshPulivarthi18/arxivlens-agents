@@ -1,0 +1,21 @@
+$ bash -c for s in f69f340 d0e1123 d442c4c; do echo "== $s"; gh api repos/MaheshPulivarthi18/ArxivLens/commits/$s/check-runs --jq ".check_runs[] | \"\(.id) \(.name): \(.status) \(.conclusion)\""; done
+== f69f340
+126168368761 Agent ownership check: completed success
+126168368737 Go (vet, gofmt, test, build): completed success
+126168368705 Frontend (lint, test, build): completed success
+126168368112 Python M0 unit tests: completed success
+126168367800 DB (migrate twice, HNSW plan + recall): completed success
+== d0e1123
+126169468418 Go (vet, gofmt, test, build): completed success
+126169468272 Python M0 unit tests: completed success
+126169468265 Agent ownership check: completed success
+126169468234 Frontend (lint, test, build): completed success
+126169467011 DB (migrate twice, HNSW plan + recall): completed failure
+== d442c4c
+126170425305 Go (vet, gofmt, test, build): completed success
+126170425214 Python M0 unit tests: completed success
+126170424932 Frontend (lint, test, build): completed success
+126170424750 Agent ownership check: completed success
+126170424459 DB (migrate twice, HNSW plan + recall): completed success
+
+[exit code 0]

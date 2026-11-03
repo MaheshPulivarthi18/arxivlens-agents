@@ -1,0 +1,38 @@
+$ bash -c grep -E 'extension\|plpgsql|Running migration file|"chunk_embeddings_hnsw_idx" hnsw|index_valid\|chunk|Schema identical|config="query path \(hnswSearchSettings\)"|hybridSearchSQL x20|--- (PASS|FAIL)' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/logs/126170424459.log | grep -v '\[36;1m' | sed -E 's/^[0-9T:.-]+Z +//; s/search_integration_test.go:1[0-9]+: (RESULT )?//; s/ recall@50=[0-9.]+ mean_ms=[0-9.]+//; s/ exact_mean_rows.*//'; echo '== EXPLAIN of the query path (next line = HNSW selected?):'; grep -E -A1 'EXPLAIN (vectorHitsSQL|hybridSearchSQL) \[query path' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/logs/126170424459.log | grep -v '^--' | sed -E 's/^[0-9T:.-]+Z +//; s/search_integration_test.go:214: //' | paste - -; echo "== guard failures (:161) in head log: $(grep -c 'search_integration_test.go:161' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/logs/126170424459.log || true)"
+extension|plpgsql|1.0
+2026/11/03 20:01:34 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026/11/03 20:01:34 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+"chunk_embeddings_hnsw_idx" hnsw (embedding halfvec_cosine_ops) WITH (m='16', ef_construction='64')
+index_valid|chunk_embeddings_hnsw_idx|true
+2026/11/03 20:01:34 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026/11/03 20:01:34 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+Schema identical after run 2: 67 objects (extensions, columns, indexes)
+filter="no category filter" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 plans(generic=0 custom=20)
+filter="no category filter" config="query path (hnswSearchSettings)" plan_mode="generic plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 plans(generic=20 custom=0)
+filter="no category filter" config="query path (hnswSearchSettings)" plan_mode="auto (production)" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 plans(generic=20 custom=0)
+filter="no category filter" hybridSearchSQL x20 (query path, auto): plans(generic=15 custom=5)
+filter="cs.CL (~25% of papers)" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.760 plans(generic=0 custom=20)
+filter="cs.CL (~25% of papers)" config="query path (hnswSearchSettings)" plan_mode="generic plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 plans(generic=20 custom=0)
+filter="cs.CL (~25% of papers)" config="query path (hnswSearchSettings)" plan_mode="auto (production)" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 plans(generic=20 custom=0)
+filter="cs.CL (~25% of papers)" hybridSearchSQL x20 (query path, auto): plans(generic=20 custom=0)
+filter="cs.DL (~2% of papers)" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 plans(generic=0 custom=20)
+filter="cs.DL (~2% of papers)" config="query path (hnswSearchSettings)" plan_mode="generic plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 plans(generic=20 custom=0)
+filter="cs.DL (~2% of papers)" config="query path (hnswSearchSettings)" plan_mode="auto (production)" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 plans(generic=20 custom=0)
+filter="cs.DL (~2% of papers)" hybridSearchSQL x20 (query path, auto): plans(generic=20 custom=0)
+--- PASS: TestHNSWVectorHits (38.38s)
+== EXPLAIN of the query path (next line = HNSW selected?):
+EXPLAIN vectorHitsSQL [query path, custom plan, no category filter]	PLAN-HNSW-SELECTED=true
+EXPLAIN vectorHitsSQL [query path, generic plan, no category filter]	PLAN-HNSW-SELECTED=false
+EXPLAIN hybridSearchSQL [query path, custom plan, no category filter]	PLAN-HNSW-SELECTED=true
+EXPLAIN hybridSearchSQL [query path, generic plan, no category filter]	PLAN-HNSW-SELECTED=false
+EXPLAIN vectorHitsSQL [query path, custom plan, cs.CL (~25% of papers)]	PLAN-HNSW-SELECTED=true
+EXPLAIN vectorHitsSQL [query path, generic plan, cs.CL (~25% of papers)]	PLAN-HNSW-SELECTED=false
+EXPLAIN hybridSearchSQL [query path, custom plan, cs.CL (~25% of papers)]	PLAN-HNSW-SELECTED=true
+EXPLAIN hybridSearchSQL [query path, generic plan, cs.CL (~25% of papers)]	PLAN-HNSW-SELECTED=false
+EXPLAIN vectorHitsSQL [query path, custom plan, cs.DL (~2% of papers)]	PLAN-HNSW-SELECTED=false
+EXPLAIN vectorHitsSQL [query path, generic plan, cs.DL (~2% of papers)]	PLAN-HNSW-SELECTED=false
+EXPLAIN hybridSearchSQL [query path, custom plan, cs.DL (~2% of papers)]	PLAN-HNSW-SELECTED=false
+EXPLAIN hybridSearchSQL [query path, generic plan, cs.DL (~2% of papers)]	PLAN-HNSW-SELECTED=false
+== guard failures (:161) in head log: 0
+
+[exit code 0]

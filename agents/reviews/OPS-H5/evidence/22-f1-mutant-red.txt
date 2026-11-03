@@ -1,0 +1,13 @@
+$ bash -c grep -E 'search_integration_test.go:161|config="query path \(hnswSearchSettings\)" plan_mode="custom plan"|--- FAIL|exit code 1' /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/logs/126169467011.log | sed -E 's/^[0-9T:.-]+Z +//; s/search_integration_test.go:156: RESULT //; s/ recall@50.*//'
+search_integration_test.go:161: no category filter / query path / custom plan: 20 queries returned fewer rows than the exact scan
+filter="no category filter" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=40.0 min_rows=39 short_queries=20/20 recall@5=1.000
+search_integration_test.go:161: no category filter / query path / custom plan: 20 queries returned fewer rows than the exact scan
+search_integration_test.go:161: cs.CL (~25% of papers) / query path / custom plan: 20 queries returned fewer rows than the exact scan
+filter="cs.CL (~25% of papers)" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=9.8 min_rows=0 short_queries=20/20 recall@5=0.500
+search_integration_test.go:161: cs.CL (~25% of papers) / query path / custom plan: 20 queries returned fewer rows than the exact scan
+filter="cs.DL (~2% of papers)" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000
+--- FAIL: TestHNSWVectorHits (23.87s)
+##[error]Process completed with exit code 1.
+2026-11-03 19:59:16.522 UTC [48] LOG:  background worker "logical replication launcher" (PID 54) exited with exit code 1
+
+[exit code 0]
