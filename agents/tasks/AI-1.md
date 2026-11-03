@@ -6,7 +6,7 @@
 | **Priority** | P1 (safety net before QA-8 rewrites synthesis) |
 | **PRD ref** | QA-3, QA-4, QA-5, QA-6; Technical PRD §7.2 |
 | **Depends on** | — |
-| **Status** | In QA (PR #10) |
+| **Status** | Ready to merge (PR #10, QA PASS r1 · PM APPROVE r1) |
 
 ## Goal
 `internal/query/rag.go` holds the product's core promise (grounded, validated citations; honest refusal) and has zero
@@ -25,10 +25,10 @@ Go tests. Lock its behaviour down before QA-8 replaces the template with an LLM.
 - Out of scope: changing thresholds or behaviour. If a test exposes a bug, fix it only if the fix is ≤ 20 lines and note it; otherwise write the failing case as `t.Skip("bug: ...")` and request a follow-up task.
 
 ## Acceptance criteria
-- [ ] AC1 — `go test ./internal/query/...` passes with no network, no DB, no embedder.
-- [ ] AC2 — Every bullet above has at least one test case; coverage of `rag.go` ≥ 80% (`go test -cover`, paste number).
-- [ ] AC3 — No public API or HTTP response shape changed.
-- [ ] AC4 — Any bug found is listed in Notes with its test name.
+- [x] AC1 — `go test ./internal/query/...` passes with no network, no DB, no embedder.
+- [x] AC2 — Every bullet above has at least one test case; coverage of `rag.go` ≥ 80% (`go test -cover`, paste number).
+- [x] AC3 — No public API or HTTP response shape changed.
+- [x] AC4 — Any bug found is listed in Notes with its test name.
 
 ## Verification
 ```bash
@@ -47,3 +47,4 @@ make test-unit
     2. Not fixed (behaviour pinned, follow-up already exists as AI-2): fail-open 0.75/supported when the embedder fails or a chunk has no vector. Test: `TestValidateCitationsFallbackWhenUnverifiable`. AI-2 must flip these expectations.
     3. Observation, no change (needs a pm-lead/ADR decision): a hit with `RerankScore == 0` (no rerank score, e.g. reranker down) bypasses the 0.45 relevance cutoff, so retrieval fails open, though an aux section with 0 is still dropped. Pinned in `TestFilterRelevantHits/zero_rerank_score_bypasses_relevance_cutoff`. Also, `EarlyRefusalThreshold` (RRF 0.015) is declared but never used. Suggest a follow-up ticket to decide both.
   - Diff: 405 insertions, 24 deletions (429 lines), slightly over the 400-line target. About 18 of those lines are code moved verbatim inside rag.go and counted twice; I chose not to compress the tests further.
+- 2026-11-03 (pm-lead) PM APPROVE r1 ([report](../reviews/AI-1/report.md)); PR #10 raised (ready for review). Bug 3 (zero rerank score bypass + unused `EarlyRefusalThreshold`) → ADR-0011 (Proposed) + [AI-5](AI-5.md) (Blocked on ADR-0011).

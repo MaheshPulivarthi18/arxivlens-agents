@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-03 by pm-lead (RET-1 PM APPROVE r1, PR #9 raised; EVAL-2 AC10 added)
+Last updated: 2026-11-03 by pm-lead (AI-1 PM APPROVE r1, PR #10 raised; ADR-0011 Proposed + AI-5 Blocked)
 
 WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 
@@ -9,7 +9,6 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 |---|---|---|---|---|
 | [OPS-H1](tasks/OPS-H1.md) | Run processor + embedder workers in docker-compose; one-command full test | backend-engineer | P0 | — |
 | [FE-1](tasks/FE-1.md) | Frontend test harness (Vitest) + tests for answer/citation states | frontend-engineer | P1 | — |
-| [AI-1](tasks/AI-1.md) | Unit tests for `rag.go` filtering and citation validation (no infra) | ai-engineer | P1 | — |
 | [OPS-H5](tasks/OPS-H5.md) | Migration for HNSW index + `migrate` applies all migrations | backend-engineer | P1 | — (soft: OPS-H1) |
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 |
 | [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 |
@@ -35,12 +34,14 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
 | [RET-1](tasks/RET-1.md) | Rerank a 20-candidate pool and sort by rerank score (ADR-0010), `831905e`. **Merge after #2.** | backend-engineer | [#9](https://github.com/MaheshPulivarthi18/ArxivLens/pull/9) (ready for review) | QA PASS r1 · PM APPROVE r1 ([report](reviews/RET-1/report.md)) |
+| [AI-1](tasks/AI-1.md) | Unit tests for `rag.go` filtering and citation validation, `f56f80b`. Independent of #9 (either order). | ai-engineer | [#10](https://github.com/MaheshPulivarthi18/ArxivLens/pull/10) (ready for review) | QA PASS r1 · PM APPROVE r1 ([report](reviews/AI-1/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
 | [QA-8](tasks/QA-8.md) | LLM answer synthesis behind citation validation | ai-engineer | ADR-0001, ADR-0002 (human decision), EVAL-1, AI-1 |
 | [AI-4](tasks/AI-4.md) | `/v1/ask` passes trace ID to `HybridSearch`; harden ADR-0010 parity guard | ai-engineer | RET-1, EVAL-1 merged |
+| [AI-5](tasks/AI-5.md) | `/v1/ask` relevance bar when rerank scores are missing (reranker outage fails open) | ai-engineer | ADR-0011 (human decision), AI-1 merged |
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
@@ -49,6 +50,8 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 - pm-lead docs PR after PR #2 merges: Product PRD §8 rows 156–157 (ADR-0006 Accepted, paper-level; drop the bi-encoder caveat; add the RET-1 caveat **only if #9 hasn't merged by then**), line 151 fallback note, the AGENTS.md §5 eval gotcha
 - pm-lead rules PR after PR #9 merges: drop the AGENTS.md §6 gotcha "`/v1/ask` does not yet sort by rerank score (ADR-0010, RET-1)"; merge the §7.1 diagram docs PR [arxivlens-agents#2](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/2)
 - backend nits from the RET-1 review (fold into the next `search.go` change): `context.Canceled` fallback test case, `±Inf` score test
+- From the AI-1 review: `/internal/rerank` bi-encoder fallback (no cross-encoder) returns uncalibrated dot products → decided in ADR-0011, done in AI-5 if accepted; aux-section match is a substring (`"Notable"` contains `"table"`) → small ai follow-up after AI-5
+- pm-lead PRD docs PR: Product PRD QA-5 ✅ → ◐ (fails open during reranker outages; ADR-0011/AI-5), back to ✅ when AI-5 merges
 - QA-9 Streaming answers (frontend + ai) — after QA-8
 - OTLP span export to Jaeger/Tempo (backend) — Technical PRD §11 P1
 - Prometheus metrics: consumer lag, DLQ depth, stage latency (backend) + OPS-6 dashboard (frontend)

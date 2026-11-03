@@ -49,3 +49,25 @@ No blocking findings.
 ## Hand-off
 PASS → pm-lead final review.
 
+
+## PM verdict
+
+**Verdict:** APPROVE · **Round:** 1 · **Date:** 2026-11-03 · **Reviewer:** pm-lead · **Reviewed commit:** `f56f80b` · **Evidence:** commit `0e35400` (all 9 `.png` + `.txt` files opened)
+
+### Reasoning
+1. **Product fit.** This PR locks down the code that carries the product's core promise (Product PRD §7 principles 1 "Evidence first" and 2 "Say I don't know"): the relevance cutoffs (QA-5, QA-6), the exact refusal path (QA-5), fabricated-marker removal and the 0.50 support boundary (QA-3, QA-4). That is the safety net QA-8 needs before an LLM replaces the template. The one behaviour change, the splitter fix, serves principle 1: a marker after "Smith et al." is now checked against the sentence that holds the claim, not a fragment. QA's old-vs-new run (07) shows that template answers without an abbreviation split exactly as before (80/80), and every answer that changed now splits correctly.
+2. **Scope.** The PR covers everything the ticket asked for and adds only what the Scope allowed: two private interfaces (`NewRAGService` is unchanged), two extractions that are verbatim moves (needed because the template only emits `[1]`/`[2]`), and a 16+1-line bug fix, within the ≤ 20-line policy. Only the two owned files changed (05, 02). It is 429 lines against a 400 target; about 18 of those are moved code. I accept that. The overage is tests, and splitting them would add no value.
+3. **Evidence per AC.**
+   - AC1: CI Go 1.25 job on the merge commit, `ok arxivlens/internal/query` (01). All 4 check runs are green on `f56f80b` (00, and I re-checked through the REST API today). The tests use only in-file fakes, and the scratch run with `GOPROXY=off` confirms this (03).
+   - AC2: every spec bullet maps to a named test (QA's report). `rag.go` coverage is 94/96 = 97.9% (04). This was measured in a scratch module, not in CI, but QA showed with `cmp` that `rag.go` and `rag_test.go` are byte-identical to the PR head (03), and both uncovered blocks are unreachable. 25 of 25 mutants were killed (06), which is stronger evidence than the coverage number. Accepted.
+   - AC3: the exported declarations, JSON tags, constants and numeric literals are identical between main and head, and `server.go`, `search.go`, `README.md` and `thresholds.json` are unchanged (05). `TestAskResponseShapeAndConstructor` pins the JSON keys.
+   - AC4: three items, each with its test name, are in the ticket Notes (08). The fix size was checked independently (07).
+   - No "⚠ unverified" remains on anything that matters. `make eval` was not run (no infra). That is acceptable here: retrieval is untouched, and the only answer-path change is the splitter fix, which 07 bounds.
+4. **Docs.** README: no change needed (no API, command or user-visible behaviour change). PRD status columns: QA-3/4/6 are correct as written. QA-5 is ✅, but this review confirms it fails open when the reranker is down (see follow-up 1). I'll correct it in my next PRD docs PR, together with the ADR-0011 outcome. That doesn't block this test-only PR.
+5. **Merge order.** This PR is independent of RET-1 (#9): different files. The developer compiled it against RET-1's `search.go` and `search_test.go` and found no identifier clashes. Either can merge first.
+
+### Follow-ups
+1. **QA finding 4 [spec] → needs a product decision, so I did not write a Ready task.** I wrote [ADR-0011](../../../docs/adr/0011-ask-relevance-bar-without-rerank.md) (Proposed) and [AI-5](../../tasks/AI-5.md) (`Blocked (needs ADR-0011)`). Reason: ADR-0010 (Accepted) makes `HybridSearch` fall back to RRF order with `RerankScore` 0 when the reranker fails, so during a reranker outage every hit skips the 0.45 bar and `/v1/ask` answers from passages whose relevance nobody checked. There are three reasonable fixes: refuse with a distinct "relevance check unavailable" message, fall back to an RRF bar using the unused `EarlyRefusalThreshold`, or keep failing open and flag it. They trade principle 2 against availability. Two of them change what the user sees or what a quality threshold means. AGENTS.md §2 and my lessons say Mahesh decides that, not pm-lead.
+2. **QA finding 3 [spec]** → pm-lead lesson added (name the coverage measurement in the AC). The "add per-file coverage to CI" item is already in the board backlog from the OPS-H3 review.
+3. QA findings 1 and 2 [nit] and the "missing tests" list (`maxCitations < 0`, `Ask` with a failing embedder, the `"Notable"` ⊃ `"table"` substring match) → folded into AI-5's scope as non-blocking test additions, since AI-5 edits the same file. The abbreviation list (`U.S.`, `Sec.`, `approx.`) is to be revisited in QA-8, where LLM text makes it matter. I added a note to QA-8.
+4. A new observation from this review, outside this PR: when the cross-encoder isn't loaded, `services/embedder/api.py` `/internal/rerank` returns raw bi-encoder dot products. Those aren't calibrated to the 0.45/0.70 cutoffs and can be ≤ 0, which also skips the cutoff. This is recorded as context in ADR-0011 and as a backlog item.

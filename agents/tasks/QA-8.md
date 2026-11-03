@@ -34,3 +34,4 @@ make stack-up && LLM_API_KEY=... python scripts/eval_gate.py
 ```
 
 ## Notes
+- 2026-11-03 (pm-lead, from AI-1 QA finding 2) `splitIntoSentences` now skips `e.g. i.e. et al. cf. vs. fig. eq.`, but not `U.S.`, `Sec.`, `approx.`, `resp.`, `Tab.`, and a real sentence ending in a listed abbreviation merges with the next. Harmless for the template; with LLM text it decides which sentence a marker is checked against. Add LLM-style splitter cases (or a better splitter) as part of QA-8.
