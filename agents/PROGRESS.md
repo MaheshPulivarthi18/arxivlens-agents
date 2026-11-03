@@ -156,3 +156,10 @@ Format:
 
 ## 2026-11-03 — AI-2 — done
 - PR #11 merged by Mahesh as `9c1229a`; Jira KAN-10 → Done. Unverifiable citations are now unsupported (score 0). AI-3 and AI-4 have their dependencies met; pm-lead's PRD QA-4 docs PR is now due.
+
+## 2026-11-03 — pm-lead — external-review plan specced
+- Input: two external reviews of ArxivLens at `bb9ee90` (before #11/#12 merged), sent to Mahesh as private attachments (not committed). Mahesh approved a plan based on them. pm-lead re-checked every finding against `origin/main` `9c1229a`. Summary: (1) the Go consumer commits the offset even when the DLQ write fails, so the message is lost, and its retry waits ignore ctx. pm-lead also found that the Python consumer has the same flaw (`flush` result ignored) and that `BlockRebalanceOnPoll` is set but `AllowRebalance` is never called. (2) DLQ list/replay reads a ~2 s window from the topic start, with no checkpoints, paging or lock. (3) Section-extraction quality has never been measured. (4) No eval numbers exist, because the full stack has never run; GitHub runners have Docker.
+- New specs: OPS-H6 (backend, P0, design), EVAL-3 (backend, P1, design; carries RET-1 AC6, moved from EVAL-2 AC10), EVAL-4 (ai, P1, Blocked on EVAL-3: `evals/BASELINE.md` is ai-owned, so the landing PR can't record the numbers), OPS-H7 (backend, P1, design, after OPS-H6), ING-8 (ai, P1; Mahesh's "ING-7" collides with Product PRD row ING-7, so it was renamed). Board Ready re-ordered: OPS-H6 → OPS-H1 → EVAL-3 → OPS-H7 → ING-8.
+- ADR-0003 (Proposed): appended "Question for Mahesh: abstention policy" (all citations unsupported / verification unavailable: refuse, warn or answer). Status unchanged.
+- Backlog: AI-2 follow-up extended with five separate counters (Mahesh's #11 review); `make test-py` split into `test-m0` / `test-evals-data` (Mahesh's #12 review; artifact docs folded into EVAL-3); OPS-H8 (Python consumer DLQ loss); pm-lead docs PR (Technical PRD §8.1 L4 caveat, OPS-1 ✅ → ◐, Proposed PRD row ING-8).
+- Jira not touched (per instructions). Orchestrator: create stories for OPS-H6, EVAL-3, EVAL-4, OPS-H7, ING-8.

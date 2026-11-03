@@ -39,3 +39,4 @@ make test-full
 
 ## Notes
 - 2026-11-03 (pm-lead, RET-1 PM review): once EVAL-1 (#2) and RET-1 (#9) are on `main`, the AC4 full-stack run should also run `make eval` and paste the `/v1/ask` p95. That's the first real measurement of the 20-candidate rerank pool. It's owned by EVAL-2 AC10; whichever task first has a working stack reports it.
+- 2026-11-03 (pm-lead): the p95/eval measurement above now belongs to **EVAL-3 AC6** (GitHub Actions eval workflow, depends on this task), no longer EVAL-2 AC10. OPS-H1 AC4 doesn't need to run `make eval`. Keep `make stack-up` scriptable and non-interactive, because EVAL-3 calls it from CI.
