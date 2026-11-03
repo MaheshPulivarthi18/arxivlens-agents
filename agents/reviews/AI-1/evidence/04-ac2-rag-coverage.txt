@@ -1,0 +1,18 @@
+$ bash /tmp/claude-0/-home-claude/7c7b1014-2c66-5fc8-a52b-576ea03c605c/scratchpad/scripts/coverage.sh /tmp/claude-0/-home-claude/7c7b1014-2c66-5fc8-a52b-576ea03c605c/scratchpad/r04
+ok  	arxivlens/internal/query	0.004s	coverage: 52.5% of statements
+== go tool cover -func (rag.go rows) ==
+arxivlens/internal/query/rag.go:51:	NewRAGService		100.0%
+arxivlens/internal/query/rag.go:58:	generateTraceID		100.0%
+arxivlens/internal/query/rag.go:64:	Ask			100.0%
+arxivlens/internal/query/rag.go:120:	filterRelevantHits	100.0%
+arxivlens/internal/query/rag.go:141:	validateCitations	96.7%
+arxivlens/internal/query/rag.go:204:	splitIntoSentences	94.7%
+arxivlens/internal/query/rag.go:237:	endsWithAbbreviation	100.0%
+arxivlens/internal/query/rag.go:250:	cosineSimilarity	100.0%
+== rag.go statements covered (from c.out) ==
+rag.go: 94/96 statements = 97.9%
+== uncovered rag.go blocks ==
+arxivlens/internal/query/rag.go:160.18,161.13
+arxivlens/internal/query/rag.go:227.58,229.3
+
+[exit code 0]

@@ -1,0 +1,52 @@
+$ bash /tmp/claude-0/-home-claude/7c7b1014-2c66-5fc8-a52b-576ea03c605c/scratchpad/scripts/api_scope.sh
+== git diff --stat origin/main...HEAD ==
+ internal/query/rag.go      |  91 ++++++++----
+ internal/query/rag_test.go | 338 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 405 insertions(+), 24 deletions(-)
+== changed files vs ai-engineer owned paths (AGENTS.md §2: internal/query/rag.go + rag_test.go) ==
+owned: internal/query/rag.go
+owned: internal/query/rag_test.go
+== untouched contracts (no diff expected) ==
+internal/query/server.go: unchanged
+internal/query/search.go: unchanged
+evals/thresholds.json: unchanged
+shared/events/events.go: unchanged
+README.md: unchanged
+cmd/arxivlens/main.go: unchanged
+== exported decls, JSON tags, constants: origin/main vs HEAD (diff; empty = identical) ==
+(identical)
+== HEAD exported surface of rag.go ==
+func (r *RAGService) Ask(
+	ctx context.Context,
+	question string,
+	categories []string,
+	maxCitations int,
+) (*AskResponse, error) {
+	EarlyRefusalThreshold = 0.015 // Minimum RRF score required to attempt answer
+	SupportThreshold      = 0.50  // Minimum cosine similarity to mark citation supported (§9)
+type Citation struct {
+	Marker    int     `json:"marker"`
+	ArxivID   string  `json:"arxiv_id"`
+	Title     string  `json:"title"`
+	ChunkID   int64   `json:"chunk_id"`
+	Section   string  `json:"section"`
+	Content   string  `json:"content"`
+	PDFURL    string  `json:"pdf_url"`
+	Score     float64 `json:"score"`
+	Supported bool    `json:"supported"`
+type AskResponse struct {
+	Answer    string     `json:"answer"`
+	Citations []Citation `json:"citations"`
+	TraceID   string     `json:"trace_id"`
+type RAGService struct {
+func NewRAGService(searchEngine *SearchEngine, embedClient *EmbedClient) *RAGService {
+== numeric literals in rag.go code (comments stripped): main vs HEAD ==
+(identical)
+      1 0.0
+      1 0.015
+      1 0.45
+      1 0.50
+      1 0.70
+      1 0.75
+
+[exit code 0]

@@ -1,0 +1,25 @@
+$ bash /tmp/claude-0/-home-claude/7c7b1014-2c66-5fc8-a52b-576ea03c605c/scratchpad/scripts/run_tests.sh /tmp/claude-0/-home-claude/7c7b1014-2c66-5fc8-a52b-576ea03c605c/scratchpad/r03
+== files under test: cmp scratch copy vs app/ at PR head ==
+identical: internal/query/rag.go
+identical: internal/query/rag_test.go
+go version go1.24.7 linux/amd64
+== go vet ./internal/query/ ==
+vet ok
+== gofmt -l internal/query (PR head) ==
+gofmt exit 0
+== go test -race -count=1 -v ./internal/query/ (top-level results) ==
+--- PASS: TestFilterRelevantHits (0.00s)
+--- PASS: TestAskRefusesWhenNothingPasses (0.00s)
+--- PASS: TestAskAnswersWithValidatedCitations (0.00s)
+--- PASS: TestValidateCitationsMarkers (0.00s)
+--- PASS: TestValidateCitationsSupportThreshold (0.00s)
+--- PASS: TestValidateCitationsFallbackWhenUnverifiable (0.00s)
+--- PASS: TestSplitIntoSentences (0.00s)
+--- PASS: TestCosineSimilarity (0.00s)
+--- PASS: TestAskResponseShapeAndConstructor (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.021s
+== counts ==
+top-level PASS: 9  subtests PASS: 46  FAIL: 0  SKIP: 0
+
+[exit code 0]

@@ -1,0 +1,18 @@
+$ bash -c sed -n '/AC4 bugs found/,/Diff:/p' agents/tasks/AI-1.md | fold -s -w 135
+  - **AC4 bugs found**:
+    1. FIXED (17 added lines + 1 changed, within the ≤ 20-line policy): `splitIntoSentences` ended sentences at abbreviations, so 
+`"Smith et al. [1] show gains."` was verified as `"show gains."` alone, and `"e.g."`, `"i.e."`, `"vs."`, `"Fig."` broke the same way 
+(titles like "X vs. Y" in the template were affected too). Test: 
+`TestSplitIntoSentences/{et_al._not_split,e.g._not_split,i.e._in_parens_not_split,vs._and_Fig._not_split}`. Before the fix, those 4 
+subtests failed on the original splitter. Known trade-off: a real sentence that ends in one of these abbreviations is now merged with 
+the next sentence.
+    2. Not fixed (behaviour pinned, follow-up already exists as AI-2): fail-open 0.75/supported when the embedder fails or a chunk has 
+no vector. Test: `TestValidateCitationsFallbackWhenUnverifiable`. AI-2 must flip these expectations.
+    3. Observation, no change (needs a pm-lead/ADR decision): a hit with `RerankScore == 0` (no rerank score, e.g. reranker down) 
+bypasses the 0.45 relevance cutoff, so retrieval fails open, though an aux section with 0 is still dropped. Pinned in 
+`TestFilterRelevantHits/zero_rerank_score_bypasses_relevance_cutoff`. Also, `EarlyRefusalThreshold` (RRF 0.015) is declared but never 
+used. Suggest a follow-up ticket to decide both.
+  - Diff: 405 insertions, 24 deletions (429 lines), slightly over the 400-line target. About 18 of those lines are code moved verbatim 
+inside rag.go and counted twice; I chose not to compress the tests further.
+
+[exit code 0]

@@ -1,0 +1,23 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/125739503542/logs | grep -E 'HEAD is now at|GOVERSION|Run make|^.{29}go (vet|test|build)|gofmt|arxivlens/|##\[error\]|FAIL' | cut -c30-
+Complete job name: Go (vet, gofmt, test, build)
+HEAD is now at 0177b77 Merge f56f80bb779d8e0b75cfab01f10c50fb4be370ef into a959d0334ec8c4187684eb66868c5b74a8956ca7
+GOVERSION='go1.25.0'
+##[group]Run make lint-go
+go vet ./...
+##[group]Run make test-go
+go test ./...
+?   	arxivlens/cmd/arxivlens	[no test files]
+?   	arxivlens/internal/config	[no test files]
+ok  	arxivlens/internal/crawler	0.004s
+?   	arxivlens/internal/db	[no test files]
+?   	arxivlens/internal/dlq	[no test files]
+?   	arxivlens/internal/downloader	[no test files]
+ok  	arxivlens/internal/kafka	0.003s
+ok  	arxivlens/internal/query	0.005s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+##[group]Run make build-go
+go build -o bin/arxivlens ./cmd/arxivlens
+
+[exit code 0]

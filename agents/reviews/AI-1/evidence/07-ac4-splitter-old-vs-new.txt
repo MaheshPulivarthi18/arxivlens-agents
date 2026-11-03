@@ -1,0 +1,77 @@
+$ bash /tmp/claude-0/-home-claude/7c7b1014-2c66-5fc8-a52b-576ea03c605c/scratchpad/scripts/splitter_compare.sh /tmp/claude-0/-home-claude/7c7b1014-2c66-5fc8-a52b-576ea03c605c/scratchpad/r07
+== splitter fix size: git diff origin/main...HEAD, splitter hunks only ==
+-		if (ch == '.' || ch == '!' || ch == '?') && (i+1 == len(text) || text[i+1] == ' ') {
++		if (ch == '.' || ch == '!' || ch == '?') && (i+1 == len(text) || text[i+1] == ' ') && !endsWithAbbreviation(current.String()) {
++// sentenceAbbreviations end with '.' but do not end a sentence (AI-1: "Smith et al. [1] show X."
++// used to split into "Smith et al." and "[1] show X.", so the marker lost its claim).
++var sentenceAbbreviations = []string{"e.g.", "i.e.", "et al.", "cf.", "vs.", "fig.", "eq."}
++func endsWithAbbreviation(s string) bool {
++	lower := strings.ToLower(s)
++	for _, abbr := range sentenceAbbreviations {
++		if strings.HasSuffix(lower, abbr) {
++			rest := lower[:len(lower)-len(abbr)]
++			if rest == "" || strings.HasSuffix(rest, " ") || strings.HasSuffix(rest, "(") {
++				return true
++			}
++		}
++	}
++	return false
++}
+added 16, removed 1
+TEMPLATE DIFF title="Attention Is All You Need" s1="Introduction" s2="Fig. 3 Analysis"
+  old(3)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the Introduction section [1]." "Furthermore, experimental evaluation in Fig." "3 Analysis demonstrates relevant improvements [2]."]
+  new(2)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the Introduction section [1]." "Furthermore, experimental evaluation in Fig. 3 Analysis demonstrates relevant improvements [2]."]
+TEMPLATE DIFF title="Attention Is All You Need" s1="Introduction" s2="Eq. 2 derivation"
+  old(3)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the Introduction section [1]." "Furthermore, experimental evaluation in Eq." "2 derivation demonstrates relevant improvements [2]."]
+  new(2)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the Introduction section [1]." "Furthermore, experimental evaluation in Eq. 2 derivation demonstrates relevant improvements [2]."]
+TEMPLATE DIFF title="Attention Is All You Need" s1="4.2 Results" s2="Fig. 3 Analysis"
+  old(3)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the 4.2 Results section [1]." "Furthermore, experimental evaluation in Fig." "3 Analysis demonstrates relevant improvements [2]."]
+  new(2)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the 4.2 Results section [1]." "Furthermore, experimental evaluation in Fig. 3 Analysis demonstrates relevant improvements [2]."]
+TEMPLATE DIFF title="Attention Is All You Need" s1="4.2 Results" s2="Eq. 2 derivation"
+  old(3)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the 4.2 Results section [1]." "Furthermore, experimental evaluation in Eq." "2 derivation demonstrates relevant improvements [2]."]
+  new(2)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the 4.2 Results section [1]." "Furthermore, experimental evaluation in Eq. 2 derivation demonstrates relevant improvements [2]."]
+TEMPLATE DIFF title="Attention Is All You Need" s1="Appendix A" s2="Fig. 3 Analysis"
+  old(3)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the Appendix A section [1]." "Furthermore, experimental evaluation in Fig." "3 Analysis demonstrates relevant improvements [2]."]
+  new(2)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the Appendix A section [1]." "Furthermore, experimental evaluation in Fig. 3 Analysis demonstrates relevant improvements [2]."]
+TEMPLATE DIFF title="Attention Is All You Need" s1="Appendix A" s2="Eq. 2 derivation"
+  old(3)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the Appendix A section [1]." "Furthermore, experimental evaluation in Eq." "2 derivation demonstrates relevant improvements [2]."]
+  new(2)=["Based on the indexed research, the paper \"Attention Is All You Need\" addresses this in the Appendix A section [1]." "Furthermore, experimental evaluation in Eq. 2 derivation demonstrates relevant improvements [2]."]
+template answers: 288 total, 80 identical, 208 differ; inputs with no abbreviation: 80, of which differ: 0
+DIFF "We compare to Smith et al. They report 90%."
+  old=["We compare to Smith et al." "They report 90%."]
+  new=["We compare to Smith et al. They report 90%."]
+DIFF "Results vs. baselines. Next."
+  old=["Results vs." "baselines." "Next."]
+  new=["Results vs. baselines." "Next."]
+DIFF "See Fig. 2. It shows X [1]."
+  old=["See Fig." "2." "It shows X [1]."]
+  new=["See Fig. 2." "It shows X [1]."]
+same "Values are 3.14 and 2.71 [1]."
+  old=["Values are 3.14 and 2.71 [1]."]
+  new=["Values are 3.14 and 2.71 [1]."]
+same "U.S. data is used [1]."
+  old=["U.S." "data is used [1]."]
+  new=["U.S." "data is used [1]."]
+same "Ends with e.g."
+  old=["Ends with e.g."]
+  new=["Ends with e.g."]
+DIFF "cf. prior work [2]. Done."
+  old=["cf." "prior work [2]." "Done."]
+  new=["cf. prior work [2]." "Done."]
+DIFF "Model (e.g. BERT) wins [1]! Really? Yes."
+  old=["Model (e.g." "BERT) wins [1]!" "Really?" "Yes."]
+  new=["Model (e.g. BERT) wins [1]!" "Really?" "Yes."]
+same "Spaces  twice.  Here."
+  old=["Spaces  twice." "Here."]
+  new=["Spaces  twice." "Here."]
+DIFF "Eq. 3 holds [1]. Also Eq.4 [2]."
+  old=["Eq." "3 holds [1]." "Also Eq.4 [2]."]
+  new=["Eq. 3 holds [1]." "Also Eq.4 [2]."]
+same "Use i.e., this [1]."
+  old=["Use i.e., this [1]."]
+  new=["Use i.e., this [1]."]
+--- PASS: TestQASplitterOldVsNew (0.00s)
+PASS
+ok  	arxivlens/internal/query	0.005s
+
+[exit code 0]

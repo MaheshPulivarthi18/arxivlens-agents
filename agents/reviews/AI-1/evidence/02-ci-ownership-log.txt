@@ -1,0 +1,11 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/125739503219/logs | grep -E 'HEAD is now at|HEAD_REF|BASE_REF|ownership|Ownership|changed lines|##\[(error|warning)\]' | grep -v Node.js | cut -c30-
+Complete job name: Agent ownership check
+HEAD is now at 0177b77 Merge f56f80bb779d8e0b75cfab01f10c50fb4be370ef into a959d0334ec8c4187684eb66868c5b74a8956ca7
+##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+[36;1m.github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"[0m
+  HEAD_REF: agent/ai/AI-1
+  BASE_REF: main
+##[warning]429 changed lines (> 400). Consider splitting the change.
+Ownership OK for role=ai (429 changed lines)
+
+[exit code 0]
