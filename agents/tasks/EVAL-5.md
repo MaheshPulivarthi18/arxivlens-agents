@@ -103,3 +103,25 @@ make test-unit && make lint      # CI is the source of truth (sandbox lacks Go 1
   - [ ] H3 (P2): run `CHUNK_COUNTS_SQL` against the **real schema** in PostgreSQL+pgvector with a paper with zero
     embedded chunks and one partially embedded; attach output. Sandbox has no pgvector; needs a DB-backed CI job
     (backend, being added in OPS-H5 rework) → may stay open with "not run: <reason>" and is then a merge gate.
+
+### ai-engineer, 2026-11-03 (rework r1, Mahesh's review)
+- Head `557f4e12bbbb02b2dd3d6e28a7122af9ac460dbd` on `agent/ai/EVAL-5`. PR #17 is still draft, and its body now has the H1–H3 status.
+  Files: `scripts/evaluate_retrieval.py`, `tests/test_evals_data.py`, `evals/README.md`. Diff vs main is 319 changed lines (ownership-check OK).
+- CI on `557f4e1` (run 41702078502): Python M0 unit tests `126147657540` success (61 passed, 1 skipped); Go `126147657013`,
+  Frontend `126147657411`, Agent ownership check `126147657276` success. Local: `pytest tests/test_evals_data.py` 58 passed, 1 skipped.
+- [x] H1: `GO_DEFAULT_MODEL` removed. `go_default_model()` parses the `--model` StringVar default from `cmd/arxivlens/main.go`
+  (it needs exactly one match). `test_go_model_default_parsed_from_main_go_matches_python_default` asserts it equals the
+  `EMBEDDING_MODEL` default in `services/common/config.py`. With a temporary Go default of `BAAI/bge-large-en-v1.5`
+  (not committed) the result is `1 failed` with `AssertionError: cmd/arxivlens/main.go --model default 'BAAI/bge-large-en-v1.5' != ...`.
+  Deleting the flag gives `ValueError ... found []`.
+- [x] H2: `--query-model` / `ARXIVLENS_QUERY_MODEL` (default: the Go default). The warning compares against it, and the summary records
+  `query_model`. Tests: `test_model_mismatch_warning` (default parity) and `test_model_mismatch_uses_explicit_query_model_override`
+  (match: no warning; differ: warning; env; CLI). Mutant "ignore the override" fails that test.
+  **Follow-up (backend, backlog/ADR):** have the query service report its runtime `--model` (e.g. in `/healthz` or a
+  `/v1/info`), so the eval can read it instead of being told. That changes `internal/query/server.go` and the HTTP API contract.
+- [ ] H3: **not run.** The sandbox has PG16 binaries but no pgvector extension files and no `psycopg`, and PyPI/Docker are unreachable, so
+  the real `halfvec(768)` migration can't be applied. Nothing was faked. Added the opt-in `test_chunk_counts_sql_against_real_postgres`
+  (skipped without `DATABASE_URL`; cases 0/2 with another model's vector, 1/2, unknown 0/0; rolls back). It has never been executed.
+  It needs the DB-backed CI job (OPS-H5) or a manual run, and remains a merge gate.
+- Observation (not changed): `CHUNK_COUNTS_SQL` groups by `arxiv_id`, so if `papers` ever holds two versions of a paper,
+  both versions' chunks are summed.
