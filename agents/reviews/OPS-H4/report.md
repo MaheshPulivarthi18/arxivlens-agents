@@ -87,3 +87,56 @@ Product PRD §8 gates quality on the `evals/*.jsonl` datasets. After this PR, ev
 
 ### Follow-ups
 - Backlog (backend-engineer, docs-only, P2): `CONTRIBUTING.md:28` `make eval` row still says "quality gate over `evals/` once EVAL-1, PR #2, lands", and `CONTRIBUTING.md:54` says "`evals/thresholds.json` once EVAL-1 lands". EVAL-1 has merged, so reword both (for example "Quality gate vs Product PRD §8 (`scripts/eval_gate.py`, thresholds in `evals/thresholds.json`)").
+
+---
+
+## QA round 2
+
+**Verdict:** PASS
+**Reviewed commit:** `0edd8fd378f2ae07d49f38a3b1be150ba23e21be` (round 1: `31682fb`) · **Date:** 2026-11-03 · **Reviewer:** qa-reviewer (fresh context)
+**Scope of this round:** PM CHANGES round 1 checklist, widened AC4, new AC6, and proof that the AC1-AC5 evidence still applies.
+
+### Test results
+| Check | Source | Result |
+|---|---|---|
+| CI check runs on `0edd8fd` | GitHub check-runs API | 4/4 `completed success`: Python M0 unit tests, Go (vet, gofmt, test, build), Frontend (lint, test, build), Agent ownership check ([10](evidence/10-r2-ci-checks.png)) |
+| Python M0 unit tests (`make test-py`) | CI job 125831741281 | `python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py` → `50 passed in 6.23s` ([14](evidence/14-r2-ci-job-logs.png)) |
+| Go `make lint-go`, `make test-go`, `make build-go` | CI job 125831741186 | `ok` for crawler/kafka/query; job success ([14](evidence/14-r2-ci-job-logs.png)) |
+| Ownership check | CI job 125831740663 | `Ownership OK for role=backend (10 changed lines)` ([14](evidence/14-r2-ci-job-logs.png)) |
+| `.gitignore` / `Makefile` vs `31682fb` | local, `app/` at `0edd8fd` | `git diff --exit-code` exit 0; same blob SHAs and same sha256 for both files ([11](evidence/11-r2-byte-identical.png)) |
+| `git check-ignore -v evals/results/x.json` | local | `.gitignore:29:evals/results/`, exit 0 ([11](evidence/11-r2-byte-identical.png)) |
+| `make test-unit`, `make lint` | not run locally: Go 1.24.7 in the sandbox (go.mod needs 1.25, download blocked), and no torch for `test_m0.py` | CI ran the same targets, all green (see above) |
+| `make eval` | not run: docs-only rework; no retrieval/answering change | n/a |
+
+### Carry-over of AC1-AC5 evidence
+`git diff --exit-code 31682fb HEAD -- .gitignore Makefile` → exit 0. Blob IDs match (`.gitignore` `ae45223…`, `Makefile` `7b75a9b…` at both commits), and so do the sha256 sums ([11](evidence/11-r2-byte-identical.png)). The only commit since round 1 (`0edd8fd`) touches `CONTRIBUTING.md` and `README.md` only ([12](evidence/12-r2-ac4-diff.png)). So round-1 evidence 01-07 still proves AC1-AC5. CI evidence for AC3/AC5 was also re-taken on the new head ([14](evidence/14-r2-ci-job-logs.png)).
+
+### Acceptance criteria
+| AC | Met? | Evidence |
+|---|---|---|
+| AC1: `evals/results/x.json` ignored | ✅ | Re-checked on `0edd8fd`: `.gitignore:29:evals/results/`, exit 0 ([11](evidence/11-r2-byte-identical.png)); round 1 [01](evidence/01-ac1-check-ignore.png) |
+| AC2: `make test-py` runs and passes `tests/test_evals_data.py` | ✅ | `make -n test-py` lists both files ([11](evidence/11-r2-byte-identical.png)); CI head `50 passed` ([14](evidence/14-r2-ci-job-logs.png)) |
+| AC3: `make test-unit` passes; `make help` accurate | ✅ | Makefile byte-identical, so round-1 [03](evidence/03-ac3-make-help.png) holds; `make -n test-unit` = `go test ./...` + both pytest files ([11](evidence/11-r2-byte-identical.png)); CI `make lint-go`/`test-go`/`test-py` green on `0edd8fd` ([14](evidence/14-r2-ci-job-logs.png)) |
+| AC4: diff touches only `.gitignore`, `Makefile`, `CONTRIBUTING.md`, `README.md` (docs: only the AC6 lines) | ✅ | `git diff --stat origin/main...HEAD`: `.gitignore` +1, `CONTRIBUTING.md` +1/-1, `Makefile` +3/-3, `README.md` +1; 4 files, 2 commits. `git diff 31682fb HEAD` shows exactly the two AC6 hunks: CONTRIBUTING line 23 replaced, README line 200 added. `CONTRIBUTING.md:28,54` untouched ([12](evidence/12-r2-ac4-diff.png)) |
+| AC5: CI Python job runs `tests/test_evals_data.py`; combined count rises by ≥ 47 over main | ✅ | Head job: `python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py` → `50 passed` ([14](evidence/14-r2-ci-job-logs.png)) vs main's `3 passed` (round 1 [05](evidence/05-ac5-ci-python-job.png)), +47. No `requirements*.txt` change |
+| AC6: docs match the new command | ✅ | `grep -nFx` exact match of the spec string: `CONTRIBUTING.md:23` (exit 0), and `README.md:200` directly under the `test_m0.py` line at 199 (exit 0). `#` sits at column 44 on lines 199-201, aligned ([13](evidence/13-r2-ac6-docs.png)) |
+
+### PM rework checklist (verified independently)
+- [x] `CONTRIBUTING.md:23` row verbatim: exact-line grep match ([13](evidence/13-r2-ac6-docs.png))
+- [x] README Testing block line added under `test_m0.py`, `#` aligned: exact-line grep match + column check ([13](evidence/13-r2-ac6-docs.png))
+- [x] Nothing else changed; `.gitignore`/`Makefile` byte-identical to `31682fb`; `CONTRIBUTING.md:28,54` untouched ([11](evidence/11-r2-byte-identical.png), [12](evidence/12-r2-ac4-diff.png))
+
+### PRD fit
+Unchanged from round 1. The docs now describe what `make test-unit` actually runs (DoD 4). No contracts, thresholds or eval gates changed.
+
+### Findings
+1. [nit][spec] AC6 says "`README.md:199`", but that line number points at the `test_m0.py` line; the new line sits *under* it at 200, which is what the AC wording ("under the `test_m0.py` line") asks for. No change requested.
+2. Round-1 [nit] 3 (a local `test_m0.py` collection error also stops the eval-data tests) still stands; PM disposition was no change.
+
+No blocking findings.
+
+### Missing tests
+None. This round changes docs only.
+
+### Hand-off
+PASS → pm-lead final review (round 2). Follow-up already logged by PM: stale EVAL-1 wording at `CONTRIBUTING.md:28,54`.

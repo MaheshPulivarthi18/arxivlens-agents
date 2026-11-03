@@ -1,0 +1,29 @@
+$ bash -c set -x; sed -n "20,24p" CONTRIBUTING.md; grep -nFx "| \`make test-unit\` | Go tests + \`pytest tests/test_m0.py tests/test_evals_data.py\` | No |" CONTRIBUTING.md; echo "contrib exact-match exit=$?"; sed -n "196,202p" README.md; grep -nFx "pytest tests/test_evals_data.py            # Unit: eval datasets — schema, sizes, corpus membership, unique IDs (no infra)" README.md; echo "readme exact-match exit=$?"; awk "NR>=199 && NR<=201 {print NR\": #-column=\" index(\$0,\"#\")}" README.md
+| Command | What | Needs infra? |
+|---|---|---|
+| `make help` | List targets | — |
+| `make test-unit` | Go tests + `pytest tests/test_m0.py tests/test_evals_data.py` | No |
+| `make lint` | `go vet`, `gofmt` check, frontend `oxlint` | No |
+23:| `make test-unit` | Go tests + `pytest tests/test_m0.py tests/test_evals_data.py` | No |
+contrib exact-match exit=0
+## Testing, evaluation and benchmarks
+
+```bash
+pytest tests/test_m0.py                    # Unit: chunker, embedder, citation validator (no infra)
+pytest tests/test_evals_data.py            # Unit: eval datasets — schema, sizes, corpus membership, unique IDs (no infra)
+pytest tests/                              # Full suite: needs docker stack + services running
+make eval                                  # Quality gate vs Product PRD §8 (scripts/eval_gate.py); see evals/README.md
+200:pytest tests/test_evals_data.py            # Unit: eval datasets — schema, sizes, corpus membership, unique IDs (no infra)
+readme exact-match exit=0
+199: #-column=44
+200: #-column=44
+201: #-column=44
++ sed -n 20,24p CONTRIBUTING.md
++ grep -nFx '| `make test-unit` | Go tests + `pytest tests/test_m0.py tests/test_evals_data.py` | No |' CONTRIBUTING.md
++ echo 'contrib exact-match exit=0'
++ sed -n 196,202p README.md
++ grep -nFx 'pytest tests/test_evals_data.py            # Unit: eval datasets — schema, sizes, corpus membership, unique IDs (no infra)' README.md
++ echo 'readme exact-match exit=0'
++ awk 'NR>=199 && NR<=201 {print NR": #-column=" index($0,"#")}' README.md
+
+[exit code 0]

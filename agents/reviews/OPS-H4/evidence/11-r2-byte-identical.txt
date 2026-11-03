@@ -1,0 +1,32 @@
+$ bash -c set -x; git rev-parse HEAD; git diff --exit-code 31682fb HEAD -- .gitignore Makefile; echo "diff exit=$?"; git rev-parse 31682fb:.gitignore HEAD:.gitignore 31682fb:Makefile HEAD:Makefile; git show 31682fb:Makefile | sha256sum; sha256sum Makefile; git show 31682fb:.gitignore | sha256sum; sha256sum .gitignore; git check-ignore -v evals/results/x.json; echo "check-ignore exit=$?"; make -n test-py; make -n test-unit
+0edd8fd378f2ae07d49f38a3b1be150ba23e21be
+diff exit=0
+ae45223a820f735c7dc7752aa9e58435f592af08
+ae45223a820f735c7dc7752aa9e58435f592af08
+7b75a9bc48b0e2f240e50456a885eef7061511f1
+7b75a9bc48b0e2f240e50456a885eef7061511f1
+896c9c53291e571b1964261d64314a6d170f2f64a833971110117b2c775e93b1  -
+896c9c53291e571b1964261d64314a6d170f2f64a833971110117b2c775e93b1  Makefile
+5ef60cbf346ff18019c22013d1f6e3a07845d8f8a5bfc9bbe701672a79c449fd  -
+5ef60cbf346ff18019c22013d1f6e3a07845d8f8a5bfc9bbe701672a79c449fd  .gitignore
+.gitignore:29:evals/results/	evals/results/x.json
+check-ignore exit=0
+python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py
+go test ./...
+python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py
++ git rev-parse HEAD
++ git diff --exit-code 31682fb HEAD -- .gitignore Makefile
++ echo 'diff exit=0'
++ git rev-parse 31682fb:.gitignore HEAD:.gitignore 31682fb:Makefile HEAD:Makefile
++ git show 31682fb:Makefile
++ sha256sum
++ sha256sum Makefile
++ git show 31682fb:.gitignore
++ sha256sum
++ sha256sum .gitignore
++ git check-ignore -v evals/results/x.json
++ echo 'check-ignore exit=0'
++ make -n test-py
++ make -n test-unit
+
+[exit code 0]

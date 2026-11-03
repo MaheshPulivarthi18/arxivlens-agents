@@ -1,0 +1,6 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/0edd8fd378f2ae07d49f38a3b1be150ba23e21be/check-runs --jq '.check_runs[] | name/status/conclusion/id/completed_at'
+Python M0 unit tests	completed	success	job=125831741281	2026-11-03T09:25:51Z
+Go (vet, gofmt, test, build)	completed	success	job=125831741186	2026-11-03T09:24:53Z
+Frontend (lint, test, build)	completed	success	job=125831741058	2026-11-03T09:24:42Z
+Agent ownership check	completed	success	job=125831740663	2026-11-03T09:24:44Z
+

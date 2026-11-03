@@ -1,0 +1,15 @@
+$ gh api .../actions/jobs/{125831741281,125831741186,125831740663}/logs | grep -E 'Complete job name|python3 -m pytest|passed|failed|Run make|ok |FAIL|Ownership'
+2026-11-03T09:24:30.8744961Z Complete job name: Python M0 unit tests
+2026-11-03T09:25:40.6502506Z ##[group]Run make test-py
+2026-11-03T09:25:40.6909970Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py
+2026-11-03T09:25:47.9313460Z 50 passed in 6.23s
+2026-11-03T09:24:35.4350781Z Complete job name: Go (vet, gofmt, test, build)
+2026-11-03T09:24:46.9098067Z ##[group]Run make lint-go
+2026-11-03T09:24:47.7847810Z ##[group]Run make test-go
+2026-11-03T09:24:49.0752922Z ok  	arxivlens/internal/crawler	0.004s
+2026-11-03T09:24:49.3858923Z ok  	arxivlens/internal/kafka	0.004s
+2026-11-03T09:24:49.6490144Z ok  	arxivlens/internal/query	0.006s
+2026-11-03T09:24:49.6656147Z ##[group]Run make build-go
+2026-11-03T09:24:30.8985903Z Complete job name: Agent ownership check
+2026-11-03T09:24:32.3703219Z Ownership OK for role=backend (10 changed lines)
+
