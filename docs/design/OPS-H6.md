@@ -170,6 +170,18 @@ On restart/rebalance, everything after the last committed offset is redelivered;
 ```
 §8.1 L4 then holds for the Go consumer. The Python consumer still doesn't hold it until OPS-H8.
 
+### 7a. As built (2026-11-03, backend-engineer; changes from the shape above)
+To stay under the C1 limit of 400 changed lines without trimming AC tests, the per-record logic stays **inline in `Start`**, at the
+original indentation, so the unchanged lines (traceparent, retry log, `DLQPayload` literal, commit) don't show up as re-indented diff. It is not split into
+`handlePoll`/`processRecord`/`publishDLQ`/`buildDLQPayload`. Semantics are the same as §1–§6:
+- An unresolved record does `break records` (a labelled break out of the record loop), so its commit and every later commit in the poll are skipped.
+- `c.client.AllowRebalance()` is called explicitly after the record loop on every poll, including error-only polls, instead of via `defer`.
+  The `kgo.ErrClientClosed` return skips it (the client is closed).
+- Poll errors: `fetches.EachError` logs `Poll error (topic=%s partition=%d): %v` and the poll's records are still handled (AC12).
+- `waitFunc` is the struct field type `func(ctx, d) error`, with no named type. The `nil` DLQ check is inline (`errNoDLQPublisher`).
+- C2: the franz-go v1.16.1 doc quote in §4 is **unverified** (proxy.golang.org, raw.githubusercontent.com and the twmb/franz-go API are
+  unreachable from the sandbox). QA checks it against the v1.16.1 source.
+
 ## Alternatives considered
 1. **Rewind the partition (`SetOffsets` to N), skip the rest of that partition for this poll, redeliver next poll.** Other
    partitions keep flowing, which is the only real advantage. Rejected: it re-runs the handler every round (arXiv load, duplicate

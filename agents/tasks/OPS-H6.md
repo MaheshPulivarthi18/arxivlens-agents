@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | KAN-28 (`labels = "task-OPS-H6"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics (what is committed when, and what happens on redelivery) |
-| **Status** | Ready (design approved 2026-11-03 with binding conditions C1–C7, see `docs/design/OPS-H6.md` PM decision) |
+| **Status** | Built: draft PR [#15](https://github.com/MaheshPulivarthi18/ArxivLens/pull/15), head `7814563`, CI green, AC10 mutations done; ready for QA (design approved 2026-11-03 with C1–C7) |
 
 ## Goal
 Technical PRD §8.1 promises L4 for the Go consumer: an offset is committed only after the handler succeeds or the
@@ -100,3 +100,44 @@ CI is the source of truth for Go: local sandboxes have Go 1.24.7, so a stdlib-on
 - 2026-11-03 (pm-lead, design gate): design **APPROVED** with conditions C1–C7. AC3 was amended to the retry-in-place mechanism, AC10 now states the
   mutation-commit method, and AC12 was added (the poll-error drop fix). Follow-up for after OPS-H1 merges: change `Makefile` `test-go` to `go test -race -count=1 ./...`
   (backend, small). It isn't done here because OPS-H1 edits `Makefile` in parallel. G1/G2 were filed in the board Backlog.
+- 2026-11-03 (backend-engineer, build): **draft PR [#15](https://github.com/MaheshPulivarthi18/ArxivLens/pull/15)**, branch `agent/backend/OPS-H6`, final head
+  `7814563cb81cbbf5b21d0f40b43a095f39bf90e8`, CI green: [run 41655887813](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41655887813) (Go, Python, Frontend, ownership).
+  - Files: `internal/kafka/consumer.go`, `internal/kafka/consumer_test.go`, `.github/workflows/ci.yml` (one step `Kafka consumer tests (verbose, race, coverage)`).
+    No `Makefile`, `README.md`, `CONTRIBUTING.md` or `cmd/` (C1). `ownership-check.sh origin/main agent/backend/OPS-H6` → `Ownership OK for role=backend (392 changed lines)`.
+  - Shape differs from design §7: the per-record logic stays inline in `Start` with `break records`, so the diff fits under 400 without cutting AC tests. Recorded in design §7a. Semantics are unchanged.
+    AC12 fit in the line budget, so it's included.
+  - CI step output on the final head: 14 tests pass with `-race`. Coverage: `Start` 97.9%, `ctxWait` 100%, `dlqRetryBackoff` 100%, `retryBackoff` 100%,
+    `NewConsumer` 28.6% (only the nil-producer branch is unit-testable without a broker), `Close` 0%.
+  - AC → test: AC1 `TestConsumerSuccessPath` · AC2 `TestConsumerDLQThenCommit` · AC3 `TestConsumerDLQFailureBlocksPartition` · AC4 `TestConsumerDLQRecovers` ·
+    AC5 `TestNewConsumerRejectsNilProducer`, `TestConsumerNilDLQIsFailedPublish` · AC6 `TestConsumerCancelDuringBackoffReturnsPromptly`, `TestCtxWait` (+ `grep -n "time.Sleep" internal/kafka/consumer.go` is empty) ·
+    AC7 `TestRetrySleepSchedule` (rewritten), `TestRetryBackoff` (unchanged), `TestDLQRetryBackoff` · AC8 `TestConsumerAllowRebalanceAfterEachPoll` · AC9 `TestConsumerDLQFailureLogNoValue` ·
+    AC12 `TestConsumerPollErrorStillProcessesRecords`.
+  - **AC10 mutations**. Pre-mutation commit `b6b9383` is green ([run 41654530650](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654530650)).
+    - (a) `bfa7e92` `mutation(AC10a): commit after failed PublishDLQ` → red, [run 41654856105](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654856105)
+      (Go job 125982338034, `make test-go`). Fails: `TestConsumerDLQFailureBlocksPartition` (both rows, "commits = [commit 0@5 commit 0@6], want []"), `TestConsumerDLQRecovers`, `TestConsumerNilDLQIsFailedPublish`. Reverted in `36d6ef5`.
+    - (b) `1021560` `mutation(AC10b): time.Sleep instead of c.wait` → red, [run 41655446862](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41655446862)
+      (Go job 125984389787). Fails: `TestRetrySleepSchedule` ("waits = [], want [200ms 400ms]"), `TestConsumerCancelDuringBackoffReturnsPromptly` ("Start returned after 5.004s"),
+      `TestConsumerSuccessPath`, `TestConsumerDLQFailureBlocksPartition`, `TestConsumerDLQRecovers`, `TestConsumerNilDLQIsFailedPublish`. Reverted in `7814563`.
+    - `git diff b6b9383 7814563` is empty (whole tree, so `-- internal/kafka/` too). Each run was allowed to complete before the next push. Neither failure is a compile or vet error.
+    - Superseded: a first (a) on `560ab04` ([run 41654062505](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654062505)) was red, but `TestConsumerDLQRecovers` panicked
+      on an unguarded `f.payloads[2]` there, which stopped the rest of the package. It was reverted in `b965a64`, and `b6b9383` guards the indexes (test-only change, same line count). Both mutations were then re-run as above.
+  - **C2: franz-go doc quote unverified.** proxy.golang.org (DNS), raw.githubusercontent.com (proxy 403) and the twmb/franz-go GitHub API (session not enabled) are unreachable.
+    QA: check design §4's `BlockRebalanceOnPoll`/`AllowRebalance` text against the v1.16.1 source (`pkg/kgo/config.go`, `pkg/kgo/consumer_group.go`). The real-module CI build confirms that `AllowRebalance()`, `EachError`,
+    `kgo.ErrClientClosed` and the exported `Fetch`/`FetchTopic`/`FetchPartition` fields exist with the shapes used.
+  - **Not run:** AC11 M4, no stack (OPS-H1 not merged). Command once it is: `make stack-up && make test-full` (or OPS-H1's `stack.yml` `workflow_dispatch` on this branch).
+    `make test-unit`/`make lint` were not run locally (Go 1.24.7, go.mod needs 1.25, franz-go unavailable); CI is the evidence. Extra local evidence only: vet plus `go test -race` against a minimal local stub of the `kgo` types, all 14 tests passing, and both mutations pre-checked to fail tests rather than vet.
+  - Behaviour notes for QA: shutdown now also logs `Poll error (topic= partition=-1): context canceled` once (it logged `Poll error: context canceled` before). A closed client returns before `AllowRebalance`.
+  - Docs (C1): README:39 and CONTRIBUTING:57 are unchanged because OPS-H1 hasn't merged. Proposed wording is in design "Docs wording".
+  - **C6: proposed Technical PRD §8.1/§8.2 text** (for pm-lead's docs PR):
+    ```
+    poll → for each record, in order:
+      attempt 1..3: handle; on error wait 200ms, 400ms (ctx-aware; ctx done → stop, no DLQ, no commit)
+      success → commit record
+      3 failures → build DLQPayload once → publish to <topic>.dlq
+         ok → commit record
+         error → log CRITICAL, wait 1s,2s,4s…30s (ctx-aware) and publish again; never commit, never move on, until it lands or ctx ends
+    partition-level poll errors are logged (topic, partition); the poll's other records are still handled; a closed client stops the consumer
+    after the poll's records: AllowRebalance
+    On restart/rebalance, everything after the last committed offset is redelivered; L1–L3 keep row counts unchanged.
+    ```
+    With this, §8.1 L4 holds for the Go consumer. The Python consumer doesn't hold it until OPS-H8.
