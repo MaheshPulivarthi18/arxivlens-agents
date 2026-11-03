@@ -8,7 +8,7 @@
 | **Depends on** | — (soft: OPS-H1 for AC5; without it, start the workers by hand per AGENTS.md §6) |
 | **Jira** | find with JQL `labels = "task-OPS-H5"` |
 | **Design required** | no (P1; additive index migration, no new command/table/service; `migrate` keeps its existing flag) |
-| **Status** | In QA (draft PR #16) |
+| **Status** | In QA (draft PR #16, rework r1 done; H4 blocked on OPS-H1) |
 
 ## Goal
 Technical PRD §5 promises an HNSW cosine index on `chunk_embeddings.embedding`, but no migration creates it. Only
@@ -95,3 +95,33 @@ make test-full
   - Sandbox has PostgreSQL 16 binaries but no pgvector (no server headers, apt/GitHub archives unreachable), so H1–H3
     run on GitHub runners: backend adds a DB-backed workflow (e.g. `.github/workflows/db.yml` with a
     `pgvector/pgvector:pg16` service) — no overlap with #14's `stack.yml`.
+- 2026-11-03 rework r1 (backend-engineer, after Mahesh's review): head `cff6fa1380406cbedb01652f90f9919f2d2c8051` on
+  `agent/backend/OPS-H5` (PR #16 still draft; body updated with H1–H5). New: `.github/workflows/db.yml` (service
+  `pgvector/pgvector:pg16`, pgvector 0.8.7), `internal/query/search_integration_test.go` (`//go:build integration`),
+  `search.go` SQL lifted into `vectorHitsSQL`/`hybridSearchSQL` constants (text unchanged) + `hnswSearchSettings`,
+  `CONTRIBUTING.md` H5 line. PR diff vs `9c1229a`: 10 files, +581/−38 (619 lines, > 400: 293 test + 71 workflow).
+  Ownership check OK. **DB** run 41705021838 / job 126157913475 **success**; **CI** run 41705022138: Go 126157913608,
+  Python M0 126157913991, Frontend 126157913888, ownership 126157913891, all success. (Earlier heads: c851038 green but
+  its recall numbers were invalid, see below; 8c06dcf DB job failed on a test arg bug, fixed in c36a9ee.)
+  - [x] H1: fresh DB (`extension|plpgsql|1.0` only) → migrate ran 000001, 000002 → `chunk_embeddings_hnsw_idx ... USING
+    hnsw (embedding halfvec_cosine_ops) WITH (m='16', ef_construction='64')`, `indisvalid=true`; 2nd migrate OK,
+    snapshot diff empty (`Schema identical after run 2: 67 objects`).
+  - [x] H2: EXPLAIN (ANALYZE, BUFFERS) of the real constants via PREPARE/EXECUTE. Custom plan: HNSW selected
+    (Index Scan using chunk_embeddings_hnsw_idx, model filter applied after the index), except the 2% filter (papers → pkey
+    + sort, correct). Generic plan: HNSW never selected (exact sort over all rows; `($3 IS NULL OR ...)` estimated 15 of
+    1000 papers). pgx statement cache + `plan_cache_mode=auto` → production uses generic after 5 runs per connection
+    (`hybridSearchSQL` x20: generic=15 custom=5 unfiltered; generic=20 filtered). Production is therefore exact after warm-up
+    (19.8 ms vs 1.2 ms vector arm at 10k rows, grows with N). Query plan not changed (per AC4) → follow-up F1.
+  - [x] H3: custom plans, 20 queries, vs exact (`enable_indexscan=off`). Default ef_search=40: 40 rows unfiltered (20/20
+    short), cs.CL 25% filter 9.8 rows (min 0), R@5 0.50. Shipped `SET LOCAL hnsw.ef_search=100; hnsw.iterative_scan=
+    strict_order` (read-only tx in `fetchCandidates`): 50 rows always; R@5 1.00 unfiltered, 0.76 cs.CL, 1.00 cs.DL.
+    ef_search 200 / 400 + strict_order: cs.CL R@5 0.83 / 0.88. Generic/auto: 50 rows, R@5 1.00 (exact). Test asserts query
+    path + auto never returns fewer rows than exact. Lesson: first run (c851038) reused one generic plan built under
+    `enable_indexscan=off` for every config; batches now start with `DISCARD PLANS`.
+  - [ ] H4: not run: blocked on OPS-H1 (#14) `stack.yml`; post-merge evidence owed in `agents/reviews/OPS-H5/`.
+  - [x] H5: `CONTRIBUTING.md` DB-schema bullet: migrate re-applies every `*.up.sql`, so migrations must be idempotent.
+  - Follow-up F1 (needs Mahesh decision, recall vs p95): make HNSW apply after warm-up with `SET LOCAL plan_cache_mode =
+    force_custom_plan` in `hnswSearchSettings` (1 line) and pick ef_search from the H3 table, or split the SQL by
+    category filter. Follow-up F2 (ai-engineer): `scripts/evaluate_retrieval.py` (psycopg client-side binding) always
+    gets custom plans at ef_search=40, so `make eval` measures neither production regime. Apply `hnswSearchSettings`.
+  - Risk: `hnsw.iterative_scan` needs pgvector ≥ 0.8.0; compose image `pgvector/pgvector:pg16` is unpinned.

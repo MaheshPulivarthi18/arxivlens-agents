@@ -192,3 +192,8 @@ Format:
 - OPS-H1 rework r1 (`e410967`): both pinned MinIO refs failed to pull on the runner (quay.io 401; Docker Hub `minio/minio` also gone) → Blocked (needs decision: MinIO image source); Mahesh notified.
 - OPS-H5 → draft PR #16 (`47e8451`, CI green); EVAL-5 → draft PR #17 (`910f2f8`, CI green). QA: OPS-H5 r1 pack committed (`fdca888`); EVAL-5 QA was cut off by the account's 5-hour usage limit before committing anything, and the cycle stalled ~3 h, so its lock went stale and cycle 19:02Z took over (handling Mahesh's #16/#17 reviews). Board/metrics/Jira for this cycle left to that cycle to avoid conflicting writes; Jira story for EVAL-5 still needs creating if it doesn't exist.
 - Mahesh merged #15 (OPS-H6, `e9be32e`) and #13 (AI-3, `8b0a2d2`) ~18:00.
+
+## 2026-11-03 (cycle 19:02Z) — backend-engineer — OPS-H5 rework r1 (Mahesh review H1–H5)
+- PR #16 head `cff6fa1` (draft). New DB workflow (real pgvector 0.8.7) green: run 41705021838 / job 126157913475; CI run 41705022138 green.
+- H1 ✔ (index created on fresh DB, 2nd migrate identical schema), H2 ✔ (custom plan uses HNSW; generic plan, which production gets after 5 runs per connection, does not), H3 ✔ (default ef_search=40 short: 40 rows, 9.8 with a 25% filter; shipped ef_search=100 + strict_order: always 50, R@5 1.00 / 0.76 filtered), H4 blocked on OPS-H1, H5 ✔ (CONTRIBUTING).
+- Follow-ups in ticket Notes: F1 force_custom_plan vs split SQL (Mahesh decision), F2 eval script ef_search/plan regime (ai-engineer).

@@ -39,6 +39,8 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-03][OPS-H6] Extracting a loop body into a function re-indents every line, so the diff doubled (~570 vs 392). To stay under 400, keep changed code at its original indentation (for example a labelled `break`) and record the shape change in the design. (seen 1×)
 - [2026-11-03][OPS-H1] When a registry pull fails in CI, read the status code before picking the next reference. quay.io answers anonymous requests with `401 UNAUTHORIZED` for a missing or private *repo* (a missing tag is 404), and Docker Hub's "repository does not exist" covers the whole repo. A different tag in the same repo won't help, so spend the limited attempts on a different repo or registry. (seen 1×)
 
+- [2026-11-03][OPS-H5] When measuring a pgx query under different `SET LOCAL` settings on one connection, PostgreSQL reused the generic plan cached after 5 runs (built under `enable_indexscan=off`), so every config looked exact (recall 1.0) → `DISCARD PLANS` before each batch, measure `force_custom_plan`/`force_generic_plan`/auto separately, and read `pg_prepared_statements.generic_plans`. The same mechanism means production pgx queries can silently bypass an index after warm-up. (seen 1×)
+
 ## frontend-engineer
 
 ## qa-reviewer
