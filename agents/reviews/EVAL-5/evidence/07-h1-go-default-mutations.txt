@@ -1,0 +1,22 @@
+$ bash -c grep -n '"model"' cmd/arxivlens/main.go; grep -n EMBEDDING_MODEL services/common/config.py; echo -n 'GO_DEFAULT_MODEL occurrences in evaluate_retrieval.py: '; grep -c GO_DEFAULT_MODEL scripts/evaluate_retrieval.py; echo; python3 /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/mutate.py /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/mutants.json h1
+246:	cmd.Flags().StringVar(&modelName, "model", "BAAI/bge-base-en-v1.5", "Embedding model name")
+13:    embedding_model: str = os.getenv("EMBEDDING_MODEL", "BAAI/bge-base-en-v1.5")
+GO_DEFAULT_MODEL occurrences in evaluate_retrieval.py: 0
+
+[H1 Go --model default changed in main.go] cmd/arxivlens/main.go: '"model", "BAAI/bge-base-en-v1.5"' -> '"model", "BAAI/bge-large-en-v1.5"'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_go_model_default_parsed_from_main_go_matches_python_default
+[H1 Python EMBEDDING_MODEL default changed] services/common/config.py: '"EMBEDDING_MODEL", "BAAI/bge-base-en-v1.5"' -> '"EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5"'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.19s
+    FAILED tests/test_evals_data.py::test_go_model_default_parsed_from_main_go_matches_python_default
+[H1 --model flag removed from main.go] cmd/arxivlens/main.go: 'cmd.Flags().StringVar(&modelName, "model", "BAAI/bge-base-en-v1.5", "Embedding model name")' -> '// removed'
+    exit=1  8 failed, 50 passed, 1 skipped in 0.36s
+    FAILED tests/test_evals_data.py::test_run_checks_healthz_before_any_rerank_and_reports_metrics
+    FAILED tests/test_evals_data.py::test_run_with_failed_healthz_yields_no_summary[health0]
+    FAILED tests/test_evals_data.py::test_run_with_failed_healthz_yields_no_summary[health1]
+    FAILED tests/test_evals_data.py::test_rerank_failure_stops_run_with_no_summary[_bad_rerank_raises]
+    FAILED tests/test_evals_data.py::test_rerank_failure_stops_run_with_no_summary[_bad_rerank_short]
+    FAILED tests/test_evals_data.py::test_partial_embedding_recorded_and_warned_without_failing
+worktree clean after restore: True
+
+[exit code 0]

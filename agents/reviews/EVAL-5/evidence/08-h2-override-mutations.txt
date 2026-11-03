@@ -1,0 +1,17 @@
+$ python3 /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/mutate.py /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/mutants.json h2
+[H2 explicit override ignored (always Go default)] scripts/evaluate_retrieval.py: '    return query_model or os.getenv(QUERY_MODEL_ENV) or go_default_model()' -> '    return go_default_model()'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_model_mismatch_uses_explicit_query_model_override
+[H2 env override ignored] scripts/evaluate_retrieval.py: '    return query_model or os.getenv(QUERY_MODEL_ENV) or go_default_model()' -> '    return query_model or go_default_model()'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.18s
+    FAILED tests/test_evals_data.py::test_model_mismatch_uses_explicit_query_model_override
+[H2 --query-model not passed from main()] scripts/evaluate_retrieval.py: 'args.timeout, query_model=args.query_model)' -> 'args.timeout)'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_model_mismatch_uses_explicit_query_model_override
+[H2 query_model not recorded in summary] scripts/evaluate_retrieval.py: '"query_model": query_model, ' -> ''
+    exit=1  2 failed, 56 passed, 1 skipped in 0.20s
+    FAILED tests/test_evals_data.py::test_model_mismatch_warning - KeyError: 'que...
+    FAILED tests/test_evals_data.py::test_model_mismatch_uses_explicit_query_model_override
+worktree clean after restore: True
+
+[exit code 0]

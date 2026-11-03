@@ -1,0 +1,16 @@
+$ bash -c git diff --name-only origin/main...HEAD; echo; git log --oneline -1 origin/main; git merge-tree --write-tree HEAD origin/main >/dev/null && echo 'merge with origin/main: clean'; git diff --name-only HEAD...origin/main -- scripts tests evals internal/query/search.go cmd/arxivlens/main.go services/common/config.py | sed 's/^/main touched: /'; echo '(no overlap if nothing above)'; .github/scripts/ownership-check.sh origin/main HEAD 2>&1 | tail -2; echo; python3 scripts/evaluate_retrieval.py --help | tail -4
+evals/README.md
+scripts/evaluate_retrieval.py
+tests/test_evals_data.py
+
+8b0a2d2 AI-3: batch EmbedTexts calls in RAG citation validation (#13)
+merge with origin/main: clean
+(no overlap if nothing above)
+Unknown role 'HEAD' in branch 'HEAD' (expected agent/<ai|backend|frontend>/<TASK-ID>)
+
+  --query-model QUERY_MODEL
+                        Model the query service runs with, if started with
+                        --model (env ARXIVLENS_QUERY_MODEL; default: the
+                        --model default in cmd/arxivlens/main.go)
+
+[exit code 0]

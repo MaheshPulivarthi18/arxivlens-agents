@@ -1,19 +1,19 @@
-$ python3 /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/qa-r1/mutate_qa.py AC2
-mutation run on 910f2f8: pytest -q tests/test_evals_data.py per mutant (scratch export, nothing committed)
-
-[AC2] AC2a never print partial-embedding warnings
-    -> KILLED: 1 failed, 54 passed in 0.24s
-       FAILED test_partial_embedding_recorded_and_warned_without_failing
-[AC2] AC2b drop chunk_coverage from summary
-    -> KILLED: 1 failed, 54 passed in 0.31s
-       FAILED test_partial_embedding_recorded_and_warned_without_failing
-[AC2] AC2c INNER JOIN embeddings (embedded == total)
-    -> KILLED: 1 failed, 54 passed in 0.30s
-       FAILED test_chunk_counts_fully_embedded_and_unknown_papers
-[AC2] AC2d partly embedded paper makes the case skipped (gate change)
-    -> KILLED: 1 failed, 54 passed in 0.24s
-       FAILED test_partial_embedding_recorded_and_warned_without_failing
-
-4/4 mutants killed
+$ python3 /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/mutate.py /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/mutants.json ac2
+[no partial-embedding warning printed] scripts/evaluate_retrieval.py: '    for w in partial_embedding_warnings(chunk_coverage, model):\n        print(w)\n' -> ''
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_partial_embedding_recorded_and_warned_without_failing
+[chunk_coverage not recorded per case] scripts/evaluate_retrieval.py: '            chunk_coverage.update(chunk_counts_for_case(cur, relevant_arxiv_ids, model))\n' -> ''
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_partial_embedding_recorded_and_warned_without_failing
+[warning uses <= (warns on fully embedded)] scripts/evaluate_retrieval.py: 'c["embedded_chunks"] < c["total_chunks"]]' -> 'c["embedded_chunks"] <= c["total_chunks"]]'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_chunk_counts_fully_embedded_and_unknown_papers
+[model filter moved out of LEFT JOIN (COUNT(*) semantics)] scripts/evaluate_retrieval.py: 'COUNT(ce.chunk_id) AS embedded_chunks' -> 'COUNT(*) AS embedded_chunks'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.17s
+    FAILED tests/test_evals_data.py::test_chunk_counts_fully_embedded_and_unknown_papers
+[gate fails on partial (skip partly embedded case)] scripts/evaluate_retrieval.py: '            missing = missing_for_case(cur, relevant_arxiv_ids, model)\n' -> "            missing = missing_for_case(cur, relevant_arxiv_ids, model) + [a for a, c in chunk_counts_for_case(cur, relevant_arxiv_ids, model).items() if c['embedded_chunks'] < c['total_chunks']]\n"
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_partial_embedding_recorded_and_warned_without_failing
+worktree clean after restore: True
 
 [exit code 0]

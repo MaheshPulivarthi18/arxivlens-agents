@@ -1,15 +1,16 @@
-$ python3 /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/qa-r1/mutate_qa.py AC1
-mutation run on 910f2f8: pytest -q tests/test_evals_data.py per mutant (scratch export, nothing committed)
-
-[AC1] M13 catch RerankError in rerank_pool, fall back to RRF order
-    -> KILLED: 5 failed, 50 passed in 0.36s
-       FAILED test_rerank_failure_in_run_modes_for_case_raises
-       FAILED test_rerank_failure_stops_run_with_no_summary
-[AC1] M13b drop the score-count check in rerank_pool
-    -> KILLED: 3 failed, 52 passed in 0.31s
-       FAILED test_rerank_failure_in_run_modes_for_case_raises
-       FAILED test_rerank_failure_stops_run_with_no_summary
-
-2/2 mutants killed
+$ python3 /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/mutate.py /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/mutants.json ac1
+[M13 catch RerankError in rerank_pool, fall back to RRF order] scripts/evaluate_retrieval.py: '    scores = rerank(query, [c[2] for c in pool])\n    if len(scores) != len(pool):\n        raise RerankError(f"rerank returned {len(scores)} scores for {len(pool)} passages")\n' -> "    try:\n        scores = rerank(query, [c[2] for c in pool])\n        if len(scores) != len(pool):\n            raise RerankError('x')\n    except RerankError:\n        return [(c[0], c[1]) for c in pool[:limit]]\n"
+    exit=1  5 failed, 53 passed, 1 skipped in 0.24s
+    FAILED tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_raises]
+    FAILED tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_short]
+    FAILED tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_long]
+    FAILED tests/test_evals_data.py::test_rerank_failure_stops_run_with_no_summary[_bad_rerank_raises]
+    FAILED tests/test_evals_data.py::test_rerank_failure_stops_run_with_no_summary[_bad_rerank_short]
+[drop the score-count check] scripts/evaluate_retrieval.py: '    if len(scores) != len(pool):\n        raise RerankError(f"rerank returned {len(scores)} scores for {len(pool)} passages")\n' -> ''
+    exit=1  3 failed, 55 passed, 1 skipped in 0.23s
+    FAILED tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_short]
+    FAILED tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_long]
+    FAILED tests/test_evals_data.py::test_rerank_failure_stops_run_with_no_summary[_bad_rerank_short]
+worktree clean after restore: True
 
 [exit code 0]

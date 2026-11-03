@@ -1,10 +1,30 @@
-$ bash -c grep -hE 'Run make|pytest -q|passed|failed|go vet|^.{29}ok |FAIL|Ownership' /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/py.log /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/go.log /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/own.log | grep -v '##\[group\]' | cut -c1-140
-2026-11-03T16:13:31.9102686Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py
-2026-11-03T16:13:38.7125223Z 58 passed in 5.91s
-2026-11-03T16:12:44.2447807Z go vet ./...
-2026-11-03T16:12:46.7011304Z ok  	arxivlens/internal/crawler	0.004s
-2026-11-03T16:12:47.0485224Z ok  	arxivlens/internal/kafka	0.004s
-2026-11-03T16:12:47.3183875Z ok  	arxivlens/internal/query	0.007s
-2026-11-03T16:12:34.4581365Z Ownership OK for role=ai (204 changed lines)
+$ bash -c echo '## Python M0 unit tests (job 126147657540)'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/126147657540/logs | grep -E 'Run make test-py|pytest -q|passed|failed' | cut -c30-; echo '## Go (job 126147657013)'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/126147657013/logs | grep -E 'Run make|go vet|gofmt needed|^.{29}(ok|FAIL|---)|go build' | cut -c30- | head -20; echo '## Agent ownership check (job 126147657276)'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/126147657276/logs | grep -E 'Ownership' | cut -c30-
+## Python M0 unit tests (job 126147657540)
+##[group]Run make test-py
+python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py
+61 passed, 1 skipped in 5.43s
+## Go (job 126147657013)
+##[group]Run make lint-go
+go vet ./...
+##[group]Run make test-go
+ok  	arxivlens/internal/crawler	0.004s
+ok  	arxivlens/internal/kafka	0.031s
+ok  	arxivlens/internal/query	0.006s
+--- PASS: TestRetryBackoff (0.00s)
+--- PASS: TestDLQRetryBackoff (0.00s)
+--- PASS: TestCtxWait (0.01s)
+--- PASS: TestRetrySleepSchedule (0.00s)
+--- PASS: TestConsumerSuccessPath (0.00s)
+--- PASS: TestConsumerDLQThenCommit (0.00s)
+--- PASS: TestConsumerDLQFailureBlocksPartition (0.00s)
+--- PASS: TestConsumerDLQRecovers (0.00s)
+--- PASS: TestNewConsumerRejectsNilProducer (0.00s)
+--- PASS: TestConsumerNilDLQIsFailedPublish (0.00s)
+--- PASS: TestConsumerCancelDuringBackoffReturnsPromptly (0.02s)
+--- PASS: TestConsumerCancelInsideHandlerNoDLQ (0.00s)
+--- PASS: TestConsumerAllowRebalanceAfterEachPoll (0.00s)
+--- PASS: TestConsumerDLQFailureLogNoValue (0.00s)
+## Agent ownership check (job 126147657276)
+Ownership OK for role=ai (319 changed lines)
 
 [exit code 0]

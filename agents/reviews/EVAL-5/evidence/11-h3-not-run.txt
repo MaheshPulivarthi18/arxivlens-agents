@@ -1,0 +1,9 @@
+$ bash -c psql -X -h /var/lib/postgresql/qa-eval5 -p 55432 -U postgres -tAc "select 'server: '||version()"; psql -X -h /var/lib/postgresql/qa-eval5 -p 55432 -U postgres -tAc "select 'pgvector available: '||count(*) from pg_available_extensions where name='vector'"; python3 -c 'import psycopg' 2>&1 | tail -1; python3 -m pytest -q -p no:cacheprovider -rs tests/test_evals_data.py -k real_postgres 2>&1 | tail -3
+server: PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+pgvector available: 0
+ModuleNotFoundError: No module named 'psycopg'
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_evals_data.py:658: opt-in: needs DATABASE_URL with migrations/ applied
+1 skipped, 58 deselected in 0.03s
+
+[exit code 0]

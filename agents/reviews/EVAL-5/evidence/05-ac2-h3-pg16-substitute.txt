@@ -1,0 +1,25 @@
+$ /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/h3_pg16_substitute.sh
+== schema substitutions applied to migrations/000001_init_schema.up.sql:
+2d1
+< CREATE EXTENSION IF NOT EXISTS vector;
+59c58
+<   embedding  halfvec(768) NOT NULL,
+---
+>   embedding  text NOT NULL,
+== CHUNK_COUNTS_SQL (model='M', ids incl. unknown eval5.none):
+
+    SELECT p.arxiv_id, COUNT(ce.chunk_id) AS embedded_chunks, COUNT(pc.id) AS total_chunks
+    FROM papers p
+    JOIN paper_chunks pc ON pc.paper_id = p.id
+    LEFT JOIN chunk_embeddings ce ON ce.chunk_id = pc.id AND ce.model = 'M'
+    WHERE p.arxiv_id = ANY(ARRAY['eval5.zero','eval5.part','eval5.full','eval5.none'])
+    GROUP BY p.arxiv_id;
+  arxiv_id  | embedded_chunks | total_chunks 
+------------+-----------------+--------------
+ eval5.full |               2 |            2
+ eval5.part |               1 |            2
+ eval5.zero |               0 |            2
+(3 rows)
+
+
+[exit code 0]

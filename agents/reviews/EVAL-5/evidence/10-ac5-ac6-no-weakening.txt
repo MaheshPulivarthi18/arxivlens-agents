@@ -1,0 +1,27 @@
+$ bash -c git diff --numstat origin/main...HEAD; git diff --shortstat origin/main...HEAD; echo '## removed lines in tests/test_evals_data.py:'; git diff -U0 origin/main...HEAD -- tests/test_evals_data.py | grep -E '^-[^-]'; echo '## test functions on main missing at head:'; comm -23 <(git show origin/main:tests/test_evals_data.py | grep -oE '^def test_\w+' | sort) <(grep -oE '^def test_\w+' tests/test_evals_data.py | sort); echo '(end)'; echo '## new test functions:'; comm -13 <(git show origin/main:tests/test_evals_data.py | grep -oE '^def test_\w+' | sort) <(grep -oE '^def test_\w+' tests/test_evals_data.py | sort)
+15	0	evals/README.md
+76	4	scripts/evaluate_retrieval.py
+217	7	tests/test_evals_data.py
+ 3 files changed, 308 insertions(+), 11 deletions(-)
+## removed lines in tests/test_evals_data.py:
+-    def __init__(self, pool, embedded=("1706.03762", "1810.04805")):
+-    if os.path.exists(go):  # drift guard: production still uses the values mirrored above
+-        with open(go, encoding="utf-8") as f:
+-            src = f.read()
+-        assert src.count("LIMIT 50") == 2
+-        assert "WHERE ce.model = $2" in src
+-        assert "1.0/(60 + v.rank)" in src and "1.0/(60 + k.rank)" in src
+## test functions on main missing at head:
+(end)
+## new test functions:
+def test_chunk_counts_fully_embedded_and_unknown_papers
+def test_chunk_counts_sql_against_real_postgres
+def test_go_model_default_parsed_from_main_go_matches_python_default
+def test_go_model_default_parser
+def test_model_mismatch_uses_explicit_query_model_override
+def test_model_mismatch_warning
+def test_partial_embedding_recorded_and_warned_without_failing
+def test_rerank_failure_in_run_modes_for_case_raises
+def test_rerank_failure_stops_run_with_no_summary
+
+[exit code 0]

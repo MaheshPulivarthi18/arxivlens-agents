@@ -1,6 +1,7 @@
-$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/910f2f8f498b2bb0682ce57c4d07f6c066f7c2fa/check-runs --jq '.check_runs[] | "\(.name) \(.status) \(.conclusion) job=\(.id)"'
-Frontend (lint, test, build) completed success job=126041767315
-Go (vet, gofmt, test, build) completed success job=126041767214
-Agent ownership check completed success job=126041767031
-Python M0 unit tests completed success job=126041766536
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/557f4e12bbbb02b2dd3d6e28a7122af9ac460dbd/check-runs --jq '.check_runs[] | "\(.name)  \(.status)/\(.conclusion)  job=\(.id)"'
+Python M0 unit tests  completed/success  job=126147657540
+Frontend (lint, test, build)  completed/success  job=126147657411
+Agent ownership check  completed/success  job=126147657276
+Go (vet, gofmt, test, build)  completed/success  job=126147657013
 
+[exit code 0]

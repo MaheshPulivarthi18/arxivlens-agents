@@ -1,0 +1,51 @@
+$ python3 /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/mutate.py /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/mutants.json ac4
+[(a) search.go renamed] internal/query/search.go: 'rename -> .qa' -> ''
+    exit=1  1 failed, 57 passed, 1 skipped in 0.15s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+[(b) RerankPool 20 -> 25 in search.go] internal/query/search.go: 'const RerankPool = 20' -> 'const RerankPool = 25'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+[(b) RRF_POOL_SIZE 20 -> 25 in eval] scripts/evaluate_retrieval.py: 'RRF_POOL_SIZE = 20' -> 'RRF_POOL_SIZE = 25'
+    exit=1  3 failed, 55 passed, 1 skipped in 0.23s
+    FAILED tests/test_evals_data.py::test_adr0010_parity_pool_one_call_stable_ties_top5
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+    FAILED tests/test_evals_data.py::test_run_checks_healthz_before_any_rerank_and_reports_metrics
+[(c) eval vector arm ORDER BY+LIMIT dropped] scripts/evaluate_retrieval.py: '        ORDER BY ce.embedding <=> %(vec)s::halfvec\n        LIMIT {RRF_ARM_LIMIT}\n' -> ''
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+[(c) Go vector arm ORDER BY+LIMIT dropped] internal/query/search.go: '\t\t\tORDER BY ce.embedding <=> $1::halfvec\n\t\t\tLIMIT 50\n' -> ''
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - assert...
+[(c) eval vector arm ORDER BY only dropped (M16 shape, LIMIT count stays 2)] scripts/evaluate_retrieval.py: '        ORDER BY ce.embedding <=> %(vec)s::halfvec\n' -> ''
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+[(c) Go keyword arm ORDER BY only dropped] internal/query/search.go: '\t\t\tORDER BY ts_rank_cd(pc.content_tsv, q) DESC\n\t\t\tLIMIT 50' -> '\t\t\tLIMIT 50'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.16s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+[(c) eval ORDER BY rrf_score ASC] scripts/evaluate_retrieval.py: 'ORDER BY rrf_score DESC, c.id' -> 'ORDER BY rrf_score ASC, c.id'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.22s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+[(c) Go ORDER BY rrf_score ASC] internal/query/search.go: 'ORDER BY rrf_score DESC' -> 'ORDER BY rrf_score ASC'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.17s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+[(c) eval one arm LIMIT 50 -> 40] scripts/evaluate_retrieval.py: '        ORDER BY ts_rank_cd(pc.content_tsv, q) DESC\n        LIMIT {RRF_ARM_LIMIT}' -> '        ORDER BY ts_rank_cd(pc.content_tsv, q) DESC\n        LIMIT 40'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.15s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+[(c) Go one arm LIMIT 50 -> 40] internal/query/search.go: '\t\t\tORDER BY ts_rank_cd(pc.content_tsv, q) DESC\n\t\t\tLIMIT 50' -> '\t\t\tORDER BY ts_rank_cd(pc.content_tsv, q) DESC\n\t\t\tLIMIT 40'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.19s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - assert...
+[(c) Go RRF k 60 -> 61 in vector term] internal/query/search.go: 'COALESCE(1.0/(60 + v.rank), 0)' -> 'COALESCE(1.0/(61 + v.rank), 0)'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.18s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - assert...
+[(c) Go WHERE ... OR -> AND (intersection only)] internal/query/search.go: 'WHERE v.chunk_id IS NOT NULL OR k.chunk_id IS NOT NULL' -> 'WHERE v.chunk_id IS NOT NULL AND k.chunk_id IS NOT NULL'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.19s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+[(c) eval RRF keyword arm tokenizer english -> simple] scripts/evaluate_retrieval.py: "FROM paper_chunks pc, websearch_to_tsquery('english', %(query)s) q" -> "FROM paper_chunks pc, websearch_to_tsquery('simple', %(query)s) q"
+    exit=1  1 failed, 57 passed, 1 skipped in 0.18s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+[(c) Go vector arm cosine <=> -> L2 <->] internal/query/search.go: '\t\t\tORDER BY ce.embedding <=> $1::halfvec\n' -> '\t\t\tORDER BY ce.embedding <-> $1::halfvec\n'
+    exit=1  1 failed, 57 passed, 1 skipped in 0.24s
+    FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+worktree clean after restore: True
+
+[exit code 0]

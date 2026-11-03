@@ -1,19 +1,23 @@
-$ bash -c python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py 2>&1 | grep -E 'rerank_failure|partial_embedding|chunk_counts|model_mismatch|mirrors_search_go|passed|failed' | sed 's/ *\[ *[0-9]*%\]//'; python3 scripts/evaluate_retrieval.py --help | head -3
-tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go PASSED
-tests/test_evals_data.py::test_failed_requests_count_in_latency_and_not_as_refusals PASSED
-tests/test_evals_data.py::test_run_with_failed_healthz_yields_no_summary[health0] PASSED
-tests/test_evals_data.py::test_run_with_failed_healthz_yields_no_summary[health1] PASSED
-tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_raises] PASSED
-tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_short] PASSED
-tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_long] PASSED
-tests/test_evals_data.py::test_rerank_failure_stops_run_with_no_summary[_bad_rerank_raises] PASSED
-tests/test_evals_data.py::test_rerank_failure_stops_run_with_no_summary[_bad_rerank_short] PASSED
-tests/test_evals_data.py::test_partial_embedding_recorded_and_warned_without_failing PASSED
-tests/test_evals_data.py::test_chunk_counts_fully_embedded_and_unknown_papers PASSED
-tests/test_evals_data.py::test_model_mismatch_warning PASSED
-============================== 55 passed in 0.18s ==============================
-usage: evaluate_retrieval.py [-h] [--dataset DATASET] [--json-out JSON_OUT]
-                             [--embedder-url EMBEDDER_URL] [--timeout TIMEOUT]
+$ bash -c python3 -m pytest -q -p no:cacheprovider -rs tests/test_evals_data.py 2>&1 | tail -4; echo; python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k 'rerank_failure or partial_embedding or chunk_counts or model or rrf_pool_sql' 2>&1 | grep -E 'PASSED|FAILED|SKIPPED|passed'
+......................................................s....              [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_evals_data.py:658: opt-in: needs DATABASE_URL with migrations/ applied
+58 passed, 1 skipped in 0.13s
 
+tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go PASSED     [  7%]
+tests/test_evals_data.py::test_coverage_requires_embeddings_for_current_model PASSED [ 14%]
+tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_raises] PASSED [ 21%]
+tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_short] PASSED [ 28%]
+tests/test_evals_data.py::test_rerank_failure_in_run_modes_for_case_raises[_bad_rerank_long] PASSED [ 35%]
+tests/test_evals_data.py::test_rerank_failure_stops_run_with_no_summary[_bad_rerank_raises] PASSED [ 42%]
+tests/test_evals_data.py::test_rerank_failure_stops_run_with_no_summary[_bad_rerank_short] PASSED [ 50%]
+tests/test_evals_data.py::test_partial_embedding_recorded_and_warned_without_failing PASSED [ 57%]
+tests/test_evals_data.py::test_chunk_counts_fully_embedded_and_unknown_papers PASSED [ 64%]
+tests/test_evals_data.py::test_chunk_counts_sql_against_real_postgres SKIPPED [ 71%]
+tests/test_evals_data.py::test_go_model_default_parsed_from_main_go_matches_python_default PASSED [ 78%]
+tests/test_evals_data.py::test_go_model_default_parser PASSED            [ 85%]
+tests/test_evals_data.py::test_model_mismatch_warning PASSED             [ 92%]
+tests/test_evals_data.py::test_model_mismatch_uses_explicit_query_model_override PASSED [100%]
+================= 13 passed, 1 skipped, 45 deselected in 0.13s =================
 
 [exit code 0]

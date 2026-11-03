@@ -1,0 +1,15 @@
+$ python3 /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/qa-r1/mutate_qa.py AC1
+mutation run on 910f2f8: pytest -q tests/test_evals_data.py per mutant (scratch export, nothing committed)
+
+[AC1] M13 catch RerankError in rerank_pool, fall back to RRF order
+    -> KILLED: 5 failed, 50 passed in 0.36s
+       FAILED test_rerank_failure_in_run_modes_for_case_raises
+       FAILED test_rerank_failure_stops_run_with_no_summary
+[AC1] M13b drop the score-count check in rerank_pool
+    -> KILLED: 3 failed, 52 passed in 0.31s
+       FAILED test_rerank_failure_in_run_modes_for_case_raises
+       FAILED test_rerank_failure_stops_run_with_no_summary
+
+2/2 mutants killed
+
+[exit code 0]
