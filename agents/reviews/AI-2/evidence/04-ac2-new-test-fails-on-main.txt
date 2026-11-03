@@ -1,0 +1,35 @@
+$ bash /home/claude/arxivlens-agents/agents/reviews/AI-2/scripts/old_vs_new.sh /tmp/claude-0/-home-claude/57ae174f-3ecc-5bd2-9b84-56e261eab750/scratchpad/sc
+rag.go under test = origin/main bb9ee90; rag_test.go = PR head c9ae07c
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:299: want exactly one unverified log line with counts, got ""
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:299: want exactly one unverified log line with counts, got ""
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:299: want exactly one unverified log line with counts, got ""
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:299: want exactly one unverified log line with counts, got ""
+    rag_test.go:299: want exactly one unverified log line with counts, got ""
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:299: want exactly one unverified log line with counts, got ""
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:293: marker 1 score=0.75 supported=true, want 0 false
+    rag_test.go:299: want exactly one unverified log line with counts, got ""
+--- FAIL: TestValidateCitationsFailClosedWhenUnverifiable (0.00s)
+    --- FAIL: TestValidateCitationsFailClosedWhenUnverifiable/embedder_down_for_every_call (0.00s)
+    --- FAIL: TestValidateCitationsFailClosedWhenUnverifiable/sentence_embed_error (0.00s)
+    --- FAIL: TestValidateCitationsFailClosedWhenUnverifiable/chunk_embed_error (0.00s)
+    --- FAIL: TestValidateCitationsFailClosedWhenUnverifiable/sentence_returns_no_vector (0.00s)
+    --- FAIL: TestValidateCitationsFailClosedWhenUnverifiable/sentence_returns_empty_vector (0.00s)
+    --- FAIL: TestValidateCitationsFailClosedWhenUnverifiable/chunk_returns_no_vector (0.00s)
+    --- FAIL: TestValidateCitationsFailClosedWhenUnverifiable/chunk_returns_empty_vector (0.00s)
+FAIL
+FAIL	arxivlens/internal/query	0.004s
+FAIL
+go test exit: 1
+
+[exit code 0]

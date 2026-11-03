@@ -1,0 +1,29 @@
+$ bash /home/claude/arxivlens-agents/agents/reviews/AI-2/scripts/eval_env.sh
+== Makefile eval target ==
+67:eval: ## Retrieval/answer eval; uses the gate from EVAL-1 when present
+68-	@if [ -f scripts/eval_gate.py ]; then $(PY) scripts/eval_gate.py; else $(PY) scripts/evaluate_retrieval.py; fi
+== eval_gate / evaluate_answers: what supported_citation_rate counts ==
+scripts/eval_gate.py:28:# (embedder API /internal/rerank, the endpoint /v1/ask calls via EmbedClient.Rerank), stable-sorted by score,
+scripts/eval_gate.py:29:# top 5. Production /v1/ask orders this way only after RET-1 merges; until then this gates the target behaviour.
+scripts/eval_gate.py:78:    checks.append(_check("supported_citation_rate", a.get("supported_citation_rate"),
+scripts/eval_gate.py:79:                         ">=", thresholds["supported_citation_rate_min"]))
+scripts/eval_gate.py:111:    parser.add_argument("--api-url", default=os.getenv("ARXIVLENS_API_URL", "http://localhost:8080"))
+scripts/eval_gate.py:118:                        help="Per request timeout for /v1/ask and the embedder API (s)")
+scripts/eval_gate.py:137:                raise ConnectionError(f"every /v1/ask request to {args.api_url} failed")
+scripts/evaluate_answers.py:3:ArxivLens — Answer & refusal evaluation against POST /v1/ask (EVAL-1).
+scripts/evaluate_answers.py:7:  - supported_citation_rate  : supported citations / all citations across answer-set responses
+scripts/evaluate_answers.py:11:  - ask_p50_ms / ask_p95_ms  : latency over every /v1/ask call, failed ones included at their elapsed
+scripts/evaluate_answers.py:35:DEFAULT_API = os.getenv("ARXIVLENS_API_URL", "http://localhost:8080")
+scripts/evaluate_answers.py:66:    url = api_url.rstrip("/") + "/v1/ask"
+== infra in this sandbox ==
+docker daemon: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory
+curl http://localhost:8080/health exit 7 (7 = connection refused)
+== actual attempt: timeout 90 make eval ==
+eval could not run: ModuleNotFoundError: No module named 'psycopg'
+make: *** [Makefile:68: eval] Error 2
+make eval exit 2
+== PR #11 body, AC4 line ==
+13:- [ ] AC4 — `make eval`: not run: infra unavailable (no Docker daemon in agent sandbox). Command: `make eval`
+20:| `make eval` | not run: infra unavailable |
+
+[exit code 0]

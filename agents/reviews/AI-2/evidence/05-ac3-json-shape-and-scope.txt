@@ -1,0 +1,53 @@
+$ bash /home/claude/arxivlens-agents/agents/reviews/AI-2/scripts/api_shape.sh /tmp/claude-0/-home-claude/57ae174f-3ecc-5bd2-9b84-56e261eab750/scratchpad/sc
+== git diff --stat origin/main...HEAD ==
+ internal/query/rag.go      | 24 ++++++++++---
+ internal/query/rag_test.go | 90 +++++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 94 insertions(+), 20 deletions(-)
+== changed files vs ai-engineer owned paths ==
+owned: internal/query/rag.go
+owned: internal/query/rag_test.go
+== untouched contracts ==
+internal/query/server.go: unchanged
+internal/query/search.go: unchanged
+internal/query/client.go: unchanged
+evals/thresholds.json: unchanged
+shared/events/events.go: unchanged
+README.md: unchanged
+frontend: unchanged
+== exported decls, struct fields with JSON tags+types, constants: origin/main vs HEAD (empty diff = identical) ==
+(identical)
+== HEAD Citation / AskResponse structs ==
+type Citation struct {
+	Marker    int     `json:"marker"`
+	ArxivID   string  `json:"arxiv_id"`
+	Title     string  `json:"title"`
+	ChunkID   int64   `json:"chunk_id"`
+	Section   string  `json:"section"`
+	Content   string  `json:"content"`
+	PDFURL    string  `json:"pdf_url"`
+	Score     float64 `json:"score"`
+	Supported bool    `json:"supported"`
+}
+type AskResponse struct {
+	Answer    string     `json:"answer"`
+	Citations []Citation `json:"citations"`
+	TraceID   string     `json:"trace_id"`
+}
+== /v1/ask body for an unverified citation (marshalled AskResponse) + JSON types ==
+2026/11/03 09:16:14 [Query Service] citation support unverified trace_id=11dd4d6fb87496442c9aefaf0526f634 trace_id_source=generated unverified=1 citations=1 chunks_without_vector=1/1 sentence_embed_errors=1
+{"answer":"a","citations":[{"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"A","content":"chunk A","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":0,"supported":false}],"trace_id":"t"}
+citation.arxiv_id: string
+citation.chunk_id: float64
+citation.content: string
+citation.marker: float64
+citation.pdf_url: string
+citation.score: float64
+citation.section: string
+citation.supported: bool
+citation.title: string
+--- PASS: TestQAUnverifiedCitationJSON (0.00s)
+--- PASS: TestAskResponseShapeAndConstructor (0.00s)
+PASS
+ok  	arxivlens/internal/query	0.004s
+
+[exit code 0]

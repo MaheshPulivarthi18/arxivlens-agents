@@ -1,0 +1,24 @@
+$ bash /home/claude/arxivlens-agents/agents/reviews/AI-2/scripts/ac1_grep.sh
+== ticket command: grep -n "supported = true" internal/query/rag.go (PR head) ==
+grep exit 1 (1 = no match)
+== all assignments to supported / Supported / score in rag.go, PR head ==
+182:			supported := false
+183:			score := 0.0
+188:				score = math.Round(float64(sim)*10000) / 10000
+189:				supported = score >= SupportThreshold
+207:				Supported: supported,
+== same, origin/main (before) ==
+174:			supported := false
+175:			score := 0.0
+180:				score = math.Round(float64(sim)*10000) / 10000
+181:				supported = score >= SupportThreshold
+183:				score = 0.75 // Fallback if embedding service unavailable
+184:				supported = true
+197:				Supported: supported,
+== literal 0.75 in rag.go code at PR head (comments stripped) ==
+grep exit 1 (1 = no match)
+== SupportThreshold definition: main vs head ==
+15:	SupportThreshold      = 0.50  // Minimum cosine similarity to mark citation supported (§9)
+16:	SupportThreshold      = 0.50  // Minimum cosine similarity to mark citation supported (§9)
+
+[exit code 0]

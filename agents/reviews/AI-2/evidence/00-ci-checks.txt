@@ -1,0 +1,8 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/c9ae07c3894749fcd7bb6ead5b83efd70ce791a6/check-runs --jq '.check_runs[] | "\(.name) | \(.status) | \(.conclusion) | job \(.id) | \(.head_sha)"'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/11 --jq '"PR #11 draft=\(.draft) state=\(.state) head=\(.head.sha) base=\(.base.sha)"'
+Python M0 unit tests | completed | success | job 125824913181 | c9ae07c3894749fcd7bb6ead5b83efd70ce791a6
+Agent ownership check | completed | success | job 125824913127 | c9ae07c3894749fcd7bb6ead5b83efd70ce791a6
+Go (vet, gofmt, test, build) | completed | success | job 125824913066 | c9ae07c3894749fcd7bb6ead5b83efd70ce791a6
+Frontend (lint, test, build) | completed | success | job 125824912745 | c9ae07c3894749fcd7bb6ead5b83efd70ce791a6
+PR #11 draft=true state=open head=c9ae07c3894749fcd7bb6ead5b83efd70ce791a6 base=bb9ee9014dffefd897b84ae1feb92587722a1d8d
+
+[exit code 0]

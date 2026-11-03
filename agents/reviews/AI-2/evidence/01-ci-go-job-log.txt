@@ -1,0 +1,28 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/125824913066/logs | cut -c30- | sed -n '/Run make lint-go/,/go build -o/p'
+##[group]Run make lint-go
+[36;1mmake lint-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go vet ./...
+##[group]Run make test-go
+[36;1mmake test-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go test ./...
+?   	arxivlens/cmd/arxivlens	[no test files]
+?   	arxivlens/internal/config	[no test files]
+ok  	arxivlens/internal/crawler	0.006s
+?   	arxivlens/internal/db	[no test files]
+?   	arxivlens/internal/dlq	[no test files]
+?   	arxivlens/internal/downloader	[no test files]
+ok  	arxivlens/internal/kafka	0.004s
+ok  	arxivlens/internal/query	0.008s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+##[group]Run make build-go
+[36;1mmake build-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go build -o bin/arxivlens ./cmd/arxivlens
+

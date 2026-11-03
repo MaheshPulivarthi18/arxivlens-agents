@@ -1,0 +1,43 @@
+$ bash /home/claude/arxivlens-agents/agents/reviews/AI-2/scripts/run_tests.sh /tmp/claude-0/-home-claude/57ae174f-3ecc-5bd2-9b84-56e261eab750/scratchpad/sc
+== files under test: cmp scratch copy vs PR head ==
+identical: internal/query/rag.go
+identical: internal/query/rag_test.go
+== gofmt -l internal/query (PR head) ==
+gofmt exit 0 (no files listed = clean)
+go version go1.24.7 linux/amd64
+== network inside sandbox: interfaces in this netns (/proc/net/dev) + curl ==
+lo:
+network: unreachable (as intended)
+== go vet ./internal/query/ ==
+vet ok
+== go test -race -count=1 -v -run FailClosed|SupportThreshold|ResponseShape ./internal/query/ ==
+--- PASS: TestValidateCitationsSupportThreshold (0.00s)
+    --- PASS: TestValidateCitationsSupportThreshold/0.49_unsupported (0.00s)
+    --- PASS: TestValidateCitationsSupportThreshold/0.4999_unsupported (0.00s)
+    --- PASS: TestValidateCitationsSupportThreshold/0.50_supported (0.00s)
+    --- PASS: TestValidateCitationsSupportThreshold/negative_unsupported (0.00s)
+--- PASS: TestValidateCitationsFailClosedWhenUnverifiable (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/embedder_down_for_every_call (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/sentence_embed_error (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/chunk_embed_error (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/sentence_returns_no_vector (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/sentence_returns_empty_vector (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/chunk_returns_no_vector (0.00s)
+    --- PASS: TestValidateCitationsFailClosedWhenUnverifiable/chunk_returns_empty_vector (0.00s)
+--- PASS: TestAskResponseShapeAndConstructor (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.023s
+== full package, counts ==
+top-level PASS: 9  subtests PASS: 51  FAIL: 0
+ok  	arxivlens/internal/query	0.005s
+== coverage: go tool cover -func (rag.go rows) ==
+arxivlens/internal/query/rag.go:52:	NewRAGService		100.0%
+arxivlens/internal/query/rag.go:59:	generateTraceID		100.0%
+arxivlens/internal/query/rag.go:65:	Ask			100.0%
+arxivlens/internal/query/rag.go:121:	filterRelevantHits	100.0%
+arxivlens/internal/query/rag.go:143:	validateCitations	97.4%
+arxivlens/internal/query/rag.go:220:	splitIntoSentences	94.7%
+arxivlens/internal/query/rag.go:253:	endsWithAbbreviation	100.0%
+arxivlens/internal/query/rag.go:266:	cosineSimilarity	100.0%
+
+[exit code 0]
