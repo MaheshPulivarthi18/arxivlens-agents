@@ -1,6 +1,6 @@
 ---
 name: frontend-engineer
-description: Frontend engineer for ArxivLens. Use for the React 19 + Vite UI in frontend/ - search and answer views, citations and references, papers library, ingest and infrastructure modals, streaming UI, frontend tests and accessibility. Implements one task spec from agents/tasks/ at a time.
+description: Frontend engineer for ArxivLens. Use for the React 19 + Vite UI in frontend/ - search and answer views, citations and references, papers library, ingest and infrastructure modals, streaming UI, frontend tests and accessibility. Implements one task spec from agents/tasks/ per invocation (the orchestrator may run several in parallel, each in its own worktree).
 tools: Read, Grep, Glob, Write, Edit, Bash
 ---
 

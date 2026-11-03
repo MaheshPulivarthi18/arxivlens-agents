@@ -1,6 +1,6 @@
 ---
 description: Run one sprint cycle of the ArxivLens agent team (sync → plan → build → PR → QA → PM review → ready to merge → record → retro)
-argument-hint: "[max-new-tasks, default 2]"
+argument-hint: "[max-new-tasks, default 4]"
 ---
 
 You are the **orchestrator** for one sprint cycle of the ArxivLens agent team. You coordinate; the specialists in
@@ -8,7 +8,7 @@ You are the **orchestrator** for one sprint cycle of the ArxivLens agent team. Y
 ArxivLens repo cloned at `app/` (see `AGENTS.md` §0). Code PRs go to ArxivLens; everything else is committed here. Run unattended: never wait for a human mid-cycle. Anything needing a human decision
 gets written down (ADR / Blocked note) and the cycle moves on.
 
-Max **new** tasks started this cycle: `$ARGUMENTS` (default **2**). Reviewing PRs already open does not count toward it.
+Max **new** tasks started this cycle: `$ARGUMENTS` (default **4**). Reviewing PRs already open does not count toward it.
 
 ## The workflow every task follows
 
@@ -24,8 +24,12 @@ Every stage change is mirrored to Jira following `agents/jira.md` (status = stag
 Roles never review their own work: the developer builds, **qa-reviewer** verifies against ticket + PRD + test results,
 **pm-lead** gives the final product sign-off, the **human** merges.
 
-## Step 0 — Workspace
-`git pull --rebase` this repo. Clone or update the app repo: `git clone https://github.com/MaheshPulivarthi18/ArxivLens app`
+## Step 0 — Workspace and run lock
+`git pull --rebase` this repo. Cycles run hourly and one can outlast the hour, so take the lock first: if
+`agents/RUN_LOCK` exists and its timestamp is less than 100 minutes old, another cycle is running. Report
+"skipped: cycle <timestamp> still running" and stop. Otherwise write the current UTC time and session link to
+`agents/RUN_LOCK`, commit and push it (if the push is rejected, pull, re-check the lock and stop if someone else took
+it). Delete the lock in Step 8, and also when you stop early for any reason. Clone or update the app repo: `git clone https://github.com/MaheshPulivarthi18/ArxivLens app`
 (or `git -C app fetch origin`). All `git`/`make` commands for code run in `app/`; all memory edits happen here.
 
 ## Step 1 — Load memory
@@ -53,18 +57,25 @@ In `app/`: `git fetch origin`; work from the latest `origin/main`. List PRs with
 ## Step 3 — Plan (delegate to `pm-lead`)
 Ask `pm-lead` to groom the board (spec next PRD/roadmap items if Ready is thin; fix any `[spec]` findings from QA
 reports) and return an ordered list of new tasks for this cycle, respecting:
-- WIP: max 1 open PR per developer agent; skip agents at the limit.
+- WIP: max 2 **active** PRs per developer agent (draft, In QA, PM review or rework), for independent tasks only. PRs at **Ready to merge** (raised,
+  waiting only on Mahesh) don't count, so that agent takes the next task. Skip agents already at 2 active PRs.
+- Independence: every task picked this cycle must not change the same files (or the same shared contract) as another
+  picked task or any open PR, and its `Depends on` must be **merged**, not just Ready to merge. When unsure, compare the
+  ticket's Scope with `gh api .../pulls/<n>/files` of the open PRs. Up to 4 tasks per cycle, any mix of owners. If there
+  aren't 4 independent Ready tasks, start fewer; never start a task just to fill the slot.
 - Dependencies: only tasks whose `Depends on` are Done and whose ADRs are Accepted.
 - Priority: human feedback > QA/PM rework > unblocks-others > P0 > harness/quality > P1 > P2.
 
 ## Step 4 — Design (only `design-required` tasks) → Build → open PR
-For each selected new task and each rework item, sequentially:
+Run the selected tasks **in parallel**: one subagent per task, each in its own worktree
+(`git -C app worktree add "$HOME/wt/<TASK-ID>" -b agent/<role>/<TASK-ID> origin/main`, outside both repos), launched together and awaited
+together. Rework items go first. QA and PM review for each PR also run in parallel. For each task:
 0. **Design gate.** If the ticket (or its Jira story) is `design-required` and there is no approved
    `docs/design/<TASK-ID>.md` yet: the owner writes it from `agents/templates/design.md` and commits it to this repo's
    `main` (Jira: **Design**). Then `pm-lead` reviews it against the ticket and PRD and fills
    "PM decision". Approved → Jira **In Progress**, continue to build in this cycle. Changes requested → one
    revision; still not approved → Blocked with the PM's notes. No product code before approval.
-1. In `app/`: `git checkout -B agent/<role>/<TASK-ID> origin/main` (or the existing PR branch for rework).
+1. In the task's worktree: branch `agent/<role>/<TASK-ID>` from `origin/main` (or the existing PR branch for rework).
 2. Invoke the owner (`ai-engineer`, `backend-engineer`, `frontend-engineer`, or `pm-lead` for docs tasks) with: the
    full ticket `agents/tasks/<TASK-ID>.md`, the PRD rows it references, the role's lessons, and — for rework — the
    latest QA report / PM verdict / human comments. Instruction: "Implement exactly this spec in your owned directories.
@@ -115,7 +126,7 @@ Agents never merge. The human reviews PRs that are ready for review (not draft) 
 then merges or comments. A human comment sends the task back to Step 4. Next cycle's Step 2 moves them to Done.
 
 ## Step 8 — Record
-Commit directly to this repo's `main` (no PR; `git pull --rebase` first):
+Commit directly to this repo's `main` (no PR; `git pull --rebase` first), and delete `agents/RUN_LOCK` in the same commit:
 - `agents/board.md` — every move made this cycle
 - `agents/PROGRESS.md` — one entry per task: outcome, PR, attempts, QA rounds, PM rounds, blockers
 - Jira — confirm every story touched this cycle matches the repo (status, PR link, labels); fix drift.
