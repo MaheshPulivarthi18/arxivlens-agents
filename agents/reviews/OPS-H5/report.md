@@ -125,3 +125,48 @@ Technical PRD §5's promise now holds on a fresh `make migrate`: the HNSW cosine
 
 ### Hand-off
 FAIL → back to backend-engineer for finding 1 (a one-to-two-line assertion; the nits are optional). pm-lead: findings 2, 6 and 7, and route F1 (finding 3) to Mahesh. H4/AC5 stays owed post-merge from OPS-H1.
+
+---
+
+# QA report: OPS-H5 · PR #16 · round 3 (re-review of round-2 finding 1)
+
+**Verdict: PASS.** Round-2 blocking finding 1 is fixed, and the mutant run shows the fixed guard can now fail. All check runs on the head are green. Nothing else regressed. The open items below are restated, not reopened.
+**Reviewed commit:** `d442c4c3c75bcce67d7ed2508822eed48a60ae2e` (fix `f69f340`, temporary mutant `d0e1123`, revert `d442c4c`) · **Date:** 2026-11-03
+**Evidence:** [agents/reviews/OPS-H5/evidence @ a4ce462](https://github.com/MaheshPulivarthi18/arxivlens-agents/tree/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence). Round 3 adds files 20 to 24. Earlier files are kept.
+
+### Test results
+| Check | Source | Result |
+|---|---|---|
+| All 5 check runs on head `d442c4c` | CI | Go 126170425305, Python M0 126170425214, Frontend 126170424932, Ownership 126170424750, DB 126170424459: **all success** ([20](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/20-ci-checks-d442c4c.png?raw=true)) |
+| Fix commit `f69f340` | CI | all 5 success ([20](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/20-ci-checks-d442c4c.png?raw=true)) |
+| Mutant `d0e1123` (`hnswSearchSettings` set to the empty string) | CI DB job 126169467011 | **failure**, as intended: `--- FAIL: TestHNSWVectorHits`, exit code 1. The other 4 jobs pass ([20](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/20-ci-checks-d442c4c.png?raw=true), [22](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/22-f1-mutant-red.png?raw=true)) |
+| `make test-unit` / `make lint` locally | not run locally: go.mod needs Go 1.25, the sandbox has 1.24 and no module proxy | CI is the source |
+| `make eval` | not run: needs the real indexed corpus (F2 unchanged) | n/a |
+
+### Round-2 finding 1: fixed ✅
+- **Code** ([21](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/21-f1-fix-diff.png?raw=true)): `search_integration_test.go:160` now fails when `c.settings == hnswSearchSettings && (m.settings == "" || m.name == modes[0].name) && short > 0`. `modes[0]` is `{"custom plan", "SET LOCAL plan_cache_mode = force_custom_plan"}` (lines 99 to 103), so the guard now covers the regime where `ef_search`/`iterative_scan` actually apply.
+- **Would it fail without the settings?** Yes. In mutant `d0e1123` the query-path custom-plan rows drop to `mean_rows=40.0 short_queries=20/20` (unfiltered) and `mean_rows=9.8 min_rows=0 short_queries=20/20` (cs.CL). Line 161 fires for both, and the DB job goes red ([22](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/22-f1-mutant-red.png?raw=true)). The same mutant log shows a narrower mutant would also be caught. The `ef_search=100`-only config (no `strict_order`) under custom plans with cs.CL returns `mean_rows=24.1 min_rows=0 short_queries=17/20`, so dropping the iterative scan alone would trip the guard too.
+- **Revert is exact:** `git diff --stat f69f340 d442c4c` is empty ([21](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/21-f1-fix-diff.png?raw=true)). The head is byte-identical to the fix commit that passed CI.
+- **Head passes the guard:** query path, custom plan: 50/50 rows, 0/20 short for all three filters, with 0 guard failures in the log ([23](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/23-h1-h3-d442c4c-db-job.png?raw=true)).
+- Round-2 nit 9 is also fixed. The migration change since `cff6fa1` is **comment-only** (lines 3 to 4: "Params match the benchmark; ADR-0008 (Proposed) defers the final choice"). The `CREATE INDEX` statement is unchanged ([21](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/21-f1-fix-diff.png?raw=true)). It stays idempotent because it is re-applied, and the DB job's second migrate run shows the schema is identical.
+- Total diff since round 2: 2 files, +5/−3.
+
+### Mahesh's checklist on head `d442c4c` ([23](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/23-h1-h3-d442c4c-db-job.png?raw=true))
+| Item | Status | Evidence in the d442c4c DB job log |
+|---|---|---|
+| H1 fresh migrate twice | ✅ holds | The pre-migrate snapshot holds only `extension\|plpgsql\|1.0`. Run 1 applies 000001 and 000002. `"chunk_embeddings_hnsw_idx" hnsw (embedding halfvec_cosine_ops) WITH (m='16', ef_construction='64')`, `index_valid\|…\|true`. Run 2 gives `Schema identical after run 2: 67 objects` |
+| H2 EXPLAIN of the real query | ✅ holds | `PLAN-HNSW-SELECTED=true` for vectorHitsSQL and hybridSearchSQL under custom plans (unfiltered, cs.CL), and `false` under generic plans and for cs.DL, the same as round 2. Under auto, hybridSearchSQL x20 gives `plans(generic=15 custom=5)` |
+| H3 recall, index vs exact | ✅ holds, and the guard is now meaningful | Query path, custom plan: R@5 1.000 / 0.760 (cs.CL) / 1.000, 50 rows each. Generic and auto: 50 rows, R@5 1.000 |
+| H4 fresh-stack `make test-full` | ⏳ blocked on OPS-H1 | #14 is still open and draft (`5c79c43`) ([24](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/24-open-items.png?raw=true)). Post-merge evidence is still owed |
+| H5 idempotency doc | ✅ unchanged since round 2 | CONTRIBUTING was not touched in this round |
+
+### Open items (restated, not re-litigated)
+1. **[spec] → Mahesh decision, F1 (recall vs p95):** In steady state the generic plan does an exact scan and doesn't use HNSW. Forcing custom plans cuts filtered R@5 to 0.76 at ef_search=100. Still open. It is a follow-up under AC4 and doesn't block this PR.
+2. **[spec] pm-lead, merge order with #17 (EVAL-5):** #17 (head `557f4e1`, now raised, not draft) still parses `querySQL := \`` from `search.go` (`tests/test_evals_data.py:284-285`) ([24](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/24-open-items.png?raw=true)). With both merged as they are, Python M0 on main goes red (round-2 evidence 16). pm-lead has recorded this as merge gate G2 on #17. Whichever PR merges second must adapt.
+3. **[spec] pm-lead, version-ledger backlog task (H5):** still none in `agents/tasks/` or on the board ([24](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/24-open-items.png?raw=true)).
+4. **[spec] pm-lead, ticket Scope amendment:** Scope still says "Do not edit … `CONTRIBUTING.md` … or `.github/`" and lists query SQL changes as out of scope ([24](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a4ce462b32ea40285a7ba6217bdd9319c246de83/agents/reviews/OPS-H5/evidence/24-open-items.png?raw=true)). It should be amended to cover `db.yml`, the CONTRIBUTING notes and the `search.go` settings/transaction.
+5. **H4/AC5:** owed post-merge from OPS-H1 (#14).
+6. Round-2 nits 4 (pgvector ≥ 0.8.0 doc/pin), 5 (diff size), 8 (integration test seeds the target DB permanently) and F2 (`make eval` regime) are still open. They are optional and don't block. The optional Go-level `PLAN-HNSW-SELECTED` assertion was not added, so a dropped index is still caught only by the workflow's shell grep. That is a nit.
+
+### Hand-off
+PASS → pm-lead final review. Before raising: resolve items 2 to 4 and route item 1 to Mahesh. H4 evidence stays owed after OPS-H1 merges.
