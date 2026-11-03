@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-03 by orchestrator (scheduled cycle 3: no changes — #9 and #10 still awaiting Mahesh; no human reviews; no new tasks possible)
+Last updated: 2026-11-03 by orchestrator (scheduled cycle 4: RET-1 #9 Done; AI-2 #11 and OPS-H4 #12 raised for Mahesh; AI-4 Ready; docs PR agents#5)
 
 WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 
@@ -13,9 +13,8 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 |
 | [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 |
 | [FE-2](tasks/FE-2.md) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 |
-| [OPS-H4](tasks/OPS-H4.md) | `.gitignore` evals/results + run eval data tests in `make test-unit` | backend-engineer | P1 | EVAL-1 |
-| [AI-2](tasks/AI-2.md) | Fail closed when support-check embedding fails in `rag.go` | ai-engineer | P1 | AI-1 |
-| [AI-3](tasks/AI-3.md) | Batch embedding in RAG validation | ai-engineer | P1 | AI-1, AI-2 |
+| [AI-3](tasks/AI-3.md) | Batch embedding in RAG validation | ai-engineer | P1 | AI-1, AI-2 (#11) |
+| [AI-4](tasks/AI-4.md) | `/v1/ask` passes trace ID to `HybridSearch`; harden ADR-0010 parity guard (KAN-27) | ai-engineer | P2 | AI-2 merged (same files) |
 | [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate + eval-test hardening (EVAL-1 QA r3 nits, AC6–AC9) + RET-1 p95/eval measurement (AC10) | ai-engineer | P2 | EVAL-1 (AC10: RET-1 merged + infra) |
 
 ## In progress
@@ -33,20 +32,24 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
-| [RET-1](tasks/RET-1.md) | Rerank a 20-candidate pool and sort by rerank score (ADR-0010), `831905e`. #2 merged; mergeable clean on new main. | backend-engineer | [#9](https://github.com/MaheshPulivarthi18/ArxivLens/pull/9) (ready for review) | QA PASS r1 · PM APPROVE r1 ([report](reviews/RET-1/report.md)) |
+| [AI-2](tasks/AI-2.md) | Fail closed when citation support can't be verified, `c9ae07c` (KAN-10) | ai-engineer | [#11](https://github.com/MaheshPulivarthi18/ArxivLens/pull/11) (ready for review) | QA PASS r1 · PM APPROVE r1 ([report](reviews/AI-2/report.md)) |
+| [OPS-H4](tasks/OPS-H4.md) | Ignore `evals/results/` + eval-data tests in `make test-py`, `0edd8fd` (KAN-16) | backend-engineer | [#12](https://github.com/MaheshPulivarthi18/ArxivLens/pull/12) (ready for review) | QA PASS r1 · PM CHANGES r1 (docs lines) · QA PASS r2 · PM APPROVE r2 ([report](reviews/OPS-H4/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
 | [QA-8](tasks/QA-8.md) | LLM answer synthesis behind citation validation | ai-engineer | ADR-0001, ADR-0002 (human decision), EVAL-1, AI-1 |
-| [AI-4](tasks/AI-4.md) | `/v1/ask` passes trace ID to `HybridSearch`; harden ADR-0010 parity guard | ai-engineer | RET-1, EVAL-1 merged |
 | [AI-5](tasks/AI-5.md) | `/v1/ask` relevance bar when rerank scores are missing (reranker outage fails open) | ai-engineer | ADR-0011 (human decision), AI-1 merged |
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
 - From the OPS-H3 review: `ExtractCleanArxivID` should match only a whole ID and support old-style IDs the crawler stores (needs a product decision); add more pinning tests; add `go test -cover` to CI; make the retry sleep injectable (see OPS-H3 Notes)
 - From the #8 review: some code comments cite PRD sections (`§4`, `§6 Tier 1`) that now live in this repo; reword or link them (backend/ai, nit)
-- pm-lead rules PR after PR #9 merges: drop the AGENTS.md §6 gotcha "`/v1/ask` does not yet sort by rerank score (ADR-0010, RET-1)"; merge the §7.1 diagram docs PR [arxivlens-agents#2](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/2)
+- Docs PR [arxivlens-agents#5](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/5) (post-RET-1: AGENTS.md §6 gotcha, PRD-Product row 156) — awaiting Mahesh
+- From the AI-2 review (ai, P2, after AI-4, same files): assert `sentence_embed_errors` / `chunks_without_vector` log counters, mixed verified+unverified test (`unverified=1 citations=2`), log sentence/chunk dimension mismatch as unverified
+- pm-lead docs PR after #11 merges: Product PRD QA-4 ◐ → ✅, drop AI-2 caveat in §8 supported row, Technical PRD §9 known-gap paragraph
+- backend docs nit: `CONTRIBUTING.md:28,54` still say "once EVAL-1 lands"; AGENTS.md §2 ownership table omits `.gitignore` for backend (CI script allows it)
+- FE-1 note: `ReferencesStack.jsx` shows "{score}% Verified" even when `supported=false` (after AI-2, outage shows "0.0% Verified")
 - backend nits from the RET-1 review (fold into the next `search.go` change): `context.Canceled` fallback test case, `±Inf` score test
 - From the AI-1 review: `/internal/rerank` bi-encoder fallback (no cross-encoder) returns uncalibrated dot products → decided in ADR-0011, done in AI-5 if accepted; aux-section match is a substring (`"Notable"` contains `"table"`) → small ai follow-up after AI-5
 - pm-lead PRD docs PR: Product PRD QA-5 ✅ → ◐ (fails open during reranker outages; ADR-0011/AI-5), back to ✅ when AI-5 merges
@@ -61,11 +64,12 @@ All tickets, docs, reviews and agent rules moved from ArxivLens to this repo. Ar
 (agent-only content, now here); #2 and #6 were stripped to code only. See `AGENTS.md` §0.
 
 ## Environment notes (cycles 2026-11-01, 2026-11-02, 2026-11-03)
-Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and Hugging Face. Go, frontend and stack tasks (AI-1, OPS-H1/H2/H3/H5, ING-6, FE-1/2) were deferred, not blocked — they stay Ready. 2026-11-02: same limits (local Go 1.24.7); OPS-H3 was done anyway because CI verifies Go tests. OPS-H1 needs Docker, FE-1 needs npm to regenerate `package-lock.json`. 2026-11-03: unchanged (registry.npmjs.org and proxy.golang.org don't resolve, huggingface.co 403; re-checked in cycle 3, all four registries unreachable); no new task started because ai/backend are at WIP limit and FE-1 can't regenerate the lockfile.
+Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and Hugging Face. Go, frontend and stack tasks (AI-1, OPS-H1/H2/H3/H5, ING-6, FE-1/2) were deferred, not blocked — they stay Ready. 2026-11-02: same limits (local Go 1.24.7); OPS-H3 was done anyway because CI verifies Go tests. OPS-H1 needs Docker, FE-1 needs npm to regenerate `package-lock.json`. 2026-11-03: unchanged (registry.npmjs.org and proxy.golang.org don't resolve, huggingface.co 403; re-checked in cycle 3, all four registries unreachable); no new task started because ai/backend are at WIP limit and FE-1 can't regenerate the lockfile. Cycle 4: unchanged; Docker CLI present but no daemon.
 
 ## Done
 | ID | Title | PR |
 |---|---|---|
+| [RET-1](tasks/RET-1.md) | Rerank a 20-candidate pool and sort by rerank score (ADR-0010) | ArxivLens [#9](https://github.com/MaheshPulivarthi18/ArxivLens/pull/9) → bb9ee90 (KAN-24) |
 | [AI-1](tasks/AI-1.md) | Unit tests for `rag.go` filtering and citation validation | ArxivLens [#10](https://github.com/MaheshPulivarthi18/ArxivLens/pull/10) → 4702daa (KAN-9) |
 | [EVAL-1](tasks/EVAL-1.md) | Versioned golden eval sets + `make eval` gate | ArxivLens [#2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2) → a959d03 (KAN-8) |
 | [OPS-H3](tasks/OPS-H3.md) | Baseline Go unit tests (arXiv ID, Atom parsing, retry backoff) | ArxivLens [#6](https://github.com/MaheshPulivarthi18/ArxivLens/pull/6) → 72c82ac (KAN-15) |
