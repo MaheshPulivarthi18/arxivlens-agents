@@ -1,0 +1,10 @@
+$ /tmp/claude-0/-home-claude/89335d91-2f06-5a4a-8e86-f0fff55515ee/scratchpad/cross16.sh
+PR #16 head: cff6fa1380406cbedb01652f90f9919f2d2c8051
+files both PRs change: (none if empty)
+E       AssertionError: HybridSearch querySQL not found exactly once in search.go
+E       assert 0 == 1
+E        +  where 0 = len([])
+FAILED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go - Assert...
+1 failed, 57 passed, 1 skipped in 0.27s
+
+[exit code 0]
