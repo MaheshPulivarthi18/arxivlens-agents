@@ -1,12 +1,13 @@
 # Board
 
-Last updated: 2026-11-03 20:17 UTC by orchestrator (cycle 19:02: Mahesh reviews on #14/#16/#17 picked up; #16, #17, #18 raised; #13, #15 merged)
+Last updated: 2026-11-03 21:10 UTC by pm-lead (cycle 21:02Z grooming: OPS-H8 specced → Ready; no ai task independent of #17/#18 this cycle)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 
 ## Ready
 | ID | Title | Owner | Pri | Depends on |
 |---|---|---|---|---|
+| [OPS-H8](tasks/OPS-H8.md) | Python consumer: commit only after success or confirmed DLQ write; checked `publish`; interruptible waits; poison records to DLQ (design-required) | backend-engineer | P0 | OPS-H6 (Done) |
 | [EVAL-3](tasks/EVAL-3.md) | GitHub Actions full-stack `make eval` (manual + nightly), results artifact, first numbers; carries RET-1 AC6 (design-required) | backend-engineer (ai pairs on design) | P1 | OPS-H1 |
 | [OPS-H7](tasks/OPS-H7.md) | DLQ list/replay: offset checkpoints, paging, replay lock, idempotent replay (design-required) | backend-engineer | P1 | OPS-H6 |
 | [FE-1](tasks/FE-1.md) | Frontend test harness (Vitest) + tests for answer/citation states — needs registry.npmjs.org to regenerate `package-lock.json` | frontend-engineer | P1 | — |
@@ -63,10 +64,9 @@ WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENT
 - pm-lead docs PR now due (#11 merged): Product PRD QA-4 ◐ → ✅, drop AI-2 caveat in §8 supported row, Technical PRD §9 known-gap paragraph
 - backend docs nit: `CONTRIBUTING.md:28,42,54` still say "once EVAL-1 lands" (folded into EVAL-3 AC7); AGENTS.md §2 ownership table omits `.gitignore` for backend (CI script allows it) (pm-lead rules PR)
 - From Mahesh's #12 review (backend, P2, small): split `make test-py` into `test-m0` and `test-evals-data` (and two CI steps), so the eval-data tests still run when the ML stack (torch/sentence-transformers) fails to install/import; `test-py` keeps running both; update `CONTRIBUTING.md:23` + README Testing block. Not folded into EVAL-3 because it shouldn't wait for OPS-H1. (Where `evals/results` go and artifact retention: EVAL-3 AC3/AC7.)
-- OPS-H8 (backend, P0 after OPS-H6's design is approved): same DLQ-loss flaw in the Python consumer — `services/common/kafka_client.py` `publish_dlq` does `flush(timeout=5)` without checking undelivered messages or a delivery callback, then `commit` runs regardless (lines 189-199); `time.sleep` retry wait. Apply OPS-H6's semantics; M4 must pass
 - OPS-H6 design G1 (backend, P1): a redelivered `papers.discovered` record downgrades an already-`embedded` paper's status (`UpdatePaperDownloaded` forces `'downloaded'`). Don't downgrade a later status, or skip the re-publish when the status is already past `downloaded`
-- From the OPS-H6 PM review (backend, P2, fold into OPS-H8 or the next `internal/kafka/consumer.go` change): a clean shutdown logs `Poll error (topic= partition=-1): context canceled`; skip poll-error logging when `ctx.Err() != nil` and assert no such line on shutdown
-- OPS-H6 design G2 (ai/backend, P2): embedder L3 dedupe joins `chunk_embeddings` on `model` only, not content. Key it on `content_hash` so a changed chunk text gets re-embedded (PRD says L3 is "content hashing")
+- From the OPS-H6 PM review (backend, P2, next `internal/kafka/consumer.go` change; not folded into OPS-H8, which is Python-only): a clean shutdown logs `Poll error (topic= partition=-1): context canceled`; skip poll-error logging when `ctx.Err() != nil` and assert no such line on shutdown
+- OPS-H6 design G2 (backend, P2; pm-lead 21:02Z: `chunk_embeddings` has no `content_hash` column, so the fix lives in backend-owned `services/common/db.py` — e.g. `save_sections_and_chunks` deletes a chunk's embeddings when its `content_hash` changes — or a new column, which changes an existing table → ADR): embedder L3 dedupe joins `chunk_embeddings` on `model` only, not content. Key it on `content_hash` so a changed chunk text gets re-embedded (PRD says L3 is "content hashing")
 - pm-lead docs PR: Technical PRD §8.1 L4 / §8.2 diagram caveat ("commit after DLQ" not true until OPS-H6 + OPS-H8), Product PRD OPS-1 ✅ → ◐; Proposed Product PRD row ING-8 (extraction quality measured)
 - ING-8 follow-ups: detector improvements from the baseline (backend, `services/processor/`), and a pure `parse_doc_sections(doc)` seam so the scorer stops calling a private method
 - FE-1 note: `ReferencesStack.jsx` shows "{score}% Verified" even when `supported=false` (after AI-2, outage shows "0.0% Verified")
