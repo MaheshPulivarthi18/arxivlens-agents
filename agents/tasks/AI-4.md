@@ -8,7 +8,7 @@
 | **Depends on** | RET-1, EVAL-1 (both merged); AI-3 (PR #13, same files: wait until merged) |
 | **Jira** | find with JQL `labels = "task-AI-4"` |
 | **Design required** | no (P2, no contract change) |
-| **Status** | In QA: draft PR [#18](https://github.com/MaheshPulivarthi18/ArxivLens/pull/18), head `7e26503` |
+| **Status** | Ready to merge: PR [#18](https://github.com/MaheshPulivarthi18/ArxivLens/pull/18) raised (ready for review, label `ready-to-merge`), head `7e26503`; QA PASS r1, PM APPROVE r1 |
 
 ## Goal
 When reranking falls back to RRF order during `/v1/ask`, the log line should carry the same `trace_id` the user gets in
@@ -56,3 +56,6 @@ make test-unit && make lint
   - CI on `7e26503` (run 41701810033): Go, Python M0, Frontend and ownership check all success.
   - `make eval`: not run (no stack; logging-only change). Jira sync skipped: Atlassian connector unavailable in this session
     (KAN-27 should go → In QA with a PR #18 link).
+- 2026-11-03 (pm-lead, final review): **APPROVE** round 1 on head `7e26503`. Verdict is in `agents/reviews/AI-4/report.md` (PM verdict section). I rewrote the PR #18 description with
+  an Evidence section (images pinned to `208a84d`), marked it ready for review and added the label `ready-to-merge`. Waiting on Mahesh. Backlog follow-up (P2, ai-engineer):
+  an `Ask`-level test that the `citation support unverified` log carries `trace_id=<resp.TraceID>`, plus a timeout fallback through `Ask` (QA finding 1 / missing tests).
