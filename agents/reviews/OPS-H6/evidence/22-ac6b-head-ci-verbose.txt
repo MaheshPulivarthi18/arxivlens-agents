@@ -1,0 +1,160 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/125995972897/logs | sed -n 205,363p
+2026-11-03T14:57:08.6198183Z ##[endgroup]
+2026-11-03T14:57:08.6592363Z ##[group]Run make lint-go
+2026-11-03T14:57:08.6592728Z [36;1mmake lint-go[0m
+2026-11-03T14:57:08.6630740Z shell: /usr/bin/bash -e {0}
+2026-11-03T14:57:08.6631222Z ##[endgroup]
+2026-11-03T14:57:08.6736843Z go vet ./...
+2026-11-03T14:57:09.8018197Z ##[group]Run make test-go
+2026-11-03T14:57:09.8018526Z [36;1mmake test-go[0m
+2026-11-03T14:57:09.8048541Z shell: /usr/bin/bash -e {0}
+2026-11-03T14:57:09.8048806Z ##[endgroup]
+2026-11-03T14:57:09.8114106Z go test ./...
+2026-11-03T14:57:10.2678770Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-03T14:57:10.2698101Z ?   	arxivlens/internal/config	[no test files]
+2026-11-03T14:57:11.4217507Z ok  	arxivlens/internal/crawler	0.005s
+2026-11-03T14:57:11.4218515Z ?   	arxivlens/internal/db	[no test files]
+2026-11-03T14:57:11.4219651Z ?   	arxivlens/internal/dlq	[no test files]
+2026-11-03T14:57:11.4220607Z ?   	arxivlens/internal/downloader	[no test files]
+2026-11-03T14:57:11.9510903Z ok  	arxivlens/internal/kafka	0.031s
+2026-11-03T14:57:12.0869708Z ok  	arxivlens/internal/query	0.007s
+2026-11-03T14:57:12.0870353Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-03T14:57:12.0870957Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-03T14:57:12.0871612Z ?   	arxivlens/shared/events	[no test files]
+2026-11-03T14:57:12.1080486Z ##[group]Run go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go
+2026-11-03T14:57:12.1081431Z [36;1mgo test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go[0m
+2026-11-03T14:57:12.1111609Z shell: /usr/bin/bash -e {0}
+2026-11-03T14:57:12.1111874Z ##[endgroup]
+2026-11-03T14:57:34.9167084Z === RUN   TestRetryBackoff
+2026-11-03T14:57:34.9168751Z --- PASS: TestRetryBackoff (0.00s)
+2026-11-03T14:57:34.9169402Z === RUN   TestDLQRetryBackoff
+2026-11-03T14:57:34.9169815Z --- PASS: TestDLQRetryBackoff (0.00s)
+2026-11-03T14:57:34.9170464Z === RUN   TestCtxWait
+2026-11-03T14:57:34.9235874Z --- PASS: TestCtxWait (0.01s)
+2026-11-03T14:57:34.9236640Z === RUN   TestRetrySleepSchedule
+2026-11-03T14:57:34.9238943Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9240943Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-03T14:57:34.9242632Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-03T14:57:34.9244313Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-03T14:57:34.9245803Z 2026/11/03 14:57:34 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-03T14:57:34.9247322Z 2026/11/03 14:57:34 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-03T14:57:34.9248536Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9249556Z --- PASS: TestRetrySleepSchedule (0.00s)
+2026-11-03T14:57:34.9250133Z === RUN   TestConsumerSuccessPath
+2026-11-03T14:57:34.9250701Z === RUN   TestConsumerSuccessPath/ok_on_1st
+2026-11-03T14:57:34.9251596Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9252688Z 2026/11/03 14:57:34 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-03T14:57:34.9253783Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9254644Z === RUN   TestConsumerSuccessPath/ok_after_1_failure
+2026-11-03T14:57:34.9255260Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9256307Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-03T14:57:34.9257588Z 2026/11/03 14:57:34 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-03T14:57:34.9258416Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9258904Z === RUN   TestConsumerSuccessPath/ok_after_2_failures
+2026-11-03T14:57:34.9259723Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9260961Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-03T14:57:34.9261995Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-03T14:57:34.9267526Z 2026/11/03 14:57:34 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-03T14:57:34.9268977Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9269778Z === RUN   TestConsumerSuccessPath/commit_error_is_logged,_loop_continues
+2026-11-03T14:57:34.9270527Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9271158Z 2026/11/03 14:57:34 [Kafka Consumer] Offset commit error: boom
+2026-11-03T14:57:34.9271905Z 2026/11/03 14:57:34 [Kafka Consumer] Offset commit error: boom
+2026-11-03T14:57:34.9272662Z 2026/11/03 14:57:34 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-03T14:57:34.9273382Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9274231Z --- PASS: TestConsumerSuccessPath (0.00s)
+2026-11-03T14:57:34.9274984Z     --- PASS: TestConsumerSuccessPath/ok_on_1st (0.00s)
+2026-11-03T14:57:34.9275871Z     --- PASS: TestConsumerSuccessPath/ok_after_1_failure (0.00s)
+2026-11-03T14:57:34.9277061Z     --- PASS: TestConsumerSuccessPath/ok_after_2_failures (0.00s)
+2026-11-03T14:57:34.9278316Z     --- PASS: TestConsumerSuccessPath/commit_error_is_logged,_loop_continues (0.00s)
+2026-11-03T14:57:34.9278878Z === RUN   TestConsumerDLQThenCommit
+2026-11-03T14:57:34.9279671Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9281029Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-03T14:57:34.9303263Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-03T14:57:34.9304895Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-03T14:57:34.9306193Z 2026/11/03 14:57:34 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-03T14:57:34.9307685Z 2026/11/03 14:57:34 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-03T14:57:34.9308894Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9309750Z --- PASS: TestConsumerDLQThenCommit (0.00s)
+2026-11-03T14:57:34.9310417Z === RUN   TestConsumerDLQFailureBlocksPartition
+2026-11-03T14:57:34.9311251Z === RUN   TestConsumerDLQFailureBlocksPartition/failing_record_first
+2026-11-03T14:57:34.9312309Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9313722Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-03T14:57:34.9315364Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-03T14:57:34.9317346Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-03T14:57:34.9318934Z 2026/11/03 14:57:34 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-03T14:57:34.9320661Z 2026/11/03 14:57:34 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=1): boom
+2026-11-03T14:57:34.9322776Z 2026/11/03 14:57:34 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=2): boom
+2026-11-03T14:57:34.9324790Z 2026/11/03 14:57:34 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=3): boom
+2026-11-03T14:57:34.9325717Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9326360Z === RUN   TestConsumerDLQFailureBlocksPartition/earlier_record_in_the_poll_is_committed
+2026-11-03T14:57:34.9327332Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9328081Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-03T14:57:34.9328983Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-03T14:57:34.9330072Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-03T14:57:34.9330837Z 2026/11/03 14:57:34 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-03T14:57:34.9331715Z 2026/11/03 14:57:34 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=1): boom
+2026-11-03T14:57:34.9332754Z 2026/11/03 14:57:34 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=2): boom
+2026-11-03T14:57:34.9333901Z 2026/11/03 14:57:34 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=3): boom
+2026-11-03T14:57:34.9334695Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9335194Z --- PASS: TestConsumerDLQFailureBlocksPartition (0.00s)
+2026-11-03T14:57:34.9335766Z     --- PASS: TestConsumerDLQFailureBlocksPartition/failing_record_first (0.00s)
+2026-11-03T14:57:34.9336777Z     --- PASS: TestConsumerDLQFailureBlocksPartition/earlier_record_in_the_poll_is_committed (0.00s)
+2026-11-03T14:57:34.9337310Z === RUN   TestConsumerDLQRecovers
+2026-11-03T14:57:34.9337752Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9338505Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-03T14:57:34.9339367Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-03T14:57:34.9340221Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-03T14:57:34.9340973Z 2026/11/03 14:57:34 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-03T14:57:34.9341836Z 2026/11/03 14:57:34 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=1): boom
+2026-11-03T14:57:34.9342872Z 2026/11/03 14:57:34 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=2): boom
+2026-11-03T14:57:34.9343715Z 2026/11/03 14:57:34 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-03T14:57:34.9344344Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9344803Z --- PASS: TestConsumerDLQRecovers (0.00s)
+2026-11-03T14:57:34.9345134Z === RUN   TestNewConsumerRejectsNilProducer
+2026-11-03T14:57:34.9345493Z --- PASS: TestNewConsumerRejectsNilProducer (0.00s)
+2026-11-03T14:57:34.9345861Z === RUN   TestConsumerNilDLQIsFailedPublish
+2026-11-03T14:57:34.9346327Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9347277Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-03T14:57:34.9348112Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-03T14:57:34.9348936Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-03T14:57:34.9349665Z 2026/11/03 14:57:34 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-03T14:57:34.9350608Z 2026/11/03 14:57:34 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=1): no DLQ publisher configured
+2026-11-03T14:57:34.9351496Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9351973Z --- PASS: TestConsumerNilDLQIsFailedPublish (0.00s)
+2026-11-03T14:57:34.9352517Z === RUN   TestConsumerCancelDuringBackoffReturnsPromptly
+2026-11-03T14:57:34.9353042Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9353774Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-03T14:57:34.9490030Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9491041Z --- PASS: TestConsumerCancelDuringBackoffReturnsPromptly (0.02s)
+2026-11-03T14:57:34.9491692Z === RUN   TestConsumerCancelInsideHandlerNoDLQ
+2026-11-03T14:57:34.9498529Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9499973Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-03T14:57:34.9501617Z 2026/11/03 14:57:34 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-03T14:57:34.9502911Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9503605Z --- PASS: TestConsumerCancelInsideHandlerNoDLQ (0.00s)
+2026-11-03T14:57:34.9504162Z === RUN   TestConsumerAllowRebalanceAfterEachPoll
+2026-11-03T14:57:34.9504921Z 2026/11/03 14:57:34 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-03T14:57:34.9505540Z 2026/11/03 14:57:34 [Kafka Consumer] Poll error (topic=papers.discovered partition=1): boom
+2026-11-03T14:57:34.9506362Z 2026/11/03 14:57:34 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-03T14:57:34.9507686Z 2026/11/03 14:57:34 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-03T14:57:34.9508439Z --- PASS: TestConsumerAllowRebalanceAfterEachPoll (0.00s)
+2026-11-03T14:57:34.9508830Z === RUN   TestConsumerDLQFailureLogNoValue
+2026-11-03T14:57:34.9509205Z --- PASS: TestConsumerDLQFailureLogNoValue (0.00s)
+2026-11-03T14:57:34.9509601Z === RUN   TestConsumerPollErrorStillProcessesRecords
+2026-11-03T14:57:34.9510152Z === RUN   TestConsumerPollErrorStillProcessesRecords/partition_error,_other_partition_handled
+2026-11-03T14:57:34.9510816Z === RUN   TestConsumerPollErrorStillProcessesRecords/client_closed_returns_the_error
+2026-11-03T14:57:34.9511364Z --- PASS: TestConsumerPollErrorStillProcessesRecords (0.00s)
+2026-11-03T14:57:34.9512128Z     --- PASS: TestConsumerPollErrorStillProcessesRecords/partition_error,_other_partition_handled (0.00s)
+2026-11-03T14:57:34.9512961Z     --- PASS: TestConsumerPollErrorStillProcessesRecords/client_closed_returns_the_error (0.00s)
+2026-11-03T14:57:34.9513430Z PASS
+2026-11-03T14:57:34.9523649Z coverage: 62.9% of statements
+2026-11-03T14:57:35.9555049Z ok  	arxivlens/internal/kafka	1.050s	coverage: 62.9% of statements
+2026-11-03T14:57:36.0891953Z arxivlens/internal/kafka/consumer.go:42:	NewConsumer	28.6%
+2026-11-03T14:57:36.0892780Z arxivlens/internal/kafka/consumer.go:72:	Close		0.0%
+2026-11-03T14:57:36.0893513Z arxivlens/internal/kafka/consumer.go:79:	retryBackoff	100.0%
+2026-11-03T14:57:36.0894294Z arxivlens/internal/kafka/consumer.go:84:	dlqRetryBackoff	100.0%
+2026-11-03T14:57:36.0895062Z arxivlens/internal/kafka/consumer.go:89:	ctxWait		100.0%
+2026-11-03T14:57:36.0895749Z arxivlens/internal/kafka/consumer.go:101:	Start		100.0%
+2026-11-03T14:57:36.0931015Z ##[group]Run make build-go
+

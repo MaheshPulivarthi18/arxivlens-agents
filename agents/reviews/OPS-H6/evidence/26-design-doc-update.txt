@@ -1,0 +1,12 @@
+$ bash -c git log --oneline -3 -- docs/design/OPS-H6.md; grep -n -iE "mutex|AC6b|CancelInsideHandler|^### 7a|inside the handler" docs/design/OPS-H6.md
+046bd82 OPS-H6: rework r1 (AC6b test, mutation (e) SHAs/runs, design mutex/AC6b fix)
+0989662 pm-lead: OPS-H6 final review round 1: CHANGES (AC6b handler-cancel test + mutation, design text fixes)
+a24ca1b OPS-H6: build notes (PR #15, CI, AC10 mutation SHAs/runs, C2, C6) and design §7a as-built
+173:### 7a. As built (2026-11-03, backend-engineer; changes from the shape above)
+184:- Rework r1 (PM CHANGES): added `TestConsumerCancelInsideHandlerNoDLQ` (AC6b) for §3 case 2 (`consumer.go:145-147`, `if ctx.Err() != nil { break records }`). Test-only;
+227:| AC6b ctx cancel inside the handler (added at PM review r1) | `TestConsumerCancelInsideHandlerNoDLQ`: handler fails calls 1–2; on call 3 it cancels ctx and returns an error. Asserts `Start` returns nil, 3 handler calls, 0 `PublishDLQ` calls, 0 commits. The fake publisher does not check ctx, so the test fails if the `ctx.Err()` check after a failed attempt is removed (mutation (e), red in CI) | yes |
+237:wait and inside the handler, commit error (logged, loop continues: a table row in AC1), partition-level poll error, closed client.
+239:All tests are table-driven where there's more than one case. The fakes have **no mutex**: `Start`, the handler, the fake client, publisher and wait all run on the test goroutine. The only cross-goroutine call is the `context.CancelFunc` (AC6 `time.AfterFunc`), which is goroutine-safe, and CI `go test -race` is green.
+328:- Test plan correction: the "Failure paths covered" line and the "a mutex in the fakes" sentence must match the code (change 2 in the report).
+
+[exit code 0]

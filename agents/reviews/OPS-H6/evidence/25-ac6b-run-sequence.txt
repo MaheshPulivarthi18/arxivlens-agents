@@ -1,0 +1,14 @@
+$ bash -c for c in aa4ed67 74e3585 a8a2cf5; do gh api repos/MaheshPulivarthi18/ArxivLens/commits/$c --jq "\"commit \(.sha[0:7]) committed=\(.commit.committer.date) \(.commit.message|split(\"\n\")[0])\""; done; for r in 41657980852 41658339174 41658732637; do gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/$r --jq "\"run \(.id) sha=\(.head_sha[0:7]) created=\(.created_at) updated=\(.updated_at) \(.status) \(.conclusion)\""; done; echo "--- mutation run check runs"; gh api repos/MaheshPulivarthi18/ArxivLens/commits/74e358592119fa658726c2fc6ed1b155ebb8a780/check-runs --jq ".check_runs[] | \"\(.name) | \(.conclusion) | job \(.id)\""
+commit aa4ed67 committed=2026-11-03T14:52:12Z OPS-H6: AC6b test, ctx cancelled inside the handler's last attempt gives no DLQ write and no commit
+commit 74e3585 committed=2026-11-03T14:54:21Z mutation(AC6b): drop ctx check after failed attempt
+commit a8a2cf5 committed=2026-11-03T14:56:43Z revert mutation(AC6b)
+run 41657980852 sha=aa4ed67 created=2026-11-03T14:52:21Z updated=2026-11-03T14:53:52Z completed success
+run 41658339174 sha=74e3585 created=2026-11-03T14:54:29Z updated=2026-11-03T14:55:57Z completed failure
+run 41658732637 sha=a8a2cf5 created=2026-11-03T14:56:50Z updated=2026-11-03T14:58:11Z completed success
+--- mutation run check runs
+Go (vet, gofmt, test, build) | failure | job 125994581866
+Agent ownership check | success | job 125994581833
+Python M0 unit tests | success | job 125994581716
+Frontend (lint, test, build) | success | job 125994581096
+
+[exit code 0]

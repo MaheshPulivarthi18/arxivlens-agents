@@ -1,0 +1,28 @@
+$ bash -c echo "$ git show --stat 74e3585"; git show --stat --format="%H %s" 74e3585; git show --format= 74e3585; echo "$ git diff aa4ed67 a8a2cf5 | wc -l"; git diff aa4ed67 a8a2cf5 | wc -l; echo "$ git log --oneline 7814563..a8a2cf5"; git log --oneline 7814563..a8a2cf5
+$ git show --stat 74e3585
+74e358592119fa658726c2fc6ed1b155ebb8a780 mutation(AC6b): drop ctx check after failed attempt
+
+ internal/kafka/consumer.go | 3 ---
+ 1 file changed, 3 deletions(-)
+diff --git a/internal/kafka/consumer.go b/internal/kafka/consumer.go
+index 07c045a..e7e720a 100644
+--- a/internal/kafka/consumer.go
++++ b/internal/kafka/consumer.go
+@@ -142,9 +142,6 @@ func (c *Consumer) Start(ctx context.Context, handler RecordHandler) error {
+ 				if handleErr == nil {
+ 					break
+ 				}
+-				if ctx.Err() != nil {
+-					break records // shutdown is not a processing failure: no DLQ write, no commit
+-				}
+ 
+ 				log.Printf("[Kafka Consumer] Error processing record (topic=%s, partition=%d, offset=%d, attempt=%d/%d): %v",
+ 					record.Topic, record.Partition, record.Offset, attempt, c.maxRetries, handleErr)
+$ git diff aa4ed67 a8a2cf5 | wc -l
+0
+$ git log --oneline 7814563..a8a2cf5
+a8a2cf5 revert mutation(AC6b)
+74e3585 mutation(AC6b): drop ctx check after failed attempt
+aa4ed67 OPS-H6: AC6b test, ctx cancelled inside the handler's last attempt gives no DLQ write and no commit
+
+[exit code 0]

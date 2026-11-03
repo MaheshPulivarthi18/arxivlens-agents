@@ -1,0 +1,50 @@
+$ bash -c echo "$ git diff --stat 7814563 a8a2cf5"; git diff --stat 7814563 a8a2cf5; echo "$ git diff 7814563 a8a2cf5 -- internal/kafka/consumer.go | wc -l"; git diff 7814563 a8a2cf5 -- internal/kafka/consumer.go | wc -l; echo "$ git diff --numstat origin/main...HEAD"; git diff --numstat origin/main...HEAD; git diff --numstat origin/main...HEAD | awk "{s+=\$1+\$2} END {print \"total changed lines:\", s}"; echo "$ git diff 7814563 a8a2cf5"; git diff 7814563 a8a2cf5; echo "$ fake.PublishDLQ (ignores ctx)"; grep -n "func (f \*fake) PublishDLQ" -A8 internal/kafka/consumer_test.go
+$ git diff --stat 7814563 a8a2cf5
+ internal/kafka/consumer_test.go | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+$ git diff 7814563 a8a2cf5 -- internal/kafka/consumer.go | wc -l
+0
+$ git diff --numstat origin/main...HEAD
+2	0	.github/workflows/ci.yml
+78	16	internal/kafka/consumer.go
+297	14	internal/kafka/consumer_test.go
+total changed lines: 407
+$ git diff 7814563 a8a2cf5
+diff --git a/internal/kafka/consumer_test.go b/internal/kafka/consumer_test.go
+index 988882f..0799b0e 100644
+--- a/internal/kafka/consumer_test.go
++++ b/internal/kafka/consumer_test.go
+@@ -266,6 +266,21 @@ func TestConsumerCancelDuringBackoffReturnsPromptly(t *testing.T) {
+ 	}
+ }
+ 
++// AC6b: ctx cancelled while the handler runs its last attempt → no DLQ write, no commit (fake.PublishDLQ ignores ctx).
++func TestConsumerCancelInsideHandlerNoDLQ(t *testing.T) {
++	f, c := newFake(t, nil, fetchOf(part(0, 5)))
++	calls := 0
++	err := c.Start(f.ctx, func(context.Context, *kgo.Record) error {
++		if calls++; calls == 3 {
++			f.cancel()
++		}
++		return errBoom
++	})
++	if err != nil || calls != 3 || f.payloads != nil || f.grep("commit") != nil {
++		t.Errorf("Start = %v, handler calls = %d, log = %v; want nil, 3, no DLQ write, no commit", err, calls, f.log)
++	}
++}
++
+ func TestConsumerAllowRebalanceAfterEachPoll(t *testing.T) {
+ 	f, c := newFake(t, nil, fetchOf(part(0, 1), part(1, 1)), fetchOf(part(0, 2), part(1, 2)),
+ 		fetchOf(kgo.FetchPartition{Partition: 1, Err: errBoom}))
+$ fake.PublishDLQ (ignores ctx)
+77:func (f *fake) PublishDLQ(_ context.Context, dlqTopic string, p events.DLQPayload) error {
+78-	err := f.dlqErr
+79-	if n := len(f.payloads); n < len(f.dlqErrs) {
+80-		err = f.dlqErrs[n]
+81-	}
+82-	f.topics, f.payloads = append(f.topics, dlqTopic), append(f.payloads, p)
+83-	f.add("dlq %d@%d err=%v", p.Partition, p.Offset, err)
+84-	return err
+85-}
+
+[exit code 0]
