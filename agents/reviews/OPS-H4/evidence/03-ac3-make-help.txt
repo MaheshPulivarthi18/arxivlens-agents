@@ -1,0 +1,11 @@
+$ bash -c make help | grep -E "test-(unit|go|py|fe)"; echo; echo "\$ make -n test-unit"; make -n test-unit
+  test-unit    Fast tests, no infra (Go + M0 + eval data). Frontend tests: make test-fe
+  test-go      Go unit tests
+  test-py      Python unit tests: M0 + eval data (M0 downloads BGE model on first run)
+  test-fe      Frontend tests (available after FE-1)
+
+$ make -n test-unit
+go test ./...
+python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py
+
+[exit code 0]

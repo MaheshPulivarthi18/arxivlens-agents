@@ -1,0 +1,16 @@
+$ /tmp/claude-0/-home-claude/57ae174f-3ecc-5bd2-9b84-56e261eab750/scratchpad/mutate.sh /tmp/claude-0/-home-claude/57ae174f-3ecc-5bd2-9b84-56e261eab750/scratchpad/mut
+== unmodified PR head: pytest -q tests/test_evals_data.py
+47 passed in 0.18s
+
+== mutation 1: duplicate id (line 2 of evals/retrieval.jsonl gets id r001)
+FAILED tests/test_evals_data.py::test_dataset_schema_size_and_corpus_membership[retrieval.jsonl]
+FAILED tests/test_evals_data.py::test_case_ids_unique_across_sets - Assertion...
+2 failed, 45 passed in 0.16s
+exit=1
+
+== mutation 2: relevant paper not in evals/corpus.txt (r001 -> 9999.99999)
+FAILED tests/test_evals_data.py::test_dataset_schema_size_and_corpus_membership[retrieval.jsonl]
+1 failed, 46 passed in 0.18s
+exit=1
+
+[exit code 0]

@@ -1,0 +1,14 @@
+$ bash -c git check-ignore -v evals/results/x.json; echo "exit=$?"; echo "--- tracked files matching ignore rules (expect none):"; git ls-files -ci --exclude-standard; echo "--- tracked files under evals/:"; git ls-files evals
+.gitignore:29:evals/results/	evals/results/x.json
+exit=0
+--- tracked files matching ignore rules (expect none):
+--- tracked files under evals/:
+evals/BASELINE.md
+evals/README.md
+evals/answer.jsonl
+evals/corpus.txt
+evals/refusal.jsonl
+evals/retrieval.jsonl
+evals/thresholds.json
+
+[exit code 0]

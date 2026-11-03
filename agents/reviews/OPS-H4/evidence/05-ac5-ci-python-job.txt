@@ -1,0 +1,9 @@
+$ gh api .../actions/jobs/{125809341567,125824920242}/logs | grep -E 'Run make test-py|pytest -q|passed in'
+== main bb9ee90 job 125809341567
+2026-11-03T08:33:49.6070863Z python3 -m pytest -q tests/test_m0.py
+2026-11-03T08:33:56.1973621Z 3 passed in 5.90s
+== PR head 31682fb job 125824920242
+2026-11-03T09:10:34.3153221Z ##[group]Run make test-py
+2026-11-03T09:10:34.3272014Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py
+2026-11-03T09:10:41.6869387Z 50 passed in 6.47s
+

@@ -1,0 +1,40 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; git diff origin/main...HEAD
+ .gitignore | 1 +
+ Makefile   | 6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index 1593d9d..ae45223 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -26,6 +26,7 @@ yarn-error.log*
+ .cache/
+ *.pdf
+ data/
++evals/results/
+ 
+ # --- Secrets / env ---
+ .env
+diff --git a/Makefile b/Makefile
+index 30bd71d..7b75a9b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -39,13 +39,13 @@ lint-fe: ## oxlint on the frontend
+ 	cd frontend && npm run lint
+ 
+ # --- tests -------------------------------------------------------------------
+-test-unit: test-go test-py ## Fast tests, no infra (Go + M0). Frontend tests: make test-fe
++test-unit: test-go test-py ## Fast tests, no infra (Go + M0 + eval data). Frontend tests: make test-fe
+ 
+ test-go: ## Go unit tests
+ 	go test ./...
+ 
+-test-py: ## M0 Python unit tests (downloads BGE model on first run)
+-	$(PYTEST) -q tests/test_m0.py
++test-py: ## Python unit tests: M0 + eval data (M0 downloads BGE model on first run)
++	$(PYTEST) -q tests/test_m0.py tests/test_evals_data.py
+ 
+ test-fe: ## Frontend tests (available after FE-1)
+ 	@cd frontend && if npm run | grep -q " test"; then npm test; else echo "no frontend tests yet (FE-1)"; fi
+
+[exit code 0]

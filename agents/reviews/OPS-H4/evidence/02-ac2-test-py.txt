@@ -1,0 +1,14 @@
+$ bash -c echo "\$ make -n test-py"; make -n test-py; echo; echo "\$ python3 -m pytest -q tests/test_evals_data.py"; python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py 2>&1 | tail -2; echo; echo "\$ make test-py  (local: no torch, so test_m0.py collection fails; CI is source of truth, see 05)"; make test-py 2>&1 | tail -3; true
+$ make -n test-py
+python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py
+
+$ python3 -m pytest -q tests/test_evals_data.py
+...............................................                          [100%]
+47 passed in 0.11s
+
+$ make test-py  (local: no torch, so test_m0.py collection fails; CI is source of truth, see 05)
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.29s
+make: *** [Makefile:48: test-py] Error 2
+
+[exit code 0]

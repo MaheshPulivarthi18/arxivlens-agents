@@ -1,0 +1,26 @@
+$ gh api .../actions/jobs/{125824920370,125824920242}/logs (excerpts)
+== Go job 125824920370 (make lint-go, make test-go)
+2026-11-03T09:09:46.5652376Z ##[group]Run make lint-go
+2026-11-03T09:09:46.5652766Z [36;1mmake lint-go[0m
+2026-11-03T09:09:46.5795485Z go vet ./...
+2026-11-03T09:09:47.8505018Z ##[group]Run make test-go
+2026-11-03T09:09:47.8505332Z [36;1mmake test-go[0m
+2026-11-03T09:09:47.8605629Z go test ./...
+2026-11-03T09:09:48.3949133Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-03T09:09:48.3977577Z ?   	arxivlens/internal/config	[no test files]
+2026-11-03T09:09:49.5900730Z ok  	arxivlens/internal/crawler	0.005s
+2026-11-03T09:09:49.5910983Z ?   	arxivlens/internal/db	[no test files]
+2026-11-03T09:09:49.5960062Z ?   	arxivlens/internal/dlq	[no test files]
+2026-11-03T09:09:49.5960869Z ?   	arxivlens/internal/downloader	[no test files]
+2026-11-03T09:09:49.9431642Z ok  	arxivlens/internal/kafka	0.004s
+2026-11-03T09:09:50.1939298Z ok  	arxivlens/internal/query	0.007s
+2026-11-03T09:09:50.1940111Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-03T09:09:50.1940666Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-03T09:09:50.1941167Z ?   	arxivlens/shared/events	[no test files]
+2026-11-03T09:09:50.2135518Z ##[group]Run make build-go
+
+== Python job 125824920242 (make test-py)
+2026-11-03T09:10:34.3153221Z ##[group]Run make test-py
+2026-11-03T09:10:34.3272014Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py
+2026-11-03T09:10:41.6869387Z 50 passed in 6.47s
+
