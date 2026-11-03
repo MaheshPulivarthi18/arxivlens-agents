@@ -255,3 +255,50 @@ Total test runtime target: < 1 s, with no real waits except AC6's ≤ 200 ms.
 4. **Follow-ups G1/G2** (§5): file as Backlog?
 
 ## PM decision
+**Decision: APPROVED with binding conditions** (pm-lead, 2026-11-03, design at `e7dadd1`, code at `9c1229a`).
+
+Why: the design answers all six "Design must answer" items. Retrying the DLQ write in place is the right mechanism. The single
+sequential loop makes "nothing at or after N is committed" structural, so cumulative commits can't sweep the record up. The handler
+isn't re-run (arXiv politeness, Product PRD §7). A Kafka blip doesn't turn into a crash loop while workers are unsupervised (OPS-H1).
+The stall is loud: a CRITICAL log every round plus consumer lag, and no data is lost. That fits OPS-1/§5.3. I re-checked the code refs
+(`consumer.go:30`, `:71-76`, `:102`, `:129-139`) against `9c1229a`. There's one test per AC, and the failure paths are listed.
+
+Answers to the open questions:
+1. **AC3: mechanism accepted. AC3 is amended in the ticket** to: DLQ write retried in place (≥ 2 `PublishDLQ` calls for @5), handler
+   for @5 called exactly 3×, @6 never handled, no commit for p0 at offset ≥ 5, and `Start` returns nil when ctx ends.
+2. **§6 (a poll error drops the whole poll): accepted in this task** as new **AC12**. It's the same L4 bug in the same function. Limits: only
+   `consumer.go` + `consumer_test.go`, and one test (`TestConsumerPollErrorStillProcessesRecords`; a table row for `kgo.ErrClientClosed` → `Start`
+   returns it is allowed and expected). If the PR would go over 400 changed lines, cut §6 into a follow-up. Don't trim AC1–AC10 tests to make room.
+3. **Evidence.**
+   - **No `Makefile` change in this PR.** OPS-H1 runs in parallel and changes `Makefile` (AGENTS.md §3: parallel tasks must not touch the
+     same files). Changing `test-go` to `-race -count=1` is a follow-up for after OPS-H1 merges (ticket Notes).
+   - **Option (a) accepted, in `.github/workflows/ci.yml` only** (OPS-H1 is barred from `ci.yml`). Add one step to the `go` job, after
+     `make test-go`, named `Kafka consumer tests (verbose, race, coverage)`, that runs:
+     `go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go`.
+     That's ≤ 3 lines; no other workflow changes.
+   - **AC10, how mutations are evidenced** (QA never pushes to ArxivLens; only the owning developer pushes to `agent/backend/OPS-H6`):
+     before moving the ticket to In QA, the developer pushes each mutation as its own commit, then a revert commit. Commit
+     messages are `mutation(AC10a): commit after failed PublishDLQ` and `mutation(AC10b): time.Sleep instead of c.wait`, each followed by
+     `revert mutation(AC10x)`. Each mutation commit holds **only** that mutation in `consumer.go`, with no test edits.
+     **Wait for that commit's CI run to finish before pushing the next commit**: `ci.yml` has `concurrency: cancel-in-progress: true`,
+     so a quick push would cancel the run and leave no evidence. The developer lists the mutation SHAs and run URLs in the ticket Notes.
+     QA checks the evidence on its own: it opens each mutation commit's diff on GitHub, confirms the diff is exactly the stated mutation,
+     confirms that run's `go` job is red with a named failing test, and confirms the final head is green and its tree has `consumer.go`
+     identical to the pre-mutation commit (`git diff <pre> <head> -- internal/kafka/` is empty). Mutations (c) and (d) from the test plan
+     are optional; QA may request them in a FAIL report, and the developer runs them the same way. If CI is red on a mutation only because of
+     a compile error, the mutation doesn't count. Mahesh merges with squash or rebase, either way the reverts net to zero.
+   - Local evidence: "not run locally: Go 1.24.7, no franz-go" is acceptable. CI is the source of truth.
+4. **G1 and G2 are filed in the board Backlog.** G3 isn't filed: it needs an envelope ADR, and we don't propose one now.
+
+Binding conditions (QA checks each one):
+- C1. The diff touches only `internal/kafka/consumer.go`, `internal/kafka/consumer_test.go` and the one `ci.yml` step above. It touches
+  `CONTRIBUTING.md:57` only if OPS-H1 has merged before this PR is built. No `Makefile`, no `README.md` (README:39 stays until OPS-H8), and no `cmd/`.
+  Total diff stays under 400 changed lines.
+- C2. Before writing code, verify the franz-go v1.16.1 `BlockRebalanceOnPoll` / `AllowRebalance` doc text against the source
+  (pkg.go.dev or the module source, if reachable). Correct §4 of this design if it differs. If neither is reachable, write "doc quote unverified"
+  in Notes, and QA checks it against the v1.16.1 source on GitHub.
+- C3. `maxRetries`, `retryBackoff`, the `DLQPayload` fields and `NewConsumer`'s signature are unchanged. `FailedAt` is set once per record.
+- C4. The CRITICAL DLQ-failure log uses the exact format in §7. Logs never include the record value or the payload (AC9).
+- C5. Every wait goes through `c.wait`. There is no busy loop: the fakes in the AC3/AC4 tests assert the recorded wait durations.
+- C6. The §8.1/§8.2 sequence text from §7 goes in the ticket Notes for pm-lead's docs PR.
+- C7. AC11: "not run: no stack" plus the command is acceptable unless OPS-H1 has merged. In that case, run it via `stack.yml` on this branch.
