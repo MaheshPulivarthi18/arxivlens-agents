@@ -181,6 +181,8 @@ original indentation, so the unchanged lines (traceparent, retry log, `DLQPayloa
 - `waitFunc` is the struct field type `func(ctx, d) error`, with no named type. The `nil` DLQ check is inline (`errNoDLQPublisher`).
 - C2: the franz-go v1.16.1 doc quote in §4 is **unverified** (proxy.golang.org, raw.githubusercontent.com and the twmb/franz-go API are
   unreachable from the sandbox). QA checks it against the v1.16.1 source.
+- Rework r1 (PM CHANGES): added `TestConsumerCancelInsideHandlerNoDLQ` (AC6b) for §3 case 2 (`consumer.go:145-147`, `if ctx.Err() != nil { break records }`). Test-only;
+  `consumer.go` is unchanged from `7814563`. Diff is 407 changed lines (amended C1 cap 420). Mutation (e), which removes that check, is red in CI on this test only.
 
 ## Alternatives considered
 1. **Rewind the partition (`SetOffsets` to N), skip the rest of that partition for this poll, redeliver next poll.** Other
@@ -222,6 +224,7 @@ All tests are in `internal/kafka/consumer_test.go`, package `kafka`, stdlib plus
 | AC4 recovery | `TestConsumerDLQRecovers`: DLQ fails, fails, then ok. Asserts exactly 1 successful DLQ message, 1 commit (after it), handler calls == 3 (bounded: not re-run per round), DLQ waits `[1s, 2s]` recorded by fakeWait (context-aware wait between rounds, no busy loop) | yes |
 | AC5 nil producer | `TestNewConsumerRejectsNilProducer` (constructor returns an error, no client created). `TestConsumerNilDLQIsFailedPublish` (struct literal with `dlq: nil`, behaves as AC3: no commit) | yes |
 | AC6 ctx cancel in backoff | `TestConsumerCancelDuringBackoffReturnsPromptly`: real `ctxWait`, `backoff` returns 5s, handler fails and a goroutine cancels ctx 20 ms later. Asserts `Start` returns in < 200 ms, 0 commits, 0 DLQ calls. Plus `TestCtxWait` table (expires → nil; cancelled → `context.Canceled` within 50 ms). The grep in Verification proves no `time.Sleep` | yes (grep: QA/PR evidence) |
+| AC6b ctx cancel inside the handler (added at PM review r1) | `TestConsumerCancelInsideHandlerNoDLQ`: handler fails calls 1–2; on call 3 it cancels ctx and returns an error. Asserts `Start` returns nil, 3 handler calls, 0 `PublishDLQ` calls, 0 commits. The fake publisher does not check ctx, so the test fails if the `ctx.Err()` check after a failed attempt is removed (mutation (e), red in CI) | yes |
 | AC7 real loop schedule | `TestRetrySleepSchedule` **rewritten**: drives `Start` with fakeWait and an always-failing handler, DLQ ok, and asserts waits == `[200ms, 400ms]`. `TestRetryBackoff` kept unchanged; `TestDLQRetryBackoff` table added (1,2,4,8,16,30,30 s) | yes |
 | AC8 AllowRebalance | `TestConsumerAllowRebalanceAfterEachPoll`: 2 polls with 2 records each (2 partitions) plus 1 poll that has only an error. Asserts log order `poll, commit, commit, allow, poll, commit, commit, allow, poll, allow`: exactly one `allow` per poll, after that poll's commits | yes |
 | AC9 log hygiene | `TestConsumerDLQFailureLogNoValue`: `log.SetOutput(&buf)` (restored in `t.Cleanup`), record value contains the sentinel `SENTINEL-VALUE-7f3a`, DLQ fails once then ok. Asserts that the log contains the topic, `partition=0`, `offset=5` and the error text, and does **not** contain the sentinel | yes |
@@ -233,7 +236,7 @@ All tests are in `internal/kafka/consumer_test.go`, package `kafka`, stdlib plus
 Failure paths covered: handler error ×1/×2/×3, DLQ error transient and permanent, nil publisher, ctx cancel in a handler wait, in a DLQ
 wait and inside the handler, commit error (logged, loop continues: a table row in AC1), partition-level poll error, closed client.
 
-All tests are table-driven where there's more than one case. They use `-race`-safe fakes (a mutex in the fakes, since the AC6 cancel goroutine shares state).
+All tests are table-driven where there's more than one case. The fakes have **no mutex**: `Start`, the handler, the fake client, publisher and wait all run on the test goroutine. The only cross-goroutine call is the `context.CancelFunc` (AC6 `time.AfterFunc`), which is goroutine-safe, and CI `go test -race` is green.
 Total test runtime target: < 1 s, with no real waits except AC6's ≤ 200 ms.
 
 **Docs wording (for Notes; edit only after OPS-H1 merges):**

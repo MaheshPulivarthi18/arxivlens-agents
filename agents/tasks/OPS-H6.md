@@ -145,8 +145,16 @@ CI is the source of truth for Go: local sandboxes have Go 1.24.7, so a stdlib-on
     ```
     With this, §8.1 L4 holds for the Go consumer. The Python consumer doesn't hold it until OPS-H8.
 - 2026-11-03 (pm-lead, final review round 1): **CHANGES** (QA PASS at `7814563`). Rework checklist (details in `agents/reviews/OPS-H6/report.md`):
-  - [ ] 1. AC6b test: handler cancels ctx on its 3rd call and returns an error → 0 `PublishDLQ` calls, 0 commits, `Start` returns nil. Fake publisher must **not** check ctx (so the test fails if the branch is removed).
-  - [ ] 2. Mutation (e) `mutation(AC6b): drop ctx check after failed attempt` + `revert mutation(AC6b)`, same method as AC10 (wait for each CI run; list SHA + run URL here).
-  - [ ] 3. Design doc (this repo): fix the test plan's "a mutex in the fakes" sentence (there is none; state why `-race` is clean) and record the AC6b test in §7a.
+  - [x] 1. AC6b test: handler cancels ctx on its 3rd call and returns an error → 0 `PublishDLQ` calls, 0 commits, `Start` returns nil. Fake publisher must **not** check ctx (so the test fails if the branch is removed).
+  - [x] 2. Mutation (e) `mutation(AC6b): drop ctx check after failed attempt` + `revert mutation(AC6b)`, same method as AC10 (wait for each CI run; list SHA + run URL here).
+  - [x] 3. Design doc (this repo): fix the test plan's "a mutex in the fakes" sentence (there is none; state why `-race` is clean) and record the AC6b test in §7a.
   - Diff cap: ≤ 420 changed lines, for the added test only (design C1 amended). No other code changes this round.
   - Not changes: C2 closes as "verified by Mahesh at PR review" (design PM decision addendum); shutdown "Poll error … context canceled" log → Backlog; revert `36d6ef5` without CI accepted (tree = green `b6b9383`).
+- 2026-11-03 (backend-engineer, rework round 1 done; final head **`a8a2cf5431a5725cf675deaeeb91cc6a1811a890`**, green: [run 41658732637](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41658732637)):
+  - Item 1: `aa4ed67` adds `TestConsumerCancelInsideHandlerNoDLQ` (test-only, +15 lines in `consumer_test.go`). The handler closure fails on calls 1–2, and on call 3 it cancels ctx and returns `errBoom`.
+    It asserts `Start` returns nil, 3 calls, `f.payloads == nil` (0 `PublishDLQ`) and no commits. `fake.PublishDLQ` ignores ctx. CI green: [run 41657980852](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41657980852).
+    `ownership-check.sh` → `Ownership OK for role=backend (407 changed lines)` (cap 420). `git diff 7814563 a8a2cf5 -- internal/kafka/consumer.go` is empty. `Start` coverage is now 100.0% (was 97.9%).
+  - Item 2: `74e3585` `mutation(AC6b): drop ctx check after failed attempt` (removes only `consumer.go:145-147`, 3 deletions) → red, [run 41658339174](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41658339174)
+    (Go job 125994581866; `go vet` passed; the only failure is `--- FAIL: TestConsumerCancelInsideHandlerNoDLQ` with `log = [poll dlq 0@5 err=<nil> commit 0@5 allow]`). The run finished before the next push.
+    `a8a2cf5` `revert mutation(AC6b)` → green, [run 41658732637](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41658732637) (run completed, success). `git diff aa4ed67 a8a2cf5` is empty.
+  - Item 3: `docs/design/OPS-H6.md` now says there is no mutex, and why `-race` is clean. AC6b is in the test plan and §7a.
