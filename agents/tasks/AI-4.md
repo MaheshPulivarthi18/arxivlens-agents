@@ -8,7 +8,7 @@
 | **Depends on** | RET-1 (adds `withTraceID` in `search.go`), EVAL-1 (adds `test_rrf_pool_sql_mirrors_search_go`); both merged |
 | **Jira** | find with JQL `labels = "task-AI-4"` |
 | **Design required** | no (P2, no contract change) |
-| **Status** | Ready (start after AI-2 merges: same files `rag.go`/`rag_test.go`, same owner) |
+| **Status** | Ready (AI-2 merged `9c1229a`) |
 
 ## Goal
 When reranking falls back to RRF order during `/v1/ask`, the log line should carry the same `trace_id` the user gets in

@@ -153,3 +153,6 @@ Format:
 
 ## 2026-11-03 — OPS-H4 — done
 - PR #12 merged by Mahesh as `211adbf`; Jira KAN-16 → Done. `make test-py` now runs the eval-data tests on every PR.
+
+## 2026-11-03 — AI-2 — done
+- PR #11 merged by Mahesh as `9c1229a`; Jira KAN-10 → Done. Unverifiable citations are now unsupported (score 0). AI-3 and AI-4 have their dependencies met; pm-lead's PRD QA-4 docs PR is now due.

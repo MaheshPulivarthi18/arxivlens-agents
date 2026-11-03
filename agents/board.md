@@ -13,8 +13,8 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 |
 | [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 |
 | [FE-2](tasks/FE-2.md) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 |
-| [AI-3](tasks/AI-3.md) | Batch embedding in RAG validation | ai-engineer | P1 | AI-1, AI-2 (#11) |
-| [AI-4](tasks/AI-4.md) | `/v1/ask` passes trace ID to `HybridSearch`; harden ADR-0010 parity guard (KAN-27) | ai-engineer | P2 | AI-2 merged (same files) |
+| [AI-3](tasks/AI-3.md) | Batch embedding in RAG validation | ai-engineer | P1 | AI-1, AI-2 (both merged) |
+| [AI-4](tasks/AI-4.md) | `/v1/ask` passes trace ID to `HybridSearch`; harden ADR-0010 parity guard (KAN-27) | ai-engineer | P2 | — (AI-2 merged) |
 | [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate + eval-test hardening (EVAL-1 QA r3 nits, AC6–AC9) + RET-1 p95/eval measurement (AC10) | ai-engineer | P2 | EVAL-1 (AC10: RET-1 merged + infra) |
 
 ## In progress
@@ -32,7 +32,6 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
-| [AI-2](tasks/AI-2.md) | Fail closed when citation support can't be verified, `c9ae07c` (KAN-10) | ai-engineer | [#11](https://github.com/MaheshPulivarthi18/ArxivLens/pull/11) (ready for review) | QA PASS r1 · PM APPROVE r1 ([report](reviews/AI-2/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -45,7 +44,7 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 - From the OPS-H3 review: `ExtractCleanArxivID` should match only a whole ID and support old-style IDs the crawler stores (needs a product decision); add more pinning tests; add `go test -cover` to CI; make the retry sleep injectable (see OPS-H3 Notes)
 - From the #8 review: some code comments cite PRD sections (`§4`, `§6 Tier 1`) that now live in this repo; reword or link them (backend/ai, nit)
 - From the AI-2 review (ai, P2, after AI-4, same files): assert `sentence_embed_errors` / `chunks_without_vector` log counters, mixed verified+unverified test (`unverified=1 citations=2`), log sentence/chunk dimension mismatch as unverified
-- pm-lead docs PR after #11 merges: Product PRD QA-4 ◐ → ✅, drop AI-2 caveat in §8 supported row, Technical PRD §9 known-gap paragraph
+- pm-lead docs PR now due (#11 merged): Product PRD QA-4 ◐ → ✅, drop AI-2 caveat in §8 supported row, Technical PRD §9 known-gap paragraph
 - backend docs nit: `CONTRIBUTING.md:28,54` still say "once EVAL-1 lands"; AGENTS.md §2 ownership table omits `.gitignore` for backend (CI script allows it)
 - FE-1 note: `ReferencesStack.jsx` shows "{score}% Verified" even when `supported=false` (after AI-2, outage shows "0.0% Verified")
 - backend nits from the RET-1 review (fold into the next `search.go` change): `context.Canceled` fallback test case, `±Inf` score test
@@ -67,6 +66,7 @@ Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and 
 ## Done
 | ID | Title | PR |
 |---|---|---|
+| [AI-2](tasks/AI-2.md) | Fail closed when citation support can't be verified | ArxivLens [#11](https://github.com/MaheshPulivarthi18/ArxivLens/pull/11) → 9c1229a (KAN-10) |
 | [OPS-H4](tasks/OPS-H4.md) | Ignore `evals/results/` + eval-data tests in `make test-py` | ArxivLens [#12](https://github.com/MaheshPulivarthi18/ArxivLens/pull/12) → 211adbf (KAN-16) |
 | [RET-1](tasks/RET-1.md) | Rerank a 20-candidate pool and sort by rerank score (ADR-0010) | ArxivLens [#9](https://github.com/MaheshPulivarthi18/ArxivLens/pull/9) → bb9ee90 (KAN-24) |
 | [AI-1](tasks/AI-1.md) | Unit tests for `rag.go` filtering and citation validation | ArxivLens [#10](https://github.com/MaheshPulivarthi18/ArxivLens/pull/10) → 4702daa (KAN-9) |

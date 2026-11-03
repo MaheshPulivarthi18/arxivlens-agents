@@ -6,7 +6,7 @@
 | **Priority** | P1 (it inflates the gated supported-citation metric) |
 | **PRD ref** | QA-4; Product PRD §7 "Say I don't know"; Product PRD §8 supported ≥ 90% |
 | **Depends on** | AI-1 (test harness and fakes for `rag.go`; same file, so do it after AI-1 to avoid conflicts) |
-| **Status** | Ready to merge (QA PASS + PM APPROVE, PR #11) |
+| **Status** | Done (PR #11 merged by Mahesh as `9c1229a`, 2026-11-03) |
 
 ## Goal
 In `internal/query/rag.go`, when the sentence embedding call fails or the cited chunk has no embedding, the citation is
