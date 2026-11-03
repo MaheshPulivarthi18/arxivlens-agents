@@ -80,3 +80,7 @@ Format:
 - Agent: human + setup · Attempts: 1 · Review rounds: 0 · PR: (this PR)
 - Summary: Added agent team (4 roles), memory layout (`agents/`), ADRs 0001–0005 as Proposed, initial backlog of 10 tasks, Makefile harness, CI.
 - Blockers / follow-ups: Human to decide ADR-0001..0005. QA-8 waits on ADR-0001/0002.
+
+## 2026-11-03 09:15 IST — orchestrator (interactive)
+- EVAL-1: PR #2 squash-merged at Mahesh's request after a final check (CI 4/4 green, 47 eval tests pass locally, no workspace files or secrets in the diff) → `a959d03`. Jira KAN-8 → Done. Unblocks the RET-1 (#9) merge, OPS-H4 and AI-4.
+- Scheduled sprint task recreated with both repos attached (old one could not push to arxivlens-agents); old task disabled.

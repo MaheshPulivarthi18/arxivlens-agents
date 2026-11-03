@@ -34,7 +34,6 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
-| [EVAL-1](tasks/EVAL-1.md) | Versioned golden eval sets + `make eval` gate (round 3, `d83a4c0`) | ai-engineer | [#2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2) (ready for review, `ready-to-merge`) | QA PASS r3 · PM APPROVE r3 ([report](reviews/EVAL-1/report.md)) |
 | [RET-1](tasks/RET-1.md) | Rerank a 20-candidate pool and sort by rerank score (ADR-0010), `831905e`. **Merge after #2.** | backend-engineer | [#9](https://github.com/MaheshPulivarthi18/ArxivLens/pull/9) (ready for review) | QA PASS r1 · PM APPROVE r1 ([report](reviews/RET-1/report.md)) |
 
 ## Blocked
@@ -66,6 +65,7 @@ Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and 
 ## Done
 | ID | Title | PR |
 |---|---|---|
+| [EVAL-1](tasks/EVAL-1.md) | Versioned golden eval sets + `make eval` gate | ArxivLens [#2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2) → a959d03 (KAN-8) |
 | [OPS-H3](tasks/OPS-H3.md) | Baseline Go unit tests (arXiv ID, Atom parsing, retry backoff) | ArxivLens [#6](https://github.com/MaheshPulivarthi18/ArxivLens/pull/6) → 72c82ac (KAN-15) |
 | REPO-SPLIT | ArxivLens is code-only; planning moved here | ArxivLens [#8](https://github.com/MaheshPulivarthi18/ArxivLens/pull/8) → 18a3cf9 |
 | [PM-1](tasks/PM-1.md) | Reconcile PRD status columns + acceptance criteria (QA PASS r2 · PM APPROVE) | ArxivLens #3 closed; content landed in arxivlens-agents' first commit (repo split, approved by Mahesh 2026-11-02) |

@@ -6,7 +6,7 @@
 | **Priority** | P0 (QA-8 cannot be judged without it) |
 | **PRD ref** | Product PRD §8 Success metrics |
 | **Depends on** | — (runs against whatever corpus is indexed; works best after OPS-H1) |
-| **Status** | Ready to merge (QA PASS r3 + PM APPROVE r3; PR #2 ready for review at `d83a4c0`) |
+| **Status** | Done (PR #2 squash-merged as `a959d03` on 2026-11-03) |
 
 ## Goal
 The PRD's quality targets (Recall@5 ≥ 0.80, supported ≥ 90%, refusal ≥ 95%) have no versioned dataset behind them.
