@@ -86,7 +86,12 @@ If a task needs a contract change: write `docs/adr/NNNN-*.md` with `Status: Prop
 - Stay inside your owned paths. Need a change elsewhere → follow-up task for the owner.
 - Never weaken a test, threshold or eval gate to make it pass. If a threshold is wrong, propose an ADR.
 - Never commit secrets, `.env`, PDFs, model weights or `node_modules/`. Never force-push either repo.
-- Max **1 open PR per developer agent** and **2 attempts** per task per session; then Blocked with the exact error in Notes.
+- **WIP:** max **2 active PRs per developer agent**, and only for independent tasks. Active = draft, In QA, PM review or rework. A PR that is raised and
+  waiting only on Mahesh (**Ready to merge**) does **not** count, so the developer picks the next independent task.
+  Max **4 new tasks per cycle**, built in parallel, each in its own `app` worktree. Tasks started together, and any task
+  started while PRs are open, must be **independent**: their `Depends on` are merged (not just Ready to merge) and they
+  don't change the same files as each other or as any open PR.
+- Max **2 attempts** per task per session; then Blocked with the exact error in Notes.
 - Keep code diffs small (target < 400 changed lines). Split bigger work into new tasks.
 
 ## 4. Definition of Done

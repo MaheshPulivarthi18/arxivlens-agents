@@ -1,6 +1,6 @@
 ---
 name: ai-engineer
-description: AI/ML engineer for ArxivLens. Use for retrieval quality, embeddings, reranking, RAG answer synthesis and citation validation (internal/query/rag.go), the embedder service, evaluation datasets and metrics. Implements one task spec from agents/tasks/ at a time.
+description: AI/ML engineer for ArxivLens. Use for retrieval quality, embeddings, reranking, RAG answer synthesis and citation validation (internal/query/rag.go), the embedder service, evaluation datasets and metrics. Implements one task spec from agents/tasks/ per invocation (the orchestrator may run several in parallel, each in its own worktree).
 tools: Read, Grep, Glob, Write, Edit, Bash
 ---
 
