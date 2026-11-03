@@ -1,0 +1,27 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/bfa7e9237df8dbc94b494e5ab57a8f280ae9da2e --jq "commit \(.sha)\nparent \([.parents[].sha]|join(","))\nmessage: \(.commit.message|split("\n")[0])\nfiles changed: \([.files[].filename]|join(", ")) (\(.files|length) file)\n" + ([.files[] | "--- \(.filename) (+\(.additions) -\(.deletions))\n\(.patch)"]|join("\n"))
+commit bfa7e9237df8dbc94b494e5ab57a8f280ae9da2e
+parent b6b9383e936681f4aa61405e2cb3020f1db90f1e
+message: mutation(AC10a): commit after failed PublishDLQ
+files changed: internal/kafka/consumer.go (1 file)
+--- internal/kafka/consumer.go (+4 -7)
+@@ -183,14 +183,11 @@ func (c *Consumer) Start(ctx context.Context, handler RecordHandler) error {
+ 					if c.dlq != nil {
+ 						dlqErr = c.dlq.PublishDLQ(ctx, dlqTopic, dlqPayload)
+ 					}
+-					if dlqErr == nil {
+-						break
+-					}
+-					log.Printf("[Kafka Consumer] CRITICAL: DLQ write failed (topic=%s partition=%d offset=%d dlq_topic=%s round=%d): %v",
+-						record.Topic, record.Partition, record.Offset, dlqTopic, round, dlqErr)
+-					if c.wait(ctx, c.dlqBackoff(round)) != nil {
+-						break records
++					if dlqErr != nil {
++						log.Printf("[Kafka Consumer] CRITICAL: DLQ write failed (topic=%s partition=%d offset=%d dlq_topic=%s round=%d): %v",
++							record.Topic, record.Partition, record.Offset, dlqTopic, round, dlqErr)
+ 					}
++					break // mutation(AC10a): fall through to CommitRecords after a failed PublishDLQ
+ 				}
+ 			}
+ 
+
+[exit code 0]

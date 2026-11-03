@@ -1,0 +1,19 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/10215606a79813ab16c1d697e4bc23f6bdb160f6 --jq "commit \(.sha)\nparent \([.parents[].sha]|join(","))\nmessage: \(.commit.message|split("\n")[0])\nfiles changed: \([.files[].filename]|join(", ")) (\(.files|length) file)\n" + ([.files[] | "--- \(.filename) (+\(.additions) -\(.deletions))\n\(.patch)"]|join("\n"))
+commit 10215606a79813ab16c1d697e4bc23f6bdb160f6
+parent 36d6ef515f721469c32d3b35d896ad1b3bf11240
+message: mutation(AC10b): time.Sleep instead of c.wait
+files changed: internal/kafka/consumer.go (1 file)
+--- internal/kafka/consumer.go (+2 -2)
+@@ -149,8 +149,8 @@ func (c *Consumer) Start(ctx context.Context, handler RecordHandler) error {
+ 				log.Printf("[Kafka Consumer] Error processing record (topic=%s, partition=%d, offset=%d, attempt=%d/%d): %v",
+ 					record.Topic, record.Partition, record.Offset, attempt, c.maxRetries, handleErr)
+ 
+-				if attempt < c.maxRetries && c.wait(ctx, c.backoff(attempt)) != nil {
+-					break records
++				if attempt < c.maxRetries {
++					time.Sleep(c.backoff(attempt)) // mutation(AC10b): time.Sleep instead of c.wait
+ 				}
+ 			}
+ 
+
+[exit code 0]

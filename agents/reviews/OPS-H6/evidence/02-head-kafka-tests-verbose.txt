@@ -1,0 +1,44 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/125985942673/logs | cut -c30- | grep -E '^(--- |    --- |PASS|FAIL|ok  )|consumer.go:|go test -race|make (lint|test)-go|gofmt|go vet'
+Complete job name: Go (vet, gofmt, test, build)
+##[group]Run make lint-go
+[36;1mmake lint-go[0m
+go vet ./...
+##[group]Run make test-go
+[36;1mmake test-go[0m
+ok  	arxivlens/internal/crawler	0.006s
+ok  	arxivlens/internal/kafka	0.032s
+ok  	arxivlens/internal/query	0.007s
+##[group]Run go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go
+[36;1mgo test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go[0m
+--- PASS: TestRetryBackoff (0.00s)
+--- PASS: TestDLQRetryBackoff (0.00s)
+--- PASS: TestCtxWait (0.01s)
+--- PASS: TestRetrySleepSchedule (0.00s)
+--- PASS: TestConsumerSuccessPath (0.00s)
+    --- PASS: TestConsumerSuccessPath/ok_on_1st (0.00s)
+    --- PASS: TestConsumerSuccessPath/ok_after_1_failure (0.00s)
+    --- PASS: TestConsumerSuccessPath/ok_after_2_failures (0.00s)
+    --- PASS: TestConsumerSuccessPath/commit_error_is_logged,_loop_continues (0.00s)
+--- PASS: TestConsumerDLQThenCommit (0.00s)
+--- PASS: TestConsumerDLQFailureBlocksPartition (0.00s)
+    --- PASS: TestConsumerDLQFailureBlocksPartition/failing_record_first (0.00s)
+    --- PASS: TestConsumerDLQFailureBlocksPartition/earlier_record_in_the_poll_is_committed (0.00s)
+--- PASS: TestConsumerDLQRecovers (0.00s)
+--- PASS: TestNewConsumerRejectsNilProducer (0.00s)
+--- PASS: TestConsumerNilDLQIsFailedPublish (0.00s)
+--- PASS: TestConsumerCancelDuringBackoffReturnsPromptly (0.02s)
+--- PASS: TestConsumerAllowRebalanceAfterEachPoll (0.00s)
+--- PASS: TestConsumerDLQFailureLogNoValue (0.00s)
+--- PASS: TestConsumerPollErrorStillProcessesRecords (0.00s)
+    --- PASS: TestConsumerPollErrorStillProcessesRecords/partition_error,_other_partition_handled (0.00s)
+    --- PASS: TestConsumerPollErrorStillProcessesRecords/client_closed_returns_the_error (0.00s)
+PASS
+ok  	arxivlens/internal/kafka	1.050s	coverage: 61.8% of statements
+arxivlens/internal/kafka/consumer.go:42:	NewConsumer	28.6%
+arxivlens/internal/kafka/consumer.go:72:	Close		0.0%
+arxivlens/internal/kafka/consumer.go:79:	retryBackoff	100.0%
+arxivlens/internal/kafka/consumer.go:84:	dlqRetryBackoff	100.0%
+arxivlens/internal/kafka/consumer.go:89:	ctxWait		100.0%
+arxivlens/internal/kafka/consumer.go:101:	Start		97.9%
+
+[exit code 0]

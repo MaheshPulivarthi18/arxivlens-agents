@@ -1,0 +1,24 @@
+$ bash -c grep -n franz-go go.mod; echo; for p in 'repos/twmb/franz-go/contents/pkg/kgo/config.go?ref=v1.16.1' 'repos/twmb/franz-go/git/refs/tags/v1.16.1'; do echo "$ gh api $p"; gh api "$p" 2>&1 | cut -c1-200; echo; done; for u in https://proxy.golang.org/github.com/twmb/franz-go/@v/v1.16.1.info https://pkg.go.dev/github.com/twmb/franz-go@v1.16.1/pkg/kgo https://raw.githubusercontent.com/twmb/franz-go/v1.16.1/pkg/kgo/config.go; do echo "$ curl $u"; curl -sS -m 20 -o /dev/null -w 'http=%{http_code}\n' $u 2>&1; done; echo; echo 'module cache:'; ls $(go env GOMODCACHE 2>/dev/null)/github.com/twmb 2>&1
+10:	github.com/twmb/franz-go v1.16.1
+30:	github.com/twmb/franz-go/pkg/kmsg v1.7.0 // indirect
+
+$ gh api repos/twmb/franz-go/contents/pkg/kgo/config.go?ref=v1.16.1
+{"message":"GitHub access to this repository is not enabled for this session. Use add_repo to request access. If add_repo answers that read access is already available and you need GitHub API or write
+
+$ gh api repos/twmb/franz-go/git/refs/tags/v1.16.1
+{"message":"GitHub access to this repository is not enabled for this session. Use add_repo to request access. If add_repo answers that read access is already available and you need GitHub API or write
+
+$ curl https://proxy.golang.org/github.com/twmb/franz-go/@v/v1.16.1.info
+curl: (6) Could not resolve host: proxy.golang.org
+http=000
+$ curl https://pkg.go.dev/github.com/twmb/franz-go@v1.16.1/pkg/kgo
+curl: (56) CONNECT tunnel failed, response 403
+http=000
+$ curl https://raw.githubusercontent.com/twmb/franz-go/v1.16.1/pkg/kgo/config.go
+curl: (56) CONNECT tunnel failed, response 403
+http=000
+
+module cache:
+ls: cannot access '/github.com/twmb': No such file or directory
+
+[exit code 2]

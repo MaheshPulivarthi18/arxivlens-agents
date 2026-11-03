@@ -1,0 +1,30 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/bfa7e9237df8dbc94b494e5ab57a8f280ae9da2e/check-runs --jq '.check_runs[] | "\(.name) | \(.conclusion) | \(.html_url)"'; echo; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/125982338034/logs | cut -c30- | grep -E '^(--- FAIL|    --- FAIL|        consumer_test.go|    consumer_test.go|FAIL|ok  |make: |go vet|# )|cannot|undefined|panic'
+Python M0 unit tests | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654856105/job/125982338035
+Go (vet, gofmt, test, build) | failure | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654856105/job/125982338034
+Agent ownership check | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654856105/job/125982337950
+Frontend (lint, test, build) | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654856105/job/125982337407
+
+go vet ./...
+ok  	arxivlens/internal/crawler	0.004s
+--- FAIL: TestConsumerDLQFailureBlocksPartition (0.00s)
+    --- FAIL: TestConsumerDLQFailureBlocksPartition/earlier_record_in_the_poll_is_committed (0.00s)
+        consumer_test.go:218: commits = [commit 0@4 commit 0@5 commit 0@6], want [commit 0@4]: nothing at or after 0@5 while it is unresolved
+        consumer_test.go:221: DLQ writes [dlq 0@5 err=boom] (want >= 2), handler calls map[0@4:1 0@5:3 0@6:1] (want 0@5:3, no 0@6)
+        consumer_test.go:224: waits = [200ms 400ms], want [200ms 400ms 1s 2s 4s]
+    --- FAIL: TestConsumerDLQFailureBlocksPartition/failing_record_first (0.00s)
+        consumer_test.go:218: commits = [commit 0@5 commit 0@6], want []: nothing at or after 0@5 while it is unresolved
+        consumer_test.go:221: DLQ writes [dlq 0@5 err=boom] (want >= 2), handler calls map[0@5:3 0@6:1] (want 0@5:3, no 0@6)
+        consumer_test.go:224: waits = [200ms 400ms], want [200ms 400ms 1s 2s 4s]
+--- FAIL: TestConsumerDLQRecovers (0.00s)
+    consumer_test.go:235: log = [poll dlq 0@5 err=boom commit 0@5 allow poll(end) allow], want prefix [poll dlq 0@5 err=boom dlq 0@5 err=boom dlq 0@5 err=<nil> commit 0@5 allow] and one commit
+    consumer_test.go:238: handler calls = 3 (want 3), waits = [200ms 400ms] (want [200ms 400ms 1s 2s])
+    consumer_test.go:241: want 3 DLQ writes with one FailedAt, got [{OriginalTopic:papers.discovered Partition:0 Offset:5 OriginalKey: OriginalValue:map[v:SENTINEL-VALUE-7f3a] ErrorType:ProcessingError ErrorMessage:boom StackTrace:boom Attempts:3 ConsumerGroup:downloader-v1 FailedAt:2026-11-03T14:33:45.726514428Z Traceparent:}]
+--- FAIL: TestConsumerNilDLQIsFailedPublish (0.00s)
+    consumer_test.go:255: log = [poll commit 0@5 allow poll(end) allow], waits = [200ms 400ms]; want no commit and a DLQ retry wait
+FAIL
+FAIL	arxivlens/internal/kafka	0.030s
+ok  	arxivlens/internal/query	0.005s
+FAIL
+make: *** [Makefile:45: test-go] Error 1
+
+[exit code 0]

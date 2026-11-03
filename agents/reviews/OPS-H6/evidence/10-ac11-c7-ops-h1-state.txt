@@ -1,0 +1,8 @@
+$ bash -c gh api 'repos/MaheshPulivarthi18/ArxivLens/pulls?state=all&per_page=30' --jq '.[] | select(.head.ref|test("OPS-H1")) | "PR #\(.number) \(.head.ref) state=\(.state) merged_at=\(.merged_at)"'; echo "origin/main = $(git rev-parse origin/main)"; gh api repos/MaheshPulivarthi18/ArxivLens/branches/main --jq '"GitHub main = \(.commit.sha)"'; echo '$ git diff --stat origin/main...HEAD -- README.md CONTRIBUTING.md Makefile cmd/ tests/'; git diff --stat origin/main...HEAD -- README.md CONTRIBUTING.md Makefile cmd/ tests/; echo '(empty = untouched)'
+PR #14 agent/backend/OPS-H1 state=open merged_at=null
+origin/main = 9c1229a184d0d1befe997524c990fcc8ee9f016b
+GitHub main = 9c1229a184d0d1befe997524c990fcc8ee9f016b
+$ git diff --stat origin/main...HEAD -- README.md CONTRIBUTING.md Makefile cmd/ tests/
+(empty = untouched)
+
+[exit code 0]

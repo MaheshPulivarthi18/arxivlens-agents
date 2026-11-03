@@ -1,0 +1,9 @@
+$ bash -c git merge-base origin/main HEAD; git diff --numstat origin/main...HEAD; git diff --shortstat origin/main...HEAD; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/15 --jq '"PR #15 draft=\(.draft) changed_files=\(.changed_files) +\(.additions) -\(.deletions) = \(.additions+.deletions) lines"'
+9c1229a184d0d1befe997524c990fcc8ee9f016b
+2	0	.github/workflows/ci.yml
+78	16	internal/kafka/consumer.go
+282	14	internal/kafka/consumer_test.go
+ 3 files changed, 362 insertions(+), 30 deletions(-)
+PR #15 draft=true changed_files=3 +362 -30 = 392 lines
+
+[exit code 0]

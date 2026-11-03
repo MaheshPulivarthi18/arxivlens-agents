@@ -1,0 +1,26 @@
+$ bash -c git log --format='%h %s' origin/main..HEAD; echo; echo '$ git diff --stat b6b9383 7814563 -- internal/kafka/'; git diff --stat b6b9383 7814563 -- internal/kafka/; echo "(exit=$?, empty output = identical)"; echo '$ git diff --stat b6b9383 7814563'; git diff --stat b6b9383 7814563; echo "(exit=$?)"; echo '$ git diff --stat b6b9383 36d6ef5'; git diff --stat b6b9383 36d6ef5; echo "(exit=$?)"; echo; echo 'check runs on pre-mutation b6b9383:'; gh api repos/MaheshPulivarthi18/ArxivLens/commits/b6b9383e936681f4aa61405e2cb3020f1db90f1e/check-runs --jq '.check_runs[] | "\(.name) | \(.conclusion) | \(.html_url)"'; echo 'check runs on revert 36d6ef5:'; gh api repos/MaheshPulivarthi18/ArxivLens/commits/36d6ef515f721469c32d3b35d896ad1b3bf11240/check-runs --jq '.total_count'
+7814563 revert mutation(AC10b)
+1021560 mutation(AC10b): time.Sleep instead of c.wait
+36d6ef5 revert mutation(AC10a)
+bfa7e92 mutation(AC10a): commit after failed PublishDLQ
+b6b9383 OPS-H6: guard test slice indexes so a mutation fails assertions instead of panicking
+b965a64 revert mutation(AC10a)
+560ab04 mutation(AC10a): commit after failed PublishDLQ
+28a60c1 OPS-H6: commit only after success or a confirmed DLQ write; ctx-aware retry wait
+
+$ git diff --stat b6b9383 7814563 -- internal/kafka/
+(exit=0, empty output = identical)
+$ git diff --stat b6b9383 7814563
+(exit=0)
+$ git diff --stat b6b9383 36d6ef5
+(exit=0)
+
+check runs on pre-mutation b6b9383:
+Agent ownership check | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654530650/job/125981202701
+Python M0 unit tests | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654530650/job/125981202583
+Go (vet, gofmt, test, build) | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654530650/job/125981202260
+Frontend (lint, test, build) | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41654530650/job/125981202003
+check runs on revert 36d6ef5:
+0
+
+[exit code 0]

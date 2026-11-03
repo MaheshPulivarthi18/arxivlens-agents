@@ -1,0 +1,17 @@
+$ bash -c grep -n '^func Test' internal/kafka/consumer_test.go
+18:func TestRetryBackoff(t *testing.T) {
+137:func TestDLQRetryBackoff(t *testing.T) {
+145:func TestCtxWait(t *testing.T) {
+158:func TestRetrySleepSchedule(t *testing.T) {
+165:func TestConsumerSuccessPath(t *testing.T) {
+188:func TestConsumerDLQThenCommit(t *testing.T) {
+205:func TestConsumerDLQFailureBlocksPartition(t *testing.T) {
+230:func TestConsumerDLQRecovers(t *testing.T) {
+245:func TestNewConsumerRejectsNilProducer(t *testing.T) {
+251:func TestConsumerNilDLQIsFailedPublish(t *testing.T) {
+259:func TestConsumerCancelDuringBackoffReturnsPromptly(t *testing.T) {
+269:func TestConsumerAllowRebalanceAfterEachPoll(t *testing.T) {
+279:func TestConsumerDLQFailureLogNoValue(t *testing.T) {
+292:func TestConsumerPollErrorStillProcessesRecords(t *testing.T) {
+
+[exit code 0]

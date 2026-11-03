@@ -1,0 +1,13 @@
+$ bash -c echo '$ grep -n time.Sleep internal/kafka/consumer.go'; grep -n 'time.Sleep' internal/kafka/consumer.go; echo "exit=$? (1 = no match)"; echo; echo '$ grep -n -E "c.wait|ctxWait|Sleep|time.After" internal/kafka/consumer.go'; grep -n -E 'c\.wait|ctxWait|Sleep|time\.After' internal/kafka/consumer.go
+$ grep -n time.Sleep internal/kafka/consumer.go
+exit=1 (1 = no match)
+
+$ grep -n -E "c.wait|ctxWait|Sleep|time.After" internal/kafka/consumer.go
+39:	wait       func(ctx context.Context, d time.Duration) error // ctxWait
+68:		wait:       ctxWait,
+88:// ctxWait waits for d and returns ctx.Err() if ctx ends first.
+89:func ctxWait(ctx context.Context, d time.Duration) error {
+152:				if attempt < c.maxRetries && c.wait(ctx, c.backoff(attempt)) != nil {
+191:					if c.wait(ctx, c.dlqBackoff(round)) != nil {
+
+[exit code 0]

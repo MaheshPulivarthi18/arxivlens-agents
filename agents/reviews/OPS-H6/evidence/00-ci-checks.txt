@@ -1,0 +1,7 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/7814563cb81cbbf5b21d0f40b43a095f39bf90e8/check-runs --jq '.check_runs[] | "\(.name) | \(.status) | \(.conclusion) | \(.html_url)"'
+Frontend (lint, test, build) | completed | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41655887813/job/125985942772
+Go (vet, gofmt, test, build) | completed | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41655887813/job/125985942673
+Agent ownership check | completed | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41655887813/job/125985942510
+Python M0 unit tests | completed | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41655887813/job/125985942032
+
+[exit code 0]

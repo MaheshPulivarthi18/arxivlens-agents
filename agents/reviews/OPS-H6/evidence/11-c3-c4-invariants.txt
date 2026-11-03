@@ -1,0 +1,42 @@
+$ bash -c echo '--- lines REMOVED from consumer.go vs origin/main:'; git diff origin/main...HEAD -- internal/kafka/consumer.go | grep -E '^-[^-]'; echo; echo '--- head consumer.go:'; grep -n -E 'func NewConsumer|maxRetries: |func retryBackoff|return time.Duration\(100|DLQPayload\{|OriginalTopic:|Partition: |Offset: |OriginalKey:|OriginalValue:|ErrorType:|ErrorMessage:|StackTrace:|Attempts:|ConsumerGroup:|FailedAt:|Traceparent:|CRITICAL|for round := 1|Poll error' internal/kafka/consumer.go
+--- lines REMOVED from consumer.go vs origin/main:
+-	client     *kgo.Client
+-	producer   *Producer
+-		kgo.BlockRebalanceOnPoll(),
+-		producer:   producer,
+-// Start consuming loop.
+-		if errs := fetches.Errors(); len(errs) > 0 {
+-			for _, err := range errs {
+-				log.Printf("[Kafka Consumer] Poll error: %v", err)
+-			}
+-			continue
+-				if attempt < c.maxRetries {
+-					time.Sleep(retryBackoff(attempt))
+-			// If still failing after maxRetries -> route to DLQ (§6 Tier 2)
+-				if c.producer != nil {
+-					if dlqErr := c.producer.PublishDLQ(ctx, dlqTopic, dlqPayload); dlqErr != nil {
+-						log.Printf("[Kafka Consumer] CRITICAL: Failed to write to DLQ: %v", dlqErr)
+
+--- head consumer.go:
+42:func NewConsumer(brokers []string, group string, topics []string, producer *Producer) (*Consumer, error) {
+65:		maxRetries: 3,
+79:func retryBackoff(attempt int) time.Duration {
+80:	return time.Duration(100*(1<<attempt)) * time.Millisecond
+117:			log.Printf("[Kafka Consumer] Poll error (topic=%s partition=%d): %v", topic, partition, err)
+166:				dlqPayload := events.DLQPayload{
+167:					OriginalTopic: record.Topic,
+168:					Partition:     record.Partition,
+169:					Offset:        record.Offset,
+170:					OriginalKey:   string(record.Key),
+171:					OriginalValue: originalVal,
+172:					ErrorType:     "ProcessingError",
+173:					ErrorMessage:  handleErr.Error(),
+174:					StackTrace:    fmt.Sprintf("%+v", handleErr),
+175:					Attempts:      c.maxRetries,
+176:					ConsumerGroup: c.group,
+177:					FailedAt:      time.Now().UTC().Format(time.RFC3339Nano),
+178:					Traceparent:   traceparent,
+181:				for round := 1; ; round++ {
+189:					log.Printf("[Kafka Consumer] CRITICAL: DLQ write failed (topic=%s partition=%d offset=%d dlq_topic=%s round=%d): %v",
+
+[exit code 0]

@@ -1,0 +1,33 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/10215606a79813ab16c1d697e4bc23f6bdb160f6/check-runs --jq '.check_runs[] | "\(.name) | \(.conclusion) | \(.html_url)"'; echo; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/125984389787/logs | cut -c30- | grep -E '^(--- FAIL|    --- FAIL|        consumer_test.go|    consumer_test.go|FAIL|ok  |make: |go vet|# )|cannot|undefined|panic'
+Go (vet, gofmt, test, build) | failure | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41655446862/job/125984389787
+Python M0 unit tests | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41655446862/job/125984389749
+Frontend (lint, test, build) | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41655446862/job/125984389745
+Agent ownership check | success | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/41655446862/job/125984389274
+
+go vet ./...
+ok  	arxivlens/internal/crawler	0.005s
+--- FAIL: TestRetrySleepSchedule (0.60s)
+    consumer_test.go:161: waits = [], want [200ms 400ms]
+--- FAIL: TestConsumerSuccessPath (0.80s)
+    --- FAIL: TestConsumerSuccessPath/ok_after_1_failure (0.20s)
+        consumer_test.go:182: log = [poll commit 0@5 allow poll commit 0@6 allow poll(end) allow], waits = []; want commits [commit 0@5 commit 0@6], no DLQ, waits [200ms]
+    --- FAIL: TestConsumerSuccessPath/ok_after_2_failures (0.60s)
+        consumer_test.go:182: log = [poll commit 0@5 allow poll commit 0@6 allow poll(end) allow], waits = []; want commits [commit 0@5 commit 0@6], no DLQ, waits [200ms 400ms]
+--- FAIL: TestConsumerDLQFailureBlocksPartition (1.20s)
+    --- FAIL: TestConsumerDLQFailureBlocksPartition/failing_record_first (0.60s)
+        consumer_test.go:224: waits = [1s 2s 4s 8s 16s], want [200ms 400ms 1s 2s 4s]
+    --- FAIL: TestConsumerDLQFailureBlocksPartition/earlier_record_in_the_poll_is_committed (0.60s)
+        consumer_test.go:224: waits = [1s 2s 4s 8s 16s], want [200ms 400ms 1s 2s 4s]
+--- FAIL: TestConsumerDLQRecovers (0.60s)
+    consumer_test.go:238: handler calls = 3 (want 3), waits = [1s 2s] (want [200ms 400ms 1s 2s])
+--- FAIL: TestConsumerNilDLQIsFailedPublish (0.60s)
+    consumer_test.go:255: log = [poll allow], waits = [1s 2s 4s]; want no commit and a DLQ retry wait
+--- FAIL: TestConsumerCancelDuringBackoffReturnsPromptly (5.00s)
+    consumer_test.go:265: Start returned after 5.004337868s with log [poll allow]; want < 200ms, no commit, no DLQ
+FAIL
+FAIL	arxivlens/internal/kafka	10.025s
+ok  	arxivlens/internal/query	0.004s
+FAIL
+make: *** [Makefile:45: test-go] Error 1
+
+[exit code 0]
