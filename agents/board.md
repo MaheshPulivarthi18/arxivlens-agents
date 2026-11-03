@@ -1,22 +1,18 @@
 # Board
 
-Last updated: 2026-11-03 by pm-lead (external-review plan: OPS-H6, EVAL-3, EVAL-4, OPS-H7, ING-8 specced; ADR-0003 abstention question)
+Last updated: 2026-11-03 15:05 UTC by orchestrator (cycle 14:00: AI-3 #13 + OPS-H6 #15 raised; OPS-H1 #14 rework; ING-8 blocked)
 
-WIP limit: 1 open PR per engineering agent. Order within a column = priority.
+WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 
 ## Ready
 | ID | Title | Owner | Pri | Depends on |
 |---|---|---|---|---|
-| [OPS-H6](tasks/OPS-H6.md) | Go consumer: commit only after success or confirmed DLQ write; context-aware retry wait (design-required) | backend-engineer | P0 | — |
-| [OPS-H1](tasks/OPS-H1.md) | Run processor + embedder workers in docker-compose; one-command full test (**rework on draft PR #14**: pin a pullable `minio-init` image, design addendum 2026-11-03) | backend-engineer | P0 | — |
 | [EVAL-3](tasks/EVAL-3.md) | GitHub Actions full-stack `make eval` (manual + nightly), results artifact, first numbers; carries RET-1 AC6 (design-required) | backend-engineer (ai pairs on design) | P1 | OPS-H1 |
 | [OPS-H7](tasks/OPS-H7.md) | DLQ list/replay: offset checkpoints, paging, replay lock, idempotent replay (design-required) | backend-engineer | P1 | OPS-H6 |
-| [ING-8](tasks/ING-8.md) | Measure PDF section-extraction quality: heading corpus + boundary P/R scorer + baseline | ai-engineer | P1 | — |
 | [FE-1](tasks/FE-1.md) | Frontend test harness (Vitest) + tests for answer/citation states | frontend-engineer | P1 | — |
 | [OPS-H5](tasks/OPS-H5.md) | Migration for HNSW index + `migrate` applies all migrations | backend-engineer | P1 | — (soft: OPS-H1) |
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 |
 | [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 |
-| [AI-3](tasks/AI-3.md) | Batch embedding in RAG validation | ai-engineer | P1 | AI-1, AI-2 (both merged) |
 | [FE-2](tasks/FE-2.md) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 |
 | [AI-4](tasks/AI-4.md) | `/v1/ask` passes trace ID to `HybridSearch`; harden ADR-0010 parity guard (KAN-27) | ai-engineer | P2 | — (AI-2 merged) |
 | [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate + eval-test hardening (EVAL-1 QA r3 nits, AC6–AC9); AC10 moved to EVAL-3 | ai-engineer | P2 | EVAL-1 |
@@ -24,6 +20,7 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## In progress
 | ID | Title | Owner | Branch |
 |---|---|---|---|
+| [OPS-H1](tasks/OPS-H1.md) | Workers in docker-compose + `stack.yml` (design approved). **Rework** on draft PR [#14](https://github.com/MaheshPulivarthi18/ArxivLens/pull/14): `minio/mc:latest` no longer pulls from Docker Hub; pin a MinIO-published image (design addendum, checklist R1–R9). Then expected Blocked on OPS-H5 (M5 HNSW test) | backend-engineer | `agent/backend/OPS-H1` (KAN-13) |
 
 ## In QA
 | ID | Title | Owner | PR |
@@ -36,10 +33,13 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
+| [OPS-H6](tasks/OPS-H6.md) | Go consumer: commit only after success or confirmed DLQ write; ctx-aware waits | backend-engineer | [#15](https://github.com/MaheshPulivarthi18/ArxivLens/pull/15) `a8a2cf5` (KAN-28) | QA PASS r1, PASS r2 · PM CHANGES r1 (AC6b) → APPROVE r2 · Mahesh: check franz-go godoc (C2) |
+| [AI-3](tasks/AI-3.md) | Batch embedding in RAG citation validation | ai-engineer | [#13](https://github.com/MaheshPulivarthi18/ArxivLens/pull/13) `ff9e7c1` (KAN-11) | QA PASS r1 · PM APPROVE r1 |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
+| [ING-8](tasks/ING-8.md) | Measure PDF section-extraction quality (scorer/tests/docs built on `agent/ai/ING-8` `d2ad9c5`, pushed, no PR) | ai-engineer | arxiv.org access to license-check and hand-label `evals/extraction.jsonl` (AC1) and run the baseline (AC5); agent sandboxes can't reach arxiv.org (KAN-32) |
 | [QA-8](tasks/QA-8.md) | LLM answer synthesis behind citation validation | ai-engineer | ADR-0001, ADR-0002 (human decision), EVAL-1, AI-1 |
 | [AI-5](tasks/AI-5.md) | `/v1/ask` relevance bar when rerank scores are missing (reranker outage fails open) | ai-engineer | ADR-0011 (human decision), AI-1 merged |
 | [EVAL-4](tasks/EVAL-4.md) | Record EVAL-3's first measured numbers in `evals/BASELINE.md` | ai-engineer | EVAL-3 merged + one completed `eval.yml` run |
@@ -81,7 +81,7 @@ All tickets, docs, reviews and agent rules moved from ArxivLens to this repo. Ar
 (agent-only content, now here); #2 and #6 were stripped to code only. See `AGENTS.md` §0.
 
 ## Environment notes (cycles 2026-11-01, 2026-11-02, 2026-11-03)
-Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and Hugging Face. Go, frontend and stack tasks (AI-1, OPS-H1/H2/H3/H5, ING-6, FE-1/2) were deferred, not blocked — they stay Ready. 2026-11-02: same limits (local Go 1.24.7); OPS-H3 was done anyway because CI verifies Go tests. OPS-H1 needs Docker, FE-1 needs npm to regenerate `package-lock.json`. 2026-11-03: unchanged (registry.npmjs.org and proxy.golang.org don't resolve, huggingface.co 403; re-checked in cycle 3, all four registries unreachable); no new task started because ai/backend are at WIP limit and FE-1 can't regenerate the lockfile. Cycle 4: unchanged; Docker CLI present but no daemon. Cycles 5–6: unchanged (npm, Go proxy, HF all time out; no Docker daemon).
+Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and Hugging Face. Go, frontend and stack tasks (AI-1, OPS-H1/H2/H3/H5, ING-6, FE-1/2) were deferred, not blocked — they stay Ready. 2026-11-02: same limits (local Go 1.24.7); OPS-H3 was done anyway because CI verifies Go tests. OPS-H1 needs Docker, FE-1 needs npm to regenerate `package-lock.json`. 2026-11-03: unchanged (registry.npmjs.org and proxy.golang.org don't resolve, huggingface.co 403; re-checked in cycle 3, all four registries unreachable); no new task started because ai/backend are at WIP limit and FE-1 can't regenerate the lockfile. Cycle 4: unchanged; Docker CLI present but no daemon. Cycles 5–6: unchanged (npm, Go proxy, HF all time out; no Docker daemon). Cycle 14:00: also PyPI and arxiv.org unreachable; Go verified in CI, full stack via the new `stack.yml` on GitHub runners (OPS-H1).
 
 ## Done
 | ID | Title | PR |

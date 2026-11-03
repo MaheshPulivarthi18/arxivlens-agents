@@ -163,3 +163,26 @@ Format:
 - ADR-0003 (Proposed): appended "Question for Mahesh: abstention policy" (all citations unsupported / verification unavailable: refuse, warn or answer). Status unchanged.
 - Backlog: AI-2 follow-up extended with five separate counters (Mahesh's #11 review); `make test-py` split into `test-m0` / `test-evals-data` (Mahesh's #12 review; artifact docs folded into EVAL-3); OPS-H8 (Python consumer DLQ loss); pm-lead docs PR (Technical PRD §8.1 L4 caveat, OPS-1 ✅ → ◐, Proposed PRD row ING-8).
 - Jira not touched (per instructions). Orchestrator: create stories for OPS-H6, EVAL-3, EVAL-4, OPS-H7, ING-8.
+
+## 2026-11-03 (scheduled cycle 14:00 UTC) — orchestrator
+- Setup: both repos attached, push to arxivlens-agents verified (`push --dry-run`), run lock taken (`72d8ba1`), app cloned at `app/` (origin/main `9c1229a`); task worktrees under `$HOME/wt/` (= `/root/wt/`).
+- Sync: no open PRs in either repo; no human reviews/comments; Jira: no intake, no untagged comments. No ADR status change (0006, 0010 Accepted). Jira stories for OPS-H6/EVAL-3/EVAL-4/OPS-H7/ING-8 already existed (KAN-28..32).
+- pm-lead plan (`899cbba`): OPS-H6, OPS-H1 (now design-required + own `stack.yml` CI check), ING-8, AI-3. Independent: OPS-H6 = `internal/kafka/consumer*.go` + one `ci.yml` step; OPS-H1 = compose, Dockerfiles, Makefile, new `stack.yml`, README/CONTRIBUTING line ranges; ING-8 = new `evals/`/`scripts/`/`tests/` files + `evals/README.md`; AI-3 = `internal/query/rag.go` + test. Skipped: FE-1/FE-2 (npm unreachable), AI-4 (same files as AI-3), EVAL-2 (P2, ai at 2), EVAL-3/OPS-H2/OPS-H7 (deps), OPS-H5/ING-6 (backend at 2, need a stack).
+
+## 2026-11-03 — AI-3 — ready to merge
+- Agent: ai-engineer · Attempts: 1 · QA rounds: 1 (PASS) · PM rounds: 1 (APPROVE) · PR: https://github.com/MaheshPulivarthi18/ArxivLens/pull/13 (ready for review, `ready-to-merge`) · head `ff9e7c1` · Jira KAN-11 → Ready to merge
+- Summary: citation validation makes ≤ 2 `EmbedTexts` calls per answer (chunks, then distinct sentences), fails closed per batch. 3 new tests; old tests unchanged; CI 4/4 green; 6 mutants killed. AC3 `make eval` not run (no stack).
+- Follow-ups (board Backlog): `max_citations` cap (backend P2, value Proposed for Mahesh); before/after latency once EVAL-3 exists. QA harness again couldn't write `report.md`; orchestrator saved it verbatim from the PR comment (`d13297f`).
+
+## 2026-11-03 — OPS-H6 — ready to merge
+- Agent: backend-engineer · Attempts: 1 (+1 rework) · Design: written `e7dadd1`, PM APPROVE with C1–C7 (`6ee10f7`) · QA rounds: 2 (PASS, PASS) · PM rounds: 2 (CHANGES: missing AC6b test for ctx cancel inside the handler → APPROVE) · PR: https://github.com/MaheshPulivarthi18/ArxivLens/pull/15 (ready for review, `ready-to-merge`) · head `a8a2cf5` · Jira KAN-28 → Ready to merge
+- Summary: Go consumer never commits past a failed DLQ write (retries the DLQ write in place, ctx-aware 1→30 s waits, CRITICAL log), no `time.Sleep`, nil producer rejected, `AllowRebalance` after each poll, partition poll errors no longer drop the poll's records (AC12). 15 fake-only tests, `Start` 100% covered; mutations AC10a/b and AC6b each turned CI red on named tests. 407 changed lines (cap raised to 420 for AC6b). AC11 (M4) not run: no stack.
+- Waiting on Mahesh: confirm franz-go v1.16.1 godoc for `BlockRebalanceOnPoll`/`AllowRebalance` (C2; unreachable from sandboxes). Follow-ups: OPS-H8 (Python consumer), G1/G2, shutdown poll-error log; `make test-go -race` after OPS-H1.
+
+## 2026-11-03 — OPS-H1 — rework (draft PR #14)
+- Agent: backend-engineer · Attempts: 1 · Design: `8a9e9a9`, PM APPROVE with 8 conditions (`7e13840`) · PR: https://github.com/MaheshPulivarthi18/ArxivLens/pull/14 (draft) · head `bb5ce42` · Jira KAN-13 → In Progress
+- `ci.yml` green; `stack.yml` (run 41652931431, 2 attempts) failed at `docker compose up -d`: Docker Hub denies `minio/mc:latest` — the existing `minio-init` image, so `make infra-up` on main is broken for everyone. pm-lead addendum (`210f2ca`) lets OPS-H1 pin a MinIO-published image; rework checklist R1–R9 in the ticket for next cycle. After that, expected Blocked on OPS-H5 (M5 HNSW index test). `make setup-py` now installs `opentelemetry-sdk` (M5/M6 import broke test collection).
+
+## 2026-11-03 — ING-8 — blocked
+- Agent: ai-engineer · Attempts: 1 · branch `agent/ai/ING-8` `d2ad9c5` pushed, no PR · Jira KAN-32 (label `blocked`)
+- Scorer, 35 tests (82 passed incl. eval-data), README section built; AC2/3/4/6 met in tests. AC1 (license-checked, hand-labelled ≥10 papers) and AC5 (baseline) impossible: arxiv.org unreachable from agent sandboxes; labels from memory refused. Needs Mahesh: allow arxiv.org egress, provide the labelled file, or let the task run where arxiv.org is reachable.
