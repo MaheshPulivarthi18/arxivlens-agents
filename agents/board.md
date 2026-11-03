@@ -45,7 +45,6 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 ## Backlog (not yet specced — pm-lead grooms these)
 - From the OPS-H3 review: `ExtractCleanArxivID` should match only a whole ID and support old-style IDs the crawler stores (needs a product decision); add more pinning tests; add `go test -cover` to CI; make the retry sleep injectable (see OPS-H3 Notes)
 - From the #8 review: some code comments cite PRD sections (`§4`, `§6 Tier 1`) that now live in this repo; reword or link them (backend/ai, nit)
-- Docs PR [arxivlens-agents#5](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/5) (post-RET-1: AGENTS.md §6 gotcha, PRD-Product row 156) — awaiting Mahesh
 - From the AI-2 review (ai, P2, after AI-4, same files): assert `sentence_embed_errors` / `chunks_without_vector` log counters, mixed verified+unverified test (`unverified=1 citations=2`), log sentence/chunk dimension mismatch as unverified
 - pm-lead docs PR after #11 merges: Product PRD QA-4 ◐ → ✅, drop AI-2 caveat in §8 supported row, Technical PRD §9 known-gap paragraph
 - backend docs nit: `CONTRIBUTING.md:28,54` still say "once EVAL-1 lands"; AGENTS.md §2 ownership table omits `.gitignore` for backend (CI script allows it)

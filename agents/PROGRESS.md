@@ -137,3 +137,6 @@ Format:
 - Summary: `evals/results/` ignored; `make test-py` runs the 47 eval-data tests (CI Python job 3 → 50 passed). PM CHANGES was a spec fault (AC4 forbade the doc edit); pm-lead widened AC4 and added AC6.
 - Blockers / follow-ups: `CONTRIBUTING.md:28,54` stale EVAL-1 wording (backend docs nit).
 - Note: GitHub-side attribution handling rewrote the PR-body footer on both PRs (cosmetic).
+
+## 2026-11-03 — post-RET-1 docs PR — merged
+- arxivlens-agents#5 (AGENTS.md §6 rerank gotcha removed, PRD-Product row 156 RET-1 caveat replaced) merged by Mahesh; backlog item removed.
