@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-03 by orchestrator (scheduled cycle 5: no-op — #11, #12 await Mahesh; ai/backend at WIP, FE-1 blocked on npm egress)
+Last updated: 2026-11-03 by orchestrator (scheduled cycle 6: no-op — #11, #12 await Mahesh; ai/backend at WIP, FE-1 blocked on npm egress)
 
 WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 
@@ -63,7 +63,7 @@ All tickets, docs, reviews and agent rules moved from ArxivLens to this repo. Ar
 (agent-only content, now here); #2 and #6 were stripped to code only. See `AGENTS.md` §0.
 
 ## Environment notes (cycles 2026-11-01, 2026-11-02, 2026-11-03)
-Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and Hugging Face. Go, frontend and stack tasks (AI-1, OPS-H1/H2/H3/H5, ING-6, FE-1/2) were deferred, not blocked — they stay Ready. 2026-11-02: same limits (local Go 1.24.7); OPS-H3 was done anyway because CI verifies Go tests. OPS-H1 needs Docker, FE-1 needs npm to regenerate `package-lock.json`. 2026-11-03: unchanged (registry.npmjs.org and proxy.golang.org don't resolve, huggingface.co 403; re-checked in cycle 3, all four registries unreachable); no new task started because ai/backend are at WIP limit and FE-1 can't regenerate the lockfile. Cycle 4: unchanged; Docker CLI present but no daemon.
+Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and Hugging Face. Go, frontend and stack tasks (AI-1, OPS-H1/H2/H3/H5, ING-6, FE-1/2) were deferred, not blocked — they stay Ready. 2026-11-02: same limits (local Go 1.24.7); OPS-H3 was done anyway because CI verifies Go tests. OPS-H1 needs Docker, FE-1 needs npm to regenerate `package-lock.json`. 2026-11-03: unchanged (registry.npmjs.org and proxy.golang.org don't resolve, huggingface.co 403; re-checked in cycle 3, all four registries unreachable); no new task started because ai/backend are at WIP limit and FE-1 can't regenerate the lockfile. Cycle 4: unchanged; Docker CLI present but no daemon. Cycles 5–6: unchanged (npm, Go proxy, HF all time out; no Docker daemon).
 
 ## Done
 | ID | Title | PR |
