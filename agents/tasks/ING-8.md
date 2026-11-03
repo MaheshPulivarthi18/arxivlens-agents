@@ -6,7 +6,7 @@
 | **Priority** | P1 |
 | **PRD ref** | Product PRD ING-3 (✅, but its quality has never been measured); Technical PRD §6.1 (section extraction rules). *Proposed* (pm-lead, needs Mahesh): a Product PRD row ING-8 "section-extraction quality is measured", added in a docs PR |
 | **Depends on** | — |
-| **Jira** | not created yet (orchestrator: story under epic "Continuous ingestion", labels `task-ING-8`, `agent-ai`, `arxivlens`) |
+| **Jira** | KAN-32 (`labels = "task-ING-8"`) |
 | **Design required** | no: measurement only. It adds a script and a dataset, with no CLI command, table, service, contract or gate. |
 | **Status** | Ready |
 
@@ -30,7 +30,7 @@ adds a small, reproducible measurement and records a baseline. Improving the det
 - New `scripts/evaluate_extraction.py`: fetches each PDF (≤ 1 request / 3 s, identifying User-Agent, Technical PRD §9),
   runs the **production** detector and scores it, then writes `evals/results/extraction-<timestamp>.json` and prints a table.
 - New `tests/test_evaluate_extraction.py`: no network, no PDFs.
-- `evals/README.md`: a section on the extraction eval. Baseline numbers go in `evals/BASELINE.md` (new section) or a new `evals/EXTRACTION_BASELINE.md`.
+- `evals/README.md`: a section on the extraction eval. Baseline numbers go in a new `evals/EXTRACTION_BASELINE.md` (not `evals/BASELINE.md`, which EVAL-4 edits).
 - Out of scope: **any change to `services/processor/`** (backend-owned). That covers the detector, a refactor of
   `_parse_doc_sections` into a pure function, and gating (`thresholds.json`: a new gate needs an Accepted ADR).
 
@@ -55,8 +55,7 @@ the ML stack. Write a follow-up request in Notes for backend to expose a pure `p
 
 ## Acceptance criteria
 - [ ] AC1: The dataset has ≥ 10 rows and ≥ 3 distinct `layout` values. Every row has a pinned `version` and a `license` from
-  the allowed set. Dataset tests in `tests/test_evaluate_extraction.py` (or `tests/test_evals_data.py`, without weakening
-  existing checks) enforce schema, unique `arxiv_id`, allowed licences, a version pattern `^v\d+$`, ≥ 1 expected heading, and no `*.pdf` under `evals/`.
+  the allowed set. Dataset tests in `tests/test_evaluate_extraction.py` (**not** `tests/test_evals_data.py`: AI-3/AI-4/EVAL-2 change that file) enforce schema, unique `arxiv_id`, allowed licences, a version pattern `^v\d+$`, ≥ 1 expected heading, and no `*.pdf` under `evals/`.
 - [ ] AC2: Scorer unit tests with fixed lists cover: a perfect match (P = R = 1), a spurious heading (P < 1, R = 1), a missed
   heading, numbering/case/punctuation normalisation (`"3.1 Results."` matches `"results"`), order preservation (an out-of-order
   duplicate doesn't match), the excluded implicit Abstract, an empty prediction (P defined as 0, no crash), and the micro-average over two papers.
@@ -75,7 +74,7 @@ the ML stack. Write a follow-up request in Notes for backend to expose a pure `p
 ```bash
 make test-unit
 make lint
-python3 -m pytest -q tests/test_evaluate_extraction.py tests/test_evals_data.py
+python3 -m pytest -q tests/test_evaluate_extraction.py tests/test_evals_data.py   # the second file unchanged, still green
 python3 scripts/evaluate_extraction.py --help
 python3 scripts/evaluate_extraction.py            # needs arxiv.org + pymupdf; writes evals/results/extraction-*.json
 git status --porcelain | grep -i '\.pdf' && echo "PDF LEAK" || echo "no pdf"
@@ -86,3 +85,4 @@ git status --porcelain | grep -i '\.pdf' && echo "PDF LEAK" || echo "no pdf"
   use the same detector: the Kafka processor (`worker.py:70`) and on-demand `/internal/ingest` (`services/embedder/api.py:139`
   builds a `ProcessorWorker`). `scripts/m0_skeleton.py` `PaperParser.parse_pdf` is a separate M0 parser that isn't used in
   production. Don't measure it as if it were.
+- 2026-11-03 14:00 cycle (pm-lead): line refs re-checked against `9c1229a` (`worker.py:113` `_parse_doc_sections`, `:70` call site, `api.py:139` `ProcessorWorker()`). To stay independent of AI-3 (same cycle) and EVAL-4, dataset tests go only in `tests/test_evaluate_extraction.py` and the baseline in `evals/EXTRACTION_BASELINE.md`. `make test-py` runs only `test_m0.py` and `test_evals_data.py`, so CI won't pick up the new test file unless it's added to `test-py`; `Makefile` is backend-owned, so paste the local pytest output and add a follow-up request in Notes (backend: add it to `test-py`, together with the #12-review `test-m0`/`test-evals-data` split). The sandbox can't reach arxiv.org or PyPI (pymupdf may be missing): AC5 is expected to be "not run" here.

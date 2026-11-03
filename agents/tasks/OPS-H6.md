@@ -6,7 +6,7 @@
 | **Priority** | P0 (silent message loss in the pipeline) |
 | **PRD ref** | Product PRD OPS-1, OPS-3, §5.3; Technical PRD §8.1 (L4 commit-after-process), §8.2 (retry and DLQ) |
 | **Depends on** | — |
-| **Jira** | not created yet (orchestrator: story under epic "Dev harness & infrastructure", labels `task-OPS-H6`, `agent-backend`, `design-required`, `arxivlens`) |
+| **Jira** | KAN-28 (`labels = "task-OPS-H6"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics (what is committed when, and what happens on redelivery) |
 | **Status** | Ready (design first: `docs/design/OPS-H6.md`, pm-lead approves before code) |
 
@@ -89,3 +89,4 @@ CI is the source of truth for Go: local sandboxes have Go 1.24.7, so a stdlib-on
 - 2026-11-03 (pm-lead): specced from the external review of `bb9ee90` (approved by Mahesh). Verified in code: `consumer.go:129-139` commits after a failed DLQ write, `:102` uses `time.Sleep`, `:30` sets `BlockRebalanceOnPoll` and nothing calls `AllowRebalance`. The Python consumer has the same flaw: `publish_dlq` calls `flush(timeout=5)` and ignores undelivered messages, then `commit` runs regardless (`kafka_client.py:189-199`). That's OPS-H8 (Backlog); fix it after this design so both sides share the same semantics.
 - This also closes the OPS-H3 backlog item "make the retry sleep injectable".
 - Technical PRD §8.1 L4 ("all consumers") is not true today for Go or Python. pm-lead adds a caveat in the next docs PR and removes it when OPS-H6 + OPS-H8 merge.
+- 2026-11-03 14:00 cycle (pm-lead): started in parallel with OPS-H1 (same owner, independent files). Line refs re-checked against `9c1229a`: `consumer.go:30/102/130-131/137` and `main.go:153` are current; Python `kafka_client.py` retry sleep is `:184`, commit `:199`. **While OPS-H1's PR is open, don't edit `README.md` or `CONTRIBUTING.md`** (OPS-H1 edits other lines of both). Put the proposed README:39 / CONTRIBUTING:57 wording in Notes; if OPS-H1 has merged by the time this PR is built, rebase and make the edit in this PR. AC11 stays "not run: no stack" unless OPS-H1 has merged; then run it via OPS-H1's `stack.yml` (`workflow_dispatch` on this branch).
