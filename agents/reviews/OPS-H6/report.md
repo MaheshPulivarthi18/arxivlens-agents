@@ -120,3 +120,53 @@ QA round 2 checks: items 1–3, the new mutation's diff and red run, head green,
 - **AC11 (M4):** "not run: no stack" stays acceptable (C7). The `Makefile test-go -race` follow-up stays open until OPS-H1 merges.
 
 PR #15 stays **draft**. Jira: back to In Progress (orchestrator).
+
+---
+
+# QA report — OPS-H6 · PR #15 · round 2
+
+**Verdict:** PASS
+**Reviewed commit:** `a8a2cf5431a5725cf675deaeeb91cc6a1811a890` · **Date:** 2026-11-03
+**Ticket:** `agents/tasks/OPS-H6.md` (AC6b + PM rework items 1–3) · **PRD:** Product OPS-1, OPS-3, §5.3; Technical §8.1 (L4), §8.2
+**Scope of this round:** the PM final-review round-1 CHANGES items 1–3. AC1–AC12 were verified in round 1 at `7814563`. `consumer.go` is byte-identical to that commit [21], so those results still hold.
+
+## Test results
+| Check | Source | Result |
+|---|---|---|
+| Go (vet, gofmt, test, build) | CI run 41658732637, job 125995972897 | pass [20] |
+| Kafka consumer tests (verbose, race, coverage) | same job | pass: `--- PASS: TestConsumerCancelInsideHandlerNoDLQ`, `consumer.go:101: Start 100.0%` [22] |
+| Python M0 unit tests | CI | pass [20] |
+| Frontend (lint, test, build) | CI | pass [20] |
+| Agent ownership check | CI | pass, `Ownership OK for role=backend (407 changed lines)` (warning: >400; amended C1 cap is 420) |
+| Ticket verification commands | not run locally: sandbox Go 1.24.7, go.mod needs 1.25 and franz-go can't be downloaded (round-1 [13]) | CI is the evidence |
+| `make eval` | n/a: no retrieval/answering change | — |
+
+## Rework items
+| Item | Met? | Evidence |
+|---|---|---|
+| 1. AC6b test | ✅ | `TestConsumerCancelInsideHandlerNoDLQ` (`consumer_test.go:269-282`): the handler returns `errBoom` on every call and calls `f.cancel()` on call 3. The test asserts `err == nil`, `calls == 3`, `f.payloads == nil` (0 PublishDLQ) and no `commit` in the log. `fake.PublishDLQ` takes `_ context.Context` and never reads it, so the test doesn't depend on the publisher checking ctx [21]. It passes on head under `-race` [22]. |
+| 1. Diff cap ≤ 420 | ✅ | `git diff --numstat origin/main...HEAD`: 2 + 94 + 311 = **407** changed lines [21]. The only change since `7814563` is +15 lines in `consumer_test.go` [21]. |
+| 1. `consumer.go` unchanged | ✅ | `git diff 7814563 a8a2cf5 -- internal/kafka/consumer.go | wc -l` → 0 [21]. |
+| 2. Mutation (e) diff | ✅ | `74e3585` is 1 file, 3 deletions: exactly `if ctx.Err() != nil { break records }` at `consumer.go:145-147`, nothing else [23]. |
+| 2. Mutation red on the new test, not compile/vet | ✅ | Run 41658339174, Go job 125994581866 = failure. `make lint-go` (`go vet ./...`) passed and `make test-go` failed. The only `--- FAIL` line is `TestConsumerCancelInsideHandlerNoDLQ`: `log = [poll dlq 0@5 err=<nil> commit 0@5 allow]`. That is the spurious DLQ write plus commit on shutdown that the test exists to stop [24]. |
+| 2. Sequencing, revert green, net zero | ✅ | Test `aa4ed67` run finished 14:53:52 before the mutation commit at 14:54:21. The mutation run finished 14:55:57 before the revert commit at 14:56:43. Revert `a8a2cf5` run 41658732637 = success [25]. `git diff aa4ed67 a8a2cf5 | wc -l` → 0 [23]. |
+| 3. Design doc | ✅ | `docs/design/OPS-H6.md:239` says the fakes have **no mutex** and why `-race` is clean (only the `CancelFunc` crosses goroutines). `:227` adds an AC6b row to the test plan, `:184` records rework r1 in §7a, and `:237` "inside the handler" is now true [26]. I checked the goroutine claim in the code: the only `time.AfterFunc` calls are `consumer_test.go:148` (TestCtxWait, AC6) and `:262` (AC6 test). Both only cancel. |
+| Head CI green | ✅ | All 4 check runs completed/success on `a8a2cf5`. PR #15 head = `a8a2cf5`, still draft [20]. |
+
+## PRD fit
+Unchanged from round 1. Technical PRD §8.1 L4 holds for the Go consumer. Round-1 Finding 2 is closed: the shutdown semantics (design question 5, §3 case 2) are now pinned by a test, and a mutation proves that test.
+
+## Findings
+1. [nit] The ownership check prints a warning: `407 changed lines (> 400)`. That's within the amended C1 cap of 420, so it's not blocking. It's recorded here so pm-lead knows the warning is expected.
+2. [nit, carried] Round-1 Finding 3 (a spurious `Poll error … context canceled` log on every shutdown) is still in the code. pm-lead moved it to Backlog, so it's not part of this round.
+3. [nit, report hygiene] The round-1 "Evidence files" links in this `report.md` are wrapped in stray backtick runs, so they may not render as links. The round-2 links below are plain URLs.
+
+No blocking findings.
+
+## Missing tests
+- None for this round's scope.
+
+## Hand-off
+PASS → pm-lead final review (round 2).
+
+Evidence (commit `5ce38e0`): [20 CI checks on head](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/20-r2-ci-checks-head.png?raw=true) · [21 AC6b test diff, scope, 407 lines](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/21-ac6b-test-diff-scope.png?raw=true) · [22 head CI kafka verbose step](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/22-ac6b-head-ci-verbose.png?raw=true) · [23 mutation (e) diff + net zero](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/23-ac6b-mutation-diff.png?raw=true) · [24 mutation (e) CI red](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/24-ac6b-mutation-ci-red.png?raw=true) · [25 run sequencing](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/25-ac6b-run-sequence.png?raw=true) · [26 design doc update](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/5ce38e07129cf266b7ad9d7501a7d34dca359d85/agents/reviews/OPS-H6/evidence/26-design-doc-update.png?raw=true)
