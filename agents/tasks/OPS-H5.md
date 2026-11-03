@@ -5,7 +5,9 @@
 | **Owner** | backend-engineer |
 | **Priority** | P1 |
 | **PRD ref** | QA-1; Product PRD §8 `/v1/search` p95 < 1.5 s; Technical PRD §5 (HNSW gap note) |
-| **Depends on** | — (soft: OPS-H1 for AC5; without it, start the workers by hand per AGENTS.md §5) |
+| **Depends on** | — (soft: OPS-H1 for AC5; without it, start the workers by hand per AGENTS.md §6) |
+| **Jira** | find with JQL `labels = "task-OPS-H5"` |
+| **Design required** | no (P1; additive index migration, no new command/table/service; `migrate` keeps its existing flag) |
 | **Status** | Ready |
 
 ## Goal
@@ -17,6 +19,16 @@ passes only if the benchmark script happened to run first. Also, `arxivlens migr
 
 ## Scope
 - Files: new `migrations/000002_chunk_embeddings_hnsw.up.sql` and `.down.sql`, `internal/db/db.go` and/or `cmd/arxivlens/main.go` (`migrate` applies every `*.up.sql` in lexical order), and a Go unit test for the file ordering (no DB).
+- CLI shape (pm-lead 2026-11-03 16:00, settles the open choice): `arxivlens migrate` with no flags applies every `*.up.sql`
+  in `--dir` (new flag, default `migrations`) in lexical order. The existing `--file <path>` keeps working and, when set,
+  applies only that file (backward compatible). Put the file selection in a pure function in `internal/db` (e.g.
+  `MigrationFiles(dir string) ([]string, error)`) so AC3 needs no DB; new test file `internal/db/db_test.go`
+  (picked up by `go test ./...`, no CI change).
+- Docs: app `README.md` CLI reference line `arxivlens migrate  [--file ...]` (`README.md:166` at `9c1229a`) → show
+  `[--dir migrations] [--file <one .up.sql>]`. That line is outside every README hunk of open PR #14 (hunks at old lines
+  89–100, 108–127, 131–144, 198–204, 214–219, 227–231); touch nothing else in README.
+- **Do not edit `Makefile`, `CONTRIBUTING.md`, `docker-compose.yml` or `.github/`**: all are changed by open PR #14
+  (OPS-H1). `make migrate` already runs `./bin/arxivlens migrate` with no flags, so it picks up the new default unchanged.
 - The index must use exactly the existing name and params: `CREATE INDEX IF NOT EXISTS chunk_embeddings_hnsw_idx ON chunk_embeddings USING hnsw (embedding halfvec_cosine_ops) WITH (m = 16, ef_construction = 64);`, so that existing databases where the benchmark already created it stay a no-op. Changing the params is out of scope (ADR-0008).
 - Migrations must stay idempotent (`IF NOT EXISTS`), because there is no schema-version table. Adding a version table is out of scope.
 - Never edit `000001_init_schema.*.sql`.
@@ -27,7 +39,7 @@ passes only if the benchmark script happened to run first. Also, `arxivlens migr
 - [ ] AC2 — Running `make migrate` twice in a row succeeds (idempotent).
 - [ ] AC3 — Go unit test: the migration runner selects `*.up.sql` only, in lexical order (`000001` before `000002`). Passes with no DB.
 - [ ] AC4 — `EXPLAIN` of the vector CTE in the hybrid query from `internal/query` is pasted in the PR, with the planner's choice noted. If the planner does not use the index (e.g. because of the join or model filter), open a follow-up request in Notes instead of changing the query here.
-- [ ] AC5 — `make test-full` M1 and M5/M6 pass on a fresh stack without running `scripts/benchmark_hnsw.py` first. Use OPS-H1's `make stack-up` if merged; otherwise start the processor/embedder workers by hand (AGENTS.md §5) and say so in the PR. If no Docker is available, write "not run: infra unavailable" plus the exact commands. AC1–AC3 still need evidence.
+- [ ] AC5 — `make test-full` M1 and M5/M6 pass on a fresh stack without running `scripts/benchmark_hnsw.py` first. Use OPS-H1's `make stack-up` if merged; otherwise start the processor/embedder workers by hand (AGENTS.md §6) and say so in the PR. If no Docker is available, write "not run: infra unavailable" plus the exact commands. AC3 always needs CI evidence. *(pm-lead 2026-11-03 16:00)* With no Postgres in the sandbox and `ci.yml` off-limits (open PR #15), AC1, AC2 and AC4 may also be "not run: infra unavailable" at PR time; they are then owed as post-merge evidence from the first `stack.yml` run that includes this migration (OPS-H1 #14 rebased on it), filed in `agents/reviews/OPS-H5/`. Stop-and-report: if that run shows no `chunk_embeddings_hnsw_idx` or a failing second `make migrate`, pm-lead reopens OPS-H5 as P0 before OPS-H1 is raised.
 
 ## Verification
 ```bash
@@ -42,3 +54,10 @@ make test-full
 - Specced by pm-lead in PM-1 after finding that no migration creates the HNSW index (`grep -rni hnsw migrations/` is empty).
 - Adding an index through a new migration needs no ADR (AGENTS.md §1).
 - 2026-11-03 (pm-lead, OPS-H1 design gate): OPS-H5 is now on the P0 OPS-H1 critical path, because OPS-H1's `stack.yml` can't be green until this index migration merges. **Take the next free backend slot for OPS-H5**, ahead of OPS-H7, OPS-H2, OPS-H8 and ING-6. Its files don't overlap OPS-H1's. If OPS-H1 isn't merged, AC5 may say "not run: infra unavailable" (as above). OPS-H1's green rerun after this merges is filed as post-merge AC5 evidence in `agents/reviews/OPS-H5/`.
+- 2026-11-03 16:00 cycle (pm-lead, plan): picked as backend's one free slot. Independence checked against open PRs:
+  #13 = `internal/query/rag*.go`, #14 = compose, both Dockerfiles, `Makefile`, `stack.yml`, README/CONTRIBUTING hunks
+  listed in Scope, #15 = `internal/kafka/consumer*.go` + `ci.yml`. OPS-H5 touches `migrations/000002_*`, `internal/db/`,
+  `cmd/arxivlens/main.go` (`newMigrateCmd` only) and README line 166 → no overlap. `000001_init_schema.up.sql` is already
+  all `IF NOT EXISTS`, so AC2 needs no change to it. AC1/AC2/AC4/AC5 need a Postgres: in this sandbox write
+  "not run: infra unavailable" with the exact commands; they get CI evidence when #14's `stack.yml` reruns after this merges
+  (post-merge AC5 evidence in `agents/reviews/OPS-H5/`, as above). AC3 + `make test-unit`/`make lint` must be green in `ci.yml`.

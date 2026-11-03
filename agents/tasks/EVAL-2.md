@@ -5,8 +5,8 @@
 | **Owner** | ai-engineer |
 | **Priority** | P2 |
 | **PRD ref** | Product PRD §8 (`/v1/search` p95 < 1.5 s, Recall@5 gate robustness); QA-2; ADR-0006, ADR-0010 |
-| **Depends on** | EVAL-1 (PR #2 merged) |
-| **Status** | Ready (start once PR #2 is merged) |
+| **Depends on** | EVAL-1 (PR #2 merged); ADR-0012 (Proposed) |
+| **Status** | Blocked (needs ADR-0012) |
 
 ## Goal
 EVAL-1 left two kinds of gap. (b) The PRD target `/v1/search` p95 < 1.5 s is not measured or gated at all. (c) QA round 3 on
@@ -28,7 +28,8 @@ EVAL-1 found four test-strength and robustness nits in the retrieval eval. (Gap 
 - [ ] AC3 — Failed `/v1/search` calls fail the gate, the same way `ask_errors` does.
 - [ ] AC4 — The PR description asks Mahesh to confirm the new `search_p95_latency_ms_max` key.
 - [ ] AC5 — Before/after `make eval` numbers pasted, or "not run: infra unavailable" plus the exact command.
-- [ ] AC6 (EVAL-1 QA r3 finding 2, mutant M13) — A rerank error stops the run. A test injects a rerank function that raises (`RerankError` and a score-count mismatch) into `run_modes_for_case` / `run_retrieval_evaluation` (stubbed as in `test_run_checks_healthz_before_any_rerank_and_reports_metrics`) and asserts the run raises and produces no summary. The mutant "catch the error in `rerank_pool` and fall back to RRF order" must fail this test (paste the mutation result).
+- [x] AC6–AC9: **moved to [EVAL-5](EVAL-5.md) AC1–AC4** (pm-lead 2026-11-03 16:00). Kept below for history; nothing to do here.
+- [ ] ~~AC6~~ (EVAL-1 QA r3 finding 2, mutant M13) — A rerank error stops the run. A test injects a rerank function that raises (`RerankError` and a score-count mismatch) into `run_modes_for_case` / `run_retrieval_evaluation` (stubbed as in `test_run_checks_healthz_before_any_rerank_and_reports_metrics`) and asserts the run raises and produces no summary. The mutant "catch the error in `rerank_pool` and fall back to RRF order" must fail this test (paste the mutation result).
 - [ ] AC7 (finding 3, mutants M16/M17) — The SQL parity test is robust to ORDER BY and sort-direction drift. It compares the normalised CTE/arm text of `RRF_POOL_SQL` with `internal/query/search.go` (placeholders normalised; the allowed differences are listed explicitly in the test, as in QA evidence 307), or it runs both against Postgres in an integration test. These mutants must fail it: drop the vector arm's `ORDER BY ... LIMIT 50` before LIMIT; `ORDER BY rrf_score ASC`; change one arm's `LIMIT 50`. If RET-1 has merged and changed `search.go`, compare against the new text.
 - [ ] AC8 (finding 4) — A paper with only some chunks embedded is visible in the output. For each relevant paper the summary records `embedded_chunks` / `total_chunks` for the current model, and the run prints a warning for any paper with embedded < total. The gate does not fail on it (warning only; changing that needs an ADR). Unit test with a stubbed cursor.
 - [ ] AC9 (finding 5) — The model-name sources are documented and recorded. `evals/README.md` says that the eval reads `EMBEDDING_MODEL` (Python config) while the Go query service uses its `--model` flag (default `BAAI/bge-base-en-v1.5`), and that both must match. The results JSON keeps `embedding_model`. The eval also prints a warning when `EMBEDDING_MODEL` differs from the Go default `BAAI/bge-base-en-v1.5`, because the Go side has only a flag and no env var. This is a warning only, with no gate change. Unit test for the warning.
@@ -48,3 +49,10 @@ make eval   # when infra is available
 - 2026-11-02 (pm-lead, EVAL-1 round-3 PM review): re-scoped. (a) the production rerank endpoint was done in EVAL-1, so AC1 is closed. Added AC6–AC9 from EVAL-1 QA round 3 nits 2–5 (`agents/reviews/EVAL-1/report.md`, round 3 Findings; mutation evidence `evidence/310-qa-mutations.png`). Expected diff is about 250 lines; split AC6–AC9 into a new task (not EVAL-3, which is now the CI eval workflow) if the build goes over 400.
 - 2026-11-03 (pm-lead, RET-1 PM review): added AC10, the deferred RET-1 latency/eval measurement. Merging RET-1 without it was a PM decision (`agents/reviews/RET-1/report.md`, PM decision round 1).
 - 2026-11-03 (pm-lead): AC10 moved to EVAL-3 AC6, so the measurement has exactly one owner (it needs a stack, and EVAL-3 is the task that brings one up in CI).
+- 2026-11-03 16:00 cycle (pm-lead, plan): split. AC6–AC9 (test hardening, no decision) → new [EVAL-5](EVAL-5.md), Ready.
+  The remaining AC2–AC5 add a new gate key to `evals/thresholds.json`; AGENTS.md §2 says gate values change only through
+  an Accepted ADR, so "Mahesh confirms in the PR" (old Scope line) is not enough → wrote [ADR-0012](../../docs/adr/0012-search-p95-gate.md)
+  (Proposed; recommends measure-and-report now, gate after EVAL-4's first CI numbers). Status → Blocked (needs ADR-0012).
+  Spec fix for when it unblocks: a new `tests/test_eval_gate.py` must also be added to `make test-py` in the `Makefile`
+  (backend-owned, and open PR #14 changes it) — either put the gate tests in `tests/test_evals_data.py` or wait for #14 to merge
+  and ask backend for the one-line Makefile change.

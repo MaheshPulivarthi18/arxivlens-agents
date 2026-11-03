@@ -1,21 +1,21 @@
 # Board
 
-Last updated: 2026-11-03 15:05 UTC by orchestrator (cycle 14:00: AI-3 #13 + OPS-H6 #15 raised; OPS-H1 #14 rework; ING-8 blocked)
+Last updated: 2026-11-03 16:00 UTC by pm-lead (cycle 16:00 plan: OPS-H5 + EVAL-5 picked; EVAL-2 split → EVAL-5 + Blocked on ADR-0012; AI-4 parked behind #13)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 
 ## Ready
 | ID | Title | Owner | Pri | Depends on |
 |---|---|---|---|---|
+| [OPS-H5](tasks/OPS-H5.md) | Migration for HNSW index + `migrate` applies all migrations (on OPS-H1's critical path; picked cycle 16:00) | backend-engineer | P1 | — (soft: OPS-H1) |
+| [EVAL-5](tasks/EVAL-5.md) | Harden retrieval eval tests (EVAL-1 QA r3 nits, ex-EVAL-2 AC6–AC9) + parity drift guard (ex-AI-4 AC2) (picked cycle 16:00) | ai-engineer | P2 | EVAL-1, RET-1 (merged) |
 | [EVAL-3](tasks/EVAL-3.md) | GitHub Actions full-stack `make eval` (manual + nightly), results artifact, first numbers; carries RET-1 AC6 (design-required) | backend-engineer (ai pairs on design) | P1 | OPS-H1 |
 | [OPS-H7](tasks/OPS-H7.md) | DLQ list/replay: offset checkpoints, paging, replay lock, idempotent replay (design-required) | backend-engineer | P1 | OPS-H6 |
-| [FE-1](tasks/FE-1.md) | Frontend test harness (Vitest) + tests for answer/citation states | frontend-engineer | P1 | — |
-| [OPS-H5](tasks/OPS-H5.md) | Migration for HNSW index + `migrate` applies all migrations | backend-engineer | P1 | — (soft: OPS-H1) |
+| [FE-1](tasks/FE-1.md) | Frontend test harness (Vitest) + tests for answer/citation states — needs registry.npmjs.org to regenerate `package-lock.json` | frontend-engineer | P1 | — |
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 |
-| [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 |
+| [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 (start after OPS-H5: both add a migration + edit `cmd/arxivlens/main.go`) |
 | [FE-2](tasks/FE-2.md) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 |
-| [AI-4](tasks/AI-4.md) | `/v1/ask` passes trace ID to `HybridSearch`; harden ADR-0010 parity guard (KAN-27) | ai-engineer | P2 | — (AI-2 merged) |
-| [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate + eval-test hardening (EVAL-1 QA r3 nits, AC6–AC9); AC10 moved to EVAL-3 | ai-engineer | P2 | EVAL-1 |
+| [AI-4](tasks/AI-4.md) | `/v1/ask` passes trace ID to `HybridSearch` (rag.go only now; parity part moved to EVAL-5) (KAN-27) | ai-engineer | P2 | AI-3 (#13 merged; same files) |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -42,6 +42,7 @@ WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENT
 | [ING-8](tasks/ING-8.md) | Measure PDF section-extraction quality (scorer/tests/docs built on `agent/ai/ING-8` `d2ad9c5`, pushed, no PR) | ai-engineer | arxiv.org access to license-check and hand-label `evals/extraction.jsonl` (AC1) and run the baseline (AC5); agent sandboxes can't reach arxiv.org (KAN-32) |
 | [QA-8](tasks/QA-8.md) | LLM answer synthesis behind citation validation | ai-engineer | ADR-0001, ADR-0002 (human decision), EVAL-1, AI-1 |
 | [AI-5](tasks/AI-5.md) | `/v1/ask` relevance bar when rerank scores are missing (reranker outage fails open) | ai-engineer | ADR-0011 (human decision), AI-1 merged |
+| [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate key in `make eval` (AC2–AC5; AC6–AC9 moved to EVAL-5) | ai-engineer | ADR-0012 (Proposed: gate now / report now, gate later / profile-aware) |
 | [EVAL-4](tasks/EVAL-4.md) | Record EVAL-3's first measured numbers in `evals/BASELINE.md` | ai-engineer | EVAL-3 merged + one completed `eval.yml` run |
 | ADR-0003 | Abstention policy for `/v1/ask` when all citations are unsupported / verification unavailable (question added 2026-11-03) | Mahesh | human decision (no task specced on it yet; affects QA-8, FE-1) |
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
