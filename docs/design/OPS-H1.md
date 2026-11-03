@@ -351,6 +351,45 @@ listener exists; `ownership-check.sh` allows `docker-compose.yml`, `Makefile`, `
    instead of trimming the workflow.
 8. **AC5 docs** also include the `.dockerignore` note (decision 3) and the GPU/MPS note (§1 "CPU torch").
 
+### Addendum 2026-11-03: binding condition 1 amended (minio-init image)
+**Decision: option (a).** OPS-H1 may change the image reference of `minio-init` and, only if needed, of `minio`. No separate task.
+
+Why: the first `stack.yml` runs (41652931263 attempts 1 and 2) failed at `docker compose up -d` because Docker Hub refuses
+`minio/mc:latest` ("pull access denied ... repository does not exist"). That breaks `make infra-up` on `main` for everyone, and
+it blocks AC1–AC4. The infra service blocks aren't a shared contract (AGENTS.md §2); I froze them only to keep the PR's scope
+tight. A separate task would need its own PR, a merge by Mahesh before OPS-H1 could restart (`Depends on` must be merged), and a
+rebase. That's three hand-offs for a one- or two-line change in a file this PR already edits. There's no file overlap with
+OPS-H6 (draft PR #15, `internal/kafka/` + `ci.yml` only). The developer was right to stop and not retag in the workflow.
+
+**Amended condition 1** (replaces only the "byte-identical" sentence; the rest of condition 1 stands):
+the infra service blocks in `docker-compose.yml` stay byte-identical **except** the `image:` line of `minio-init` and, if needed,
+the `image:` line of `minio`. `container_name`, `command`, `entrypoint`, `healthcheck`, `environment`, `ports`, `volumes` and
+`depends_on` of every infra service stay unchanged. Evidence: `git diff origin/main -- docker-compose.yml` shows at most those
+two changed lines inside the infra blocks, plus the added worker services.
+
+Rules for the new image reference(s):
+1. **Pinned**: an explicit release tag (no `latest`, no floating tag). Adding an `@sha256:` digest is preferred.
+2. **Documented source**: an image MinIO itself publishes (for example a `RELEASE.*` tag of `quay.io/minio/mc`, or of
+   `quay.io/minio/minio`). Don't use a third-party mirror or a personal re-upload. If nothing MinIO publishes can be pulled,
+   stop: mark `Blocked (needs decision: MinIO image source)`, list what you tried, and tell pm-lead. Replacing MinIO with
+   another S3 server is a decision for Mahesh, not this task.
+3. **Works with the unchanged blocks**: `minio-init`'s entrypoint calls `/usr/bin/mc`, and `minio`'s healthcheck runs
+   `mc ready local` inside the server image. Whatever you pick must ship `mc` at those paths. Using the same pinned
+   `minio` server image for `minio-init` is acceptable (it ships `mc`), and it means pinning one image instead of two.
+4. **Change `minio` only if needed**: needed means it fails to pull, it lacks `mc`, or you reuse its pinned image for
+   `minio-init` (then both lines use the same pinned reference). Record which case applies in the PR description.
+5. **No workaround in the workflow**: `stack.yml` doesn't pre-pull, retag, `docker login`, configure a registry mirror or
+   reference a MinIO image directly. Compose pulls the images, so `make infra-up` gets the same fix as CI.
+6. **Prove it exists in the next run**: the `stack.yml` log for the AC1 step shows the pinned reference being pulled
+   (`Pulled`), and the AC2 evidence includes `docker compose images` (or `docker image inspect --format '{{.RepoDigests}}'`)
+   for minio and minio-init. Condition 2 still applies: `minio` `(healthy)`, `minio-init` `Exited (0)`. If the sandbox can
+   reach the registry, `docker manifest inspect <ref>` before you push is a cheap check, but the CI log is the evidence.
+7. The PR description has a short "Fixes on `main`" line: `minio/mc:latest` is no longer pullable from Docker Hub, which
+   broke `make infra-up`. The old reference and the new one are both named.
+
+This doesn't change any AC and doesn't weaken anything. Decision 1 still holds: after the run, the task expects
+`Blocked (needs OPS-H5 merged)` unless the only failure is gone.
+
 ### Ticket updates made with this decision
 `agents/tasks/OPS-H1.md`: status set to Ready (design approved), AC4 and AC6 now state the M5 rule above (this tightens them, it doesn't
 weaken them), a new AC7 covers `opentelemetry-sdk` in `make setup-py`, and Notes record the follow-ups. `agents/tasks/OPS-H5.md` and

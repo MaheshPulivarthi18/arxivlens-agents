@@ -8,7 +8,7 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | ID | Title | Owner | Pri | Depends on |
 |---|---|---|---|---|
 | [OPS-H6](tasks/OPS-H6.md) | Go consumer: commit only after success or confirmed DLQ write; context-aware retry wait (design-required) | backend-engineer | P0 | — |
-| [OPS-H1](tasks/OPS-H1.md) | Run processor + embedder workers in docker-compose; one-command full test | backend-engineer | P0 | — |
+| [OPS-H1](tasks/OPS-H1.md) | Run processor + embedder workers in docker-compose; one-command full test (**rework on draft PR #14**: pin a pullable `minio-init` image, design addendum 2026-11-03) | backend-engineer | P0 | — |
 | [EVAL-3](tasks/EVAL-3.md) | GitHub Actions full-stack `make eval` (manual + nightly), results artifact, first numbers; carries RET-1 AC6 (design-required) | backend-engineer (ai pairs on design) | P1 | OPS-H1 |
 | [OPS-H7](tasks/OPS-H7.md) | DLQ list/replay: offset checkpoints, paging, replay lock, idempotent replay (design-required) | backend-engineer | P1 | OPS-H6 |
 | [ING-8](tasks/ING-8.md) | Measure PDF section-extraction quality: heading corpus + boundary P/R scorer + baseline | ai-engineer | P1 | — |

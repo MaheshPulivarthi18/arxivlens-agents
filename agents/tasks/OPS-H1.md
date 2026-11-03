@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | find with JQL `labels = "task-OPS-H1"` |
 | **Design required** | **yes** (pm-lead 2026-11-03): P0, adds three compose services and a CI workflow that runs the full stack on GitHub runners. Design in `docs/design/OPS-H1.md`; pm-lead approves before code. |
-| **Status** | Blocked (needs minio-init image decision: `minio/mc:latest` no longer pullable from Docker Hub, infra block is frozen by binding condition 1). Built; draft PR #14. After that fix, still expected to go `Blocked (needs OPS-H5 merged)`. |
+| **Status** | Ready for rework (pm-lead 2026-11-03: binding condition 1 amended so OPS-H1 fixes the `minio-init` image; see the design's PM decision addendum and the rework checklist in Notes). Draft PR #14 stays draft. After the rerun it is still expected to go `Blocked (needs OPS-H5 merged)`. |
 
 ## Goal
 Today `make test-full` only works if someone starts three Python processes by hand. Agents can't verify pipeline or
@@ -125,3 +125,24 @@ Agent sandboxes have the Docker CLI but no daemon: AC1–AC4 are proven only by 
   - Not run locally: `make lint` / `make test-unit` (sandbox Go 1.24, no PyPI/HF), actionlint (not installed), and anything that
     needs a Docker daemon. Locally checked: `docker compose config` (5 services without the profile, 8 with it), `make -n stack-up`,
     and `bash -n` on every workflow `run:` block.
+- 2026-11-03 (pm-lead, unblock decision): **option (a)**. OPS-H1 fixes the image itself, with no separate task. Binding condition 1 is
+  amended (design "PM decision", addendum 2026-11-03): only the `image:` line of `minio-init`, and of `minio` if needed, may change
+  in the infra blocks. Scope now includes that change. No file overlap with OPS-H6 (#15: `internal/kafka/`, `ci.yml`).
+  **Rework checklist (QA checks each item):**
+  - [ ] R1: Rebase `agent/backend/OPS-H1` on current `origin/main`. Keep PR #14 in **draft**.
+  - [ ] R2: Replace `minio/mc:latest` with a **pinned** image that MinIO publishes (e.g. a `RELEASE.*` tag of `quay.io/minio/mc`,
+        or the same pinned `quay.io/minio/minio` server image, which ships `/usr/bin/mc`). No `latest`, no third-party mirror.
+        A digest is preferred.
+  - [ ] R3: Change the `minio` `image:` line only if it fails to pull, lacks `mc` (the healthcheck runs `mc ready local`), or you
+        reuse it for `minio-init`. Say which case applies in the PR.
+  - [ ] R4: No other infra-block edits: `git diff origin/main -- docker-compose.yml` evidence shows at most those two lines
+        changed inside the infra blocks.
+  - [ ] R5: `stack.yml` has no pre-pull, retag, `docker login` or mirror workaround, and doesn't reference a MinIO image directly.
+  - [ ] R6: Prove that the image exists in the next `stack.yml` run: AC1 step log shows the pinned reference `Pulled`, AC2
+        evidence includes `docker compose images` (or `RepoDigests`) for minio + minio-init, `minio` `(healthy)` and
+        `minio-init` `Exited (0)`.
+  - [ ] R7: If no MinIO-published image pulls: stop, `Blocked (needs decision: MinIO image source)`, list the references you
+        tried with their errors. Don't switch S3 servers.
+  - [ ] R8: PR description gets a "Fixes on `main`" line (old and new reference; `make infra-up` was broken for everyone).
+  - [ ] R9: Then continue the original plan: AC1–AC4 evidence from the run, full unfiltered `make test-full` summary (only allowed
+        failure: the M5 HNSW test), diff < 400 lines, then `Blocked (needs OPS-H5 merged)` per design decision 1.
