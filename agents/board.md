@@ -34,7 +34,6 @@ WIP limit: 1 open PR per engineering agent. Order within a column = priority.
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
 | [RET-1](tasks/RET-1.md) | Rerank a 20-candidate pool and sort by rerank score (ADR-0010), `831905e`. #2 merged; mergeable clean on new main. | backend-engineer | [#9](https://github.com/MaheshPulivarthi18/ArxivLens/pull/9) (ready for review) | QA PASS r1 · PM APPROVE r1 ([report](reviews/RET-1/report.md)) |
-| [AI-1](tasks/AI-1.md) | Unit tests for `rag.go` filtering and citation validation, `f56f80b`. Independent of #9 (either order). | ai-engineer | [#10](https://github.com/MaheshPulivarthi18/ArxivLens/pull/10) (ready for review) | QA PASS r1 · PM APPROVE r1 ([report](reviews/AI-1/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -68,6 +67,7 @@ Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and 
 ## Done
 | ID | Title | PR |
 |---|---|---|
+| [AI-1](tasks/AI-1.md) | Unit tests for `rag.go` filtering and citation validation | ArxivLens [#10](https://github.com/MaheshPulivarthi18/ArxivLens/pull/10) → 4702daa (KAN-9) |
 | [EVAL-1](tasks/EVAL-1.md) | Versioned golden eval sets + `make eval` gate | ArxivLens [#2](https://github.com/MaheshPulivarthi18/ArxivLens/pull/2) → a959d03 (KAN-8) |
 | [OPS-H3](tasks/OPS-H3.md) | Baseline Go unit tests (arXiv ID, Atom parsing, retry backoff) | ArxivLens [#6](https://github.com/MaheshPulivarthi18/ArxivLens/pull/6) → 72c82ac (KAN-15) |
 | REPO-SPLIT | ArxivLens is code-only; planning moved here | ArxivLens [#8](https://github.com/MaheshPulivarthi18/ArxivLens/pull/8) → 18a3cf9 |

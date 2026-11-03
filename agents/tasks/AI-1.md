@@ -6,7 +6,7 @@
 | **Priority** | P1 (safety net before QA-8 rewrites synthesis) |
 | **PRD ref** | QA-3, QA-4, QA-5, QA-6; Technical PRD §7.2 |
 | **Depends on** | — |
-| **Status** | Ready to merge (PR #10, QA PASS r1 · PM APPROVE r1) |
+| **Status** | Done (PR #10 merged as 4702daa) |
 
 ## Goal
 `internal/query/rag.go` holds the product's core promise (grounded, validated citations; honest refusal) and has zero
@@ -48,3 +48,4 @@ make test-unit
     3. Observation, no change (needs a pm-lead/ADR decision): a hit with `RerankScore == 0` (no rerank score, e.g. reranker down) bypasses the 0.45 relevance cutoff, so retrieval fails open, though an aux section with 0 is still dropped. Pinned in `TestFilterRelevantHits/zero_rerank_score_bypasses_relevance_cutoff`. Also, `EarlyRefusalThreshold` (RRF 0.015) is declared but never used. Suggest a follow-up ticket to decide both.
   - Diff: 405 insertions, 24 deletions (429 lines), slightly over the 400-line target. About 18 of those lines are code moved verbatim inside rag.go and counted twice; I chose not to compress the tests further.
 - 2026-11-03 (pm-lead) PM APPROVE r1 ([report](../reviews/AI-1/report.md)); PR #10 raised (ready for review). Bug 3 (zero rerank score bypass + unused `EarlyRefusalThreshold`) → ADR-0011 (Proposed) + [AI-5](AI-5.md) (Blocked on ADR-0011).
+- 2026-11-03 (orchestrator): **Merged** by Mahesh as `4702daa`. Jira KAN-9 → Done.
