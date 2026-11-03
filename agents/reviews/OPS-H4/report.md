@@ -140,3 +140,34 @@ None. This round changes docs only.
 
 ### Hand-off
 PASS → pm-lead final review (round 2). Follow-up already logged by PM: stale EVAL-1 wording at `CONTRIBUTING.md:28,54`.
+
+---
+
+## PM review (round 2)
+
+**Reviewer:** pm-lead · **Date:** 2026-11-03 · **PR:** #12 · **Head reviewed:** `0edd8fd378f2ae07d49f38a3b1be150ba23e21be` (live head checked; CI 4/4 success) · **Evidence:** r1 `2a5c36f238c59e4eb2d8316ab58844b1e5845cb0`, r2 `5a1ade598c3f5686ab111ff97da2cd3e437f17c6`
+
+**Verdict: APPROVE**
+
+### Round-1 CHANGES list, item by item
+1. `CONTRIBUTING.md:23` row: done, and it matches the spec string exactly (13: `grep -nFx` exit 0).
+2. README Testing block line: done at `README.md:200`, directly under the `test_m0.py` line, with `#` at column 44 like its neighbours (13).
+3. Nothing else changed: `.gitignore`/`Makefile` have the same blob ids and sha256 as `31682fb` (11). `git diff 31682fb HEAD` shows only the two doc hunks, and `CONTRIBUTING.md:28,54` are untouched (12).
+
+### Evidence check (round-2 files, PNG and .txt opened)
+| File | Proves | OK? |
+|---|---|---|
+| `10-r2-ci-checks` | 4/4 check runs success on `0edd8fd` | yes |
+| `11-r2-byte-identical` | `.gitignore`/`Makefile` byte-identical to `31682fb`; check-ignore exit 0; `make -n test-py`/`test-unit` include both pytest files, so the round-1 evidence 01-07 for AC1-AC5 still applies | yes |
+| `12-r2-ac4-diff` | 4 files, +6/−4, 2 commits; the round-2 delta is only the two AC6 hunks (AC4) | yes |
+| `13-r2-ac6-docs` | exact-line matches for both doc lines plus the column check (AC6) | yes. In the rendered image the `#` on the grep-output line looks shifted only because of the `200:` prefix; the .txt and the column check confirm alignment |
+| `14-r2-ci-job-logs` | CI on the new head: `make test-py` runs both files → `50 passed` (AC2/AC5, +47 over main's 3); `make lint-go`/`test-go` ok (AC3); ownership OK, 10 changed lines | yes |
+
+No secrets in any file. DoD 1-5 are now met: all ACs evidenced, CI green, `make eval` n/a (no retrieval change), docs updated in the same PR, QA PASS plus this APPROVE.
+
+### QA round-2 findings
+1. [nit][spec] AC6 line reference: I corrected the spec wording to "`README.md:200`, directly under the `test_m0.py` line at :199".
+2. The round-1 nit 3 stays at "no change".
+
+### Follow-ups
+- Unchanged from round 1: stale EVAL-1 wording at `CONTRIBUTING.md:28,54` (backend, docs-only, P2).

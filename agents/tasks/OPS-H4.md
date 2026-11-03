@@ -6,7 +6,7 @@
 | **Priority** | P1 |
 | **PRD ref** | Product PRD §8; EVAL-1 AC5 + Notes follow-up request |
 | **Depends on** | EVAL-1 (PR #2 merged) |
-| **Status** | In Progress (PM CHANGES round 1: docs lines, see Notes) |
+| **Status** | Ready to merge (QA r2 PASS + PM APPROVE, PR #12) |
 
 ## Goal
 Each `make eval` run writes `evals/results/<timestamp>.json`, so the directory must never be committed. The eval dataset
@@ -23,7 +23,7 @@ them in the fast suite. Ignoring the results and running the checks keeps broken
 - [ ] AC3 — `make test-unit` still passes, and `make help` still lists `test-py` with an accurate description.
 - [ ] AC4 — The diff touches only `.gitignore`, `Makefile`, `CONTRIBUTING.md` and `README.md` (the last two: only the lines in AC6).
 - [ ] AC5 — In CI, the "Python M0 unit tests" job (it runs `make test-py`, `.github/workflows/ci.yml:44`) runs `tests/test_evals_data.py`: the job log on the PR head shows the pytest command including it, and the combined pass count rises by ≥ 47 over `main`'s job (pytest prints one summary for both files). If the CI job needs an extra package for it, say so in Notes instead of editing `requirements*.txt` silently.
-- [ ] AC6 — Docs match the new command: `CONTRIBUTING.md:23` reads `| \`make test-unit\` | Go tests + \`pytest tests/test_m0.py tests/test_evals_data.py\` | No |`, and the README Testing block (`README.md:199`) has a line `pytest tests/test_evals_data.py` with comment `# Unit: eval datasets — schema, sizes, corpus membership, unique IDs (no infra)` under the `test_m0.py` line.
+- [ ] AC6 — Docs match the new command: `CONTRIBUTING.md:23` reads `| \`make test-unit\` | Go tests + \`pytest tests/test_m0.py tests/test_evals_data.py\` | No |`, and the README Testing block has a line (`README.md:200`, directly under the `test_m0.py` line at :199) `pytest tests/test_evals_data.py` with comment `# Unit: eval datasets — schema, sizes, corpus membership, unique IDs (no infra)` under the `test_m0.py` line.
 
 ## Verification
 ```bash
@@ -44,3 +44,4 @@ git diff --stat origin/main
   - [x] `README.md:199` Testing block: add `pytest tests/test_evals_data.py            # Unit: eval datasets — schema, sizes, corpus membership, unique IDs (no infra)` under the `test_m0.py` line
   - [x] Nothing else changes (`.gitignore`/`Makefile` stay byte-identical to `31682fb`; the stale EVAL-1 wording at `CONTRIBUTING.md:28,54` is a separate follow-up)
 - 2026-11-03 (backend-engineer, rework round 1): applied both doc edits in worktree `agent/backend/OPS-H4` (on top of `31682fb`, uncommitted; orchestrator commits/pushes to PR #12). `CONTRIBUTING.md:23` now reads the AC6 row verbatim; `README.md:200` adds the `pytest tests/test_evals_data.py` line under the `test_m0.py` line, `#` at column 44 like the lines around it. `git diff 31682fb -- .gitignore Makefile` is empty (byte-identical). `git diff --stat bb9ee90` = `.gitignore` +1, `CONTRIBUTING.md` +1/-1, `Makefile` +3/-3, `README.md` +1 (AC4). `CONTRIBUTING.md:28,54` left as is (separate follow-up). Docs-only change, so no tests re-run locally; CI on the new head is the check.
+- 2026-11-03 (pm-lead, PM review round 2 of PR #12): **APPROVE** on `0edd8fd`. All three checklist items were verified by QA r2 (evidence 11-13). PR raised for Mahesh. AC6 line reference corrected (QA r2 nit). Follow-up: stale EVAL-1 wording at `CONTRIBUTING.md:28,54`.
