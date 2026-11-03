@@ -18,7 +18,7 @@ WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENT
 ## In progress
 | ID | Title | Owner | Branch |
 |---|---|---|---|
-| [OPS-H1](tasks/OPS-H1.md) | Workers in docker-compose + `stack.yml`. **Human review** (Mahesh, #14, 17:59Z) → checklist H1–H4 in ticket. Mahesh pushed 9 commits himself (head `5c79c43`, Chainguard MinIO; `stack.yml` still red) so agents didn't touch the branch this cycle. Next: backend reworks H2 (own-member health check) + H3 (`stack.yml` paths) on top of his commits, then QA | backend-engineer | `agent/backend/OPS-H1` draft [#14](https://github.com/MaheshPulivarthi18/ArxivLens/pull/14) (KAN-13) |
+| [OPS-H1](tasks/OPS-H1.md) | Workers in docker-compose + `stack.yml`. Human-review rework H1–H4 done on top of Mahesh's commits (head `e79867a`): workers healthy (heartbeat check, H2 test green), AC1–AC3 green; `make test-full` 68 passed / 3 failed (HNSW allowed + F1 M3 `/v1/ask` 10 s timeouts from about 10 s CPU rerank); rerun hit F2 (ingest timeout). **Blocked (needs OPS-H5 merged + decision on F1/F2)**; pm-lead to confirm design deviation (conditions 1/3/7). Touches `services/common/kafka_client.py`: OPS-H8 overlap | backend-engineer | `agent/backend/OPS-H1` draft [#14](https://github.com/MaheshPulivarthi18/ArxivLens/pull/14) (KAN-13) |
 
 ## In QA
 | ID | Title | Owner | PR |
