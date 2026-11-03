@@ -394,3 +394,26 @@ This doesn't change any AC and doesn't weaken anything. Decision 1 still holds: 
 `agents/tasks/OPS-H1.md`: status set to Ready (design approved), AC4 and AC6 now state the M5 rule above (this tightens them, it doesn't
 weaken them), a new AC7 covers `opentelemetry-sdk` in `make setup-py`, and Notes record the follow-ups. `agents/tasks/OPS-H5.md` and
 `agents/tasks/OPS-H2.md` Notes are updated.
+
+### Addendum 2026-11-03 (backend-engineer, human-review rework H1–H3): worker healthcheck is a worker-local heartbeat
+Changed during the build, after Mahesh's PR #14 review (H2) and stack.yml runs 41700393476 and 41719506286. **Deviates from
+binding conditions 1 and 3. pm-lead needs to confirm or amend them.**
+- **Why the group check went.** Run 41719506286 captured the Docker health log. Every probe failed with `TimeoutError` at
+  `AdminClient.describe_consumer_groups(...)[g].result(timeout=10)` (confluent-kafka 2.16.1 against `apache/kafka:3.7.0`), while
+  Kafka logged `Stabilized group processor-v1 ... with 1 members`. That was also the cause of the "workers stay unhealthy 15 min"
+  failure at `5c79c43`. Separately, Mahesh's H2 requires the check to prove *this* container is the member, which a group-level check can't.
+- **New design.** `ServiceKafkaConsumer` (`services/common/kafka_client.py`) touches `$WORKER_HEARTBEAT_FILE` after every `poll()`
+  while `consumer.assignment()` is non-empty. A stale file is removed at construction. An `OSError` is logged and never stops consumption.
+  With the env unset (host runs, tests) nothing changes. Compose sets `WORKER_HEARTBEAT_FILE=/run/arxivlens/heartbeat` on a `tmpfs`
+  (empty on every container start). The healthcheck passes if the file is younger than 300 s (= `max.poll.interval.ms`, after
+  which Kafka evicts the member anyway).
+  Known limit: a frozen process (SIGSTOP) stays "healthy" for up to 300 s, although Kafka drops it after the 45 s session timeout.
+- **Tests.** `tests/test_worker_heartbeat.py` (table-driven, no infra; in `make test-py`). The stack.yml step "Worker health follows
+  this container, not the group" adds a host consumer to `processor-v1`. With two members (`kafka-consumer-groups.sh --members`),
+  the probe passes in the processor. After `docker compose stop processor`, with only the host member left, the same probe fails
+  in a processor-image container on the same network. Then the processor restarts and must turn healthy again.
+- **Images.** `minio` / `minio-init` are pinned to the digests the runner resolved (`cgr.dev/chainguard/minio:latest@sha256:3c60a2a8…`,
+  `cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4…`). Chainguard's free tier publishes only `latest`/`latest-dev`, so the
+  tag part floats and the digest pins.
+- **Also changed.** `make stack-up` fails as soon as a worker turns `unhealthy` and prints its health log. The `stack.yml` `paths` filter adds
+  `services/processor/**`, `services/embedder/**`, `services/common/**`, `shared/**`, `migrations/**` (H3).
