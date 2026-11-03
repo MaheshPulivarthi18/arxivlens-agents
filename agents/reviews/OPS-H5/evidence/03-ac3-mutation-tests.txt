@@ -1,0 +1,45 @@
+$ bash /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/mutations.sh
+=================== M1 filter .up.sql -> any .sql
+MUTATION: sed 's/HasSuffix(e.Name(), ".up.sql")/HasSuffix(e.Name(), ".sql")/'
+< 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".up.sql") {
+> 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".sql") {
+    db_test.go:69: got [/tmp/TestMigrationFilesup_only,_lexical_order_regardless_of_creation_order3541149796/001/000001_a.down.sql /tmp/TestMigrationFilesup_only,_lexical_order_regardless_of_creation_order3541149796/001/000001_a.up.sql /tmp/TestMigrationFilesup_only,_lexical_order_regardless_of_creation_order3541149796/001/000002_b.down.sql /tmp/TestMigrationFilesup_only,_lexical_order_regardless_of_creation_order3541149796/001/000002_b.up.sql], want [/tmp/TestMigrationFilesup_only,_lexical_order_regardless_of_creation_order3541149796/001/000001_a.up.sql /tmp/TestMigrationFilesup_only,_lexical_order_regardless_of_creation_order3541149796/001/000002_b.up.sql]
+    db_test.go:69: got [/tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations3541076421/001/000001_a.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations3541076421/001/000003_c.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations3541076421/001/000009_i.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations3541076421/001/000010_j.up.sql], want [/tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations3541076421/001/000001_a.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations3541076421/001/000009_i.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations3541076421/001/000010_j.up.sql]
+--- FAIL: TestMigrationFiles (0.00s)
+    --- FAIL: TestMigrationFiles/up_only,_lexical_order_regardless_of_creation_order (0.00s)
+    --- FAIL: TestMigrationFiles/ignores_non-sql,_plain_.sql_and_directories_named_like_migrations (0.00s)
+RESULT: tests FAIL -> mutant KILLED
+=================== M2 drop IsDir check
+MUTATION: sed 's/e.IsDir() || //'
+< 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".up.sql") {
+> 		if !strings.HasSuffix(e.Name(), ".up.sql") {
+    db_test.go:69: got [/tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations2586174577/001/000001_a.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations2586174577/001/000004_d.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations2586174577/001/000009_i.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations2586174577/001/000010_j.up.sql], want [/tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations2586174577/001/000001_a.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations2586174577/001/000009_i.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations2586174577/001/000010_j.up.sql]
+--- FAIL: TestMigrationFiles (0.00s)
+    --- FAIL: TestMigrationFiles/ignores_non-sql,_plain_.sql_and_directories_named_like_migrations (0.00s)
+FAIL
+FAIL	isolated/internal/db	0.006s
+RESULT: tests FAIL -> mutant KILLED
+=================== M3 drop empty-dir error
+MUTATION: sed 's/if len(names) == 0 {/if false {/'
+< 	if len(names) == 0 {
+> 	if false {
+--- FAIL: TestMigrationFiles (0.01s)
+    --- FAIL: TestMigrationFiles/no_up_migrations_is_an_error (0.00s)
+    --- FAIL: TestMigrationFiles/empty_dir_is_an_error (0.00s)
+FAIL
+FAIL	isolated/internal/db	0.010s
+RESULT: tests FAIL -> mutant KILLED
+=================== M4 reverse sort
+MUTATION: sed 's/sort.Strings(names)/sort.Sort(sort.Reverse(sort.StringSlice(names)))/'
+< 	sort.Strings(names)
+> 	sort.Sort(sort.Reverse(sort.StringSlice(names)))
+    db_test.go:69: got [/tmp/TestMigrationFilesup_only,_lexical_order_regardless_of_creation_order1741792010/001/000002_b.up.sql /tmp/TestMigrationFilesup_only,_lexical_order_regardless_of_creation_order1741792010/001/000001_a.up.sql], want [/tmp/TestMigrationFilesup_only,_lexical_order_regardless_of_creation_order1741792010/001/000001_a.up.sql /tmp/TestMigrationFilesup_only,_lexical_order_regardless_of_creation_order1741792010/001/000002_b.up.sql]
+    db_test.go:69: got [/tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations1176218443/001/000010_j.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations1176218443/001/000009_i.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations1176218443/001/000001_a.up.sql], want [/tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations1176218443/001/000001_a.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations1176218443/001/000009_i.up.sql /tmp/TestMigrationFilesignores_non-sql,_plain_.sql_and_directories_named_like_migrations1176218443/001/000010_j.up.sql]
+--- FAIL: TestMigrationFiles (0.01s)
+    --- FAIL: TestMigrationFiles/up_only,_lexical_order_regardless_of_creation_order (0.00s)
+    --- FAIL: TestMigrationFiles/ignores_non-sql,_plain_.sql_and_directories_named_like_migrations (0.00s)
+RESULT: tests FAIL -> mutant KILLED
+=================== M5 remove sort (os.ReadDir already sorts)
+RESULT: tests PASS -> mutant SURVIVED
+
+[exit code 0]

@@ -1,0 +1,32 @@
+$ bash -c set -x; cat migrations/000002_chunk_embeddings_hnsw.up.sql migrations/000002_chunk_embeddings_hnsw.down.sql; sed -n 31,36p scripts/benchmark_hnsw.py; grep -niE "^\s*(CREATE|ALTER|INSERT|DROP|DO) " migrations/*.up.sql; git diff --stat 9c1229a -- migrations/000001_init_schema.up.sql migrations/000001_init_schema.down.sql
+-- HNSW cosine index on chunk_embeddings.embedding (Technical PRD §5).
+-- Same name and params as scripts/benchmark_hnsw.py so databases where the
+-- benchmark already built it stay a no-op. Params are fixed by ADR-0008.
+CREATE INDEX IF NOT EXISTS chunk_embeddings_hnsw_idx
+  ON chunk_embeddings USING hnsw (embedding halfvec_cosine_ops)
+  WITH (m = 16, ef_construction = 64);
+DROP INDEX IF EXISTS chunk_embeddings_hnsw_idx;
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS chunk_embeddings_hnsw_idx 
+            ON chunk_embeddings 
+            USING hnsw (embedding halfvec_cosine_ops) 
+            WITH (m = 16, ef_construction = 64);
+        """)
+migrations/000001_init_schema.up.sql:2:CREATE EXTENSION IF NOT EXISTS vector;
+migrations/000001_init_schema.up.sql:5:CREATE TABLE IF NOT EXISTS papers (
+migrations/000001_init_schema.up.sql:23:CREATE INDEX IF NOT EXISTS idx_papers_categories ON papers USING GIN (categories);
+migrations/000001_init_schema.up.sql:24:CREATE INDEX IF NOT EXISTS idx_papers_status ON papers (status);
+migrations/000001_init_schema.up.sql:25:CREATE INDEX IF NOT EXISTS idx_papers_arxiv_id ON papers (arxiv_id);
+migrations/000001_init_schema.up.sql:28:CREATE TABLE IF NOT EXISTS paper_sections (
+migrations/000001_init_schema.up.sql:38:CREATE TABLE IF NOT EXISTS paper_chunks (
+migrations/000001_init_schema.up.sql:52:CREATE INDEX IF NOT EXISTS idx_paper_chunks_tsv ON paper_chunks USING GIN (content_tsv);
+migrations/000001_init_schema.up.sql:53:CREATE INDEX IF NOT EXISTS idx_paper_chunks_paper_id ON paper_chunks (paper_id);
+migrations/000001_init_schema.up.sql:56:CREATE TABLE IF NOT EXISTS chunk_embeddings (
+migrations/000001_init_schema.up.sql:65:CREATE TABLE IF NOT EXISTS processed_events (
+migrations/000002_chunk_embeddings_hnsw.up.sql:4:CREATE INDEX IF NOT EXISTS chunk_embeddings_hnsw_idx
++ cat migrations/000002_chunk_embeddings_hnsw.up.sql migrations/000002_chunk_embeddings_hnsw.down.sql
++ sed -n 31,36p scripts/benchmark_hnsw.py
++ grep -niE '^\s*(CREATE|ALTER|INSERT|DROP|DO) ' migrations/000001_init_schema.up.sql migrations/000002_chunk_embeddings_hnsw.up.sql
++ git diff --stat 9c1229a -- migrations/000001_init_schema.up.sql migrations/000001_init_schema.down.sql
+
+[exit code 0]

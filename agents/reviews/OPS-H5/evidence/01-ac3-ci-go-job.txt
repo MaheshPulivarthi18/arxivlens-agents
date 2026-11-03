@@ -1,0 +1,37 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/126040678034/logs | sed -n '115,121p;205,232p'
+2026-11-03T16:10:52.6492484Z 
+2026-11-03T16:10:52.6492735Z   git switch -
+2026-11-03T16:10:52.6493070Z 
+2026-11-03T16:10:52.6493438Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-03T16:10:52.6493923Z 
+2026-11-03T16:10:52.6494435Z HEAD is now at 8968572 Merge 47e845186d0bc2d6dc6731a5306e8d9994a95bcb into 9c1229a184d0d1befe997524c990fcc8ee9f016b
+2026-11-03T16:10:52.6497601Z ##[endgroup]
+2026-11-03T16:11:04.2593103Z PKG_CONFIG='pkg-config'
+2026-11-03T16:11:04.2593355Z 
+2026-11-03T16:11:04.2593788Z ##[endgroup]
+2026-11-03T16:11:04.2933248Z ##[group]Run make lint-go
+2026-11-03T16:11:04.2933592Z [36;1mmake lint-go[0m
+2026-11-03T16:11:04.2969057Z shell: /usr/bin/bash -e {0}
+2026-11-03T16:11:04.2969359Z ##[endgroup]
+2026-11-03T16:11:04.3068344Z go vet ./...
+2026-11-03T16:11:05.6016999Z ##[group]Run make test-go
+2026-11-03T16:11:05.6017312Z [36;1mmake test-go[0m
+2026-11-03T16:11:05.6049053Z shell: /usr/bin/bash -e {0}
+2026-11-03T16:11:05.6049315Z ##[endgroup]
+2026-11-03T16:11:05.6114464Z go test ./...
+2026-11-03T16:11:06.1484178Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-03T16:11:06.1512255Z ?   	arxivlens/internal/config	[no test files]
+2026-11-03T16:11:07.6580824Z ok  	arxivlens/internal/crawler	0.004s
+2026-11-03T16:11:07.8813168Z ok  	arxivlens/internal/db	0.008s
+2026-11-03T16:11:07.8813881Z ?   	arxivlens/internal/dlq	[no test files]
+2026-11-03T16:11:07.8842463Z ?   	arxivlens/internal/downloader	[no test files]
+2026-11-03T16:11:08.1199725Z ok  	arxivlens/internal/kafka	0.003s
+2026-11-03T16:11:08.2053768Z ok  	arxivlens/internal/query	0.007s
+2026-11-03T16:11:08.2054385Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-03T16:11:08.2054792Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-03T16:11:08.2055244Z ?   	arxivlens/shared/events	[no test files]
+2026-11-03T16:11:08.2247430Z ##[group]Run make build-go
+2026-11-03T16:11:08.2247733Z [36;1mmake build-go[0m
+2026-11-03T16:11:08.2277157Z shell: /usr/bin/bash -e {0}
+2026-11-03T16:11:08.2277419Z ##[endgroup]
+

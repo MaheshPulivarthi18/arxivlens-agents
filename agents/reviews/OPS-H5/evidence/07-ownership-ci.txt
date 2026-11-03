@@ -1,0 +1,3 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/126040678981/logs | grep -n Ownership
+149:2026-11-03T16:10:55.6446561Z Ownership OK for role=backend (163 changed lines)
+

@@ -1,0 +1,22 @@
+$ bash -c set -x; sed -n 105,117p internal/query/search.go; grep -n "pgvector" docker-compose.yml; grep -rn "ef_search" internal/ || echo "(no ef_search set in internal/)"
+	// 2. Hybrid RRF Search SQL Query matching §8
+	querySQL := `
+		WITH vector_hits AS (
+			SELECT pc.id AS chunk_id,
+			       ROW_NUMBER() OVER (ORDER BY ce.embedding <=> $1::halfvec) AS rank
+			FROM chunk_embeddings ce
+			JOIN paper_chunks pc ON pc.id = ce.chunk_id
+			JOIN papers p        ON p.id  = pc.paper_id
+			WHERE ce.model = $2
+			  AND ($3::text[] IS NULL OR p.categories && $3)
+			ORDER BY ce.embedding <=> $1::halfvec
+			LIMIT 50
+		),
+5:    image: pgvector/pgvector:pg16
+(no ef_search set in internal/)
++ sed -n 105,117p internal/query/search.go
++ grep -n pgvector docker-compose.yml
++ grep -rn ef_search internal/
++ echo '(no ef_search set in internal/)'
+
+[exit code 0]

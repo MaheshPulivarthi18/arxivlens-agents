@@ -1,0 +1,22 @@
+$ bash /tmp/claude-0/-home-claude/2c7a75d4-5841-5aab-acfe-846d28814e5a/scratchpad/isolated_test.sh
+source: 47e845186d0bc2d6dc6731a5306e8d9994a95bcb internal/db/{db.go:MigrationFiles,db_test.go} + migrations/
+go version go1.24.7 linux/amd64
+go vet: OK
+=== RUN   TestMigrationFiles
+=== RUN   TestMigrationFiles/up_only,_lexical_order_regardless_of_creation_order
+=== RUN   TestMigrationFiles/ignores_non-sql,_plain_.sql_and_directories_named_like_migrations
+=== RUN   TestMigrationFiles/no_up_migrations_is_an_error
+=== RUN   TestMigrationFiles/empty_dir_is_an_error
+--- PASS: TestMigrationFiles (0.00s)
+    --- PASS: TestMigrationFiles/up_only,_lexical_order_regardless_of_creation_order (0.00s)
+    --- PASS: TestMigrationFiles/ignores_non-sql,_plain_.sql_and_directories_named_like_migrations (0.00s)
+    --- PASS: TestMigrationFiles/no_up_migrations_is_an_error (0.00s)
+    --- PASS: TestMigrationFiles/empty_dir_is_an_error (0.00s)
+=== RUN   TestMigrationFilesMissingDir
+--- PASS: TestMigrationFilesMissingDir (0.00s)
+=== RUN   TestRepoMigrationsOrder
+--- PASS: TestRepoMigrationsOrder (0.00s)
+PASS
+ok  	isolated/internal/db	0.005s
+
+[exit code 0]

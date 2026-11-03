@@ -1,0 +1,35 @@
+$ bash -c set -x; git diff --stat 9c1229a...HEAD; gofmt -l cmd internal; git diff -U0 9c1229a...HEAD -- README.md; for n in 13 14 15; do gh api repos/MaheshPulivarthi18/ArxivLens/pulls/$n/files --jq ".[].filename" | tr "\n" " "; echo; done
+ README.md                                        |  2 +-
+ cmd/arxivlens/main.go                            | 28 +++++--
+ internal/db/db.go                                | 30 ++++++++
+ internal/db/db_test.go                           | 96 ++++++++++++++++++++++++
+ migrations/000002_chunk_embeddings_hnsw.down.sql |  1 +
+ migrations/000002_chunk_embeddings_hnsw.up.sql   |  6 ++
+ 6 files changed, 156 insertions(+), 7 deletions(-)
+diff --git a/README.md b/README.md
+index 3a140e8..dc71a7d 100644
+--- a/README.md
++++ b/README.md
+@@ -166 +166 @@ curl -s localhost:8080/v1/ask -H 'content-type: application/json' \
+-arxivlens migrate  [--file migrations/000001_init_schema.up.sql]
++arxivlens migrate  [--dir migrations] [--file <one .up.sql>]
+internal/query/rag.go internal/query/rag_test.go 
+.github/workflows/stack.yml CONTRIBUTING.md Makefile README.md docker-compose.yml services/embedder/Dockerfile services/processor/Dockerfile 
+.github/workflows/ci.yml internal/kafka/consumer.go internal/kafka/consumer_test.go 
++ git diff --stat 9c1229a...HEAD
++ gofmt -l cmd internal
++ git diff -U0 9c1229a...HEAD -- README.md
++ for n in 13 14 15
++ gh api repos/MaheshPulivarthi18/ArxivLens/pulls/13/files --jq '.[].filename'
++ tr '\n' ' '
++ echo
++ for n in 13 14 15
++ gh api repos/MaheshPulivarthi18/ArxivLens/pulls/14/files --jq '.[].filename'
++ tr '\n' ' '
++ echo
++ for n in 13 14 15
++ gh api repos/MaheshPulivarthi18/ArxivLens/pulls/15/files --jq '.[].filename'
++ tr '\n' ' '
++ echo
+
+[exit code 0]
