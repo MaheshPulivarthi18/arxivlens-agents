@@ -8,7 +8,7 @@
 | **Depends on** | — (soft: OPS-H1 for AC5; without it, start the workers by hand per AGENTS.md §6) |
 | **Jira** | find with JQL `labels = "task-OPS-H5"` |
 | **Design required** | no (P1; additive index migration, no new command/table/service; `migrate` keeps its existing flag) |
-| **Status** | Ready |
+| **Status** | In QA (draft PR #16) |
 
 ## Goal
 Technical PRD §5 promises an HNSW cosine index on `chunk_embeddings.embedding`, but no migration creates it. Only
@@ -61,3 +61,21 @@ make test-full
   all `IF NOT EXISTS`, so AC2 needs no change to it. AC1/AC2/AC4/AC5 need a Postgres: in this sandbox write
   "not run: infra unavailable" with the exact commands; they get CI evidence when #14's `stack.yml` reruns after this merges
   (post-merge AC5 evidence in `agents/reviews/OPS-H5/`, as above). AC3 + `make test-unit`/`make lint` must be green in `ci.yml`.
+- 2026-11-03 (backend-engineer, build): draft PR [#16](https://github.com/MaheshPulivarthi18/ArxivLens/pull/16),
+  branch `agent/backend/OPS-H5`, head `47e845186d0bc2d6dc6731a5306e8d9994a95bcb` (cut from `9c1229a`). 6 files, +156/−7:
+  `migrations/000002_chunk_embeddings_hnsw.{up,down}.sql`, `internal/db/db.go` (`MigrationFiles(dir)`),
+  `internal/db/db_test.go`, `cmd/arxivlens/main.go` (`newMigrateCmd` only: `--dir` default `migrations`, `--file` default
+  now empty and applies only that file), `README.md:166`. Ownership check: `Ownership OK for role=backend (163 changed lines)`.
+  CI run 41671476133 on the head SHA: Go (vet, gofmt, test, build) 126040678034 **success** (log: `ok arxivlens/internal/db`),
+  Python M0 126040678985 success, Frontend 126040678656 success, Agent ownership check 126040678981 success.
+  - AC1: not run (no infra: no Docker or Postgres). Owed post-merge from OPS-H1 `stack.yml`.
+  - AC2: not run (no infra). Idempotent by construction: all `IF NOT EXISTS`.
+  - AC3: CI Go job green and `internal/db` ran (`TestMigrationFiles` table, `TestMigrationFilesMissingDir`,
+    `TestRepoMigrationsOrder`). Locally, an isolated copy passed on Go 1.24, because the full module can't build there
+    (go 1.25 directive, proxy unreachable).
+  - AC4: not run (no infra). Risk noted in the PR: the `vector_hits` CTE uses `ROW_NUMBER() OVER (ORDER BY <=>)` plus
+    joins and the model/category filter, so the planner may skip the index. Also, HNSW default `ef_search=40` < `LIMIT 50`.
+    Follow-up to be filed from the EXPLAIN result.
+  - AC5: not run (no infra). Commands in the PR. Owed post-merge from #14 `stack.yml`.
+  - Caveat: the lexical-order test can't catch a removed `sort.Strings`, because `os.ReadDir` already returns entries
+    sorted by name. The sort is kept so the order stays explicit.
