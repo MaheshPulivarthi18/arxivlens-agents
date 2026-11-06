@@ -8,7 +8,7 @@
 | **Depends on** | RET-1, EVAL-1 (both merged); AI-3 (PR #13, same files: wait until merged) |
 | **Jira** | find with JQL `labels = "task-AI-4"` |
 | **Design required** | no (P2, no contract change) |
-| **Status** | Ready to merge: PR [#18](https://github.com/MaheshPulivarthi18/ArxivLens/pull/18) raised (ready for review, label `ready-to-merge`), head `7e26503`; QA PASS r1, PM APPROVE r1 |
+| **Status** | Done (merged; see PROGRESS 2026-11-07) |
 
 ## Goal
 When reranking falls back to RRF order during `/v1/ask`, the log line should carry the same `trace_id` the user gets in

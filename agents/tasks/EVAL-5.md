@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-1 (PR #2 merged `a959d03`), RET-1 (PR #9 merged `bb9ee90`) |
 | **Jira** | find with JQL `labels = "task-EVAL-5"` (orchestrator to create under the Retrieval/Eval epic) |
 | **Design required** | no (P2, no gate, threshold or contract change) |
-| **Status** | Ready to merge (PR [#17](https://github.com/MaheshPulivarthi18/ArxivLens/pull/17) raised; QA PASS r1 + PM APPROVE at `557f4e1`; G2 rework pushed at `f24e1da` (merge of main after #16), needs QA/PM re-check of that delta; merge gate G1 H3 real-pgvector run still open) |
+| **Status** | Done (merged; see PROGRESS 2026-11-07) |
 
 ## Goal
 Make the existing Recall@5 eval fail loudly instead of silently when the rerank endpoint errors, when the mirrored RRF

@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | find with JQL `labels = "task-OPS-H1"` |
 | **Design required** | **yes** (pm-lead 2026-11-03): P0, adds three compose services and a CI workflow that runs the full stack on GitHub runners. Design in `docs/design/OPS-H1.md`; pm-lead approves before code. |
-| **Status** | **Blocked (needs Mahesh: is M3 `test_hybrid_search_with_rrf_and_rerank` part of F1?)** (backend-engineer 2026-11-07, head `48d4cda`). Mahesh 2026-11-04: Q-merge = merge with F1 as known red; F2 must be fixed. F2 is fixed (fixture ingest HTTP 200 in ~63 s). Full stack run 42295738462: 80 passed, 1 failed (`test_hybrid_search_with_rrf_and_rerank`, a 10 s timeout from the same CPU rerank), 1 skipped, 2 deselected (F1). Ran out of attempts (2/2). PR #14 stays draft. |
+| **Status** | Done (merged; see PROGRESS 2026-11-07) |
 
 ## Goal
 Today `make test-full` only works if someone starts three Python processes by hand. Agents can't verify pipeline or

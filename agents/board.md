@@ -48,6 +48,7 @@ WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENT
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the 2026-11-07 merge review (orchestrator): F1 CPU rerank latency fix (then drop the "Known failure F1" step in stack.yml); Chainguard MinIO digest-pin durability; `/internal/ingest` reuses loaded models (ai) and honours request cancellation (backend); permanent `pytest -k real_postgres` step in `db.yml` (EVAL-5 F2); pin pgvector >= 0.8 for `hnsw.iterative_scan`
 - From OPS-H5 (#16) review, backend P2: migration version ledger (`schema_migrations`, apply only unapplied files; backfill 000001/000002) — Proposed ADR first; removes CONTRIBUTING's "every migration idempotent" rule
 - From OPS-H5, backend P2: README prerequisite "pgvector ≥ 0.8.0" + pin `pgvector/pgvector` tag in compose and `db.yml` after OPS-H1 merges; `TestHNSWVectorHits` seeds into a scratch schema / skips when `papers` non-empty
 - From OPS-H5 F2, ai P1: `scripts/evaluate_retrieval.py` applies `hnswSearchSettings` and reports both plan regimes (input for ADR-0013)

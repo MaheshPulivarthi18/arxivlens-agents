@@ -8,7 +8,7 @@
 | **Depends on** | — (soft: OPS-H1 for AC5; without it, start the workers by hand per AGENTS.md §6) |
 | **Jira** | find with JQL `labels = "task-OPS-H5"` |
 | **Design required** | no (P1; additive index migration, no new command/table/service; `migrate` keeps its existing flag) |
-| **Status** | Ready to merge (PR #16 raised at `d442c4c`; QA PASS r3, PM APPROVE r1). H4/AC5 owed post-merge (OPS-H1). F1 → ADR-0013 (Proposed) |
+| **Status** | Done (merged; see PROGRESS 2026-11-07) |
 
 ## Goal
 Technical PRD §5 promises an HNSW cosine index on `chunk_embeddings.embedding`, but no migration creates it. Only
