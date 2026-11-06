@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | find with JQL `labels = "task-OPS-H1"` |
 | **Design required** | **yes** (pm-lead 2026-11-03): P0, adds three compose services and a CI workflow that runs the full stack on GitHub runners. Design in `docs/design/OPS-H1.md`; pm-lead approves before code. |
-| **Status** | **Blocked (needs OPS-H5 merged + Mahesh decision on F1/F2)** (pm-lead 2026-11-03 21:02Z cycle; rework H1–H4 at `e79867a`). Design deviation (conditions 1/3/7) confirmed and amended in `docs/design/OPS-H1.md` "PM decision on addendum". QA does not start and PR #14 stays draft until OPS-H5 (#16) is merged **and** Mahesh has answered Q-F1/Q-F2 in Notes. Last run 41722155825: attempt 1 had 68 passed / 3 failed (M5 HNSW allowed + 2 M3 `/v1/ask` 10 s timeouts = F1); attempt 2 hit the fixture ingest timeout (F2). |
+| **Status** | **Blocked (needs Mahesh: is M3 `test_hybrid_search_with_rrf_and_rerank` part of F1?)** (backend-engineer 2026-11-07, head `48d4cda`). Mahesh 2026-11-04: Q-merge = merge with F1 as known red; F2 must be fixed. F2 is fixed (fixture ingest HTTP 200 in ~63 s). Full stack run 42295738462: 80 passed, 1 failed (`test_hybrid_search_with_rrf_and_rerank`, a 10 s timeout from the same CPU rerank), 1 skipped, 2 deselected (F1). Ran out of attempts (2/2). PR #14 stays draft. |
 
 ## Goal
 Today `make test-full` only works if someone starts three Python processes by hand. Agents can't verify pipeline or
@@ -276,3 +276,42 @@ Agent sandboxes have the Docker CLI but no daemon: AC1–AC4 are proven only by 
     is a real product cost, and raising the timeout would only hide it.
   - **Q-merge:** do you want OPS-H1 to wait for the F1/F2 fixes before merging (AC6 green, as specced), or merge once OPS-H5 lands, with F1/F2
     recorded as known red like M5 was? The second option changes AC6, so it needs your explicit say-so.
+
+- 2026-11-07 (backend-engineer, Mahesh's F1/F2 decision): **Mahesh decided in chat (2026-11-04):** Q-merge: merge OPS-H1 with F1 (the two
+  M3 `/v1/ask` 10 s timeouts on CPU) recorded as **known failures**. F2 (fixture ingest timeout) **must be fixed**. Q-F1 option (a)/(b)/(c) is still open.
+  Heads: `e79867a` → `4174236` (merge main `e67354c` = OPS-H5 #16 + AI-4 #18, clean, plus F1/F2) → **`48d4cda`** (lint fix). PR #14 still **draft**.
+  - Merge: clean, no conflicts. `make migrate` (no `--file`) now applies every `migrations/*.up.sql`. The run log shows `000002_chunk_embeddings_hnsw.up.sql`
+    applied, and the M5 HNSW test now passes (not deselected).
+  - **F2 fix:** `internal/config` gets `INGEST_TIMEOUT` (Go duration, default `config.DefaultIngestTimeout` = 5m; empty/invalid/≤0 → default, invalid ones logged).
+    `PaperIngester` gets a separate `ingestClient` used **only** for `/internal/ingest`. arXiv metadata/PDF fetches keep 45 s, and the embed (30 s) and
+    rerank clients are unchanged. `cmd/arxivlens query` passes `cfg.IngestTimeout`. stack.yml curl `-m 360` (above the server's 300 s), step timeout 8 min.
+    README config table + CONTRIBUTING `test-full` row updated. Table-driven tests: `internal/config/config_test.go` (parse + LoadConfig env),
+    `TestNewPaperIngesterTimeouts` in `internal/query/ingester_test.go`. Run 42295738462: fixture ingest `{"status":"success",...,"chunks":57,"embeddings":57}`
+    in 21:29:43 → 21:30:46 (~63 s, more than the old 45 s limit). Stop-gap per pm-lead's Q-F2 note. The ai follow-up (reuse loaded models in `/internal/ingest`) is still the real fix.
+  - **F1 tracking:** Makefile `test-full` takes `TESTS ?= tests/` and `PYTEST_ARGS`. stack.yml job env `F1_TESTS` holds the two node IDs. AC4 runs
+    `make test-full PYTEST_ARGS="--deselect …×2"`, and a separate step **"Known failure F1 (CPU rerank latency, tracked)"** runs `make test-full TESTS="$F1_TESTS"`
+    with `continue-on-error: true`. Its result goes in the step summary and `test-f1.log`. No test, timeout, threshold or rerank setting changed.
+  - Ownership check (local, `origin/main` vs branch): `Ownership OK for role=backend (710 changed lines)`, a warning over 400. The F1/F2 work adds 114 lines (+102/-12), plus 1 line of lint fix;
+    the rest is the existing PR diff measured against the new main. pm-lead's waiver (b) allowed growth only for what F1/F2 needs.
+  - **CI on `4174236`** (attempt 1): ci.yml run 42295480925 all success. db.yml 42295480904 success. Full stack run 42295480910 / job 128159487320 **failed at
+    "Lint the harness"**: actionlint/shellcheck SC2086 on the unquoted `$F1_TESTS` in AC4's `printf`. Fixed with `read -ra f1 <<< "$F1_TESTS"` in `48d4cda`.
+  - **CI on `48d4cda`** (attempt 2, final):
+    - ci.yml run https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42295738452: Go (vet, gofmt, test, build), Python M0, Frontend, Agent ownership all **success**.
+    - db.yml run https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42295738774 (DB migrate twice, HNSW plan + recall): **success**.
+    - Full stack run https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42295738462/job/128160370206: **failure**. Steps 1–17 success (actionlint, AC1, AC2, H2 heartbeat test,
+      Migrate, AC3 two papers embedded + DLQ empty, fixture seed). AC4:
+      ```
+      FAILED tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+      1 failed, 80 passed, 1 skipped, 2 deselected in 20.64s
+      ```
+      Known failure F1 step (continue-on-error): `2 failed in 20.42s` (both `/v1/ask` tests, read timeout=10), so it is still visible.
+  - **New finding F1b:** `POST /v1/search {"rerank": true}` in `test_hybrid_search_with_rrf_and_rerank` hit the same 20-candidate CPU cross-encoder rerank latency.
+    embedder-api `POST /internal/embed` 21:30:53.24, then query.log `rerank fallback ... reason="rerank canceled" pool=20 scores=0` at 21:31:03 when the 10 s client gave up.
+    It passed in run 41722155825 attempt 1, so it is borderline (~10 s), not a new regression. This PR doesn't touch the search/rerank path (only ingester + config).
+    **Not deselected:** Mahesh's decision names the two `/v1/ask` tests only, and widening it is his call. I used my 2 attempts.
+    **Question for Mahesh:** add `test_hybrid_search_with_rrf_and_rerank` to `F1_TESTS` (a one-line change to stack.yml), or wait for the Q-F1 latency fix?
+  - Not verified locally: `go vet`/`go test` for `internal/query` and `cmd` (sandbox Go 1.24 and no module proxy, so CI Go job is the evidence). Locally `internal/config` tests pass
+    (Go 1.24, scratch copy), `gofmt -l` is clean, the workflow YAML parses, `bash -n` passes on all run blocks, `make -n` expansions are correct, and `pytest --collect-only`
+    shows `2 deselected` / the 2 F1 IDs collected. No shellcheck/actionlint in the sandbox (that is how SC2086 got through attempt 1). The skipped test's reason
+    isn't in the log (`-q` without `-rs`). Jira and the PR description weren't updated this session (not in this brief); board/PROGRESS left to the orchestrator.
+
