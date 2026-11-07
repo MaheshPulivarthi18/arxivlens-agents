@@ -61,3 +61,17 @@ git diff origin/main --stat
   caller in `openai.go`; if the client doesn't use it, delete it in this PR. (2) `New` runs `Config.normalize` (rejecting userinfo/query) before the
   config is printed or logged anywhere, so a hand-built, unnormalised `Config` can never print credentials; add a test row for it.
 - 2026-11-07 11:00Z (pm-lead, grooming): LLM-1 merged (`43713ce`), so this is Ready. **The pre-split code is gone**: local branch `wip/LLM-1b` @ `8a776d6` in `/root/wt/LLM-1` and the scratchpad copy did not survive the sandbox reset (checked 11:00Z: `/root/wt` absent, object `8a776d6` unknown, no `openai.go` in any pushed ref). Re-implement from this spec and the approved `docs/design/LLM-1.md`; scope and ACs are unchanged. Cut `agent/backend/LLM-1b` from `origin/main` `2b71772`. Lesson: set-aside work must be pushed to a branch, not left in a local worktree.
+- 2026-11-07 (backend-engineer): **Built**, re-implemented from this spec and `docs/design/LLM-1.md` on `agent/backend/LLM-1b` @ `efbe972`
+  (local commit; orchestrator pushes and opens the draft PR). Files: `internal/llm/openai.go` (new), `internal/llm/config.go` (+`FromEnv`),
+  `internal/llm/openai_test.go` (new), `internal/llm/config_test.go` (FromEnv assertions in every `TestConfigFromEnv` row, `*Client` in `TestConfigRedactsKey`).
+  AC8 counts: **prod 289, test 676**; `go.mod`/`go.sum` unchanged; ownership check OK (warns on 965 total lines, expected per the non-test rule).
+  Carry-overs: (1) `attemptsText` now has its callers in `openai.go` (HTTP, transport and timeout details). (2) `New` runs `normalize` first;
+  `TestNew` rows "hand-built userinfo/query key rejected unprinted" prove a credential URL never reaches an error or `String()`.
+  AC map: AC1 `TestConfigFromEnv`+`checkFromEnv`, `TestConfigRedactsKey`, `TestNew` · AC2 `TestCompleteSuccess`, `TestAuthHeader`, `TestRequestWire` ·
+  AC3 `TestRetry` (+`TestParseRetryAfter`) · AC4 `TestTimeout`, `TestCancel` (cancel during 2 s backoff, during request, before call; every sentinel false) ·
+  AC5 `TestBadResponse`, `TestBodyCapBoundary` · AC6 `TestNoSecretLeaks` (echoing hostile server, 10 cases) · AC7 CI step from LLM-1.
+  Local evidence only (Go 1.24.7 with a scratch `-modfile` setting `go 1.24`, not committed): `go vet` clean, `gofmt -l .` empty,
+  `go test -race -count=5 ./internal/llm/...` ok, timing tests `-race -count=10` ok, per-file coverage `openai.go` 96.6%, `config.go` 98.2%.
+  **Not verified locally:** `make lint`/`make test-unit` under Go 1.25 and the CI coverage totals AC7 asks for; CI is the source of truth.
+  Gotcha found: an `httptest` handler that blocks without reading the request body never sees the client hang up (net/http starts its
+  background read only after the body is consumed), so `srv.Close` blocked forever; the test `hang` handler drains the body first.
