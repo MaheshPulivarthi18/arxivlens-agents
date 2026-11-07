@@ -1,6 +1,6 @@
 # Tech design — ING-11: Record each chunk's real start page and return it as `page` in search hits
 
-**Author:** backend-engineer · **Ticket:** `agents/tasks/ING-11.md` · **PRD:** Product PRD ING-3, QA-3, §7 principle 3; Technical PRD §5, §6.1–6.2, §7.1; ADR-0014 (Accepted) · **Status:** Draft
+**Author:** backend-engineer · **Ticket:** `agents/tasks/ING-11.md` · **PRD:** Product PRD ING-3, QA-3, §7 principle 3; Technical PRD §5, §6.1–6.2, §7.1; ADR-0014 (Accepted) · **Status:** Approved with conditions (pm-lead, 2026-11-07)
 
 Code references are to the app repo at `origin/main` `2b71772` unless marked "after RET-2" (text from the approved `docs/design/RET-2.md`).
 
@@ -206,4 +206,85 @@ which the new statement doesn't change). A SELECT/scan mismatch fails the unit s
 - **Q3 (pm-lead):** OK to use a scalar subquery instead of a `LEFT JOIN` in the outer SELECT, to keep a single parity fragment (alternative 4)?
 
 ## PM decision
-_(pm-lead fills)_
+**APPROVE with conditions** (pm-lead, 2026-11-07, design at `4b95a2c`). The order and the ticket boundaries change (Q1/Q2 below),
+but the approach doesn't. Nothing is built this cycle.
+
+Spot-checked against `origin/main` `2b71772`, all as the design says: `m0_skeleton.py:197` strips `sec_text`, `:202` `encode(...,
+add_special_tokens=False)`, `:206-211` prefix and window parameters, `:212-215` window loop and min-token skip, `:218` decode,
+`:225` `"page_number": sec.get("page", 1)`, `:232-233` early break; `worker.py:118` Abstract bucket, `:160-165` new section dict
+only on a heading, `:167` the only text write, `:133` page-by-page loop, `:130-131` median and 1.15× threshold; `db.py:92,97`
+title-keyed section map, `:106` `ON CONFLICT (paper_id, chunk_index) DO UPDATE` with no `RETURNING`, `:119` `page_number`;
+`paper_chunks.id` is `BIGSERIAL` (`000001_init_schema.up.sql:39`), so `BIGINT` FK is right; `main.go:77-82` re-applies every file
+and `db.yml:54-67` diffs the snapshot (which includes `information_schema.columns`, so the new table is in both runs); `db.yml` runs
+on every `pull_request`; `TestRepoMigrationsOrder` (`db_test.go:82-95`) is a prefix check; `go.mod:6` pgx v5.6.0;
+`test_evals_data.py:275-278` outer-SELECT and join fragments; `search.go:111` outer SELECT and `:180` 6-column scan;
+ING-8 `d2ad9c5` `evaluate_extraction.py:245` calls `ProcessorWorker._parse_doc_sections(None, doc)` and `:259` reads only
+`title`/`level`, and the ING-8 branch touches no file this design touches. `chunk_sections` has no other caller than the
+processor and `m0_skeleton.py:351` (CLI demo), so an extra `page_start` key reaches nothing else. `ci.yml`'s python job
+installs PyMuPDF, psycopg and confluent-kafka (`requirements-m0.txt`), so a `make test-py` test can import the worker.
+
+Decisions 1 (mapping inside `TokenChunker`), 2 (new table `paper_chunk_pages`, no ADR: it only adds a table) and 3
+(`page_breaks` by reading `len(text)` only) are right, and the reasons hold up in the code: windowing exists once, repeated
+section titles make a processor-side mapping unreliable, and "no row = unknown" keeps every legacy and fixture row unknown
+without touching it. This is ADR-0014's rule ("only returned when the chunker recorded it") by construction.
+
+### Answers to the open questions
+- **Q1 → yes, AI-11 is specced** ([agents/tasks/AI-11.md](../../agents/tasks/AI-11.md), ai-engineer, P1), with decision 1's
+  contract plus condition 1 below. **But the dependency is reversed: AI-11 depends on ING-11 (part a), not the other way.**
+  Reason, found while specing: AI-11 needs CI for its tests, and the only CI unit entry point is `make test-py`, which lists
+  files explicitly in the `Makefile` (backend-owned; the ownership check fails an `agent/ai/*` PR that edits it). The one
+  ai-owned file already in that list, `tests/test_m0.py`, is edited by open draft #24 (AI-9, Blocked), so the same-file rule
+  (AGENTS.md §3) rules it out. With part a first, part a creates `tests/test_processor_pages.py` and adds it to `test-py`, and
+  AI-11 appends its tests to that file (`tests/` is shared by both roles). As a bonus, part a's AC2 snapshot test then runs on the
+  AI-11 PR too, so it proves the chunker change keeps chunk output byte-identical without a second snapshot. Part a is still safe
+  alone: until AI-11 merges no chunk carries `page_start`, so `db.py` takes the `DELETE` branch, no row is written and nothing reads the table.
+- **Q2 → split, as three tickets in this order:** **ING-11** (part a, producer: `page_breaks`, migration, `db.py`, new test file,
+  Makefile; keeps KAN-55) → **AI-11** (chunker emits `page_start`, plus the AC1 end-to-end test on part a's fixture) →
+  **ING-11b** (consumer: search, parity fragment, README, real-stack check; also needs RET-2 merged). The `b`-suffix follows the
+  repo's precedent (OPS-H8/OPS-H8b, AI-6/AI-6b). AC mapping: ING-11 = AC2 and AC5; AI-11 = AC1 (and AC2 re-run); ING-11b =
+  AC3, AC4, AC6 (README) plus a new real-stack write check (condition 4). The size limit applies to each PR.
+- **Q3 → approved: scalar subquery in the outer SELECT**, not a `LEFT JOIN`. It is a PK lookup on `paper_chunk_pages`, so it returns at
+  most one row per hit and can't add or drop hits. It runs only over the union of the two 50-row arms, so the cost is
+  negligible, and it keeps a single parity fragment. Condition 5 says how QA checks it.
+
+### Conditions (QA checks each one)
+1. **AI-11 fail-safe tokenization (changes decision 1's contract).** Keep `tokens = self.tokenizer.encode(sec_text,
+   add_special_tokens=False)` exactly as at `:202`. Only when the section has a non-empty `page_breaks` and `self.tokenizer.is_fast`
+   is true, call `self.tokenizer(sec_text, add_special_tokens=False, return_offsets_mapping=True)` as well. If its `input_ids != tokens`,
+   leave `page_start` out for that whole section (and don't raise). Then chunk output is byte-identical *by construction*, and an id
+   mismatch from a future tokenizer means "unknown", never a wrong page. Tokenizing twice is cheap next to PDF parsing and embedding.
+   An empty `page_breaks` list is treated as missing (no key). The other rules in decision 1 stay (`lead`, `bisect_right - 1`,
+   `char >= page_breaks[0][0]`, never a default).
+2. **AC2 "before" evidence is a green CI run on unchanged production code.** ING-11's first pushed commit adds only
+   `tests/test_processor_pages.py` (with the snapshot literal) and the Makefile line, and its `ci.yml` python job is green. If the
+   sandbox can't produce the literal, a first commit that prints it on mismatch is fine, then a commit with the literal that is green
+   on unchanged code. The PR links both run IDs. The later code commits keep the same test green, and so does the AI-11 PR.
+3. **ING-11 tests in its own file** don't depend on `page_start` (it doesn't exist until AI-11). They cover the fixture builder,
+   the single-wordpiece vocabulary assertion, the AC2 snapshot, `page_breaks` invariants (first offset 0, offsets and pages
+   strictly ascending, offsets within `len(text)`, at least one section with ≥ 2 breaks on the fixture), and the `db.py` fake-cursor
+   table test (`page_start` set → upsert with `RETURNING id` used; missing → `DELETE`; `page_number` unchanged; no commit). The
+   fixture builder and oracle helpers are importable module-level functions, so AI-11 reuses them instead of copying.
+4. **Real-pipeline write check (new, in ING-11b).** `tests/test_m2_pipeline.py` gains a test that, after `stack.yml` ingests its
+   papers, every `paper_chunks` row of an `embedded` paper has a `paper_chunk_pages` row, `page_start >= page_number`
+   (the heading's page), and `page_start` doesn't decrease with `chunk_index` within a paper (sections and windows are in
+   reading order; don't group by `section_id`, which the title-keyed map at `db.py:92` can merge). It goes in ING-11b
+   because rows exist only after AI-11; it is the only proof that the `INSERT ... ON CONFLICT (chunk_id)` path works on real
+   Postgres. (`stack.yml` also runs on ING-11 via `services/processor/**`/`migrations/**`, which proves the `RETURNING id` and `DELETE` path.)
+5. **ING-11b SQL:** the PR shows that the only change to `hybridSearchSQL` is the subquery in the outer SELECT. RRF arms, `rrf_score`,
+   `ORDER BY` and `LIMIT` are byte-identical (`TestSearchSQLOuterSelectOnly` strips both added columns and compares to the golden).
+   There is one changed `_GO_TO_EVAL_SQL` fragment, and `git diff --stat` shows no `scripts/` path. The three guard tests are run by node ID (RET-2 condition 1).
+6. **AC3 assertions** as in the test plan: the seeded page (6) differs from the stored `page_number` (7), and both the no-row
+   chunk with `page_number` 4 and the NULL v1 chunk have `Page == nil` and no `"page"` key in the JSON. `t.Logf` lines are linked from the `db.yml` log.
+7. **Size and seams.** Estimates: ING-11 ~180, AI-11 ~85, ING-11b ~85 (fakes and deletions counted). If ING-11 goes over 400, the
+   seam is the layer boundary: `page_breaks` + fixture tests (no DB) first, migration + `db.py` + its fake-cursor test second.
+   Don't drop the AC2 snapshot from either half.
+8. **No reprocessing in these PRs.** ING-11's PR description says how to backfill (re-publish `papers.downloaded` with a fresh
+   `event_id`; chunk ids are kept, so no re-embedding) and that it's Mahesh's call (ticket Out of scope).
+9. **Docs:** ING-11b updates the README `/v1/search` row ("`page` is the page the chunk's text starts on, when recorded; omitted
+   otherwise (ADR-0014)"). Technical PRD §5 (new table) and §6.2 (`page_breaks`, `page_start`) are a pm-lead docs PR after ING-11b
+   merges. Product PRD rows don't change status (ING-3/QA-3 are already ✅; this makes QA-3's citations more precise).
+
+### Tickets
+- [ING-11](../../agents/tasks/ING-11.md) (backend, P1, Ready; KAN-55): producer part a. No build dependency.
+- [AI-11](../../agents/tasks/AI-11.md) (ai, P1): `TokenChunker` emits `page_start`. Depends on ING-11 merged.
+- [ING-11b](../../agents/tasks/ING-11b.md) (backend, P1): consumer. Depends on AI-11 and RET-2 merged.

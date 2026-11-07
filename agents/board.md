@@ -23,7 +23,9 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## Ready — not in this plan (lower priority; start only with a free slot and no file overlap)
 | ID | Title | Owner | Pri | Depends on |
 |---|---|---|---|---|
-| [ING-11](tasks/ING-11.md) | Record each chunk's real start page; return it as `page` (design-required; paired ai `TokenChunker` part if the design picks it) | backend-engineer | P1 | Design: none. Build: RET-2 merged |
+| [ING-11](tasks/ING-11.md) (KAN-55) | Part a (producer): `page_breaks` in the processor, `paper_chunk_pages` table, `db.py` writes it (nothing reads it yet) | backend-engineer | P1 | Design approved 2026-11-07 (`docs/design/ING-11.md`, conditions 1–9). Build: none |
+| [AI-11](tasks/AI-11.md) | `TokenChunker` emits `page_start` from `page_breaks` (fail-safe: unknown, never guessed); AC1 end-to-end on ING-11's fixture | ai-engineer | P1 | **ING-11 merged** (its test file is in `make test-py`; `tests/test_m0.py` is held by #24) |
+| [ING-11b](tasks/ING-11b.md) | Part b (consumer): `/v1/search` returns `page` from `paper_chunk_pages`; parity fragment; README; real-stack write check | backend-engineer | P1 | **AI-11 + RET-2 merged** |
 | [OPS-H7f](tasks/OPS-H7f.md) | DLQ replay never publishes an empty/unreplayable envelope (B1/B2 fix; OPS-H7 part 1 of 4) | backend-engineer | P1 | OPS-H6 (Done). Touches no open-PR file: **can start now** |
 | [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to start-time high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | OPS-H7f merged, #26 merged (README; sequence with RET-2) |
 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: Postgres checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a merged |
