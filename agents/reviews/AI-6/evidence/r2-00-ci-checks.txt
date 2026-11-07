@@ -1,0 +1,11 @@
+$ bash -c git ls-remote origin refs/heads/agent/ai/AI-6; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/28 --jq '"PR #28 head: " + .head.sha + " draft=" + (.draft|tostring)'; git diff --shortstat origin/main...c45757622c2476f37128eaa4c8c0da527cb5e210; gh api repos/MaheshPulivarthi18/ArxivLens/commits/c45757622c2476f37128eaa4c8c0da527cb5e210/check-runs --jq '.check_runs[] | "\(.name) | \(.status) | \(.conclusion) | \(.completed_at)"'
+c45757622c2476f37128eaa4c8c0da527cb5e210	refs/heads/agent/ai/AI-6
+PR #28 head: c45757622c2476f37128eaa4c8c0da527cb5e210 draft=true
+ 2 files changed, 302 insertions(+)
+DB (migrate twice, HNSW plan + recall) | completed | success | 2026-11-07T15:10:49Z
+Frontend (lint, test, build) | completed | success | 2026-11-07T15:09:58Z
+Go (vet, gofmt, test, build) | completed | success | 2026-11-07T15:10:26Z
+Agent ownership check | completed | success | 2026-11-07T15:09:51Z
+Python M0 unit tests | completed | success | 2026-11-07T15:11:06Z
+
+[exit code 0]

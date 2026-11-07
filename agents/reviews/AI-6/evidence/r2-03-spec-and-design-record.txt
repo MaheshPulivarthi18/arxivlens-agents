@@ -1,0 +1,22 @@
+$ python3 -I /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/cond3.py
+[OK] agents/tasks/AI-6b.md exists
+AI-6 AC3 text: `parseSynthesis`: valid JSON; fenced JSON; `[9]` with k = 3 dropped and counted; `insufficient_evidence: true` → refusal signal; non-JSON → error; empty claims without the flag → error.
+[OK] AI-6 AC3 text appears verbatim (whitespace-normalised) in AI-6b.md
+[OK] AI-6 AC3 annotated 'Moved to AI-6b'
+lines removed from AI-6.md since a598ad5 (all): ['-| **Status** | In Progress: built at `c457576` (branch `age...']
+[OK] no acceptance-criterion line removed/edited in AI-6.md since a598ad5 (removed AC lines: 0)
+[OK] design test-plan row TestParseSynthesis` (table) found
+[OK]   ...its expectation text appears verbatim in AI-6b.md
+[OK] design test-plan row TestParseSynthesisErrorHasNoCompletionText found
+[OK]   ...its expectation text appears verbatim in AI-6b.md
+[OK] design AC3 test-plan rows (lines 230-231) only ever touched by design commit effaf87: ['effaf87']
+[OK] design §5 referenced by AI-6b
+[OK] out-of-range-marker mutation carried to AI-6b (AC8)
+[OK] QA-8 'Depends on' includes AI-6b
+--- design nits (r1 findings 4, 6)
+[OK] nit 4: metaField refinement recorded in design
+[OK] nit 4: imports as built (sort) recorded
+[OK] nit 6: branch name corrected to agent/ai/AI-6
+RESULT: PASS
+
+[exit code 0]
