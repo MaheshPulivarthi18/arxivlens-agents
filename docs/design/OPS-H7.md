@@ -1,6 +1,6 @@
 # Tech design — OPS-H7: DLQ list/replay with partition/offset checkpoints, paging, a replay lock and idempotent replay
 
-**Author:** backend-engineer · **Ticket:** `agents/tasks/OPS-H7.md` · **PRD:** Product OPS-2, OPS-3, §5.3; Technical §5 (DLQ manager), §8.2 · **Status:** Draft
+**Author:** backend-engineer · **Ticket:** `agents/tasks/OPS-H7.md` · **PRD:** Product OPS-2, OPS-3, §5.3; Technical §5 (DLQ manager), §8.2 · **Status:** Approved with conditions 2026-11-07 (pm-lead; split into OPS-H7f/a/b/c, see PM decision)
 
 Code refs are to ArxivLens `origin/main` `2b71772`.
 
@@ -247,4 +247,66 @@ Postgres down for `replay` (it fails before reading), expired offsets, undecodab
 3. **Mahesh (FYI, no ADR needed):** a replayed raw payload gets a deterministic ULID whose time part is the DLQ record's timestamp, not the original event time.
 
 ## PM decision
-_(pm-lead fills)_
+**2026-11-07 (pm-lead): Approved with conditions, split into four tickets.** Spot-checked against ArxivLens `origin/main` `2b71772`.
+
+**Claims checked.**
+- These are as the design says: `manager.go:30-34` (no group, `AtStart`), `:41-56` (2 s deadline, break on error/empty poll), `:62-64` (silent drop),
+  `:79` (replays the head), `:114-117` (B1), `consumer.go:163-164` (B2: `_ = json.Unmarshal` into a map, so a non-object value gives nil),
+  `worker.py:79` + `000001_init_schema.up.sql:65-70` (ledger key), `producer.go:56-59` (`ProduceSync`), `docker-compose.yml:101-103` (delete
+  policy), `main.go:309` (`inspect` sees 100), `stack.yml:173,184,244`, `kmsg v1.7.0 // indirect` and `oklog/ulid/v2` direct in `go.mod`.
+- **B1 is real, but its consequence is overstated.** A B1 envelope has `paper_id: ""` and an empty `payload` (raw keys don't map onto
+  envelope fields). The processor fails on it before it reaches the ledger: it falls back to storage key `raw/_v{n}.pdf` (`worker.py:45-52`),
+  and the ledger check is at `:79`. The record is DLQ'd again with the broken envelope as `original_value`, and the producer keys it `""`
+  (`producer.go:44`). Ledger poisoning needs a `""` event to *succeed*, which is possible but unlikely. Today B1 can only be reached through the Go
+  consumer's DLQ (`papers.discovered.dlq`). Python DLQs only ever hold full envelopes, because `kafka_client.py:178-179` parses the envelope before
+  the handler runs. **This changes when OPS-H8b merges.** Its AC7 sends poison records to the DLQ as `{"raw_value": ...}` or as the partial
+  decoded dict (e.g. `{"event_id": "x"}`), so raw payloads will reach every DLQ. That is why the fix goes first.
+- **Migration number: the design's citation is wrong.** `RET-2.md:63` is RET-2's *processor follow-up*, which became ING-11. RET-2 adds no
+  migration. `000003` belongs to ING-11 (`docs/design/ING-11.md:44`, `000003_paper_chunk_pages`).
+- **Deterministic ULID vs the envelope contract: no ADR needed.** The contract is the field set and types in `shared/events/events.go:21-30` and
+  `events.py:20-28`, plus "`event_id` is a ULID, so IDs sort by time and work as dedup keys" (`PRD-Technical.md:139`). A
+  `ulid.New(ms, 10-byte reader)` value is a valid 26-char ULID that sorts by its time part, and its distinct `(dlq_topic, partition, offset)`
+  inputs keep it unique. Neither file changes. Nothing in the PRD or the ADRs says the time part must be the original produce time. The
+  time-part caveat (open question 3) goes in OPS-H7c's PR description as an FYI for Mahesh.
+
+**Answers to the open questions.**
+1. **Size: rebalanced, and (a)/(b) accepted above 400 for test lines only, with a gate.** The ~40-line envelope rule and its tests move out of (c)
+   into a standalone fix that ships first (OPS-H7f). The deterministic ULID stays in (c). Lessons LLM-1 and OPS-H8 say estimates near 400 came in
+   30-70 % low. So each of a/b/c must **commit a counted skeleton first** (stubbed files + doc comments, `git diff --stat`, posted in the ticket Notes).
+   If it projects **> 480 changed lines, or > 250 non-test lines**, stop and split at the seam named in the ticket. That seam is a layer
+   boundary in each case: (a) kgo `Reader` + its integration test + `db.yml` / `List`+CLI on the fake. (b) migration + `Store` + its integration
+   test / `Replay` loop on the fakes.
+2. **Yes: B1/B2 ship first as OPS-H7f** (~130 lines, `internal/dlq/` only). It touches no file in any open PR, needs no README change and
+   depends only on merged work. OPS-H8b (raw payloads into DLQs) and OPS-H7b (replay drains the whole topic) both widen B1's reach, so it should be
+   in place before either.
+
+**Conditions (each is an AC in the part tickets).**
+1. Envelope rule (OPS-H7f, and kept by OPS-H7c). The design's table, plus: (i) the re-envelope row also needs a non-empty `OriginalKey`, since the
+   producer keys by `PaperID`. (ii) An `original_value` whose only key is `raw_value` (`kafka_client.py:80`, OPS-H8b AC7) is **unreplayable**,
+   because re-enveloping a stringified byte blob can only fail again. (iii) No code path may publish an envelope with an empty `event_id`,
+   `event_type` or `paper_id`. (iv) Dry-run applies the same rule, so its count equals a real run's.
+2. Migrations: **ING-11 = `000003_paper_chunk_pages`, OPS-H7b = `000004_dlq_replay`.** These numbers hold whatever the merge order.
+   `migrate` re-applies every `*.up.sql` in lexical order (`main.go:89`), and both files are independent `CREATE TABLE IF NOT EXISTS`, so a
+   later-merged `000003` is safe. The part that merges second rebases and sets `TestRepoMigrationsOrder`'s `want` (`internal/db/db_test.go:87`)
+   to the full ordered list. If the `schema_migrations` ledger follow-up (OPS-H5) lands first, re-check this rule before building.
+3. OPS-H7b ships without the lock. Its README replay section says "don't run two replays of the same DLQ at once (lock: OPS-H7c)", and OPS-H7c
+   is the next backend task on these files after OPS-H7b merges.
+4. `--from P/O` replaces the ticket's `--from-offset`. Accepted: the ticket said "flags such as", and the cursor matches the printed form.
+5. `replay` requires a migrated Postgres. Accepted. The error text names `arxivlens migrate`, and README documents reset
+   (`DELETE ... WHERE dlq_topic = $1`) and "`--dry-run` first after deploy".
+6. CI-measured evidence (AC8, integration tests) must be readable from the job log (`dlq list --all` output, `kafka-get-offsets.sh` counts
+   printed in the step). Nothing may rely on artifacts or the step summary (lesson OPS-H10).
+7. A PRD truthfulness follow-up is mine, not the developer's: Product PRD OPS-2 ✅ → ◐ in the next pm-lead docs PR (list doesn't reach the end, and
+   replay repeats the head), back to ✅ when OPS-H7c merges. OPS-3 stays ✅ (L1/L3 hold).
+
+**Tickets and order.** All are backend-engineer and P1.
+
+| Ticket | ACs (from OPS-H7) | Depends on | Files in any open PR? | Can start |
+|---|---|---|---|---|
+| [OPS-H7f](../../agents/tasks/OPS-H7f.md) | AC4 (part: full envelopes keep their ID; B1/B2), condition 1 | — (OPS-H6 merged) | no | **now / next cycle** (independent of #24, #26-#31) |
+| [OPS-H7a](../../agents/tasks/OPS-H7a.md) | AC1, AC7 (list/inspect) | OPS-H7f merged, #26 merged (README) | README (#26) | after #26 + OPS-H7f merge; README is sequenced with RET-2 (same-file rule) |
+| [OPS-H7b](../../agents/tasks/OPS-H7b.md) | AC2, AC4 (crash: same ID for envelope records), AC5, AC6, AC7 (replay) | OPS-H7a merged | — | after OPS-H7a merges |
+| [OPS-H7c](../../agents/tasks/OPS-H7c.md) | AC3, AC4 (deterministic ULID for raw payloads), AC8 | OPS-H7b merged, #26 merged (`stack.yml`) | `stack.yml` (#26) | after OPS-H7b merges |
+
+The split covers all eight ACs: AC1 is in a, AC2 in b, AC3 in c, AC4 is spread across f/b/c, AC5 and AC6 are in b, AC7 is split between a and b, and AC8 is in c.
+`OPS-H7` stays the umbrella and is Done when OPS-H7c merges.

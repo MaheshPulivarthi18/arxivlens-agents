@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (same delivery semantics; replayed records flow back through the fixed consumer) |
 | **Jira** | KAN-31 (epic "Dev harness & infrastructure", labels `task-OPS-H7`, `agent-backend`, `design-required`, `arxivlens`) |
 | **Design required** | **yes**: changes CLI behaviour/flags of `arxivlens dlq`, may add a table (checkpoints/lock), and defines replay delivery semantics |
-| **Status** | Ready after OPS-H6 merges (design can start once OPS-H6's design is approved) |
+| **Status** | Split (umbrella). Design approved with conditions 2026-11-07. Work happens in OPS-H7f → OPS-H7a → OPS-H7b → OPS-H7c. Done when OPS-H7c merges |
 
 ## Goal
 An operator must be able to drain a DLQ of any size, exactly once per DLQ record, without two operators replaying the same records.
@@ -69,3 +69,7 @@ make test-full
 ## Notes
 - 2026-11-03 (pm-lead): specced from the external review of `bb9ee90` (approved by Mahesh). Expected diff is about 350 lines. If the design goes over 400, split into (a) list to end + paging and (b) checkpoints + lock + idempotent replay.
 - 2026-11-07 (backend-engineer): design written at [`docs/design/OPS-H7.md`](../../docs/design/OPS-H7.md) (Draft; awaiting pm-lead). The design puts checkpoints, a per-record log and the advisory lock in Postgres, and uses a deterministic ULID for the re-envelope fallback (no envelope change, no ADR). It also found bugs B1 (raw payloads are replayed with `event_id: ""`) and B2 (a null original value is replayed as an empty envelope). Estimate ~1,100 lines → proposes a 3-way split: OPS-H7a (AC1, AC7), OPS-H7b (AC2, AC5, AC6, AC7), OPS-H7c (AC3, AC4, AC8). Jira row fixed to KAN-31. Build stays held behind PR #26 (README/CONTRIBUTING).
+- 2026-11-07 (pm-lead): design **approved with conditions** (see `docs/design/OPS-H7.md` § PM decision). Split into four tickets, run in order and never in parallel:
+  [OPS-H7f](OPS-H7f.md) (B1/B2 envelope fix, ~130 lines, independent of every open PR, can start now) → [OPS-H7a](OPS-H7a.md) (AC1, AC7 list/inspect; after #26 merges) →
+  [OPS-H7b](OPS-H7b.md) (AC2, AC4 envelope records, AC5, AC6, AC7 replay; migration `000004`) → [OPS-H7c](OPS-H7c.md) (AC3, AC4 raw payloads, AC8).
+  Migration numbers: ING-11 = `000003`, OPS-H7b = `000004`. Each of a/b/c has a skeleton size gate (> 480 total or > 250 non-test → split at the named seam).

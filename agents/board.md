@@ -24,7 +24,10 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | ID | Title | Owner | Pri | Depends on |
 |---|---|---|---|---|
 | [ING-11](tasks/ING-11.md) | Record each chunk's real start page; return it as `page` (design-required; paired ai `TokenChunker` part if the design picks it) | backend-engineer | P1 | Design: none. Build: RET-2 merged |
-| [OPS-H7](tasks/OPS-H7.md) | DLQ list/replay: offset checkpoints, paging, replay lock, idempotent replay (design-required) | backend-engineer | P1 | OPS-H6 (Done) |
+| [OPS-H7f](tasks/OPS-H7f.md) | DLQ replay never publishes an empty/unreplayable envelope (B1/B2 fix; OPS-H7 part 1 of 4) | backend-engineer | P1 | OPS-H6 (Done). Touches no open-PR file: **can start now** |
+| [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to start-time high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | OPS-H7f merged, #26 merged (README; sequence with RET-2) |
+| [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: Postgres checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a merged |
+| [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs for raw payloads, stack replay run (OPS-H7 part 4; closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged, #26 merged (`stack.yml`) |
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 (merged) |
 | [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 (Done) |
 | [FE-2](tasks/FE-2.md) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 |
