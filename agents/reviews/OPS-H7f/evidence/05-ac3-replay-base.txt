@@ -1,0 +1,15 @@
+$ bash -c D=$(mktemp -d -p /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa ev05.XXXX) && /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa/scripts/mkmod.sh /root/wt/qa-32-base $D pr && cd $D && GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off go test -count=1 -v -run 'TestQAReplay' ./internal/dlq/ 2>&1 | grep -vE '^=== RUN' | sed -n '1,4p;/count=7/p;/filter="valueerror"/p;/filter="JSONDecodeError"/p;/^--- FAIL/p;/^FAIL/p'
+    qa_replay_test.go:61: filter="" dry-run count=7 published=0 | real count=7 published=7
+    qa_replay_test.go:61: filter="" dry-run count=7 published=0 | real count=7 published=7
+    qa_replay_test.go:71: published envelope with empty ID field: {EventID: EventType: OccurredAt: PaperID: Version:1 Attempt:0 Traceparent: Payload:map[]}
+    qa_replay_test.go:71: published envelope with empty ID field: {EventID: EventType: OccurredAt: PaperID: Version:0 Attempt:0 Traceparent: Payload:map[]}
+    qa_replay_test.go:71: published envelope with empty ID field: {EventID: EventType: OccurredAt: PaperID: Version:0 Attempt:0 Traceparent: Payload:map[]}
+    qa_replay_test.go:79: count=7, want 3 (full envelope, raw object with key, raw object with OriginalTopic fallback)
+    qa_replay_test.go:61: filter="valueerror" dry-run count=4 published=0 | real count=4 published=4
+    qa_replay_test.go:61: filter="JSONDecodeError" dry-run count=1 published=0 | real count=1 published=1
+--- FAIL: TestQAReplayDryRunEqualsReal (0.00s)
+FAIL
+FAIL	arxivlens/internal/dlq	0.002s
+FAIL
+
+[exit code 0]

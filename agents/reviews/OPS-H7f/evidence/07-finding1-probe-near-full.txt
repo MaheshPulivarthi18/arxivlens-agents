@@ -1,0 +1,29 @@
+$ /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa/scripts/probe.sh /root/wt/qa-32
+== head: 1 full guard line(s) in envelope.go
+PROBE PASS missing event_id   -> ok=true reason="" event_id="01M6VZFQBMYBJA1T3FWGJX1BV5" event_type="papers.downloaded" paper_id="2401.00009"
+PROBE PASS missing event_type -> ok=true reason="" event_id="01M6VZFQBMBQZWMDD2D812TX6F" event_type="papers.downloaded" paper_id="2401.00009"
+PROBE PASS missing paper_id   -> ok=true reason="" event_id="01M6VZFQBMTG8KF72JA4K70GRM" event_type="papers.downloaded" paper_id="2401.00009"
+ok  	arxivlens/internal/dlq	0.002s
+== M7: 0 full guard line(s) in envelope.go
+PROBE FAIL missing event_id   -> ok=true reason="" event_id="" event_type="papers.downloaded" paper_id="2401.00009"
+PROBE PASS missing event_type -> ok=true reason="" event_id="01M6VZFQK1F7CNC3XQP6P13QSX" event_type="papers.downloaded" paper_id="2401.00009"
+PROBE PASS missing paper_id   -> ok=true reason="" event_id="01M6VZFQK1G9Y9XR1H4SMM2AM9" event_type="papers.downloaded" paper_id="2401.00009"
+FAIL
+FAIL	arxivlens/internal/dlq	0.002s
+FAIL
+== M8: 0 full guard line(s) in envelope.go
+PROBE PASS missing event_id   -> ok=true reason="" event_id="01M6VZFQTKD0934N9684VANA85" event_type="papers.downloaded" paper_id="2401.00009"
+PROBE FAIL missing event_type -> ok=true reason="" event_id="01JC0000000000000000000009" event_type="" paper_id="2401.00009"
+PROBE PASS missing paper_id   -> ok=true reason="" event_id="01M6VZFQTKP70CM32GH1X828RV" event_type="papers.downloaded" paper_id="2401.00009"
+FAIL
+FAIL	arxivlens/internal/dlq	0.002s
+FAIL
+== M9: 0 full guard line(s) in envelope.go
+PROBE PASS missing event_id   -> ok=true reason="" event_id="01M6VZFR2E0DC8TVBGG0D56XV2" event_type="papers.downloaded" paper_id="2401.00009"
+PROBE PASS missing event_type -> ok=true reason="" event_id="01M6VZFR2ENNK9XHYJPPNBZRG6" event_type="papers.downloaded" paper_id="2401.00009"
+PROBE FAIL missing paper_id   -> ok=true reason="" event_id="01JC0000000000000000000009" event_type="papers.downloaded" paper_id=""
+FAIL
+FAIL	arxivlens/internal/dlq	0.002s
+FAIL
+
+[exit code 0]

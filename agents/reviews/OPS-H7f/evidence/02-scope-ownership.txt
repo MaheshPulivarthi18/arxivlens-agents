@@ -1,0 +1,12 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; bash .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H7f; echo; echo 'gofmt -l (changed files):'; GOTOOLCHAIN=local gofmt -l internal/dlq shared/events; echo '(end gofmt)'
+ internal/dlq/envelope.go      |  54 +++++++++++++++++++
+ internal/dlq/envelope_test.go | 123 ++++++++++++++++++++++++++++++++++++++++++
+ internal/dlq/manager.go       |  22 +++-----
+ 3 files changed, 184 insertions(+), 15 deletions(-)
+
+Ownership OK for role=backend (199 changed lines)
+
+gofmt -l (changed files):
+(end gofmt)
+
+[exit code 0]

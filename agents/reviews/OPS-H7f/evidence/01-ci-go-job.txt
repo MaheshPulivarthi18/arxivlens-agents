@@ -1,0 +1,14 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128531696270/logs | grep -E 'go version|Run make|go vet|gofmt|go test \./|arxivlens/internal/(dlq|kafka)\s|FAIL|Complete job|conclusion' | cut -c30-
+Complete job name: Go (vet, gofmt, test, build)
+Setup go version spec 1.25.0
+go version go1.25.0 linux/amd64
+##[group]Run make lint-go
+go vet ./...
+##[group]Run make test-go
+go test ./...
+ok  	arxivlens/internal/dlq	0.003s
+ok  	arxivlens/internal/kafka	0.031s
+ok  	arxivlens/internal/kafka	1.043s	coverage: 62.9% of statements
+##[group]Run make build-go
+
+[exit code 0]

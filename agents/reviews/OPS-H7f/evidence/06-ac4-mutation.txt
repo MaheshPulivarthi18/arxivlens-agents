@@ -1,0 +1,33 @@
+$ python3 /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa/scripts/mutate.py /root/wt/qa-32
+PR tests: go test -race -count=1 -run 'TestReplayEnvelope|TestReplayEnvelopeNeverEmpty|TestReplayEnvelopeSkipReasonsDistinct|TestReplaySkipLine' ./internal/dlq/   (QA harness column: TestQAReplayDryRunEqualsReal)
+M1   KILLED    QA-harness=red   AC4: full-envelope guard -> plain Unmarshal
+      red: TestReplayEnvelope/b_partial_envelope, TestReplayEnvelope/b_raw_object, TestReplayEnvelope/c_partial_envelope,_empty_key, TestReplayEnvelope/c_raw_object,_empty_key, TestReplayEnvelopeNeverEmpty
+M2   KILLED    QA-harness=red   AC4: drop the raw_value case
+      red: TestReplayEnvelope/c_raw_value_only
+M3   KILLED    QA-harness=red   drop the empty OriginalKey check
+      red: TestReplayEnvelope/c_partial_envelope,_empty_key, TestReplayEnvelope/c_raw_object,_empty_key, TestReplayEnvelopeNeverEmpty
+M4   KILLED    QA-harness=green drop the nil check (B2)
+      red: TestReplayEnvelope/c_nil_value_(B2)
+M5   KILLED    QA-harness=red   keep path: no DLQ traceparent
+      red: TestReplayEnvelope/a_full_envelope, TestReplayEnvelope/a_full_envelope,_empty_key
+M6   KILLED    QA-harness=red   keep path: no attempt reset
+      red: TestReplayEnvelope/a_full_envelope, TestReplayEnvelope/a_full_envelope,_empty_key
+M7   SURVIVED  QA-harness=green guard: drop event_id check only
+      red: -
+M8   SURVIVED  QA-harness=green guard: drop event_type check only
+      red: -
+M9   SURVIVED  QA-harness=green guard: drop paper_id check only
+      red: -
+M10  KILLED    QA-harness=green wrap path: no traceparent
+      red: TestReplayEnvelope/b_envelope_with_wrong_field_type, TestReplayEnvelope/b_partial_envelope, TestReplayEnvelope/b_raw_object
+M11  SURVIVED  QA-harness=green keep path: overwrite event_type with target topic
+      red: -
+M12  KILLED    QA-harness=green skip line: drop error_type
+      red: TestReplaySkipLine
+M13  SURVIVED  QA-harness=green raw_value: skip whenever the key is present (ignore 'only key')
+      red: -
+M14  SURVIVED  QA-harness=red   manager: apply rule only in real runs (dry-run counts skips)
+      red: -
+TOTAL 14: KILLED 8, SURVIVED 6, INVALID 0
+
+[exit code 0]

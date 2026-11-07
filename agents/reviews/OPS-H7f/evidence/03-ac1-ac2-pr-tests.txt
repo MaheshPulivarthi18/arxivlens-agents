@@ -1,0 +1,20 @@
+$ bash -c D=$(mktemp -d -p /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa ev03.XXXX) && /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa/scripts/mkmod.sh /root/wt/qa-32 $D && cd $D && go version && GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off go test -race -count=1 -v -run 'TestReplayEnvelope|TestReplayEnvelopeNeverEmpty|TestReplaySkipLine' ./internal/dlq/ | grep -vE '^=== RUN'
+go version go1.24.7 linux/amd64
+--- PASS: TestReplayEnvelope (0.00s)
+    --- PASS: TestReplayEnvelope/a_full_envelope (0.00s)
+    --- PASS: TestReplayEnvelope/a_full_envelope,_empty_key (0.00s)
+    --- PASS: TestReplayEnvelope/b_raw_object (0.00s)
+    --- PASS: TestReplayEnvelope/b_partial_envelope (0.00s)
+    --- PASS: TestReplayEnvelope/b_envelope_with_wrong_field_type (0.00s)
+    --- PASS: TestReplayEnvelope/c_nil_value_(B2) (0.00s)
+    --- PASS: TestReplayEnvelope/c_empty_object (0.00s)
+    --- PASS: TestReplayEnvelope/c_raw_value_only (0.00s)
+    --- PASS: TestReplayEnvelope/c_raw_object,_empty_key (0.00s)
+    --- PASS: TestReplayEnvelope/c_partial_envelope,_empty_key (0.00s)
+--- PASS: TestReplayEnvelopeNeverEmpty (0.00s)
+--- PASS: TestReplayEnvelopeSkipReasonsDistinct (0.00s)
+--- PASS: TestReplaySkipLine (0.00s)
+PASS
+ok  	arxivlens/internal/dlq	1.012s
+
+[exit code 0]

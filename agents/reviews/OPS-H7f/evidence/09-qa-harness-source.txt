@@ -1,0 +1,428 @@
+$ bash -c cd /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa && for f in scripts/mkmod.sh scripts/mutate.py scripts/probe.sh qatests/*.go stubs/ulid/ulid.go stubs/franz-go/pkg/kgo/kgo.go stubs/kafka/producer.go; do echo "===== $f"; cat $f; done
+===== scripts/mkmod.sh
+#!/bin/bash
+# usage: mkmod.sh <app-tree> <dest-dir> [with-pr-tests]
+set -e
+APP=$1; D=$2; Q=/tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa
+mkdir -p $D/shared/events $D/internal/dlq $D/internal/kafka
+cp $APP/shared/events/events.go $D/shared/events/
+cp $APP/internal/dlq/*.go $D/internal/dlq/
+cp $Q/stubs/kafka/producer.go $D/internal/kafka/
+cp $Q/qatests/qa_ac5_test.go $D/internal/dlq/
+[ -n "$3" ] && cp $Q/qatests/qa_replay_test.go $D/internal/dlq/
+cat > $D/go.mod <<EOM
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/twmb/franz-go v1.16.1
+)
+
+replace github.com/oklog/ulid/v2 => $Q/stubs/ulid
+replace github.com/twmb/franz-go => $Q/stubs/franz-go
+EOM
+===== scripts/mutate.py
+#!/usr/bin/env python3
+"""QA OPS-H7f mutation run. Each mutant: fresh module built from the PR head, one textual edit to
+internal/dlq/envelope.go (or manager.go), then the PR's own tests run. Build failure = INVALID (never KILLED)."""
+import os, re, subprocess, sys, tempfile
+S = "/tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa"
+APP = sys.argv[1]
+PR_TESTS = "TestReplayEnvelope|TestReplayEnvelopeNeverEmpty|TestReplayEnvelopeSkipReasonsDistinct|TestReplaySkipLine"
+G = 'env.EventID != "" && env.EventType != "" && env.PaperID != ""'
+M = [
+ ("M1", "AC4: full-envelope guard -> plain Unmarshal", "envelope.go",
+  'json.Unmarshal(b, &env) == nil &&\n\t\t' + G + ' {', 'json.Unmarshal(b, &env) == nil {'),
+ ("M2", "AC4: drop the raw_value case", "envelope.go",
+  '\tif _, raw := v["raw_value"]; raw && len(v) == 1 {\n\t\treturn events.EventEnvelope{}, skipRawValue, false\n\t}\n', ''),
+ ("M3", "drop the empty OriginalKey check", "envelope.go",
+  '\tif p.OriginalKey == "" {\n\t\treturn events.EventEnvelope{}, skipNoKey, false\n\t}\n', ''),
+ ("M4", "drop the nil check (B2)", "envelope.go",
+  '\tif v == nil {\n\t\treturn events.EventEnvelope{}, skipNilValue, false\n\t}\n', ''),
+ ("M5", "keep path: no DLQ traceparent", "envelope.go",
+  '\t\tenv.Traceparent = p.Traceparent\n\t\treturn env, "", true', '\t\treturn env, "", true'),
+ ("M6", "keep path: no attempt reset", "envelope.go", '\t\tenv.Attempt = 0 // Reset attempt counter (§6)\n', ''),
+ ("M7", "guard: drop event_id check only", "envelope.go", G, 'env.EventType != "" && env.PaperID != ""'),
+ ("M8", "guard: drop event_type check only", "envelope.go", G, 'env.EventID != "" && env.PaperID != ""'),
+ ("M9", "guard: drop paper_id check only", "envelope.go", G, 'env.EventID != "" && env.EventType != ""'),
+ ("M10", "wrap path: no traceparent", "envelope.go",
+  '\tenv = events.NewEventEnvelope(targetTopic, p.OriginalKey, 1, v)\n\tenv.Traceparent = p.Traceparent\n',
+  '\tenv = events.NewEventEnvelope(targetTopic, p.OriginalKey, 1, v)\n'),
+ ("M11", "keep path: overwrite event_type with target topic", "envelope.go",
+  '\t\tenv.Attempt = 0', '\t\tenv.EventType = targetTopic\n\t\tenv.Attempt = 0'),
+ ("M12", "skip line: drop error_type", "envelope.go", ' error_type=%q: %s", p.OriginalKey, p.ErrorType, reason)', ': %s", p.OriginalKey, reason)'),
+ ("M13", "raw_value: skip whenever the key is present (ignore 'only key')", "envelope.go", 'raw && len(v) == 1', 'raw'),
+ ("M14", "manager: apply rule only in real runs (dry-run counts skips)", "manager.go",
+  '\t\tif !ok {\n\t\t\tlog.Print(skipLine(dlqEv, reason))\n\t\t\tcontinue\n\t\t}\n',
+  '\t\tif !ok && !dryRun {\n\t\t\tlog.Print(skipLine(dlqEv, reason))\n\t\t\tcontinue\n\t\t}\n'),
+]
+def run(d, pat):
+    env = dict(os.environ, GOTOOLCHAIN="local", GOFLAGS="-mod=mod", GOPROXY="off")
+    return subprocess.run(["go", "test", "-race", "-count=1", "-v", "-run", pat, "./internal/dlq/"], cwd=d, env=env,
+                          capture_output=True, text=True)
+rows = []
+for mid, desc, f, old, new in M:
+    d = tempfile.mkdtemp(prefix=mid + ".", dir=S)
+    subprocess.run([S + "/scripts/mkmod.sh", APP, d, "pr"], check=True)
+    p = os.path.join(d, "internal/dlq", f)
+    src = open(p).read()
+    if src.count(old) != 1:
+        rows.append((mid, desc, "INVALID (pattern not found once)", "", "")); continue
+    open(p, "w").write(src.replace(old, new))
+    r = run(d, PR_TESTS)
+    out = r.stdout + r.stderr
+    if "[build failed]" in out or "[setup failed]" in out or re.search(r"\.go:\d+:\d+: ", out) and "--- FAIL" not in out:
+        rows.append((mid, desc, "INVALID (build failed)", out.strip().splitlines()[-1], "")); continue
+    fails = sorted(set(re.findall(r"--- FAIL: (\S+)", out)))
+    leaf = [x for x in fails if not any(y != x and y.startswith(x + "/") for y in fails)]
+    q = run(d, "TestQAReplay")
+    qa = "red" if q.returncode else "green"
+    rows.append((mid, desc, "KILLED" if r.returncode else "SURVIVED", ", ".join(leaf) or "-", qa))
+print("PR tests: go test -race -count=1 -run '%s' ./internal/dlq/   (QA harness column: TestQAReplayDryRunEqualsReal)" % PR_TESTS)
+for mid, desc, res, fl, qa in rows:
+    print(f"{mid:<4} {res:<9} QA-harness={qa:<5} {desc}\n      red: {fl}")
+k = sum(r[2] == "KILLED" for r in rows); s = sum(r[2] == "SURVIVED" for r in rows); i = len(rows) - k - s
+print(f"TOTAL {len(rows)}: KILLED {k}, SURVIVED {s}, INVALID {i}")
+===== scripts/probe.sh
+#!/bin/bash
+# usage: probe.sh <app-tree> [mutant-id old new]  -- runs TestQAProbeNearFull on the PR head or a mutant (same edits as mutate.py M7-M9)
+S=/tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa
+G='env.EventID != "" \&\& env.EventType != "" \&\& env.PaperID != ""'
+for m in head M7 M8 M9; do
+  D=$(mktemp -d -p $S probe-$m.XXXX); $S/scripts/mkmod.sh $1 $D pr >/dev/null; cp $S/qatests/qa_probe_test.go $D/internal/dlq/
+  f=$D/internal/dlq/envelope.go
+  case $m in
+    M7) sed -i "s/$G/env.EventType != \"\" \&\& env.PaperID != \"\"/" $f;;
+    M8) sed -i "s/$G/env.EventID != \"\" \&\& env.PaperID != \"\"/" $f;;
+    M9) sed -i "s/$G/env.EventID != \"\" \&\& env.EventType != \"\"/" $f;;
+  esac
+  echo "== $m: $(grep -c 'env.EventID != "" && env.EventType != "" && env.PaperID != ""' $f) full guard line(s) in envelope.go"
+  (cd $D && GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off go test -count=1 -v -run TestQAProbeNearFull ./internal/dlq/ 2>&1 | grep -E '^(PROBE|ok|FAIL)')
+done
+===== qatests/qa_ac5_test.go
+package dlq
+
+// QA (OPS-H7f AC5): full-envelope-only DLQ; prints what Replay publishes and counts for each flag combination.
+// Compiled against both origin/main and the PR head; the outputs are diffed.
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"testing"
+
+	"arxivlens/internal/kafka"
+	"arxivlens/shared/events"
+	"github.com/twmb/franz-go/pkg/kgo"
+)
+
+func TestQAAC5FullEnvelopeFlags(t *testing.T) {
+	var vals [][]byte
+	for i, et := range []string{"ValueError", "PdfParseError", "valueerror"} {
+		env := map[string]interface{}{"event_id": fmt.Sprintf("01JC000000000000000000000%d", i), "event_type": "papers.downloaded",
+			"occurred_at": "2026-11-07T00:00:00Z", "paper_id": fmt.Sprintf("2401.0000%d", i), "version": 2, "attempt": 3,
+			"traceparent": "00-old-old-01", "payload": map[string]interface{}{"arxiv_id": fmt.Sprintf("2401.0000%d", i), "n": i}}
+		b, _ := json.Marshal(events.DLQPayload{OriginalTopic: "papers.downloaded", OriginalKey: fmt.Sprintf("2401.0000%d", i),
+			OriginalValue: env, ErrorType: et, Traceparent: fmt.Sprintf("00-dlq-%d-01", i)})
+		vals = append(vals, b)
+	}
+	for _, c := range []struct {
+		topic, filter string
+		limit         int
+		dry           bool
+	}{{"papers.downloaded.dlq", "", 100, false}, {"papers.downloaded.dlq", "", 100, true}, {"papers.downloaded.dlq", "VALUEERROR", 100, false},
+		{"papers.downloaded.dlq", "", 2, false}, {"papers.chunked.dlq", "PdfParseError", 100, false}} {
+		var buf bytes.Buffer
+		log.SetOutput(&buf)
+		log.SetFlags(0)
+		kafka.QAPublished = nil
+		kgo.QATopicValues = vals
+		n, err := NewManager(nil).Replay(context.Background(), c.topic, c.filter, c.limit, c.dry)
+		log.SetOutput(nil)
+		fmt.Printf("== --topic=%s --error-type=%q --limit=%d --dry-run=%v -> count=%d err=%v\n", c.topic, c.filter, c.limit, c.dry, n, err)
+		fmt.Print(buf.String())
+		for _, p := range kafka.QAPublished {
+			b, _ := json.Marshal(p.Envelope)
+			fmt.Printf("PUBLISH %s %s\n", p.Topic, b)
+		}
+	}
+}
+===== qatests/qa_probe_test.go
+package dlq
+
+// QA probe: near-full envelopes (exactly one of the three ID fields missing) with a non-empty key.
+// Rule (b) + condition 1(iii): must be re-enveloped with non-empty event_id/event_type/paper_id.
+
+import (
+	"fmt"
+	"testing"
+
+	"arxivlens/shared/events"
+)
+
+func TestQAProbeNearFull(t *testing.T) {
+	base := func() map[string]interface{} {
+		return map[string]interface{}{"event_id": "01JC0000000000000000000009", "event_type": "papers.downloaded", "paper_id": "2401.00009",
+			"version": float64(1), "payload": map[string]interface{}{}}
+	}
+	for _, drop := range []string{"event_id", "event_type", "paper_id"} {
+		v := base()
+		delete(v, drop)
+		env, reason, ok := replayEnvelope(events.DLQPayload{OriginalKey: "2401.00009", OriginalValue: v}, "papers.downloaded")
+		res := "PASS"
+		if ok && (env.EventID == "" || env.EventType == "" || env.PaperID == "") {
+			res = "FAIL"
+			t.Errorf("missing %s: published event_id=%q event_type=%q paper_id=%q", drop, env.EventID, env.EventType, env.PaperID)
+		}
+		fmt.Printf("PROBE %s missing %-10s -> ok=%v reason=%q event_id=%q event_type=%q paper_id=%q\n", res, drop, ok, reason, env.EventID, env.EventType, env.PaperID)
+	}
+}
+===== qatests/qa_replay_test.go
+package dlq
+
+// QA (OPS-H7f AC3): drives the real Manager.Replay against stubbed kgo/kafka and checks
+// dry-run count == real-run publishes, skips are logged and never published or counted.
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"log"
+	"strings"
+	"testing"
+
+	"arxivlens/internal/kafka"
+	"arxivlens/shared/events"
+	"github.com/twmb/franz-go/pkg/kgo"
+)
+
+func qaValues(t *testing.T) [][]byte {
+	full := map[string]interface{}{"event_id": "01JC0000000000000000000001", "event_type": "papers.downloaded",
+		"occurred_at": "2026-11-07T00:00:00Z", "paper_id": "2401.00001", "version": 1, "attempt": 3,
+		"payload": map[string]interface{}{"arxiv_id": "2401.00001"}}
+	recs := []events.DLQPayload{
+		{OriginalTopic: "papers.downloaded", OriginalKey: "2401.00001", OriginalValue: full, ErrorType: "ValueError", Traceparent: "00-aa-bb-01"},
+		{OriginalTopic: "papers.downloaded", OriginalKey: "2401.00002", OriginalValue: map[string]interface{}{"arxiv_id": "2401.00002", "version": 1}, ErrorType: "ValueError"},
+		{OriginalTopic: "papers.downloaded", OriginalKey: "2401.00003", OriginalValue: nil, ErrorType: "ValueError"},
+		{OriginalTopic: "papers.downloaded", OriginalKey: "2401.00004", OriginalValue: map[string]interface{}{"raw_value": "b'\\xff'"}, ErrorType: "JSONDecodeError"},
+		{OriginalTopic: "papers.downloaded", OriginalKey: "2401.00005", OriginalValue: map[string]interface{}{}, ErrorType: "ValueError"},
+		{OriginalTopic: "papers.downloaded", OriginalKey: "", OriginalValue: map[string]interface{}{"event_id": "x"}, ErrorType: "KeyError"},
+		{OriginalTopic: "", OriginalKey: "2401.00007", OriginalValue: map[string]interface{}{"arxiv_id": "2401.00007"}, ErrorType: "PdfParseError"},
+	}
+	var out [][]byte
+	for _, r := range recs {
+		b, err := json.Marshal(r)
+		if err != nil {
+			t.Fatal(err)
+		}
+		out = append(out, b)
+	}
+	return append(out, []byte("not json")) // undecodable DLQ record: dropped by ListEvents (unchanged, OPS-H7a)
+}
+
+func qaRun(t *testing.T, filter string, limit int, dry bool) (int, []kafka.Published, string) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	log.SetFlags(0)
+	defer log.SetOutput(nil)
+	kafka.QAPublished = nil
+	kgo.QATopicValues = qaValues(t)
+	n, err := NewManager(nil).Replay(context.Background(), "papers.downloaded.dlq", filter, limit, dry)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return n, kafka.QAPublished, buf.String()
+}
+
+func TestQAReplayDryRunEqualsReal(t *testing.T) {
+	for _, filter := range []string{"", "valueerror", "JSONDecodeError"} {
+		dn, dpub, dlog := qaRun(t, filter, 100, true)
+		rn, rpub, rlog := qaRun(t, filter, 100, false)
+		t.Logf("filter=%q dry-run count=%d published=%d | real count=%d published=%d", filter, dn, len(dpub), rn, len(rpub))
+		if len(dpub) != 0 {
+			t.Errorf("dry-run published %d envelopes", len(dpub))
+		}
+		if dn != rn || rn != len(rpub) {
+			t.Errorf("filter=%q: dry-run count %d, real count %d, real publishes %d: want all equal", filter, dn, rn, len(rpub))
+		}
+		for _, p := range rpub {
+			e := p.Envelope
+			if e.EventID == "" || e.EventType == "" || e.PaperID == "" {
+				t.Errorf("published envelope with empty ID field: %+v", e)
+			}
+		}
+		if filter == "" {
+			for _, l := range strings.Split(strings.TrimSpace(rlog), "\n") {
+				t.Logf("real log: %s", l)
+			}
+			if dn != 3 {
+				t.Errorf("count=%d, want 3 (full envelope, raw object with key, raw object with OriginalTopic fallback)", dn)
+			}
+			for _, k := range []string{"2401.00003", "2401.00004", "2401.00005", ""} {
+				line := `Skipped unreplayable event key="` + k + `"`
+				if !strings.Contains(dlog, line) || !strings.Contains(rlog, line) {
+					t.Errorf("missing skip line for key %q in dry-run or real log", k)
+				}
+				if k != "" && strings.Contains(rlog, "Event key="+k+" ") {
+					t.Errorf("skipped key %q also logged as replayed", k)
+				}
+			}
+			if rpub[0].Envelope.EventID != "01JC0000000000000000000001" || rpub[0].Envelope.Attempt != 0 || rpub[0].Envelope.Traceparent != "00-aa-bb-01" {
+				t.Errorf("full envelope not kept: %+v", rpub[0].Envelope)
+			}
+			if rpub[2].Topic != "papers.downloaded" || rpub[2].Envelope.EventType != "papers.downloaded" {
+				t.Errorf("fallback topic: %+v", rpub[2])
+			}
+		}
+	}
+}
+===== stubs/ulid/ulid.go
+// QA stub of github.com/oklog/ulid/v2 (only the API used by shared/events and the tests).
+// Encodes 48-bit ms + 80-bit entropy as 26 Crockford base32 chars; Parse validates the same.
+package ulid
+
+import (
+	"errors"
+	"io"
+	"math/big"
+	"strings"
+	"time"
+)
+
+const alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+
+type ULID [16]byte
+
+type MonotonicEntropy struct{ r io.Reader }
+
+func (m *MonotonicEntropy) Read(p []byte) (int, error) { return m.r.Read(p) }
+
+func Monotonic(r io.Reader, inc uint64) *MonotonicEntropy { return &MonotonicEntropy{r: r} }
+
+func Timestamp(t time.Time) uint64 { return uint64(t.UnixMilli()) }
+
+func MustNew(ms uint64, entropy io.Reader) ULID {
+	var u ULID
+	for i := 0; i < 6; i++ {
+		u[i] = byte(ms >> (8 * (5 - i)))
+	}
+	if _, err := io.ReadFull(entropy, u[6:]); err != nil {
+		panic(err)
+	}
+	return u
+}
+
+func (u ULID) String() string {
+	n := new(big.Int).SetBytes(u[:])
+	out := make([]byte, 26)
+	b32 := big.NewInt(32)
+	m := new(big.Int)
+	for i := 25; i >= 0; i-- {
+		n.DivMod(n, b32, m)
+		out[i] = alphabet[m.Int64()]
+	}
+	return string(out)
+}
+
+var ErrDataSize = errors.New("ulid: bad data size when unmarshaling")
+var ErrInvalidCharacters = errors.New("ulid: bad data characters when unmarshaling")
+var ErrOverflow = errors.New("ulid: overflow when unmarshaling")
+
+func Parse(s string) (ULID, error) {
+	var u ULID
+	if len(s) != 26 {
+		return u, ErrDataSize
+	}
+	for _, c := range s {
+		if !strings.ContainsRune(alphabet, c) {
+			return u, ErrInvalidCharacters
+		}
+	}
+	if s[0] > '7' {
+		return u, ErrOverflow
+	}
+	return u, nil
+}
+===== stubs/franz-go/pkg/kgo/kgo.go
+// QA stub of franz-go/pkg/kgo: only what internal/dlq/manager.go's ListEvents uses.
+// QATopicValues feeds the DLQ topic; one poll returns them all, the next poll returns none.
+package kgo
+
+import "context"
+
+var QATopicValues [][]byte
+
+type Opt interface{}
+type Offset struct{}
+
+func NewOffset() Offset                   { return Offset{} }
+func (o Offset) AtStart() Offset          { return o }
+func SeedBrokers(...string) Opt           { return nil }
+func ConsumeTopics(...string) Opt         { return nil }
+func ConsumeResetOffset(Offset) Opt       { return nil }
+
+type Record struct{ Value []byte }
+type FetchError struct{ Err error }
+
+type Client struct{ polled bool }
+
+func NewClient(opts ...Opt) (*Client, error) { return &Client{}, nil }
+func (c *Client) Close()                     {}
+
+func (c *Client) PollFetches(ctx context.Context) Fetches {
+	if c.polled {
+		return Fetches{}
+	}
+	c.polled = true
+	var f Fetches
+	for _, v := range QATopicValues {
+		f.recs = append(f.recs, &Record{Value: v})
+	}
+	return f
+}
+
+type Fetches struct{ recs []*Record }
+
+func (f Fetches) IsClientClosed() bool    { return false }
+func (f Fetches) Errors() []FetchError    { return nil }
+func (f Fetches) NumRecords() int         { return len(f.recs) }
+func (f Fetches) RecordIter() *RecordIter { return &RecordIter{recs: f.recs} }
+
+type RecordIter struct {
+	recs []*Record
+	i    int
+}
+
+func (it *RecordIter) Done() bool     { return it.i >= len(it.recs) }
+func (it *RecordIter) Next() *Record  { r := it.recs[it.i]; it.i++; return r }
+===== stubs/kafka/producer.go
+// QA stub of arxivlens/internal/kafka: records every Publish (signatures copied from internal/kafka/producer.go).
+package kafka
+
+import (
+	"context"
+
+	"arxivlens/shared/events"
+)
+
+type Published struct {
+	Topic    string
+	Envelope events.EventEnvelope
+}
+
+var QAPublished []Published
+
+type Producer struct{}
+
+func NewProducer(brokers []string) (*Producer, error) { return &Producer{}, nil }
+func (p *Producer) Close()                             {}
+func (p *Producer) Publish(ctx context.Context, topic string, envelope events.EventEnvelope) error {
+	QAPublished = append(QAPublished, Published{topic, envelope})
+	return nil
+}
+
+[exit code 0]
