@@ -1,6 +1,6 @@
 # ADR-0003: What to do with unsupported citations
 
-- **Status:** Proposed
+- **Status:** Accepted (Mahesh, 2026-11-07)
 - **Date:** 2026-11-01
 - **Deciders:** Mahesh Pulivarthi
 - **Blocks:** follow-up after QA-8 (not QA-8 itself)
@@ -18,7 +18,11 @@ will be unsupported. Principle: "evidence first; say I don't know".
 Option 1 now (already implemented, keeps trust visible), and decide on Option 3 after QA-8 eval data shows how often it happens.
 
 ## Decision
-_(Human to fill)_
+**Abstention: refuse with evidence** (Mahesh, 2026-11-07, in chat). Applies to the abstention question below; per-sentence flags stay as Option 1 (flag) for answers that pass.
+- In case **A** (every citation unsupported) and case **B** (verification unavailable), `/v1/ask` returns **no synthesized answer**. Its response says why, with a `refusal_reason` of `all_citations_unsupported` or `verification_unavailable`, and still returns the retrieved passages with their scores, so the user can read the evidence.
+- This adds one response field. This ADR accepts that change to the HTTP API contract; the app README API table must be updated.
+- Trigger: "all unsupported" for now. A supported-share threshold can come later from eval data.
+- Eval: case B counts as an error (like `ask_errors`), not as a correct refusal.
 
 ## Consequences
 Frontend must keep unsupported citations visibly flagged (FE-1 tests it).
