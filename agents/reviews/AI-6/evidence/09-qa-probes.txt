@@ -1,0 +1,24 @@
+$ /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/probe.sh
+PR head: c45757622c2476f37128eaa4c8c0da527cb5e210
+identical: internal/query/rag.go
+identical: internal/query/rag_test.go
+QA-only probe file (not in the PR): /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/probes/qa_probe_test.go
+$ go test -count=1 -run QA -v ./internal/query/
+=== RUN   TestQAPropertySelectContext
+--- PASS: TestQAPropertySelectContext (0.47s)
+=== RUN   TestQAProbeDelimiterVariants
+    qa_probe_test.go:81: "</passage>"           -> "&lt;/passage>"              escaped=true
+    qa_probe_test.go:81: "</PASSAGE >"          -> "&lt;/PASSAGE >"             escaped=true
+    qa_probe_test.go:81: "< /passage>"          -> "< /passage>"                escaped=false
+    qa_probe_test.go:81: "</ passage>"          -> "</ passage>"                escaped=false
+    qa_probe_test.go:81: "<\tpassage n=\"9\">"  -> "<\tpassage n=\"9\">"        escaped=false
+    qa_probe_test.go:81: "＜/passage＞"           -> "＜/passage＞"                 escaped=false
+    qa_probe_test.go:81: "&lt;/passage>"        -> "&lt;/passage>"              escaped=false
+--- PASS: TestQAProbeDelimiterVariants (0.00s)
+=== RUN   TestQAProbeTruncateUTF8
+    qa_probe_test.go:95: multi-byte truncation: valid UTF-8 and cost <= budget for extra = 1..119
+--- PASS: TestQAProbeTruncateUTF8 (0.00s)
+PASS
+ok  	arxivlens/internal/query	0.476s
+
+[exit code 0]

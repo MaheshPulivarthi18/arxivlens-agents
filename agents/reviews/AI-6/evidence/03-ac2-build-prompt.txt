@@ -1,0 +1,17 @@
+$ /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/run.sh go test -count=1 -run BuildSynthesisPrompt -v ./internal/query/
+PR head: c45757622c2476f37128eaa4c8c0da527cb5e210
+identical: internal/query/rag.go
+identical: internal/query/rag_test.go
+identical: internal/query/search.go
+identical: internal/query/client.go
+identical: internal/query/search_test.go
+go version go1.24.7 linux/amd64 | GOTOOLCHAIN=local GOPROXY=off (scratch module: stub internal/db + pgx, QA-only)
+$ go test -count=1 -run BuildSynthesisPrompt -v ./internal/query/
+=== RUN   TestBuildSynthesisPrompt
+--- PASS: TestBuildSynthesisPrompt (0.00s)
+=== RUN   TestBuildSynthesisPromptInjection
+--- PASS: TestBuildSynthesisPromptInjection (0.00s)
+PASS
+ok  	arxivlens/internal/query	0.003s
+
+[exit code 0]

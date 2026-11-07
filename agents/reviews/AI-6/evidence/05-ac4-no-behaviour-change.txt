@@ -1,0 +1,37 @@
+$ /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/ac4.sh
+PR head: c45757622c2476f37128eaa4c8c0da527cb5e210  base: 2b71772a827b19fc999a299218c90493663357a3
+$ git diff --numstat origin/main...HEAD   (added  deleted  file)
+135	0	internal/query/rag.go
+167	0	internal/query/rag_test.go
+
+$ git diff origin/main...HEAD -- internal/query/ | grep -c "^-[^-]"   (removed lines)
+0
+
+$ git diff -U0 origin/main...HEAD -- internal/query/rag.go | grep "^@@"   (hunk positions)
+@@ -9,0 +10 @@ import (
+@@ -129,0 +131,134 @@ func buildTemplateAnswer(hits []SearchHit) string {
+
+$ awk "/^func \(r \*RAGService\) Ask\(/,/^}/" internal/query/rag.go | grep -cE "selectContext|buildSynthesisPrompt|parseSynthesis|passageHits"
+0
+
+$ git grep -nwE "selectContext|buildSynthesisPrompt|passageHits" HEAD -- "*.go" ":!*_test.go"   (non-test references)
+HEAD:internal/query/rag.go:156:	HitIndex  int       // index into the hits given to selectContext
+HEAD:internal/query/rag.go:183:// selectContext picks the passages for the synthesis prompt from hits in rerank order (the priority, ADR-0010).
+HEAD:internal/query/rag.go:190:func selectContext(hits []SearchHit, budgetTokens int) []contextPassage {
+HEAD:internal/query/rag.go:243:// passageHits returns the hits behind passages in marker order, each with Content = the text the model saw,
+HEAD:internal/query/rag.go:245:func passageHits(passages []contextPassage) []SearchHit {
+HEAD:internal/query/rag.go:254:// buildSynthesisPrompt returns the fixed system prompt and a user prompt with passages as numbered,
+HEAD:internal/query/rag.go:256:func buildSynthesisPrompt(question string, passages []contextPassage) (system, user string) {
+
+$ go vet ./internal/query/ && gofmt -l internal/query/   (scratch module + worktree)
+go vet: clean
+gofmt -l: []
+
+$ go test -count=1 -v ./internal/query/   (rag_test.go + search_test.go; scratch module) -> top-level result counts
+top-level --- PASS: 33  --- FAIL/SKIP: 0
+ok  	arxivlens/internal/query	0.010s
+
+$ pre-existing test names in rag_test.go at origin/main vs HEAD (unchanged bodies: 0 deleted lines above)
+origin/main: 19  HEAD: 25  (HEAD adds 6)
+
+[exit code 0]

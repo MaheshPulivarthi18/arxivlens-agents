@@ -1,0 +1,8 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/c457576.../check-runs
+Check runs for ArxivLens commit c45757622c2476f37128eaa4c8c0da527cb5e210 (PR #28 head)
+DB (migrate twice, HNSW plan + recall) | completed | success | job 128440466763 | 2026-11-07T15:09:48Z → 2026-11-07T15:10:49Z
+Frontend (lint, test, build) | completed | success | job 128440466667 | 2026-11-07T15:09:48Z → 2026-11-07T15:09:58Z
+Go (vet, gofmt, test, build) | completed | success | job 128440466634 | 2026-11-07T15:09:48Z → 2026-11-07T15:10:26Z
+Agent ownership check | completed | success | job 128440466623 | 2026-11-07T15:09:48Z → 2026-11-07T15:09:51Z
+Python M0 unit tests | completed | success | job 128440466322 | 2026-11-07T15:09:48Z → 2026-11-07T15:11:06Z
+

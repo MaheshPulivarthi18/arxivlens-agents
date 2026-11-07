@@ -1,0 +1,36 @@
+$ /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/run.sh bash -c go test -count=1 -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | grep rag.go && echo "--- rag.go per-file statements (from c.out):" && awk -F"[: ,]" '/rag\.go/ {n=$(NF-1); t+=n; if ($NF>0) c+=n} END {printf "covered %d / %d = %.1f%%\n", c, t, 100*c/t}' c.out
+PR head: c45757622c2476f37128eaa4c8c0da527cb5e210
+identical: internal/query/rag.go
+identical: internal/query/rag_test.go
+identical: internal/query/search.go
+identical: internal/query/client.go
+identical: internal/query/search_test.go
+go version go1.24.7 linux/amd64 | GOTOOLCHAIN=local GOPROXY=off (scratch module: stub internal/db + pgx, QA-only)
+$ bash -c go test -count=1 -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | grep rag.go && echo "--- rag.go per-file statements (from c.out):" && awk -F"[: ,]" '/rag\.go/ {n=$(NF-1); t+=n; if ($NF>0) c+=n} END {printf "covered %d / %d = %.1f%%\n", c, t, 100*c/t}' c.out
+ok  	arxivlens/internal/query	0.007s	coverage: 74.2% of statements
+arxivlens/internal/query/rag.go:65:	NewRAGService		100.0%
+arxivlens/internal/query/rag.go:72:	generateTraceID		100.0%
+arxivlens/internal/query/rag.go:78:	Ask			100.0%
+arxivlens/internal/query/rag.go:114:	buildTemplateAnswer	100.0%
+arxivlens/internal/query/rag.go:164:	estimateTokens		100.0%
+arxivlens/internal/query/rag.go:167:	sanitizeBlock		100.0%
+arxivlens/internal/query/rag.go:170:	metaField		100.0%
+arxivlens/internal/query/rag.go:173:	passageTokens		100.0%
+arxivlens/internal/query/rag.go:178:	renderPassage		100.0%
+arxivlens/internal/query/rag.go:190:	selectContext		100.0%
+arxivlens/internal/query/rag.go:231:	truncateAtWord		100.0%
+arxivlens/internal/query/rag.go:245:	passageHits		100.0%
+arxivlens/internal/query/rag.go:256:	buildSynthesisPrompt	100.0%
+arxivlens/internal/query/rag.go:269:	finalize		100.0%
+arxivlens/internal/query/rag.go:291:	newCitation		100.0%
+arxivlens/internal/query/rag.go:307:	filterRelevantHits	100.0%
+arxivlens/internal/query/rag.go:332:	validateCitations	100.0%
+arxivlens/internal/query/rag.go:347:	checkCitations		98.1%
+arxivlens/internal/query/rag.go:434:	embedBatch		90.0%
+arxivlens/internal/query/rag.go:450:	splitIntoSentences	94.7%
+arxivlens/internal/query/rag.go:483:	endsWithAbbreviation	100.0%
+arxivlens/internal/query/rag.go:496:	cosineSimilarity	100.0%
+--- rag.go per-file statements (from c.out):
+covered 194 / 197 = 98.5%
+
+[exit code 0]
