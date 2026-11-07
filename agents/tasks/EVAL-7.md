@@ -8,7 +8,7 @@
 | **Depends on** | **EVAL-6 merged** (per-case records in the results JSON; shared `tests/test_evals_data.py` and `evals/README.md`) |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-EVAL-7"`) |
 | **Design required** | no: offline tooling, report-only, no gate or contract change |
-| **Status** | In Progress: built at `ca21768` (branch `agent/ai/EVAL-7`), PR pending |
+| **Status** | In QA (round 2): rework r1 at `d01ffcb` (branch `agent/ai/EVAL-7`, PR #29 draft) |
 
 ## Goal
 Cosine similarity ≥ 0.50 says a sentence and a passage are related, not that the passage supports the sentence. The
@@ -85,3 +85,23 @@ python3 scripts/answer_review.py --help
     no test (no DB/stack here; diff budget). No real export was run: no results file or stack in the sandbox. No judgments
     written (they are Mahesh's). Time estimate in the README (about 40 rows, 20–40 min for 20 template cases) is a guess
     from the template's two cited sentences and is labelled as one. `make eval` not applicable (no retrieval/answer change).
+- 2026-11-07 (ai-engineer, rework r1 of QA r1 FAIL, `agents/reviews/EVAL-7/report.md`): pushed `d01ffcb` on PR #29.
+  Diff vs origin/main 398+/1- ("Ownership OK for role=ai (399 changed lines)"); edits in place, the README section,
+  docstring and two helpers were compressed to stay under 400.
+  - [x] F1 [blocking] drift fingerprint: `build_rows` compares sorted `(marker, chunk_id, round(score or 0, 3),
+    supported)` per citation on both sides (results file vs re-ask). Fixtures x002 (same pair, score 0.77 → 0.22) and
+    x004 (same pair and score, `supported` True → False) must be drifted.
+  - [x] F2 [nit] the test asserts the exact output tail `drifted cases skipped: x001, x002, x003, x004`; x003 = re-ask
+    with the same citations and `refusal_reason: all_citations_unsupported`; a002 (refused in the results, no stubbed
+    response) would show up as drifted if it were re-asked, so the exact list proves it isn't.
+  - [x] F3 [nit] committed mode: `arxiv_id` `^\d{4}\.\d{4,5}$` (same as the test's `ARXIV_ID`), `run_id` and `case_id`
+    `^[\w.-]+$`, `row_id` must equal `<case_id>:u<unit>:m<marker>` (stricter than the regex). 5 new validator cases.
+  - [x] F4 [nit] `score --save` returns 2 when the target exists unless `--force` (`--force` now on both subcommands);
+    the round-trip test checks both.
+  - F5 [spec] left to pm-lead. For the ticket amendment: drift is now fingerprinted with `score`/`supported`.
+  - Commands: `python3 -m pytest -q tests/test_evals_data.py` → 97 passed, 1 skipped; `-k review` → 22 passed;
+    `answer_review.py --help` OK; ownership check OK. Mutation check (scratch copy, restored, `cmp` clean): 12/12 killed
+    (fingerprint pairs-only / no score / no supported, classify check removed, refused cases re-asked, shape checks off,
+    row_id / arxiv / run_id / case_id shape each removed, `--save` overwrite, `--force` ignored).
+  - Still unverified (as r1): `make test-py` locally (no torch/confluent_kafka), `--db-url` path, a real export.
+    QA's optional missing tests (fake `fetch_passages`, empty export) not added: no diff budget left.
