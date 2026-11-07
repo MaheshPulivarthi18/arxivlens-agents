@@ -8,7 +8,7 @@
 | **Depends on** | **EVAL-6 merged** (per-case records in the results JSON; shared `tests/test_evals_data.py` and `evals/README.md`) |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-EVAL-7"`) |
 | **Design required** | no: offline tooling, report-only, no gate or contract change |
-| **Status** | Ready (EVAL-6 merged `1273a3b`). Not in cycle 11:00Z: ai's free slot went to AI-6 (P0) |
+| **Status** | In Progress: built at `ca21768` (branch `agent/ai/EVAL-7`), PR pending |
 
 ## Goal
 Cosine similarity ≥ 0.50 says a sentence and a passage are related, not that the passage supports the sentence. The
@@ -32,12 +32,12 @@ that review cheap and repeatable, so its results can later decide whether an ent
 - Out of scope: gating on any of these numbers (an ADR later, once there is data), LLM-as-judge, `rag.go`.
 
 ## Acceptance criteria
-- [ ] AC1 — `export` on a fixture results file produces one row per (claim, citation) with passage text and without `score`/`supported` (test).
-- [ ] AC2 — `score` on a fixture judgments file reports precision, partial, contradiction, claim correctness, judged/unjudged counts and the confusion matrix (test with known numbers).
-- [ ] AC3 — Invalid labels and rows with text fields are rejected by the validator (tests).
-- [ ] AC4 — `evals/answer_judgments/` files contain no passage/answer text (a test scans them).
+- [x] AC1 — `export` on a fixture results file produces one row per (claim, citation) with passage text and without `score`/`supported` (test).
+- [x] AC2 — `score` on a fixture judgments file reports precision, partial, contradiction, claim correctness, judged/unjudged counts and the confusion matrix (test with known numbers).
+- [x] AC3 — Invalid labels and rows with text fields are rejected by the validator (tests).
+- [x] AC4 — `evals/answer_judgments/` files contain no passage/answer text (a test scans them).
 - [ ] AC5 — README "Human review" section. `make test-py` passes.
-- [ ] AC6 — Diff < 400 lines.
+- [x] AC6 — Diff < 400 lines.
 
 ## Verification
 ```bash
@@ -50,3 +50,38 @@ python3 scripts/answer_review.py --help
 - 2026-11-07 (pm-lead): from the 2026-11-07 plan (Phase 1 item 7, human-review half). The first real judging session needs a
   results file from a stack run (EVAL-3 workflow artifact) and a person. That session is Mahesh's, not an agent's. Wave 3.
 - 2026-11-07 11:00Z (pm-lead, grooming): EVAL-6 merged. Ready; ai's one free slot this cycle went to AI-6 (P0, `rag.go` chain). Fold the EVAL-6 P3 `classify()` nits (board Backlog) into this PR if `scripts/evaluate_answers.py` is touched.
+- 2026-11-07 (ai-engineer): built `ca21768` on `agent/ai/EVAL-7` (cut from `2b71772`), pushed; PR not opened (orchestrator).
+  Files: new `scripts/answer_review.py` (243 lines), `tests/test_evals_data.py` (+132/-1, 16 `review` tests),
+  `evals/README.md` ("Human review" section + table row), `evals/answer_judgments/.gitkeep`. Diff 398+/1- (ownership
+  script: "Ownership OK for role=ai (399 changed lines)"). `scripts/evaluate_answers.py` not touched (only imported), so
+  the EVAL-6 P3 `classify()` nits stay in Backlog as the ticket's Notes say.
+  - **Interpretation to check (pm-lead/QA):** the EVAL-6 results JSON holds no answer text, so `export` can't get claim
+    text from it. It re-asks `/v1/ask` (`--api-url`, always needed) for each answered case and skips a case as "drifted"
+    when its (marker, chunk_id) pairs differ from the results file. `--db-url` is an *optional* passage source (by
+    `chunk_id` from `paper_chunks.content`); default is the re-asked response's `content`. So it's `--api-url [--db-url]`,
+    not the spec's `--api-url | --db-url`. Template answers are deterministic, so drift should be rare until QA-8.
+  - Sheet is Markdown only (spec: "Markdown or CSV"; CSV dropped to fit < 400). It hides `score`, `supported` and
+    `status` (ADR-0014 claims status would also anchor). Judgments JSONL keys: `run_id,row_id,case_id,unit,marker,chunk_id,
+    arxiv_id,supports,claim_correct,reviewer,date` (+ `notes` locally). `score --save` writes the committable copy
+    without `notes` and re-validates it in strict mode. `claim_correct` is one value per claim (`case_id`,`unit`);
+    conflicting labels and duplicate `row_id`s are rejected. Confusion matrix needs `score --results <same run>`.
+  - AC1: `test_review_export_one_row_per_claim_citation_and_blind` (3 rows from 2 cited sentences incl. an out-of-range
+    `[9]`; refused case skipped; drifted case listed; sheet has both passages + claim text and none of
+    `score/supported/status/0.83/0.41`; JSONL has no text). AC2: `test_review_score_known_numbers_and_unjudged_excluded`
+    (5 judged / 2 unjudged, precision 0.4, partial 0.2, contradicts 0.2, claim correctness 1/3, full 4x3 matrix) +
+    `test_review_round_trip_export_score_save`. AC3: `test_review_validator_rejects_bad_labels_and_text_fields`
+    (12 cases: bad/miscased labels, `claim`/`passage`/`answer` keys, `notes` in committed mode, missing reviewer, bad
+    date, bool marker, over-long strings) + `test_review_load_rejects_conflicting_claim_labels_and_duplicates`. AC4:
+    `test_review_committed_judgments_hold_ids_and_labels_only` (scans `evals/answer_judgments/*.jsonl` strictly; the
+    dir holds only `.gitkeep` today, so it passes vacuously until the first real file). AC6: 399 changed lines.
+  - Commands: `python3 -m pytest -v tests/test_evals_data.py -k review` → 16 passed, 76 deselected;
+    `python3 -m pytest -q tests/test_evals_data.py` → 92 passed, 1 skipped; `python3 scripts/answer_review.py --help` OK;
+    `.github/scripts/ownership-check.sh origin/main agent/ai/EVAL-7` → OK. Mutation check (scratch copy, restored):
+    9/9 mutants killed (sheet leaks score, drift check removed, out-of-range markers kept, text keys allowed, unjudged
+    counted, precision counts partial, `--save` keeps notes, overwrite allowed, conflicting claim labels allowed).
+  - **Unverified:** AC5's `make test-py` fails at collection in this sandbox (`No module named 'torch'` in test_m0.py,
+    `confluent_kafka` in test_worker_heartbeat.py; files untouched) → CI is the source of truth. `make lint` is Go +
+    frontend only, nothing Python to lint. `--db-url` (`fetch_passages_db`, psycopg) and the real HTTP re-ask path have
+    no test (no DB/stack here; diff budget). No real export was run: no results file or stack in the sandbox. No judgments
+    written (they are Mahesh's). Time estimate in the README (about 40 rows, 20–40 min for 20 template cases) is a guess
+    from the template's two cited sentences and is labelled as one. `make eval` not applicable (no retrieval/answer change).

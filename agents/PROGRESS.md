@@ -365,3 +365,8 @@ Format:
 - New spec `agents/tasks/AI-6b.md` (ai-engineer, P0, Ready, Wave 3, depends on AI-6 #28 merged): `parseSynthesis` + `synthesisClaim`/`synthesisResult` + `errSynthesisMalformed`/`errSynthesisNoClaims`. AI-6 AC3 and the design's AC3 test rows are carried over unchanged, along with the out-of-range-marker mutation. I folded in QA nit 5 (whitespace delimiter look-alikes) and missing tests 1–2 (truncation after skips; empty-content hits are skipped, a pm-lead decision).
 - AI-6 AC3 annotated "moved to AI-6b (design condition 1 seam c)". QA-8 `Depends on` + board (`rag.go` order AI-7 → AI-6 → AI-6b → QA-8 → AI-8) updated.
 - `docs/design/QA-8.md`: recorded the `passageTokens`/`metaField` refinement and the as-built imports (`sort`), corrected the branch to `agent/ai/AI-6`, and added a post-build record. QA findings 1–2 (PR text) stay with ai-engineer for round 2. Jira was not touched (the orchestrator handles it).
+
+## 2026-11-07 — ai-engineer: EVAL-7 built
+- `ca21768` on ArxivLens `agent/ai/EVAL-7` (pushed, PR not opened): `scripts/answer_review.py` export/score, 16 `review` tests (synthetic fixtures; 9/9 mutants killed), evals/README "Human review". Diff 399 lines.
+- Export re-asks `/v1/ask` for claim text (results JSON has none) and skips drifted cases; `--db-url` is an optional passage source, so the CLI is `--api-url [--db-url]`, not the spec's `|` (flagged in the ticket). CSV dropped to stay < 400.
+- Unverified: `make test-py` (sandbox lacks torch/confluent_kafka), `--db-url` path, a real export. No judgments written.
