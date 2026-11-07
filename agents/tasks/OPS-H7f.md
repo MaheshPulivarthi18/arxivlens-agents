@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (merged). Design: `docs/design/OPS-H7.md` § Q5 table + PM decision condition 1 (approved 2026-11-07) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7f`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | no (covered by the approved OPS-H7 design) |
-| **Status** | Ready. It touches no file in any open PR (#24, #26-#31), so it can start now |
+| **Status** | In QA, [PR #32](https://github.com/MaheshPulivarthi18/ArxivLens/pull/32) (draft, head `0120d3d`) |
 
 ## Goal
 `arxivlens dlq replay` today rebuilds the envelope with `json.Unmarshal` into `EventEnvelope` (`internal/dlq/manager.go:114-117`, `origin/main` `2b71772`).
@@ -53,3 +53,10 @@ CI (`ci.yml`) is the source of truth. "not run locally: Go 1.25 unavailable" is 
 - 2026-11-07 (pm-lead): split out of OPS-H7 at design review (B1/B2 found by backend-engineer). It goes first because OPS-H8b (poison → DLQ as raw dicts) and
   OPS-H7b (replay drains the whole topic) both widen B1's reach. The processor normally fails a B1 envelope before its ledger (`worker.py:45-52` vs `:79`), so the
   usual symptom is a record bouncing back into the DLQ with a broken `original_value`, not ledger poisoning. Fix both anyway.
+- 2026-11-07 (backend-engineer): built on `agent/backend/OPS-H7f` from `2b71772`, draft PR #32, head `0120d3d`. Files: new `internal/dlq/envelope.go` (+54),
+  new `internal/dlq/envelope_test.go` (+123), `internal/dlq/manager.go` (+7/-15, same indentation). 199 changed lines vs the ~130 target (the test table is bigger).
+  `replayEnvelope` sets the DLQ payload's `traceparent` on re-enveloped records too (propagation rule). The new skip log line is
+  `[DLQ Replay] Skipped unreplayable event key="…" error_type="…": <reason>`; the other output is unchanged. AC3 evidence: the call sits above `if !dryRun` and the skip
+  `continue`s before `replayedCount++`, plus `TestReplaySkipLine`. AC4 is QA's mutation check. Not run locally: sandbox Go is 1.24.7 and proxy.golang.org module
+  downloads are blocked; `gofmt -l internal/` printed nothing; ownership check OK. CI on `0120d3d`: all 5 check runs success (Go job: go1.25.0, `go vet ./...`, `ok arxivlens/internal/dlq`).
+  Jira story still to be created (child of KAN-31); the PR says "story pending".
