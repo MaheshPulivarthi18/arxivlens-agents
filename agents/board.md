@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 by pm-lead (EVAL-7 PM APPROVE → Ready to merge, #29; two EVAL-7 follow-ups to Backlog)
+Last updated: 2026-11-07 16:10Z by orchestrator (cycle 14:59Z: LLM-1b #27, OPS-H10 #26, AI-6 #28, EVAL-7 #29 → Ready to merge; OPS-H8 split, part a draft #30 In QA; new AI-6b KAN-52, OPS-H8b KAN-53; merged #20–#23, #25 → Done)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -9,12 +9,8 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## Ready — the 2026-11-07 plan, in execution order
 | # | ID | Title | Owner | Pri | Depends on | Wave | Note |
 |---|---|---|---|---|---|---|---|
-| 1b | [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (code already written) | backend-engineer | P0 | **LLM-1 merged** | 1b | ≈ 279 non-test lines; covered by LLM-1 design |
 | 5 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | 1 | **Env-blocked:** registry.npmjs.org; needs Mahesh (allow the host, or push the lockfile) |
-| 6 | [AI-6](tasks/AI-6.md) | Context selection, token budget, synthesis prompt (parser moved to AI-6b; writes `docs/design/QA-8.md`) | ai-engineer | P0 | AI-7 merged | 2 | Pure functions, `Ask` unchanged. PR #28 QA r1 FAIL (PR text only) |
 | 6b | [AI-6b](tasks/AI-6b.md) | `parseSynthesis` structured-output parser + types/errors; delimiter look-alikes; `selectContext` edge cases | ai-engineer | P0 | **AI-6 #28 merged** (same files) | 3 | Covered by `docs/design/QA-8.md` §5 (no new design). Pure function, `Ask` unchanged |
-| 6a | [OPS-H10](tasks/OPS-H10.md) | `stack.yml`: keep service logs on green runs (embedder timing) + run on Go/`tests/` PRs | backend-engineer | P1 | **#21 + #22 merged** (README/CONTRIBUTING); backend slot | 2 | Unblocks AI-9 AC1 → ADR-0015 numbers; no other open PR on `stack.yml` |
-| 7 | [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python producer confirms delivery; no commit past an unconfirmed DLQ write (part a, design-required, design approved) | backend-engineer | P0 | OPS-H1 (merged); #23 merged (`ci.yml`); backend slot | 2 | **Split 2026-11-07 (pm-lead, option A, by layer).** Rework `ebe80a7` down to the producer layer (~200 lines), then open the draft PR. Interim: worker exits before commit while the DLQ is down |
 | 7b | [OPS-H8b](tasks/OPS-H8b.md) | Python consumer loop: in-place DLQ retry, commit-error log, interruptible waits, graceful stop, poison records | backend-engineer | P0 | **OPS-H8 merged** (same files) | 3 | Covered by `docs/design/OPS-H8.md` (split addendum). Code exists at `ebe80a7`; ~325 lines; seam = poison/AC7 → OPS-H8c |
 | 9 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1, AI-7 merged | 2 | |
 | 10 | [RET-2](tasks/RET-2.md) | `SearchHit` carries paper version + page (design-required) | backend-engineer | P1 | ADR-0014 (Accepted 2026-11-07), AI-7 + EVAL-6 merged | 2 | Waits for #20 + #21 merge |
@@ -39,6 +35,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
+| [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python producer confirms delivery; `publish`/`publish_dlq` raise `DeliveryError` (part a; consumer loop → OPS-H8b KAN-53) | backend-engineer | ArxivLens [#30](https://github.com/MaheshPulivarthi18/ArxivLens/pull/30) draft @ `007aecc`, 278 lines · next: AC7 CI mutation commits + QA r1 |
 
 ## PM review
 | ID | Title | Owner | PR |
@@ -47,11 +44,9 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
-| [EVAL-6](tasks/EVAL-6.md) | Answer eval: ADR-0003 classification, report-only coverage, near-miss set | ai-engineer | ArxivLens [#20](https://github.com/MaheshPulivarthi18/ArxivLens/pull/20) (KAN-37) · **merge before AI-7 #21** | QA PASS r1 · PM APPROVE ([report](reviews/EVAL-6/report.md)) |
-| [AI-7](tasks/AI-7.md) | ADR-0003 refusal with evidence + `refusal_reason` (first in the `rag.go` chain; AI-6 starts once merged) | ai-engineer | ArxivLens [#21](https://github.com/MaheshPulivarthi18/ArxivLens/pull/21) (KAN-36) · **merge after EVAL-6 #20** | QA PASS r1 · PM APPROVE ([report](reviews/AI-7/report.md)); AC9 not run → EVAL-4 AC5 |
-| [LLM-1](tasks/LLM-1.md) | `internal/llm`: provider interface, typed errors, config, `llmtest` fake (part a; LLM-1b follows after merge) | backend-engineer | ArxivLens [#23](https://github.com/MaheshPulivarthi18/ArxivLens/pull/23) (KAN-35) · no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/LLM-1/report.md)) |
-| [EVAL-3](tasks/EVAL-3.md) | Full-stack `make eval` workflow (`eval.yml`, `make eval-seed`) + first measured numbers | backend-engineer | ArxivLens [#22](https://github.com/MaheshPulivarthi18/ArxivLens/pull/22) (KAN-29) · Eval check red = expected gate exit 1 (AC6) · no file overlap with #20/#21/#23 | QA PENDING r1 → PASS r1 cont. · PM APPROVE ([report](reviews/EVAL-3/report.md)); follow-up EVAL-9 |
-| [ING-9](tasks/ING-9.md) | arXiv politeness: one 3 s limiter per process + identifying UA (ingester, downloader) | backend-engineer | ArxivLens [#25](https://github.com/MaheshPulivarthi18/ArxivLens/pull/25) (KAN-48) · no file overlap with open PRs · stack run [42364519257](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42364519257) | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/ING-9/report.md)) |
+| [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (transport errors carry no server bytes; no redirects) | backend-engineer | ArxivLens [#27](https://github.com/MaheshPulivarthi18/ArxivLens/pull/27) (KAN-47) · no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/LLM-1b/report.md)) |
+| [OPS-H10](tasks/OPS-H10.md) | `stack.yml` runs on Go/`tests/` PRs and keeps service logs on every run | backend-engineer | ArxivLens [#26](https://github.com/MaheshPulivarthi18/ArxivLens/pull/26) (KAN-50) · **human checks:** open artifact 13579885920, view step summary, delete scratch branch `agent/backend/OPS-H10-ac3` | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/OPS-H10/report.md)); unblocks AI-9 AC1 |
+| [AI-6](tasks/AI-6.md) | Context selection, token budget, synthesis prompt in `rag.go` (not yet called; parser → AI-6b) | ai-engineer | ArxivLens [#28](https://github.com/MaheshPulivarthi18/ArxivLens/pull/28) (KAN-38) · no file overlap with open PRs | QA FAIL r1 (PR text) → PASS r2 · PM APPROVE ([report](reviews/AI-6/report.md)); AI-6b (KAN-52) starts after merge |
 | [EVAL-7](tasks/EVAL-7.md) | Blind human-review sheet → citation precision, claim correctness (report-only) | ai-engineer | ArxivLens [#29](https://github.com/MaheshPulivarthi18/ArxivLens/pull/29) (KAN-42) · no file overlap with open PRs · first real judging session is Mahesh's | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/EVAL-7/report.md)) |
 
 ## Blocked
@@ -149,6 +144,11 @@ Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and 
 ## Done
 | ID | Title | PR |
 |---|---|---|
+| [EVAL-6](tasks/EVAL-6.md) | Answer eval: ADR-0003 classification, report-only coverage, near-miss set | ArxivLens [#20](https://github.com/MaheshPulivarthi18/ArxivLens/pull/20) → 1273a3b (KAN-37) |
+| [AI-7](tasks/AI-7.md) | ADR-0003 refusal with evidence + `refusal_reason` | ArxivLens [#21](https://github.com/MaheshPulivarthi18/ArxivLens/pull/21) → 8406b18 (KAN-36) |
+| [LLM-1](tasks/LLM-1.md) | `internal/llm`: provider interface, typed errors, config, `llmtest` fake | ArxivLens [#23](https://github.com/MaheshPulivarthi18/ArxivLens/pull/23) → 43713ce (KAN-35) |
+| [EVAL-3](tasks/EVAL-3.md) | Full-stack `make eval` workflow (`eval.yml`, `make eval-seed`) | ArxivLens [#22](https://github.com/MaheshPulivarthi18/ArxivLens/pull/22) → 122eee3 (KAN-29) |
+| [ING-9](tasks/ING-9.md) | arXiv politeness: one 3 s limiter per process + identifying UA | ArxivLens [#25](https://github.com/MaheshPulivarthi18/ArxivLens/pull/25) → 2b71772 (KAN-48) |
 | [OPS-H1](tasks/OPS-H1.md) | Processor + embedder workers in compose; `make stack-up`; Full stack workflow (F1 known red, Mahesh) | ArxivLens [#14](https://github.com/MaheshPulivarthi18/ArxivLens/pull/14) → 71cb609 (KAN-13) |
 | [EVAL-5](tasks/EVAL-5.md) | Harden retrieval eval tests + ADR-0010 parity drift guard | ArxivLens [#17](https://github.com/MaheshPulivarthi18/ArxivLens/pull/17) → 6c80d64 (KAN-33) |
 | [OPS-H5](tasks/OPS-H5.md) | HNSW index migration; `migrate` applies all `*.up.sql` | ArxivLens [#16](https://github.com/MaheshPulivarthi18/ArxivLens/pull/16) → e67354c (KAN-17) |
