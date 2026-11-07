@@ -39,3 +39,4 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
 
 ## Notes
 - 2026-11-07 (pm-lead): from the 2026-11-07 plan (Phase 1 item 8, claim-evidence half). Wave 3.
+- 2026-11-07 (pm-lead, RET-2 design review): at FE-4's design approval, check that **ING-10 has merged** before cards show "vN". Until then, on-demand ingests can label v3 content as v1. `page` is absent from every citation until **ING-11** lands, so the `#page=N` path is only reachable with fixtures. Today's fallback URLs (`ReferencesStack.jsx:45`, `SynthesisView.jsx:47`) are unversioned.

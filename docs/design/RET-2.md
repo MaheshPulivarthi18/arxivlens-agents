@@ -1,6 +1,6 @@
 # Tech design — RET-2: Search hits carry the paper version and page (citation provenance)
 
-**Author:** backend-engineer · **Ticket:** `agents/tasks/RET-2.md` · **PRD:** Product PRD QA-3, ING-7, §7 principle 3; Technical PRD §5, §7.1; ADR-0014 (Accepted) · **Status:** Draft
+**Author:** backend-engineer · **Ticket:** `agents/tasks/RET-2.md` · **PRD:** Product PRD QA-3, ING-7, §7 principle 3; Technical PRD §5, §7.1; ADR-0014 (Accepted) · **Status:** Approved with conditions (pm-lead, 2026-11-07)
 
 All code references are to the app repo at `origin/main` `2b71772`.
 
@@ -190,4 +190,62 @@ Go 1.25 is not available in this sandbox (it tries to download it), so Go result
 - **Q3 (AC2 wording):** Given finding 2, AC2's "a chunk with a known page returns it" can't hold without a false page. Proposal: AC2 becomes "…and a chunk with a stored `page_number` returns no `page`", and the page half moves to the processor follow-up (PROC-n). Please confirm, and spec PROC-n (and note the paired ai change to `TokenChunker`).
 
 ## PM decision
-_(pm-lead fills)_
+**APPROVE with conditions** (pm-lead, 2026-11-07, design at `ab4a2fc`). Build starts after ArxivLens #26 (OPS-H10) merges
+(both edit `README.md`; same-file rule, AGENTS.md §3).
+
+Spot-checked against `origin/main` `2b71772`, all as the design says: `SearchHit` has no version/page (`search.go:21-29`), there
+is one SQL path and the outer SELECT at `search.go:111` with the `papers p` join at `:114` and a 6-column scan at `:180`;
+`worker.py:118` (Abstract bucket `page: 1`), `:164` (`page: page_idx + 1` only on a heading), `:167` (body text appended
+with no page marker); `m0_skeleton.py:225` `"page_number": sec.get("page", 1)`; `db.py:119` `chunk.get("page_number", 1)`;
+`downloader.go:80` and `ingester.go:181` fetch the unversioned PDF, `ingester.go:179` hard-codes `version := 1`, while
+`crawler.go:200-212` parses the version from `entry.ID`; the outer-SELECT fragment is in `_GO_TO_EVAL_SQL`
+(`test_evals_data.py:274-276`) and each fragment must occur exactly once. `db.yml` runs on every `pull_request`, so the
+new integration test gets a run without a dispatch.
+
+The approach meets AC1–AC5, leaves the RRF arms and the eval SQL alone, and the test plan has a test for every AC.
+Finding 2 is correct: `page_number` is the section-heading page, which is wrong for every later chunk of a section that
+crosses a page break, so returning it would break ADR-0014's "page is only returned when the chunker recorded it".
+
+### Answers to the open questions
+- **Q1 → run the whole file, and name the guards.** Verification becomes `python3 -m pytest -q tests/test_evals_data.py`
+  (76 tests, 0.16 s locally). The PR evidence must also run the three guards by node ID so they show by name:
+  `test_rrf_pool_sql_mirrors_search_go`, `test_adr0010_parity_pool_one_call_stable_ties_top5`,
+  `test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets`. Correction to finding 4: `-k "parity or mirrors"`
+  does select 3 tests, but the third is `test_split_sentences_mirrors_rag_go`, not the HNSW-settings test (checked:
+  `--collect-only`). Don't use that filter as evidence. The ticket's AC3 and Verification are amended (dated Notes line).
+- **Q2 → ship `version` now as the version of the `papers` row that owns the chunk.** ING-7 makes each version its own row,
+  and the join is correct, so RET-2 reports the record faithfully. The wrong label on on-demand ingests (v1 hard-coded,
+  latest PDF fetched) is an ingestion bug that predates RET-2 and is fixed at the source in **ING-10** (Ready, backend, P1).
+  RET-2 doesn't wait for it, and neither does AI-8 (it copies the field). FE-4 is the first place a user sees "vN", so
+  ING-10 merged is a check at FE-4's design approval (Notes line added to FE-4). This stays within ADR-0014: `version` is
+  always present as an int, as the ADR says.
+- **Q3 → confirmed. `page` is omitted for every hit, and AC2's page half is reworded.** ADR-0014 lists `page` as
+  "(int, omitted when unknown)" and says "RET-2 checks whether `page_number` is reliable and omits it if it isn't". Omitting
+  it for every hit is the outcome the ADR planned for, so it is consistent with the Accepted ADR and needs no decision from
+  Mahesh. The new AC2 wording ("a chunk with a stored `page_number` returns no `page`") is not a weakening. AC1 and the
+  Scope always made `page` conditional on reliability, and the old "known page" assumed a reliability the code doesn't
+  have. The new assertion tests the case the ticket forbids (a stored but wrong page must not leak). Real per-chunk pages
+  are not dropped: they move to **ING-11** with their own testable ACs (it includes the paired ai-owned `TokenChunker` part).
+
+### Conditions (QA checks each one)
+1. **AC3 evidence:** the whole-file run plus the three node-ID runs from Q1. The PR shows the one-fragment diff in `_GO_TO_EVAL_SQL`,
+   and the eval-side string and `scripts/evaluate_retrieval.py` are unchanged (`git diff --stat` shows no `scripts/` path).
+2. **README row wording:** `version` is "the arXiv version recorded for the chunk's paper", not "the version the chunk came
+   from". The second wording is only true after ING-10. Keep "`page` is omitted until chunk pages are recorded reliably (ADR-0014)".
+3. **Integration assertion 4 covers every hit:** all 3 hits have `Page == nil` and no `"page"` key in their JSON (the v1 chunk with
+   NULL `page_number` and both v2 chunks with stored 4 and 7), not only the page-4 chunk.
+4. **`db.yml`:** the step's run pattern is the literal regex `'TestHNSW|TestSearchProvenance'` (the `\|` in the design's
+   table is Markdown escaping). The PR links the `db.yml` job log lines from `t.Logf` (assertion 5) and the unchanged `TestHNSW` recall lines (AC4).
+5. **`Page` comment** in `search.go` says why it is never set and names ING-11, so the next reader doesn't "fix" it by
+   selecting `c.page_number`.
+6. **PR description** states both limits in one line each: `page` is omitted for all hits (finding 2 → ING-11), and `version`
+   on on-demand ingests can be wrong about the PDF (finding 3 → ING-10).
+7. **Size:** about 215 lines estimated. If the build goes over 400, the split seam is unit tests (c)+(d) to a follow-up commit
+   on the same ticket. Never drop the integration test, because it is AC2's only evidence.
+
+### Follow-ups filed
+- [ING-10](../../agents/tasks/ING-10.md) (backend, P1, Ready): the on-demand ingester parses the version from `entry.ID`, and
+  the ingester, downloader and crawler fetch `https://arxiv.org/pdf/<id>v<n>.pdf`.
+- [ING-11](../../agents/tasks/ING-11.md) (backend + paired ai part, P1, Ready for design, build after RET-2 merges): record
+  each chunk's real start page and return it as `page`.
+- Board Backlog line: v1/v2 near-duplicates can take two top-5 slots (product rule: latest version only, or dedupe by `arxiv_id`).

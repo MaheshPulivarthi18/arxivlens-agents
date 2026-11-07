@@ -13,7 +13,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | 6b | [AI-6b](tasks/AI-6b.md) | `parseSynthesis` structured-output parser + types/errors; delimiter look-alikes; `selectContext` edge cases | ai-engineer | P0 | **AI-6 #28 merged** (same files) | 3 | Covered by `docs/design/QA-8.md` §5 (no new design). Pure function, `Ask` unchanged |
 | 7b | [OPS-H8b](tasks/OPS-H8b.md) | Python consumer loop: in-place DLQ retry, commit-error log, interruptible waits, graceful stop, poison records | backend-engineer | P0 | **OPS-H8 merged** (same files) | 3 | Covered by `docs/design/OPS-H8.md` (split addendum). Code exists at `ebe80a7`; ~325 lines; seam = poison/AC7 → OPS-H8c |
 | 9 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1, AI-7 merged | 2 | |
-| 10 | [RET-2](tasks/RET-2.md) | `SearchHit` carries paper version + page (design-required) | backend-engineer | P1 | ADR-0014 (Accepted 2026-11-07), AI-7 + EVAL-6 merged | 2 | Waits for #20 + #21 merge |
+| 10 | [RET-2](tasks/RET-2.md) | `SearchHit` carries paper version (+ `page` field, omitted for all hits until ING-11) (design-required) | backend-engineer | P1 | ADR-0014 (Accepted 2026-11-07), AI-7 + EVAL-6 merged | 2 | **Design approved 2026-11-07** (conditions 1–7), build after #26 (OPS-H10) merges (README) |
 | 11 | [QA-8](tasks/QA-8.md) (KAN-7) | LLM synthesis in `/v1/ask` via provider, template fallback (design addendum) | ai-engineer | P0 | LLM-1, LLM-1b, AI-6, AI-6b merged | 3 | Fake provider in tests; real-LLM numbers are EVAL-8 |
 | 13 | [AI-8](tasks/AI-8.md) | Claims + provenance (version, chunk, section, page, quote, status) (design-required) | ai-engineer | P0 | ADR-0014 (Accepted), QA-8, RET-2 merged | 3 | |
 | 14 | [FE-4](tasks/FE-4.md) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | P0 | ADR-0014 (Accepted), AI-8, FE-3 merged | 3 | |
@@ -23,6 +23,8 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## Ready — not in this plan (lower priority; start only with a free slot and no file overlap)
 | ID | Title | Owner | Pri | Depends on |
 |---|---|---|---|---|
+| [ING-10](tasks/ING-10.md) | Stored version matches the PDF: on-demand ingest parses `entry.ID` version; versioned PDF URLs (ingester, downloader, crawler) | backend-engineer | P1 | ING-9 (Done); independent of RET-2. Must merge before FE-4 shows "vN" |
+| [ING-11](tasks/ING-11.md) | Record each chunk's real start page; return it as `page` (design-required; paired ai `TokenChunker` part if the design picks it) | backend-engineer | P1 | Design: none. Build: RET-2 merged |
 | [OPS-H7](tasks/OPS-H7.md) | DLQ list/replay: offset checkpoints, paging, replay lock, idempotent replay (design-required) | backend-engineer | P1 | OPS-H6 (Done) |
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 (merged) |
 | [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 (Done) |
@@ -64,6 +66,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the RET-2 design (product rule, P2, Proposed: needs Mahesh): when a paper's v1 and v2 are both indexed, their near-duplicate chunks can take two top-5 search slots, and two `/v1/ask` citations. Options: search returns the latest version only, or dedupes by `arxiv_id`. RET-2 makes this visible (distinct `version`) but doesn't change it. Also decide whether on-demand ingest of `<id>vN` ingests vN or the latest (ING-10 out of scope)
 - From the EVAL-7 review (ai, P3, small `tests/` + `scripts/answer_review.py` PR after #29 merges): tests for `build_rows` with a fake `fetch_passages`
   (the `--db-url` branch, unverified so far) and for an empty export; make `score --save` validate strictly *before* writing (today a strict failure leaves the file behind)
 - From the EVAL-7 review (ai, P2, revisit after QA-8 merges): the drift fingerprint `(marker, chunk_id, round(score,3), supported)` can miss a changed sentence with the

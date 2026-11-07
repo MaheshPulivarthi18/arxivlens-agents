@@ -8,7 +8,7 @@
 | **Depends on** | **ADR-0014 Accepted** (adds `version`/`page` to `/v1/search` hits: HTTP API contract). **AI-7 merged** (both edit the README API table). **EVAL-6 merged** (both may edit `tests/test_evals_data.py`, which holds the ADR-0010 SQL parity guard). |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-RET-2"`) |
 | **Design required** | **yes** (short, `docs/design/RET-2.md`): it touches a shared contract (HTTP API) and the SQL the parity guard mirrors. |
-| **Status** | Ready (ADR-0014 Accepted by Mahesh 2026-11-07; AI-7 `8406b18` and EVAL-6 `1273a3b` merged). Design first (`docs/design/RET-2.md`). Not in cycle 11:00Z: shares `README.md` with OPS-H10 |
+| **Status** | Design approved 2026-11-07; build waits for ArxivLens #26 (OPS-H10) to merge (README same-file rule). Conditions 1–7 in `docs/design/RET-2.md` § PM decision |
 
 ## Goal
 A citation should say which version of a paper it came from, and the page when the system knows it, so one click reaches
@@ -32,8 +32,8 @@ the right place in the PDF (Product PRD §7 principle 3). `papers.version` and `
 
 ## Acceptance criteria
 - [ ] AC1 — `/v1/search` hits include `version` (int) for every hit; `page` only when reliable (per the design's finding).
-- [ ] AC2 — Integration test on real pgvector (`db.yml`): a paper with v1 and v2 returns the right version per chunk, and a chunk with a known page returns it.
-- [ ] AC3 — The ADR-0010 parity guard passes (`pytest tests/test_evals_data.py -k parity`), and any allowed-difference change is shown in the PR.
+- [ ] AC2 — Integration test on real pgvector (`db.yml`): a paper with v1 and v2 returns the right version per chunk, and a chunk with a stored `page_number` returns no `page` (no hit carries `page`; real chunk pages → ING-11). *(amended 2026-11-07, see Notes)*
+- [ ] AC3 — The ADR-0010 parity guard passes: the whole `tests/test_evals_data.py` file, plus `test_rrf_pool_sql_mirrors_search_go`, `test_adr0010_parity_pool_one_call_stable_ties_top5` and `test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets` run by node ID. Any allowed-difference change is shown in the PR. *(amended 2026-11-07, see Notes)*
 - [ ] AC4 — No change to ranking: the RRF arms are byte-identical (`git diff` shows only the outer SELECT and scan); `search_test.go` ordering tests pass unmodified.
 - [ ] AC5 — README `/v1/search` row updated. Diff < 400 lines.
 
@@ -41,7 +41,10 @@ the right place in the PDF (Product PRD §7 principle 3). `papers.version` and `
 ```bash
 make lint
 make test-unit
-python3 -m pytest -q tests/test_evals_data.py -k parity
+python3 -m pytest -q tests/test_evals_data.py
+python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go \
+  tests/test_evals_data.py::test_adr0010_parity_pool_one_call_stable_ties_top5 \
+  tests/test_evals_data.py::test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets
 # db.yml on the PR for AC2
 ```
 
@@ -50,3 +53,13 @@ python3 -m pytest -q tests/test_evals_data.py -k parity
 - Wave 2, gated by ADR-0014. If ADR-0014 is rejected, pm-lead re-specs this ticket.
 - 2026-11-07 11:00Z (pm-lead, grooming): ADR-0014 is Accepted and #20/#21 merged, so this is Ready. Not picked in cycle 11:00Z: no backend slot, and it edits the README API table while OPS-H10 edits the README Full stack paragraph (same-file rule). Start after OPS-H10 merges (or in a slot where no open PR changes `README.md`).
 - 2026-11-07 (backend-engineer): design written → docs/design/RET-2.md; build waits for #26 merge (README). Finding: `page_number` is the section start page, not the chunk page, so `page` is omitted for all hits; processor follow-up (PROC-n) and version-label follow-up (ING-n) proposed; open questions Q1–Q3 in the design.
+- 2026-11-07 (pm-lead, design review): **APPROVE with conditions 1–7** (`docs/design/RET-2.md` § PM decision). AC changes:
+  - **AC2 (page half)** was "a chunk with a known page returns it". It is now "a chunk with a stored `page_number` returns no `page`".
+    The design traced the pipeline and found `page_number` is the section-heading page (`worker.py:164`, `m0_skeleton.py:225`),
+    not the chunk's page. No stored page is "known", so the old wording could only pass by returning a wrong page, which this
+    ticket's Scope forbids ("never return a default 1 as if it were real") and ADR-0014 rules out ("page is only returned when the
+    chunker recorded it"). This is not a weakening. AC1 and the Scope always made `page` conditional. The new assertion tests the
+    forbidden case directly. Real per-chunk pages move to ING-11 with their own ACs. The version half of AC2 is unchanged.
+  - **AC3 + Verification:** `-k parity` collected 1 of 76 tests and missed the SQL mirror test. It is now the whole file plus the three
+    guards by node ID. This is stricter than before.
+  - Q2: ship `version` as the owning `papers` row's version. Label correctness on on-demand ingests → ING-10 (Ready). Follow-ups ING-10 and ING-11 are filed.
