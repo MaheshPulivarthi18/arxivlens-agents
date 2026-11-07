@@ -1,0 +1,97 @@
+$ bash -c cat /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/qa/mkscratch.sh; echo; echo '--- mutants:'; sed -n 8,30p /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/qa/mutate.py
+#!/bin/bash
+# usage: mkscratch.sh <app-worktree> <dest>
+set -e
+W=$1; D=$2; rm -rf $D; mkdir -p $D/internal/{arxiv,downloader,query,config,db,storage,kafka} $D/shared/events $D/stubs/minio $D/stubs/kgo
+cat > $D/go.mod <<M
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/minio/minio-go/v7 v7.0.0
+	github.com/twmb/franz-go v1.0.0
+)
+
+replace github.com/minio/minio-go/v7 => ./stubs/minio
+replace github.com/twmb/franz-go => ./stubs/kgo
+M
+cp $W/internal/arxiv/*.go $D/internal/arxiv/
+cp $W/internal/downloader/downloader.go $W/internal/downloader/downloader_test.go $D/internal/downloader/
+cp $W/internal/query/ingester.go $W/internal/query/ingester_test.go $D/internal/query/
+cp $W/internal/config/config.go $D/internal/config/
+# stubs (QA harness only)
+cat > $D/stubs/minio/go.mod <<M
+module github.com/minio/minio-go/v7
+go 1.24
+M
+cat > $D/stubs/minio/minio.go <<M
+package minio
+import ("context";"io")
+type Client struct{}
+type PutObjectOptions struct{ ContentType string }
+type UploadInfo struct{}
+func (c *Client) PutObject(ctx context.Context, b, k string, r io.Reader, n int64, o PutObjectOptions) (UploadInfo, error) { return UploadInfo{}, nil }
+M
+mkdir -p $D/stubs/kgo/pkg/kgo
+cat > $D/stubs/kgo/go.mod <<M
+module github.com/twmb/franz-go
+go 1.24
+M
+echo 'package kgo
+type Record struct{ Value []byte }' > $D/stubs/kgo/pkg/kgo/kgo.go
+cat > $D/internal/db/db.go <<M
+package db
+import ("context";"time")
+type DB struct{}
+type PaperRecord struct{ ArxivID string; Version int; Title, Abstract string; Authors, Categories []string; PublishedAt time.Time; SourceURL, PDFStorageKey, SHA256, Status string }
+func (d *DB) UpsertDiscoveredPaper(ctx context.Context, p *PaperRecord) (int64, error) { return 0, nil }
+func (d *DB) UpdatePaperDownloaded(ctx context.Context, a string, v int, k, s string) error { return nil }
+M
+cat > $D/internal/storage/storage.go <<M
+package storage
+import ("context";"io")
+type Storage struct{ Bucket string }
+func (s *Storage) ObjectExists(ctx context.Context, k string) (bool, error) { return false, nil }
+func (s *Storage) DownloadPDF(ctx context.Context, k string) (io.ReadCloser, error) { return nil, nil }
+func (s *Storage) UploadPDF(ctx context.Context, k string, r io.Reader, n int64) error { return nil }
+M
+cat > $D/shared/events/events.go <<M
+package events
+const TopicPapersDownloaded = "papers.downloaded"
+type EventEnvelope struct{ PaperID string; Version int; EventID, Traceparent string }
+func NewEventEnvelope(t, id string, v int, p interface{}) EventEnvelope { return EventEnvelope{} }
+M
+cat > $D/internal/kafka/kafka.go <<M
+package kafka
+import ("context";"arxivlens/shared/events")
+type Producer struct{}
+func (p *Producer) Publish(ctx context.Context, t string, e events.EventEnvelope) error { return nil }
+M
+
+--- mutants:
+M = [
+ ("limiter: no sleep before permit", L, "\t\t\tt := time.NewTimer(d)", "\t\t\td = 0\n\t\t\tt := time.NewTimer(d)"),
+ ("limiter: callers not serialized (no turn)", L, "\tcase l.turn <- struct{}{}:\n\tcase <-ctx.Done():\n\t\treturn ctx.Err()\n\t}\n\tdefer func() { <-l.turn }()", "\tdefault:\n\t}"),
+ ("limiter: cancelled sleeper uses the slot", L, "\t\t\tcase <-ctx.Done():\n\t\t\t\treturn ctx.Err()", "\t\t\tcase <-ctx.Done():\n\t\t\t\tl.last = time.Now()\n\t\t\t\treturn ctx.Err()"),
+ ("limiter: ctx ignored while sleeping", L, "\t\t\tcase <-ctx.Done():\n\t\t\t\treturn ctx.Err()\n\t\t\t}", "\t\t\t}"),
+ ("limiter: ctx ignored while queued", L, "\tselect {\n\tcase l.turn <- struct{}{}:\n\tcase <-ctx.Done():\n\t\treturn ctx.Err()\n\t}", "\tl.turn <- struct{}{}"),
+ ("limiter: first call also waits", L, "\tif !l.last.IsZero() {", "\tif true {\n\t\tif l.last.IsZero() { l.last = time.Now() }"),
+ ("limiter: DefaultInterval = 1s", L, "const DefaultInterval = 3 * time.Second", "const DefaultInterval = 1 * time.Second"),
+ ("limiter: UA text changed", L, "\"; mailto:contact@arxivlens.local)\"", "\"; mailto:x)\""),
+ ("ingester: doArxiv skips Wait", I, "\tif err := ing.limiter.Wait(req.Context()); err != nil {\n\t\treturn nil, err\n\t}\n\treq.Header", "\treq.Header"),
+ ("ingester: doArxiv ignores Wait error", I, "\tif err := ing.limiter.Wait(req.Context()); err != nil {", "\tif err := ing.limiter.Wait(req.Context()); err != nil && false {"),
+ ("ingester: no User-Agent", I, "\treq.Header.Set(\"User-Agent\", arxiv.UserAgent(\"Query Ingester\"))\n", ""),
+ ("ingester: Atom-by-ID bypasses doArxiv", I, "\tresp, err := ing.doArxiv(req)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"arxiv API", "\tresp, err := ing.httpClient.Do(req)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"arxiv API"),
+ ("ingester: PDF bypasses doArxiv", I, "pdfResp, err := ing.doArxiv(pdfReq)", "pdfResp, err := ing.httpClient.Do(pdfReq)"),
+ ("ingester: search bypasses doArxiv", I, "\tresp, err := ing.doArxiv(req)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"failed to search", "\tresp, err := ing.httpClient.Do(req)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"failed to search"),
+ ("ingester: per-call limiter (not shared)", I, "\tif err := ing.limiter.Wait(req.Context()); err != nil {", "\tif err := arxiv.NewLimiter(ing.limiter.Interval()).Wait(req.Context()); err != nil {"),
+ ("ingester: NewPaperIngester interval 1s", I, "limiter:      arxiv.NewLimiter(arxiv.DefaultInterval),", "limiter:      arxiv.NewLimiter(time.Second),"),
+ ("downloader: fetchPDF skips Wait", D, "\tif err := d.limiter.Wait(ctx); err != nil {\n\t\treturn nil, err\n\t}\n", ""),
+ ("downloader: no User-Agent", D, "\treq.Header.Set(\"User-Agent\", arxiv.UserAgent(\"Downloader Pipeline\"))\n", ""),
+ ("downloader: NewDownloader interval 1s", D, "limiter:  arxiv.NewLimiter(arxiv.DefaultInterval),", "limiter:  arxiv.NewLimiter(time.Second),"),
+ ("downloader: HandleRecord bypasses fetchPDF limiter", D, "\tif err := d.limiter.Wait(ctx); err != nil {\n\t\treturn nil, err\n\t}\n\treq, err", "\treq, err"),
+]
+pkgs = ["./internal/arxiv/", "./internal/downloader/", "./internal/query/"]
+
+[exit code 0]

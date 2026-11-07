@@ -1,0 +1,24 @@
+$ python3 mutate.py  (scratch module rebuilt from c5dc873 per mutant; go test -race)
+KILLED   limiter: no sleep before permit: --- FAIL: TestSequentialWaits (0.00s); --- FAIL: TestConcurrentCallersAreSpaced (0.00s); --- FAIL: TestCancelledWaiter (0.00s); FAIL	arxivlens/internal/arxiv	0.015s
+KILLED   limiter: callers not serialized (no turn): --- FAIL: TestConcurrentCallersAreSpaced (0.03s); --- FAIL: TestCancelledWaiter (0.30s); FAIL	arxivlens/internal/arxiv	0.506s; --- FAIL: TestConcurrentIngestsShareOneLimiter (0.10s)
+KILLED   limiter: cancelled sleeper uses the slot: --- FAIL: TestCancelledWaiter (0.17s); FAIL	arxivlens/internal/arxiv	0.621s
+KILLED   limiter: ctx ignored while sleeping: --- FAIL: TestCancelledWaiter (0.15s); FAIL	arxivlens/internal/arxiv	0.603s
+KILLED   limiter: ctx ignored while queued: --- FAIL: TestCancelledWaiter (0.30s); FAIL	arxivlens/internal/arxiv	0.751s
+KILLED   limiter: first call also waits: FAIL	arxivlens/internal/arxiv	60.015s
+KILLED   limiter: DefaultInterval = 1s: --- FAIL: TestDefaultsAndUserAgent (0.00s); FAIL	arxivlens/internal/arxiv	0.750s; --- FAIL: TestFetchPDFIsSpacedAndIdentified (0.00s); FAIL	arxivlens/internal/downloader	0.013s
+KILLED   limiter: UA text changed: --- FAIL: TestDefaultsAndUserAgent (0.00s); FAIL	arxivlens/internal/arxiv	0.751s; --- FAIL: TestFetchPDFIsSpacedAndIdentified (0.10s); FAIL	arxivlens/internal/downloader	0.118s
+KILLED   ingester: doArxiv skips Wait: --- FAIL: TestIngestSpacesArxivRequests (0.00s); --- FAIL: TestConcurrentIngestsShareOneLimiter (0.00s); FAIL	arxivlens/internal/query	0.019s
+SURVIVED ingester: doArxiv ignores Wait error: all tests pass
+KILLED   ingester: no User-Agent: --- FAIL: TestIngestSpacesArxivRequests (0.15s); --- FAIL: TestConcurrentIngestsShareOneLimiter (0.15s); FAIL	arxivlens/internal/query	0.320s
+KILLED   ingester: Atom-by-ID bypasses doArxiv: --- FAIL: TestIngestSpacesArxivRequests (0.05s); --- FAIL: TestConcurrentIngestsShareOneLimiter (0.05s); FAIL	arxivlens/internal/query	0.117s
+KILLED   ingester: PDF bypasses doArxiv: --- FAIL: TestIngestSpacesArxivRequests (0.05s); --- FAIL: TestConcurrentIngestsShareOneLimiter (0.05s); FAIL	arxivlens/internal/query	0.125s
+KILLED   ingester: search bypasses doArxiv: --- FAIL: TestIngestSpacesArxivRequests (0.10s); FAIL	arxivlens/internal/query	0.271s
+KILLED   ingester: per-call limiter (not shared): --- FAIL: TestIngestSpacesArxivRequests (0.00s); --- FAIL: TestConcurrentIngestsShareOneLimiter (0.00s); FAIL	arxivlens/internal/query	0.018s
+KILLED   ingester: NewPaperIngester interval 1s: --- FAIL: TestNewPaperIngesterTimeouts (0.00s); FAIL	arxivlens/internal/query	0.324s
+KILLED   downloader: fetchPDF skips Wait: --- FAIL: TestFetchPDFIsSpacedAndIdentified (0.00s); FAIL	arxivlens/internal/downloader	0.016s
+KILLED   downloader: no User-Agent: --- FAIL: TestFetchPDFIsSpacedAndIdentified (0.10s); FAIL	arxivlens/internal/downloader	0.114s
+KILLED   downloader: NewDownloader interval 1s: --- FAIL: TestFetchPDFIsSpacedAndIdentified (0.00s); FAIL	arxivlens/internal/downloader	0.014s
+KILLED   downloader: HandleRecord bypasses fetchPDF limiter: --- FAIL: TestFetchPDFIsSpacedAndIdentified (0.00s); FAIL	arxivlens/internal/downloader	0.012s
+
+19/20 mutants killed
+

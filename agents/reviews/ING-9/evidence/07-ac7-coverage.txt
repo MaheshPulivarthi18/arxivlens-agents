@@ -1,0 +1,9 @@
+$ bash -c export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod; cd /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/scratch && go test -coverprofile=c.out ./internal/arxiv/ && go tool cover -func=c.out
+ok  	arxivlens/internal/arxiv	0.741s	coverage: 100.0% of statements
+arxivlens/internal/arxiv/limiter.go:20:	UserAgent	100.0%
+arxivlens/internal/arxiv/limiter.go:33:	NewLimiter	100.0%
+arxivlens/internal/arxiv/limiter.go:38:	Interval	100.0%
+arxivlens/internal/arxiv/limiter.go:43:	Wait		100.0%
+total:					(statements)	100.0%
+
+[exit code 0]

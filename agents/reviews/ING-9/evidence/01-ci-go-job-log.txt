@@ -1,0 +1,26 @@
+$ bash -c sed -n 205,227p /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/ci/go.log
+2026-11-07T10:17:58.0431866Z ##[endgroup]
+2026-11-07T10:17:58.0655217Z ##[group]Run make lint-go
+2026-11-07T10:17:58.0655577Z [36;1mmake lint-go[0m
+2026-11-07T10:17:58.0713284Z shell: /usr/bin/bash -e {0}
+2026-11-07T10:17:58.0713609Z ##[endgroup]
+2026-11-07T10:17:58.0837654Z go vet ./...
+2026-11-07T10:17:59.2787734Z ##[group]Run make test-go
+2026-11-07T10:17:59.2788048Z [36;1mmake test-go[0m
+2026-11-07T10:17:59.2839372Z shell: /usr/bin/bash -e {0}
+2026-11-07T10:17:59.2839636Z ##[endgroup]
+2026-11-07T10:17:59.2923911Z go test ./...
+2026-11-07T10:18:04.0841941Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-07T10:18:05.2686619Z ok  	arxivlens/internal/arxiv	0.737s
+2026-11-07T10:18:05.2687420Z ok  	arxivlens/internal/config	0.002s
+2026-11-07T10:18:05.2688296Z ok  	arxivlens/internal/crawler	0.004s
+2026-11-07T10:18:05.2693515Z ok  	arxivlens/internal/db	0.005s
+2026-11-07T10:18:05.2694804Z ?   	arxivlens/internal/dlq	[no test files]
+2026-11-07T10:18:05.5157298Z ok  	arxivlens/internal/downloader	0.107s
+2026-11-07T10:18:05.5161914Z ok  	arxivlens/internal/kafka	0.032s
+2026-11-07T10:18:05.9886898Z ok  	arxivlens/internal/query	0.314s
+2026-11-07T10:18:05.9887313Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-07T10:18:06.0205658Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-07T10:18:06.0206626Z ?   	arxivlens/shared/events	[no test files]
+
+[exit code 0]

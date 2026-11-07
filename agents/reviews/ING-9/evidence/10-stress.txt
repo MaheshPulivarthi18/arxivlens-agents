@@ -1,0 +1,6 @@
+$ bash -c export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod; cd /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/scratch && go test -race -count=20 ./internal/arxiv/ ./internal/downloader/ ./internal/query/ 2>&1 | grep -v '\[Ingester\]'
+ok  	arxivlens/internal/arxiv	15.755s
+ok  	arxivlens/internal/downloader	3.040s
+ok  	arxivlens/internal/query	7.161s
+
+[exit code 0]

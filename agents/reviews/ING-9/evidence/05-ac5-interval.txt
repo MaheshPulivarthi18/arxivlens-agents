@@ -1,0 +1,17 @@
+$ bash -c grep -n 'DefaultInterval' internal/arxiv/limiter.go; grep -rnE 'arxiv\.(NewLimiter|DefaultInterval)' --include=*.go internal cmd | grep -v _test; echo '--- limiter mentions in config/ and cmd/ (expect none):'; grep -rniE 'limiter|interval' internal/config cmd || echo none; echo '--- tests asserting it:'; grep -nE 'DefaultInterval|3\*time.Second|Interval\(\)' internal/arxiv/limiter_test.go internal/query/ingester_test.go internal/downloader/downloader_test.go
+2:// (Technical PRD §9 "External politeness"): at most one request per DefaultInterval and an
+14:// DefaultInterval is the minimum gap between the starts of two arXiv requests in one process.
+16:const DefaultInterval = 3 * time.Second
+internal/downloader/downloader.go:38:		limiter:  arxiv.NewLimiter(arxiv.DefaultInterval),
+internal/query/ingester.go:76:		limiter:      arxiv.NewLimiter(arxiv.DefaultInterval),
+--- limiter mentions in config/ and cmd/ (expect none):
+none
+--- tests asserting it:
+internal/arxiv/limiter_test.go:16:	if DefaultInterval != 3*time.Second || NewLimiter(DefaultInterval).Interval() != 3*time.Second {
+internal/arxiv/limiter_test.go:17:		t.Fatalf("DefaultInterval = %s, want 3s (Technical PRD §9)", DefaultInterval)
+internal/query/ingester_test.go:84:			if ing.limiter == nil || ing.limiter.Interval() != arxiv.DefaultInterval {
+internal/query/ingester_test.go:85:				t.Fatalf("arXiv limiter not set to DefaultInterval")
+internal/downloader/downloader_test.go:28:	if d.limiter == nil || d.limiter.Interval() != 3*time.Second {
+internal/downloader/downloader_test.go:29:		t.Fatalf("NewDownloader limiter not set to the 3s arxiv.DefaultInterval")
+
+[exit code 0]

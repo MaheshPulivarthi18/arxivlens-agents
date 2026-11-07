@@ -1,0 +1,15 @@
+$ bash -c export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod; cd /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/scratch && go test -race -count=1 -v ./internal/arxiv/...
+=== RUN   TestDefaultsAndUserAgent
+--- PASS: TestDefaultsAndUserAgent (0.00s)
+=== RUN   TestFirstWaitIsImmediate
+--- PASS: TestFirstWaitIsImmediate (0.00s)
+=== RUN   TestSequentialWaits
+--- PASS: TestSequentialWaits (0.16s)
+=== RUN   TestConcurrentCallersAreSpaced
+--- PASS: TestConcurrentCallersAreSpaced (0.27s)
+=== RUN   TestCancelledWaiter
+--- PASS: TestCancelledWaiter (0.30s)
+PASS
+ok  	arxivlens/internal/arxiv	1.750s
+
+[exit code 0]

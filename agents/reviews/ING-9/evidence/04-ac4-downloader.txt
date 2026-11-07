@@ -1,0 +1,7 @@
+$ bash -c export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod; cd /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/scratch && go test -race -count=1 -v ./internal/downloader/...
+=== RUN   TestFetchPDFIsSpacedAndIdentified
+--- PASS: TestFetchPDFIsSpacedAndIdentified (0.10s)
+PASS
+ok  	arxivlens/internal/downloader	1.117s
+
+[exit code 0]

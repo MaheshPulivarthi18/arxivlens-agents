@@ -1,0 +1,36 @@
+$ bash -c sed -n 5,18p .github/workflows/stack.yml; echo '--- workflow runs on agent/backend/ING-9:'; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/runs?branch=agent/backend/ING-9' --jq '.workflow_runs[] | "\(.name) \(.event) \(.conclusion) \(.head_sha[0:7])"'; echo '--- latest stack.yml runs:'; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/workflows/stack.yml/runs?per_page=5' --jq '.workflow_runs[] | "\(.head_branch) \(.head_sha[0:7]) \(.conclusion)"'; echo '--- diff vs main:'; git diff --stat origin/main...HEAD; git diff --numstat origin/main...HEAD | awk '{a+=$1;d+=$2} END {print "changed lines: " a+d}'; echo '--- cmd/ go.mod go.sum changes (expect none):'; git diff --stat origin/main...HEAD -- cmd go.mod go.sum
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - docker-compose.yml
+      - services/*/Dockerfile
+      - services/processor/**
+      - services/embedder/**
+      - services/common/**
+      - shared/**
+      - migrations/**
+      - requirements*.txt
+      - Makefile
+      - .github/workflows/stack.yml
+--- workflow runs on agent/backend/ING-9:
+CI pull_request success c5dc873
+DB pull_request success c5dc873
+--- latest stack.yml runs:
+agent/ai/AI-9 3e6420e success
+agent/backend/EVAL-3 8fc1209 success
+agent/backend/OPS-H1 38248f7 success
+agent/backend/OPS-H1 48d4cda failure
+agent/backend/OPS-H1 4174236 failure
+--- diff vs main:
+ internal/arxiv/limiter.go              |  67 ++++++++++++++++++++
+ internal/arxiv/limiter_test.go         | 108 +++++++++++++++++++++++++++++++++
+ internal/downloader/downloader.go      |  52 ++++++++++------
+ internal/downloader/downloader_test.go |  57 +++++++++++++++++
+ internal/query/ingester.go             |  20 ++++--
+ internal/query/ingester_test.go        |  94 ++++++++++++++++++++++++++++
+ 6 files changed, 376 insertions(+), 22 deletions(-)
+changed lines: 398
+--- cmd/ go.mod go.sum changes (expect none):
+
+[exit code 0]

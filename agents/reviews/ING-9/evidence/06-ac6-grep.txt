@@ -1,0 +1,19 @@
+$ bash -c echo '$ grep -rn ArxivLens-Bot internal/'; grep -rn 'ArxivLens-Bot' internal/; echo "exit=$? (1 = no match)"; echo '--- User-Agent setters:'; grep -rn 'User-Agent' --include=*.go internal | grep -v _test; echo '--- arXiv HTTP sends:'; grep -rnE '\.Do\(' --include=*.go internal | grep -v _test
+$ grep -rn ArxivLens-Bot internal/
+exit=1 (1 = no match)
+--- User-Agent setters:
+internal/downloader/downloader.go:124:// fetchPDF waits for the arXiv limiter and GETs pdfURL with the identifying User-Agent.
+internal/downloader/downloader.go:133:	req.Header.Set("User-Agent", arxiv.UserAgent("Downloader Pipeline"))
+internal/query/ingester.go:49:// doArxiv waits for the arXiv limiter, sets the identifying User-Agent and sends req.
+internal/query/ingester.go:54:	req.Header.Set("User-Agent", arxiv.UserAgent("Query Ingester"))
+internal/crawler/crawler.go:108:		req.Header.Set("User-Agent", "ArxivLens/1.0 (Research Pipeline; mailto:contact@arxivlens.local)")
+internal/arxiv/limiter.go:3:// identifying User-Agent on each request.
+internal/arxiv/limiter.go:18:// UserAgent returns the identifying User-Agent for an arXiv request made by component, e.g.
+--- arXiv HTTP sends:
+internal/downloader/downloader.go:135:	resp, err := d.client.Do(req)
+internal/query/ingester.go:55:	return ing.httpClient.Do(req)
+internal/query/client.go:65:	resp, err := c.httpClient.Do(req)
+internal/query/client.go:100:	resp, err := c.httpClient.Do(req)
+internal/crawler/crawler.go:110:		resp, err := c.client.Do(req)
+
+[exit code 0]
