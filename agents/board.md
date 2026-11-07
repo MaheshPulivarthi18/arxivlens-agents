@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 by pm-lead (AI-9 #24 QA r1 FAIL → Blocked on new OPS-H10; F1 fix → AI-10, Blocked on ADR-0015 (Proposed); ING-9 AC8 → dispatched stack run. Earlier: OPS-H8 design APPROVED with conditions; build waits for #23. Earlier: EVAL-3 #22 PM APPROVE → Ready to merge; EVAL-9 specced (Ready once #22 merges). Earlier: LLM-1 #23 PM APPROVE → Ready to merge; LLM-1b Ready once it merges. Earlier: AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Accepted since)
+Last updated: 2026-11-07 by pm-lead (ING-9 #25 PM APPROVE → Ready to merge. Earlier: AI-9 #24 QA r1 FAIL → Blocked on new OPS-H10; F1 fix → AI-10, Blocked on ADR-0015 (Proposed); ING-9 AC8 → dispatched stack run. Earlier: OPS-H8 design APPROVED with conditions; build waits for #23. Earlier: EVAL-3 #22 PM APPROVE → Ready to merge; EVAL-9 specced (Ready once #22 merges). Earlier: LLM-1 #23 PM APPROVE → Ready to merge; LLM-1b Ready once it merges. Earlier: AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Accepted since)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -34,7 +34,6 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## In progress
 | ID | Title | Owner | Branch |
 |---|---|---|---|
-| [ING-9](tasks/ING-9.md) | arXiv politeness limiter + UA | backend-engineer | `agent/backend/ING-9`, draft #25 (KAN-48): QA r1 FAIL on AC8 only; needs a **dispatched** `stack.yml` run of the head (AC8 reworded), then QA r2 |
 
 ## In QA
 | ID | Title | Owner | PR |
@@ -51,6 +50,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | [AI-7](tasks/AI-7.md) | ADR-0003 refusal with evidence + `refusal_reason` (first in the `rag.go` chain; AI-6 starts once merged) | ai-engineer | ArxivLens [#21](https://github.com/MaheshPulivarthi18/ArxivLens/pull/21) (KAN-36) · **merge after EVAL-6 #20** | QA PASS r1 · PM APPROVE ([report](reviews/AI-7/report.md)); AC9 not run → EVAL-4 AC5 |
 | [LLM-1](tasks/LLM-1.md) | `internal/llm`: provider interface, typed errors, config, `llmtest` fake (part a; LLM-1b follows after merge) | backend-engineer | ArxivLens [#23](https://github.com/MaheshPulivarthi18/ArxivLens/pull/23) (KAN-35) · no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/LLM-1/report.md)) |
 | [EVAL-3](tasks/EVAL-3.md) | Full-stack `make eval` workflow (`eval.yml`, `make eval-seed`) + first measured numbers | backend-engineer | ArxivLens [#22](https://github.com/MaheshPulivarthi18/ArxivLens/pull/22) (KAN-29) · Eval check red = expected gate exit 1 (AC6) · no file overlap with #20/#21/#23 | QA PENDING r1 → PASS r1 cont. · PM APPROVE ([report](reviews/EVAL-3/report.md)); follow-up EVAL-9 |
+| [ING-9](tasks/ING-9.md) | arXiv politeness: one 3 s limiter per process + identifying UA (ingester, downloader) | backend-engineer | ArxivLens [#25](https://github.com/MaheshPulivarthi18/ArxivLens/pull/25) (KAN-48) · no file overlap with open PRs · stack run [42364519257](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42364519257) | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/ING-9/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -88,7 +88,8 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 - After AI-10 merges with F1 passing (backend, small): drop the "Known failure F1" step and `F1_TESTS` deselection in `stack.yml`. (The always-keep-logs part and the `internal/**` path filter moved to OPS-H10; pm-lead reversed the earlier "don't add `internal/**`" note on 2026-11-07, because DoD 2 needs the milestone suite on pipeline/query PRs)
 - From ADR-0015 option 6 (backend + ai, P3, only if AI-10's measured options fall short): ONNX Runtime fp32 export of `bge-reranker-base` (score-preserving within 1e-4 if measured so; new dependency → `requirements*.txt` + embedder Dockerfile decision)
 - *Proposed* rules PR (Mahesh decides): AGENTS.md §3 "< 400 changed lines": say whether `_test.go` lines count (LLM-1 got a one-off non-test-only exception, 2026-11-07)
-- pm-lead PRD docs PR: Product PRD ING-1 ✅ "respecting ~1 req / 3 s" holds for the crawler only → caveat pointing to ING-9 until it merges
+- ING-9 follow-ups (backend, P3, fold into the next `ingester.go`/`downloader.go`/`internal/arxiv` change; QA nits 3–5, 7): an ingester test where a cancelled ctx sends no request (kills the last surviving mutant); `TestConcurrentCallersAreSpaced` with d ≥ 100 ms; a `HandleRecord` → `fetchPDF` wiring test once db/storage are behind interfaces; check whether `arxiv.org/pdf/<id>.pdf` redirects, and if it does, make `CheckRedirect` wait on the limiter. (The ING-1 PRD caveat is dropped: ING-1 ✅ is true for every Go caller once #25 merges; until then the crawler was the only bulk caller)
+- From ING-9 QA nit 6 (backend, P2, harness): CI's Go job runs `go test ./...` without `-race`; add `-race` (to `make test-go` or a separate CI step) after measuring its runtime cost; update CONTRIBUTING if the command changes
 - pm-lead docs PR, after #21 merges: Product PRD QA-4/QA-5 notes and Technical PRD §7.2 say `/v1/ask` refuses with evidence + `refusal_reason` when no citation is supported (ADR-0003, AI-7); fold into the PR below
 - pm-lead docs PR now due: Product PRD QA-8 row (ADR-0001/0002 Accepted; work split into LLM-1, AI-6, QA-8, AI-7, AI-8, EVAL-8),
   Technical PRD §11 P0 row and §7.2 diagram note (ADR-0003 refusal with evidence), QA-4 row text (AI-2 merged)

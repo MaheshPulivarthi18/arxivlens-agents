@@ -337,3 +337,12 @@ Format:
 - ING-9 [spec] 2: AC8 reworded to "a dispatched `stack.yml` run of the PR head". The widened filter is OPS-H10. Board: ING-9 → In progress (rework).
 - Board hygiene: ADR-0014 is Accepted (agents #8), so the stale Blocked row was removed and the RET-2/AI-8/FE-4 dependency notes updated.
 - Jira not touched (orchestrator mirrors).
+
+## 2026-11-07 pm-lead — ING-9 #25 final review: APPROVE
+- ING-9 (KAN-48, head `c5dc873`): **APPROVE** after QA FAIL r1 (AC8 only) → PASS r2. I opened all 16 evidence files; pins verified (00–11 at `b1b104b`, 12–15 at `ac6e824`).
+  AC2–AC4 spacing and UA assertions read in the diff, since the screenshots show only PASS lines. AC8 = dispatched `stack.yml` run 42364519257 `success`:
+  both papers embedded, DLQs 0, on-demand ingest 200, `make test-full` 80 passed. F1 2/3 fail vs 3/3 in the baselines.
+- Product fit: Technical PRD §9 is now true for every Go arXiv caller, per process. The planned "crawler only" ING-1 caveat was never written, so no PRD edit is needed.
+  Behaviour note (ingest +3 s per extra arXiv request; concurrent ingests queue; downloader ≤ 1 PDF / 3 s) is in the PR body.
+- QA nits 3–7 → Backlog: "ING-9 follow-ups" (backend P3) and "`-race` in CI's Go job" (backend P2). Board: ING-9 → Ready to merge.
+- PR body at `/tmp/claude-0/s/pr25-body.md`. The orchestrator raises #25 (ready for review + `ready-to-merge` label) and moves KAN-48 → Ready to merge. Jira not touched.
