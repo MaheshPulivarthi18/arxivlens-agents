@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 16:10Z by orchestrator (cycle 14:59Z: LLM-1b #27, OPS-H10 #26, AI-6 #28, EVAL-7 #29 → Ready to merge; OPS-H8 split, part a draft #30 In QA; new AI-6b KAN-52, OPS-H8b KAN-53; merged #20–#23, #25 → Done)
+Last updated: 2026-11-07 21:00Z by orchestrator (cycle 19:59Z: OPS-H8 part a #30 and ING-10 #31 → Ready to merge; RET-2 design approved (build waits for #26 merge, README); new ING-10 KAN-54, ING-11 KAN-55)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -23,7 +23,6 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## Ready — not in this plan (lower priority; start only with a free slot and no file overlap)
 | ID | Title | Owner | Pri | Depends on |
 |---|---|---|---|---|
-| [ING-10](tasks/ING-10.md) | Stored version matches the PDF: on-demand ingest parses `entry.ID` version; versioned PDF URLs (ingester, downloader, crawler) | backend-engineer | P1 | ING-9 (Done); independent of RET-2. Must merge before FE-4 shows "vN" |
 | [ING-11](tasks/ING-11.md) | Record each chunk's real start page; return it as `page` (design-required; paired ai `TokenChunker` part if the design picks it) | backend-engineer | P1 | Design: none. Build: RET-2 merged |
 | [OPS-H7](tasks/OPS-H7.md) | DLQ list/replay: offset checkpoints, paging, replay lock, idempotent replay (design-required) | backend-engineer | P1 | OPS-H6 (Done) |
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 (merged) |
@@ -37,7 +36,6 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
-| [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python producer confirms delivery; `publish`/`publish_dlq` raise `DeliveryError` (part a; consumer loop → OPS-H8b KAN-53) | backend-engineer | ArxivLens [#30](https://github.com/MaheshPulivarthi18/ArxivLens/pull/30) draft @ `007aecc`, 278 lines · next: AC7 CI mutation commits + QA r1 |
 
 ## PM review
 | ID | Title | Owner | PR |
@@ -46,6 +44,8 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
+| [OPS-H8](tasks/OPS-H8.md) | Python producer confirms delivery; `publish`/`publish_dlq` raise `DeliveryError` (part a; interim crash-restart until OPS-H8b) | backend-engineer | ArxivLens [#30](https://github.com/MaheshPulivarthi18/ArxivLens/pull/30) (KAN-34) @ `0d70fab` · AC7 mutations (b) `68f775f`, (a') `455ec67` red, reverted | QA PASS r1 · PM APPROVE ([report](reviews/OPS-H8/report.md)); OPS-H8b (KAN-53) starts after merge |
+| [ING-10](tasks/ING-10.md) | Stored version matches the PDF: on-demand ingest parses `entry.ID` version; versioned PDF URLs | backend-engineer | ArxivLens [#31](https://github.com/MaheshPulivarthi18/ArxivLens/pull/31) (KAN-54) @ `c940779` · stack.yml dispatched on branch (run 42411848508) · no file overlap with open PRs | QA FAIL r1 (AC5 no stack run) → PASS r2 · PM APPROVE, AC4 wording amended ([report](reviews/ING-10/report.md)) |
 | [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (transport errors carry no server bytes; no redirects) | backend-engineer | ArxivLens [#27](https://github.com/MaheshPulivarthi18/ArxivLens/pull/27) (KAN-47) · no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/LLM-1b/report.md)) |
 | [OPS-H10](tasks/OPS-H10.md) | `stack.yml` runs on Go/`tests/` PRs and keeps service logs on every run | backend-engineer | ArxivLens [#26](https://github.com/MaheshPulivarthi18/ArxivLens/pull/26) (KAN-50) · **human checks:** open artifact 13579885920, view step summary, delete scratch branch `agent/backend/OPS-H10-ac3` | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/OPS-H10/report.md)); unblocks AI-9 AC1 |
 | [AI-6](tasks/AI-6.md) | Context selection, token budget, synthesis prompt in `rag.go` (not yet called; parser → AI-6b) | ai-engineer | ArxivLens [#28](https://github.com/MaheshPulivarthi18/ArxivLens/pull/28) (KAN-38) · no file overlap with open PRs | QA FAIL r1 (PR text) → PASS r2 · PM APPROVE ([report](reviews/AI-6/report.md)); AI-6b (KAN-52) starts after merge |
@@ -66,6 +66,8 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the OPS-H8 QA/PM review (backend, P3, after #26 merges): `stack.yml` passes `PYTEST_ARGS=-rA` to `make test-full` so the log names each test (AC evidence today needs a dot-position map)
+- PR-body image embeds: an outbound filter in the agent environment rewrites `![](…)` into backticked links and swaps the footer, so evidence images don't render inline in PR descriptions (#26–#31). Pinned URLs still work. Mahesh: check whether this is expected
 - From the RET-2 design (product rule, P2, Proposed: needs Mahesh): when a paper's v1 and v2 are both indexed, their near-duplicate chunks can take two top-5 search slots, and two `/v1/ask` citations. Options: search returns the latest version only, or dedupes by `arxiv_id`. RET-2 makes this visible (distinct `version`) but doesn't change it. Also decide whether on-demand ingest of `<id>vN` ingests vN or the latest (ING-10 out of scope)
 - From the EVAL-7 review (ai, P3, small `tests/` + `scripts/answer_review.py` PR after #29 merges): tests for `build_rows` with a fake `fetch_passages`
   (the `--db-url` branch, unverified so far) and for an empty export; make `score --save` validate strictly *before* writing (today a strict failure leaves the file behind)
