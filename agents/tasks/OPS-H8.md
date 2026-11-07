@@ -6,9 +6,9 @@
 | **Priority** | P0 (silent message loss in the processor and embedder stages) |
 | **PRD ref** | Product PRD OPS-1, OPS-3, §5.3; Technical PRD §8.1 (L4 commit-after-process: "All consumers"), §8.2 (retry and DLQ) |
 | **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror); **OPS-H1 (ArxivLens #14) merged**: #14 adds a worker heartbeat hook (`_heartbeat`, about 16 lines) to `services/common/kafka_client.py`, the file this task rewrites (AGENTS.md §3 independence). The design must keep that hook (touch after every `poll()` while assigned; no-op when `WORKER_HEARTBEAT_FILE` is unset) |
-| **Jira** | to be created by orchestrator (`labels = "task-OPS-H8"`) |
+| **Jira** | KAN-34 (`labels = "task-OPS-H8"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics for both Python workers |
-| **Status** | Ready (Wave 2, 2026-11-07 plan: starts when a backend slot frees, i.e. LLM-1 or EVAL-3 reaches Ready to merge). Next stage: Design (`docs/design/OPS-H8.md`). OPS-H1 (#14) merged `71cb609`, so the dependency is met |
+| **Status** | Design: [`docs/design/OPS-H8.md`](../../docs/design/OPS-H8.md) written 2026-11-07, awaiting pm-lead approval. **Build waits for ArxivLens #23 (LLM-1) to merge** (it also changes `.github/workflows/ci.yml`). No product code yet |
 
 ## Goal
 Technical PRD §8.1 promises L4 for **all** consumers: the offset is committed only after the handler succeeds or the
@@ -121,3 +121,16 @@ grep -n "time.sleep" services/common/kafka_client.py   # must print nothing
 - 2026-11-07 (pm-lead, plan): OPS-H1 merged (`71cb609`). The heartbeat hook is on `main`, so the design must keep it (Depends on). AC11 (M4 on the
   full stack) is now runnable through `stack.yml` on the PR. Deliver it in this PR instead of deferring it. Wave 2 for WIP reasons only
   (backend runs LLM-1 + EVAL-3 first: both unblock other tasks). If Mahesh wants the P0 data-loss fix first, swap it with EVAL-3.
+- 2026-11-07 (backend-engineer, design): design written at `docs/design/OPS-H8.md`, grounded in `origin/main` `71cb609`. **Design stage only, no product code.**
+  Sequencing: this ticket's scope adds one step to `.github/workflows/ci.yml`, and open PR #23 (LLM-1) also changes `ci.yml`, so the build branch
+  `agent/backend/OPS-H8` is cut from a fresh `origin/main` only **after #23 merges** (AGENTS.md §3). Putting the test in `make test-py` instead doesn't help,
+  because `Makefile` is in open PR #22 (EVAL-3). No other open PR touches `services/common/`, the workers or `tests/test_kafka_client.py`.
+  - Mechanism: confirmation by `on_delivery` callback served in `flush`; no callback = not delivered; raises `DeliveryError`. Failed DLQ write → retry in place
+    `min(1 s << (round-1), 30 s)`, payload built once, no commit. Stop flag + SIGTERM/SIGINT installed inside `start` (no worker edits). Poison → DLQ with attempts=1.
+    Commit errors logged, not raised (safe: sequential per-record commits). Heartbeat hook unchanged; `tests/test_worker_heartbeat.py` monkeypatch seams kept.
+  - Found while reading: `publish_dlq` calls `traceback.format_exc()` (`kafka_client.py:100`) after the `except` block ended, so consumer-path DLQ entries carry
+    `"NoneType: None"` as the stack trace today. Fixed in the design (`format_exception(error)`).
+  - AC11: `stack.yml` triggers on `services/common/**`, so M4 runs on the PR itself (matches the 2026-11-07 pm-lead note).
+  - Open questions for pm-lead/Mahesh: design §"Open questions" 1–6 (commit-error policy, `message.timeout.ms=10000`, poison `attempts=1`, SIGINT semantics,
+    DLQ traceparent fallback, file G5/G4).
+  - Jira KAN-34 → Design and the design link: not done from this session (no Jira tool available to the backend agent here); orchestrator to mirror.
