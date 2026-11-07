@@ -64,3 +64,4 @@ python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_
 ## Notes
 - 2026-11-07 (pm-lead): filed from the RET-2 design review. The trace is in `docs/design/RET-2.md` finding 2. The processor
   follow-up there ("PROC-n") is this ticket. It is numbered in the ING series (ING-10/11 don't collide with Product PRD rows ING-1..7).
+- 2026-11-07 (backend-engineer): design written, [docs/design/ING-11.md](../../docs/design/ING-11.md): mapping (a) in `TokenChunker` (paired AI-11 proposed), storage (a) `paper_chunk_pages`, split into producer (a, ~205 lines, waits for AI-11 only) / consumer (b, ~65 lines, after RET-2). Awaiting pm-lead approval (Q1–Q3).
