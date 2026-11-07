@@ -293,3 +293,12 @@ Format:
 - QA [spec] 5 → caller rule in QA-8 Notes (never JSON-log `Request`/`Response`). Carry-overs → LLM-1b Notes. No PRD/README change (QA-8 does both).
 - PR body at `/tmp/claude-0/s/pr23-body.md` for the orchestrator (ready for review, Jira KAN-35 → Ready to merge). Board: LLM-1 → Ready to merge;
   no file overlap with #20/#21/#22. LLM-1b becomes Ready once #23 merges.
+
+## 2026-11-07 (scheduled cycle 05:21 UTC) — orchestrator (session_01ATEBeUZeXKdfm2aPTPNd3H)
+- Setup: both repos attached, push verified, lock taken `2fb7597`, app cloned (origin/main `71cb609`). Egress: npm/PyPI/Go proxy blocked; Go 1.24 local.
+- Sync: no open PRs, no human reviews or Jira intake. ADR-0014 Accepted (agents #8).
+- Started 4 Wave-1 tasks in parallel (disjoint files, no open PRs, deps merged): EVAL-6 (ai) #20, AI-7 (ai, design) #21, EVAL-3 (backend, design) #22, LLM-1 (backend, design) #23. Designs LLM-1/EVAL-3/AI-7 approved by pm-lead with conditions; ING-9 specced (KAN-48).
+- EVAL-6 #20: QA PASS r1 → PM APPROVE → raised (KAN-37 Ready to merge). AI-7 #21: QA PASS r1 → PM APPROVE → raised, merge after #20 (KAN-36 Ready to merge).
+- LLM-1: production code 655 lines → pm-lead split into LLM-1 + LLM-1b (KAN-47; full implementation kept on local branch `wip/LLM-1b` `8a776d6`, not pushed). #23: QA FAIL r1 (errors.Is table missing) → rework `8e333c4` → QA PASS r2.
+- EVAL-3 #22: first real eval run 42344527129 (Recall@5 0.980; ask p95 12.8 s and correct refusals 0.909 fail gates — findings for Mahesh); QA PENDING on AC4; warm-cache attempt 2 triggered.
+- This session then paused ~3 h; its lock went stale and the 10:00Z cycle took over (it completed QA EVAL-3 and PM LLM-1). Recorded here without touching that cycle's lock.
