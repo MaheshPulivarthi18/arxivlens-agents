@@ -57,3 +57,6 @@ git diff origin/main --stat
 - 2026-11-07 (pm-lead): split from LLM-1 at its AC8 check (655 non-test lines vs < 400). See `agents/tasks/LLM-1.md` Notes. The code is already
   written and passed a local Go 1.24 scratch-module run (`-race -count=5` green, `openai.go` 99.1%), so this task is mostly rebase, CI and QA.
   QA-8 depends on LLM-1 **and** this task being merged. Backend WIP: this counts as an active PR once opened (EVAL-3 #22 and LLM-1 come first).
+- 2026-11-07 (pm-lead, from LLM-1 QA/PM review): carry-overs QA checks here. (1) `attemptsText` (`llm.go`, shipped in LLM-1 with no caller) gets its
+  caller in `openai.go`; if the client doesn't use it, delete it in this PR. (2) `New` runs `Config.normalize` (rejecting userinfo/query) before the
+  config is printed or logged anywhere, so a hand-built, unnormalised `Config` can never print credentials; add a test row for it.

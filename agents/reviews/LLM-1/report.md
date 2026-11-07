@@ -98,3 +98,33 @@ Design condition 2 (cancel error shape + `errors.Is` table, binding) is now full
 
 ## Hand-off
 PASS → pm-lead for final review. Open items for pm-lead: [spec] item 5 from round 1, and the LLM-1b carry-overs (`attemptsText` caller, normalize BaseURL before printing in `New`).
+
+---
+
+# PM review — LLM-1 · PR #23
+
+**Verdict:** APPROVE
+**Reviewed commit:** `8e333c4661ad5173bb448d1e27ec78bd863e250b` (PR head, draft) · **QA:** round 2 PASS · **Evidence pinned at:** `8d686761ba1cb4d5a91a58b5fd5404226717a2e4` · **Date:** 2026-11-07 · **Reviewer:** pm-lead
+
+## What I checked
+- **Ticket and split.** The PR delivers exactly part a of the split: `llm.go`, `config.go` without `FromEnv`, `llmtest/`, their tests and the CI step. 7 files, all inside the allow-list (`gh api .../pulls/23/files`: ci.yml +4, config.go +143, llm.go +145, llmtest/fake.go +87, tests +412). No `openai.go`, no `FromEnv`, `go.mod`/`go.sum` untouched, nothing outside `internal/llm` imports it, so `/v1/ask` can't change ([13](evidence/13-scope-r2.png)).
+- **AC8 size.** Non-test 375 < 400. That's within 1 line of the split estimate (376), so the split worked as intended.
+- **Design conditions.** 1: the CI step runs `-race` + per-file coverage (`ci.yml` diff read; output in [15](evidence/15-ci-llm-step-r2.png)). 2: `TestErrorsIsAs` has one row per sentinel + the cancel row, all five sentinels false on cancel, `ErrTimeout` included; mutants M1/M2 now die ([10](evidence/10-mutations-llm-r2.png)). 3: answered in the design, no code. 4: I read the `config.go` doc comment: it says "a budget, not a measurement", names EVAL-8, and says local 7–8B models will usually fall back at 2 s. That's the honesty QA-8's README needs. 5: met.
+- **Evidence.** I opened every file I rely on: 14 (5/5 check runs success on `8e333c4`), 15 + its `.txt` tail (all `TestConfigFromEnv`/`TestConfigNormalize`/`TestErrorShape`/`TestErrorsIsAs`/`TestFake*` subtests PASS under `-race` in CI; per-file `config.go`, `llm.go`, `llmtest/fake.go` 100.0%), 13 (scope), 10 (8/8 llm/config mutants killed), 12 (7/7 fake mutants killed), 11 (local vet/gofmt/race at the new head), 03 (AC1 redaction tests, round-1 head; those tests are unchanged in round 2 and also pass in CI 15), 05 (QA's AC4/AC6 probe). Each AC has CI output plus a mutation kill behind it, which is stronger than a coverage number. Nothing is "⚠ unverified".
+- **`make eval`:** correctly "not run": zero importers, so retrieval and answering can't change.
+- **Human feedback:** none on PR #23 (0 reviews, 0 review comments; the only issue comment is QA's round-1 report).
+
+## Product fit
+This is the seam ADR-0001/0002 call for and QA-8 (Product PRD) needs: one stdlib `Provider`, a nil config that means "template answers" (the fallback-first principle), typed errors that let QA-8 tell "LLM slow or failing → template" apart from "client went away", and a concurrency-safe fake for `rag_test.go`. The privacy promise is right-sized: the package doc promises no key, prompt or completion in error, `String` or `GoString` output, and the tests prove exactly that.
+
+## Docs and PRD
+- No README change, correct: the env vars do nothing until QA-8 wires them, and QA-8 documents them (design condition 5).
+- No PRD status change: Product QA-8 stays ⏳ until QA-8 merges. The pending pm-lead docs PR for the QA-8 row (board Backlog) is unaffected.
+
+## Decisions on QA's open items
+1. **[spec] round-1 item 5 (JSON form of `Request`/`Response`).** No `MarshalJSON` here. The package promises fmt/error forms only, and a custom `MarshalJSON` would surprise anyone who serialises these types on purpose. The rule goes to the caller: **never JSON-log a `Request` or `Response`; log their `%v` form or named metadata fields.** QA-8's AC6 captured-logger test (sentinel key, no prompt/completion in any line) already enforces it. I've added the rule to QA-8's Notes. AC1's "JSON output of `Request`/`Response`/`Message`" clause holds by construction (they never hold the key), so the LLM-1 spec needs no change.
+2. **Carry-overs to LLM-1b** (added to its Notes; QA checks them there): `attemptsText` gets its real caller in `openai.go`, and `New` must `normalize` (reject userinfo/query) before any `String()`/log of `Config`, so a hand-built unnormalised `Config` can't print credentials.
+3. Round-2 nit 1 (provider/bad-response causes not asserted through `errors.Is`): not needed. `TestErrorShape/kind_and_cause` covers cause unwrapping, and M3 dies.
+
+## Hand-off
+APPROVE → orchestrator: replace the PR #23 body with `/tmp/claude-0/s/pr23-body.md`, mark it ready for review, Jira KAN-35 → **Ready to merge**. Merge order: no conflict with any open PR (new directory + 4 lines appended to `ci.yml` after the Kafka step). After merge, LLM-1b becomes Ready.

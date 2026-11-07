@@ -72,3 +72,6 @@ make eval   # template path, on the EVAL-3 workflow
   moved to AI-6. Refusal moved to AI-7. Claims/provenance fields moved to AI-8 (ADR-0014). The old AC3 (eval with the LLM: supported ≥ 90%,
   refusal ≥ 95%, p95 < 3 s) moved to EVAL-8 as its AC2, because CI has no LLM and a hosted key needs Mahesh's cost cap first. The old AC4 (cost
   within budget) can't be checked until that cap exists; AC6's token log is the input for it. Wave 3.
+- 2026-11-07 (pm-lead, LLM-1 review, QA [spec] decision): `llm.Request`/`Response`/`Message` redact only in fmt forms (`%v`, `%+v`, `%#v`,
+  `String`); `json.Marshal` of them prints the prompt/completion in full by design. **Never JSON-log these types**: log their `%v` form or named
+  metadata fields (model, tokens, latency, finish reason). AC6's captured-logger test (sentinel key, no prompt/completion in any line) is the check.

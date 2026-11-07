@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 by pm-lead (AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Proposed)
+Last updated: 2026-11-07 by pm-lead (LLM-1 #23 PM APPROVE → Ready to merge; LLM-1b Ready once it merges. Earlier: AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Proposed)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -9,7 +9,6 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## Ready — the 2026-11-07 plan, in execution order
 | # | ID | Title | Owner | Pri | Depends on | Wave | Note |
 |---|---|---|---|---|---|---|---|
-| 1 | [LLM-1](tasks/LLM-1.md) | `internal/llm`: provider interface, typed errors, config, `llmtest` fake (design approved) | backend-engineer | P0 | ADR-0001/0002 (Accepted) | 1 | **Building** (staged in `~/wt/LLM-1`); split 2026-11-07, ≈ 376 non-test lines |
 | 1b | [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (code already written) | backend-engineer | P0 | **LLM-1 merged** | 1b | ≈ 279 non-test lines; covered by LLM-1 design |
 | 2 | [EVAL-3](tasks/EVAL-3.md) | Full-stack `make eval` in GitHub Actions + first numbers (design-required) | backend-engineer | P1 | OPS-H1 (merged) | 1 | Docker + arXiv seeding only on GitHub runners; README line moved to EVAL-4 |
 | 5 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | 1 | **Env-blocked:** registry.npmjs.org; needs Mahesh (allow the host, or push the lockfile) |
@@ -50,6 +49,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 |---|---|---|---|---|
 | [EVAL-6](tasks/EVAL-6.md) | Answer eval: ADR-0003 classification, report-only coverage, near-miss set | ai-engineer | ArxivLens [#20](https://github.com/MaheshPulivarthi18/ArxivLens/pull/20) (KAN-37) · **merge before AI-7 #21** | QA PASS r1 · PM APPROVE ([report](reviews/EVAL-6/report.md)) |
 | [AI-7](tasks/AI-7.md) | ADR-0003 refusal with evidence + `refusal_reason` (first in the `rag.go` chain; AI-6 starts once merged) | ai-engineer | ArxivLens [#21](https://github.com/MaheshPulivarthi18/ArxivLens/pull/21) (KAN-36) · **merge after EVAL-6 #20** | QA PASS r1 · PM APPROVE ([report](reviews/AI-7/report.md)); AC9 not run → EVAL-4 AC5 |
+| [LLM-1](tasks/LLM-1.md) | `internal/llm`: provider interface, typed errors, config, `llmtest` fake (part a; LLM-1b follows after merge) | backend-engineer | ArxivLens [#23](https://github.com/MaheshPulivarthi18/ArxivLens/pull/23) (KAN-35) · no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/LLM-1/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |

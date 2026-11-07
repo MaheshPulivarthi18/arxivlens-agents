@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0001, ADR-0002 (both Accepted, `51d8ff5`). No code dependency. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-LLM-1"`) |
 | **Design required** | **yes**: P0, and a new client package that every answer will go through. `docs/design/LLM-1.md` before code. |
-| **Status** | In progress (Wave 1) · design approved 2026-11-07 · **split 2026-11-07**: this task = part a; the client + `FromEnv` = [LLM-1b](LLM-1b.md) |
+| **Status** | **Ready to merge** (PR #23 @ `8e333c4`: QA PASS r2, PM APPROVE 2026-11-07) · design approved 2026-11-07 · **split 2026-11-07**: this task = part a; the client + `FromEnv` = [LLM-1b](LLM-1b.md) |
 
 ## Goal
 ADR-0001 chose one provider abstraction: an OpenAI-compatible HTTP client that serves a local server (Ollama /
@@ -118,3 +118,7 @@ git diff origin/main --stat
   Ownership check OK (prints the generic `> 400 changed lines` warning: it counts test lines too; AC8's cap is non-test only).
   **LLM-1b's full pre-split implementation saved** on local branch `wip/LLM-1b` @ `8a776d6` in `/root/wt/LLM-1` (not pushed) and as a copy + patch in the session scratchpad. Not run: Go 1.25, `make lint`/`make test-unit` (need Go 1.25) — CI is the source of truth.
 - 2026-11-07 backend-engineer, rework r1 (QA finding 1 + nit 4): commit `8e333c4` (not pushed) adds `TestErrorsIsAs` to `internal/llm/llm_test.go` (one `newError` per sentinel + cancel row, passed as `error`; `errors.Is` own=true/other four false, cancel = `context.Canceled` only, `errors.As` Kind) and renames the CI step to "LLM package tests". Tests only (+39), prod still 375. Go 1.24 scratch module: vet/gofmt clean, `go test -race -count=3` green, 100% coverage; QA's `mutate.sh` re-run on the new head: 8/8 killed (M1, M2 by `TestErrorsIsAs`).
+- 2026-11-07 (pm-lead, final review): **APPROVE** at `8e333c4` (QA round 2 PASS; evidence `8d68676`). All in-scope ACs (AC1, AC4, AC6–AC9) are backed by CI
+  output plus a mutation kill; prod 375 < 400; design conditions 1, 2, 4, 5 met. Verdict + reasoning in `agents/reviews/LLM-1/report.md` (PM review).
+  QA [spec] item 5 decided: no `MarshalJSON`; "never JSON-log `Request`/`Response`" is a caller rule, recorded in QA-8 Notes (enforced by QA-8 AC6).
+  Carry-overs (`attemptsText` caller, `normalize` before printing in `New`) recorded in LLM-1b Notes. PR body for the orchestrator: `/tmp/claude-0/s/pr23-body.md`.

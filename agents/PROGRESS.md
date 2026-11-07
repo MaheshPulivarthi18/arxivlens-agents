@@ -285,3 +285,11 @@ Format:
 - QA [spec] 3: AC9 accepted as not run; measurement moved to **EVAL-4 AC5** (EVAL-6 `refusal_reason_counts` on a `main` with #20 + #21). No new
   backend ticket (no `internal/**` in `stack.yml` paths: cost); `query.log` always-upload is a Backlog P3 nit with the F1-drop change.
   [spec] 4: design header fixed. QA nit 2 → Decision 4 for Mahesh (refusal `score` = support score, 0 when uncited/unverified) + FE-3 note.
+
+## 2026-11-07 pm-lead: LLM-1 #23 final review → APPROVE
+- Reviewed `8e333c4` against the ticket (split part a), the design + conditions + split addendum, ADR-0001/0002 and the QA pack (round 1 FAIL on the
+  AC4 `errors.Is` table, round 2 PASS; evidence `8d68676`, every file used opened). Verdict **APPROVE** (`agents/reviews/LLM-1/report.md`).
+  Prod 375 < 400 (split estimate was 376). CI 5/5 green; 100% per-file coverage; 8/8 + 7/7 mutants killed.
+- QA [spec] 5 → caller rule in QA-8 Notes (never JSON-log `Request`/`Response`). Carry-overs → LLM-1b Notes. No PRD/README change (QA-8 does both).
+- PR body at `/tmp/claude-0/s/pr23-body.md` for the orchestrator (ready for review, Jira KAN-35 → Ready to merge). Board: LLM-1 → Ready to merge;
+  no file overlap with #20/#21/#22. LLM-1b becomes Ready once #23 merges.
