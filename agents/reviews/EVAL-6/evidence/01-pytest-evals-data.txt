@@ -1,0 +1,33 @@
+$ python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k near_miss or refusal or classif or supported_rate or coverage or split_sentences or case_records or check_thresholds_names or print_table or ids_unique
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+rootdir: /root/wt/qa-EVAL-6
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 76 items / 54 deselected / 22 selected
+
+tests/test_evals_data.py::test_dataset_schema_size_and_corpus_membership[refusal.jsonl] PASSED [  4%]
+tests/test_evals_data.py::test_case_ids_unique_across_sets PASSED        [  9%]
+tests/test_evals_data.py::test_coverage_two_paper_case_with_one_indexed_reports_missing_id PASSED [ 13%]
+tests/test_evals_data.py::test_coverage_requires_embeddings_for_current_model PASSED [ 18%]
+tests/test_evals_data.py::test_failed_requests_count_in_latency_and_not_as_refusals PASSED [ 22%]
+tests/test_evals_data.py::test_gate_fails_when_some_answer_requests_fail_even_if_refusals_perfect PASSED [ 27%]
+tests/test_evals_data.py::test_near_miss_rows_valid_and_not_in_corpus PASSED [ 31%]
+tests/test_evals_data.py::test_a_refusal_is_correct_refusal_and_answer_refusal PASSED [ 36%]
+tests/test_evals_data.py::test_b_verification_unavailable_is_error_never_refusal PASSED [ 40%]
+tests/test_evals_data.py::test_unknown_refusal_reason_fails_closed_as_error PASSED [ 45%]
+tests/test_evals_data.py::test_early_refusal_and_classify_branches PASSED [ 50%]
+tests/test_evals_data.py::test_supported_rate_excludes_refusal_evidence PASSED [ 54%]
+tests/test_evals_data.py::test_citation_coverage[resp0-1.0] PASSED       [ 59%]
+tests/test_evals_data.py::test_citation_coverage[resp1-0.6666666666666666] PASSED [ 63%]
+tests/test_evals_data.py::test_citation_coverage[resp2-0.6666666666666666] PASSED [ 68%]
+tests/test_evals_data.py::test_citation_coverage[resp3-0.5] PASSED       [ 72%]
+tests/test_evals_data.py::test_citation_coverage_null_without_answered_responses PASSED [ 77%]
+tests/test_evals_data.py::test_split_sentences_mirrors_rag_go PASSED     [ 81%]
+tests/test_evals_data.py::test_near_miss_rate_is_report_only PASSED      [ 86%]
+tests/test_evals_data.py::test_case_records_hold_ids_and_numbers_only PASSED [ 90%]
+tests/test_evals_data.py::test_check_thresholds_names_unchanged_and_ignore_report_only PASSED [ 95%]
+tests/test_evals_data.py::test_print_table_shows_report_only_block PASSED [100%]
+
+====================== 22 passed, 54 deselected in 0.05s =======================
+
+[exit code 0]

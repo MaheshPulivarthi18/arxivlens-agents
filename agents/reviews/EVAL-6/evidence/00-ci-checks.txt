@@ -1,0 +1,15 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/4dc4846.../check-runs + job logs
+Agent ownership check | completed | success | job 128314276974
+Go (vet, gofmt, test, build) | completed | success | job 128314276972
+Python M0 unit tests | completed | success | job 128314276941
+Frontend (lint, test, build) | completed | success | job 128314276810
+DB (migrate twice, HNSW plan + recall) | completed | success | job 128314276768
+
+Python M0 unit tests job 128314276941 log, pytest lines:
+2026-11-07T05:29:58.8630068Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py
+2026-11-07T05:30:05.9265960Z 84 passed, 1 skipped in 6.31s
+
+Agent ownership check job 128314276974 log:
+2026-11-07T05:28:50.7021123Z ##[warning]443 changed lines (> 400). Consider splitting the change.
+2026-11-07T05:28:50.7030538Z Ownership OK for role=ai (443 changed lines)
+

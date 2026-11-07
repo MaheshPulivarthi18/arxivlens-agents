@@ -1,0 +1,21 @@
+$ python3 -I /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/tools/nearmiss.py
+corpus.txt: 31 IDs | refusal_near_miss.jsonl: 15 rows
+n001 answered_by=1910.01108  in_corpus=False why_near=1810.04805 in_corpus=True  fields_ok=True reviewed_by=None
+n002 answered_by=1909.11942  in_corpus=False why_near=1810.04805 in_corpus=True  fields_ok=True reviewed_by=None
+n003 answered_by=2003.10555  in_corpus=False why_near=1810.04805 in_corpus=True  fields_ok=True reviewed_by=None
+n004 answered_by=2305.14314  in_corpus=False why_near=2106.09685 in_corpus=True  fields_ok=True reviewed_by=None
+n005 answered_by=2203.11171  in_corpus=False why_near=2201.11903 in_corpus=True  fields_ok=True reviewed_by=None
+n006 answered_by=2305.10601  in_corpus=False why_near=2201.11903 in_corpus=True  fields_ok=True reviewed_by=None
+n007 answered_by=2307.08691  in_corpus=False why_near=2205.14135 in_corpus=True  fields_ok=True reviewed_by=None
+n008 answered_by=2212.08073  in_corpus=False why_near=2203.02155 in_corpus=True  fields_ok=True reviewed_by=None
+n009 answered_by=2112.09118  in_corpus=False why_near=2004.04906 in_corpus=True  fields_ok=True reviewed_by=None
+n010 answered_by=2002.08909  in_corpus=False why_near=2005.11401 in_corpus=True  fields_ok=True reviewed_by=None
+n011 answered_by=1702.08734  in_corpus=False why_near=1603.09320 in_corpus=True  fields_ok=True reviewed_by=None
+n012 answered_by=2010.02502  in_corpus=False why_near=2006.11239 in_corpus=True  fields_ok=True reviewed_by=None
+n013 answered_by=1711.05101  in_corpus=False why_near=1412.6980 in_corpus=True  fields_ok=True reviewed_by=None
+n014 answered_by=2108.12409  in_corpus=False why_near=2104.09864 in_corpus=True  fields_ok=True reviewed_by=None
+n015 answered_by=2302.04761  in_corpus=False why_near=2210.03629 in_corpus=True  fields_ok=True reviewed_by=None
+answered_by IDs found in corpus: none
+near-miss questions duplicated in answer/refusal sets: none
+
+[exit code 0]

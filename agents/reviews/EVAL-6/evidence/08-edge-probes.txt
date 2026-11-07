@@ -1,0 +1,13 @@
+$ python3 -I /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/tools/probe.py /root/wt/qa-EVAL-6
+classify(refusal_reason=empty string  ) -> refusal
+classify(refusal_reason=None          ) -> refusal
+classify(refusal_reason=False         ) -> refusal
+classify(refusal_reason=int 0         ) -> refusal
+classify(refusal_reason=int 1         ) -> error
+classify(refusal_reason=list          ) -> raises TypeError: unhashable type: 'list'
+classify(refusal_reason=dict          ) -> raises TypeError: unhashable type: 'dict'
+classify(refusal_reason=upper-case A  ) -> error
+evaluate with list refusal_reason -> raises TypeError: unhashable type: 'list'
+coverage_units with string markers in claims -> (0, 1)
+
+[exit code 0]

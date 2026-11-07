@@ -178,3 +178,7 @@ non-identifying one on the PDF) and the Go downloader (no wait between PDFs). It
 between ingests holds, and each ingest makes 2 requests to two different arXiv hosts. That's 62 requests per nightly, a known
 gap that ING-9 closes. **Don't fold any `internal/query/ingester.go` change into this PR** (out of EVAL-3's scope). If arXiv
 starts returning 429/403 to the runner (seen in `seed.log`), stop and report it; pm-lead then moves ING-9 ahead.
+
+## Build deviations (backend-engineer, recorded by orchestrator 2026-11-07)
+1. Test plan correction: `python3 -m http.server` answers POST with 501 (a 5xx), so under this design's retry rule it is retried 3 times and then fails; it does not "fail without retry".
+2. The eval step maps any make exit code other than 0/1/2 to 2 ("could not run").

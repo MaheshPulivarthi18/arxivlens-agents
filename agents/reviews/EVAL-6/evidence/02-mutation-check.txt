@@ -1,0 +1,33 @@
+$ python3 -I /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/tools/mutate.py /root/wt/qa-EVAL-6 /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/mut-work
+KILLED   AC1 B counted as refusal
+         failing: test_b_verification_unavailable_is_error_never_refusal, test_early_refusal_and_classify_branches, test_near_miss_rate_is_report_only
+KILLED   AC1 unknown reason counted as refusal
+         failing: test_unknown_refusal_reason_fails_closed_as_error
+KILLED   AC1 early refusal ([] citations) treated as answered
+         failing: test_answer_metrics_with_stub_ask, test_citation_coverage_null_without_answered_responses, test_early_refusal_and_classify_branches, test_gate_fails_when_some_answer_requests_fail_even_if_refusals_perfect
+KILLED   AC1 B not counted in verification_unavailable_count
+         failing: test_b_verification_unavailable_is_error_never_refusal
+KILLED   AC2 refusal evidence counted in supported rate
+         failing: test_a_refusal_is_correct_refusal_and_answer_refusal, test_citation_coverage_null_without_answered_responses, test_supported_rate_excludes_refusal_evidence
+KILLED   AC3 null coverage reported as 0
+         failing: test_citation_coverage_null_without_answered_responses
+KILLED   AC3 claims[] ignored
+         failing: test_citation_coverage[resp3-0.5]
+KILLED   AC3 out-of-range markers counted
+         failing: test_citation_coverage[resp2-0.6666666666666666], test_citation_coverage[resp3-0.5]
+KILLED   AC5 answer text leaked into case record
+         failing: test_case_records_hold_ids_and_numbers_only
+KILLED   AC5 citation content leaked into case record
+         failing: test_case_records_hold_ids_and_numbers_only
+KILLED   report-only: near-miss calls gated
+         failing: test_near_miss_rate_is_report_only
+KILLED   AC4 answered_by in corpus (n001 -> BERT)
+         failing: test_near_miss_rows_valid_and_not_in_corpus
+KILLED   AC4 missing field (n002 drops reviewed_by)
+         failing: test_near_miss_rows_valid_and_not_in_corpus
+KILLED   AC4 missing field (n003 drops answered_by)
+         failing: test_near_miss_rows_valid_and_not_in_corpus
+
+14/14 mutants killed
+
+[exit code 0]

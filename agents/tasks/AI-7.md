@@ -74,3 +74,8 @@ git diff origin/main -- internal/query/server.go evals/thresholds.json
   `TestAskBatchFailClosed` (citations 2 → K=3; log expects the unverified line then the refusal line) is approved as an
   ADR-0003-mandated change. It must add the refusal assertions (reason, B sentence, markers 1..3) and be called out in the PR
   under "Changed existing test (ADR-0003)". AC3's "existing answer tests pass unmodified" still holds for every other test.
+- 2026-11-07 (ai-engineer, build): commit `9265b5f` on `agent/ai/AI-7` (worktree `$HOME/wt/AI-7`, not pushed). Diff: README.md 2, rag.go 103, rag_test.go 239 (344 changed lines, ownership-check OK).
+  Two small changes from the design's wording. Behaviour is unchanged; please mirror them into `docs/design/AI-7.md`:
+  (1) `validateCitations` keeps its one-value signature and wraps the new `checkCitations` (which returns `([]Citation, citationCheck)`). Changing the signature would have meant editing 4 existing tests that call it, and the PM condition forbids that.
+  (2) `citationCheck.hitScore` defaults to 0 and a parallel `hitScored []bool` tracks whether a score exists. This replaces the `-1` sentinel, so a real cosine of -1 can't be confused with "not computed".
+  Local check: Go 1.24 scratch module (pgx/db stubbed, go directive 1.24). vet is clean and all tests pass. rag.go per-file coverage is 144/147 = 98.0%. Mutation checks were killed: reason precedence, never-refuse, always-refuse, evidence = cited only, max→last score, unverified not counted, reason dropped, log trace_id renamed. CI on Go 1.25 is still the source of truth. AC9: not run (no stack in the sandbox), it needs the PR's stack.yml `query.log`.

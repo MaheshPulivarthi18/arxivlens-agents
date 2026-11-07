@@ -1,0 +1,62 @@
+$ bash /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/tools/e2e.sh
+$ python3 scripts/eval_gate.py --skip-retrieval --api-url http://127.0.0.1:18931 --results-dir <scratch>
+============================================================
+ArxivLens — /v1/ask answer + refusal eval
+============================================================
+Supported citations      : 100.00% (40 citations)
+Answers citing expected  : 0.00% of 22
+In-corpus refused        : 4.55%
+Correct refusals         : 95.45% of 22
+Latency p50 / p95 (ms)   : 0 / 0
+WARNING: errors          : a002, x002 (1 verification_unavailable)
+-- report-only (not gated) --
+Citation coverage        : 66.67%
+Near-miss refusals       : 66.67% of 15
+refusal_reason counts    : {'all_citations_unsupported': 7, 'verification_unavailable': 1, 'brand_new_reason': 1}
+
+==============================================================================
+Metric                                           |     Value |     Target | Result
+------------------------------------------------------------------------------
+rerank via production /internal/rerank           |       n/a |     == 1.0 | NOT RUN
+retrieval_coverage                               |       n/a |     == 1.0 | NOT RUN
+recall@5 (Hybrid RRF + Rerank)                   |       n/a |     >= 0.8 | NOT RUN
+hybrid+rerank beats BM25 & dense (MRR, NDCG@5)   |       n/a |     == 1.0 | NOT RUN
+supported_citation_rate                          |    1.0000 |     >= 0.9 | PASS
+correct_refusal_rate                             |    0.9545 |    >= 0.95 | PASS
+ask_p95_ms                                       |    0.3570 |     < 3000 | PASS
+ask_errors (answer + refusal sets)               |    2.0000 |       == 0 | FAIL
+(info) expected_paper_hit_rate                   |    0.0000 |
+(info) ask_p50_ms                                |       0.2 |
+------------------------------------------------------------------------------
+report-only (EVAL-6; not gated, promoting one to a gate needs an ADR)
+(report-only) citation_coverage                  |    0.6667 |
+(report-only) near_miss_correct_refusal_rate     |    0.6667 |
+(report-only) verification_unavailable_count     |         1 |
+(report-only) refusal_reason_counts              | {"all_citations_unsupported": 7, "verification_unavailable": 1, "brand_new_reason": 1}
+==============================================================================
+results written to /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/results/20261107T053749Z.json
+GATE: FAIL
+exit=1 (gate fails by design: --skip-retrieval)
+
+results JSON answers keys: ['answer_cases', 'answer_refusal_rate', 'ask_error_count', 'ask_p50_ms', 'ask_p95_ms', 'citation_coverage', 'citations_total', 'correct_refusal_rate', 'error_case_ids', 'expected_paper_hit_rate', 'expected_paper_miss_ids', 'near_miss_cases', 'near_miss_correct_refusal_rate', 'near_miss_error_ids', 'near_miss_failure_ids', 'refusal_cases', 'refusal_failure_ids', 'refusal_reason_counts', 'requests_ok', 'supported_citation_rate', 'verification_unavailable_count']
+  supported_citation_rate = 1.0
+  citations_total = 40
+  citation_coverage = 0.6666666666666666
+  verification_unavailable_count = 1
+  ask_error_count = 2
+  error_case_ids = ['a002', 'x002']
+  refusal_reason_counts = {'all_citations_unsupported': 7, 'verification_unavailable': 1, 'brand_new_reason': 1}
+  correct_refusal_rate = 0.9545454545454546
+  answer_refusal_rate = 0.045454545454545456
+  near_miss_cases = 15
+  near_miss_correct_refusal_rate = 0.6666666666666666
+cases: 59 | record keys: ['citations', 'cited_units', 'id', 'latency_ms', 'outcome', 'refusal_reason', 'refused', 'set', 'total_units'] | citation keys: ['arxiv_id', 'chunk_id', 'marker', 'score', 'supported']
+example records:
+   {"id": "a001", "set": "answer", "outcome": "refusal", "refused": true, "refusal_reason": "all_citations_unsupported", "latency_ms": 8.2, "citations": [{"arxiv_id": "1706.03762", "chunk_id": 41, "marker": 1, "supported": false, "score": 0.2}, {"arxiv_id": "1706.03762", "chunk_id": 42, "marker": 2, "supported": false, "score": 0.2}, {"arxiv_id": "1706.03762", "chunk_id": 43, "marker": 3, "supported": false, "score": 0.2}]}
+   {"id": "a002", "set": "answer", "outcome": "error", "refused": false, "refusal_reason": "verification_unavailable", "latency_ms": 0.7, "citations": [{"arxiv_id": "1706.03762", "chunk_id": 41, "marker": 1, "supported": false, "score": 0.2}]}
+   {"id": "a003", "set": "answer", "outcome": "answered", "refused": false, "refusal_reason": null, "latency_ms": 0.4, "citations": [{"arxiv_id": "1706.03762", "chunk_id": 41, "marker": 1, "supported": true, "score": 0.61}, {"arxiv_id": "1706.03762", "chunk_id": 42, "marker": 2, "supported": true, "score": 0.61}], "cited_units": 2, "total_units": 3}
+   {"id": "a022", "set": "answer", "outcome": "answered", "refused": false, "refusal_reason": null, "latency_ms": 0.3, "citations": [{"arxiv_id": "1706.03762", "chunk_id": 41, "marker": 1, "supported": true, "score": 0.61}, {"arxiv_id": "1706.03762", "chunk_id": 42, "marker": 2, "supported": true, "score": 0.61}], "cited_units": 2, "total_units": 3}
+forbidden keys in cases: none
+LEAK markers anywhere in results file: none
+
+[exit code 0]

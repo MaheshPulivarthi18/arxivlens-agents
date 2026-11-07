@@ -78,3 +78,8 @@ edits, and nothing else:
    the same for `verification_unavailable`, next to the number of asks in that run. If EVAL-3 has merged, the latest `eval.yml` run on
    `main` is the before number. Otherwise write "not run: <reason>" with the exact command. Don't infer counts from unit tests.
 4. Merge order is unchanged: **EVAL-6 merges first**. The PR says so, and pm-lead won't raise it before EVAL-6 is merged.
+
+## Build deviations (ai-engineer, recorded by orchestrator 2026-11-07)
+1. `validateCitations` keeps its one-value signature and wraps the new `checkCitations` (which returns the internal `citationCheck`), so no existing test needs a signature change.
+2. Scores default to 0 with a separate `hitScored []bool`, instead of a `-1` "not computed" sentinel (a real cosine can be -1).
+Behaviour is as designed.

@@ -82,3 +82,10 @@ git diff origin/main --stat
 - 2026-11-07 (pm-lead, design review): `docs/design/LLM-1.md` **APPROVED with conditions** (see its PM decision). AC8 amended:
   the 400-line target applies to non-test code for this task (no LLM-1b split), and a CI step for `-race` + per-file coverage
   is in scope, because CI's unit job runs neither for this package and the sandbox has no Go 1.25.
+- 2026-11-07 (backend-engineer, build): implemented in worktree `~/wt/LLM-1` (branch `agent/backend/LLM-1`, **staged, not committed/pushed**).
+  Scratch-module run on local Go 1.24: `go vet` clean, `go test -race -count=5 ./internal/llm/...` green, per-file coverage
+  config.go 98.2%, llm.go 100%, openai.go 99.1%, llmtest/fake.go 100%; ownership check OK; go.mod/go.sum unchanged.
+  **AC8 breach, stopped per the PM decision ("if production code goes over 400, stop and report"):** non-test lines = **655**
+  (510 code, 77 comment, 68 blank; llm.go 145, config.go 157, openai.go 266, llmtest/fake.go 87); test lines 954; ci.yml +4.
+  The design's ~380 estimate was low. Needs a pm-lead call: accept the exception, or split (e.g. LLM-1a = llm.go + config.go
+  minus FromEnv + llmtest ≈ 380 prod; LLM-1b = openai.go + FromEnv ≈ 275 prod).

@@ -1,0 +1,35 @@
+$ bash /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/tools/gate_names_both.sh
+repo @ 71cb609: check_thresholds(_results(), load_thresholds())
+  'rerank via production /internal/rerank'                passed=True
+  'retrieval_coverage'                                    passed=True
+  'recall@5 (Hybrid RRF + Rerank)'                        passed=True
+  'hybrid+rerank beats BM25 & dense (MRR, NDCG@5)'        passed=True
+  'supported_citation_rate'                               passed=True
+  'correct_refusal_rate'                                  passed=True
+  'ask_p95_ms'                                            passed=True
+  'ask_errors (answer + refusal sets)'                    passed=True
+
+repo @ 4dc4846: check_thresholds(_results(), load_thresholds())
+  'rerank via production /internal/rerank'                passed=True
+  'retrieval_coverage'                                    passed=True
+  'recall@5 (Hybrid RRF + Rerank)'                        passed=True
+  'hybrid+rerank beats BM25 & dense (MRR, NDCG@5)'        passed=True
+  'supported_citation_rate'                               passed=True
+  'correct_refusal_rate'                                  passed=True
+  'ask_p95_ms'                                            passed=True
+  'ask_errors (answer + refusal sets)'                    passed=True
+
+diff of metric names (main vs head), empty = identical:
+  (identical)
+
+$ git diff origin/main -- evals/thresholds.json | wc -l
+0
+$ git diff --stat origin/main...HEAD
+ evals/README.md               |  43 ++++++++++
+ evals/refusal_near_miss.jsonl |  15 ++++
+ scripts/eval_gate.py          |  12 ++-
+ scripts/evaluate_answers.py   | 191 +++++++++++++++++++++++++++++++++++-------
+ tests/test_evals_data.py      | 182 +++++++++++++++++++++++++++++++++++++++-
+ 5 files changed, 412 insertions(+), 31 deletions(-)
+
+[exit code 0]

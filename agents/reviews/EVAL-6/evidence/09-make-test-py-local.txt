@@ -1,0 +1,20 @@
+$ bash -c python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py 2>&1 | tail -2; echo; echo '$ make test-py'; make test-py 2>&1 | tail -6; echo; echo '$ make lint'; make lint 2>&1 | tail -3; echo; echo '$ make eval: not run (no Postgres/query/embedder stack in sandbox; Full stack workflow is path-filtered and did not run on this PR)'
+....                                                                     [100%]
+75 passed, 1 skipped in 0.11s
+
+$ make test-py
+=========================== short test summary info ============================
+ERROR tests/test_m0.py
+ERROR tests/test_worker_heartbeat.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+2 errors in 0.14s
+make: *** [Makefile:49: test-py] Error 2
+
+$ make lint
+go: downloading go1.25.0 (linux/amd64)
+go: download go1.25.0: golang.org/toolchain@v0.0.1-go1.25.0.linux-amd64: Get "https://proxy.golang.org/golang.org/toolchain/@v/v0.0.1-go1.25.0.linux-amd64.zip": dial tcp: lookup proxy.golang.org on 8.8.8.8:53: no such host
+make: *** [Makefile:36: lint-go] Error 1
+
+$ make eval: not run (no Postgres/query/embedder stack in sandbox; Full stack workflow is path-filtered and did not run on this PR)
+
+[exit code 0]
