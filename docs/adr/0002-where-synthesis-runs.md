@@ -1,6 +1,6 @@
 # ADR-0002: Run LLM synthesis in the Go query service or the Python embedder API
 
-- **Status:** Proposed
+- **Status:** Accepted (Mahesh, 2026-11-07)
 - **Date:** 2026-11-01
 - **Deciders:** Mahesh Pulivarthi
 - **Blocks:** QA-8
@@ -18,7 +18,7 @@ Option 1 (Go). The answer path stays in one file owned by one agent, validation 
 plain HTTP request either way. If a local model is chosen in ADR-0001, it runs as its own server and Go calls it over HTTP.
 
 ## Decision
-_(Human to fill)_
+**Option 1: Go, in `internal/query/rag.go`** (Mahesh, 2026-11-07, in chat). Synthesis sits next to citation validation in the query service. The provider client lives in a small Go package that `rag.go` calls. The Python embedder API is not involved.
 
 ## Consequences
 ai-engineer owns synthesis in `rag.go` and its tests. The embedder API stays focused on embed/rerank/ingest.
