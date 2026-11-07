@@ -1,0 +1,5 @@
+$ bash -c git diff -U0 origin/main...HEAD -- .github/workflows/stack.yml | grep -nE "^[+-].*(F1|timeout-minutes|permissions|contents:|concurrency|cancel-in-progress|name: stack-logs|workflow_dispatch)" ; echo "exit=$? (lines above are the only changed lines matching)"
+15:+        timeout-minutes: 5
+exit=0 (lines above are the only changed lines matching)
+
+[exit code 0]

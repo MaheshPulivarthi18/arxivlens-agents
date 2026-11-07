@@ -1,0 +1,10 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/42367580479/jobs --jq ".jobs[].steps[] | select(.name==\"Collect service logs\") | \"step \(.number) \(.name): status=\(.status) conclusion=\(.conclusion)\""; grep -n "embedder-timing.log" /tmp/claude-0/qa/job.log | tail -1; printf "fallback line bytes incl. newline: "; grep -oE "no embedder rerank timing lines \(embedder predates AI-9\)" .github/workflows/stack.yml | head -1 | wc -c; echo "--- summary write in step (stack.yml):"; grep -n "Embedder rerank timing" .github/workflows/stack.yml; echo "--- check-run output (job summaries are not in the REST API):"; gh api repos/MaheshPulivarthi18/ArxivLens/check-runs/128388794952 --jq ".output"
+step 20 Collect service logs: status=completed conclusion=success
+4302:2026-11-07T11:30:06.7588924Z -rw-r--r-- 1 runner runner     57 Nov  7 11:30 embedder-timing.log
+fallback line bytes incl. newline: 57
+--- summary write in step (stack.yml):
+250:          { echo "### Embedder rerank timing"; echo '```'; head -n 200 "$t"; echo '```'; } >> "$GITHUB_STEP_SUMMARY" || true
+--- check-run output (job summaries are not in the REST API):
+{"annotations_count":3,"annotations_url":"https://api.github.com/repos/MaheshPulivarthi18/ArxivLens/check-runs/128388794952/annotations","summary":null,"text":null,"title":null}
+
+[exit code 0]

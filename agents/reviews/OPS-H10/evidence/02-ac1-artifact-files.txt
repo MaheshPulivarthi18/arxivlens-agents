@@ -1,0 +1,14 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/42367580479/artifacts --jq ".artifacts[] | \"artifact id=\(.id) name=\(.name) size_in_bytes=\(.size_in_bytes) expired=\(.expired)\""; echo "--- job log, Collect service logs output + upload:"; sed -n "4298,4304p;4335p;4342p" /tmp/claude-0/qa/job.log
+artifact id=13573030487 name=stack-logs size_in_bytes=39022 expired=false
+--- job log, Collect service logs output + upload:
+2026-11-07T11:30:06.5372826Z ##[endgroup]
+2026-11-07T11:30:06.7586886Z total 292
+2026-11-07T11:30:06.7587895Z -rw-r--r-- 1 runner runner 281388 Nov  7 11:30 compose.log
+2026-11-07T11:30:06.7588406Z -rw-r--r-- 1 runner runner    819 Nov  7 11:30 downloader.log
+2026-11-07T11:30:06.7588924Z -rw-r--r-- 1 runner runner     57 Nov  7 11:30 embedder-timing.log
+2026-11-07T11:30:06.7589347Z -rw-r--r-- 1 runner runner    211 Nov  7 11:30 ingest.json
+2026-11-07T11:30:06.7589794Z -rw-r--r-- 1 runner runner   1794 Nov  7 11:30 query.log
+2026-11-07T11:30:07.2991145Z Beginning upload of artifact content to blob storage
+2026-11-07T11:30:07.9009641Z Artifact stack-logs has been successfully uploaded! Final size is 39022 bytes. Artifact ID is 13573030487
+
+[exit code 0]

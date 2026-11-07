@@ -1,0 +1,4 @@
+$ bash .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H10
+Ownership OK for role=backend (32 changed lines)
+
+[exit code 0]

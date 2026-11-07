@@ -1,0 +1,16 @@
+$ bash -c grep -nE "^      - name:|^        if:|continue-on-error" .github/workflows/stack.yml | sed -n "/Known failure F1/,\$p"; echo "--- stack.yml runs on agent/backend/OPS-H10 (all events):"; gh api "repos/MaheshPulivarthi18/ArxivLens/actions/workflows/stack.yml/runs?branch=agent/backend/OPS-H10" --jq ".workflow_runs[] | \"\(.id) \(.event) \(.head_sha[0:7]) \(.conclusion)\""
+222:      - name: "Known failure F1 (CPU rerank latency, tracked)"
+223:        if: ${{ !cancelled() && steps.seed.outcome == 'success' }}
+224:        continue-on-error: true
+238:      - name: Collect service logs
+239:        if: always()
+253:      - name: Diagnostics
+254:        if: "failure()"
+266:      - name: Upload logs
+267:        if: always()
+278:      - name: Teardown
+279:        if: always()
+--- stack.yml runs on agent/backend/OPS-H10 (all events):
+42367580479 pull_request 9ebb49e success
+
+[exit code 0]

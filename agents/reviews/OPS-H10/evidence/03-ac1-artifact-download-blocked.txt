@@ -1,0 +1,6 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/artifacts/13573030487/zip > /dev/null 2>/tmp/claude-0/qa/dl.err; rc=$?; echo "gh api exit=$rc"; grep -oE "https://[^/]+/" /tmp/claude-0/qa/dl.err | head -1; grep -oE "[A-Za-z]+$" /tmp/claude-0/qa/dl.err
+gh api exit=1
+https://productionresultssa3.blob.core.windows.net/
+Forbidden
+
+[exit code 0]
