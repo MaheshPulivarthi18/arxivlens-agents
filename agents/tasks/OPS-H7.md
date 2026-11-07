@@ -6,7 +6,7 @@
 | **Priority** | P1 |
 | **PRD ref** | Product PRD OPS-2, OPS-3, §5.3 "Operator recovers failed papers"; Technical PRD §5 (DLQ manager), §8.2 |
 | **Depends on** | OPS-H6 (same delivery semantics; replayed records flow back through the fixed consumer) |
-| **Jira** | not created yet (orchestrator: story under epic "Dev harness & infrastructure", labels `task-OPS-H7`, `agent-backend`, `design-required`, `arxivlens`) |
+| **Jira** | KAN-31 (epic "Dev harness & infrastructure", labels `task-OPS-H7`, `agent-backend`, `design-required`, `arxivlens`) |
 | **Design required** | **yes**: changes CLI behaviour/flags of `arxivlens dlq`, may add a table (checkpoints/lock), and defines replay delivery semantics |
 | **Status** | Ready after OPS-H6 merges (design can start once OPS-H6's design is approved) |
 
@@ -68,3 +68,4 @@ make test-full
 
 ## Notes
 - 2026-11-03 (pm-lead): specced from the external review of `bb9ee90` (approved by Mahesh). Expected diff is about 350 lines. If the design goes over 400, split into (a) list to end + paging and (b) checkpoints + lock + idempotent replay.
+- 2026-11-07 (backend-engineer): design written at [`docs/design/OPS-H7.md`](../../docs/design/OPS-H7.md) (Draft; awaiting pm-lead). The design puts checkpoints, a per-record log and the advisory lock in Postgres, and uses a deterministic ULID for the re-envelope fallback (no envelope change, no ADR). It also found bugs B1 (raw payloads are replayed with `event_id: ""`) and B2 (a null original value is replayed as an empty envelope). Estimate ~1,100 lines → proposes a 3-way split: OPS-H7a (AC1, AC7), OPS-H7b (AC2, AC5, AC6, AC7), OPS-H7c (AC3, AC4, AC8). Jira row fixed to KAN-31. Build stays held behind PR #26 (README/CONTRIBUTING).
