@@ -1,0 +1,17 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/bin/ci.sh
+== check runs for 8fc120916e03475bdea01c870d294e32e724496c
+DB (migrate twice, HNSW plan + recall) | success | 2026-11-07T05:52:18Z -> 2026-11-07T05:53:30Z | job 128319267889
+Agent ownership check | success | 2026-11-07T05:52:18Z -> 2026-11-07T05:52:24Z | job 128319267785
+Full stack (compose + make test-full) | success | 2026-11-07T05:52:18Z -> 2026-11-07T06:04:25Z | job 128319267783
+eval | failure | 2026-11-07T05:52:18Z -> 2026-11-07T06:42:15Z | job 128319267738
+Python M0 unit tests | success | 2026-11-07T05:52:18Z -> 2026-11-07T05:53:31Z | job 128319267671
+Frontend (lint, test, build) | success | 2026-11-07T05:52:18Z -> 2026-11-07T05:52:27Z | job 128319267580
+Go (vet, gofmt, test, build) | success | 2026-11-07T05:52:18Z -> 2026-11-07T05:52:59Z | job 128319267398
+
+== workflow runs
+DB [pull_request] success run 42344527096 attempt 1 https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42344527096
+CI [pull_request] success run 42344527016 attempt 1 https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42344527016
+Full stack [pull_request] success run 42344527109 attempt 1 https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42344527109
+Eval [pull_request] failure run 42344527129 attempt 1 https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42344527129
+
+[exit code 0]

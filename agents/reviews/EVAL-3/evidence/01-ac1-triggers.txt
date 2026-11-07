@@ -1,0 +1,31 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/bin/ac1.sh
+== git HEAD: 8fc120916e03475bdea01c870d294e32e724496c
+== on: block of .github/workflows/eval.yml
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * *"
+  pull_request:
+    paths:
+      - .github/workflows/eval.yml
+
+== workflow runs per PR head SHA (Eval should appear only for #22)
+-- PR #20 head 4dc4846343f1: changed files touching eval.yml: 0
+   DB [pull_request] completed success
+   CI [pull_request] completed success
+-- PR #21 head 9265b5fcc500: changed files touching eval.yml: 0
+   DB [pull_request] completed success
+   CI [pull_request] completed success
+-- PR #22 head 8fc120916e03: changed files touching eval.yml: 1
+   Eval [pull_request] in_progress -
+   DB [pull_request] completed success
+   CI [pull_request] completed success
+   Full stack [pull_request] completed success
+-- PR #23 head 8e3277163505: changed files touching eval.yml: 0
+   DB [pull_request] completed success
+   CI [pull_request] completed success
+
+== GitHub docs: on.<pull_request>.paths -- 'If at least one path matches a pattern in the paths filter, the workflow runs.'
+   (docs.github.com/actions/writing-workflows/workflow-syntax-for-github-actions#onpushpull_requestpull_request_targetpathspaths-ignore)
+
+[exit code 0]

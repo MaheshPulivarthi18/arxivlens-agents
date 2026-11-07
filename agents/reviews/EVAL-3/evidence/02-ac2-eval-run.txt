@@ -1,0 +1,94 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/bin/ac2.sh
+== Eval run 42344527129 / job 128319267738: steps (REST /actions/runs/42344527129/jobs)
+job: 2026-11-07T05:52:18Z -> 2026-11-07T06:42:15Z failure runner=GitHub Actions 1000000512 labels=["ubuntu-latest"]
+1	success	05:52:19-05:52:20	Set up job
+2	success	05:52:20-05:52:21	Run actions/checkout@v4
+3	success	05:52:21-05:52:29	Run actions/setup-go@v5
+4	success	05:52:29-05:52:32	Run actions/setup-python@v5
+5	success	05:52:32-05:52:43	Lint the harness (actionlint, compose config)
+6	success	05:52:43-05:52:43	Restore Hugging Face models
+7	success	05:52:43-05:53:20	Host Python deps (make setup-py, CPU torch)
+8	success	05:53:20-05:53:40	Pre-fetch models (offline on a cache hit, so a missing file fails instead of downloading)
+9	success	05:53:40-05:53:47	Save Hugging Face models (before any container writes)
+10	success	05:53:47-05:56:54	Build Go CLI, make stack-up, migrate
+11	success	05:56:54-05:56:54	Start the query service on the host
+12	success	05:56:54-05:57:43	Self-test: eval-seed fails on an unreachable API (no arXiv request)
+13	success	05:57:43-06:28:07	make eval-seed (31 corpus IDs from arXiv)
+14	success	06:28:07-06:28:07	Machine profile
+15	failure	06:28:07-06:41:57	make eval
+16	success	06:41:57-06:41:58	Upload eval results
+17	success	06:41:58-06:41:58	Collect stack logs
+18	success	06:41:58-06:41:59	Upload stack logs
+19	success	06:41:59-06:42:12	Teardown
+36	skipped	06:42:12-06:42:12	Post Run actions/setup-python@v5
+37	skipped	06:42:12-06:42:12	Post Run actions/setup-go@v5
+38	success	06:42:12-06:42:13	Post Run actions/checkout@v4
+39	success	06:42:13-06:42:13	Complete job
+
+== job log (REST /actions/jobs/128319267738/logs): stack, health, self-test, seed, profile
+2026-11-07T05:53:47.4766775Z ##[group]Run make build-go && make stack-up && make migrate
+2026-11-07T05:56:18.3591146Z  Container arxivlens-minio-data-init Started 
+2026-11-07T05:56:18.4066281Z  Container arxivlens-kafka Started 
+2026-11-07T05:56:18.4342815Z  Container arxivlens-postgres Started 
+2026-11-07T05:56:19.1560641Z  Container arxivlens-minio Started 
+2026-11-07T05:56:24.6570703Z  Container arxivlens-minio Healthy 
+2026-11-07T05:56:24.7470109Z  Container arxivlens-minio-init Started 
+2026-11-07T05:56:24.9085630Z  Container arxivlens-kafka Healthy 
+2026-11-07T05:56:25.0080176Z  Container arxivlens-kafka-init Started 
+2026-11-07T05:56:25.5100534Z  Container arxivlens-postgres Healthy 
+2026-11-07T05:56:33.6149843Z  Container arxivlens-embedder-api Started 
+2026-11-07T05:56:44.1160386Z  Container arxivlens-embedder-api Healthy 
+2026-11-07T05:56:44.1161173Z  Container arxivlens-embedder-api Healthy 
+2026-11-07T05:56:44.2388775Z  Container arxivlens-embedder-worker Started 
+2026-11-07T05:56:44.2444705Z  Container arxivlens-processor Started 
+2026-11-07T05:56:54.6602068Z ./bin/arxivlens migrate
+2026-11-07T05:56:54.6707419Z 2026/11/07 05:56:54 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026-11-07T05:56:54.7047456Z 2026/11/07 05:56:54 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+2026-11-07T05:56:54.7055081Z 2026/11/07 05:56:54 [Migration] Database schema migrated successfully (2 file(s))
+2026-11-07T05:56:54.7577886Z {"status":"ok"}
+2026-11-07T05:57:43.8495231Z eval-seed: [1/1] 0000.00000 FAILED after 3 attempt(s): HTTP 000 curl: (7) Failed to connect to 127.0.0.1 port 9 after 0 ms: Could not connect to server 
+2026-11-07T05:57:43.8495741Z (expected) eval-seed: 1/1 failed: 0000.00000 (HTTP 000: curl: (7) Failed to connect to 127.0.0.1 port 9 after 0 ms: Could not connect to server );
+2026-11-07T05:57:43.8496074Z make: *** [Makefile:98: eval-seed] Error 1
+2026-11-07T05:57:43.8542610Z OK: eval-seed exited 2 after 3 attempts
+2026-11-07T05:58:30.7357936Z eval-seed: [1/31] 2608.20331 ok (57 chunks, 1 attempt(s))
+2026-11-07T05:59:20.6541266Z eval-seed: [2/31] 2608.20320 ok (52 chunks, 1 attempt(s))
+2026-11-07T05:59:53.1431406Z eval-seed: [3/31] 1706.03762 ok (34 chunks, 1 attempt(s))
+2026-11-07T06:00:46.0744254Z eval-seed: [4/31] 1810.04805 ok (55 chunks, 1 attempt(s))
+2026-11-07T06:01:26.7230982Z eval-seed: [5/31] 1907.11692 ok (42 chunks, 1 attempt(s))
+2026-11-07T06:02:09.9719057Z eval-seed: [6/31] 1910.10683 ok (47 chunks, 1 attempt(s))
+2026-11-07T06:04:47.4089394Z eval-seed: [7/31] 2005.14165 ok (174 chunks, 1 attempt(s))
+2026-11-07T06:05:26.9627899Z eval-seed: [8/31] 2005.11401 ok (41 chunks, 1 attempt(s))
+2026-11-07T06:06:11.8543241Z eval-seed: [9/31] 2004.04906 ok (48 chunks, 1 attempt(s))
+2026-11-07T06:06:57.3464277Z eval-seed: [10/31] 2004.12832 ok (48 chunks, 1 attempt(s))
+2026-11-07T06:08:09.2555283Z eval-seed: [11/31] 2104.08663 ok (83 chunks, 1 attempt(s))
+2026-11-07T06:08:43.7619164Z eval-seed: [12/31] 2309.07597 ok (37 chunks, 1 attempt(s))
+2026-11-07T06:09:09.6329551Z eval-seed: [13/31] 1603.09320 ok (27 chunks, 1 attempt(s))
+2026-11-07T06:10:19.8387638Z eval-seed: [14/31] 2106.09685 ok (79 chunks, 1 attempt(s))
+2026-11-07T06:12:04.5083949Z eval-seed: [15/31] 2201.11903 ok (122 chunks, 1 attempt(s))
+2026-11-07T06:14:07.1391827Z eval-seed: [16/31] 2203.02155 ok (142 chunks, 1 attempt(s))
+2026-11-07T06:15:12.9977613Z eval-seed: [17/31] 2305.18290 ok (70 chunks, 1 attempt(s))
+2026-11-07T06:15:35.9301889Z eval-seed: [18/31] 1707.06347 ok (22 chunks, 1 attempt(s))
+2026-11-07T06:16:46.3451911Z eval-seed: [19/31] 2001.08361 ok (77 chunks, 1 attempt(s))
+2026-11-07T06:18:03.5259095Z eval-seed: [20/31] 2203.15556 ok (86 chunks, 1 attempt(s))
+2026-11-07T06:19:25.9547932Z eval-seed: [21/31] 2205.14135 ok (90 chunks, 1 attempt(s))
+2026-11-07T06:19:58.6111076Z eval-seed: [22/31] 2104.09864 ok (33 chunks, 1 attempt(s))
+2026-11-07T06:20:44.3115885Z eval-seed: [23/31] 1512.03385 ok (49 chunks, 1 attempt(s))
+2026-11-07T06:21:39.8730498Z eval-seed: [24/31] 2010.11929 ok (60 chunks, 1 attempt(s))
+2026-11-07T06:23:55.5125772Z eval-seed: [25/31] 2103.00020 ok (155 chunks, 1 attempt(s))
+2026-11-07T06:24:36.2112332Z eval-seed: [26/31] 2006.11239 ok (43 chunks, 1 attempt(s))
+2026-11-07T06:25:47.7422924Z eval-seed: [27/31] 2112.10752 ok (77 chunks, 1 attempt(s))
+2026-11-07T06:26:27.8523809Z eval-seed: [28/31] 1412.6980 ok (42 chunks, 1 attempt(s))
+2026-11-07T06:27:05.3531064Z eval-seed: [29/31] 1502.03167 ok (39 chunks, 1 attempt(s))
+2026-11-07T06:27:27.8462192Z eval-seed: [30/31] 1406.2661 ok (22 chunks, 1 attempt(s))
+2026-11-07T06:28:07.4960834Z eval-seed: [31/31] 2210.03629 ok (44 chunks, 1 attempt(s))
+2026-11-07T06:28:07.4961182Z eval-seed: 31/31 ingested
+2026-11-07T06:28:07.5069422Z ##[group]Run { echo "### Machine profile"; echo '```'; echo "commit under test (github.sha): $SHA; main (base) SHA: $BASE_SHA"
+2026-11-07T06:28:07.5212820Z commit under test (github.sha): c2ed79abb29ee17ea72fec5538c69ed911f1814d; main (base) SHA: 71cb609b4e631fa748a75df10c722d956ed560a7
+2026-11-07T06:28:07.5227256Z CPU(s):                                  4
+2026-11-07T06:28:07.5227619Z Model name:                              AMD EPYC 9V45 96-Core Processor
+2026-11-07T06:28:07.5245001Z Mem:              15           3           1           0          11          11
+2026-11-07T06:28:07.5312025Z embedder /healthz: {"status":"ok","device":"cpu","reranker":true}
+2026-11-07T06:41:57.3881503Z make: *** [Makefile:87: eval] Error 1
+2026-11-07T06:41:57.3950973Z ##[error]Process completed with exit code 1.
+
+[exit code 0]

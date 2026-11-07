@@ -25,6 +25,12 @@ the baseline is real.
 - [ ] AC2: The numbers match the run's `evals/results/*.json` artifact exactly. QA diffs them.
 - [ ] AC3: The machine profile is recorded, along with a sentence that it is the CPU-only profile (Technical PRD §9, *Proposed*) and so latency is informational until Mahesh decides.
 - [ ] AC4: If any gate failed in that run, the file says so per metric. No case, corpus ID or threshold changed.
+- [ ] AC5 (AI-7's AC9, moved here 2026-11-07): if EVAL-6 (#20) and AI-7 (#21) are both merged when the run happens, the recorded run's
+      `origin/main` SHA contains both. Report, from that run's results JSON, the answer-set `answer_refusal_rate`, `refusal_reason_counts`
+      (`all_citations_unsupported`, `verification_unavailable`) and `verification_unavailable_count`, in `BASELINE.md` and in the PR. If they
+      aren't both merged yet, say which is missing and leave AC5 open for the next run. **Stop and report:** any refusal on the answer set goes to
+      pm-lead as a finding in the PR and this ticket's Notes (it is expected with template answers, ADR-0003). Don't tune, don't change a threshold
+      or a case.
 
 ## Verification
 ```bash
@@ -36,3 +42,5 @@ gh run download <run-id> -n <artifact-name> && python3 -m json.tool evals/result
 - 2026-11-03 (pm-lead): split from EVAL-3 because of ownership (`.github/` is backend's, `evals/` is ai's).
 - 2026-11-07 (pm-lead): EVAL-3 no longer edits the app `README.md`. Add its one-line "nightly eval" note to the README Testing block
   (around line 202: how to trigger `eval.yml`, where results go) in this task.
+- 2026-11-07 (pm-lead, AI-7 final review): AC5 added. AI-7's AC9 (how many of today's template answers now refuse, and why) couldn't be measured
+  on the PR: `stack.yml` isn't triggered by `internal/**` and keeps `query.log` only on failure. EVAL-6's report-only metrics give the counts directly.

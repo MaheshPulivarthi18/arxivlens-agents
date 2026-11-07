@@ -1,0 +1,20 @@
+$ bash -c git diff origin/main...HEAD --stat; echo; git diff origin/main...HEAD --numstat | awk '$3 ~ /\.go$/ && $3 !~ /_test\.go$/ {p+=$1+$2} $3 ~ /_test\.go$/ {t+=$1+$2} END {print "prod (non-test .go)", p, " test", t}'; echo; echo "go.mod/go.sum diff lines: $(git diff origin/main...HEAD -- go.mod go.sum | wc -l)"; echo "ci.yml changed lines: $(git diff origin/main...HEAD --numstat -- .github/workflows/ci.yml)"; echo "importers of internal/llm outside the package:"; grep -rln "arxivlens/internal/llm" --include=*.go . | grep -v "^./internal/llm/" || echo "  (none)"; echo "openai.go present: $(ls internal/llm/openai.go 2>/dev/null || echo no)"; echo "func FromEnv present: $(grep -c "^func FromEnv" internal/llm/*.go | paste -sd" ")"
+ .github/workflows/ci.yml          |   4 +
+ internal/llm/config.go            | 143 ++++++++++++++++++++++++++++++++++++
+ internal/llm/config_test.go       | 150 +++++++++++++++++++++++++++++++++++++
+ internal/llm/llm.go               | 145 ++++++++++++++++++++++++++++++++++++
+ internal/llm/llm_test.go          |  72 ++++++++++++++++++
+ internal/llm/llmtest/fake.go      |  87 ++++++++++++++++++++++
+ internal/llm/llmtest/fake_test.go | 151 ++++++++++++++++++++++++++++++++++++++
+ 7 files changed, 752 insertions(+)
+
+prod (non-test .go) 375  test 373
+
+go.mod/go.sum diff lines: 0
+ci.yml changed lines: 4	0	.github/workflows/ci.yml
+importers of internal/llm outside the package:
+  (none)
+openai.go present: no
+func FromEnv present: internal/llm/config.go:0 internal/llm/config_test.go:0 internal/llm/llm.go:0 internal/llm/llm_test.go:0
+
+[exit code 0]

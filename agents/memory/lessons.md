@@ -26,6 +26,7 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 
 - [2026-11-07][LLM-1] A design's diff-size estimate (~380 prod) was 72% low (655), and I'd already granted a size exception on that estimate → when a design is near the 400 target, ask for a counted skeleton (`wc -l` of the stubbed files plus doc comments) before approving, and name the split seam in the PM decision up front. (seen 1×)
 - [2026-11-07][EVAL-6] QA proposed widening an expensive workflow's triggers to satisfy a DoD item → check the cost of a trigger (external requests, runtime) before accepting; a manual `workflow_dispatch` on the branch often meets the DoD item without the cost. (seen 1×)
+- [2026-11-07][AI-7] AC9 said "measure on the PR's `stack.yml` from the uploaded `query.log`", but `stack.yml`'s `pull_request` paths exclude `internal/**` and `query.log` is uploaded only on failure, so the AC could never be met → before writing a CI-measured AC, read the workflow's trigger paths and the `if:` of the step that saves the artifact; prefer a metric the eval already emits (EVAL-6 `refusal_reason_counts`) over grepping logs. (seen 1×)
 
 ## ai-engineer
 - [2026-11-01][SETUP] Eval queries are hardcoded inside `scripts/evaluate_retrieval.py` → don't add more there; EVAL-1 moves them to `evals/`. (seen 1×)

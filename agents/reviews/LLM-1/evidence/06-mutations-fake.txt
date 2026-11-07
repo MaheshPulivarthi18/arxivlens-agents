@@ -1,0 +1,26 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/mutate_fake.sh
+== F1 Complete without the mutex: KILLED
+	/tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/mutf/internal/llm/llmtest/fake_test.go:32 +0x708
+== F2 Requests without the mutex: KILLED
+	/tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/mutf/internal/llm/llmtest/fake_test.go:132 +0x2e5
+	/tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/mutf/internal/llm/llmtest/fake_test.go:137 +0x525
+      /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/mutf/internal/llm/llmtest/fake_test.go:132 +0x2e4
+== F3 Requests returns shallow copies: KILLED
+    fake_test.go:81: Requests() must return deep copies
+--- FAIL: TestFakeRequests (0.00s)
+== F4 Complete records the caller slice (no copy): KILLED
+    fake_test.go:77: requests not recorded as sent, in order: "caller mutated after the call", "second"
+--- FAIL: TestFakeRequests (0.00s)
+== F5 Hang returns immediately with nil error: KILLED
+        fake_test.go:109: want context canceled, got <nil> <nil>
+        fake_test.go:109: want context deadline exceeded, got <nil> <nil>
+    --- FAIL: TestFakeHang/cancel (0.00s)
+== F6 Resp returned without copying: KILLED
+    fake_test.go:58: a returned response aliases the script: llm.Response{text: 7B, model: fake, prompt_tokens: 0, completion_tokens: 0, finish_reason: , latency: 0s}
+--- FAIL: TestFakeReturnsCopies (0.00s)
+== F7 exhausted script replays the last step: KILLED
+    fake_test.go:149: want exhausted after 50 calls, got <nil>
+    fake_test.go:35: call 4: want llmtest: no scripted step left, got llm.Response{text: 0B, model: , prompt_tokens: 0, completion_tokens: 0, finish_reason: , latency: 0s} <nil>
+--- FAIL: TestFakeConcurrent (0.00s)
+
+[exit code 0]

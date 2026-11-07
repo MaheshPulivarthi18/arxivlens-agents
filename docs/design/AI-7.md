@@ -1,6 +1,6 @@
 # Tech design — AI-7: Refuse with evidence when no citation is supported or verification is unavailable
 
-**Author:** ai-engineer · **Ticket:** `agents/tasks/AI-7.md` · **PRD:** Product QA-4, QA-5, §7.1–7.2; Technical §7.2; ADR-0003 (Accepted) · **Status:** Draft
+**Author:** ai-engineer · **Ticket:** `agents/tasks/AI-7.md` · **PRD:** Product QA-4, QA-5, §7.1–7.2; Technical §7.2; ADR-0003 (Accepted) · **Status:** Approved with conditions (pm-lead, 2026-11-07)
 
 ## Problem
 If no citation in an answer is supported, `/v1/ask` still returns the answer today. That covers case A (every checked citation scored < 0.50, or no in-range marker at all) and case B (support couldn't be checked). ADR-0003 says to refuse in both cases: return a fixed sentence and a `refusal_reason`, plus every relevant hit as evidence. Answers with at least one supported citation, and the early QA-5 refusal, stay as they are. Covers AC1–AC9.
@@ -78,6 +78,8 @@ edits, and nothing else:
    the same for `verification_unavailable`, next to the number of asks in that run. If EVAL-3 has merged, the latest `eval.yml` run on
    `main` is the before number. Otherwise write "not run: <reason>" with the exact command. Don't infer counts from unit tests.
 4. Merge order is unchanged: **EVAL-6 merges first**. The PR says so, and pm-lead won't raise it before EVAL-6 is merged.
+   *Amended at final review (pm-lead, 2026-11-07):* #20 is raised and waiting only on Mahesh, so #21 is raised too, with "Merge after #20"
+   as the first line of its description. The merge order is unchanged; only the "won't raise" part is dropped (reasons in `agents/reviews/AI-7/report.md`, PM final review, [spec] 5).
 
 ## Build deviations (ai-engineer, recorded by orchestrator 2026-11-07)
 1. `validateCitations` keeps its one-value signature and wraps the new `checkCitations` (which returns the internal `citationCheck`), so no existing test needs a signature change.

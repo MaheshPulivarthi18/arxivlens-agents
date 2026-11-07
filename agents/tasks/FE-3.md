@@ -48,3 +48,7 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
 - 2026-11-07 (pm-lead): from the 2026-11-07 plan (Phase 1 item 8, refusal half). Sandbox: registry.npmjs.org doesn't resolve,
   so `npm ci` can't run locally. With FE-1's lockfile merged, no new dependency is needed here and CI verifies.
 - Wave 2.
+- 2026-11-07 (pm-lead, from the AI-7 review): in a refusal (`refusal_reason` set), each evidence citation's `score` is the **support** score of
+  the best checked citation for that passage, and **0 when the passage was not cited or couldn't be checked**, not a retrieval score (AI-7, PR #21;
+  Mahesh may change this, it's Decision 4 in #21). So don't render a refusal card's score as relevance, and don't show `0` as "0%": show
+  "not checked" for 0 in refusal mode. Put the exact copy in the design.

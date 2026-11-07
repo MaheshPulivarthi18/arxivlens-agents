@@ -1,0 +1,17 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/local.sh
+go version go1.24.7 linux/amd64
++ go vet ./...
+vet: clean
++ gofmt -l .
+gofmt: clean
++ go test -race -count=3 ./internal/llm/...
+ok  	arxivlens/internal/llm	1.019s
+ok  	arxivlens/internal/llm/llmtest	1.320s
++ go test -v -run 'TestConfigFromEnv|TestConfigRedactsKey|TestPrintFormsShowSizesOnly' ./internal/llm/
+--- PASS: TestConfigFromEnv (0.00s)
+--- PASS: TestConfigRedactsKey (0.00s)
+--- PASS: TestPrintFormsShowSizesOnly (0.00s)
+PASS
+ok  	arxivlens/internal/llm	0.002s
+
+[exit code 0]

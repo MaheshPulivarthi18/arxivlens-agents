@@ -1,0 +1,35 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/bin/ac34.sh
+== AC4 (cold run only): HF model cache lines in job 128319267738
+162:2026-11-07T05:52:29.0544474Z Cache restored successfully
+163:2026-11-07T05:52:29.0639131Z Cache restored from key: setup-go-Linux-x64-ubuntu26-go-1.25.0-282abb17dbe996d56a2dfecbce61082860776038189ca3cb06eff71ee8aa2c93
+243:2026-11-07T05:52:32.6918796Z Cache restored successfully
+244:2026-11-07T05:52:32.7095491Z Cache restored from key: setup-python-Linux-x64-26.04-Ubuntu-python-3.11.18-pip-5b5eb47bfc5a2f8d997039df570b0d750735e6e65e4e8babb09d8f05a65a698a
+280:2026-11-07T05:52:43.1128106Z   key: hf-Linux-bge-base-en-v1.5-bge-reranker-base
+296:2026-11-07T05:52:43.3070704Z Cache not found for input keys: hf-Linux-bge-base-en-v1.5-bge-reranker-base
+548:2026-11-07T05:53:20.0182408Z ##[group]Run if [ "$HIT" = true ]; then export HF_HUB_OFFLINE=1; fi
+566:2026-11-07T05:53:20.0287945Z cache-hit=false HF_HUB_OFFLINE=0
+577:2026-11-07T05:53:40.3863525Z   key: hf-Linux-bge-base-en-v1.5-bge-reranker-base
+597:2026-11-07T05:53:47.4648747Z Cache saved with key: hf-Linux-bge-base-en-v1.5-bge-reranker-base
+
+== AC3: artifacts of run 42344527129 (REST)
+eval-results-42344527129 id=13564920309 bytes=5597 created=2026-11-07T06:41:58Z expires=2026-12-07T06:41:57Z
+eval-stack-logs-42344527129 id=13564845581 bytes=49775 created=2026-11-07T06:41:59Z expires=2026-11-14T06:41:58Z
+
+== AC3: upload steps in the job log (gate-red run, make eval exit 1)
+2650:2026-11-07T06:41:57.4030090Z   name: eval-results-42344527129
+2654:2026-11-07T06:41:57.4030545Z   if-no-files-found: warn
+2655:2026-11-07T06:41:57.4030689Z   retention-days: 30
+2671:2026-11-07T06:41:57.5289081Z With the provided path, there will be 5 files uploaded
+2681:2026-11-07T06:41:58.4072815Z Artifact eval-results-42344527129 has been successfully uploaded! Final size is 5597 bytes. Artifact ID is 13564920309
+2710:2026-11-07T06:41:58.6091134Z   name: eval-stack-logs-42344527129
+2712:2026-11-07T06:41:58.6091453Z   if-no-files-found: ignore
+2713:2026-11-07T06:41:58.6091603Z   retention-days: 7
+2729:2026-11-07T06:41:58.7251439Z With the provided path, there will be 2 files uploaded
+2739:2026-11-07T06:41:59.6854053Z Artifact eval-stack-logs-42344527129 has been successfully uploaded! Final size is 49775 bytes. Artifact ID is 13564845581
+
+== step summary writes (the summary page itself is not reachable from the QA sandbox)
+993Z [36;1m{ echo "### make eval-seed: exit $rc"; echo '```'; cat seed-ids.log; tail -n 3 seed.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"[0m
+559Z [36;1m  echo '```'; } | tee -a "$GITHUB_STEP_SUMMARY"[0m
+065Z [36;1m  echo '```'; } >> "$GITHUB_STEP_SUMMARY"[0m
+
+[exit code 0]

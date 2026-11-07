@@ -1,0 +1,22 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/bin/ac8.sh
+== git HEAD: 8fc120916e03475bdea01c870d294e32e724496c
+== wc -l .github/workflows/eval.yml
+149 .github/workflows/eval.yml
+== git diff --shortstat / --stat origin/main...HEAD
+ .github/workflows/eval.yml | 149 +++++++++++++++++++++++++++++++++++++++++++++
+ CONTRIBUTING.md            |   8 ++-
+ Makefile                   |  41 ++++++++++++-
+ 3 files changed, 194 insertions(+), 4 deletions(-)
+== CI 'Agent ownership check' job 128319267785 (log fetched via REST):
+2026-11-07T05:52:21.1723637Z ##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+2026-11-07T05:52:21.1725679Z [36;1m.github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"[0m
+2026-11-07T05:52:21.2155808Z Ownership OK for role=backend (198 changed lines)
+== AC7: stale wording check
+(no 'once EVAL-1' / 'added by EVAL-1' left in CONTRIBUTING.md)
+== AC7: CONTRIBUTING rows for eval-seed / eval / eval.yml
+30:| `make eval-seed` | Ingests every ID in `evals/corpus.txt` via `POST /v1/papers/ingest` (≥ 3 s apart, 3 attempts on HTTP 000/5xx); exits non-zero if any ID fails, never skips one. One line per ID in `seed-ids.log` | `make stack-up`, `make migrate`, `./bin/arxivlens query` |
+31:| `make eval` | Quality gate over `evals/` (`scripts/eval_gate.py`): exit 0 pass, 1 gate fail, 2 could not run; results in `evals/results/<timestamp>.json` | Seeded corpus + `query` + embedder API |
+32:| `.github/workflows/eval.yml` | CI: whole stack, `make eval-seed`, `make eval`. Runs nightly (06:17 UTC), by hand (`gh workflow run eval.yml`, or Actions → Eval → Run workflow) and on PRs that change `eval.yml`. Metric table and exit code in the run's step summary; artifact `eval-results-<run id>` (`evals/results/*.json` + logs) kept 30 days, `eval-stack-logs-<run id>` on failure kept 7 days. GitHub pauses the nightly after 60 days without repo activity | GitHub runner |
+46:evals/           Versioned eval datasets and thresholds for `make eval`
+
+[exit code 0]

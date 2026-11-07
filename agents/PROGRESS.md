@@ -277,3 +277,11 @@ Format:
 - **LLM-1 AC8: split, no second exception.** 655 non-test lines vs < 400. LLM-1 = types/errors/config without `FromEnv`/`llmtest`/CI step (≈ 376).
   New **LLM-1b** = `openai.go` + `FromEnv` (≈ 279), Ready once LLM-1 merges. QA-8 now depends on both. The split runs in parallel with the
   AI-7 → AI-6 chain that QA-8 also waits on, so QA-8's start doesn't move. Design addendum appended.
+
+## 2026-11-07 pm-lead: AI-7 #21 final review → APPROVE
+- Reviewed `9265b5f` against the ticket, design (+ 2 build deviations), ADR-0003 and the QA pack (`62b13e2`, 9 evidence files, all prove their AC).
+  Verdict **APPROVE** (`agents/reviews/AI-7/report.md`). PR body at `/tmp/claude-0/s/pr21-body.md` for the orchestrator (ready for review,
+  KAN-36 → Ready to merge). **Merge after EVAL-6 #20**: raised now with that as the PR's first line; design condition 4 amended.
+- QA [spec] 3: AC9 accepted as not run; measurement moved to **EVAL-4 AC5** (EVAL-6 `refusal_reason_counts` on a `main` with #20 + #21). No new
+  backend ticket (no `internal/**` in `stack.yml` paths: cost); `query.log` always-upload is a Backlog P3 nit with the F1-drop change.
+  [spec] 4: design header fixed. QA nit 2 → Decision 4 for Mahesh (refusal `score` = support score, 0 when uncited/unverified) + FE-3 note.

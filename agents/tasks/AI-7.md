@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0003 (Accepted, `51d8ff5`). **Merge gate:** EVAL-6 must be merged first, so the eval classifies the new refusals correctly (see Notes). |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-7"`) |
 | **Design required** | **yes** (short, ≤ 1 page, `docs/design/AI-7.md`): P0. ADR-0003 settles the policy, but the design fixes how evidence passages are returned, the reason precedence, and the test plan. |
-| **Status** | Ready (Wave 1) · design approved 2026-11-07 |
+| **Status** | Ready to merge: PR [#21](https://github.com/MaheshPulivarthi18/ArxivLens/pull/21) raised 2026-11-07 (QA PASS r1 · PM APPROVE) · **merge after EVAL-6 #20** |
 
 ## Goal
 ADR-0003: when every citation in an answer is unsupported (case A) or support can't be checked (case B), `/v1/ask`
@@ -39,17 +39,17 @@ so the user can read the evidence. This works on today's template path and becom
 - Out of scope: `scripts/` and `evals/` (EVAL-6), any per-citation `status` field (ADR-0014), thresholds, frontend (FE-3), the LLM path (QA-8).
 
 ## Acceptance criteria
-- [ ] AC1 — Case A: a fake embedder making every citation score < 0.50 → `refusal_reason == "all_citations_unsupported"`, the A sentence,
+- [x] AC1 — Case A: a fake embedder making every citation score < 0.50 → `refusal_reason == "all_citations_unsupported"`, the A sentence,
       `citations` = all relevant hits with their computed scores and `supported=false`, non-empty `trace_id`.
-- [ ] AC2 — Case B: embedder error on either batch → `verification_unavailable`, the B sentence, evidence passages with score 0.
+- [x] AC2 — Case B: embedder error on either batch → `verification_unavailable`, the B sentence, evidence passages with score 0.
       Mixed (some citations checked-and-unsupported, some unverified, none supported) → `verification_unavailable`.
-- [ ] AC3 — ≥ 1 supported citation → response identical to today (no `refusal_reason` key in the JSON; existing answer tests pass unmodified).
-- [ ] AC4 — No in-range marker (e.g. only `[9]` with K = 3) → `all_citations_unsupported`.
-- [ ] AC5 — The early refusal is unchanged: `TestAskRefusesWhenNothingPasses` passes unmodified; its JSON has no `refusal_reason` key.
-- [ ] AC6 — The log line for A/B has the trace ID and counts, and no passage/question text (assert on a captured logger).
-- [ ] AC7 — `rag.go` per-file coverage ≥ 90%: `go test -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | grep rag.go` (paste rows).
-- [ ] AC8 — README `/v1/ask` row updated. `git diff origin/main -- internal/query/server.go evals/thresholds.json` is empty.
-- [ ] AC9 — Effect on today's template answers, measured: the M3 suite on `stack.yml` (or `make eval` if EVAL-3 has merged) reports
+- [x] AC3 — ≥ 1 supported citation → response identical to today (no `refusal_reason` key in the JSON; existing answer tests pass unmodified).
+- [x] AC4 — No in-range marker (e.g. only `[9]` with K = 3) → `all_citations_unsupported`.
+- [x] AC5 — The early refusal is unchanged: `TestAskRefusesWhenNothingPasses` passes unmodified; its JSON has no `refusal_reason` key.
+- [x] AC6 — The log line for A/B has the trace ID and counts, and no passage/question text (assert on a captured logger).
+- [x] AC7 — `rag.go` per-file coverage ≥ 90%: `go test -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | grep rag.go` (paste rows).
+- [x] AC8 — README `/v1/ask` row updated. `git diff origin/main -- internal/query/server.go evals/thresholds.json` is empty.
+- [ ] AC9 — **not run** (accepted at PM review; measured in EVAL-4 AC5) — Effect on today's template answers, measured: the M3 suite on `stack.yml` (or `make eval` if EVAL-3 has merged) reports
       how many answer-set questions now refuse, with which reason. Paste counts, or "not run: <reason>" with the exact command.
       A rise is expected and is a finding for pm-lead, not something to tune away (no threshold change).
 
@@ -79,3 +79,11 @@ git diff origin/main -- internal/query/server.go evals/thresholds.json
   (1) `validateCitations` keeps its one-value signature and wraps the new `checkCitations` (which returns `([]Citation, citationCheck)`). Changing the signature would have meant editing 4 existing tests that call it, and the PM condition forbids that.
   (2) `citationCheck.hitScore` defaults to 0 and a parallel `hitScored []bool` tracks whether a score exists. This replaces the `-1` sentinel, so a real cosine of -1 can't be confused with "not computed".
   Local check: Go 1.24 scratch module (pgx/db stubbed, go directive 1.24). vet is clean and all tests pass. rag.go per-file coverage is 144/147 = 98.0%. Mutation checks were killed: reason precedence, never-refuse, always-refuse, evidence = cited only, max→last score, unverified not counted, reason dropped, log trace_id renamed. CI on Go 1.25 is still the source of truth. AC9: not run (no stack in the sandbox), it needs the PR's stack.yml `query.log`.
+- 2026-11-07 (qa-reviewer): PASS round 1 at `9265b5f` (`agents/reviews/AI-7/report.md`, evidence at `62b13e2`). AC1–AC8 met; AC9 not run.
+- 2026-11-07 (pm-lead, final review): **APPROVE**. Decisions on QA's [spec] findings:
+  - AC9 accepted as "not run": `stack.yml` isn't triggered by `internal/**` and uploads `query.log` only on failure. The measurement moves to
+    **EVAL-4 AC5** (refusal counts by reason from EVAL-6's `refusal_reason_counts` on a `main` that has #20 + #21). No new backend ticket:
+    widening `stack.yml`'s path filter costs a full-stack run per Go PR; always uploading `query.log` is a Backlog nit (backend, P3).
+  - Design header fixed (Draft → Approved with conditions).
+  - Merge gate: #21 is raised now with "Merge after #20" as the first line of the PR; design condition 4 amended. Merge order unchanged.
+  - Added Decision 4 for Mahesh in the PR: in a refusal, `score` is the support score (0 when uncited/unverified), not the retrieval score.

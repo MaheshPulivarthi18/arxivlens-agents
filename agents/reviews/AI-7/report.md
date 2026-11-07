@@ -62,3 +62,83 @@ None of these block the PASS. All are nice-to-have:
 
 ## Hand-off
 PASS → pm-lead final review. Before raising the PR: EVAL-6 (#20) must be merged (finding 5), AC9 needs the not-run reason and command in the PR description (finding 1), and [spec] 3 needs a decision.
+
+---
+
+# PM final review: AI-7 · PR #21 · round 1
+
+**Verdict:** APPROVE
+**Reviewer:** pm-lead · **Date:** 2026-11-07 · **Reviewed commit:** `9265b5fcc5005049cab60a1ed1984ac147d2670b` · **QA pack:** arxivlens-agents `62b13e2`
+**Inputs:** `agents/tasks/AI-7.md`, `docs/design/AI-7.md` (PM decision + build deviations), ADR-0003 (Accepted), Product PRD QA-4, QA-5, §7.1–7.2,
+Technical PRD §7.2, the PR diff (`gh api .../pulls/21/files`), the QA report above and all 9 evidence images + `.txt` files.
+No review or comment from Mahesh on #21 yet (checked `pulls/21/reviews`: none; the one issue comment is the QA report).
+
+## Evidence check (each file against the AC it claims)
+| File | Claims | Proves it? |
+|---|---|---|
+| 00-ci-checks | CI for head `9265b5f` | Yes. All 5 check runs `completed / success` on the exact head SHA. |
+| 01-ci-go-job | Go vet + test + build on 1.25 | Yes. `GOVERSION='go1.25.0'`, `make lint-go`, `make test-go` → `ok arxivlens/internal/query`, `make build-go`. Proves the PR's tests (incl. the changed `TestAskBatchFailClosed`) pass on the real toolchain. |
+| 02-scope-ac8 | Scope + AC8 | Yes. 3 files, 318+/26−; `server.go` + `thresholds.json` diff = 0 lines; 0 files under out-of-scope paths; README diff is the one `/v1/ask` row (full row in the `.txt`). |
+| 03-unit-tests | AC1–AC6 test names pass | Yes, as a by-name list. The assertions themselves I checked in the diff (see below). Red "PASS" lines are the known `render_evidence.py` colouring nit (names containing "Fail"), not failures. |
+| 04-coverage-rag | AC7 ≥ 90% | Yes, with the caveat QA states: scratch module with verbatim sources, because CI doesn't print `rag.go` rows. 144/147 = 98.0%, lowest function 90.0%. The ticket's AC7 command is used verbatim. Accepted (AI-1 lesson: scratch runs are acceptable when CI doesn't print the file). |
+| 05-mutations | Test strength | Yes. 16/16 killed, including the ones that matter for the product: never refuse (M2), always refuse (M3), refuse unless all supported (M4), reason precedence (M1), log leaks answer text (M12). |
+| 06-main-tests-vs-pr | AC3/AC5 + design cond. 1 | Yes. `origin/main`'s unmodified tests against the new `rag.go`: only `TestAskBatchFailClosed` fails (the approved ADR-0003 change); `TestAskRefusesWhenNothingPasses` and every answer test pass unmodified. |
+| 07-existing-test-diff | Design cond. 1 | Yes. 4 hunks; the only removed lines are the two approved assertions; no test function removed; all 5 cases and `wantLog`s unchanged; added reason/B-sentence/markers assertion present. |
+| 08-ac9-stack-not-run | AC9 not run | Yes, proves the reason: `stack.yml`'s `pull_request` paths don't include `internal/**` (only DB + CI ran on this head), `query.log` is copied to `stack-logs/` only under `if: "failure()"`, and #20/#22 are unmerged. |
+
+Diff read (rag.go patch): one optional field; `finalize` returns the answer unchanged as soon as any citation is `Supported`; else reason B iff
+`check.unverified > 0`, else A; evidence = every relevant hit (markers 1..K, best checked score or 0, `supported=false`); the log line carries
+only the trace id, source, reason and 4 integers. `validateCitations`' signature and the existing unverified log line are unchanged. Matches the
+design and both recorded build deviations. Nothing extra: no `scripts/`, `evals/`, `server.go`, frontend or threshold change.
+
+## Product fit
+- **Principle 2 ("say I don't know").** Delivered on today's path: when nothing is supported, no synthesized sentence reaches the user, and the
+  reason is machine-readable, so FE-3 can show reason-specific copy. This is the safety net QA-8 needs before LLM text goes live.
+- **Principle 1 (evidence first).** The refusal still returns every relevant passage with title, section, content and PDF link, so the
+  researcher persona can read the evidence themselves rather than getting an empty screen. ADR-0003 asks for exactly this.
+- **Fail-closed (Technical §7.2).** Unverified never counts as supported, and a partial outage with nothing supported refuses as B rather than A,
+  which is the honest message ("checking is unavailable") instead of blaming the passages.
+- **QA-5 early refusal** is untouched (06, 07, `TestAskEarlyRefusalHasNoRefusalReason`).
+- **Known product risk, stated, not hidden:** the template answer's cosine against chunks may be < 0.50 often, so many of today's real asks may
+  now refuse (A). That is what ADR-0003 decided; it is unmeasured (AC9) and goes in the PR as a decision note for Mahesh, with where it will be
+  measured (EVAL-4 AC5, below).
+
+## Scope
+Right size and right content: 344 changed lines, 3 files, one owner. Every Scope bullet of the ticket is delivered; the M3 test file wasn't
+touched, correctly (the only M3 ask tests are in the F1 `continue-on-error` set, so no required stack step changes; I checked
+`tests/test_m3_query.py` on `origin/main`: only `test_rag_ask_with_groundedness_support` asserts on `/v1/ask` citations, and it is F1-deselected).
+README: the `/v1/ask` row only, as ADR-0003 requires. PRD status rows: QA-4's row is already stale from AI-2 and is in the pending pm-lead
+docs PR (Backlog); I add the ADR-0003 refusal to that same PR after #21 merges (DoD 4 for PRDs is pm-lead's, via PR, not this code PR).
+
+## QA [spec] findings: decisions
+3. **AC9: accept "not run".** The ticket allows it, and QA's evidence (08) proves the reason. Two of my spec assumptions were wrong (path
+   filter; `query.log` upload is failure-only), so a dispatch of `stack.yml` on the branch wouldn't produce the counts either. Per the RET-1
+   lesson the measurement doesn't float: it is attached as **EVAL-4 AC5** (ai-engineer): the first `eval.yml` run that EVAL-4 records must be on
+   an `origin/main` that contains #20 and #21 if both are merged by then, and EVAL-4 reports EVAL-6's `refusal_reason_counts` and
+   `answer_refusal_rate` for the answer set as AI-7's AC9 numbers, with a stop-and-report rule (report to pm-lead, no tuning, no threshold change).
+   That is a better measure than grepping `query.log`, because EVAL-6 classifies every response.
+   **No new backend ticket.** Widening `stack.yml`'s path filter to `internal/**` is rejected: it adds a 45-minute full-stack run, HF downloads
+   and arXiv requests to every Go PR to get a number `eval.yml` gives us anyway (EVAL-6 lesson: check a trigger's cost first). Always
+   uploading `query.log` is a cheap diagnostics improvement: Backlog nit (backend, P3), folded into the next `stack.yml` change (the AI-9
+   follow-up that drops the F1 step).
+4. **Design header fixed.** `docs/design/AI-7.md` now reads `Status: Approved with conditions (pm-lead, 2026-11-07)`.
+5. **Merge gate: raise now, merge after #20.** #20 is already raised for review (ready, PM APPROVE, Jira Ready to merge). The ordering is a
+   merge-time constraint, and only Mahesh merges, so I raise #21 now with "Merge after #20" as the first line of the description and in
+   "Decisions for Mahesh", and the board row says the same. Reasons: Mahesh can review the pair in one sitting and merge in order; holding #21
+   at PM review buys no safety (the PR can't merge itself) and only delays AI-6, which waits on AI-7 *merged*. The cost of a wrong order is small
+   and reversible: no eval runs on `main` until EVAL-3 (#22) merges, so nothing would be misclassified in the meantime. This replaces design
+   condition 4's "pm-lead won't raise it before EVAL-6 is merged" (amended in the design's PM decision); the merge order itself is unchanged.
+
+## QA nits
+1. AC9 row in the PR: replaced with QA's not-run reason and exact command, plus where the number will come from (EVAL-4 AC5).
+2. `score` semantics in a refusal (support score, 0 when uncited or unverified, not the retrieval score): ADR-0003 says "with their scores"
+   without saying which. The ticket chose the support score, so this is my spec, not the code. Added as Decision 4 for Mahesh in the PR, and as a
+   note on FE-3 (show 0 as "not checked", never as "0% relevant"). If Mahesh wants the retrieval score instead, that is a small follow-up on
+   `rag.go` after merge (or part of AI-8's per-citation status, ADR-0014).
+
+QA's "Missing tests" list is nice-to-have and stays out of this PR (the same-hit checked + unverified case is folded into the existing Backlog
+item for AI-2's split log counters).
+
+## Hand-off
+APPROVE → orchestrator: replace the PR #21 description with `/tmp/claude-0/s/pr21-body.md`, mark #21 ready for review, Jira AI-7 story
+(`labels = "task-AI-7"`, KAN-36) → Ready to merge with a link to this verdict. **Merge after EVAL-6 #20.**
