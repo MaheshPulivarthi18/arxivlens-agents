@@ -83,3 +83,13 @@ go test ./internal/query/ ./internal/downloader/ ./internal/crawler/ ./internal/
     I couldn't check arXiv from here (proxy 403); if it fails that way, file the fixture follow-up for ai and don't loosen it. AC6: 321 changed lines (< 400); the PR should carry the suspect-rows SQL above, not run.
   - README: the "On-demand ingest" row doesn't describe the PDF source, so no change. Optional follow-up wording for `README.md` line 164 (after #26 merges):
     `| POST | /v1/papers/ingest | On-demand ingest by arXiv ID or URL (stores the latest arXiv version; a vN suffix in the input is ignored) |`.
+- 2026-11-07 (backend-engineer): rework round 1 for the QA report (`agents/reviews/ING-10/report.md`, FAIL on `d2b133f`). New head is `c940779`.
+  - Finding 1 [blocking, AC5]: I dispatched `stack.yml` on the branch with the REST API, because the path filter skips `internal/**` until #26 merges.
+    Run https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42411848508 (head `c940779`) concluded **success**. Seed step: the on-demand ingest of
+    `2608.20331` returned `"version":1` (57 chunks, 57 embeddings), and `arxivlens status` reported `(v1)` with key `raw/2608.20331_v1.pdf`. arXiv still serves v1, so the M4
+    fixture holds and no ai follow-up is needed. `make test-full` (F1 deselected) gave `96 passed, 1 skipped, 3 deselected`, including M3 and M4 chaos. The skip is the opt-in
+    `DATABASE_URL` evals test. The known-failure F1 step (`continue-on-error`) gave `2 failed, 1 passed`, the documented CPU rerank timeout. ci.yml on `c940779` is all green.
+    PR comment: https://github.com/MaheshPulivarthi18/ArxivLens/pull/31#issuecomment-6712826852
+  - Finding 2 [spec, pm-lead]: AC4 wording. I made no change and left the ACs untouched. This is pm-lead's call.
+  - Finding 3 [nit]: I reworded only the `crawler.go:198-200` comment, which now says the row is stored as v1, the downloader fetches v1, and `source_url` stays unversioned on purpose for the
+    suspect-rows query. Behaviour is unchanged. Commit `c940779`.
