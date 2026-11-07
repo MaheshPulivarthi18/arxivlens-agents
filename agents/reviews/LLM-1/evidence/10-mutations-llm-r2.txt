@@ -1,0 +1,33 @@
+$ bash /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/r2-mutate.sh
+== M1 Unwrap reports ErrTimeout as the Kind of every typed error: KILLED
+--- FAIL: TestErrorsIsAs (0.00s)
+    --- FAIL: TestErrorsIsAs/rate_limited (0.00s)
+        llm_test.go:93: errors.Is(err, llm: timeout) = true, want false
+== M2 cancel (nil Kind) unwraps to ErrTimeout instead of context.Canceled: KILLED
+--- FAIL: TestErrorsIsAs (0.00s)
+    --- FAIL: TestErrorsIsAs/cancel (0.00s)
+        llm_test.go:93: errors.Is(err, llm: timeout) = true, want false
+== M3 Unwrap drops the cause: KILLED
+--- FAIL: TestErrorShape (0.00s)
+    --- FAIL: TestErrorShape/kind_and_cause (0.00s)
+        llm_test.go:60: Unwrap() = [llm: timeout], want 2 entries
+== M4 newError skips key redaction: KILLED
+--- FAIL: TestErrorShape (0.00s)
+    --- FAIL: TestErrorShape/key_redacted_from_detail (0.00s)
+        llm_test.go:53: Error() = "llm: provider error: transport: echo sk-123 and sk-123", want "llm: provider error: transport: echo [REDACTED] and [REDACTED]"
+== M5 Error() prints <nil> for nil Kind: KILLED
+--- FAIL: TestErrorShape (0.00s)
+    --- FAIL: TestErrorShape/cancel_has_nil_kind (0.00s)
+        llm_test.go:53: Error() = "<nil>", want "llm: canceled"
+== M6 Secret.String returns the raw key: KILLED
+--- FAIL: TestConfigRedactsKey (0.00s)
+    config_test.go:104: key leaked in "{\"BaseURL\":\"http://localhost:11434/v1\",\"Model\":\"m\",\"APIKey\":\"sk-SENTINEL-KEY-config\",\"Timeout\":2000000000,\"MaxTokens\":256}"
+== M7 Config.String prints the revealed key: KILLED
+--- FAIL: TestConfigRedactsKey (0.00s)
+    config_test.go:104: key leaked in "llm.Config{base_url: http://localhost:11434/v1, model: m, api_key: sk-SENTINEL-KEY-config, timeout: 2s, max_tokens: 256}"
+== M8 base URL query check removed: KILLED
+--- FAIL: TestConfigFromEnv (0.00s)
+    --- FAIL: TestConfigFromEnv/base_url_query_key (0.00s)
+        config_test.go:53: want error, got cfg=llm.Config{base_url: https://h/v1?key=SECRETQ, model: m, api_key: [none], timeout: 2s, max_tokens: 256}
+
+[exit code 0]

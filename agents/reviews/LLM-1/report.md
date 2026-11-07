@@ -49,3 +49,52 @@ This is the seam QA-8 (Product PRD) and ADR-0001/0002 call for: one stdlib-only 
 
 ## Hand-off
 FAIL → back to backend-engineer. Fix finding 1 (tests only, about 25 lines). Nothing else blocks, and prod stays at 375. The round-2 check is that M1/M2 are killed and CI is green on the new head.
+
+---
+
+# QA report — LLM-1 · PR #23 · round 2
+
+**Verdict:** PASS
+**Reviewed commit:** `8e333c4661ad5173bb448d1e27ec78bd863e250b` (round 1 was `8e32771`) · **Date:** 2026-11-07
+
+One-line reason: round-2 delta is tests plus the CI step name only (`llm_test.go` +39, `ci.yml` 1 line renamed). The new `TestErrorsIsAs` table kills mutants M1 and M2, which survived in round 1. All 8 llm/config mutants and all 7 fake mutants are now killed, CI is green on `8e333c4`, and prod stays at 375 lines.
+
+## Round-1 findings re-checked
+| # | Round-1 finding | Status at 8e333c4 | Evidence |
+|---|---|---|---|
+| 1 | [blocking] `errors.Is`/`errors.As` table missing | **Fixed.** `TestErrorsIsAs` (`llm_test.go:74-111`) has 6 rows: one per sentinel built with `newError`, plus cancel (`newError(nil, …, context.Canceled, …)`). Each `err` is held in an `error` interface field. For every row it asserts `errors.Is(err, s) == (s == kind)` for all five sentinels, so the cancel row requires false for all five, `ErrTimeout` included. The timeout row asserts `errors.Is(err, context.DeadlineExceeded)`, the cancel row asserts `errors.Is(err, context.Canceled)`, typed rows assert `errors.Is(err, context.Canceled)` is false, and `errors.As(err, &*Error)` returns the expected `Kind` (nil for cancel). M1 is killed at `rate_limited`, M2 at `cancel` | [10](evidence/10-mutations-llm-r2.png), CI [15](evidence/15-ci-llm-step-r2.png) (6 subtests PASS) |
+| 2 | [nit] `attemptsText` has no caller | Unchanged, still non-blocking | n/a |
+| 3 | [nit] `Config.String` prints a non-normalized BaseURL | Unchanged, no path in this PR; carry to LLM-1b `New` | n/a |
+| 4 | [nit] CI step named "LLM client tests" | **Fixed.** Now "LLM package tests (verbose, race, per-file coverage)" | [13](evidence/13-scope-r2.png) (round-2 delta) |
+| 5 | [spec] JSON-logging `Request`/`Response` | Still open for pm-lead, not held against the PR | n/a |
+
+## Test results (round 2)
+| Check | Source | Result |
+|---|---|---|
+| All 5 check runs (Go, Python M0, Frontend, DB, ownership) | CI on 8e333c4 ([14](evidence/14-ci-checks-r2.png)) | all `completed success` |
+| LLM package tests step | CI Go job 128332211740 ([15](evidence/15-ci-llm-step-r2.png)) | `-race` pass; `TestErrorsIsAs` + 6 subtests PASS; per-file coverage `config.go 100.0%`, `llm.go 100.0%`, `llmtest/fake.go 100.0%` (AC9) |
+| `make lint` / `make test-unit` | CI (`make test-go` in the Go job) | pass. Not run locally: sandbox has Go 1.24, `go.mod` needs 1.25 |
+| `go vet`, `gofmt -l`, `go test -race -count=3 ./internal/llm/...`, verbose `TestErrorsIsAs` | local Go 1.24 scratch-module copy ([11](evidence/11-local-vet-race-r2.png)) | clean / clean / pass / PASS |
+| Mutation re-run, llm.go + config.go (M1–M8) | local ([10](evidence/10-mutations-llm-r2.png)) | **8/8 killed** (round 1: 6/8) |
+| Mutation re-run, llmtest/fake.go (F1–F7) | local ([12](evidence/12-mutations-fake-r2.png)) | 7/7 killed, no regression |
+| Scope / AC8 | worktree at 8e333c4 ([13](evidence/13-scope-r2.png)) | 7 files, same as round 1; prod 375 (< 400), test 412; ci.yml +4/−0 vs main; go.mod/go.sum 0 lines; no `openai.go`, `func FromEnv` count 0, 0 importers outside `internal/llm` |
+| `make eval` | n/a | not run: nothing imports `internal/llm`, so retrieval and answering can't change |
+
+## Acceptance criteria (round 2)
+| AC | Met? | Evidence |
+|---|---|---|
+| AC1 (split) | ✅ | unchanged code and tests since round 1; M6/M7/M8 still killed ([10](evidence/10-mutations-llm-r2.png)) |
+| AC4 (split) | ✅ | `TestErrorsIsAs` + `TestErrorShape`; M1, M2, M3, M5 killed ([10](evidence/10-mutations-llm-r2.png)); CI [15](evidence/15-ci-llm-step-r2.png) |
+| AC6 (split) | ✅ | unchanged; M4 killed ([10](evidence/10-mutations-llm-r2.png)) |
+| AC7 | ✅ | unchanged; F1–F7 killed ([12](evidence/12-mutations-fake-r2.png)); `-race` in CI ([15](evidence/15-ci-llm-step-r2.png)) |
+| AC8 | ✅ | [13](evidence/13-scope-r2.png) |
+| AC9 | ✅ | [15](evidence/15-ci-llm-step-r2.png) |
+
+Design condition 2 (cancel error shape + `errors.Is` table, binding) is now fully met. Conditions 1, 4 and 5 are still met as in round 1.
+
+## Findings (round 2)
+1. [nit] In `TestErrorsIsAs`, the `provider` and `bad response` rows pass a cause (`errors.New(...)`) but set `tt.cause` to nil, so the test doesn't assert that those causes stay reachable through `errors.Is`. `TestErrorShape/kind_and_cause` covers cause unwrapping in general (M3 is killed), so this is not blocking.
+2. [nit] Round-1 nits 2 and 3 carry over to LLM-1b (see the table above).
+
+## Hand-off
+PASS → pm-lead for final review. Open items for pm-lead: [spec] item 5 from round 1, and the LLM-1b carry-overs (`attemptsText` caller, normalize BaseURL before printing in `New`).

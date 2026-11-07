@@ -1,0 +1,97 @@
+$ gh api .../actions/jobs/128332211740/logs (LLM package tests step, '=== RUN' lines dropped)
+2026-11-07T06:51:35.2553836Z ##[group]Run go test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out
+2026-11-07T06:51:35.2554408Z [36;1mgo test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out[0m
+2026-11-07T06:51:35.2554925Z [36;1mawk -F'[: ]' 'NR>1 {t[$1]+=$3; if ($4>0) c[$1]+=$3} END {for (f in t) printf "%s %.1f%%\n", f, 100*c[f]/t[f]}' llm.out | sort[0m
+2026-11-07T06:51:35.2599358Z shell: /usr/bin/bash -e {0}
+2026-11-07T06:51:35.2599597Z ##[endgroup]
+2026-11-07T06:51:36.6547187Z --- PASS: TestConfigFromEnv (0.00s)
+2026-11-07T06:51:36.6547558Z     --- PASS: TestConfigFromEnv/model_unset_disables_the_provider (0.00s)
+2026-11-07T06:51:36.6548504Z     --- PASS: TestConfigFromEnv/model_only_takes_the_local_defaults (0.00s)
+2026-11-07T06:51:36.6548909Z     --- PASS: TestConfigFromEnv/every_variable_set (0.00s)
+2026-11-07T06:51:36.6549234Z     --- PASS: TestConfigFromEnv/blank_model (0.00s)
+2026-11-07T06:51:36.6549573Z     --- PASS: TestConfigFromEnv/timeout_not_a_duration (0.00s)
+2026-11-07T06:51:36.6549932Z     --- PASS: TestConfigFromEnv/timeout_bare_number (0.00s)
+2026-11-07T06:51:36.6550258Z     --- PASS: TestConfigFromEnv/timeout_zero (0.00s)
+2026-11-07T06:51:36.6550603Z     --- PASS: TestConfigFromEnv/timeout_negative (0.00s)
+2026-11-07T06:51:36.6550957Z     --- PASS: TestConfigFromEnv/max_tokens_not_an_int (0.00s)
+2026-11-07T06:51:36.6551303Z     --- PASS: TestConfigFromEnv/max_tokens_zero (0.00s)
+2026-11-07T06:51:36.6551629Z     --- PASS: TestConfigFromEnv/max_tokens_negative (0.00s)
+2026-11-07T06:51:36.6551972Z     --- PASS: TestConfigFromEnv/max_tokens_too_big (0.00s)
+2026-11-07T06:51:36.6552315Z     --- PASS: TestConfigFromEnv/base_url_relative (0.00s)
+2026-11-07T06:51:36.6552656Z     --- PASS: TestConfigFromEnv/base_url_no_scheme (0.00s)
+2026-11-07T06:51:36.6552978Z     --- PASS: TestConfigFromEnv/base_url_ftp (0.00s)
+2026-11-07T06:51:36.6553293Z     --- PASS: TestConfigFromEnv/base_url_no_host (0.00s)
+2026-11-07T06:51:36.6553625Z     --- PASS: TestConfigFromEnv/base_url_unparseable (0.00s)
+2026-11-07T06:51:36.6553970Z     --- PASS: TestConfigFromEnv/base_url_userinfo (0.00s)
+2026-11-07T06:51:36.6554289Z     --- PASS: TestConfigFromEnv/base_url_query_key (0.00s)
+2026-11-07T06:51:36.6554613Z     --- PASS: TestConfigFromEnv/base_url_empty_query (0.00s)
+2026-11-07T06:51:36.6555161Z     --- PASS: TestConfigFromEnv/base_url_fragment (0.00s)
+2026-11-07T06:51:36.6555667Z --- PASS: TestConfigRedactsKey (0.00s)
+2026-11-07T06:51:36.6558150Z --- PASS: TestConfigNormalize (0.00s)
+2026-11-07T06:51:36.6558510Z     --- PASS: TestConfigNormalize/zero_fields_take_defaults (0.00s)
+2026-11-07T06:51:36.6558908Z     --- PASS: TestConfigNormalize/trailing_slash_trimmed (0.00s)
+2026-11-07T06:51:36.6559350Z     --- PASS: TestConfigNormalize/no_model (0.00s)
+2026-11-07T06:51:36.6559666Z     --- PASS: TestConfigNormalize/negative_timeout (0.00s)
+2026-11-07T06:51:36.6559992Z     --- PASS: TestConfigNormalize/max_tokens_too_big (0.00s)
+2026-11-07T06:51:36.6560338Z     --- PASS: TestConfigNormalize/negative_max_tokens (0.00s)
+2026-11-07T06:51:36.6560668Z     --- PASS: TestConfigNormalize/bad_base_url (0.00s)
+2026-11-07T06:51:36.6561177Z --- PASS: TestPrintFormsShowSizesOnly (0.00s)
+2026-11-07T06:51:36.6562845Z --- PASS: TestErrorShape (0.00s)
+2026-11-07T06:51:36.6563126Z     --- PASS: TestErrorShape/kind_and_detail (0.00s)
+2026-11-07T06:51:36.6563429Z     --- PASS: TestErrorShape/kind_and_cause (0.00s)
+2026-11-07T06:51:36.6563737Z     --- PASS: TestErrorShape/cancel_has_nil_kind (0.00s)
+2026-11-07T06:51:36.6564047Z     --- PASS: TestErrorShape/zero_value (0.00s)
+2026-11-07T06:51:36.6564373Z     --- PASS: TestErrorShape/key_redacted_from_detail (0.00s)
+2026-11-07T06:51:36.6566174Z --- PASS: TestErrorsIsAs (0.00s)
+2026-11-07T06:51:36.6566431Z     --- PASS: TestErrorsIsAs/timeout (0.00s)
+2026-11-07T06:51:36.6566729Z     --- PASS: TestErrorsIsAs/rate_limited (0.00s)
+2026-11-07T06:51:36.6567019Z     --- PASS: TestErrorsIsAs/provider (0.00s)
+2026-11-07T06:51:36.6567302Z     --- PASS: TestErrorsIsAs/bad_response (0.00s)
+2026-11-07T06:51:36.6567596Z     --- PASS: TestErrorsIsAs/invalid_request (0.00s)
+2026-11-07T06:51:36.6567886Z     --- PASS: TestErrorsIsAs/cancel (0.00s)
+2026-11-07T06:51:36.6568346Z PASS
+2026-11-07T06:51:36.6568528Z coverage: 100.0% of statements
+2026-11-07T06:51:36.6568801Z ok  	arxivlens/internal/llm	1.018s	coverage: 100.0% of statements
+2026-11-07T06:51:36.7506500Z --- PASS: TestFakeScript (0.00s)
+2026-11-07T06:51:36.7507126Z --- PASS: TestFakeReturnsCopies (0.00s)
+2026-11-07T06:51:36.7507591Z --- PASS: TestFakeRequests (0.00s)
+2026-11-07T06:51:36.7508908Z --- PASS: TestFakeHang (0.10s)
+2026-11-07T06:51:36.7509181Z     --- PASS: TestFakeHang/deadline (0.05s)
+2026-11-07T06:51:36.7509465Z     --- PASS: TestFakeHang/cancel (0.05s)
+2026-11-07T06:51:36.7509930Z --- PASS: TestFakeConcurrent (0.00s)
+2026-11-07T06:51:36.7510142Z PASS
+2026-11-07T06:51:36.7510317Z coverage: 100.0% of statements
+2026-11-07T06:51:36.7510613Z ok  	arxivlens/internal/llm/llmtest	1.115s	coverage: 100.0% of statements
+2026-11-07T06:51:36.7897740Z arxivlens/internal/llm/config.go:35:		NewSecret	100.0%
+2026-11-07T06:51:36.7898466Z arxivlens/internal/llm/config.go:42:		reveal		100.0%
+2026-11-07T06:51:36.7898955Z arxivlens/internal/llm/config.go:49:		String		100.0%
+2026-11-07T06:51:36.7899501Z arxivlens/internal/llm/config.go:56:		GoString	100.0%
+2026-11-07T06:51:36.7900058Z arxivlens/internal/llm/config.go:57:		MarshalJSON	100.0%
+2026-11-07T06:51:36.7900826Z arxivlens/internal/llm/config.go:68:		String		100.0%
+2026-11-07T06:51:36.7901204Z arxivlens/internal/llm/config.go:73:		GoString	100.0%
+2026-11-07T06:51:36.7901672Z arxivlens/internal/llm/config.go:80:		ConfigFromEnv	100.0%
+2026-11-07T06:51:36.7902217Z arxivlens/internal/llm/config.go:113:		normalize	100.0%
+2026-11-07T06:51:36.7902715Z arxivlens/internal/llm/llm.go:41:		String		100.0%
+2026-11-07T06:51:36.7903201Z arxivlens/internal/llm/llm.go:46:		GoString	100.0%
+2026-11-07T06:51:36.7903623Z arxivlens/internal/llm/llm.go:58:		String		100.0%
+2026-11-07T06:51:36.7904093Z arxivlens/internal/llm/llm.go:64:		GoString	100.0%
+2026-11-07T06:51:36.7904597Z arxivlens/internal/llm/llm.go:77:		String		100.0%
+2026-11-07T06:51:36.7904917Z arxivlens/internal/llm/llm.go:83:		GoString	100.0%
+2026-11-07T06:51:36.7905187Z arxivlens/internal/llm/llm.go:107:		Error		100.0%
+2026-11-07T06:51:36.7905553Z arxivlens/internal/llm/llm.go:119:		GoString	100.0%
+2026-11-07T06:51:36.7905879Z arxivlens/internal/llm/llm.go:122:		Unwrap		100.0%
+2026-11-07T06:51:36.7906377Z arxivlens/internal/llm/llm.go:133:		newError	100.0%
+2026-11-07T06:51:36.7906842Z arxivlens/internal/llm/llm.go:140:		attemptsText	100.0%
+2026-11-07T06:51:36.7907361Z arxivlens/internal/llm/llmtest/fake.go:26:	Reply		100.0%
+2026-11-07T06:51:36.7907684Z arxivlens/internal/llm/llmtest/fake.go:29:	Fail		100.0%
+2026-11-07T06:51:36.7908283Z arxivlens/internal/llm/llmtest/fake.go:32:	Hang		100.0%
+2026-11-07T06:51:36.7908697Z arxivlens/internal/llm/llmtest/fake.go:44:	New		100.0%
+2026-11-07T06:51:36.7908990Z arxivlens/internal/llm/llmtest/fake.go:46:	Name		100.0%
+2026-11-07T06:51:36.7909337Z arxivlens/internal/llm/llmtest/fake.go:49:	Complete	100.0%
+2026-11-07T06:51:36.7909658Z arxivlens/internal/llm/llmtest/fake.go:74:	Requests	100.0%
+2026-11-07T06:51:36.7910000Z arxivlens/internal/llm/llmtest/fake.go:84:	copyRequest	100.0%
+2026-11-07T06:51:36.7910385Z total:						(statements)	100.0%
+2026-11-07T06:51:36.7944888Z arxivlens/internal/llm/config.go 100.0%
+2026-11-07T06:51:36.7945308Z arxivlens/internal/llm/llm.go 100.0%
+2026-11-07T06:51:36.7945573Z arxivlens/internal/llm/llmtest/fake.go 100.0%
+
