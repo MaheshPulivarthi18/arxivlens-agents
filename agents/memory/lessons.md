@@ -24,6 +24,9 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-03][ING-8] A requested task ID (ING-7) collided with an existing Product PRD row ID with a different meaning → before creating a task ID in a series that mirrors PRD rows (ING, QA, OPS), grep the PRD tables for it. (seen 1×)
 - [2026-11-07][PLAN] Planning parallel waves, the file-overlap rule caught `README.md` (EVAL-3 Testing line vs AI-7 API row) and `tests/test_evals_data.py` (EVAL-6 vs RET-2's parity list), and the API contract caught claim fields ADR-0003 didn't cover → when picking parallel tasks, list every shared doc/test file (README, CONTRIBUTING, test_evals_data.py, rag.go) per task and move or sequence edits; check each new response field against the Accepted ADR's exact wording. (seen 1×)
 
+- [2026-11-07][LLM-1] A design's diff-size estimate (~380 prod) was 72% low (655), and I'd already granted a size exception on that estimate → when a design is near the 400 target, ask for a counted skeleton (`wc -l` of the stubbed files plus doc comments) before approving, and name the split seam in the PM decision up front. (seen 1×)
+- [2026-11-07][EVAL-6] QA proposed widening an expensive workflow's triggers to satisfy a DoD item → check the cost of a trigger (external requests, runtime) before accepting; a manual `workflow_dispatch` on the branch often meets the DoD item without the cost. (seen 1×)
+
 ## ai-engineer
 - [2026-11-01][SETUP] Eval queries are hardcoded inside `scripts/evaluate_retrieval.py` → don't add more there; EVAL-1 moves them to `evals/`. (seen 1×)
 - [2026-11-01][EVAL-1] The first gate draft let failed /v1/ask calls drop out of the gated metrics, so a dead service could PASS → eval gates must fail closed: count errors, put failures into latency (timeouts at ≥ timeout), and add a test where some requests fail. (seen 1×)

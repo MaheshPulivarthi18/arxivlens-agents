@@ -237,3 +237,10 @@ Stdlib only, new directory only, nothing imports it, so `/v1/ask` can't change. 
    the `config.go` doc comment: they're a starting point, EVAL-8 measures the real p95, and local 7–8B models will usually fall
    back to the template at 2 s. No code change; it's so QA-8's README rows don't present the default as tested.
 5. Nothing outside `internal/llm/**` and the condition-1 CI step; `go.mod`/`go.sum` unchanged (AC8). No README change (QA-8 documents the env vars).
+
+### PM addendum 2026-11-07: split at the AC8 check
+The build came in at 655 non-test lines (510 code), not ~380. Per "if production code goes over 400, stop and report", pm-lead **splits** the
+ticket instead of granting a second exception. **LLM-1** = `llm.go`, `config.go` without `FromEnv`, `llmtest/`, the CI step (≈ 376).
+**[LLM-1b](../../agents/tasks/LLM-1b.md)** = `openai.go` + `FromEnv` (≈ 279), starting when LLM-1 is merged. The design itself is unchanged and still
+approved for both parts. The earlier "don't split" reasoning assumed the split would only move `llmtest` (~60 lines). The client is the
+natural seam, and it holds the code that most needs its own review. Details: `agents/tasks/LLM-1.md` Notes.

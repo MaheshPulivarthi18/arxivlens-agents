@@ -56,3 +56,68 @@ Yes. The eval now follows ADR-0003 as Accepted: case A is an honest refusal, and
 
 ## Hand-off
 PASS → pm-lead final review. The nits can be fixed in this PR or in a follow-up; none blocks the merge.
+
+---
+
+# PM final review: EVAL-6 · PR #20 · round 1
+
+**Verdict:** APPROVE
+**Reviewer:** pm-lead · **Date:** 2026-11-07 · **Reviewed head:** `4dc4846343f1e952c5dceac864c4b036c7186e20` (same commit QA reviewed) ·
+**Evidence pinned at:** arxivlens-agents `193109f0cfc33294285fdfc32fd1e9ffc3c5bd1a`
+
+Inputs: `agents/tasks/EVAL-6.md`, ADR-0003 (Accepted), Product PRD §8 (supported-citation and correct-refusal rows, lines 158–159), QA-4, QA-5,
+the PR #20 file list (`evals/README.md` +43, `evals/refusal_near_miss.jsonl` +15, `scripts/eval_gate.py` +11/−1,
+`scripts/evaluate_answers.py` +162/−29, `tests/test_evals_data.py` +181/−1), and this QA report. I opened all 20 evidence files (10 `.png` + 10 `.txt`).
+
+## Evidence check (each file against the AC it claims)
+| File | Proves | OK? |
+|---|---|---|
+| 00-ci-checks | All 5 CI check runs on `4dc4846` succeeded. `make test-py` in CI: `84 passed, 1 skipped` (includes `test_evals_data.py`). Ownership OK with the 443-line warning. `make lint` = `lint-go` + `lint-fe` (Makefile:33), and CI runs both (Go job, Frontend job). Python has no linter target. | yes (DoD 2) |
+| 01-pytest-evals-data | The 22 EVAL-6 test names pass at the head, and each AC1–AC6 test named in the AC table is present. Red colouring is the known `render_evidence.py` "Fail in the name" nit, not a failure. | yes |
+| 02-mutation-check | 14/14 mutants killed, at least one per branch of AC1–AC5 plus report-only isolation. This shows the tests would catch each regression. | yes |
+| 03-e2e-stub-gate | A real `eval_gate.py` run end to end: A-refusal = correct refusal and `answer_refusal_rate`, B and unknown = `ask_errors` (a002, x002), supported rate 1.0 over 40 answered citations with refusal evidence excluded, coverage 0.667, and no LEAK marker anywhere in the results file. GATE FAIL is expected (`--skip-retrieval` plus the injected errors). | yes (AC1, AC2, AC3, AC5) |
+| 04-gates-unchanged | `thresholds.json` diff is 0 lines, and the 8 `check_thresholds` names are identical on `71cb609` and on the head. | yes (AC6) |
+| 05-near-miss-vs-corpus | 15 rows (AC asks ≥ 10). Every `answered_by` is outside the corpus, every `why_near` is inside it, fields are exact, `reviewed_by` is null, no duplicates. | yes (AC4) |
+| 06-readme-defs | ADR-0003 table, a definition for each new metric, the per-case keys, and a human-review section. | yes (AC8) |
+| 07-splitter-port | Side-by-side code: the Python splitter matches `splitIntoSentences` and its abbreviation list. | yes (AC3 "document the splitter") |
+| 08-edge-probes | Finding 1/2 nits (unhashable `refusal_reason`, string claim markers). Every probe fails closed. | yes (nits only) |
+| 09-make-test-py-local | The sandbox can't run `make test-py`/`make lint` (no torch/confluent_kafka, Go 1.25 blocked). `make eval` is "not run: no stack", with the command. | yes (AC7's allowed alternative; CI covers the rest) |
+
+No AC rests on a "⚠ unverified" item. `make eval` not being run is the ticket's own allowed alternative (AC7, DoD 3 "not run: <reason>"). This PR changes eval *scoring*, not retrieval or answering, so it can't move `/v1/ask` behaviour. The first real numbers will come from EVAL-3's workflow.
+
+## Product fit
+- **§7 principle 2 ("say I don't know") and ADR-0003:** the eval now rewards an honest refusal with evidence (case A) and never lets an outage (case B) or an unknown reason pass as a correct refusal (fail closed). This is the measurement side of ADR-0003, and it lands before AI-7 changes `/v1/ask`. That merge order stops the ≥ 95% refusal gate and the ≥ 90% supported gate from being misread on AI-7's first run.
+- **§8 supported-citation row:** limiting the rate to citations of *answered* responses is the reading that makes the row measure what it says ("% citations marked supported" in answers the user sees). A case-A response shows the user no answer, so its evidence passages aren't answer citations. Counting them would push the rate down every time the system refuses correctly. **On lesson [EVAL-1] (no APPROVE while a gate's meaning waits on a Proposed ADR):** that lesson doesn't block this PR. ADR-0003 is Accepted, and the reading follows from its "no synthesized answer" rule. Mahesh is still asked to confirm it explicitly in the PR. If he reads it the other way, the follow-up is one predicate and one test, not a re-design.
+- **Report-only metrics** (coverage, near-miss refusal rate, reason counts) give Phase 1 its first answer-quality signals without a new gate. Promoting any of them needs an ADR, as the README says.
+- **Public-repo safety:** per-case records hold IDs and numbers only (AC5, LEAK scan). This matters because EVAL-3 uploads results as public artifacts.
+
+## Scope
+Everything the ticket listed is present. Nothing outside it changed: no `thresholds.json`, no Go, no `rag.go`, no Makefile/CI. The diff is
+443 lines vs the 400 target; 182 of those are tests. I accept it **without** a rule exception: it's within 11%, it's disclosed, and splitting a
+scoring change from its own tests would make review worse, not better. PRD status columns: QA-4 and QA-5 status values don't change
+(this is measurement only). The §8 rows' *method* text should say "answered responses only; case B = error". I'm adding that to the
+pending pm-lead docs PR (board Backlog), because PRD edits go via PR here, not in the app PR.
+
+## QA [spec] findings: decisions
+5. **EVAL-3 triggers: declined, with a different route.** `eval.yml` stays path-filtered to itself on `pull_request`, as in the approved
+   EVAL-3 design. Each run makes 62 arXiv requests at ≥ 3 s apiece and takes up to ~100 min. Running it on every `scripts/**`/`evals/**` PR would burn arXiv
+   politeness and CI time on PRs that don't change answers (e.g. README-only eval PRs). Instead, once EVAL-3 is merged, a PR that changes
+   retrieval/answering scoring or behaviour gets **one `workflow_dispatch` run of `eval.yml` on its branch**. `workflow_dispatch` works on any ref once the
+   workflow is on `main`, and QA cites that run for DoD 3. Writing this into AGENTS.md §4 / qa-reviewer is a *Proposed* rules-PR item (board Backlog).
+   It is recorded in EVAL-3's Notes so QA doesn't fail #22 for the missing path. For EVAL-6 itself, "not run" stands. The first nightly run after both merge produces
+   its numbers (EVAL-4 records them).
+6. **Near-miss row review owner: Mahesh, or a reviewer he names.** Agents can't reach arxiv.org and must not self-certify their own drafts.
+   This is in the PR's "Decisions for Mahesh" and on the board Backlog as a human task. Review n005 (self-consistency vs the CoT paper) and n009
+   (Contriever) first. Once rows are reviewed, ai-engineer commits the `reviewed_by` values (an `evals/` change) in a small PR. Until then the README already marks
+   `near_miss_correct_refusal_rate` as a metric over unreviewed drafts, and it is report-only.
+7. **Supported-rate reading:** asked in the PR's "Decisions for Mahesh" (see Product fit). Merging the PR is the confirmation. A review comment
+   that disagrees sends it back per AGENTS.md §2 "Human review = top priority".
+
+## Nits (not blocking; follow-up, ai, P3)
+QA 1 (`isinstance(reason, str)` guard so an unhashable `refusal_reason` is an error case, not a crashed run), QA 2 (string claim markers: note for AI-8, where
+ADR-0014 fixes ints), and QA's three missing tests (non-string reason, `main` loading the real near-miss path, `--near-miss ''`). They're filed as one Backlog item to
+fold into the next `scripts/evaluate_answers.py` change (EVAL-7 touches the same test file). QA 4 (PRD refs in the PR description) is fixed in the raised description.
+
+## Hand-off
+APPROVE → orchestrator: replace the PR #20 body with `/tmp/claude-0/s/pr20-body.md`, mark it ready for review, comment the verdict, and move Jira KAN-37 to
+**Ready to merge**. **Merge order for Mahesh: #20 (EVAL-6) before #21 (AI-7).**

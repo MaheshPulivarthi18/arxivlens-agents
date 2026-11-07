@@ -267,3 +267,13 @@ Format:
   as ADR-0003-mandated. It must also assert reason, B sentence and markers 1..3, and be called out in the PR. AC9 counts come from the
   refusal log line in `stack.yml`'s `query.log` (the M3 ask tests are the F1 set).
 - Backlog: *Proposed* rules item on whether `_test.go` lines count toward the 400-line target; PRD docs item for the ING-1 politeness caveat.
+
+## 2026-11-07 — pm-lead — EVAL-6 final review; LLM-1 AC8 decision
+- **EVAL-6 (ArxivLens #20, `4dc4846`): APPROVE** after QA PASS r1. I opened all 20 evidence files, and each AC is proven (CI green, 14/14 mutants killed, end-to-end
+  stub run, gate names unchanged). 443 lines accepted without an exception (182 tests). QA [spec] items: (5) `eval.yml` keeps its PR path filter, and
+  answering PRs get a `workflow_dispatch` run once EVAL-3 merges (*Proposed* rules item; noted in EVAL-3 so QA doesn't fail #22 for it); (6) near-miss
+  rows reviewed by Mahesh or someone he names (Backlog, human); (7) supported-rate reading in "Decisions for Mahesh". New PR body at `/tmp/claude-0/s/pr20-body.md`
+  for the orchestrator to apply (ready for review, KAN-37 → Ready to merge). Merge order: #20 before #21.
+- **LLM-1 AC8: split, no second exception.** 655 non-test lines vs < 400. LLM-1 = types/errors/config without `FromEnv`/`llmtest`/CI step (≈ 376).
+  New **LLM-1b** = `openai.go` + `FromEnv` (≈ 279), Ready once LLM-1 merges. QA-8 now depends on both. The split runs in parallel with the
+  AI-7 → AI-6 chain that QA-8 also waits on, so QA-8's start doesn't move. Design addendum appended.

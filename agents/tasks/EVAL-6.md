@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-1 (merged). None open. Must merge **before** AI-7 (see AI-7 Notes). |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-EVAL-6"`) |
 | **Design required** | no: no gate key or threshold changes, and no contract change. Metric definitions go in `evals/README.md` and pm-lead checks them in review. |
-| **Status** | Ready (Wave 1) |
+| **Status** | Ready to merge: PR [#20](https://github.com/MaheshPulivarthi18/ArxivLens/pull/20), QA PASS + PM APPROVE 2026-11-07 (merge **before** AI-7 #21) |
 
 ## Goal
 Make the answer eval correct for the answers Phase 1 will produce, and add the first answer-quality numbers that don't
@@ -41,16 +41,16 @@ aren't answered by it? Human judgments (citation precision, claim correctness) c
   side, real-LLM runs (EVAL-8), human judgments (EVAL-7).
 
 ## Acceptance criteria
-- [ ] AC1 — Classification tests with fixture responses: A-refusal → correct refusal on the refusal set and `answer_refusal` on the answer set;
+- [x] AC1 — Classification tests with fixture responses: A-refusal → correct refusal on the refusal set and `answer_refusal` on the answer set;
       B → error (`ask_error_count` and `verification_unavailable_count` +1), never a refusal; unknown reason → error; early refusal (`citations: []`) → refusal as today.
-- [ ] AC2 — `supported_citation_rate` excludes refusal evidence: a run with one answered response (2/2 supported) and one A-refusal
+- [x] AC2 — `supported_citation_rate` excludes refusal evidence: a run with one answered response (2/2 supported) and one A-refusal
       (3 unsupported evidence passages) reports 1.0, not 0.4.
-- [ ] AC3 — `citation_coverage` unit tests: all sentences cited → 1.0; one of three uncited → 0.667; `claims[]` present → computed from claims; no answered responses → reported as null, not 0 or 1.
-- [ ] AC4 — `evals/refusal_near_miss.jsonl` has ≥ 10 valid rows; the test fails if any `answered_by` is in `evals/corpus.txt` or a field is missing.
-- [ ] AC5 — Results JSON per-case records hold IDs and numbers only (a test asserts no key named `answer`/`content`/`text` in them).
-- [ ] AC6 — Gates unchanged: `git diff origin/main -- evals/thresholds.json` is empty and `check_thresholds` returns the same check names as before (test).
-- [ ] AC7 — `make test-py` passes. `make eval` run on the stack (after EVAL-3), or "not run: no stack in sandbox" with the exact command.
-- [ ] AC8 — `evals/README.md` defines every new metric and the ADR-0003 table.
+- [x] AC3 — `citation_coverage` unit tests: all sentences cited → 1.0; one of three uncited → 0.667; `claims[]` present → computed from claims; no answered responses → reported as null, not 0 or 1.
+- [x] AC4 — `evals/refusal_near_miss.jsonl` has ≥ 10 valid rows; the test fails if any `answered_by` is in `evals/corpus.txt` or a field is missing.
+- [x] AC5 — Results JSON per-case records hold IDs and numbers only (a test asserts no key named `answer`/`content`/`text` in them).
+- [x] AC6 — Gates unchanged: `git diff origin/main -- evals/thresholds.json` is empty and `check_thresholds` returns the same check names as before (test).
+- [x] AC7 — `make test-py` passes. `make eval` run on the stack (after EVAL-3), or "not run: no stack in sandbox" with the exact command.
+- [x] AC8 — `evals/README.md` defines every new metric and the ADR-0003 table.
 
 ## Verification
 ```bash
@@ -75,3 +75,8 @@ make eval   # needs the stack (EVAL-3 workflow or make stack-up)
   `tests/test_evals_data.py`: 75 passed, 1 skipped; each new branch was mutation-checked. `make test-py`/`make lint` fail in the sandbox
   for environmental reasons (no confluent_kafka/torch; Go 1.25 download blocked), same on origin/main. `make eval` not run: no stack in sandbox
   (`make eval`). Diff is 443 lines (ownership-check warns at > 400). PR must ask Mahesh to confirm the supported-rate reading of ADR-0003.
+- 2026-11-07 (pm-lead, final review): **APPROVE** on `4dc4846` after QA PASS r1 (`agents/reviews/EVAL-6/report.md`). 443 lines accepted without a
+  rule exception (182 are tests). QA [spec] decisions: (5) `eval.yml` keeps its PR path filter; once EVAL-3 merges, answering/retrieval PRs get one
+  `workflow_dispatch` run on their branch (*Proposed* rules item, board Backlog); (6) the near-miss rows are reviewed by Mahesh or someone he names
+  (n005, n009 first), and ai-engineer then commits the `reviewed_by` values; (7) the supported-rate reading is in the PR's "Decisions for Mahesh", and merging confirms it.
+  QA nits 1 and 2 plus the missing tests → Backlog follow-up (ai, P3). PRD §8 row method text → pending pm-lead docs PR.
