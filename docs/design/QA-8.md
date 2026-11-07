@@ -276,3 +276,62 @@ helper, reusing `ragHit`), and the injection test folded into `TestBuildSynthesi
 _(Written in QA-8, before its code, and approved by pm-lead separately.)_
 
 ## PM decision
+**APPROVED with conditions** (pm-lead, 2026-11-07, reviewed at design commit `effaf87` against `agents/tasks/AI-6.md`,
+`agents/tasks/QA-8.md`, Product PRD QA-3/QA-8 and §7 principles 1–2, Technical PRD §7.2, ADR-0001/0002/0003/0014 (Accepted);
+app `origin/main` `2b71772`, `internal/query/rag.go:77-236`). Scope: **AI-6 only.** The QA-8 addendum is approved separately.
+
+Why: the design covers every AI-6 AC with a named test, and it stays pure. Nothing in `Ask`/`finalize`/`checkCitations` changes, and
+there's a grep check to prove it. It also sets up the grounding invariants QA-8 needs: markers are always in `1..k` with
+`k = len(passages)`, every claim carries a marker, and support is scored against the exact text the model saw (`passageHits`).
+"Stop, don't skip" packing keeps rerank priority (ADR-0010). Escaped fixed delimiters can be tested deterministically. A
+non-wrapping parse error keeps completion text out of logs (QA-8 AC6). The structured-claims format replaces the ticket's "cite with
+`[n]`". The ticket allows that ("design may refine it"), and it is stricter: an uncited statement can't reach the answer.
+
+### Answers to the open questions
+1. **Per-paper cap = 3: approved.** At the default K = 5 it leaves 2 slots for other papers and doesn't throw away a single-paper
+   answer's evidence. No backfill (that would need `search.go`). EVAL-8 revisits it with data. Changing it is a one-line PR with
+   before/after numbers.
+2. **Top passage over budget with no whitespace in the allowed prefix → empty context → template: approved.** With a 4000 budget and
+   ~750-token blocks this can't happen with real chunks; it only covers degenerate input. A rune-boundary cut would break the
+   ticket's word-boundary rule for no real gain. Condition 3 makes QA-8 handle it explicitly.
+3. **All claims dropped → zero claims, nil error → AI-7 `all_citations_unsupported` refusal: confirmed.** That is the right reading
+   of QA-8 AC3 and ADR-0003 case A. A reply whose every claim is fabricated or uncited is the hallucination case of §7 principle 2.
+   It must refuse with evidence, not fall back to the template, because the template would hide the fact that the model failed to
+   ground its answer. The split is: parse error = "reply unusable" → template (QA-8 AC5); well-formed reply with nothing citable →
+   refusal. Same for `insufficient_evidence: true` with claims present → refusal (claims discarded). Approved.
+4. **Passage budget 4000 estimated tokens: approved as QA-8's default const**, not `max_citations × chunk`. It also bounds the prompt
+   when a client sends a large `max_citations` (`server.go:52` doesn't clamp it). The QA-8 addendum must add condition 5.
+
+### Conditions for the AI-6 PR (binding; QA checks each)
+1. **Diff < 400, no size exception.** AC6 stands. (Lesson LLM-1: a near-400 estimate came in 72% low.) The split seams, in order:
+   (a) compact tables + shared hit helper; (b) move `passageHits` + its test to QA-8; (c) if still ≥ 400, **stop and ship
+   `selectContext` + `buildSynthesisPrompt` (+ helpers) only**, move `parseSynthesis` + its tests out, and say so in the PR and the
+   ticket Notes. pm-lead then specs `AI-6b` (parser) as a QA-8 dependency. Check early: run `git diff --shortstat origin/main` after
+   `rag.go` is written and before the tests. If `rag.go` alone adds > 200 lines, take seam (c) right away. Don't edit AC3 to fit.
+2. **`ChunkID == 0` is "unknown", not a dedup key.** `ChunkID` is `int64` (`search.go:22`), and test fixtures can leave it zero.
+   Dedup by ID only when `ChunkID != 0`. Content dedup still applies. Add one table case: two zero-ID hits with different content are both kept.
+3. **Document the empty-result contract** in `selectContext`'s doc comment: an empty result means "no prompt can be built" and
+   callers must take the template path. `TestSelectContext` already covers both empty cases.
+4. **AC2 wording.** The ticket's "cite with `[n]`" is met by rule 2 (cite passage numbers in `"citations"`) plus the JSON form. QA
+   checks for those, not for a literal `[n]` in the system prompt. Every line of the system prompt appears verbatim in the PR
+   description for Mahesh: it's product content.
+5. **Mutation check evidence.** The three mutations in the test plan (skip-not-stop, no sanitizing, out-of-range kept) each go in the PR
+   with the failing test name. If they're run in the scratch module, say so.
+6. **Local vs CI.** Local scratch-module runs are fine, but the PR says "CI is the source of truth". The AC5 coverage line comes from
+   CI output or a pasted `go tool cover` run, never from an estimate.
+
+### Items the QA-8 addendum must decide (not AI-6 work; recorded here so they aren't lost)
+5. **Context window.** State the total prompt estimate (system ~250 + question + ≤ 4000 passage + `max_tokens`) and the minimum
+   server context it needs. The README's local Ollama example must set a large enough context (e.g. `OLLAMA_CONTEXT_LENGTH` /
+   `num_ctx` ≥ 8192). Otherwise a small default window silently truncates the prompt, system rules first.
+6. **Multi-sentence claims (author's risk): decided.** When QA-8 renders a claim, it appends the claim's markers to **every**
+   sentence `splitIntoSentences` finds in it, so no LLM sentence goes out without validation. Over-splitting on abbreviations
+   only creates more, shorter validated fragments. That fails safe (may flag more unsupported) and never passes text unchecked.
+   QA-8 test: a 2-sentence claim citing `[1]` → both sentences carry `[1]` and both are checked.
+7. **Which hits back the answer, the refusal evidence and the fallback.** LLM path: `finalize` gets `passageHits(...)` (marker
+   order = grouped order). AI-7's refusal evidence is then the passages the model saw, in grouped order, not every relevant hit in
+   rank order. The addendum must state this and test it. Template fallback after an LLM error: over `relevantHits`, exactly as today.
+8. **Counts in the usage log line:** `DroppedMarkers`, `DroppedClaims`, `k`, `truncated` (numbers/bools only). EVAL-8 needs the
+   fabricated-marker rate.
+
+Next: ai-engineer builds AI-6 on `agent/ai-engineer/AI-6` (Jira → In Progress).
