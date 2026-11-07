@@ -8,7 +8,7 @@
 | **Depends on** | **LLM-1 merged** (types, typed errors, `Config`/`ConfigFromEnv`, `llmtest`). ADR-0001/0002 Accepted. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-LLM-1b"`) |
 | **Design required** | no new design: covered by the approved `docs/design/LLM-1.md` (PM decision 2026-11-07, conditions 1–5). Split from LLM-1 for size, not scope. |
-| **Status** | In Progress: built on `agent/backend/LLM-1b` @ `efbe972` (local), draft PR pending (orchestrator). Picked for cycle 2026-11-07 11:00Z |
+| **Status** | In QA: rework r1 pushed, draft PR [#27](https://github.com/MaheshPulivarthi18/ArxivLens/pull/27) on `agent/backend/LLM-1b` @ `e031ac0` (QA r2 next). Picked for cycle 2026-11-07 11:00Z |
 
 ## Goal
 Ship the real provider behind the `llm.Provider` interface: an OpenAI-compatible HTTP client (local server by default, hosted
@@ -75,3 +75,19 @@ git diff origin/main --stat
   **Not verified locally:** `make lint`/`make test-unit` under Go 1.25 and the CI coverage totals AC7 asks for; CI is the source of truth.
   Gotcha found: an `httptest` handler that blocks without reading the request body never sees the client hang up (net/http starts its
   background read only after the body is consumed), so `srv.Close` blocked forever; the test `hang` handler drains the body first.
+- 2026-11-07 (backend-engineer, rework r1 for QA FAIL `agents/reviews/LLM-1b/report.md`): pushed `e031ac0` to PR #27 (still draft).
+  - [x] ✅ Finding 1 [blocking] AC6: `openai.go` no longer copies `err.Error()`. New `transportDetail` keeps only `*net.OpError.Op` + the `syscall.Errno`
+    (e.g. `transport: dial: connection refused after 1 attempt`); DNS → "DNS lookup failed", EOF → "connection closed early", anything else →
+    "malformed response or protocol error". The `Error` cause is that errno (or nil), never the raw net/http error, so nothing server-sent is unwrappable.
+    `TestNoSecretLeaks` has 3 raw-TCP rows (`rawServer`: malformed status line, malformed header, garbage response, each echoing prompt, completion,
+    key and the request body; each asserts Status 0 + `transport:` so it hits this path) and now checks the full `Unwrap` chain too.
+    `TestTransportError` asserts `errors.Is(err, syscall.ECONNREFUSED)` and that no `*net.OpError` is reachable. Mutants: restoring `err.Error()` fails
+    all 3 raw rows ("SENTINEL-PROMPT leaked"); returning the raw err as cause fails `TestTransportError`.
+  - [x] ✅ Finding 2 [nit]: `CheckRedirect` returns `http.ErrUseLastResponse`, so a 3xx is `ErrProvider{Status: 3xx}` after 1 request. `TestNoRedirect`
+    (301/302/307/308, the follow-up target would answer 200). Removing `CheckRedirect` fails it.
+  - [x] ✅ Finding 3 [nit]: comment on the unreachable `New` error branch in `FromEnv`.
+  - Finding 4 [spec]: Status line updated here; the PR description's AC7 numbers are pm-lead's at stage 4.
+  - AC8: **prod 310, test 756**, the same 4 files, `go.mod`/`go.sum` unchanged; ownership check OK (warns on 1066 total lines, expected).
+  - Local (Go 1.24.7, scratch `-modfile` `go 1.24`, not committed): `go vet` ok, `gofmt -l .` empty, `go test -race -count=3 ./internal/llm/...` ok,
+    timing/leak/redirect tests `-race -count=10` ok, coverage `openai.go` 95.2%, `config.go` 98.2%, `llm.go` 100%.
+    **Not verified locally:** `make lint`/`make test-unit` under Go 1.25 and the CI coverage totals; CI is the source of truth.
