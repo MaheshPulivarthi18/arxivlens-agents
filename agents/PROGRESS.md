@@ -346,3 +346,11 @@ Format:
   Behaviour note (ingest +3 s per extra arXiv request; concurrent ingests queue; downloader ≤ 1 PDF / 3 s) is in the PR body.
 - QA nits 3–7 → Backlog: "ING-9 follow-ups" (backend P3) and "`-race` in CI's Go job" (backend P2). Board: ING-9 → Ready to merge.
 - PR body at `/tmp/claude-0/s/pr25-body.md`. The orchestrator raises #25 (ready for review + `ready-to-merge` label) and moves KAN-48 → Ready to merge. Jira not touched.
+
+## 2026-11-07 10:00Z — orchestrator (scheduled cycle)
+- Lock: previous `RUN_LOCK` (05:21Z) was ~4.6 h old → stale, taken (`04b9656`). Push dry-run, app clone, Jira all OK.
+- Sync: no merges/closes since last cycle; no human reviews or untagged comments on #20–#23; no Jira intake. ADR-0014 now Accepted (board row cleaned by pm-lead).
+- Review: **LLM-1 #23** PM APPROVE (QA PASS r2) → body applied, ready for review, KAN-35 Ready to merge. **EVAL-3 #22** QA PENDING → PASS (warm-cache attempt 2 of run 42344527129, `5b988a1`) → PM APPROVE (`18da9b1`) → ready, KAN-29 Ready to merge; follow-up EVAL-9 (KAN-49).
+- New: **AI-9** (#24, KAN-39; files `services/embedder/api.py`, `tests/test_m0.py`, README deferred because #21 holds it) — QA r1 FAIL (F1 still times out; no embedder timing captured on green stack runs) → pm-lead: Blocked on new **OPS-H10** (KAN-50), F1 fix moved to new **AI-10** (KAN-51) behind **ADR-0015 (Proposed)**; #24 stays draft. **ING-9** (#25, KAN-48; `internal/arxiv`, ingester, downloader — no overlap) — QA r1 FAIL (AC8: stack.yml path filter skips `internal/**`) → orchestrator dispatched stack.yml run 42364519257 (green) → QA r2 PASS → PM APPROVE (`bc6b971`) → ready, Ready to merge. **OPS-H8** design written (`f1b5c0e`) and approved with conditions (`608de9c`); build waits for #23 (both change `ci.yml`), KAN-34 in Design.
+- Not started: FE-1 (npm still unreachable), OPS-H2/ING-6/OPS-H7 (lower priority; cycle time), everything gated on #20/#21/#23 merging.
+- Retro notes: QA harness still can't write `report.md` (orchestrator saved 3 reports verbatim from PR comments); QA can't download Actions artifacts (proxy) — OPS-H10's run-summary section addresses part of that. Lessons added by qa-reviewer (`4d9d6f1`, `c1a3777`, `801cc60`), ai-engineer (`a458f4e`), pm-lead.

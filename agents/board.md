@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 by pm-lead (ING-9 #25 PM APPROVE → Ready to merge. Earlier: AI-9 #24 QA r1 FAIL → Blocked on new OPS-H10; F1 fix → AI-10, Blocked on ADR-0015 (Proposed); ING-9 AC8 → dispatched stack run. Earlier: OPS-H8 design APPROVED with conditions; build waits for #23. Earlier: EVAL-3 #22 PM APPROVE → Ready to merge; EVAL-9 specced (Ready once #22 merges). Earlier: LLM-1 #23 PM APPROVE → Ready to merge; LLM-1b Ready once it merges. Earlier: AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Accepted since)
+Last updated: 2026-11-07 10:55Z by orchestrator (cycle 10:00Z: LLM-1 #23, EVAL-3 #22, ING-9 #25 → Ready to merge; AI-9 #24 QA FAIL → Blocked on OPS-H10 + ADR-0015; OPS-H8 design approved, build waits #23; new OPS-H10, AI-10, EVAL-9, ADR-0015 Proposed)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
