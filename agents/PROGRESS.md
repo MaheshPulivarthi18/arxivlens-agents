@@ -235,3 +235,23 @@ Format:
 - #17 EVAL-5 merged `6c80d64`. G2 resolved by ai-engineer `f24e1da` (parity guard rebuilt from search.go consts, eval runs production HNSW settings). G1 closed: probe PR #19 ran `pytest -k real_postgres` in the DB workflow against migrated pgvector → PASSED (job 128158303587). The probe is closed; branch `probe/eval5-g1` is left because the proxy blocks branch deletion.
 - #14 OPS-H1 merged `71cb609`. Mahesh decided Q-merge = merge with F1 known red. F2 fixed by backend (`INGEST_TIMEOUT`, 5 min default, only for /internal/ingest). F1 (CPU cross-encoder rerank ~10 s) covers 3 M3 tests, incl. `test_hybrid_search_with_rrf_and_rerank` (same cause, added by orchestrator), run visibly in the "Known failure F1" step. CI 6/6 green, Full stack 80 passed / 3 deselected.
 - Follow-ups for pm-lead to spec: (1) F1 CPU rerank latency fix, then remove the F1 step; (2) Chainguard MinIO digest pins can be garbage-collected (pin/mirror plan); (3) /internal/ingest reuses the loaded models instead of building EmbedderWorker() per request; (4) /internal/ingest ignores request cancellation; (5) EVAL-5 F2: permanent `pytest -k real_postgres` step in db.yml; (6) `hnsw.iterative_scan` needs pgvector >= 0.8: pin the image or fall back cleanly.
+
+## 2026-11-07 — pm-lead — plan from the external review (15 tasks, 3 waves)
+- Board hygiene: OPS-H1 (#14 `71cb609`), OPS-H5 (#16 `e67354c`), EVAL-5 (#17 `6c80d64`), AI-4 (#18 `3151285`) → Done. QA-8's ADR blockers are gone
+  (ADR-0001/0002/0003 Accepted `51d8ff5`) → Ready, re-scoped. ADR-0003 row removed from Blocked.
+- Review (Mahesh's private attachment, summarised, not copied): the infrastructure (event pipeline, retries/DLQ, hybrid retrieval + rerank,
+  eval discipline) is judged well ahead of the product. The main gap is that `/v1/ask` fills a template instead of synthesising, and
+  cosine support isn't entailment. It recommends pausing infrastructure growth and turning retrieval into an evidence-first
+  research assistant. Phase 1 is real synthesis, claim-level provenance, verification statuses that never turn an error into "verified", refusals,
+  an answer-quality eval with human review, and API/UI support. Then research workflows (Phase 2) and production readiness (Phase 3). It
+  explicitly advises against k8s, a new database, more agent roles, endless HNSW tuning, and dashboards or collaboration before the core workflow works.
+- Plan (board "Ready — the 2026-11-07 plan"): **Wave 1** LLM-1, EVAL-3, AI-7, EVAL-6, FE-1 (env-blocked on npm). **Wave 2** AI-6, OPS-H8, AI-9,
+  FE-3, RET-2. **Wave 3** QA-8, EVAL-7, AI-8, FE-4, OPS-H9. New specs: LLM-1, AI-6, AI-7, AI-8, AI-9, RET-2, EVAL-6, EVAL-7, FE-3, FE-4,
+  OPS-H9; re-scoped QA-8 (split into LLM-1/AI-6/QA-8/AI-7/AI-8); updated EVAL-3 (README line → EVAL-4), OPS-H8, FE-1 (unblock options), EVAL-4.
+  `rag.go` is one ai-owned file, so its four tasks run in sequence: AI-7 → AI-6 → QA-8 → AI-8.
+- New decision needed: **ADR-0014 (Proposed)** covers the claims, `status`, `quote`, `paper_version`, `page`, `prompt_version` and `answer_source` response fields,
+  which ADR-0003 doesn't cover. It blocks RET-2, AI-8 and FE-4 only. New Blocked spec **EVAL-8** (real-LLM eval, which carries QA-8's old AC3) needs Mahesh to choose
+  the model and host, and a cost cap if the model is hosted.
+- Follow-ups specced: F1 rerank latency (AI-9), `real_postgres` step + pgvector ≥ 0.8 pin + MinIO digest check (OPS-H9). Left in Backlog:
+  `/internal/ingest` model reuse + cancellation (P2, off the Phase 1 path), plus the review items listed in the board's first Backlog line.
+- Environment check: npm and Go proxy don't resolve; HF and arXiv get 403; no Docker daemon. No LLM key is needed (fake provider). Jira not touched (instruction).

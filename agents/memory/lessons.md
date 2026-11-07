@@ -22,6 +22,7 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 
 - [2026-11-03][OPS-H6] PRD OPS-1 ✅ and Technical PRD §8.1 L4 ("all consumers commit only after success or DLQ") were false in both Go and Python consumers; only an external review caught it → when marking a reliability row ✅, read the failure branch (what happens when the DLQ write / commit itself fails), not just the happy path. (seen 1×)
 - [2026-11-03][ING-8] A requested task ID (ING-7) collided with an existing Product PRD row ID with a different meaning → before creating a task ID in a series that mirrors PRD rows (ING, QA, OPS), grep the PRD tables for it. (seen 1×)
+- [2026-11-07][PLAN] Planning parallel waves, the file-overlap rule caught `README.md` (EVAL-3 Testing line vs AI-7 API row) and `tests/test_evals_data.py` (EVAL-6 vs RET-2's parity list), and the API contract caught claim fields ADR-0003 didn't cover → when picking parallel tasks, list every shared doc/test file (README, CONTRIBUTING, test_evals_data.py, rag.go) per task and move or sequence edits; check each new response field against the Accepted ADR's exact wording. (seen 1×)
 
 ## ai-engineer
 - [2026-11-01][SETUP] Eval queries are hardcoded inside `scripts/evaluate_retrieval.py` → don't add more there; EVAL-1 moves them to `evals/`. (seen 1×)

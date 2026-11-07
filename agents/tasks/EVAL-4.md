@@ -34,3 +34,5 @@ gh run download <run-id> -n <artifact-name> && python3 -m json.tool evals/result
 
 ## Notes
 - 2026-11-03 (pm-lead): split from EVAL-3 because of ownership (`.github/` is backend's, `evals/` is ai's).
+- 2026-11-07 (pm-lead): EVAL-3 no longer edits the app `README.md`. Add its one-line "nightly eval" note to the README Testing block
+  (around line 202: how to trigger `eval.yml`, where results go) in this task.

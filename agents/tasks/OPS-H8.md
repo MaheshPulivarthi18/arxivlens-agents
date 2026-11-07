@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror); **OPS-H1 (ArxivLens #14) merged**: #14 adds a worker heartbeat hook (`_heartbeat`, about 16 lines) to `services/common/kafka_client.py`, the file this task rewrites (AGENTS.md §3 independence). The design must keep that hook (touch after every `poll()` while assigned; no-op when `WORKER_HEARTBEAT_FILE` is unset) |
 | **Jira** | to be created by orchestrator (`labels = "task-OPS-H8"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics for both Python workers |
-| **Status** | Ready (specced 2026-11-03 21:02Z cycle by pm-lead) — next stage: Design (`docs/design/OPS-H8.md`). Doesn't start until OPS-H1 (#14) is merged (added 21:02Z cycle, pm-lead) |
+| **Status** | Ready (Wave 2, 2026-11-07 plan: starts when a backend slot frees, i.e. LLM-1 or EVAL-3 reaches Ready to merge). Next stage: Design (`docs/design/OPS-H8.md`). OPS-H1 (#14) merged `71cb609`, so the dependency is met |
 
 ## Goal
 Technical PRD §8.1 promises L4 for **all** consumers: the offset is committed only after the handler succeeds or the
@@ -118,3 +118,6 @@ grep -n "time.sleep" services/common/kafka_client.py   # must print nothing
   #16 (db.yml/cmd/internal/migrations/README/CONTRIBUTING), #17 (`scripts/evaluate_retrieval.py`, `tests/test_evals_data.py`,
   `evals/README.md`), #18 (`internal/query/rag.go`, `rag_test.go`). `ci.yml` is in none of them.
 - Follow-up after OPS-H1 merges (backend, P2): add `tests/test_kafka_client.py` to `make test-py` (Makefile) and drop the separate CI step if redundant.
+- 2026-11-07 (pm-lead, plan): OPS-H1 merged (`71cb609`). The heartbeat hook is on `main`, so the design must keep it (Depends on). AC11 (M4 on the
+  full stack) is now runnable through `stack.yml` on the PR. Deliver it in this PR instead of deferring it. Wave 2 for WIP reasons only
+  (backend runs LLM-1 + EVAL-3 first: both unblock other tasks). If Mahesh wants the P0 data-loss fix first, swap it with EVAL-3.

@@ -6,7 +6,7 @@
 | **Priority** | P1 (frontend agent has no way to verify its work beyond `build`) |
 | **PRD ref** | UI-1, QA-3, QA-4, QA-5; Product PRD §7 principles |
 | **Depends on** | — |
-| **Status** | Ready |
+| **Status** | Ready (Wave 1), but **environment-blocked**: registry.npmjs.org doesn't resolve in agent sandboxes, so the new devDependencies can't be added to `package-lock.json` |
 
 ## Goal
 Give the frontend agent a fast feedback loop and lock down the states that carry the product's trust promise.
@@ -32,3 +32,8 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
 
 ## Notes
 - 2026-11-03 (pm-lead, from AI-2 PM review): concrete AC3 case. `ReferencesStack.jsx:70-73` renders `<ShieldCheck/> {score}% Verified` for every citation and changes only the badge variant when `supported` is false. Once AI-2 (ArxivLens #11) merges, an embedder outage shows "0.0% Verified". An unsupported citation must not be labelled "Verified" (QA-4, §7), so a test with `supported: false` should assert the badge text does not say "Verified" (e.g. "Unsupported · 0.0%"). Fix it frontend-only under AC3. The `/v1/ask` shape is unchanged.
+- 2026-11-07 (pm-lead, plan): Wave 1 and on the Phase 1 critical path (FE-3 and FE-4 need the harness). Two ways to unblock it, both Mahesh's
+  call: (a) allow `registry.npmjs.org` in the agent environment's network settings, or (b) run
+  `cd frontend && npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom` locally and push the
+  `package.json` + `package-lock.json` change to a branch `agent/frontend/FE-1`. The agent then writes the tests on top. Don't regenerate
+  the lockfile any other way (e.g. from a CI artifact): that routes around the egress block.
