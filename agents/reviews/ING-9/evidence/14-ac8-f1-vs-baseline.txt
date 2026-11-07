@@ -1,0 +1,33 @@
+$ bash -c cd /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/r2 && for f in job.log base-42362802353.log base-42344527109.log; do echo "== $f"; grep -n 'Run sleep 3\|"status":"success","arxiv_id"\|passed\|deselected in\|^.\{29\}FAILED\|Process completed with exit code' $f | cut -c1-190; done
+== job.log
+2581:2026-11-07T10:38:58.7548626Z [36;1m# Same image, network and env as the processor, but no worker inside: the old group-level probe passed here.[0m
+2583:2026-11-07T10:38:58.7549428Z [36;1m  echo "::error::probe passed in a container that is not the group member"; exit 1[0m
+2823:2026-11-07T10:43:03.8489158Z ##[group]Run sleep 3
+2843:2026-11-07T10:43:51.4596092Z {"status":"success","arxiv_id":"2608.20331","version":1,"title":"G-CARL: Grounded Checklist-Aligned Reward Learning for Patient-Oriented Medical Report Inte
+2881:2026-11-07T10:43:59.1799703Z 80 passed, 1 skipped, 3 deselected in 6.75s
+3843:2026-11-07T10:44:29.9719077Z FAILED tests/test_m3_query.py::test_rag_ask_with_groundedness_support - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Re
+3844:2026-11-07T10:44:29.9719805Z FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080):
+3845:2026-11-07T10:44:29.9720249Z 2 failed, 1 passed in 29.74s
+3847:2026-11-07T10:44:30.0099219Z ##[error]Process completed with exit code 2.
+== base-42362802353.log
+2535:2026-11-07T10:15:48.8719679Z [36;1m# Same image, network and env as the processor, but no worker inside: the old group-level probe passed here.[0m
+2537:2026-11-07T10:15:48.8722425Z [36;1m  echo "::error::probe passed in a container that is not the group member"; exit 1[0m
+2797:2026-11-07T10:20:56.2465023Z ##[group]Run sleep 3
+2817:2026-11-07T10:21:58.8510503Z {"status":"success","arxiv_id":"2608.20331","version":1,"title":"G-CARL: Grounded Checklist-Aligned Reward Learning for Patient-Oriented Medical Report Inte
+2887:2026-11-07T10:23:14.2271765Z 84 passed, 1 skipped, 3 deselected, 5 warnings in 74.30s (0:01:14)
+4318:2026-11-07T10:23:46.2088178Z FAILED tests/test_m3_query.py::test_rag_ask_with_groundedness_support - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Re
+4319:2026-11-07T10:23:46.2090516Z FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080):
+4320:2026-11-07T10:23:46.2092773Z FAILED tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Re
+4323:2026-11-07T10:23:46.2362921Z ##[error]Process completed with exit code 2.
+== base-42344527109.log
+2505:2026-11-07T05:57:36.3785731Z [36;1m# Same image, network and env as the processor, but no worker inside: the old group-level probe passed here.[0m
+2507:2026-11-07T05:57:36.3787247Z [36;1m  echo "::error::probe passed in a container that is not the group member"; exit 1[0m
+2758:2026-11-07T06:02:20.6200120Z ##[group]Run sleep 3
+2778:2026-11-07T06:03:22.6087872Z {"status":"success","arxiv_id":"2608.20331","version":1,"title":"G-CARL: Grounded Checklist-Aligned Reward Learning for Patient-Oriented Medical Report Inte
+2816:2026-11-07T06:03:32.1520484Z 80 passed, 1 skipped, 3 deselected in 8.66s
+4247:2026-11-07T06:04:04.0408476Z FAILED tests/test_m3_query.py::test_rag_ask_with_groundedness_support - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Re
+4248:2026-11-07T06:04:04.0409139Z FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080):
+4249:2026-11-07T06:04:04.0409898Z FAILED tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Re
+4252:2026-11-07T06:04:04.0420352Z ##[error]Process completed with exit code 2.
+
+[exit code 0]

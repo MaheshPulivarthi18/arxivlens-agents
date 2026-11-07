@@ -1,0 +1,184 @@
+$ gh api .../actions/jobs/128379663308/logs | sed -n 2658,2880p | grep -v <compose version warning | env dump lines>
+2026-11-07T10:40:16.8101538Z ##[group]Run ./bin/arxivlens crawl --query "cat:cs.LG" --limit 2
+2026-11-07T10:40:16.8101974Z [36;1m./bin/arxivlens crawl --query "cat:cs.LG" --limit 2[0m
+2026-11-07T10:40:16.8158613Z env:
+2026-11-07T10:40:16.8158859Z   ARXIVLENS_HF_CACHE: /home/runner/.cache/huggingface
+2026-11-07T10:40:16.8159638Z   F1_TESTS: tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank
+2026-11-07T10:40:16.8160445Z   PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
+2026-11-07T10:40:16.8160838Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:16.8161245Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-07T10:40:16.8161655Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:16.8162049Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:16.8162417Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:16.8162795Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-07T10:40:16.8163112Z ##[endgroup]
+2026-11-07T10:40:16.8308622Z 2026/11/07 10:40:16 [Crawler] Starting crawl query="cat:cs.LG" limit=2 (rate-limit=3s)
+2026-11-07T10:40:16.8310627Z 2026/11/07 10:40:16 [Crawler] Fetching page start=0 size=2 URL=http://export.arxiv.org/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+2026-11-07T10:40:17.2075106Z 2026/11/07 10:40:17 [Crawler] Discovered & Published: 2611.08487 (v1) — "User Embeddings are Superpositions of Interpretable Behavioral Modes"
+2026-11-07T10:40:17.2095651Z 2026/11/07 10:40:17 [Crawler] Discovered & Published: 2611.08478 (v1) — "Scientist World: Grow a Research World for AI-Scientists"
+2026-11-07T10:40:17.2096256Z 2026/11/07 10:40:17 [Crawler] Rate limit sleep (3s)...
+2026-11-07T10:40:20.2118619Z 2026/11/07 10:40:20 [Crawler] Crawl finished. Total discovered: 2
+2026-11-07T10:40:20.2119098Z 2026/11/07 10:40:20 [Crawl] Successfully discovered and published 2 papers
+2026-11-07T10:40:20.2170880Z ##[group]Run nohup ./bin/arxivlens download > downloader.log 2>&1 &
+2026-11-07T10:40:20.2171178Z [36;1mnohup ./bin/arxivlens download > downloader.log 2>&1 &[0m
+2026-11-07T10:40:20.2171383Z [36;1mecho $! > downloader.pid[0m
+2026-11-07T10:40:20.2171581Z [36;1mnohup ./bin/arxivlens query --port 8080 > query.log 2>&1 &[0m
+2026-11-07T10:40:20.2171779Z [36;1mecho $! > query.pid[0m
+2026-11-07T10:40:20.2171997Z [36;1mfor _ in $(seq 30); do curl -fsS localhost:8080/healthz && exit 0; sleep 2; done[0m
+2026-11-07T10:40:20.2172265Z [36;1mecho "::error::query service not healthy after 60s"; exit 1[0m
+2026-11-07T10:40:20.2213942Z env:
+2026-11-07T10:40:20.2214099Z   ARXIVLENS_HF_CACHE: /home/runner/.cache/huggingface
+2026-11-07T10:40:20.2214581Z   F1_TESTS: tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank
+2026-11-07T10:40:20.2215188Z   PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
+2026-11-07T10:40:20.2215424Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:20.2215673Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-07T10:40:20.2215919Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:20.2216141Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:20.2216357Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:20.2216577Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-07T10:40:20.2216765Z ##[endgroup]
+2026-11-07T10:40:20.2403314Z curl: (7) Failed to connect to localhost port 8080 after 0 ms: Could not connect to server
+2026-11-07T10:40:22.2619237Z {"status":"ok"}
+2026-11-07T10:40:22.2670314Z ##[group]Run q() { docker compose exec -T postgres psql -U postgres -d arxivlens -tA -c "$1"; }
+2026-11-07T10:40:22.2671169Z [36;1mq() { docker compose exec -T postgres psql -U postgres -d arxivlens -tA -c "$1"; }[0m
+2026-11-07T10:40:22.2671644Z [36;1mdeadline=$((SECONDS + 900))[0m
+2026-11-07T10:40:22.2672064Z [36;1muntil [ "$(q "select count(*) from papers where status = 'embedded'")" = 2 ] \[0m
+2026-11-07T10:40:22.2672544Z [36;1m   && [ "$(q "select count(*) from papers")" = 2 ]; do[0m
+2026-11-07T10:40:22.2672976Z [36;1m  q "select arxiv_id, status from papers order by arxiv_id"[0m
+2026-11-07T10:40:22.2673354Z [36;1m  if [ "$SECONDS" -ge "$deadline" ]; then[0m
+2026-11-07T10:40:22.2673705Z [36;1m    echo "::error::papers not embedded after 15 min"[0m
+2026-11-07T10:40:22.2674310Z [36;1m    for t in papers.discovered.dlq papers.downloaded.dlq papers.chunked.dlq; do ./bin/arxivlens dlq list --topic "$t"; done[0m
+2026-11-07T10:40:22.2674843Z [36;1m    exit 1[0m
+2026-11-07T10:40:22.2675197Z [36;1m  fi[0m
+2026-11-07T10:40:22.2675398Z [36;1m  sleep 10[0m
+2026-11-07T10:40:22.2675618Z [36;1mdone[0m
+2026-11-07T10:40:22.2675964Z [36;1m{ echo "### AC3 \`arxivlens status\`"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"[0m
+2026-11-07T10:40:22.2676449Z [36;1mfor id in $(q "select arxiv_id from papers order by arxiv_id"); do[0m
+2026-11-07T10:40:22.2676967Z [36;1m  ./bin/arxivlens status --arxiv-id "$id" | tee -a "$GITHUB_STEP_SUMMARY"[0m
+2026-11-07T10:40:22.2677379Z [36;1mdone[0m
+2026-11-07T10:40:22.2677622Z [36;1mecho '```' >> "$GITHUB_STEP_SUMMARY"[0m
+2026-11-07T10:40:22.2678088Z [36;1mfor t in papers.discovered.dlq papers.downloaded.dlq papers.chunked.dlq; do[0m
+2026-11-07T10:40:22.2678572Z [36;1m  ./bin/arxivlens dlq list --topic "$t"[0m
+2026-11-07T10:40:22.2679200Z [36;1m  end="$(docker compose exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 --topic "$t" --time -1 \[0m
+2026-11-07T10:40:22.2679923Z [36;1m    | awk -F: '{s += $3} END {print s + 0}')"[0m
+2026-11-07T10:40:22.2680297Z [36;1m  [ "$end" = 0 ] || { echo "::error::$t holds $end records"; exit 1; }[0m
+2026-11-07T10:40:22.2680652Z [36;1mdone[0m
+2026-11-07T10:40:22.2777714Z env:
+2026-11-07T10:40:22.2777999Z   ARXIVLENS_HF_CACHE: /home/runner/.cache/huggingface
+2026-11-07T10:40:22.2778923Z   F1_TESTS: tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank
+2026-11-07T10:40:22.2779993Z   PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
+2026-11-07T10:40:22.2780401Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:22.2780825Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-07T10:40:22.2781264Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:22.2781662Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:22.2782040Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:40:22.2782419Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-07T10:40:22.2782762Z ##[endgroup]
+2026-11-07T10:40:22.5896191Z 2611.08478|discovered
+2026-11-07T10:40:22.5896416Z 2611.08487|chunked
+2026-11-07T10:40:32.8969701Z 2611.08478|chunked
+2026-11-07T10:40:32.8970320Z 2611.08487|chunked
+2026-11-07T10:40:43.2086560Z 2611.08478|chunked
+2026-11-07T10:40:43.2087348Z 2611.08487|chunked
+2026-11-07T10:40:53.5836958Z 2611.08478|chunked
+2026-11-07T10:40:53.5837689Z 2611.08487|chunked
+2026-11-07T10:41:03.8616530Z 2611.08478|chunked
+2026-11-07T10:41:03.8617110Z 2611.08487|embedded
+2026-11-07T10:41:14.1836892Z 2611.08478|chunked
+2026-11-07T10:41:14.1848468Z 2611.08487|embedded
+2026-11-07T10:41:24.4706474Z 2611.08478|chunked
+2026-11-07T10:41:24.4706931Z 2611.08487|embedded
+2026-11-07T10:41:34.7735246Z 2611.08478|chunked
+2026-11-07T10:41:34.7735813Z 2611.08487|embedded
+2026-11-07T10:41:45.2566777Z 2611.08478|chunked
+2026-11-07T10:41:45.2567717Z 2611.08487|embedded
+2026-11-07T10:41:55.5567002Z 2611.08478|chunked
+2026-11-07T10:41:55.5568142Z 2611.08487|embedded
+2026-11-07T10:42:05.8196830Z 2611.08478|chunked
+2026-11-07T10:42:05.8215853Z 2611.08487|embedded
+2026-11-07T10:42:16.0986920Z 2611.08478|chunked
+2026-11-07T10:42:16.0987774Z 2611.08487|embedded
+2026-11-07T10:42:26.3807007Z 2611.08478|chunked
+2026-11-07T10:42:26.3807656Z 2611.08487|embedded
+2026-11-07T10:42:36.7388261Z 2611.08478|chunked
+2026-11-07T10:42:36.7389141Z 2611.08487|embedded
+2026-11-07T10:42:47.0757174Z 2611.08478|chunked
+2026-11-07T10:42:47.0758097Z 2611.08487|embedded
+2026-11-07T10:42:57.3876129Z ==================================================
+2026-11-07T10:42:57.3884248Z Paper ID:       2611.08478 (v1)
+2026-11-07T10:42:57.3891165Z Title:          Scientist World: Grow a Research World for AI-Scientists
+2026-11-07T10:42:57.3895151Z Status:         embedded
+2026-11-07T10:42:57.3895572Z Categories:     [cs.AI cs.CL cs.LG]
+2026-11-07T10:42:57.3895844Z PDF Storage Key:raw/2611.08478_v1.pdf
+2026-11-07T10:42:57.3896222Z SHA256:         62468d6406e3ff04a0c742d0b7e28a92124636def98dd81f6f02781a659220c3
+2026-11-07T10:42:57.3896645Z Updated At:     2026-11-07T10:41:01Z
+2026-11-07T10:42:57.3896906Z ==================================================
+2026-11-07T10:42:57.3986847Z ==================================================
+2026-11-07T10:42:57.3987419Z Paper ID:       2611.08487 (v1)
+2026-11-07T10:42:57.3988368Z Title:          User Embeddings are Superpositions of Interpretable Behavioral Modes
+2026-11-07T10:42:57.3989136Z Status:         embedded
+2026-11-07T10:42:57.3989572Z Categories:     [cs.LG]
+2026-11-07T10:42:57.3990050Z PDF Storage Key:raw/2611.08487_v1.pdf
+2026-11-07T10:42:57.3990643Z SHA256:         580ce0c2da5d6ff95cae8ce7e214cfe51c42a30ea75edb2de9df044ed74668c6
+2026-11-07T10:42:57.3991342Z Updated At:     2026-11-07T10:40:20Z
+2026-11-07T10:42:57.3991919Z ==================================================
+2026-11-07T10:42:58.4054232Z === DLQ Topic: papers.discovered.dlq (Total: 0) ===
+2026-11-07T10:43:00.5008404Z === DLQ Topic: papers.downloaded.dlq (Total: 0) ===
+2026-11-07T10:43:02.7618714Z === DLQ Topic: papers.chunked.dlq (Total: 0) ===
+2026-11-07T10:43:03.8489158Z ##[group]Run sleep 3
+2026-11-07T10:43:03.8489333Z [36;1msleep 3[0m
+2026-11-07T10:43:03.8489587Z [36;1m# curl waits longer than the server's INGEST_TIMEOUT (default 5m), so a real failure shows the server's error.[0m
+2026-11-07T10:43:03.8489987Z [36;1mcode="$(curl -sS -m 360 -o ingest.json -w '%{http_code}' -X POST localhost:8080/v1/papers/ingest \[0m
+2026-11-07T10:43:03.8490305Z [36;1m  -H 'Content-Type: application/json' -d '{"arxiv_id":"2608.20331"}')"[0m
+2026-11-07T10:43:03.8490530Z [36;1mcat ingest.json; echo[0m
+2026-11-07T10:43:03.8490744Z [36;1m[ "$code" = 200 ] || { echo "::error::ingest returned HTTP $code"; exit 1; }[0m
+2026-11-07T10:43:03.8490975Z [36;1m./bin/arxivlens status --arxiv-id 2608.20331[0m
+2026-11-07T10:43:03.8532700Z env:
+2026-11-07T10:43:03.8532849Z   ARXIVLENS_HF_CACHE: /home/runner/.cache/huggingface
+2026-11-07T10:43:03.8533339Z   F1_TESTS: tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank
+2026-11-07T10:43:03.8533806Z   PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
+2026-11-07T10:43:03.8534069Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:43:03.8534309Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-07T10:43:03.8534552Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:43:03.8534772Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:43:03.8535468Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:43:03.8535689Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-07T10:43:03.8535882Z ##[endgroup]
+2026-11-07T10:43:51.4596092Z {"status":"success","arxiv_id":"2608.20331","version":1,"title":"G-CARL: Grounded Checklist-Aligned Reward Learning for Patient-Oriented Medical Report Interpretation","sections":68,"chunks":57,"embeddings":57}
+2026-11-07T10:43:51.4596947Z 
+2026-11-07T10:43:51.4721874Z ==================================================
+2026-11-07T10:43:51.4733982Z Paper ID:       2608.20331 (v1)
+2026-11-07T10:43:51.4734837Z Title:          G-CARL: Grounded Checklist-Aligned Reward Learning for Patient-Oriented Medical Report Interpretation
+2026-11-07T10:43:51.4735841Z Status:         embedded
+2026-11-07T10:43:51.4736291Z Categories:     [cs.CL cs.AI cs.CV]
+2026-11-07T10:43:51.4736761Z PDF Storage Key:raw/2608.20331_v1.pdf
+2026-11-07T10:43:51.4737348Z SHA256:         a91e11c0df97c24fe5a7553cc993cc463a958862bc3fbf8b864a7ef9ae352075
+2026-11-07T10:43:51.4737917Z Updated At:     2026-11-07T10:43:10Z
+2026-11-07T10:43:51.4738369Z ==================================================
+2026-11-07T10:43:51.4791072Z ##[group]Run sudo chown -R "$(id -u):$(id -g)" "$ARXIVLENS_HF_CACHE"
+2026-11-07T10:43:51.4791562Z [36;1msudo chown -R "$(id -u):$(id -g)" "$ARXIVLENS_HF_CACHE"[0m
+2026-11-07T10:43:51.4791883Z [36;1mset +e[0m
+2026-11-07T10:43:51.4792098Z [36;1mread -ra f1 <<< "$F1_TESTS"[0m
+2026-11-07T10:43:51.4792521Z [36;1mmake test-full PYTEST_ARGS="$(printf -- '--deselect %s ' "${f1[@]}")" 2>&1 | tee test-full.log[0m
+2026-11-07T10:43:51.4792976Z [36;1mrc=${PIPESTATUS[0]}[0m
+2026-11-07T10:43:51.4793207Z [36;1m{[0m
+2026-11-07T10:43:51.4793519Z [36;1m  echo "### AC4 \`make test-full\` (exit $rc; F1 deselected: $F1_TESTS)"; echo '```'[0m
+2026-11-07T10:43:51.4794211Z [36;1m  if grep -q 'short test summary info' test-full.log; then sed -n '/short test summary info/,$p' test-full.log; else tail -n 1 test-full.log; fi[0m
+2026-11-07T10:43:51.4794779Z [36;1m  echo '```'[0m
+2026-11-07T10:43:51.4795141Z [36;1m} >> "$GITHUB_STEP_SUMMARY"[0m
+2026-11-07T10:43:51.4795424Z [36;1mexit "$rc"[0m
+2026-11-07T10:43:51.4853755Z env:
+2026-11-07T10:43:51.4853999Z   ARXIVLENS_HF_CACHE: /home/runner/.cache/huggingface
+2026-11-07T10:43:51.4854803Z   F1_TESTS: tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank
+2026-11-07T10:43:51.4855834Z   PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
+2026-11-07T10:43:51.4856233Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:43:51.4856643Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-07T10:43:51.4857019Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:43:51.4857273Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:43:51.4857503Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T10:43:51.4857741Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-07T10:43:51.4857985Z ##[endgroup]
+2026-11-07T10:43:51.5185173Z python3 -m pytest -q tests/ --deselect tests/test_m3_query.py::test_rag_ask_with_groundedness_support --deselect tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query --deselect tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank 
+2026-11-07T10:43:58.7604261Z .......................................................s................ [ 88%]
+2026-11-07T10:43:59.1799396Z .........                                                                [100%]
+

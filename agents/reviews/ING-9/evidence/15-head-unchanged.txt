@@ -1,0 +1,20 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/25 --jq '{number,state,draft,head: .head.sha}'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/25/commits --jq '.[].sha'; gh api repos/MaheshPulivarthi18/ArxivLens/commits/c5dc8737813c1f01a4e6c252a79ae237000047fc/check-runs --jq '.check_runs[] | "\(.name): \(.status) \(.conclusion)"'; git rev-parse HEAD; git diff --stat origin/main...HEAD; git diff --stat origin/main...HEAD -- cmd go.mod go.sum | tail -1; echo "cmd/go.mod/go.sum diff lines: $(git diff origin/main...HEAD -- cmd go.mod go.sum | wc -l)"
+{"draft":true,"head":"c5dc8737813c1f01a4e6c252a79ae237000047fc","number":25,"state":"open"}
+c5dc8737813c1f01a4e6c252a79ae237000047fc
+Full stack (compose + make test-full): completed success
+DB (migrate twice, HNSW plan + recall): completed success
+Go (vet, gofmt, test, build): completed success
+Python M0 unit tests: completed success
+Frontend (lint, test, build): completed success
+Agent ownership check: completed success
+c5dc8737813c1f01a4e6c252a79ae237000047fc
+ internal/arxiv/limiter.go              |  67 ++++++++++++++++++++
+ internal/arxiv/limiter_test.go         | 108 +++++++++++++++++++++++++++++++++
+ internal/downloader/downloader.go      |  52 ++++++++++------
+ internal/downloader/downloader_test.go |  57 +++++++++++++++++
+ internal/query/ingester.go             |  20 ++++--
+ internal/query/ingester_test.go        |  94 ++++++++++++++++++++++++++++
+ 6 files changed, 376 insertions(+), 22 deletions(-)
+cmd/go.mod/go.sum diff lines: 0
+
+[exit code 0]
