@@ -1,0 +1,9 @@
+$ bash -c git diff --shortstat origin/main...HEAD; echo; grep -h 'Ownership OK' /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/ci/own.log; echo; echo '## PR #31 body, SQL line:'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/31 --jq .body | grep -n 'SELECT'
+ 8 files changed, 288 insertions(+), 33 deletions(-)
+
+2026-11-07T20:26:00.1900095Z Ownership OK for role=backend (321 changed lines)
+
+## PR #31 body, SQL line:
+29:- Possibly mislabelled stored rows (do **not** run against a shared DB): `SELECT arxiv_id, version FROM papers WHERE source_url = 'https://arxiv.org/pdf/' || arxiv_id || '.pdf';`
+
+[exit code 0]

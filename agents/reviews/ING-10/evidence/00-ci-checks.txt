@@ -1,0 +1,7 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/d2b133f/check-runs
+Agent ownership check | completed | success | 2026-11-07T20:26:02Z
+DB (migrate twice, HNSW plan + recall) | completed | success | 2026-11-07T20:27:11Z
+Go (vet, gofmt, test, build) | completed | success | 2026-11-07T20:26:45Z
+Python M0 unit tests | completed | success | 2026-11-07T20:27:05Z
+Frontend (lint, test, build) | completed | success | 2026-11-07T20:26:10Z
+

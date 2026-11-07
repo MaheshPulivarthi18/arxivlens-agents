@@ -1,0 +1,32 @@
+$ bash -c echo '## files changed under test dirs:'; git diff --stat origin/main...HEAD -- '*_test.go'; echo; echo '## limiter_test.go diff (empty = untouched):'; git diff origin/main...HEAD -- internal/arxiv/limiter_test.go | wc -l; echo; echo '## every removed (-) line in ING-9 test files ingester_test.go / downloader_test.go / limiter_test.go:'; git diff -U0 origin/main...HEAD -- internal/query/ingester_test.go internal/downloader/downloader_test.go internal/arxiv/limiter_test.go | grep -E '^(@@|-[^-])'; echo; echo '## the same hunk with context:'; git diff -U2 origin/main...HEAD -- internal/query/ingester_test.go | sed -n '/TestIngestSpacesArxivRequests/,/^@@/p' | head -8
+## files changed under test dirs:
+ internal/arxiv/id_test.go              | 34 +++++++++++++
+ internal/crawler/crawler_test.go       |  2 +-
+ internal/downloader/downloader_test.go | 60 ++++++++++++++++++++++
+ internal/query/ingester_test.go        | 93 +++++++++++++++++++++++++++++++++-
+ 4 files changed, 187 insertions(+), 2 deletions(-)
+
+## limiter_test.go diff (empty = untouched):
+0
+
+## every removed (-) line in ING-9 test files ingester_test.go / downloader_test.go / limiter_test.go:
+@@ -4,0 +5,2 @@ import (
+@@ -11,0 +14,2 @@ import (
+@@ -57,0 +62,56 @@ func TestFetchPDFIsSpacedAndIdentified(t *testing.T) {
+@@ -4,0 +5,2 @@ import (
+@@ -6,0 +9 @@ import (
+@@ -14,0 +18,2 @@ import (
+@@ -148 +153 @@ func TestIngestSpacesArxivRequests(t *testing.T) {
+-		stub, want := &arxivStub{}, []string{"id_list=2307.08691", "arxiv.org/pdf/2307.08691.pdf"}
+@@ -173,0 +179,86 @@ func TestConcurrentIngestsShareOneLimiter(t *testing.T) {
+
+## the same hunk with context:
+ func TestIngestSpacesArxivRequests(t *testing.T) {
+ 	for _, discover := range []bool{false, true} {
+-		stub, want := &arxivStub{}, []string{"id_list=2307.08691", "arxiv.org/pdf/2307.08691.pdf"}
++		stub, want := &arxivStub{}, []string{"id_list=2307.08691", "arxiv.org/pdf/2307.08691v1.pdf"}
+ 		ing, err := newStubIngester(stub), error(nil)
+ 		if discover {
+@@ -172,2 +177,88 @@ func TestConcurrentIngestsShareOneLimiter(t *testing.T) {
+
+[exit code 0]

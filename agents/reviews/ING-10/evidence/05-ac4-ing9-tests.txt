@@ -1,0 +1,18 @@
+$ bash -c B=$(mktemp -d /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/run.XXXX) && /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/tools/mkbase.sh $B && cd $B && GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off go test -race -count=1 ./internal/arxiv/ ./internal/downloader/ ./internal/query/ -run 'TestDefaultsAndUserAgent|TestFirstWaitIsImmediate|TestSequentialWaits|TestConcurrentCallersAreSpaced|TestCancelledWaiter|TestFetchPDFIsSpacedAndIdentified|TestIngestSpacesArxivRequests|TestConcurrentIngestsShareOneLimiter|TestExtractCleanArxivID' -v 2>&1 | grep -E '^(--- |ok|FAIL|PASS)'
+--- PASS: TestDefaultsAndUserAgent (0.00s)
+--- PASS: TestFirstWaitIsImmediate (0.00s)
+--- PASS: TestSequentialWaits (0.16s)
+--- PASS: TestConcurrentCallersAreSpaced (0.27s)
+--- PASS: TestCancelledWaiter (0.30s)
+PASS
+ok  	arxivlens/internal/arxiv	1.749s
+--- PASS: TestFetchPDFIsSpacedAndIdentified (0.10s)
+PASS
+ok  	arxivlens/internal/downloader	1.112s
+--- PASS: TestExtractCleanArxivID (0.01s)
+--- PASS: TestIngestSpacesArxivRequests (0.15s)
+--- PASS: TestConcurrentIngestsShareOneLimiter (0.15s)
+PASS
+ok  	arxivlens/internal/query	1.324s
+
+[exit code 0]

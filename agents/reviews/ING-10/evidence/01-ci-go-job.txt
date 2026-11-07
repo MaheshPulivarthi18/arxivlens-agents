@@ -1,0 +1,51 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128518966336/logs | grep (lint/test lines)
+34:2026-11-07T20:25:58.0697171Z Complete job name: Go (vet, gofmt, test, build)
+206:2026-11-07T20:26:08.0852550Z ##[group]Run make lint-go
+210:2026-11-07T20:26:08.1034426Z go vet ./...
+211:2026-11-07T20:26:09.6897101Z ##[group]Run make test-go
+215:2026-11-07T20:26:09.7037404Z go test ./...
+216:2026-11-07T20:26:14.4199951Z ?   	arxivlens/cmd/arxivlens	[no test files]
+217:2026-11-07T20:26:15.6291657Z ok  	arxivlens/internal/arxiv	0.743s
+218:2026-11-07T20:26:15.6307007Z ok  	arxivlens/internal/config	0.011s
+219:2026-11-07T20:26:15.6307752Z ok  	arxivlens/internal/crawler	0.004s
+220:2026-11-07T20:26:15.6308594Z ok  	arxivlens/internal/db	0.006s
+221:2026-11-07T20:26:15.6309146Z ?   	arxivlens/internal/dlq	[no test files]
+222:2026-11-07T20:26:15.8400470Z ok  	arxivlens/internal/downloader	0.108s
+223:2026-11-07T20:26:15.8401343Z ok  	arxivlens/internal/kafka	0.034s
+224:2026-11-07T20:26:15.8402329Z ok  	arxivlens/internal/llm	0.004s
+225:2026-11-07T20:26:15.8589178Z ok  	arxivlens/internal/llm/llmtest	0.104s
+226:2026-11-07T20:26:16.4890457Z ok  	arxivlens/internal/query	0.317s
+227:2026-11-07T20:26:16.4891403Z ?   	arxivlens/internal/storage	[no test files]
+228:2026-11-07T20:26:16.4892046Z ?   	arxivlens/internal/telemetry	[no test files]
+229:2026-11-07T20:26:16.4892654Z ?   	arxivlens/shared/events	[no test files]
+235:2026-11-07T20:26:39.3582052Z --- PASS: TestRetryBackoff (0.00s)
+237:2026-11-07T20:26:39.3584392Z --- PASS: TestDLQRetryBackoff (0.00s)
+239:2026-11-07T20:26:39.3649445Z --- PASS: TestCtxWait (0.01s)
+248:2026-11-07T20:26:39.3673295Z --- PASS: TestRetrySleepSchedule (0.00s)
+271:2026-11-07T20:26:39.3693263Z --- PASS: TestConsumerSuccessPath (0.00s)
+284:2026-11-07T20:26:39.3727913Z --- PASS: TestConsumerDLQThenCommit (0.00s)
+306:2026-11-07T20:26:39.3750667Z --- PASS: TestConsumerDLQFailureBlocksPartition (0.00s)
+319:2026-11-07T20:26:39.3760243Z --- PASS: TestConsumerDLQRecovers (0.00s)
+321:2026-11-07T20:26:39.3760964Z --- PASS: TestNewConsumerRejectsNilProducer (0.00s)
+330:2026-11-07T20:26:39.3767323Z --- PASS: TestConsumerNilDLQIsFailedPublish (0.00s)
+335:2026-11-07T20:26:39.3902270Z --- PASS: TestConsumerCancelDuringBackoffReturnsPromptly (0.02s)
+341:2026-11-07T20:26:39.3912093Z --- PASS: TestConsumerCancelInsideHandlerNoDLQ (0.00s)
+347:2026-11-07T20:26:39.3920144Z --- PASS: TestConsumerAllowRebalanceAfterEachPoll (0.00s)
+349:2026-11-07T20:26:39.3921520Z --- PASS: TestConsumerDLQFailureLogNoValue (0.00s)
+353:2026-11-07T20:26:39.3925568Z --- PASS: TestConsumerPollErrorStillProcessesRecords (0.00s)
+358:2026-11-07T20:26:40.3973733Z ok  	arxivlens/internal/kafka	1.051s	coverage: 62.9% of statements
+392:2026-11-07T20:26:42.0792220Z --- PASS: TestConfigFromEnv (0.00s)
+415:2026-11-07T20:26:42.0805746Z --- PASS: TestConfigRedactsKey (0.00s)
+424:2026-11-07T20:26:42.0809413Z --- PASS: TestConfigNormalize (0.00s)
+433:2026-11-07T20:26:42.0813819Z --- PASS: TestPrintFormsShowSizesOnly (0.00s)
+440:2026-11-07T20:26:42.0816121Z --- PASS: TestErrorShape (0.00s)
+453:2026-11-07T20:26:42.0821042Z --- PASS: TestErrorsIsAs (0.00s)
+462:2026-11-07T20:26:42.0824260Z ok  	arxivlens/internal/llm	1.023s	coverage: 100.0% of statements
+464:2026-11-07T20:26:42.1754971Z --- PASS: TestFakeScript (0.00s)
+466:2026-11-07T20:26:42.1756698Z --- PASS: TestFakeReturnsCopies (0.00s)
+468:2026-11-07T20:26:42.1758340Z --- PASS: TestFakeRequests (0.00s)
+472:2026-11-07T20:26:42.1761905Z --- PASS: TestFakeHang (0.10s)
+476:2026-11-07T20:26:42.1764793Z --- PASS: TestFakeConcurrent (0.00s)
+479:2026-11-07T20:26:42.1766662Z ok  	arxivlens/internal/llm/llmtest	1.120s	coverage: 100.0% of statements
+516:2026-11-07T20:26:42.2481757Z go build -o bin/arxivlens ./cmd/arxivlens
+

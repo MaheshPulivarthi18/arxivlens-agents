@@ -1,0 +1,32 @@
+$ bash -c grep -nE '2608.20331|version=1|"version": 1|_v1' tests/test_m4_chaos.py | head -14; echo; grep -n '2608.20331' tests/test_m3_query.py; echo; sed -n '190,200p' .github/workflows/stack.yml
+33:    # Re-run processor on already-processed paper 2608.20331 with 10 duplicate events
+42:            paper_id="2608.20331",
+43:            version=1,
+46:                "arxiv_id": "2608.20331",
+47:                "version": 1,
+48:                "pdf_storage_key": "raw/2608.20331_v1.pdf",
+55:        cur.execute("SELECT id FROM papers WHERE arxiv_id = '2608.20331';")
+62:        paper_id="2608.20331",
+63:        version=1,
+65:        payload={"paper_db_id": paper_id, "arxiv_id": "2608.20331", "version": 1, "chunk_count": 57},
+74:        cur.execute("SELECT status FROM papers WHERE arxiv_id = '2608.20331';")
+90:    corrupt_key = "raw/corrupt_paper_test_v1.pdf"
+120:        version=1,
+125:            "version": 1,
+
+70:    resp = requests.get(f"{BASE_URL}/v1/papers/2608.20331/status", timeout=5)
+73:    assert data["ArxivID"] == "2608.20331"
+
+      - name: Seed the M3/M4 fixture (on-demand ingest of 2608.20331)
+        id: seed
+        timeout-minutes: 8
+        run: |
+          sleep 3
+          # curl waits longer than the server's INGEST_TIMEOUT (default 5m), so a real failure shows the server's error.
+          code="$(curl -sS -m 360 -o ingest.json -w '%{http_code}' -X POST localhost:8080/v1/papers/ingest \
+            -H 'Content-Type: application/json' -d '{"arxiv_id":"2608.20331"}')"
+          cat ingest.json; echo
+          [ "$code" = 200 ] || { echo "::error::ingest returned HTTP $code"; exit 1; }
+          ./bin/arxivlens status --arxiv-id 2608.20331
+
+[exit code 0]

@@ -1,0 +1,38 @@
+$ bash -c echo '## workflow runs for branch agent/backend/ING-10:'; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/runs?branch=agent/backend/ING-10' --jq '.workflow_runs[] | "\(.id) \(.name) \(.event) \(.head_sha[0:7]) \(.conclusion)"'; echo; echo '## Full stack (stack.yml) runs with head_sha d2b133f:'; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/workflows/stack.yml/runs?head_sha=d2b133f035242ca5ffeff60fd6944c0433dab950' --jq '.total_count'; echo; echo '## stack.yml on: (PR head)'; sed -n '5,18p' .github/workflows/stack.yml; echo; echo '## files changed by PR #31:'; git diff --name-only origin/main...HEAD; echo; echo '## PR #26 (OPS-H10) state / merged:'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/26 --jq '"\(.state) merged=\(.merged)"'
+## workflow runs for branch agent/backend/ING-10:
+42411019562 DB pull_request d2b133f success
+42411019541 CI pull_request d2b133f success
+
+## Full stack (stack.yml) runs with head_sha d2b133f:
+0
+
+## stack.yml on: (PR head)
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - docker-compose.yml
+      - services/*/Dockerfile
+      - services/processor/**
+      - services/embedder/**
+      - services/common/**
+      - shared/**
+      - migrations/**
+      - requirements*.txt
+      - Makefile
+      - .github/workflows/stack.yml
+
+## files changed by PR #31:
+internal/arxiv/id.go
+internal/arxiv/id_test.go
+internal/crawler/crawler.go
+internal/crawler/crawler_test.go
+internal/downloader/downloader.go
+internal/downloader/downloader_test.go
+internal/query/ingester.go
+internal/query/ingester_test.go
+
+## PR #26 (OPS-H10) state / merged:
+open merged=false
+
+[exit code 0]

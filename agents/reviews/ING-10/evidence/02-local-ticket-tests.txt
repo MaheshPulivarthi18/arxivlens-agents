@@ -1,0 +1,21 @@
+$ bash -c B=$(mktemp -d /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/run.XXXX) && /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/tools/mkbase.sh $B && cd $B && GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off go test -race -count=1 ./internal/query/ ./internal/downloader/ ./internal/crawler/ ./internal/arxiv/ -run 'Ingest|Download|Crawl|Version|Limiter|HandleRecord|ParseAtom|PDFURL' -v 2>&1 | grep -E '^(--- |ok|FAIL|PASS)'
+--- PASS: TestNewPaperIngesterTimeouts (0.00s)
+--- PASS: TestIngestSpacesArxivRequests (0.15s)
+--- PASS: TestConcurrentIngestsShareOneLimiter (0.15s)
+--- PASS: TestIngestUsesEntryVersion (0.00s)
+--- PASS: TestIngestRejectsUnversionedEntry (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.321s
+--- PASS: TestHandleRecordFetchesTheEnvelopesVersion (0.00s)
+PASS
+ok  	arxivlens/internal/downloader	1.011s
+--- PASS: TestParseAtomFeed (0.00s)
+--- PASS: TestParseAtomFeedEdgeCases (0.00s)
+PASS
+ok  	arxivlens/internal/crawler	1.014s
+--- PASS: TestSplitVersion (0.00s)
+--- PASS: TestPDFURL (0.00s)
+PASS
+ok  	arxivlens/internal/arxiv	1.011s
+
+[exit code 0]

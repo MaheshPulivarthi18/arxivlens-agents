@@ -1,0 +1,40 @@
+$ python3 -I /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/tools/mutate.py /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad
+SUMMARY: 18/18 KILLED, 0 SURVIVED, 0 INVALID/NOMATCH
+KILLED    M01 ingester: default missing version to 1
+          --- FAIL: TestIngestRejectsUnversionedEntry (0.01s)
+KILLED    M02 ingester: no version check at all
+          --- FAIL: TestIngestRejectsUnversionedEntry (0.01s)
+KILLED    M03 ingester: unversioned PDF URL
+          --- FAIL: TestIngestSpacesArxivRequests (0.15s)
+KILLED    M04 ingester: payload version 1
+          --- FAIL: TestIngestUsesEntryVersion (0.00s)
+KILLED    M05 ingester: storage key v1
+          --- FAIL: TestIngestUsesEntryVersion (0.00s)
+KILLED    M06 ingester: DB record Version 1
+          --- FAIL: TestIngestUsesEntryVersion (0.00s)
+KILLED    M07 ingester: UpdatePaperDownloaded v1
+          --- FAIL: TestIngestUsesEntryVersion (0.00s)
+KILLED    M08 ingester: error omits entry ID
+          --- FAIL: TestIngestRejectsUnversionedEntry (0.00s)
+KILLED    M09 ingester: result Version 1
+          --- FAIL: TestIngestUsesEntryVersion (0.00s)
+KILLED    M10 downloader: unversioned PDF URL
+          --- FAIL: TestHandleRecordFetchesTheEnvelopesVersion (0.00s)
+KILLED    M11 downloader: always v1 URL
+          --- FAIL: TestHandleRecordFetchesTheEnvelopesVersion (0.00s)
+KILLED    M12 downloader: drop 0->1 default
+          --- FAIL: TestHandleRecordFetchesTheEnvelopesVersion (0.00s)
+KILLED    M13 crawler: unversioned SourceURL
+          --- FAIL: TestParseAtomFeed (0.00s)
+KILLED    M14 SplitVersion: accept v0
+          --- FAIL: TestSplitVersion (0.00s)
+KILLED    M15 SplitVersion: keep suffix in id
+          --- FAIL: TestSplitVersion (0.00s)
+KILLED    M16 PDFURL: drop version
+          --- FAIL: TestPDFURL (0.00s)
+KILLED    M17 ingester: unversioned URL (ING-9 test only)
+          --- FAIL: TestIngestSpacesArxivRequests (0.15s)
+KILLED    T01 revert ING-9 literal to main's text (expect KILLED: old text can't pass)
+          --- FAIL: TestIngestSpacesArxivRequests (0.15s)
+
+[exit code 0]
