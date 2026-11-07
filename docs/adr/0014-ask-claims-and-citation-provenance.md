@@ -1,6 +1,6 @@
 # ADR-0014: Claim-level evidence and citation provenance fields in `/v1/ask` and `/v1/search`
 
-- **Status:** Proposed
+- **Status:** Accepted (Mahesh, 2026-11-07)
 - **Date:** 2026-11-07
 - **Deciders:** Mahesh Pulivarthi (only the human owner sets Accepted/Rejected)
 - **Blocks:** RET-2, AI-8, FE-4 (Wave 2/3 of the 2026-11-07 plan). Does **not** block LLM-1, AI-6, AI-7, QA-8, EVAL-6, FE-3.
@@ -55,7 +55,7 @@ Option 1. Rules that go with it, for you to accept or change:
 - **`limitations` and `confidence`** are left out for now.
 
 ## Decision
-_(Filled by the human.)_
+**The pm-lead recommendation above, accepted as written** (Mahesh, 2026-11-07, in chat): add the new fields to `/v1/ask` and `/v1/search` without breaking existing clients; drop any quote that is not verbatim in the cited passage; statuses `supported` / `unsupported` / `unverified`, with `partially_supported` and `contradicted` reserved until a real entailment checker exists; confidence and limitations fields deferred. The app README API table is updated in the PRs that add the fields.
 
 ## Consequences
 If accepted: RET-2 (backend) adds `version`/`page` to `SearchHit`, AI-8 (ai) adds claims/status/quote to `rag.go`, and
