@@ -1,0 +1,33 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/oldtests.sh /root/wt/qa-AI-7
+rag_test.go from origin/main 71cb609; rag.go from HEAD 9265b5f
+--- PASS: TestFilterRelevantHits (0.00s)
+--- PASS: TestAskRefusesWhenNothingPasses (0.00s)
+--- PASS: TestAskAnswersWithValidatedCitations (0.00s)
+--- PASS: TestValidateCitationsMarkers (0.00s)
+--- PASS: TestValidateCitationsSupportThreshold (0.00s)
+--- PASS: TestValidateCitationsFailClosedWhenUnverifiable (0.00s)
+--- PASS: TestSplitIntoSentences (0.00s)
+--- PASS: TestCosineSimilarity (0.00s)
+--- PASS: TestAskResponseShapeAndConstructor (0.00s)
+--- PASS: TestAskBatchesEmbeddingCalls (0.00s)
+--- PASS: TestValidateCitationsBatchMatchesPerItem (0.00s)
+    rag_test.go:596: got 3 citations, want 2 (markers kept, support withheld)
+    rag_test.go:596: got 3 citations, want 2 (markers kept, support withheld)
+    rag_test.go:596: got 3 citations, want 2 (markers kept, support withheld)
+    rag_test.go:596: got 3 citations, want 2 (markers kept, support withheld)
+    rag_test.go:596: got 3 citations, want 2 (markers kept, support withheld)
+--- FAIL: TestAskBatchFailClosed (0.00s)
+--- PASS: TestAskRerankFallbackLogsResponseTraceID (0.00s)
+--- PASS: TestHybridSearchRerankOrdersByScore (0.00s)
+--- PASS: TestHybridSearchRerankTiesKeepRRFOrder (0.00s)
+--- PASS: TestHybridSearchRerankPoolSize (0.00s)
+--- PASS: TestHybridSearchRerankFallback (0.00s)
+--- PASS: TestTraceIDFrom (0.00s)
+--- PASS: TestHybridSearchNoRerankUnchanged (0.00s)
+--- PASS: TestHybridSearchFetchError (0.00s)
+--- PASS: TestNewSearchEngineWiresSeams (0.00s)
+FAIL
+FAIL	arxivlens/internal/query	0.006s
+FAIL
+
+[exit code 0]

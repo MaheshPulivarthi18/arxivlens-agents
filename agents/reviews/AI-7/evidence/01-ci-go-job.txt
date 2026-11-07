@@ -1,0 +1,10 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128319260225/logs | grep -E 'Run make lint-go|go vet|Run make test-go|go test ./...|internal/query|Run make build-go|go build|GOVERSION'
+2026-11-07T05:52:26.7395290Z GOVERSION='go1.25.0'
+2026-11-07T05:52:26.7777358Z ##[group]Run make lint-go
+2026-11-07T05:52:26.7999787Z go vet ./...
+2026-11-07T05:52:27.7763641Z ##[group]Run make test-go
+2026-11-07T05:52:27.7990358Z go test ./...
+2026-11-07T05:52:31.9775569Z ok  	arxivlens/internal/query	0.010s
+2026-11-07T05:52:49.9670155Z ##[group]Run make build-go
+2026-11-07T05:52:49.9808022Z go build -o bin/arxivlens ./cmd/arxivlens
+

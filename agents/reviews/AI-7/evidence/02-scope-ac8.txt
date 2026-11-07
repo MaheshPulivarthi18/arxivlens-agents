@@ -1,0 +1,23 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/scope.sh
+== git diff --stat origin/main...HEAD
+ README.md                  |   2 +-
+ internal/query/rag.go      | 103 +++++++++++++++----
+ internal/query/rag_test.go | 239 ++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 318 insertions(+), 26 deletions(-)
+
+== git diff origin/main -- internal/query/server.go evals/thresholds.json | wc -l
+0
+
+== untouched out-of-scope paths (scripts/ evals/ frontend/ tests/ shared/ migrations/):
+0
+
+== README.md diff (only the /v1/ask row)
+diff --git a/README.md b/README.md
+index d455b19..e10dbd6 100644
+--- a/README.md
++++ b/README.md
+@@ -163 +163 @@ CUDA in compose is untested: `TORCH_INDEX_URL=https://download.pytorch.org/whl/c
+-| `POST` | `/v1/ask` | Cited answer: `{question, categories?, max_citations?}` |
++| `POST` | `/v1/ask` | Cited answer: `{question, categories?, max_citations?}` → `{answer, citations, trace_id, refusal_reason?}`. When no citation is supported, the answer is withheld, `refusal_reason` is `all_citations_unsupported` or `verification_unavailable`, and `citations` lists every relevant passage as evidence (ADR-0003) |
+
+[exit code 0]

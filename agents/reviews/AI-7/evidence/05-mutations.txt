@@ -1,0 +1,19 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/mutate.sh /root/wt/qa-AI-7
+KILLED    M1 reason precedence swapped (unverified>0 -> A)  <- TestAskBatchFailClosed TestAskRefusesAllUnsupported TestAskRefusesNoInRangeMarker TestAskRefusesVerificationUnavailable TestFinalizeEvidenceKeepsBestComputedScore 
+KILLED    M2 never refuse (always return the answer)  <- TestAskBatchFailClosed TestAskRefusesAllUnsupported TestAskRefusesNoInRangeMarker TestAskRefusesVerificationUnavailable TestFinalizeEvidenceKeepsBestComputedScore 
+KILLED    M3 always refuse (ignore supported citations)  <- TestAskAnswersWithValidatedCitations TestAskBatchesEmbeddingCalls TestAskKeepsAnswerWithOneSupportedCitation 
+KILLED    M4 refuse unless ALL supported  <- TestAskKeepsAnswerWithOneSupportedCitation 
+KILLED    M5 evidence = cited citations only  <- TestAskBatchFailClosed TestAskRefusesAllUnsupported TestAskRefusesNoInRangeMarker TestAskRefusesVerificationUnavailable TestFinalizeEvidenceKeepsBestComputedScore 
+KILLED    M6 evidence scores always 0  <- TestAskRefusesAllUnsupported TestAskRefusesVerificationUnavailable TestFinalizeEvidenceKeepsBestComputedScore 
+KILLED    M7 evidence marked supported  <- TestAskBatchFailClosed TestAskRefusesAllUnsupported TestAskRefusesNoInRangeMarker TestAskRefusesVerificationUnavailable TestFinalizeEvidenceKeepsBestComputedScore 
+KILLED    M8 hit score = last instead of max  <- TestFinalizeEvidenceKeepsBestComputedScore 
+KILLED    M9 unverified not recorded in check  <- TestAskBatchFailClosed TestAskRefusesVerificationUnavailable 
+KILLED    M10 refusal_reason dropped from response  <- TestAskBatchFailClosed TestAskRefusesAllUnsupported TestAskRefusesNoInRangeMarker TestAskRefusesVerificationUnavailable TestFinalizeEvidenceKeepsBestComputedScore 
+KILLED    M11 omitempty removed from refusal_reason tag  <- TestAskEarlyRefusalHasNoRefusalReason TestAskKeepsAnswerWithOneSupportedCitation TestAskResponseShapeAndConstructor 
+KILLED    M12 log leaks answer text  <- TestAskRefusesAllUnsupported TestAskRefusesVerificationUnavailable 
+KILLED    M13 log trace_id not from ctx  <- TestAskBatchFailClosed TestAskRefusesAllUnsupported TestAskRefusesNoInRangeMarker TestAskRefusesVerificationUnavailable 
+KILLED    M14 refusal log line removed  <- TestAskBatchFailClosed TestAskRefusesAllUnsupported TestAskRefusesNoInRangeMarker TestAskRefusesVerificationUnavailable 
+KILLED    M15 A and B sentences swapped  <- TestAskRefusesAllUnsupported TestAskRefusesNoInRangeMarker 
+KILLED    M16 checked count not incremented  <- TestAskRefusesAllUnsupported TestAskRefusesVerificationUnavailable 
+
+[exit code 0]

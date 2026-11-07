@@ -1,0 +1,78 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/hunks.sh
+== hunk headers (origin/main...HEAD) for rag_test.go
+@@ -393,0 +394,5 @@ func TestAskResponseShapeAndConstructor(t *testing.T) {
+@@ -595,2 +600,7 @@ func TestAskBatchFailClosed(t *testing.T) {
+@@ -607,2 +617,3 @@ func TestAskBatchFailClosed(t *testing.T) {
+@@ -656,0 +668,220 @@ func TestAskRerankFallbackLogsResponseTraceID(t *testing.T) {
+
+== removed lines (-) in rag_test.go:
+-			if len(resp.Citations) != 2 {
+-				t.Fatalf("got %d citations, want 2 (markers kept, support withheld)", len(resp.Citations))
+-			if len(lines) != 1 || !strings.Contains(lines[0], tc.wantLog) {
+-				t.Errorf("log = %q, want one line containing %q", buf.String(), tc.wantLog)
+
+== test funcs on origin/main vs HEAD (existing ones must all still exist)
+13a14,19
+> func TestAskRefusesAllUnsupported
+> func TestFinalizeEvidenceKeepsBestComputedScore
+> func TestAskRefusesVerificationUnavailable
+> func TestAskRefusesNoInRangeMarker
+> func TestAskKeepsAnswerWithOneSupportedCitation
+> func TestAskEarlyRefusalHasNoRefusalReason
+(> = added)
+
+== TestAskBatchFailClosed cases + wantLog unchanged?
+7,8c7,8
+< 			if len(lines) != 1 || !strings.Contains(lines[0], tc.wantLog) {
+< 				t.Errorf("log = %q, want one line containing %q", buf.String(), tc.wantLog)
+---
+> 			if len(lines) != 2 || !strings.Contains(lines[0], tc.wantLog) ||
+> 				t.Errorf("log = %q, want the unverified line containing %q, then the refusal line", buf.String(), tc.wantLog)
+
+== full diff of TestAskBatchFailClosed and TestAskResponseShapeAndConstructor
+diff --git a/internal/query/rag_test.go b/internal/query/rag_test.go
+index 24b644d..e3cc732 100644
+--- a/internal/query/rag_test.go
++++ b/internal/query/rag_test.go
+@@ -391,6 +391,11 @@ func TestAskResponseShapeAndConstructor(t *testing.T) {
+ 	if got := sortedKeys(cite); !reflect.DeepEqual(got, want) {
+ 		t.Errorf("citation keys %v, want %v", got, want)
+ 	}
++	// AI-7 (ADR-0003): refusal_reason is the one added key, present only when set.
++	refused, _ := json.Marshal(AskResponse{RefusalReason: reasonAllUnsupported})
++	if got, want := sortedKeys(refused), []string{"answer", "citations", "refusal_reason", "trace_id"}; !reflect.DeepEqual(got, want) {
++		t.Errorf("refusal response keys %v, want %v", got, want)
++	}
+ 	se, ec := &SearchEngine{}, &EmbedClient{}
+ 	if r := NewRAGService(se, ec); r.searchEngine != searcher(se) || r.embedClient != embedder(ec) {
+ 		t.Errorf("dependencies not wired: %+v", r)
+@@ -592,8 +597,13 @@ func TestAskBatchFailClosed(t *testing.T) {
+ 			if err != nil {
+ 				t.Fatalf("unexpected error: %v", err)
+ 			}
+-			if len(resp.Citations) != 2 {
+-				t.Fatalf("got %d citations, want 2 (markers kept, support withheld)", len(resp.Citations))
++			if len(resp.Citations) != 3 {
++				t.Fatalf("got %d citations, want 3 (ADR-0003: every relevant hit as evidence, support withheld)", len(resp.Citations))
++			}
++			if resp.RefusalReason != reasonVerificationUnavailable || resp.Answer != refusalUnavailable ||
++				!reflect.DeepEqual(markers(resp.Citations), []int{1, 2, 3}) {
++				t.Errorf("reason=%q answer=%q markers=%v, want verification_unavailable, the B sentence, [1 2 3]",
++					resp.RefusalReason, resp.Answer, markers(resp.Citations))
+ 			}
+ 			for _, c := range resp.Citations {
+ 				if c.Score != 0 || c.Supported {
+@@ -604,8 +614,9 @@ func TestAskBatchFailClosed(t *testing.T) {
+ 				t.Errorf("EmbedTexts called %d times, want 2", len(emb.calls))
+ 			}
+ 			lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+-			if len(lines) != 1 || !strings.Contains(lines[0], tc.wantLog) {
+-				t.Errorf("log = %q, want one line containing %q", buf.String(), tc.wantLog)
++			if len(lines) != 2 || !strings.Contains(lines[0], tc.wantLog) ||
++				!strings.Contains(lines[1], "reason=verification_unavailable") || !strings.Contains(lines[1], "trace_id="+resp.TraceID+" ") {
++				t.Errorf("log = %q, want the unverified line containing %q, then the refusal line", buf.String(), tc.wantLog)
+ 			}
+ 		})
+ 	}
+
+[exit code 0]

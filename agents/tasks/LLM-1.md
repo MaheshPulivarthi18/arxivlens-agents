@@ -110,3 +110,10 @@ git diff origin/main --stat
   - QA-8 now depends on LLM-1 **and** LLM-1b merged. The design's PM-decision conditions 1–5 still apply: 2 and 4 here, 1 here (CI step), 3 and 5 to both.
   - Lesson filed: size estimates in designs should be measured from a skeleton, not guessed (pm-lead lessons).
 
+- 2026-11-07 (backend-engineer, split applied): commit `8e32771` on `agent/backend/LLM-1` (local, **not pushed**), on top of `origin/main` `71cb609`.
+  Diff: ci.yml +4, config.go 143, llm.go 145, llmtest/fake.go 87 → **prod 375**; config_test.go 150, llm_test.go 72, llmtest/fake_test.go 151 → **test 373**.
+  No `openai.go`, no `FromEnv`; go.mod/go.sum unchanged. Doc comments in llm.go/config.go no longer name `Client`/`New`.
+  `TestNew` removed; its default/validation rows now run against `Config.normalize` directly (`TestConfigNormalize`), so config.go keeps its coverage without the client.
+  Local Go 1.24 scratch module (`GOTOOLCHAIN=local`): vet clean, gofmt clean, `go test -race -count=3` green, per-file coverage config.go 100%, llm.go 100%, llmtest/fake.go 100%.
+  Ownership check OK (prints the generic `> 400 changed lines` warning: it counts test lines too; AC8's cap is non-test only).
+  **LLM-1b's full pre-split implementation saved** on local branch `wip/LLM-1b` @ `8a776d6` in `/root/wt/LLM-1` (not pushed) and as a copy + patch in the session scratchpad. Not run: Go 1.25, `make lint`/`make test-unit` (need Go 1.25) — CI is the source of truth.

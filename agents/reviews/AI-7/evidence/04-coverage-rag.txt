@@ -1,0 +1,21 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/cov.sh /root/wt/qa-AI-7
+$ go test -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | grep rag.go
+ok  	arxivlens/internal/query	0.007s	coverage: 69.4% of statements
+arxivlens/internal/query/rag.go:64:	NewRAGService		100.0%
+arxivlens/internal/query/rag.go:71:	generateTraceID		100.0%
+arxivlens/internal/query/rag.go:77:	Ask			100.0%
+arxivlens/internal/query/rag.go:113:	buildTemplateAnswer	100.0%
+arxivlens/internal/query/rag.go:134:	finalize		100.0%
+arxivlens/internal/query/rag.go:156:	newCitation		100.0%
+arxivlens/internal/query/rag.go:172:	filterRelevantHits	100.0%
+arxivlens/internal/query/rag.go:197:	validateCitations	100.0%
+arxivlens/internal/query/rag.go:212:	checkCitations		98.1%
+arxivlens/internal/query/rag.go:299:	embedBatch		90.0%
+arxivlens/internal/query/rag.go:315:	splitIntoSentences	94.7%
+arxivlens/internal/query/rag.go:348:	endsWithAbbreviation	100.0%
+arxivlens/internal/query/rag.go:361:	cosineSimilarity	100.0%
+
+per-file (statements in rag.go blocks):
+rag.go: 144/147 statements = 98.0%
+
+[exit code 0]

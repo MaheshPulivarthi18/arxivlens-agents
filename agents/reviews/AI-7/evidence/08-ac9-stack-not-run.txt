@@ -1,0 +1,42 @@
+$ /tmp/claude-0/-home-claude/4d486750-e36e-53f8-a8a1-76e4eb5e601e/scratchpad/ac9.sh
+== workflow runs for head 9265b5f
+DB [pull_request] success
+CI [pull_request] success
+
+== stack.yml pull_request path filter
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - docker-compose.yml
+      - services/*/Dockerfile
+      - services/processor/**
+      - services/embedder/**
+      - services/common/**
+      - shared/**
+      - migrations/**
+      - requirements*.txt
+      - Makefile
+      - .github/workflows/stack.yml
+
+permissions:
+== files changed by PR
+README.md
+internal/query/rag.go
+internal/query/rag_test.go
+
+== query.log handling in stack.yml
+158:          nohup ./bin/arxivlens query --port 8080 > query.log 2>&1 &
+219:        continue-on-error: true
+232:      - name: Diagnostics
+233:        if: "failure()"
+240:          for f in downloader.log query.log ingest.json; do
+248:        if: always()
+253:            stack-logs/
+260:        if: always()
+
+== EVAL-3 (#22) / EVAL-6 (#20) merge state
+#20 agent/ai/EVAL-6 state=open merged=false
+#22 agent/backend/EVAL-3 state=open merged=false
+
+[exit code 0]
