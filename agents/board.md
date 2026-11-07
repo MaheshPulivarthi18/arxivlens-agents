@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 by pm-lead (plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Proposed)
+Last updated: 2026-11-07 by pm-lead (design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Proposed)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -32,6 +32,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 (merged) |
 | [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 (Done) |
 | [FE-2](tasks/FE-2.md) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 |
+| [ING-9](tasks/ING-9.md) | arXiv politeness: one 3 s limiter per process + identifying User-Agent (ingester, downloader) | backend-engineer | P1 | none; no open PR on `ingester.go`/`downloader/` (moves up if EVAL-3's `seed.log` shows arXiv 429/403) |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -74,6 +75,8 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
   `services/embedder/api.py`, after AI-9 which edits the same file) and ignores client cancellation (backend side: honour the
   `INGEST_TIMEOUT` ctx end to end). P2: ingest is off the Phase 1 path and F2 is fixed by the timeout
 - After AI-9 merges (backend, small): drop the "Known failure F1" step and `F1_TESTS` deselection in `stack.yml`
+- *Proposed* rules PR (Mahesh decides): AGENTS.md §3 "< 400 changed lines": say whether `_test.go` lines count (LLM-1 got a one-off non-test-only exception, 2026-11-07)
+- pm-lead PRD docs PR: Product PRD ING-1 ✅ "respecting ~1 req / 3 s" holds for the crawler only → caveat pointing to ING-9 until it merges
 - pm-lead docs PR now due: Product PRD QA-8 row (ADR-0001/0002 Accepted; work split into LLM-1, AI-6, QA-8, AI-7, AI-8, EVAL-8),
   Technical PRD §11 P0 row and §7.2 diagram note (ADR-0003 refusal with evidence), QA-4 row text (AI-2 merged)
 - QA-9 Streaming answers (frontend + ai) — after QA-8 and AI-8 (claims are validated before they can be shown)
@@ -103,7 +106,6 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 - Prometheus metrics: consumer lag, DLQ depth, stage latency (backend) + OPS-6 dashboard (frontend)
 - Auth + rate limiting on query API (backend) — before any shared deployment
 - On-demand ingest via Kafka (backend) — depends on ADR-0004
-- From the OPS-H1 design (backend, P1, Technical PRD §9 politeness): Go downloader has no rate limiter (PDFs can be < 3 s apart), and the query-service ingester sends no User-Agent on its Atom call, a non-identifying `ArxivLens-Bot/1.0` on its PDF call, and doesn't wait between them. Fix: a shared 3 s limiter plus the crawler's identifying UA on every arXiv request
 - From the OPS-H1 design (ai owns `tests/` + EVAL-1 corpus, after OPS-H1's first `stack.yml` run): verify the hard-coded fixture `2608.20331` in `tests/test_m3_query.py` / `tests/test_m4_chaos.py` exists on arXiv and matches the G-CARL wording (EVAL-1 QA nit 8); replace it if not, and never loosen the asserts
 - From the OPS-H1 design (backend, P2, rules PR first): add `.dockerignore` (`.venv/`, `node_modules/`, `bin/`, `.cache/`, `evals/results/`) so local `make stack-up` doesn't send GBs of build context; needs a pm-lead rules PR to add `.dockerignore` to backend's row in AGENTS.md §2 and the `ownership-check.sh` allow-list
 - pm-lead rules PR after OPS-H1 merges: AGENTS.md §6 "workers not in docker-compose (OPS-H1)" gotcha → replace with `make stack-up` / `stack.yml`

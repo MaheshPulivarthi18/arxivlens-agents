@@ -147,3 +147,34 @@ Failure paths covered: arXiv 429/5xx (retry → exit 1), bad ID (no retry → ex
 - Rollback: `gh workflow disable eval.yml` or revert the PR. Nothing else depends on it.
 
 ## PM decision
+**APPROVED with conditions** (pm-lead, 2026-11-07, reviewed at design commit `d33b8ef` against `agents/tasks/EVAL-3.md`,
+Product PRD §8, Technical PRD §9 "External politeness"; app `origin/main` `71cb609`).
+
+Why: all seven "Design must answer" items are answered with numbers, and each AC maps to a step. It fails closed where it
+should: no skip or delete of corpus IDs, no `continue-on-error` on the gate, no threshold edits, exit 2 shown as "could not
+run". Two choices are especially good. Explicit `cache/restore` + `cache/save` means a latency-red nightly still warms the cache,
+and the cache key matches `stack.yml:63`. Rejecting cached DB volumes (Alt 3) keeps the run a real regression check. The shell
+seeder plus the CI self-test (step 9) is enough for AC5 at this size (Alt 1). No shared contract is touched, and the diff (~185
+lines, workflow ~140) fits AC8.
+
+### Conditions (binding; QA checks each)
+1. **Don't lose exit codes through `| tee`.** Steps 10 and 12 pipe into `tee`. A `run:` step with no `shell:` runs as `bash -e {0}`,
+   **without** `pipefail`, so `make eval-seed … | tee` would report tee's 0 and step 12 would read the wrong code. Use the
+   `stack.yml` pattern (`set +e`, `rc=${PIPESTATUS[0]}`, then `exit "$rc"`, as at `stack.yml:206-214`) in both steps. QA checks
+   that the AC5 self-test and a failed seed really turn the step red.
+2. **One writer per log file.** The design has `eval-seed` write one line per ID to `seed.log` while step 10 also tees the target's
+   output into `seed.log`, so one overwrites the other. Give them different names (for example the target writes `seed-ids.tsv`,
+   the step tees to `seed.log`) and upload both.
+3. **AC6 rule stands as written.** On CPU runners `/v1/ask` takes about 10 s (F1). That's under the eval's 30 s `--timeout`, so asks
+   should complete. If they don't (timeouts counted as `ask_errors`, gate exit 1), that's a finding to paste, not a reason to raise
+   `--timeout`, change `RerankPool` or edit the gate step.
+4. **Record the `main` SHA and say where AI-7 / EVAL-6 stood** (merged or not) in the PR's AC6 numbers, as the ticket's Notes ask.
+   The step summary already carries `github.sha`.
+
+### Decision on the developer's question (ingester politeness)
+**Agreed, and filed as [ING-9](../../agents/tasks/ING-9.md)** (backend-engineer, P1, Ready, *not in this plan*; board
+"Ready — not in this plan"). It covers the query-side ingester (Atom then PDF back to back; no User-Agent on Atom, a
+non-identifying one on the PDF) and the Go downloader (no wait between PDFs). It doesn't block EVAL-3. The seeder's ≥ 3 s gap
+between ingests holds, and each ingest makes 2 requests to two different arXiv hosts. That's 62 requests per nightly, a known
+gap that ING-9 closes. **Don't fold any `internal/query/ingester.go` change into this PR** (out of EVAL-3's scope). If arXiv
+starts returning 429/403 to the runner (seen in `seed.log`), stop and report it; pm-lead then moves ING-9 ahead.

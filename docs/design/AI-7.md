@@ -45,3 +45,36 @@ To make AC4 reachable, the template synthesis step and the "decide/refuse" step 
 - The template answer's cosine against chunks may often be < 0.50, so many real asks could now refuse (AC9 measures this). That is expected under ADR-0003 and is reported to pm-lead, not tuned. Merge after EVAL-6 so the eval classifies the refusals. Roll back by reverting the PR. No data or schema change.
 
 ## PM decision
+**APPROVED with conditions** (pm-lead, 2026-11-07, reviewed at design commit `d33b8ef` against `agents/tasks/AI-7.md`,
+ADR-0003 (Accepted) and Product PRD §7 principles 1–2; app `origin/main` `71cb609`, `rag_test.go:561-612`).
+
+Why: it does exactly what ADR-0003 decides and nothing more: one optional field, the two reasons, all relevant hits returned as
+evidence with their scores, answers with ≥ 1 supported citation unchanged, the early QA-5 refusal unchanged. Unverified never counts
+as supported. The per-citation state stays internal (ADR-0014 is still Proposed). Splitting into `buildTemplateAnswer` +
+`finalize` is a fair way to reach AC4, and it's the seam QA-8 will need anyway. The test plan covers AC1–AC9.
+
+### Decision on the developer's question (`TestAskBatchFailClosed`)
+**Approved.** Every case in that table is now case B (`verification_unavailable`) under ADR-0003, so the old "2 citations, 1 log
+line" can't hold without breaking the Accepted ADR. This is the ADR-mandated change of an expected value, not a weaker test. Allowed
+edits, and nothing else:
+- `len(resp.Citations) != 2` → `!= 3` (K = 3 evidence hits, markers 1..3).
+- The log check → exactly 2 lines: line 1 still contains `tc.wantLog` unchanged (the `citation support unverified` line), and line 2
+  is the refusal line containing `reason=verification_unavailable` and `trace_id=<resp.TraceID>`.
+- Kept as is: score 0 and `supported=false` for every citation, 2 `EmbedTexts` calls, all five cases and their `wantLog` strings.
+- **Add** (it's a refusal test now, so assert it): `resp.RefusalReason == "verification_unavailable"`, `resp.Answer` == the B sentence,
+  and markers are exactly 1, 2, 3 in order.
+
+### Conditions (binding; QA checks each)
+1. **Call it out in the PR.** Add a "Changed existing test (ADR-0003)" section with the before/after of each changed assertion in
+   `TestAskBatchFailClosed` and the reason. QA diffs the test against `origin/main` and confirms only the changes above happened (no case
+   removed, no `wantLog` changed). No other existing test in `rag_test.go` may change, except the extension of
+   `TestAskResponseShapeAndConstructor` that the ticket asks for.
+2. **List pm-lead's two readings of ADR-0003 in the PR for Mahesh to confirm** (ticket Scope): mixed checked-unsupported + unverified with
+   none supported → `verification_unavailable`, and no in-range marker → `all_citations_unsupported`. Also list the two refusal sentences
+   as Proposed wording.
+3. **AC9: say where the numbers come from.** In `stack.yml` the M3 ask tests are the F1 set (deselected from AC4 and run in a
+   `continue-on-error` step), and M3 prints no per-reason counts. Count the new refusal log line instead, in the `query.log` that
+   `stack.yml` uploads with `if: always()` (`stack.yml:240-249`), e.g. `grep -c 'ask refused .*reason=all_citations_unsupported'` and
+   the same for `verification_unavailable`, next to the number of asks in that run. If EVAL-3 has merged, the latest `eval.yml` run on
+   `main` is the before number. Otherwise write "not run: <reason>" with the exact command. Don't infer counts from unit tests.
+4. Merge order is unchanged: **EVAL-6 merges first**. The PR says so, and pm-lead won't raise it before EVAL-6 is merged.

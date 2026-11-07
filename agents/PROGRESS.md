@@ -255,3 +255,15 @@ Format:
 - Follow-ups specced: F1 rerank latency (AI-9), `real_postgres` step + pgvector ≥ 0.8 pin + MinIO digest check (OPS-H9). Left in Backlog:
   `/internal/ingest` model reuse + cancellation (P2, off the Phase 1 path), plus the review items listed in the board's first Backlog line.
 - Environment check: npm and Go proxy don't resolve; HF and arXiv get 403; no Docker daemon. No LLM key is needed (fake provider). Jira not touched (instruction).
+
+## 2026-11-07 — pm-lead — design reviews LLM-1, EVAL-3, AI-7
+- **LLM-1: APPROVED with conditions.** Diff size: the < 400 target applies to non-test code for this task only (no LLM-1b split; splitting
+  `llmtest` saves ~60 prod lines and adds a PR in front of QA-8). AC8 amended. Added a `ci.yml` step for `-race` + per-file coverage (CI runs
+  neither for the package; no Go 1.25 in the sandbox), a well-formed cancel error, and the ai-engineer seam questions answered.
+- **EVAL-3: APPROVED with conditions.** `| tee` steps must keep the exit code (`PIPESTATUS`, as in `stack.yml`; the default `bash -e` has no
+  pipefail), one writer per seed log file, AC6 "don't tune" rule unchanged. The ingester politeness gap is filed as **ING-9** (backend, P1,
+  Ready, not in this plan); the Backlog line from the OPS-H1 design is folded into it.
+- **AI-7: APPROVED with conditions.** The `TestAskBatchFailClosed` change (citations 2 → 3; log = unverified line + refusal line) is approved
+  as ADR-0003-mandated. It must also assert reason, B sentence and markers 1..3, and be called out in the PR. AC9 counts come from the
+  refusal log line in `stack.yml`'s `query.log` (the M3 ask tests are the F1 set).
+- Backlog: *Proposed* rules item on whether `_test.go` lines count toward the 400-line target; PRD docs item for the ING-1 politeness caveat.

@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0001, ADR-0002 (both Accepted, `51d8ff5`). No code dependency. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-LLM-1"`) |
 | **Design required** | **yes**: P0, and a new client package that every answer will go through. `docs/design/LLM-1.md` before code. |
-| **Status** | Ready (Wave 1) |
+| **Status** | Ready (Wave 1) · design approved 2026-11-07 |
 
 ## Goal
 ADR-0001 chose one provider abstraction: an OpenAI-compatible HTTP client that serves a local server (Ollama /
@@ -59,8 +59,10 @@ tested, without wiring it into `/v1/ask` (QA-8 does that), so `/v1/ask` behaviou
 - [ ] AC6 — The key never leaks: a test sets a sentinel key and asserts it's absent from every returned error string across AC3–AC5 cases.
 - [ ] AC7 — `llmtest` fake: scripted responses/errors in order, `Requests()` returns what was sent, blocking mode returns `ctx.Err()`;
       `go test -race ./internal/llm/...` passes.
-- [ ] AC8 — No behaviour change: `git diff origin/main --stat` lists only `internal/llm/**` (plus the design note link, if any);
-      `go.mod`/`go.sum` unchanged. Diff < 400 changed lines.
+- [ ] AC8 — No behaviour change: `git diff origin/main --stat` lists only `internal/llm/**` plus the one `-race`/coverage step in
+      `.github/workflows/ci.yml` (≤ 5 lines; design PM decision condition 1); `go.mod`/`go.sum` unchanged. **Non-test lines
+      (`*.go` excluding `*_test.go`) < 400 changed lines; test lines uncapped** (pm-lead exception 2026-11-07, design PM decision).
+      Paste both counts.
 - [ ] AC9 — Per-file coverage ≥ 85% for the package: `go test -coverprofile=c.out ./internal/llm/... && go tool cover -func=c.out` (paste the file totals; CI or a local Go 1.25 run).
 
 ## Verification
@@ -77,3 +79,6 @@ git diff origin/main --stat
   Sandbox: Go 1.25 isn't available locally (proxy.golang.org unreachable), so Go results come from CI. No LLM key or
   server is needed: every test uses `httptest` or the fake.
 - Wave 1: independent of every open PR (new directory). QA-8 (Wave 3) depends on this being merged.
+- 2026-11-07 (pm-lead, design review): `docs/design/LLM-1.md` **APPROVED with conditions** (see its PM decision). AC8 amended:
+  the 400-line target applies to non-test code for this task (no LLM-1b split), and a CI step for `-race` + per-file coverage
+  is in scope, because CI's unit job runs neither for this package and the sandbox has no Go 1.25.

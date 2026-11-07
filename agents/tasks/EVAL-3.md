@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged `71cb609`: compose stack with workers + embedder API, `make stack-up`). Carries RET-1 AC6 (moved here from EVAL-2 AC10). |
 | **Jira** | not created yet (orchestrator: story under epic "Retrieval & answer quality gates", labels `task-EVAL-3`, `agent-backend`, `design-required`, `arxivlens`) |
 | **Design required** | **yes**: new CI workflow with real runtime/cost (nightly full stack, ~440 MB embedder + cross-encoder downloads, arXiv fetches for 31 papers). The design must fix caching, timeouts and politeness before any YAML is written. |
-| **Status** | Ready (Wave 1, 2026-11-07 plan). Next stage: Design (`docs/design/EVAL-3.md`) |
+| **Status** | Ready (Wave 1, 2026-11-07 plan). Design approved with conditions 2026-11-07 (`docs/design/EVAL-3.md`) |
 
 ## Goal
 `evals/BASELINE.md` still says "not run: infra unavailable". No agent sandbox can bring up the stack, but GitHub-hosted
@@ -86,3 +86,6 @@ gh run download <run-id> -n <artifact-name>   # results JSON for AC3/AC6
   and AI-7 don't both edit `README.md`. Since AI-7 (ADR-0003 refusals) and EVAL-6 (eval classification) land in parallel, AC6's
   numbers may come from before or after them. Record the `main` SHA the run used. Answer metrics added by EVAL-6 show up in
   the step summary automatically if EVAL-6 merged first. Don't add them here.
+- 2026-11-07 (pm-lead, design review): `docs/design/EVAL-3.md` **APPROVED with conditions** (PIPESTATUS for the `| tee` steps; separate
+  seed log files; AC6 rule unchanged). The ingester politeness gap the design found is filed as [ING-9](ING-9.md) (backend, P1, not
+  in this plan). It stays out of this PR's scope.

@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0003 (Accepted, `51d8ff5`). **Merge gate:** EVAL-6 must be merged first, so the eval classifies the new refusals correctly (see Notes). |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-7"`) |
 | **Design required** | **yes** (short, ≤ 1 page, `docs/design/AI-7.md`): P0. ADR-0003 settles the policy, but the design fixes how evidence passages are returned, the reason precedence, and the test plan. |
-| **Status** | Ready (Wave 1) |
+| **Status** | Ready (Wave 1) · design approved 2026-11-07 |
 
 ## Goal
 ADR-0003: when every citation in an answer is unsupported (case A) or support can't be checked (case B), `/v1/ask`
@@ -70,3 +70,7 @@ git diff origin/main -- internal/query/server.go evals/thresholds.json
   first. AI-7 doesn't touch `scripts/`.
 - `rag.go` order for this plan: AI-7 → AI-6 → QA-8 → AI-8 (one file, one owner, sequential).
 - Wave 1. Go results come from CI (no Go 1.25 in the sandbox). No LLM is involved.
+- 2026-11-07 (pm-lead, design review): `docs/design/AI-7.md` **APPROVED with conditions**. The two-assertion change to
+  `TestAskBatchFailClosed` (citations 2 → K=3; log expects the unverified line then the refusal line) is approved as an
+  ADR-0003-mandated change. It must add the refusal assertions (reason, B sentence, markers 1..3) and be called out in the PR
+  under "Changed existing test (ADR-0003)". AC3's "existing answer tests pass unmodified" still holds for every other test.

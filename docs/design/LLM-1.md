@@ -197,3 +197,43 @@ Tests guard slice indexes (lesson OPS-H6) and use short real timers. To keep the
 (c) Does `FinishReason` cover truncation, or do you want a typed error for `"length"`?
 
 ## PM decision
+**APPROVED with conditions** (pm-lead, 2026-11-07, reviewed at design commit `d33b8ef` against `agents/tasks/LLM-1.md`,
+ADR-0001/0002 (Accepted), Product PRD QA-8 and §8 `/v1/ask` p95 < 3 s; app `origin/main` `71cb609`).
+
+Why: all five "Design must answer" items are answered and every AC (AC1–AC9) maps to a named test. The whole-call deadline
+(Alt 1 rejected), the "don't sleep past the deadline, fail now" rule, no retry on transport errors, and the `Secret` pointer
+type are the right calls for a fallback-first client. The `net/http` claim in §5.1 is correct (`*url.Error` carries the
+password-stripped URL, never headers), and refusing a query string in `LLM_BASE_URL` closes the one real leak path.
+Stdlib only, new directory only, nothing imports it, so `/v1/ask` can't change. No shared contract is touched.
+
+### Decision on the open question (diff size)
+**Apply the < 400 changed-lines target to non-test code for this task. Don't split `llmtest` into LLM-1b.**
+- Splitting doesn't fix the problem. `llmtest/fake.go` is about 60 production lines, so LLM-1a would still be about 320 prod
+  + 350 test lines. It would also add a PR cycle and a second dependency in front of QA-8 (P0, Wave 3).
+- The test lines are additive table tests in a new package that nothing imports. Review risk sits in the ~380 production lines,
+  and that's what the target is for.
+- Ticket-level exception only. The ticket's AC8 is amended to: **non-test lines (`*.go` excluding `*_test.go`) < 400**,
+  test lines uncapped. The PR pastes both numbers, e.g.
+  `git diff origin/main --numstat -- internal/llm | awk '$3 !~ /_test\.go$/ {p+=$1+$2} $3 ~ /_test\.go$/ {t+=$1+$2} END {print "prod", p, "test", t}'`.
+  If production code goes over 400, stop and report; don't squeeze it. Whether AGENTS.md §3 should say this for every task is a
+  rules question for Mahesh (board Backlog, *Proposed*). Until he decides, other tasks keep the target as written.
+
+### Conditions (binding; QA checks each)
+1. **CI must run `-race` and per-file coverage for this package.** `ci.yml`'s unit job runs neither for `internal/llm` (only the
+   Kafka step at `ci.yml:23-24` does), and the sandbox has no Go 1.25, so AC7 (`-race`) and AC9 (per-file ≥ 85%) would have no
+   evidence. Add one step that mirrors the Kafka one:
+   `go test -race -count=1 -v -coverprofile=c.out ./internal/llm/... && go tool cover -func=c.out`.
+   AC8's file allow-list is amended to `internal/llm/**` + that step in `.github/workflows/ci.yml` (≤ 5 lines; no other CI change).
+   A scratch-module run on local Go 1.24 (lesson AI-1) is welcome extra evidence but doesn't replace the CI output.
+2. **The cancel case must be a well-formed error.** When `Kind` is nil (caller cancelled), `Error()` reads e.g. `llm: canceled`
+   (never `<nil>` or a nil-pointer panic), and `Unwrap()` leaves out the nil entry. Add to the AC4 `errors.Is` table: a cancelled
+   ctx → `errors.Is(err, context.Canceled)` true and `errors.Is` false for **every** sentinel, including `ErrTimeout`.
+3. **Answers to the ai-engineer questions** (pm-lead answers them for the QA-8 seam, so they don't hold up code; ai-engineer may
+   ask for additions in the QA-8 design addendum, as a separate change): (a) `System` + `Messages` is enough; few-shot turns use
+   `RoleAssistant`. (b) Yes: nil `Kind` + `context.Canceled` means "the client went away". QA-8 decides what to do with it. (c)
+   `FinishReason` is enough; no typed error for `"length"`. A truncated answer still goes through citation validation and the
+   ADR-0003 refusal (AI-7).
+4. **Keep the §2 budget honest in the package doc.** The 2 s / 256-token defaults are a budget, not a measurement. Say so in
+   the `config.go` doc comment: they're a starting point, EVAL-8 measures the real p95, and local 7–8B models will usually fall
+   back to the template at 2 s. No code change; it's so QA-8's README rows don't present the default as tested.
+5. Nothing outside `internal/llm/**` and the condition-1 CI step; `go.mod`/`go.sum` unchanged (AC8). No README change (QA-8 documents the env vars).
