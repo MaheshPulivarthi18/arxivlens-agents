@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror); **OPS-H1 (ArxivLens #14) merged**: #14 adds a worker heartbeat hook (`_heartbeat`, about 16 lines) to `services/common/kafka_client.py`, the file this task rewrites (AGENTS.md §3 independence). The design must keep that hook (touch after every `poll()` while assigned; no-op when `WORKER_HEARTBEAT_FILE` is unset) |
 | **Jira** | KAN-34 (`labels = "task-OPS-H8"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics for both Python workers |
-| **Status** | **Design approved; build waits for #23 merge.** Design [`docs/design/OPS-H8.md`](../../docs/design/OPS-H8.md) APPROVED with conditions by pm-lead 2026-11-07 (design `f1b5c0e`). Cut `agent/backend/OPS-H8` from fresh `origin/main` only after ArxivLens #23 (LLM-1, `ci.yml`) merges. No product code yet |
+| **Status** | Ready: design APPROVED with conditions (`docs/design/OPS-H8.md`, `f1b5c0e`); #23 merged (`43713ce`), so the build may start from fresh `origin/main`. Next backend slot after cycle 11:00Z |
 
 ## Goal
 Technical PRD §8.1 promises L4 for **all** consumers: the offset is committed only after the handler succeeds or the
@@ -141,3 +141,4 @@ grep -n "time.sleep" services/common/kafka_client.py   # must print nothing
   board Backlog. Conditions: (1) build starts only after #23 merges; recheck open-PR overlap at start; keep the `ci.yml` step even if #22 has merged; (2) counted
   skeleton + OPS-H8b split seam (AC12 amended); (3) AC11 delivered in this PR via `stack.yml` (AC11 amended); (4) delivery-bound test; (5) PR body lists the
   behaviour changes for Mahesh; (6) AC10 mutation procedure as OPS-H6; (7) `tests/test_worker_heartbeat.py` and worker call sites unchanged.
+- 2026-11-07 11:00Z (pm-lead, grooming): #23 (LLM-1, `ci.yml`) merged as `43713ce`, so the build wait is over. Not picked this cycle: the two backend slots went to LLM-1b (P0, unblocks QA-8) and OPS-H10 (unblocks AI-9's open PR), per unblocks-others > P0. First in line for the next free backend slot. Cut the branch from a fresh `origin/main`.

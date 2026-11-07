@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged `71cb609`: `stack.yml` runs the stack and the "Known failure F1" step). **OPS-H10 merged** (stack keeps embedder logs on green runs; needed for AC1). #21 merged (README, AC5). |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-AI-9"`) |
 | **Design required** | no: P1, one file, no contract change. The ranking-neutral constraint (AC2) is what keeps it small. |
-| **Status** | Blocked (needs OPS-H10 merged for AC1's stack numbers; then rework round 2 on #24, which stays **draft**). F1 itself moved to AI-10 (needs ADR-0015) |
+| **Status** | Blocked (needs OPS-H10 merged for AC1's stack numbers; #21 merged; then rework round 2 on #24, which stays **draft**). F1 itself moved to AI-10 (needs ADR-0015) |
 
 ## Goal
 On GitHub's CPU runners, `/internal/rerank` scoring the ADR-0010 pool of 20 passages takes about 10 s, so three M3 tests
@@ -115,3 +115,4 @@ python3 -m pytest -q tests/test_m0.py -k rerank
        exact multiple of `batch_size`; the `_torch_threads` fallback without `os.sched_getaffinity`.
     6. [ ] PR description: "does not fix F1; see ADR-0015 / AI-10".
   - Rework count: QA r1 FAIL = round 1 of 2 for this task.
+- 2026-11-07 11:00Z (pm-lead, grooming): #21 merged (`8406b18`), so only OPS-H10 remains. OPS-H10 is in cycle 11:00Z; the round-2 rework (rebase onto a `main` with OPS-H10, then AC1/AC4/AC5/AC6) starts after it merges. #24 stays draft.

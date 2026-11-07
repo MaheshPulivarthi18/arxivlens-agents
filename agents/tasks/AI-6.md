@@ -8,7 +8,7 @@
 | **Depends on** | **AI-7 merged** (same file, `rag.go`). No dependency on LLM-1: these are pure functions with no `internal/llm` import. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-6"`) |
 | **Design required** | **yes**: P0. Write `docs/design/QA-8.md` here, covering both AI-6 and QA-8 (context, prompt, output format, fallback), so QA-8 needs only an addendum. pm-lead approves before code. |
-| **Status** | Ready (Wave 2: starts when AI-7 is merged) |
+| **Status** | Ready (AI-7 merged `8406b18`). Picked for cycle 2026-11-07 11:00Z: **design first** (`docs/design/QA-8.md` does not exist yet; no code until pm-lead approves) |
 
 ## Goal
 An LLM answer is only as good as the passages it sees and the format it must answer in. Build the deterministic part of
@@ -60,3 +60,4 @@ go test -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | gre
   its own. QA-8's old note about `splitIntoSentences` (`U.S.`, `Sec.`, ...) doesn't apply to structured claims. It stays relevant
   only for the template path; add cases there only if QA-8 still splits LLM text.
 - Wave 2 (dependency: AI-7 merged).
+- 2026-11-07 11:00Z (pm-lead, grooming): AI-7 merged as `8406b18`, so the `rag.go` chain moves to this task. Design stage first: write `docs/design/QA-8.md` (covering AI-6 + QA-8) from `origin/main` `2b71772`; pm-lead approves before any code. Independent of open PR #24 (no shared file) and of LLM-1b (no `internal/llm` import).

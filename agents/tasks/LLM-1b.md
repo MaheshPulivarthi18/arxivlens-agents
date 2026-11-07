@@ -8,7 +8,7 @@
 | **Depends on** | **LLM-1 merged** (types, typed errors, `Config`/`ConfigFromEnv`, `llmtest`). ADR-0001/0002 Accepted. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-LLM-1b"`) |
 | **Design required** | no new design: covered by the approved `docs/design/LLM-1.md` (PM decision 2026-11-07, conditions 1–5). Split from LLM-1 for size, not scope. |
-| **Status** | Ready (Wave 1b: starts when LLM-1 is merged) |
+| **Status** | Ready (LLM-1 merged `43713ce`). Picked for cycle 2026-11-07 11:00Z |
 
 ## Goal
 Ship the real provider behind the `llm.Provider` interface: an OpenAI-compatible HTTP client (local server by default, hosted
@@ -60,3 +60,4 @@ git diff origin/main --stat
 - 2026-11-07 (pm-lead, from LLM-1 QA/PM review): carry-overs QA checks here. (1) `attemptsText` (`llm.go`, shipped in LLM-1 with no caller) gets its
   caller in `openai.go`; if the client doesn't use it, delete it in this PR. (2) `New` runs `Config.normalize` (rejecting userinfo/query) before the
   config is printed or logged anywhere, so a hand-built, unnormalised `Config` can never print credentials; add a test row for it.
+- 2026-11-07 11:00Z (pm-lead, grooming): LLM-1 merged (`43713ce`), so this is Ready. **The pre-split code is gone**: local branch `wip/LLM-1b` @ `8a776d6` in `/root/wt/LLM-1` and the scratchpad copy did not survive the sandbox reset (checked 11:00Z: `/root/wt` absent, object `8a776d6` unknown, no `openai.go` in any pushed ref). Re-implement from this spec and the approved `docs/design/LLM-1.md`; scope and ACs are unchanged. Cut `agent/backend/LLM-1b` from `origin/main` `2b71772`. Lesson: set-aside work must be pushed to a branch, not left in a local worktree.

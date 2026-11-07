@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-3 merged (ArxivLens #22). No other open PR may touch `eval.yml` or the CONTRIBUTING commands table rows for `eval-seed`/`eval.yml`. |
 | **Jira** | not created yet (orchestrator: story under epic "Retrieval & answer quality gates", labels `task-EVAL-9`, `agent-backend`, `arxivlens`) |
 | **Design required** | no (P1, no new command/table/service, no shared contract; timeouts are not quality gates) |
-| **Status** | Ready once EVAL-3 (#22) merges (specced 2026-11-07 by pm-lead) |
+| **Status** | Ready (EVAL-3 merged `122eee3`). Not in cycle 11:00Z: shares `CONTRIBUTING.md` with OPS-H10 |
 
 ## Goal
 On EVAL-3's two runs, `make eval-seed` took 30 m 24 s (cold) and 37 m 48 s (warm), which is 68% and 84% of the seed step's
@@ -68,3 +68,4 @@ git diff --stat origin/main...agent/backend/EVAL-9
   0 retries, no arXiv 429/403; job 49 m 57 s / 60 m 24 s of 100. The PR's own run costs 62 arXiv requests (≈ 1 h); one run is enough,
   don't re-run for cosmetics. If ING-9 lands first, the PR's run already includes its extra waits; quote that in the PR.
 - Don't raise the budget further "to be safe": if a run needs > 70 min of seeding, that's a signal for the Backlog caching option, not a bigger number.
+- 2026-11-07 11:00Z (pm-lead, grooming): EVAL-3 merged. Not picked in cycle 11:00Z: no backend slot, and it edits `CONTRIBUTING.md` (the `eval.yml` row) while OPS-H10 edits the `stack.yml` row of the same file. Start once OPS-H10 merges.

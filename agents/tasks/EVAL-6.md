@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-1 (merged). None open. Must merge **before** AI-7 (see AI-7 Notes). |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-EVAL-6"`) |
 | **Design required** | no: no gate key or threshold changes, and no contract change. Metric definitions go in `evals/README.md` and pm-lead checks them in review. |
-| **Status** | Ready to merge: PR [#20](https://github.com/MaheshPulivarthi18/ArxivLens/pull/20), QA PASS + PM APPROVE 2026-11-07 (merge **before** AI-7 #21) |
+| **Status** | Done: ArxivLens #20 merged by Mahesh → `1273a3b` (KAN-37) |
 
 ## Goal
 Make the answer eval correct for the answers Phase 1 will produce, and add the first answer-quality numbers that don't
@@ -80,3 +80,4 @@ make eval   # needs the stack (EVAL-3 workflow or make stack-up)
   `workflow_dispatch` run on their branch (*Proposed* rules item, board Backlog); (6) the near-miss rows are reviewed by Mahesh or someone he names
   (n005, n009 first), and ai-engineer then commits the `reviewed_by` values; (7) the supported-rate reading is in the PR's "Decisions for Mahesh", and merging confirms it.
   QA nits 1 and 2 plus the missing tests → Backlog follow-up (ai, P3). PRD §8 row method text → pending pm-lead docs PR.
+- 2026-11-07 11:00Z (pm-lead, grooming): merged by Mahesh as `1273a3b` (#20); Jira Done. EVAL-7 and RET-2's EVAL-6 dependency are cleared.

@@ -8,7 +8,7 @@
 | **Depends on** | **EVAL-6 merged** (per-case records in the results JSON; shared `tests/test_evals_data.py` and `evals/README.md`) |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-EVAL-7"`) |
 | **Design required** | no: offline tooling, report-only, no gate or contract change |
-| **Status** | Ready (Wave 3: starts when EVAL-6 is merged) |
+| **Status** | Ready (EVAL-6 merged `1273a3b`). Not in cycle 11:00Z: ai's free slot went to AI-6 (P0) |
 
 ## Goal
 Cosine similarity ≥ 0.50 says a sentence and a passage are related, not that the passage supports the sentence. The
@@ -49,3 +49,4 @@ python3 scripts/answer_review.py --help
 ## Notes
 - 2026-11-07 (pm-lead): from the 2026-11-07 plan (Phase 1 item 7, human-review half). The first real judging session needs a
   results file from a stack run (EVAL-3 workflow artifact) and a person. That session is Mahesh's, not an agent's. Wave 3.
+- 2026-11-07 11:00Z (pm-lead, grooming): EVAL-6 merged. Ready; ai's one free slot this cycle went to AI-6 (P0, `rag.go` chain). Fold the EVAL-6 P3 `classify()` nits (board Backlog) into this PR if `scripts/evaluate_answers.py` is touched.

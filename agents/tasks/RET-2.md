@@ -4,11 +4,11 @@
 |---|---|
 | **Owner** | backend-engineer |
 | **Priority** | P1 (provenance input for claim-level citations, AI-8) |
-| **PRD ref** | Product PRD QA-3, ING-7 (versions are distinct records), §7 principle 3; Technical PRD §5, §7.1; ADR-0014 (Proposed) |
+| **PRD ref** | Product PRD QA-3, ING-7 (versions are distinct records), §7 principle 3; Technical PRD §5, §7.1; ADR-0014 (Accepted 2026-11-07) |
 | **Depends on** | **ADR-0014 Accepted** (adds `version`/`page` to `/v1/search` hits: HTTP API contract). **AI-7 merged** (both edit the README API table). **EVAL-6 merged** (both may edit `tests/test_evals_data.py`, which holds the ADR-0010 SQL parity guard). |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-RET-2"`) |
 | **Design required** | **yes** (short, `docs/design/RET-2.md`): it touches a shared contract (HTTP API) and the SQL the parity guard mirrors. |
-| **Status** | Blocked (needs ADR-0014). Wave 2 once it's Accepted and a backend slot is free. |
+| **Status** | Ready (ADR-0014 Accepted by Mahesh 2026-11-07; AI-7 `8406b18` and EVAL-6 `1273a3b` merged). Design first (`docs/design/RET-2.md`). Not in cycle 11:00Z: shares `README.md` with OPS-H10 |
 
 ## Goal
 A citation should say which version of a paper it came from, and the page when the system knows it, so one click reaches
@@ -48,3 +48,4 @@ python3 -m pytest -q tests/test_evals_data.py -k parity
 ## Notes
 - 2026-11-07 (pm-lead): from the 2026-11-07 plan (Phase 1 item 4: provenance needs paper version, chunk, section, page).
 - Wave 2, gated by ADR-0014. If ADR-0014 is rejected, pm-lead re-specs this ticket.
+- 2026-11-07 11:00Z (pm-lead, grooming): ADR-0014 is Accepted and #20/#21 merged, so this is Ready. Not picked in cycle 11:00Z: no backend slot, and it edits the README API table while OPS-H10 edits the README Full stack paragraph (same-file rule). Start after OPS-H10 merges (or in a slot where no open PR changes `README.md`).

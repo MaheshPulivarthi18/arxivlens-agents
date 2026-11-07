@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged `71cb609`: compose stack with workers + embedder API, `make stack-up`). Carries RET-1 AC6 (moved here from EVAL-2 AC10). |
 | **Jira** | KAN-29 |
 | **Design required** | **yes**: new CI workflow with real runtime/cost (nightly full stack, ~440 MB embedder + cross-encoder downloads, arXiv fetches for 31 papers). The design must fix caching, timeouts and politeness before any YAML is written. |
-| **Status** | Ready to merge (ArxivLens #22, KAN-29): QA PASS r1 (continued) · PM APPROVE 2026-11-07 ([report](../reviews/EVAL-3/report.md)) |
+| **Status** | Done: ArxivLens #22 merged by Mahesh → `122eee3` (KAN-29) |
 
 ## Goal
 `evals/BASELINE.md` still says "not run: infra unavailable". No agent sandbox can bring up the stack, but GitHub-hosted
@@ -102,3 +102,4 @@ gh run download <run-id> -n <artifact-name>   # results JSON for AC3/AC6
   49 m 57 s, attempt 2 warm 60 m 24 s, both `make eval` exit 1 (`correct_refusal_rate` 0.9091, `ask_p95_ms` 12 787 / 14 922) = allowed by AC6;
   nothing tuned. Numbers are pre-AI-7/EVAL-6 on `main` `71cb609`. QA finding 5 (seed at 84% of its 45-min budget) + nits 1, 2, 7 → **[EVAL-9](EVAL-9.md)**.
   Finding 4 → "Decisions for Mahesh" in the PR body (ubuntu-latest is 4 vCPU, below Technical PRD §9's proposed 8-vCPU CPU profile). EVAL-4 unblocks on merge.
+- 2026-11-07 11:00Z (pm-lead, grooming): merged by Mahesh as `122eee3` (#22); Jira Done. EVAL-9 and OPS-H9 unblocked. EVAL-4 still waits for a completed `eval.yml` run on `main` (none yet as of cycle 11:00Z).

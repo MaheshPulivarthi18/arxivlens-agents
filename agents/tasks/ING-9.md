@@ -8,7 +8,7 @@
 | **Depends on** | none (no ADR: no shared contract changes). Start only when no open PR touches `internal/query/ingester.go`, `internal/query/ingester_test.go` or `internal/downloader/` (AGENTS.md §3). |
 | **Jira** | KAN-48 |
 | **Design required** | no. It's P1, adds no CLI command, table, service or contract, and is a small change to existing code. |
-| **Status** | Ready to merge (PR #25 @ `c5dc873`: QA FAIL r1 → PASS r2, PM APPROVE 2026-11-07; waiting on Mahesh) |
+| **Status** | Done: ArxivLens #25 merged by Mahesh → `2b71772` (KAN-48) |
 
 ## Goal
 Every arXiv request the Go code makes waits its turn: at least 3 s between request starts **within a process**, and an
@@ -104,3 +104,4 @@ git diff origin/main --stat
   The PR body for raising it is at `/tmp/claude-0/s/pr25-body.md`. The planned "crawler only" PRD caveat was never written, so ING-1 ✅ needs no edit on merge.
   QA nits 3–7 went to the Backlog: "ING-9 follow-ups" (backend P3: ingester cancelled-ctx test, tighter limiter `d`, `HandleRecord` wiring test
   once db/storage have interfaces, redirect hops) and "`-race` in CI's Go job" (backend P2, harness).
+- 2026-11-07 11:00Z (pm-lead, grooming): merged by Mahesh as `2b71772` (#25); Jira Done. Follow-ups stay in the board Backlog.

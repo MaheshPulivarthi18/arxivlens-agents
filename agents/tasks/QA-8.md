@@ -8,7 +8,7 @@
 | **Depends on** | **LLM-1 merged** (`internal/llm` types + `llmtest` fake), **LLM-1b merged** (OpenAI-compatible client + `FromEnv`; split from LLM-1 on 2026-11-07), **AI-6 merged** (context/prompt/parser, same file), AI-7 merged (refusal safety net; it comes before AI-6 in the `rag.go` order). EVAL-1, AI-1 (Done). |
 | **Jira** | KAN-7 (existing; re-scoped 2026-11-07, `labels = "task-QA-8"`) |
 | **Design required** | **yes**: an addendum to `docs/design/QA-8.md` (written in AI-6) covering the provider call, timeout and fallback. pm-lead approves before code. |
-| **Status** | Ready (Wave 3: starts when LLM-1, LLM-1b and AI-6 are merged). The ADR blockers are gone (ADR-0001/0002 Accepted `51d8ff5`) |
+| **Status** | Ready (Wave 3: starts when LLM-1b and AI-6 are merged; LLM-1 merged `43713ce`). The ADR blockers are gone (ADR-0001/0002 Accepted `51d8ff5`) |
 
 ## Goal
 Replace the templated answer with an LLM-written synthesis over the selected passages whenever a provider is configured,
@@ -75,3 +75,4 @@ make eval   # template path, on the EVAL-3 workflow
 - 2026-11-07 (pm-lead, LLM-1 review, QA [spec] decision): `llm.Request`/`Response`/`Message` redact only in fmt forms (`%v`, `%+v`, `%#v`,
   `String`); `json.Marshal` of them prints the prompt/completion in full by design. **Never JSON-log these types**: log their `%v` form or named
   metadata fields (model, tokens, latency, finish reason). AC6's captured-logger test (sentinel key, no prompt/completion in any line) is the check.
+- 2026-11-07 11:00Z (pm-lead, grooming): LLM-1 merged (`43713ce`) and AI-7 merged (`8406b18`). Still waits on LLM-1b and AI-6 (both started in cycle 11:00Z; AI-6 writes `docs/design/QA-8.md`, which this task extends with an addendum).

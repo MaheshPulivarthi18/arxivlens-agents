@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged). **#21 (AI-7, changes `README.md`) and #22 (EVAL-3, changes `CONTRIBUTING.md`) merged** (both are Ready to merge, waiting on Mahesh), per the AGENTS.md §3 same-file rule. No open PR changes `stack.yml` (checked 2026-11-07: #20–#25 don't). OPS-H9 no longer touches `stack.yml` (its optional step was removed to keep the two apart). |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H10`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P1 CI-only change, no new command/table/service, no shared contract |
-| **Status** | Ready once #21 and #22 merge (specced 2026-11-07 by pm-lead) |
+| **Status** | Ready (#21 `8406b18` and #22 `122eee3` merged). Picked for cycle 2026-11-07 11:00Z |
 
 ## Goal
 Two gaps in the Full stack workflow keep QA from getting evidence:
@@ -78,3 +78,4 @@ git diff --stat origin/main...agent/backend/OPS-H10
   which is now removed from OPS-H9 so the two tickets share no file except `CONTRIBUTING.md` (different rows, but still sequence them: whichever starts second waits for the other's merge).
 - The F1 step keeps running (and failing) on every Go PR now. That's expected while ADR-0015 is pending; it's `continue-on-error`.
 - Unblocks: AI-9 AC1 (rebase #24 onto a `main` with this merged), then ADR-0015's fixture-pool numbers.
+- 2026-11-07 11:00Z (pm-lead, grooming): #21 and #22 merged; no open PR changes `stack.yml`, `README.md` or `CONTRIBUTING.md` (open PR #24 changes only `services/embedder/api.py` and `tests/test_m0.py`). AI-9's README note (AC5) is written on its rework rebase, which happens only after this merges, so the two never edit `README.md` at the same time. Cut from `origin/main` `2b71772`; re-check the README line numbers in Scope against that SHA.

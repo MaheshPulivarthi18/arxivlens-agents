@@ -4,11 +4,11 @@
 |---|---|
 | **Owner** | ai-engineer |
 | **Priority** | P0 (Phase 1 items 4–5: claims map to inspectable source passages; unverified is never shown as verified) |
-| **PRD ref** | Product PRD QA-3, QA-4, §7 principles 1–3; Technical PRD §7.2; ADR-0003 (Accepted), **ADR-0014 (Proposed)** |
+| **PRD ref** | Product PRD QA-3, QA-4, §7 principles 1–3; Technical PRD §7.2; ADR-0003 (Accepted), **ADR-0014 (Accepted 2026-11-07)** |
 | **Depends on** | **ADR-0014 Accepted**, **QA-8 merged** (same file; claims come from the structured synthesis), **RET-2 merged** (`SearchHit.Version`/`Page`) |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8"`) |
 | **Design required** | **yes**: P0 and an HTTP API contract change. Addendum to `docs/design/QA-8.md` or a new `docs/design/AI-8.md`. |
-| **Status** | Blocked (needs ADR-0014). Wave 3 once it's Accepted and QA-8 + RET-2 are merged |
+| **Status** | Waiting on dependencies (ADR-0014 Accepted 2026-11-07). Wave 3 once QA-8 + RET-2 are merged |
 
 ## Goal
 Each factual statement in an answer becomes a claim with its own status and its own evidence. The evidence is the paper
@@ -50,3 +50,4 @@ make eval
 ## Notes
 - 2026-11-07 (pm-lead): from the 2026-11-07 plan (Phase 1 items 4–5). The external review proposed `limitations` and `confidence`
   fields as well. Both are deferred in ADR-0014's recommendation, because model self-reported confidence isn't evidence. Wave 3.
+- 2026-11-07 11:00Z (pm-lead, grooming): ADR-0014 is Accepted (Mahesh 2026-11-07), so the ADR blocker is gone. Still waits on QA-8 and RET-2 merged.

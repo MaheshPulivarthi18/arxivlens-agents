@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0001, ADR-0002 (both Accepted, `51d8ff5`). No code dependency. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-LLM-1"`) |
 | **Design required** | **yes**: P0, and a new client package that every answer will go through. `docs/design/LLM-1.md` before code. |
-| **Status** | **Ready to merge** (PR #23 @ `8e333c4`: QA PASS r2, PM APPROVE 2026-11-07) · design approved 2026-11-07 · **split 2026-11-07**: this task = part a; the client + `FromEnv` = [LLM-1b](LLM-1b.md) |
+| **Status** | Done: ArxivLens #23 merged by Mahesh → `43713ce` (KAN-35). Part b = [LLM-1b](LLM-1b.md) |
 
 ## Goal
 ADR-0001 chose one provider abstraction: an OpenAI-compatible HTTP client that serves a local server (Ollama /
@@ -122,3 +122,4 @@ git diff origin/main --stat
   output plus a mutation kill; prod 375 < 400; design conditions 1, 2, 4, 5 met. Verdict + reasoning in `agents/reviews/LLM-1/report.md` (PM review).
   QA [spec] item 5 decided: no `MarshalJSON`; "never JSON-log `Request`/`Response`" is a caller rule, recorded in QA-8 Notes (enforced by QA-8 AC6).
   Carry-overs (`attemptsText` caller, `normalize` before printing in `New`) recorded in LLM-1b Notes. PR body for the orchestrator: `/tmp/claude-0/s/pr23-body.md`.
+- 2026-11-07 11:00Z (pm-lead, grooming): merged by Mahesh as `43713ce` (#23); Jira Done. LLM-1b is now Ready.

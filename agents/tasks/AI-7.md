@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0003 (Accepted, `51d8ff5`). **Merge gate:** EVAL-6 must be merged first, so the eval classifies the new refusals correctly (see Notes). |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-7"`) |
 | **Design required** | **yes** (short, ≤ 1 page, `docs/design/AI-7.md`): P0. ADR-0003 settles the policy, but the design fixes how evidence passages are returned, the reason precedence, and the test plan. |
-| **Status** | Ready to merge: PR [#21](https://github.com/MaheshPulivarthi18/ArxivLens/pull/21) raised 2026-11-07 (QA PASS r1 · PM APPROVE) · **merge after EVAL-6 #20** |
+| **Status** | Done: ArxivLens #21 merged by Mahesh → `8406b18` (KAN-36) |
 
 ## Goal
 ADR-0003: when every citation in an answer is unsupported (case A) or support can't be checked (case B), `/v1/ask`
@@ -87,3 +87,4 @@ git diff origin/main -- internal/query/server.go evals/thresholds.json
   - Design header fixed (Draft → Approved with conditions).
   - Merge gate: #21 is raised now with "Merge after #20" as the first line of the PR; design condition 4 amended. Merge order unchanged.
   - Added Decision 4 for Mahesh in the PR: in a refusal, `score` is the support score (0 when uncited/unverified), not the retrieval score.
+- 2026-11-07 11:00Z (pm-lead, grooming): merged by Mahesh as `8406b18` (#21); Jira Done. AI-6 (next in the `rag.go` chain) is unblocked. AC9 still not run → EVAL-4 AC5.
