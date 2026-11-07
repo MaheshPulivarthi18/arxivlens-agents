@@ -1,0 +1,23 @@
+$ bash -c git diff origin/main --stat; echo '--- go.mod/go.sum diff lines:'; git diff origin/main -- go.mod go.sum | wc -l; echo '--- AC8 count:'; git diff origin/main --numstat -- internal/llm | awk '$3 !~ /_test\.go$/ {p+=$1+$2} $3 ~ /_test\.go$/ {t+=$1+$2} END {print "prod", p, "test", t}'; echo '--- files outside internal/llm:'; git diff origin/main --name-only | grep -v '^internal/llm/' || echo none; echo '--- attemptsText callers (carry-over 1):'; grep -n 'attemptsText(' internal/llm/openai.go; echo '--- CI ownership job 128439300049:'; cat /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/ownsum.txt
+ internal/llm/config.go      |  15 +
+ internal/llm/config_test.go |  39 ++-
+ internal/llm/openai.go      | 295 ++++++++++++++++++
+ internal/llm/openai_test.go | 717 ++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1065 insertions(+), 1 deletion(-)
+--- go.mod/go.sum diff lines:
+0
+--- AC8 count:
+prod 310 test 756
+--- files outside internal/llm:
+none
+--- attemptsText callers (carry-over 1):
+190:		return nil, newError(ErrProvider, 0, n, 0, cause, key, "transport: "+detail+" "+attemptsText(n))
+201:		return nil, newError(kind, res.StatusCode, n, ra, nil, key, fmt.Sprintf("HTTP %d %s", res.StatusCode, attemptsText(n)))
+262:		return newError(ErrTimeout, status, attempts, retryAfter, context.DeadlineExceeded, key, "deadline exceeded "+attemptsText(attempts))
+--- CI ownership job 128439300049:
+65:2026-11-07T15:05:05.7485684Z hint: to use in all of your new repositories, which will suppress this warning,
+161:2026-11-07T15:05:06.3145355Z ##[warning]1066 changed lines (> 400). Consider splitting the change.
+162:2026-11-07T15:05:06.3152702Z Ownership OK for role=backend (1066 changed lines)
+178:2026-11-07T15:05:06.5724715Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+
+[exit code 0]

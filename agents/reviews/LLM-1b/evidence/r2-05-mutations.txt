@@ -1,0 +1,47 @@
+$ bash -c export GOTOOLCHAIN=local; D=$(mktemp -d /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/mutC.XXXX); git archive HEAD | tar -x -C $D && cp /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/go.mod $D/go.mod && echo "copy of $(git rev-parse --short HEAD) in $D" && echo '--- mutation script:' && cat /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/mutate2.py && echo '--- run:' && python3 /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/mutate2.py $D
+copy of e031ac0 in /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/mutC.R2Cx
+--- mutation script:
+import subprocess, sys, pathlib, re
+d = pathlib.Path(sys.argv[1]); f = d / "internal/llm/openai.go"; orig = f.read_text()
+muts = [
+ ("N1 transport detail copies err.Error() (r1 bug restored)", 'newError(ErrProvider, 0, n, 0, cause, key, "transport: "+detail+" "+attemptsText(n))', 'newError(ErrProvider, 0, n, 0, cause, key, "transport: "+err.Error()+" "+attemptsText(n)+detail[:0])'),
+ ("N2 raw net/http error kept as cause", 'detail, cause := transportDetail(err)', 'detail, cause := transportDetail(err); cause = err'),
+ ("N3 default branch quotes the error text", 'return "malformed response or protocol error", nil', 'return "malformed response or protocol error: " + err.Error(), nil'),
+ ("N4 OpError branch keeps full op text", 'return op.Op + ": " + errno.Error(), errno', 'return op.Error(), errno'),
+ ("N5 redirects followed (no CheckRedirect)", 'CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },', ''),
+ ("N6 errno dropped from cause", 'return op.Op + ": " + errno.Error(), errno', 'return op.Op + ": " + errno.Error(), nil'),
+ ("N7 non-2xx body echoed in detail", '_, _ = io.Copy(io.Discard, io.LimitReader(res.Body, maxDiscardBytes)) // the body is never put in an error', 'nb, _ := io.ReadAll(io.LimitReader(res.Body, maxDiscardBytes))'),
+ ("N7b", 'fmt.Sprintf("HTTP %d %s", res.StatusCode, attemptsText(n)))', 'fmt.Sprintf("HTTP %d %s", res.StatusCode, attemptsText(n))+string(nb))'),
+ ("N8 3 attempts (two retries)", 'if attempt == 2 ||', 'if attempt == 3 ||'),
+ ("N9 sleeps past the deadline", 'if wait >= time.Until(deadline) {', 'if _ = deadline; false {'),
+]
+combo = {}
+for name, a, b in muts:
+    if name == 'N7b': continue
+    src = orig.replace(a, b, 1)
+    if name.startswith('N7'):
+        nb = [m for m in muts if m[0]=='N7b'][0]; src = src.replace(nb[1], nb[2], 1)
+    if a not in orig:
+        print(name + ": NOT APPLIED (pattern missing)"); continue
+    f.write_text(src)
+    r = subprocess.run(["go","test","-modfile=go.mod","-count=1","./internal/llm/"], cwd=d, capture_output=True, text=True)
+    fails = sorted(set(re.findall(r"--- FAIL: (Test\w+)", r.stdout)))
+    if r.returncode == 0: print(name + ": SURVIVED")
+    elif not fails: print(name + ": KILLED (build/other) " + (r.stdout+r.stderr).strip().splitlines()[-1][:120])
+    else: print(name + ": KILLED by " + ", ".join(fails))
+f.write_text(orig)
+r = subprocess.run(["go","test","-modfile=go.mod","-count=1","./internal/llm/"], cwd=d, capture_output=True, text=True)
+print("unmutated copy:", r.stdout.strip().splitlines()[-1])
+--- run:
+N1 transport detail copies err.Error() (r1 bug restored): KILLED by TestNoSecretLeaks, TestTransportError
+N2 raw net/http error kept as cause: KILLED by TestNoSecretLeaks, TestTransportError
+N3 default branch quotes the error text: KILLED by TestNoSecretLeaks
+N4 OpError branch keeps full op text: KILLED by TestTransportError
+N5 redirects followed (no CheckRedirect): KILLED by TestNoRedirect
+N6 errno dropped from cause: KILLED by TestTransportError
+N7 non-2xx body echoed in detail: KILLED by TestNoSecretLeaks
+N8 3 attempts (two retries): KILLED by TestRetry
+N9 sleeps past the deadline: KILLED by TestNoSecretLeaks, TestRetry
+unmutated copy: ok  	arxivlens/internal/llm	0.757s
+
+[exit code 0]

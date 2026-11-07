@@ -1,0 +1,41 @@
+$ gh api .../actions/jobs/128439300294/logs | sed -n 365,675p | grep (summary)
+Go job 128439300294 llm step (log lines 365-675): DATA RACE lines: 0; --- FAIL lines: 0; PASS lines: 127
+1:2026-11-07T15:05:48.1624775Z ##[group]Run go test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out
+205:2026-11-07T15:05:54.3598755Z --- PASS: TestTransportError (0.00s)
+211:2026-11-07T15:05:54.3600264Z --- PASS: TestNoRedirect (0.00s)
+212:2026-11-07T15:05:54.3600573Z     --- PASS: TestNoRedirect/301 (0.00s)
+213:2026-11-07T15:05:54.3600898Z     --- PASS: TestNoRedirect/302 (0.00s)
+214:2026-11-07T15:05:54.3601436Z     --- PASS: TestNoRedirect/307 (0.00s)
+215:2026-11-07T15:05:54.3601785Z     --- PASS: TestNoRedirect/308 (0.00s)
+232:2026-11-07T15:05:54.3607326Z --- PASS: TestNoSecretLeaks (0.21s)
+233:2026-11-07T15:05:54.3607888Z     --- PASS: TestNoSecretLeaks/429_twice (0.01s)
+234:2026-11-07T15:05:54.3608262Z     --- PASS: TestNoSecretLeaks/503_twice (0.01s)
+235:2026-11-07T15:05:54.3608616Z     --- PASS: TestNoSecretLeaks/400 (0.00s)
+236:2026-11-07T15:05:54.3609061Z     --- PASS: TestNoSecretLeaks/Retry-After_past_the_deadline (0.00s)
+237:2026-11-07T15:05:54.3609489Z     --- PASS: TestNoSecretLeaks/hang (0.10s)
+238:2026-11-07T15:05:54.3609852Z     --- PASS: TestNoSecretLeaks/non-JSON (0.00s)
+239:2026-11-07T15:05:54.3610248Z     --- PASS: TestNoSecretLeaks/empty_choices (0.00s)
+240:2026-11-07T15:05:54.3610635Z     --- PASS: TestNoSecretLeaks/oversized (0.02s)
+241:2026-11-07T15:05:54.3611045Z     --- PASS: TestNoSecretLeaks/connection_refused (0.00s)
+242:2026-11-07T15:05:54.3611502Z     --- PASS: TestNoSecretLeaks/cancel_during_backoff (0.05s)
+243:2026-11-07T15:05:54.3611979Z     --- PASS: TestNoSecretLeaks/raw:_malformed_status_line (0.00s)
+244:2026-11-07T15:05:54.3612492Z     --- PASS: TestNoSecretLeaks/raw:_malformed_header (0.00s)
+245:2026-11-07T15:05:54.3612944Z     --- PASS: TestNoSecretLeaks/raw:_garbage_response (0.00s)
+248:2026-11-07T15:05:54.3613811Z ok  	arxivlens/internal/llm	1.929s	coverage: 96.6% of statements
+265:2026-11-07T15:05:54.3618714Z ok  	arxivlens/internal/llm/llmtest	1.120s	coverage: 100.0% of statements
+274:2026-11-07T15:05:54.4404570Z arxivlens/internal/llm/config.go:115:		FromEnv		85.7%
+295:2026-11-07T15:05:54.4418907Z arxivlens/internal/llm/openai.go:43:		New		100.0%
+296:2026-11-07T15:05:54.4419612Z arxivlens/internal/llm/openai.go:62:		Name		100.0%
+297:2026-11-07T15:05:54.4420272Z arxivlens/internal/llm/openai.go:65:		String		100.0%
+298:2026-11-07T15:05:54.4420934Z arxivlens/internal/llm/openai.go:68:		GoString	100.0%
+299:2026-11-07T15:05:54.4421485Z arxivlens/internal/llm/openai.go:103:		Complete	100.0%
+300:2026-11-07T15:05:54.4421862Z arxivlens/internal/llm/openai.go:142:		encode		100.0%
+301:2026-11-07T15:05:54.4422227Z arxivlens/internal/llm/openai.go:174:		attempt		91.1%
+302:2026-11-07T15:05:54.4422624Z arxivlens/internal/llm/openai.go:243:		transportDetail	75.0%
+303:2026-11-07T15:05:54.4423060Z arxivlens/internal/llm/openai.go:260:		ctxError	100.0%
+304:2026-11-07T15:05:54.4423494Z arxivlens/internal/llm/openai.go:267:		retryable	100.0%
+305:2026-11-07T15:05:54.4424021Z arxivlens/internal/llm/openai.go:276:		parseRetryAfter	100.0%
+306:2026-11-07T15:05:54.4424394Z total:						(statements)	97.0%
+307:2026-11-07T15:05:54.4464652Z arxivlens/internal/llm/config.go 98.2%
+310:2026-11-07T15:05:54.4466620Z arxivlens/internal/llm/openai.go 95.2%
+

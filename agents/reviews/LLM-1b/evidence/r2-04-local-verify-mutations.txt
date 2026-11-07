@@ -1,0 +1,24 @@
+$ bash -c export GOTOOLCHAIN=local; D=$(mktemp -d /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/mutB.XXXX); git archive HEAD | tar -x -C $D && cp /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/go.mod $D/go.mod && echo "copy of $(git rev-parse --short HEAD) in $D (go.mod: go 1.24, not committed)" && cd $D && echo '--- go vet:' && go vet -modfile=go.mod ./internal/llm/... && echo ok && echo '--- gofmt -l internal/llm:' && gofmt -l internal/llm && echo '(empty)' && echo '--- go test -race -count=3:' && go test -modfile=go.mod -race -count=3 ./internal/llm/... && echo '--- timing/leak/redirect/transport -race -count=10:' && go test -modfile=go.mod -race -count=10 -run 'TestRetry|TestTimeout|TestCancel|TestNoSecretLeaks|TestNoRedirect|TestTransportError' ./internal/llm/ && echo '--- mutants:' && python3 /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/mutate2.py $D
+copy of e031ac0 in /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/mutB.tt9j (go.mod: go 1.24, not committed)
+--- go vet:
+ok
+--- gofmt -l internal/llm:
+(empty)
+--- go test -race -count=3:
+ok  	arxivlens/internal/llm	3.805s
+ok  	arxivlens/internal/llm/llmtest	1.322s
+--- timing/leak/redirect/transport -race -count=10:
+ok  	arxivlens/internal/llm	8.638s
+--- mutants:
+N1 transport detail copies err.Error() (r1 bug restored): KILLED (build/other) internal/llm/openai.go:189:3: declared and not used: detail
+N2 raw net/http error kept as cause: KILLED by TestNoSecretLeaks, TestTransportError
+N3 default branch quotes the error text: KILLED by TestNoSecretLeaks
+N4 OpError branch keeps full op text: KILLED by TestTransportError
+N5 redirects followed (no CheckRedirect): KILLED by TestNoRedirect
+N6 errno dropped from cause: KILLED by TestTransportError
+N7 non-2xx body echoed in detail: SURVIVED
+N8 3 attempts (two retries): KILLED by TestRetry
+N9 sleeps past the deadline: KILLED (build/other) internal/llm/openai.go:125:3: declared and not used: deadline
+unmutated copy: ok  	arxivlens/internal/llm	0.761s
+
+[exit code 0]

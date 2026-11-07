@@ -1,0 +1,7 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/e031ac0.../check-runs
+Frontend (lint, test, build)	completed	success	128439300386	2026-11-07T15:05:17Z
+Go (vet, gofmt, test, build)	completed	success	128439300294	2026-11-07T15:05:57Z
+Python M0 unit tests	completed	success	128439300248	2026-11-07T15:06:11Z
+Agent ownership check	completed	success	128439300049	2026-11-07T15:05:07Z
+DB (migrate twice, HNSW plan + recall)	completed	success	128439299932	2026-11-07T15:06:15Z
+
