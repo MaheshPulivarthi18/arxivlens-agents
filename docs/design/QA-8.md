@@ -18,7 +18,7 @@ builds the deterministic half of synthesis as pure, unit-tested functions in `in
 
 Everything goes in `internal/query/rag.go` (new unexported code, appended after `buildTemplateAnswer`) and
 `internal/query/rag_test.go` (new tests appended). No new file: `ownership-check.sh` gives ai-engineer only these two
-files in `internal/query/`. No new import beyond the standard library (`encoding/json`, `errors`, `unicode/utf8` added to `rag.go`).
+files in `internal/query/`. No new import beyond the standard library (`encoding/json`, `errors`, `unicode/utf8` added to `rag.go`). *As built (pm-lead record):* AI-6 added only `sort`, and AI-6b adds `encoding/json` + `errors` (+ `io` if used); `unicode/utf8` is not needed, because truncation cuts at ASCII whitespace.
 No `internal/llm` import (that's QA-8).
 
 ### Data flow (QA-8 wires this; AI-6 only builds and tests the boxes)
@@ -77,6 +77,9 @@ func passageTokens(h SearchHit, text string) int
 	// = estimateTokens(oneLine(h.Title)) + estimateTokens(oneLine(h.ArxivID)) + estimateTokens(oneLine(h.SectionTitle))
 	//   + estimateTokens(text) + passageOverheadTokens
 ```
+*As built (AI-6, recorded by pm-lead after QA r1 nit 4):* there is no separate `oneLine`. Each header field is counted and rendered through
+`metaField(s) = sanitizeBlock(strings.Join(strings.Fields(s), " "))` (one line, then sanitized), because escaping makes text longer
+(`<passage` → `&lt;passage`), so counting the un-escaped field could under-estimate. `TestPassageTokensBoundsRenderedBlock` uses a title full of `<passage` to pin the bound.
 Why 3 bytes/token is conservative: GPT/Llama-family tokenizers average about 4 characters per token on English prose and
 about 3–3.5 on arXiv text with digits, symbols and LaTeX. Counting **bytes**, not runes, over-counts non-ASCII text further
 (each non-ASCII rune is 2–4 bytes). Over-estimating only means a prompt is slightly shorter than it could be. Summing
@@ -128,7 +131,7 @@ text:
 ```
 - **Delimiters can't be forged.** `sanitizeBlock` rewrites any `<passage`, `</passage`, `<question` or `</question` (case-insensitive,
   one regexp `(?i)<(/?)(passage|question)`) to `&lt;$1$2`, in passage text, the question and metadata. So each block has exactly
-  one opening and one closing tag, whatever the paper or the user typed. `oneLine` collapses newlines in title, arXiv ID and section,
+  one opening and one closing tag, whatever the paper or the user typed. `oneLine` (as built: `metaField`, §2) collapses newlines in title, arXiv ID and section,
   so a title can't add header lines. Sanitizing is idempotent, so applying it in both `selectContext` and here is safe.
 - Passages appear in `Marker` order, each once. Only the passages passed in appear; the function never sees other hits.
 
@@ -334,4 +337,17 @@ A3. **Which hits back the answer, the refusal evidence and the fallback.** LLM p
 A4. **Counts in the usage log line:** `DroppedMarkers`, `DroppedClaims`, `k`, `truncated` (numbers/bools only). EVAL-8 needs the
    fabricated-marker rate.
 
-Next: ai-engineer builds AI-6 on `agent/ai-engineer/AI-6` (Jira → In Progress).
+Next: ai-engineer builds AI-6 on `agent/ai/AI-6` (Jira → In Progress). *(Branch name corrected by pm-lead after AI-6 QA r1 nit 6: `ownership-check.sh` accepts only the role `ai`. AI-6b uses `agent/ai/AI-6b`, and QA-8 uses `agent/ai/QA-8`.)*
+
+### Post-build record (pm-lead, 2026-11-07, after AI-6 QA r1 on PR #28 @ `c457576`)
+1. **Split taken (condition 1 seam c).** `rag.go` alone came to 214 lines with the parser, so AI-6 ships §1 `contextPassage` + consts, §2–§4 and §6.
+   §1's `synthesisClaim`/`synthesisResult`/errors, §5 `parseSynthesis`, the AC3 test-plan rows (`TestParseSynthesis`,
+   `TestParseSynthesisErrorHasNoCompletionText`) and the "out-of-range marker kept" mutation move **unchanged** to
+   [`agents/tasks/AI-6b.md`](../../agents/tasks/AI-6b.md), a QA-8 dependency. This design covers AI-6b; AI-6b needs no new design.
+2. **`passageTokens` counts `metaField` output** (one line + sanitized), not `oneLine` alone (§2 note above). The refinement is approved: it keeps the estimate an upper bound.
+3. **Imports as built:** AI-6 adds `sort`, and AI-6b adds `encoding/json`, `errors` (and `io` if used).
+4. **Refinements assigned to AI-6b** (from QA r1, pm-lead decision):
+   - §4 delimiter regexp widened to `(?i)<\s*(/?)\s*(passage|question)`, so whitespace look-alikes (`< /passage>`, `</ passage>`, `<\tpassage`) are escaped.
+     The replacement stays `&lt;$1$2`, and it's still idempotent. Fullwidth `＜…＞` stays out of scope (system rule 3 is the second line of defence; revisit on EVAL-8).
+   - §3 `selectContext` skips a hit whose content is empty after whitespace collapse (nothing to cite). It uses no cap slot and no budget. Before this, the first empty hit was sent with an empty `text:`.
+5. **Branch names** are `agent/ai/<ID>` (Next line corrected).

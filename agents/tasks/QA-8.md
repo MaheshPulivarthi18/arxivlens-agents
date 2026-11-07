@@ -5,10 +5,10 @@
 | **Owner** | ai-engineer |
 | **Priority** | P0 (top roadmap item; Phase 1 "make answers real") |
 | **PRD ref** | Product PRD QA-8, §7 principles 1–2, risks "Template answers feel shallow" / "Hallucinated citations"; Technical PRD §7.2, §11; ADR-0001, ADR-0002, ADR-0003 (all Accepted 2026-11-07) |
-| **Depends on** | **LLM-1 merged** (`internal/llm` types + `llmtest` fake), **LLM-1b merged** (OpenAI-compatible client + `FromEnv`; split from LLM-1 on 2026-11-07), **AI-6 merged** (context/prompt/parser, same file), AI-7 merged (refusal safety net; it comes before AI-6 in the `rag.go` order). EVAL-1, AI-1 (Done). |
+| **Depends on** | **LLM-1 merged** (`internal/llm` types + `llmtest` fake), **LLM-1b merged** (OpenAI-compatible client + `FromEnv`; split from LLM-1 on 2026-11-07), **AI-6 merged** (context selection + prompt, same file), **AI-6b merged** (`parseSynthesis` parser, same file; split from AI-6 on 2026-11-07 under design condition 1 seam c), AI-7 merged (refusal safety net; it comes before AI-6 in the `rag.go` order). EVAL-1, AI-1 (Done). |
 | **Jira** | KAN-7 (existing; re-scoped 2026-11-07, `labels = "task-QA-8"`) |
 | **Design required** | **yes**: an addendum to `docs/design/QA-8.md` (written in AI-6) covering the provider call, timeout and fallback. pm-lead approves before code. |
-| **Status** | Ready (Wave 3: starts when LLM-1b and AI-6 are merged; LLM-1 merged `43713ce`). The ADR blockers are gone (ADR-0001/0002 Accepted `51d8ff5`) |
+| **Status** | Ready (Wave 3: starts when LLM-1b, AI-6 and AI-6b are merged; LLM-1 merged `43713ce`). The ADR blockers are gone (ADR-0001/0002 Accepted `51d8ff5`) |
 
 ## Goal
 Replace the templated answer with an LLM-written synthesis over the selected passages whenever a provider is configured,

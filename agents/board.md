@@ -4,19 +4,20 @@ Last updated: 2026-11-07 10:55Z by orchestrator (cycle 10:00Z: LLM-1 #23, EVAL-3
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
-`rag.go` order (one file, one owner): AI-7 → AI-6 → QA-8 → AI-8.
+`rag.go` order (one file, one owner): AI-7 → AI-6 → AI-6b → QA-8 → AI-8.
 
 ## Ready — the 2026-11-07 plan, in execution order
 | # | ID | Title | Owner | Pri | Depends on | Wave | Note |
 |---|---|---|---|---|---|---|---|
 | 1b | [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (code already written) | backend-engineer | P0 | **LLM-1 merged** | 1b | ≈ 279 non-test lines; covered by LLM-1 design |
 | 5 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | 1 | **Env-blocked:** registry.npmjs.org; needs Mahesh (allow the host, or push the lockfile) |
-| 6 | [AI-6](tasks/AI-6.md) | Context selection, token budget, prompt, structured-output parser (writes `docs/design/QA-8.md`) | ai-engineer | P0 | AI-7 merged | 2 | Pure functions, `Ask` unchanged |
+| 6 | [AI-6](tasks/AI-6.md) | Context selection, token budget, synthesis prompt (parser moved to AI-6b; writes `docs/design/QA-8.md`) | ai-engineer | P0 | AI-7 merged | 2 | Pure functions, `Ask` unchanged. PR #28 QA r1 FAIL (PR text only) |
+| 6b | [AI-6b](tasks/AI-6b.md) | `parseSynthesis` structured-output parser + types/errors; delimiter look-alikes; `selectContext` edge cases | ai-engineer | P0 | **AI-6 #28 merged** (same files) | 3 | Covered by `docs/design/QA-8.md` §5 (no new design). Pure function, `Ask` unchanged |
 | 6a | [OPS-H10](tasks/OPS-H10.md) | `stack.yml`: keep service logs on green runs (embedder timing) + run on Go/`tests/` PRs | backend-engineer | P1 | **#21 + #22 merged** (README/CONTRIBUTING); backend slot | 2 | Unblocks AI-9 AC1 → ADR-0015 numbers; no other open PR on `stack.yml` |
 | 7 | [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python consumer: commit after success or confirmed DLQ (design-required) | backend-engineer | P0 | OPS-H1 (merged); **#23 merged** (`ci.yml`); backend slot | 2 | Design APPROVED w/ conditions 2026-11-07; build waits for #23 merge. Split seam → OPS-H8b (AC7) if > 400 lines |
 | 9 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1, AI-7 merged | 2 | |
 | 10 | [RET-2](tasks/RET-2.md) | `SearchHit` carries paper version + page (design-required) | backend-engineer | P1 | ADR-0014 (Accepted 2026-11-07), AI-7 + EVAL-6 merged | 2 | Waits for #20 + #21 merge |
-| 11 | [QA-8](tasks/QA-8.md) (KAN-7) | LLM synthesis in `/v1/ask` via provider, template fallback (design addendum) | ai-engineer | P0 | LLM-1, LLM-1b, AI-6 merged | 3 | Fake provider in tests; real-LLM numbers are EVAL-8 |
+| 11 | [QA-8](tasks/QA-8.md) (KAN-7) | LLM synthesis in `/v1/ask` via provider, template fallback (design addendum) | ai-engineer | P0 | LLM-1, LLM-1b, AI-6, AI-6b merged | 3 | Fake provider in tests; real-LLM numbers are EVAL-8 |
 | 12 | [EVAL-7](tasks/EVAL-7.md) | Blind human-review sheet → citation precision, claim correctness | ai-engineer | P1 | EVAL-6 merged | 3 | Judging is Mahesh's, not an agent's |
 | 13 | [AI-8](tasks/AI-8.md) | Claims + provenance (version, chunk, section, page, quote, status) (design-required) | ai-engineer | P0 | ADR-0014 (Accepted), QA-8, RET-2 merged | 3 | |
 | 14 | [FE-4](tasks/FE-4.md) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | P0 | ADR-0014 (Accepted), AI-8, FE-3 merged | 3 | |

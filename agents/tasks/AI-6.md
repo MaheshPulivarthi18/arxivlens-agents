@@ -42,6 +42,7 @@ the model's structured reply. `Ask` doesn't call any of it yet, so behaviour is 
       appears; the instruction lines from Scope are present; a passage containing "ignore previous instructions" stays inside its delimiters (test).
 - [ ] AC3 — `parseSynthesis`: valid JSON; fenced JSON; `[9]` with k = 3 dropped and counted; `insufficient_evidence: true` → refusal signal;
       non-JSON → error; empty claims without the flag → error.
+      > **Moved to AI-6b (design condition 1 seam c)** — pm-lead, 2026-11-07. Text above unchanged; tracked and verified in [`AI-6b.md`](AI-6b.md) AC3. AI-6 closes on AC1, AC2, AC4–AC6.
 - [ ] AC4 — No behaviour change: every existing `rag_test.go` test passes unmodified; `Ask` doesn't reference the new functions
       (the PR says so; QA checks with `grep`). `go vet` reports no unused-code issue that CI fails on.
 - [ ] AC5 — `rag.go` per-file coverage ≥ 90% (`go test -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | grep rag.go`).
@@ -85,3 +86,4 @@ go test -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | gre
   - [x] Finding 2 (design condition 5): the PR body now has a "Mutation check (design condition 5)" table with all 6 mutations and their failing test names. It notes the stdlib-only scratch module and `cmp` restore, and says the out-of-range-marker mutation moves to AI-6b.
   - [ ] Findings 3, 4, 6 → pm-lead (AI-6b spec + AC3 "moved" annotation; record the `metaField` refinement and `sort` import in `docs/design/QA-8.md`; fix the branch name in the design's "Next" line). Until AI-6b exists, the PR's "Follow-ups created" line now reads "Follow-ups requested".
   - Finding 5 and the missing-tests list: no change in this PR. Candidates for AI-6b/QA-8 (look-alike delimiter regexp `(?i)<\s*(/?)\s*(passage|question)`, empty-content hits, the truncation-after-skip case).
+- 2026-11-07 (pm-lead, after QA r1 finding 3 `[spec]`): AC3 annotated "moved to AI-6b (design condition 1 seam c)" (text not edited). Spec [`AI-6b.md`](AI-6b.md) created (parser, types, errors, `TestParseSynthesis`, `TestParseSynthesisErrorHasNoCompletionText`, out-of-range-marker mutation, plus QA nit 5 and missing tests 1–2), and added to QA-8's `Depends on`. The design's `passageTokens`/`metaField` refinement, the `sort` import and the branch name `agent/ai/AI-6` are now recorded in `docs/design/QA-8.md`. QA findings 1–2 (PR description: system prompt verbatim, mutation table) are still ai-engineer's to fix for round 2.
