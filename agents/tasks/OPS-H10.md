@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged). **#21 (AI-7, changes `README.md`) and #22 (EVAL-3, changes `CONTRIBUTING.md`) merged** (both are Ready to merge, waiting on Mahesh), per the AGENTS.md §3 same-file rule. No open PR changes `stack.yml` (checked 2026-11-07: #20–#25 don't). OPS-H9 no longer touches `stack.yml` (its optional step was removed to keep the two apart). |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H10`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P1 CI-only change, no new command/table/service, no shared contract |
-| **Status** | In Progress: built on `agent/backend/OPS-H10` (`9ebb49e`, local), waiting for PR + CI run (AC1–AC3 need CI) |
+| **Status** | In QA (round 2): draft PR [#26](https://github.com/MaheshPulivarthi18/ArxivLens/pull/26), branch `agent/backend/OPS-H10`, head `532440e` |
 
 ## Goal
 Two gaps in the Full stack workflow keep QA from getting evidence:
@@ -92,3 +92,23 @@ git diff --stat origin/main...agent/backend/OPS-H10
     by the sandbox's permission system), so the PR run's "Lint the harness" step is the first actionlint check. `make lint`/`make test-unit` can't run here
     (`go.mod requires go >= 1.25.0 (running go 1.24.7)`); this change has no Go/Python code.
   - Needs CI: AC1/AC2 (the PR's own `stack.yml` run + artifact listing), AC3 (scratch-branch dispatch with a forced `exit 1`, then delete the branch).
+- 2026-11-07 (backend-engineer, rework r1, QA r1 FAIL): head `9ebb49e` → `532440e`.
+  - [x] **Finding 1 [blocking], AC3 failing-run evidence.** Scratch branch `agent/backend/OPS-H10-ac3` (`0558a34` = `9ebb49e` + the
+    "AC3: crawl 2 papers" step replaced with `echo "::error::OPS-H10 AC3 scratch: forced failure before the host services start"; exit 1`;
+    1 file, 2+/1-), `workflow_dispatch` run [42368916365](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42368916365),
+    run conclusion `failure`, job 128392773584. Step conclusions (jobs API): 14 "AC3: crawl 2 papers" = **failure**
+    (`##[error]Process completed with exit code 1.`), 15–19 (host services, wait, seed, `make test-full`, F1) = skipped,
+    20 "Collect service logs" = **success**, 21 "Diagnostics" = **success**, 22 "Upload logs" = **success**, 23 Teardown = success.
+    Collect step's `ls -l stack-logs` in the job log:
+    `total 256` / `-rw-r--r-- 1 runner runner 256934 Nov  7 11:44 compose.log` / `-rw-r--r-- 1 runner runner     57 Nov  7 11:44 embedder-timing.log`
+    (no `query.log`/`downloader.log`/`ingest.json`: the run failed before the host services started, and the `if [ -f ]` guards held).
+    Upload: "With the provided path, there will be 4 files uploaded" (the two above + Diagnostics' `ps.txt`, `dlq.txt`).
+    Artifacts API: `stack-logs` id 13572664383, 28,662 B, expires 2026-11-14T11:44:11Z. Diagnostics' `cat` of `compose.log` printed
+    36 `arxivlens-embedder-api` lines (also 1107 kafka, 66 kafka-init, 58 postgres, 12 minio, 12 minio-init, 10 processor, 7 embedder-worker),
+    which is the in-log stand-in for "contains lines from `embedder-api`" that the blocked artifact download couldn't show (finding 2).
+  - [x] **Nit 4, README overclaim.** `README.md:235` now: "…with `compose.log` and `embedder-timing.log`, plus `query.log` and `downloader.log`
+    once the host services have started." Ownership check: `Ownership OK for role=backend (32 changed lines)`. Pushed plainly (no force).
+  - Nit 5 (Diagnostics depends on Collect): no change, as QA noted it is in line with Scope item 3.
+  - Findings 2 and 3 are [spec] for pm-lead; left as they are.
+  - **Scratch branch `agent/backend/OPS-H10-ac3` still exists — needs Mahesh to delete it (agent sandbox can't delete refs).** AC3's
+    "delete the scratch branch afterwards" is therefore open on Mahesh's side.
