@@ -1,0 +1,16 @@
+$ bash -c git log -1 --format='%h %cI %s' 68f775f; git show --stat --format= 68f775f; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128468507757/logs | sed 's/^[0-9T:.-]*Z //' | grep -E '^(FAILED|=====.*(passed|failed))|Run python -m pytest -v|##\[error\]'
+68f775f 2026-11-07T17:03:20+00:00 mutation(AC7b): _produce_confirmed ignores the delivery callback outcome (bare flush)
+ services/common/kafka_client.py | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+##[group]Run python -m pytest -v tests/test_kafka_client.py
+FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[err-Message timed out] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[queued-not confirmed] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[err] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[queued] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[err] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[queued] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_failing_publish_in_handler_is_retried - assert ([5] == [5, 5, 5]
+========================= 7 failed, 9 passed in 0.17s ==========================
+##[error]Process completed with exit code 1.
+
+[exit code 0]

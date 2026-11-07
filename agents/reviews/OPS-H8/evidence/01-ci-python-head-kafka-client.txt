@@ -1,0 +1,24 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128515856797/logs | sed 's/^[0-9T:.-]*Z //' | grep -E 'Run make test-py|python3 -m pytest -q tests/test_m0|passed|failed|Run python -m pytest -v tests/test_kafka_client|test_kafka_client.py::|##\[error\]'
+##[group]Run make test-py
+python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py
+84 passed, 1 skipped in 5.84s
+##[group]Run python -m pytest -v tests/test_kafka_client.py
+tests/test_kafka_client.py::test_publish_requires_confirmation[ok-None] PASSED [  6%]
+tests/test_kafka_client.py::test_publish_requires_confirmation[err-Message timed out] PASSED [ 12%]
+tests/test_kafka_client.py::test_publish_requires_confirmation[queued-not confirmed] PASSED [ 18%]
+tests/test_kafka_client.py::test_publish_requires_confirmation[raise-Queue full] PASSED [ 25%]
+tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[ok] PASSED [ 31%]
+tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[err] PASSED [ 37%]
+tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[queued] PASSED [ 43%]
+tests/test_kafka_client.py::test_build_dlq_payload_is_total[None-want_value0] PASSED [ 50%]
+tests/test_kafka_client.py::test_build_dlq_payload_is_total[msg1-want_value1] PASSED [ 56%]
+tests/test_kafka_client.py::test_build_dlq_payload_is_total[msg2-want_value2] PASSED [ 62%]
+tests/test_kafka_client.py::test_dlq_stack_trace_is_the_errors_own PASSED [ 68%]
+tests/test_kafka_client.py::test_delivery_bound_outlasts_message_timeout PASSED [ 75%]
+tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[err] PASSED [ 81%]
+tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[queued] PASSED [ 87%]
+tests/test_kafka_client.py::test_confirmed_dlq_write_then_commit PASSED  [ 93%]
+tests/test_kafka_client.py::test_failing_publish_in_handler_is_retried PASSED [100%]
+============================== 16 passed in 0.12s ==============================
+
+[exit code 0]

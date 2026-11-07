@@ -1,0 +1,27 @@
+$ bash -c echo "## git diff --stat origin/main...HEAD"; git diff --stat origin/main...HEAD; echo "## out-of-scope files changed (diff --stat lines for both workers + heartbeat test):"; git diff --stat origin/main...HEAD -- services/processor/worker.py services/embedder/worker.py tests/test_worker_heartbeat.py | wc -l; echo "## kafka_client.py hunks (all end before def start):"; git diff origin/main...HEAD -- services/common/kafka_client.py | grep "^@@"; grep -n "def _heartbeat\|def start" services/common/kafka_client.py; echo "## diff of def _heartbeat..EOF vs origin/main:"; diff <(git show origin/main:services/common/kafka_client.py | sed -n "/def _heartbeat/,\$p") <(sed -n "/def _heartbeat/,\$p" services/common/kafka_client.py) && echo "IDENTICAL"; echo "## CI Agent ownership check job 128515856792 (head):"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128515856792/logs | sed "s/^[0-9T:.-]*Z //" | grep -iE "ownership|changed lines|warning" | grep -v "^\[36" | tail -4
+## git diff --stat origin/main...HEAD
+ .github/workflows/ci.yml        |   2 +
+ services/common/kafka_client.py |  78 ++++++++++------
+ tests/test_kafka_client.py      | 198 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 252 insertions(+), 26 deletions(-)
+## out-of-scope files changed (diff --stat lines for both workers + heartbeat test):
+0
+## kafka_client.py hunks (all end before def start):
+@@ -5,7 +5,7 @@ import time
+@@ -13,17 +13,45 @@ from shared.events.events import EventEnvelope, DLQPayload
+@@ -52,17 +80,11 @@ class ServiceKafkaProducer:
+@@ -72,7 +94,7 @@ class ServiceKafkaProducer:
+@@ -89,7 +111,7 @@ class ServiceKafkaProducer:
+@@ -97,26 +119,28 @@ class ServiceKafkaProducer:
+@@ -125,14 +149,16 @@ class ServiceKafkaConsumer:
+175:    def _heartbeat(self) -> None:
+183:    def start(self, handler: Callable[[EventEnvelope, Message], None]) -> None:
+## diff of def _heartbeat..EOF vs origin/main:
+IDENTICAL
+## CI Agent ownership check job 128515856792 (head):
+##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+[36;1m.github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"[0m
+Ownership OK for role=backend (278 changed lines)
+##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+
+[exit code 0]

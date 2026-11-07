@@ -1,0 +1,9 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/0d70fab65292d8b0b53abeb5b85c9e575dced3c8/check-runs --jq '.check_runs[] | "\(.name) | \(.status) \(.conclusion) | \(.started_at) -> \(.completed_at) | \(.details_url)"'
+Frontend (lint, test, build) | completed success | 2026-11-07T20:13:21Z -> 2026-11-07T20:13:34Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409999817/job/128515856860
+Python M0 unit tests | completed success | 2026-11-07T20:13:21Z -> 2026-11-07T20:14:38Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409999817/job/128515856797
+Agent ownership check | completed success | 2026-11-07T20:13:21Z -> 2026-11-07T20:13:24Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409999817/job/128515856792
+Full stack (compose + make test-full) | completed success | 2026-11-07T20:13:21Z -> 2026-11-07T20:25:07Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409999965/job/128515856719
+Go (vet, gofmt, test, build) | completed success | 2026-11-07T20:13:21Z -> 2026-11-07T20:14:01Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409999817/job/128515856635
+DB (migrate twice, HNSW plan + recall) | completed success | 2026-11-07T20:13:21Z -> 2026-11-07T20:14:38Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409999818/job/128515856363
+
+[exit code 0]

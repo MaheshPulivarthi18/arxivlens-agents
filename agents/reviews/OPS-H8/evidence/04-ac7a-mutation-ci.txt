@@ -1,0 +1,19 @@
+$ bash -c git log -1 --format='%h %cI %s' 455ec67; git show --stat --format= 455ec67; echo '--- Python M0 job 128513003099'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128513003099/logs | sed 's/^[0-9T:.-]*Z //' | grep -E '^(FAILED|=====.*(passed|failed))|Run python -m pytest -v|##\[error\]'; echo '--- Full stack job 128513002770 (make test-full step)'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128513002770/logs | sed 's/^[0-9T:.-]*Z //' | grep -E '^FAILED tests/test_kafka|^[0-9]+ failed, [0-9]+ passed, 1 skipped|^[.sF]+ +\[' | head -6
+455ec67 2026-11-07T20:01:59+00:00 mutation(AC7a): start swallows DeliveryError around publish_dlq and falls through to commit
+ services/common/kafka_client.py | 19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
+--- Python M0 job 128513003099
+##[group]Run python -m pytest -v tests/test_kafka_client.py
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[err] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[queued] - Failed: DID NOT RAISE DeliveryError
+========================= 2 failed, 14 passed in 0.16s =========================
+##[error]Process completed with exit code 1.
+--- Full stack job 128513002770 (make test-full step)
+.......................................................s................ [ 63%]
+................FF.......................                                [100%]
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[err] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[queued] - Failed: DID NOT RAISE DeliveryError
+2 failed, 110 passed, 1 skipped, 3 deselected in 6.99s
+F..                                                                      [100%]
+
+[exit code 0]

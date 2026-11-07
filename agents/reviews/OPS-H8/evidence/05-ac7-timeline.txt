@@ -1,0 +1,18 @@
+$ bash -c for c in 007aecc 68f775f 5892d6e 455ec67 0d70fab; do git log -1 --format='== %h committed %cI  %s' $c; gh api repos/MaheshPulivarthi18/ArxivLens/commits/$(git rev-parse $c)/check-runs --jq '.check_runs[] | select(.name|test("Python|Full stack")) | "   \(.name): \(.conclusion)  \(.started_at) -> \(.completed_at)"'; done
+== 007aecc committed 2026-11-07T15:54:06+00:00  OPS-H8: Part a only: producer confirms delivery; consumer loop restored to main
+   Python M0 unit tests: success  2026-11-07T15:56:23Z -> 2026-11-07T15:57:38Z
+   Full stack (compose + make test-full): success  2026-11-07T15:56:23Z -> 2026-11-07T16:08:26Z
+== 68f775f committed 2026-11-07T17:03:20+00:00  mutation(AC7b): _produce_confirmed ignores the delivery callback outcome (bare flush)
+   Python M0 unit tests: failure  2026-11-07T17:03:30Z -> 2026-11-07T17:04:55Z
+   Full stack (compose + make test-full): cancelled  2026-11-07T17:03:29Z -> 2026-11-07T17:06:17Z
+== 5892d6e committed 2026-11-07T17:05:43+00:00  revert mutation(AC7b)
+   Full stack (compose + make test-full): success  2026-11-07T17:06:20Z -> 2026-11-07T17:18:43Z
+   Python M0 unit tests: success  2026-11-07T17:05:52Z -> 2026-11-07T17:07:02Z
+== 455ec67 committed 2026-11-07T20:01:59+00:00  mutation(AC7a): start swallows DeliveryError around publish_dlq and falls through to commit
+   Python M0 unit tests: failure  2026-11-07T20:02:08Z -> 2026-11-07T20:03:30Z
+   Full stack (compose + make test-full): failure  2026-11-07T20:02:08Z -> 2026-11-07T20:12:29Z
+== 0d70fab committed 2026-11-07T20:13:11+00:00  revert mutation(AC7a)
+   Python M0 unit tests: success  2026-11-07T20:13:21Z -> 2026-11-07T20:14:38Z
+   Full stack (compose + make test-full): success  2026-11-07T20:13:21Z -> 2026-11-07T20:25:07Z
+
+[exit code 0]

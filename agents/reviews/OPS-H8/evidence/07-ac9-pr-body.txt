@@ -1,0 +1,24 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/30 --jq .body | sed -n '/### What changed/,/### Acceptance criteria/p' | fold -w 138 -s
+### What changed
+- `services/common/kafka_client.py` (+52/−26): `DeliveryError`; named `MESSAGE_TIMEOUT_MS = 10000` / `DELIVERY_TIMEOUT_S = 12` with 
+`message.timeout.ms` in the producer config; `_produce_confirmed` (delivery callback, then flush until the callback ran or the bound 
+passes); `publish`/`publish_dlq` raise on an unconfirmed delivery; `build_dlq_payload`/`send_dlq` split; DLQ `stack_trace` from the 
+error's own traceback; optional `consumer=`/`producer=` constructor seams. `ServiceKafkaConsumer.start` and the rest of the consumer 
+section are **unchanged** from `main`.
+- `tests/test_kafka_client.py` (new, 198 lines, fakes only, 16 tests).
+- `.github/workflows/ci.yml`: one step in the `python` job runs `python -m pytest -v tests/test_kafka_client.py`.
+
+### Behaviour changes (decided by pm-lead in design review)
+1. `ServiceKafkaProducer.publish` and `publish_dlq` now raise `DeliveryError` when the broker hasn't confirmed delivery within 
+`DELIVERY_TIMEOUT_S` (12 s; `message.timeout.ms = 10000`), or when `produce` itself fails. Before, they returned silently even if the 
+message was never delivered. The processor's handler therefore fails and is retried (then DLQ'd) when `papers.chunked` isn't delivered, 
+instead of committing a paper that's never embedded.
+2. The DLQ `stack_trace` is now the handler's real traceback. On the consumer path it used to be `NoneType: None`.
+3. **Interim, until OPS-H8b:** while the DLQ is unreachable, the worker exits without committing the failed record (`DeliveryError` 
+leaves `start` before its commit, and the consumer closes). Compose (`restart: unless-stopped`) restarts it, the record is redelivered, 
+and the handler runs 3× again on each restart until the DLQ write is confirmed. That costs time, never a record. OPS-H8b replaces this 
+with an in-place DLQ retry.
+
+### Acceptance criteria
+
+[exit code 0]

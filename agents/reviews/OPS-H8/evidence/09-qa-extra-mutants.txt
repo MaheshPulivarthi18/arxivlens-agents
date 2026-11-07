@@ -1,0 +1,37 @@
+$ python3 /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/qa_mutants.py /root/wt/qa-OPS-H8 /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/stubs
+mutant                                                  result   summary
+M1 drop 'not confirmed' check (queued passes)           KILLED   3 failed, 13 passed in 0.12s
+    FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[queued-not confirmed]
+    FAILED tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[queued]
+    FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[queued]
+M2 drop callback-error check                            KILLED   4 failed, 12 passed in 0.12s
+    FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[err-Message timed out]
+    FAILED tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[err]
+    FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[err]
+    FAILED tests/test_kafka_client.py::test_failing_publish_in_handler_is_retried
+M3 BufferError swallowed by produce                     KILLED   1 failed, 15 passed in 0.10s
+    FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[raise-Queue full]
+M4 stack trace back to format_exc()                     KILLED   2 failed, 14 passed in 0.10s
+    FAILED tests/test_kafka_client.py::test_dlq_stack_trace_is_the_errors_own
+    FAILED tests/test_kafka_client.py::test_confirmed_dlq_write_then_commit
+M5 message.timeout.ms removed from config               KILLED   1 failed, 15 passed in 0.11s
+    FAILED tests/test_kafka_client.py::test_delivery_bound_outlasts_message_timeout
+M6 DELIVERY_TIMEOUT_S below message timeout             KILLED   1 failed, 15 passed in 0.10s
+    FAILED tests/test_kafka_client.py::test_delivery_bound_outlasts_message_timeout
+M7 record value leaks into DeliveryError                KILLED   1 failed, 15 passed in 0.09s
+    FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[err-Message timed out]
+M8 publish_dlq attempts forced to 1                     KILLED   2 failed, 14 passed in 0.10s
+    FAILED tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[ok]
+    FAILED tests/test_kafka_client.py::test_confirmed_dlq_write_then_commit
+M9 orig_topic fallback dropped                          KILLED   2 failed, 14 passed in 0.13s
+    FAILED tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[ok]
+    FAILED tests/test_kafka_client.py::test_build_dlq_payload_is_total[None-want_value0]
+M10 DLQ traceparent header dropped                      KILLED   1 failed, 15 passed in 0.09s
+    FAILED tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[ok]
+M11 publish returns before confirm (produce w/o flush)  KILLED   4 failed, 12 passed in 0.11s
+    FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[err-Message timed out]
+    FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[queued-not confirmed]
+    FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[raise-Queue full]
+    FAILED tests/test_kafka_client.py::test_failing_publish_in_handler_is_retried
+
+[exit code 0]

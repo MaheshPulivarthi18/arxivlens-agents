@@ -1,0 +1,31 @@
+$ bash -c echo '## job 128515856719 (stack.yml run 42409999965), make test-full step + F1 step:'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128515856719/logs | sed 's/^[0-9T:.-]*Z //' | grep -E '^python3 -m pytest -q|^[.sF]+ +\[|^[0-9]+ (passed|failed)' | cut -c1-140; echo; echo '## position map (python3 /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/m4_positions.py):'; python3 /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/m4_positions.py /root/wt/qa-OPS-H8 /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/stubs /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/logs/128515856719.log /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/logs/128513002770.log
+## job 128515856719 (stack.yml run 42409999965), make test-full step + F1 step:
+python3 -m pytest -q tests/ --deselect tests/test_m3_query.py::test_rag_ask_with_groundedness_support --deselect tests/test_m3_query.py::tes
+.......................................................s................ [ 63%]
+.........................................                                [100%]
+112 passed, 1 skipped, 3 deselected in 9.58s
+python3 -m pytest -q tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrela
+...                                                                      [100%]
+3 passed in 26.01s
+
+## position map (python3 /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/m4_positions.py):
+items after deselect: 113   head dot chars: 113   mutation dot chars: 113
+cross-check (a') mutation run: F positions -> [(89, 'tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[err]'), (90, 'tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[queued]')]
+skip position in head run -> [(56, 'tests/test_evals_data.py::test_chunk_counts_sql_against_real_postgres')]
+
+file                                   positions   how counted                                  head result chars
+tests/test_evals_data.py                 1-76      collected                                     .......................................................s....................
+tests/test_kafka_client.py              77-92      collected                                     ................
+tests/test_m0.py                        93-95      def-count (not collectable here; no parametrize) ...
+tests/test_m1_infra.py                  96-98      def-count (not collectable here; no parametrize) ...
+tests/test_m2_pipeline.py               99-100     def-count (not collectable here; no parametrize) ..
+tests/test_m3_query.py                 101-102     collected                                     ..
+tests/test_m4_chaos.py                 103-104     def-count (not collectable here; no parametrize) ..
+tests/test_m5_m6_telemetry_eval.py     105-107     def-count (not collectable here; no parametrize) ...
+tests/test_worker_heartbeat.py         108-113     collected                                     ......
+
+M4 rows in head run:
+  pos 103: tests/test_m4_chaos.py::test_idempotency_duplicate_event_row_invariance  -> '.' (PASSED)
+  pos 104: tests/test_m4_chaos.py::test_corrupt_pdf_dlq_routing_and_diagnostic_payload  -> '.' (PASSED)
+
+[exit code 0]
