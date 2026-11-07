@@ -1,0 +1,6 @@
+$ python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py
+.......................................................s................ [ 77%]
+.....................                                                    [100%]
+92 passed, 1 skipped in 0.13s
+
+[exit code 0]

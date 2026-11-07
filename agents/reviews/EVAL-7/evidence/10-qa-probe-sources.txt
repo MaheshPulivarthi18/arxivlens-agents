@@ -1,0 +1,326 @@
+$ bash -c cd /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/probe && for f in e2e_probe.py ac4_probe.py mutants.py text_drift_probe.py; do echo "===== $f"; cat $f; done
+===== e2e_probe.py
+#!/usr/bin/env python3
+"""QA probe for EVAL-7: real HTTP end-to-end (evaluate_answers -> export -> score -> save) against a fake /v1/ask.
+
+Usage: e2e_probe.py <app-worktree> <scratch-dir>. Synthetic labels by QA, scratch only; nothing is committed.
+"""
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+APP, OUT = sys.argv[1], sys.argv[2]
+os.makedirs(OUT, exist_ok=True)
+cases = {}
+for n in ("answer.jsonl", "refusal.jsonl", "refusal_near_miss.jsonl"):
+    for line in open(os.path.join(APP, "evals", n)):
+        if line.strip():
+            c = json.loads(line)
+            cases[c["question"]] = (c["id"], n)
+
+
+def make_handler(drift_ids):
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def do_POST(self):
+            q = json.loads(self.rfile.read(int(self.headers["Content-Length"])))["question"]
+            cid, setname = cases[q]
+            if setname != "answer.jsonl":
+                resp = {"answer": "", "citations": [], "refusal_reason": ""}
+            else:
+                base = int(hashlib.sha1(cid.encode()).hexdigest()[:6], 16) % 10000
+                if cid in drift_ids:
+                    base += 50000
+                cits = [{"marker": m, "chunk_id": base + m, "arxiv_id": "1706.03762",
+                         "content": f"PASSAGETEXT-{cid}-{m}", "score": 0.6123 if m == 1 else 0.4321,
+                         "supported": m == 1, "status": "supported" if m == 1 else "unsupported"}
+                        for m in (1, 2)]
+                resp = {"answer": f"ANSWERTEXT {cid} first claim [1]. ANSWERTEXT second claim [1][2]. Uncited end.",
+                        "citations": cits}
+            body = json.dumps(resp).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+    return H
+
+
+def serve(drift_ids):
+    s = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(drift_ids))
+    threading.Thread(target=s.serve_forever, daemon=True).start()
+    return f"http://127.0.0.1:{s.server_address[1]}"
+
+
+def run(*args):
+    p = subprocess.run([sys.executable, *args], cwd=APP, capture_output=True, text=True)
+    print(f"$ {' '.join(os.path.basename(a) if a.startswith(OUT) else a for a in args)}  -> exit {p.returncode}")
+    tail = (p.stdout + p.stderr).strip().splitlines()
+    for line in tail[-6:]:
+        print("   " + line)
+    return p
+
+
+ok_url, drift_url = serve(set()), serve({"a001", "a002"})
+results = os.path.join(OUT, "run-probe.json")
+checks = []
+
+
+def check(name, cond):
+    checks.append((name, bool(cond)))
+
+
+run("scripts/evaluate_answers.py", "--api-url", ok_url, "--json-out", results)
+rj = open(results).read()
+check("results JSON holds no answer/passage text", "PASSAGETEXT" not in rj and "ANSWERTEXT" not in rj)
+n_answered = sum(1 for c in json.loads(rj)["cases"] if c["outcome"] == "answered")
+
+p = run("scripts/answer_review.py", "export", "--results", results, "--api-url", ok_url, "--out-dir", OUT)
+jpath, sheet_path = os.path.join(OUT, "run-probe.judgments.jsonl"), os.path.join(OUT, "run-probe.review.md")
+rows = [json.loads(line) for line in open(jpath)]
+sheet = open(sheet_path).read()
+check(f"export over real HTTP: {n_answered} answered cases x 3 (claim,citation) rows = {3 * n_answered}",
+      len(rows) == 3 * n_answered)
+check("drifted: none", "drifted cases skipped: none" in p.stdout)
+check("sheet has every passage text and claim text",
+      all(f"PASSAGETEXT-{r['case_id']}-{r['marker']}" in sheet for r in rows) and "ANSWERTEXT" in sheet)
+check("sheet hides score/supported/status and score values",
+      not [w for w in ("score", "supported", "status", "0.6123", "0.4321") if w in sheet.lower()])
+check("judgments JSONL has no passage/answer text", "PASSAGETEXT" not in open(jpath).read()
+      and "ANSWERTEXT" not in open(jpath).read())
+p = run("scripts/answer_review.py", "export", "--results", results, "--api-url", ok_url, "--out-dir", OUT)
+check("second export refuses to overwrite (exit 2)", p.returncode == 2)
+
+dout = os.path.join(OUT, "drift")
+p = run("scripts/answer_review.py", "export", "--results", results, "--api-url", drift_url, "--out-dir", dout)
+drows = [json.loads(line) for line in open(os.path.join(dout, "run-probe.judgments.jsonl"))]
+check("drift server: a001,a002 skipped and listed, no rows for them",
+      "a001, a002" in p.stdout and not [r for r in drows if r["case_id"] in ("a001", "a002")]
+      and len(drows) == 3 * (n_answered - 2))
+
+# Fill synthetic labels (QA probe only). marker 1 rows: yes; marker 2 rows cycle partial/no/contradicts/unjudged.
+cyc = ["partial", "no", "contradicts", None]
+filled, k = [], 0
+for r in rows:
+    r = dict(r)
+    if r["marker"] == 1:
+        r["supports"] = "yes"
+    else:
+        r["supports"] = cyc[k % 4]
+        k += 1
+    if r["supports"] is not None:
+        r["claim_correct"] = "yes" if r["unit"] == 0 else "unsure"
+        r.update(reviewer="qa-probe", date="2026-11-07", notes="local note TEXT")
+    filled.append(r)
+fpath = os.path.join(OUT, "filled.jsonl")
+open(fpath, "w").writelines(json.dumps(r) + "\n" for r in filled)
+judged = [r for r in filled if r["supports"]]
+exp = {s: sum(1 for r in judged if r["supports"] == s) for s in ("yes", "partial", "no", "contradicts")}
+claims = {(r["case_id"], r["unit"]): r["claim_correct"] for r in filled if r.get("claim_correct")}
+exp_cc = sum(1 for v in claims.values() if v == "yes") / len(claims)
+sysmap = {(r["case_id"], r["marker"]): r["marker"] == 1 for r in rows}  # fake server: marker 1 supported
+exp_matrix = {s: {"true": 0, "false": 0, "missing": 0} for s in exp}
+for r in judged:
+    exp_matrix[r["supports"]][str(sysmap[(r["case_id"], r["marker"])]).lower()] += 1
+
+save = os.path.join(OUT, "answer_judgments")
+os.makedirs(save, exist_ok=True)
+mjson = os.path.join(OUT, "m.json")
+run("scripts/answer_review.py", "score", "--judgments", fpath, "--results", results, "--save", save, "--json-out", mjson)
+m = json.load(open(mjson))
+check(f"judged/unjudged = {len(judged)}/{len(filled) - len(judged)}",
+      (m["rows_judged"], m["rows_unjudged"]) == (len(judged), len(filled) - len(judged)))
+check(f"precision = {exp['yes']}/{len(judged)}", abs(m["citation_precision"] - exp["yes"] / len(judged)) < 1e-9)
+check("partial/contradiction rates", abs(m["partial_rate"] - exp["partial"] / len(judged)) < 1e-9
+      and abs(m["contradiction_rate"] - exp["contradicts"] / len(judged)) < 1e-9)
+check(f"claim correctness = {exp_cc:.4f} over {len(claims)} claims",
+      abs(m["claim_correctness"] - exp_cc) < 1e-9 and m["claims_judged"] == len(claims))
+check("confusion matrix equals QA's independent count", m["confusion_matrix"] == exp_matrix)
+saved = open(os.path.join(save, "run-probe.jsonl")).read()
+keys = {k for line in saved.splitlines() for k in json.loads(line)}
+check("saved copy: IDs+labels only, no notes/text",
+      keys == {"run_id", "row_id", "case_id", "unit", "marker", "chunk_id", "arxiv_id", "supports",
+               "claim_correct", "reviewer", "date"} and "TEXT" not in saved)
+
+print()
+for name, good in checks:
+    print(("PASS " if good else "FAIL ") + name)
+print(f"\n{sum(g for _, g in checks)}/{len(checks)} checks passed")
+print("confusion matrix:", json.dumps(m["confusion_matrix"]))
+sys.exit(0 if all(g for _, g in checks) else 1)
+===== ac4_probe.py
+#!/usr/bin/env python3
+"""QA probe for EVAL-7 AC4: does test_review_committed_judgments_hold_ids_and_labels_only bite on real files?
+
+Usage: ac4_probe.py <app-worktree> <scratch-dir>. Each scenario is a fresh scratch copy with one file dropped into
+evals/answer_judgments/; expected = whether the AC4 test should fail. Synthetic QA rows only, never committed.
+"""
+import json
+import shutil
+import subprocess
+import sys
+
+APP, OUT = sys.argv[1], sys.argv[2]
+TEST = "tests/test_evals_data.py::test_review_committed_judgments_hold_ids_and_labels_only"
+GOOD = {"run_id": "20261107T000000Z", "row_id": "a001:u0:m1", "case_id": "a001", "unit": 0, "marker": 1,
+        "chunk_id": 11, "arxiv_id": "1706.03762", "supports": "yes", "claim_correct": "yes",
+        "reviewer": "qa-probe", "date": "2026-11-07"}
+SCEN = [
+    ("valid IDs+labels file", "20261107T000000Z.jsonl", [GOOD], False),
+    ("row with passage text key", "20261107T000000Z.jsonl", [dict(GOOD, passage="The Transformer ...")], True),
+    ("row with answer text key", "20261107T000000Z.jsonl", [dict(GOOD, answer="It uses attention [1].")], True),
+    ("row with claim text key", "20261107T000000Z.jsonl", [dict(GOOD, claim="It uses attention")], True),
+    ("row with local notes", "20261107T000000Z.jsonl", [dict(GOOD, notes="passage says ...")], True),
+    ("unknown label value", "20261107T000000Z.jsonl", [dict(GOOD, supports="mostly")], True),
+    ("file name != run_id", "other-run.jsonl", [GOOD], True),
+    ("non-jsonl file (CSV sheet)", "sheet.csv", None, True),
+    ("passage text in reviewer (>64)", "20261107T000000Z.jsonl", [dict(GOOD, reviewer="x" * 80)], True),
+    ("short passage text in arxiv_id (<=64)", "20261107T000000Z.jsonl",
+     [dict(GOOD, arxiv_id="attention is all you need, text here")], True),
+]
+
+rows = []
+for name, fname, content, expect_fail in SCEN:
+    d = subprocess.run(["mktemp", "-d", f"{OUT}/ac4.XXXX"], capture_output=True, text=True).stdout.strip()
+    for sub in ("scripts", "tests", "evals"):
+        shutil.copytree(f"{APP}/{sub}", f"{d}/{sub}")
+    with open(f"{d}/evals/answer_judgments/{fname}", "w") as f:
+        f.write("case_id,claim,passage\n" if content is None else "".join(json.dumps(r) + "\n" for r in content))
+    p = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", TEST], cwd=d,
+                       capture_output=True, text=True)
+    failed = p.returncode == 1
+    rows.append((name, "test FAILED" if failed else ("test passed" if p.returncode == 0 else f"exit {p.returncode}"),
+                 "as expected" if failed == expect_fail else "UNEXPECTED"))
+print(f"SUMMARY: {sum(r[2] == 'as expected' for r in rows)}/{len(rows)} scenarios as expected\n")
+for name, res, verdict in rows:
+    print(f"{name:<40} {res:<12} {verdict}")
+===== mutants.py
+#!/usr/bin/env python3
+"""QA mutation run for EVAL-7: apply one mutant at a time to a scratch copy, run `pytest -k review`.
+
+Usage: mutants.py <app-worktree> <scratch-dir>. KILLED = tests fail (exit 1); SURVIVED = pass; INVALID = mutant text not
+found or pytest could not collect (exit != 0/1). The worktree is never modified.
+"""
+import shutil
+import subprocess
+import sys
+
+APP, OUT = sys.argv[1], sys.argv[2]
+F = "scripts/answer_review.py"
+MUTANTS = [
+    ("sheet leaks the system verdict", F, '"question": questions[cid], "claim": text,',
+     '"question": questions[cid], "claim": text + (" (supported)" if c.get("supported") else ""),'),
+    ("row carries the score, sheet prints it", F, '"passage": passages.get(c["chunk_id"], "")})',
+     '"passage": passages.get(c["chunk_id"], "") + " score " + str(c.get("score"))})'),
+    ("judgments JSONL keeps claim text", F, 'return {**{k: row[k] for k in ID_KEYS}, **dict.fromkeys(LABEL_KEYS), "notes": ""}',
+     'return {**{k: row[k] for k in ID_KEYS}, **dict.fromkeys(LABEL_KEYS), "notes": row["claim"]}'),
+    ("drift check removed", F, 'if ea.classify(resp) != "answered" or want != got:',
+     'if ea.classify(resp) != "answered":'),
+    ("re-asked refusal not treated as drift", F, 'if ea.classify(resp) != "answered" or want != got:',
+     'if resp is None or want != got:'),
+    ("refused cases not skipped", F, 'if case.get("outcome") != "answered":\n            continue',
+     'if False:\n            continue'),
+    ("precision counts partial as support", F, '(("citation_precision", "yes"),',
+     '(("citation_precision", "partial"),'),
+    ("unjudged rows counted as judged", F, 'judged = [j for j in judgments if j.get("supports") is not None]',
+     'judged = [j for j in judgments if True]'),
+    ("claim correctness per row, not per claim", F,
+     '"claim_correctness": claim_counts["yes"] / len(claims) if claims else None',
+     '"claim_correctness": claim_counts["yes"] / sum(1 for j in judgments if j.get("claim_correct")) if claims else None'),
+    ("confusion true/false swapped", F, 'str(v is True).lower()', 'str(v is not True).lower()'),
+    ("committed mode allows notes", F, 'allowed = COMMITTED_KEYS if committed else LOCAL_KEYS', 'allowed = LOCAL_KEYS'),
+    ("unknown keys allowed", F, 'errs = [f"key not allowed: {k}" for k in sorted(set(row) - allowed)]', 'errs = []'),
+    ("labels case-insensitive", F, 'if row.get(k) not in ok + (None,):',
+     'if (row.get(k).lower() if isinstance(row.get(k), str) else row.get(k)) not in ok + (None,):'),
+    ("string length cap removed", F, 'if not isinstance(row.get(k), str) or len(row[k]) > 64:',
+     'if not isinstance(row.get(k), str):'),
+    ("reviewer not required", F, 'if not isinstance(rev, str) or not rev.strip() or len(rev) > 64:', 'if False:'),
+    ("--save keeps notes", F, 'json.dumps({k: j.get(k) for k in ID_KEYS + LABEL_KEYS})', 'json.dumps(j)'),
+    ("--save skips strict re-validation", F, '        load_judgments(path, committed=True)\n', ''),
+    ("duplicate row_id allowed", F, 'if len({r.get("row_id") for r in rows}) != len(rows):', 'if False:'),
+    ("out-of-range markers kept", F, '& in_range)) for text, marks in raw]', ')) for text, marks in raw]'),
+    ("export overwrites judgments", F, 'if os.path.exists(jpath) and not args.force:', 'if False:'),
+]
+
+
+def run(name, path, old, new):
+    d = subprocess.run(["mktemp", "-d", f"{OUT}/mut.XXXX"], capture_output=True, text=True).stdout.strip()
+    for sub in ("scripts", "tests", "evals"):
+        shutil.copytree(f"{APP}/{sub}", f"{d}/{sub}")
+    src = open(f"{d}/{path}").read()
+    if src.count(old) != 1:
+        return "INVALID (text not found once)"
+    open(f"{d}/{path}", "w").write(src.replace(old, new))
+    p = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/test_evals_data.py",
+                        "-k", "review"], cwd=d, capture_output=True, text=True)
+    last = (p.stdout.strip().splitlines() or ["?"])[-1]
+    return {0: "SURVIVED", 1: "KILLED"}.get(p.returncode, f"INVALID (pytest exit {p.returncode})") + "  | " + last
+
+
+results = [(n, run(n, p, o, w)) for n, p, o, w in MUTANTS]
+k = sum(r.startswith("KILLED") for _, r in results)
+s = [n for n, r in results if r.startswith("SURVIVED")]
+print(f"SUMMARY: {k}/{len(results)} killed; survived: {s or 'none'}\n")
+for i, (n, r) in enumerate(results, 1):
+    print(f"M{i:02d} {n:<44} {r}")
+===== text_drift_probe.py
+#!/usr/bin/env python3
+"""QA probe for EVAL-7 finding 1: the drift guard compares only (marker, chunk_id), so a re-ask whose answer TEXT
+(and therefore cosine score / supported) changed is exported as if it were the run's answer.
+
+Usage: text_drift_probe.py <app-worktree> <scratch-dir>. Builds a results record in the exact shape of
+evaluate_answers.case_record (system said marker 1 supported, score 0.81), then re-asks a fake /v1/ask that returns
+the same (marker, chunk_id) pairs with a different sentence and score 0.22 / supported false (what an LLM answer
+after QA-8, or a changed embedder, would do).
+"""
+import json
+import os
+import subprocess
+import sys
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+APP, OUT = sys.argv[1], sys.argv[2]
+q = json.loads(open(os.path.join(APP, "evals/answer.jsonl")).readline())
+
+
+class H(BaseHTTPRequestHandler):
+    def log_message(self, *a):
+        pass
+
+    def do_POST(self):
+        self.rfile.read(int(self.headers["Content-Length"]))
+        body = json.dumps({"answer": "REASKED different sentence written on the second call [1].", "citations": [
+            {"marker": 1, "chunk_id": 11, "arxiv_id": "1706.03762", "content": "PASSAGE", "score": 0.22,
+             "supported": False}]}).encode()
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+s = ThreadingHTTPServer(("127.0.0.1", 0), H)
+threading.Thread(target=s.serve_forever, daemon=True).start()
+results = os.path.join(OUT, "run-text-drift.json")
+json.dump({"answers": {"cases": [{"id": q["id"], "set": "answer", "outcome": "answered", "citations": [
+    {"arxiv_id": "1706.03762", "chunk_id": 11, "marker": 1, "supported": True, "score": 0.81}]}]}}, open(results, "w"))
+print("results file (the judged run):", open(results).read())
+p = subprocess.run([sys.executable, "scripts/answer_review.py", "export", "--results", results, "--api-url",
+                    f"http://127.0.0.1:{s.server_address[1]}", "--out-dir", OUT], cwd=APP, capture_output=True,
+                   text=True)
+print("export:", p.stdout.strip().replace(OUT, "<scratch>"), p.stderr.strip())
+sheet = open(os.path.join(OUT, "run-text-drift.review.md")).read()
+print("claim on the sheet:", [line for line in sheet.splitlines() if line.startswith("**Claim:**")])
+print()
+exported = "REASKED" in sheet and "drifted cases skipped: none" in p.stdout
+print("RESULT:", "re-asked text with a different score (0.81 -> 0.22) and verdict (true -> false) was exported as the run's "
+      "claim; score --results would pair the human label for the NEW sentence with supported=true from the OLD one"
+      if exported else "drift detected (no hazard)")
+
+[exit code 0]

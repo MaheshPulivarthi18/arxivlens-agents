@@ -1,0 +1,28 @@
+$ python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k review
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+rootdir: /root/wt/qa-EVAL-7
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 93 items / 76 deselected / 17 selected
+
+tests/test_evals_data.py::test_review_export_one_row_per_claim_citation_and_blind PASSED [  5%]
+tests/test_evals_data.py::test_review_score_known_numbers_and_unjudged_excluded PASSED [ 11%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change0-False] PASSED [ 17%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change1-False] PASSED [ 23%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change2-False] PASSED [ 29%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change3-False] PASSED [ 35%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change4-False] PASSED [ 41%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change5-False] PASSED [ 47%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change6-True] PASSED [ 52%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change7-False] PASSED [ 58%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change8-False] PASSED [ 64%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change9-False] PASSED [ 70%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change10-False] PASSED [ 76%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change11-False] PASSED [ 82%]
+tests/test_evals_data.py::test_review_load_rejects_conflicting_claim_labels_and_duplicates PASSED [ 88%]
+tests/test_evals_data.py::test_review_round_trip_export_score_save PASSED [ 94%]
+tests/test_evals_data.py::test_review_committed_judgments_hold_ids_and_labels_only PASSED [100%]
+
+====================== 17 passed, 76 deselected in 0.05s =======================
+
+[exit code 0]

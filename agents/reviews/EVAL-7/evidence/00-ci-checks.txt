@@ -1,0 +1,8 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/ca21768a0ea537d732e6b288101c01237abb373a/check-runs --jq .check_runs[] | "\(.name)  \(.status)  \(.conclusion)"
+Agent ownership check  completed  success
+Frontend (lint, test, build)  completed  success
+Go (vet, gofmt, test, build)  completed  success
+Python M0 unit tests  completed  success
+DB (migrate twice, HNSW plan + recall)  completed  success
+
+[exit code 0]

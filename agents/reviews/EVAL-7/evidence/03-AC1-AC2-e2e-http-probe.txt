@@ -1,0 +1,41 @@
+$ bash -c D=$(mktemp -d /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/e2e.XXXX); python3 /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/probe/e2e_probe.py /root/wt/qa-EVAL-7 $D 2>&1 | sed "s#$D#<scratch>#g"
+$ scripts/evaluate_answers.py --api-url http://127.0.0.1:43945 --json-out run-probe.json  -> exit 0
+   Correct refusals         : 100.00% of 22
+   Latency p50 / p95 (ms)   : 0 / 1
+   -- report-only (not gated) --
+   Citation coverage        : 66.67%
+   Near-miss refusals       : 100.00% of 15
+   refusal_reason counts    : {}
+$ scripts/answer_review.py export --results run-probe.json --api-url http://127.0.0.1:43945 --out-dir e2e.MsjA  -> exit 0
+   66 rows -> <scratch>/run-probe.judgments.jsonl; drifted cases skipped: none
+$ scripts/answer_review.py export --results run-probe.json --api-url http://127.0.0.1:43945 --out-dir e2e.MsjA  -> exit 2
+   <scratch>/run-probe.judgments.jsonl exists (a reviewer may have filled it); use --force to overwrite
+$ scripts/answer_review.py export --results run-probe.json --api-url http://127.0.0.1:34195 --out-dir drift  -> exit 0
+   60 rows -> <scratch>/drift/run-probe.judgments.jsonl; drifted cases skipped: a001, a002
+$ scripts/answer_review.py score --judgments filled.jsonl --results run-probe.json --save answer_judgments --json-out m.json  -> exit 0
+   Rows judged / unjudged : 61 / 5
+   Citation precision     : 72.13%  (supports=yes / judged)
+   Partial / contradicts  : 9.84% / 8.20%
+   Claim correctness      : 50.00% of 44 claims
+   human x system supported: {"yes": {"true": 44, "false": 0, "missing": 0}, "partial": {"true": 0, "false": 6, "missing": 0}, "no": {"true": 0, "false": 6, "missing": 0}, "contradicts": {"true": 0, "false": 5, "missing": 0}}
+   committable judgments -> <scratch>/answer_judgments/run-probe.jsonl
+
+PASS results JSON holds no answer/passage text
+PASS export over real HTTP: 22 answered cases x 3 (claim,citation) rows = 66
+PASS drifted: none
+PASS sheet has every passage text and claim text
+PASS sheet hides score/supported/status and score values
+PASS judgments JSONL has no passage/answer text
+PASS second export refuses to overwrite (exit 2)
+PASS drift server: a001,a002 skipped and listed, no rows for them
+PASS judged/unjudged = 61/5
+PASS precision = 44/61
+PASS partial/contradiction rates
+PASS claim correctness = 0.5000 over 44 claims
+PASS confusion matrix equals QA's independent count
+PASS saved copy: IDs+labels only, no notes/text
+
+14/14 checks passed
+confusion matrix: {"yes": {"true": 44, "false": 0, "missing": 0}, "partial": {"true": 0, "false": 6, "missing": 0}, "no": {"true": 0, "false": 6, "missing": 0}, "contradicts": {"true": 0, "false": 5, "missing": 0}}
+
+[exit code 0]
