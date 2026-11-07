@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 10:55Z by orchestrator (cycle 10:00Z: LLM-1 #23, EVAL-3 #22, ING-9 #25 → Ready to merge; AI-9 #24 QA FAIL → Blocked on OPS-H10 + ADR-0015; OPS-H8 design approved, build waits #23; new OPS-H10, AI-10, EVAL-9, ADR-0015 Proposed)
+Last updated: 2026-11-07 by pm-lead (OPS-H8 split by layer: OPS-H8 part a = producer confirmation, new OPS-H8b = consumer loop; no size exception)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -14,7 +14,8 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | 6 | [AI-6](tasks/AI-6.md) | Context selection, token budget, synthesis prompt (parser moved to AI-6b; writes `docs/design/QA-8.md`) | ai-engineer | P0 | AI-7 merged | 2 | Pure functions, `Ask` unchanged. PR #28 QA r1 FAIL (PR text only) |
 | 6b | [AI-6b](tasks/AI-6b.md) | `parseSynthesis` structured-output parser + types/errors; delimiter look-alikes; `selectContext` edge cases | ai-engineer | P0 | **AI-6 #28 merged** (same files) | 3 | Covered by `docs/design/QA-8.md` §5 (no new design). Pure function, `Ask` unchanged |
 | 6a | [OPS-H10](tasks/OPS-H10.md) | `stack.yml`: keep service logs on green runs (embedder timing) + run on Go/`tests/` PRs | backend-engineer | P1 | **#21 + #22 merged** (README/CONTRIBUTING); backend slot | 2 | Unblocks AI-9 AC1 → ADR-0015 numbers; no other open PR on `stack.yml` |
-| 7 | [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python consumer: commit after success or confirmed DLQ (design-required) | backend-engineer | P0 | OPS-H1 (merged); **#23 merged** (`ci.yml`); backend slot | 2 | Built `ebe80a7` (branch pushed, no PR). **On hold: 487 lines > 400, 462 even without §5** (condition 2 stop) → pm-lead split decision (options in ticket Notes) |
+| 7 | [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python producer confirms delivery; no commit past an unconfirmed DLQ write (part a, design-required, design approved) | backend-engineer | P0 | OPS-H1 (merged); #23 merged (`ci.yml`); backend slot | 2 | **Split 2026-11-07 (pm-lead, option A, by layer).** Rework `ebe80a7` down to the producer layer (~200 lines), then open the draft PR. Interim: worker exits before commit while the DLQ is down |
+| 7b | [OPS-H8b](tasks/OPS-H8b.md) | Python consumer loop: in-place DLQ retry, commit-error log, interruptible waits, graceful stop, poison records | backend-engineer | P0 | **OPS-H8 merged** (same files) | 3 | Covered by `docs/design/OPS-H8.md` (split addendum). Code exists at `ebe80a7`; ~325 lines; seam = poison/AC7 → OPS-H8c |
 | 9 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1, AI-7 merged | 2 | |
 | 10 | [RET-2](tasks/RET-2.md) | `SearchHit` carries paper version + page (design-required) | backend-engineer | P1 | ADR-0014 (Accepted 2026-11-07), AI-7 + EVAL-6 merged | 2 | Waits for #20 + #21 merge |
 | 11 | [QA-8](tasks/QA-8.md) (KAN-7) | LLM synthesis in `/v1/ask` via provider, template fallback (design addendum) | ai-engineer | P0 | LLM-1, LLM-1b, AI-6, AI-6b merged | 3 | Fake provider in tests; real-LLM numbers are EVAL-8 |

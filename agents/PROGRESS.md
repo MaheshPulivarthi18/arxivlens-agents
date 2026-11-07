@@ -375,3 +375,8 @@ Format:
 - Built on `agent/backend/OPS-H8` from `2b71772`, head `ebe80a7` (pushed, **no PR**). Design §1–§5 and §7 implemented; 29 new fake-only tests pass locally against a stub `confluent_kafka` (PyPI is blocked by the proxy); `test_worker_heartbeat.py` unchanged and green.
 - Size: 487 changed lines (174 prod + 311 tests + 2 ci). With the OPS-H8b seam (§5 + AC7 out) it's still 462. Binding condition 2 → stopped and reported. Options (split by layer: producer confirmation vs consumer loop, or a one-off exception) are in the ticket Notes for pm-lead.
 - AC10 (CI mutation runs) and AC11 (M4 via `stack.yml`) need the PR, so they're not done. Local mutation smoke: a/b/c → 4/11/8 failing tests.
+
+## 2026-11-07 — pm-lead: OPS-H8 size gate → split by layer
+- Decision: option A (split by layer), no size exception. OPS-H8 is now part a: `DeliveryError`, delivery-callback confirmation, timeout constants, `publish`/`publish_dlq` raise, build/send split, stack-trace fix, `ci.yml` step. `start` stays unchanged, so an unconfirmed DLQ write raises out before commit (interim crash-restart, never a loss). ACs rewritten (AC1–AC9; added the through-`start` no-commit test and mutation a').
+- New OPS-H8b (P0, depends on OPS-H8 merged, same design): in-place DLQ retry, commit-error log, stop/signals, interruptible waits, poison, log hygiene; source code at `ebe80a7`.
+- Design `docs/design/OPS-H8.md`: PM decision addendum. Board: OPS-H8 row updated, OPS-H8b added. Lesson added (pm-lead: seam at a layer boundary). Jira not touched (orchestrator mirrors; OPS-H8b needs a story).

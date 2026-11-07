@@ -314,3 +314,19 @@ Binding conditions:
 6. **AC10 mutations** follow the OPS-H6 procedure exactly. Each mutation is its own commit (`mutation(AC10a|b|c): …`) containing only the `kafka_client.py` mutation and no test edits,
    followed by `revert mutation(AC10x)`. Wait for each CI run to finish before the next push (`ci.yml` cancels in-progress runs). SHAs and run URLs go in Notes. The final head is green.
 7. Keep `tests/test_worker_heartbeat.py` unmodified and green, and keep worker call sites unchanged (§7). Don't touch the embedder worker (ai-owned).
+
+### Addendum, 2026-11-07 (pm-lead): split decision after condition 2 triggered
+**Decision: split by layer (the developer's option A). No size exception.** The build at ArxivLens `ebe80a7` is 487 changed lines (174 prod + 311 tests + 2 ci). With the
+§5 seam named above it's still 462, so that seam was the wrong one. Fakes and deleted call sites dominate, not §5. The design itself is unchanged and stays approved. Only the delivery is split:
+- **OPS-H8 (part a), producer layer:** §1 in full (`on_delivery` confirmation, named constants, `DeliveryError` from `publish`/`publish_dlq`), the build-once
+  `build_dlq_payload`/`send_dlq` split and the `format_exception(error)` trace fix (§2's "build once" sentence), the injectable `producer=`/`consumer=` seams, and the `ci.yml` step.
+  `ServiceKafkaConsumer.start` stays byte-for-byte as on `main`. An unconfirmed DLQ write therefore raises out of `start` (consumer closed in `finally`) **before** its
+  `commit`. This is alt. 2, accepted **as an interim only**: it costs re-running the handler 3× per restart while the DLQ is down, never a record. Conditions 1 (overlap recheck), 4, 5 (part-a list),
+  6 and 7 apply, plus AC8 = condition 3 (M4 runs against exactly this layer).
+- **OPS-H8b, consumer layer:** §2 in-place DLQ retry (replaces the interim exit), §3 commit-error logging, §4 stop flag + signals + interruptible waits, §5 poison, §7 shape,
+  the `traceparent` fallback (answer 5) and log hygiene. Depends on OPS-H8 merged. No new design round. Conditions 2 (counted skeleton, named seam = poison/AC7 → OPS-H8c), 3, 5, 6 and 7 apply.
+
+Why A and not B: two size exceptions granted on estimates have both been wrong by more than 25% (LLM-1, here). Part a is independently valuable: it closes both silent-loss paths
+(the unchecked DLQ `flush` and the unchecked `papers.chunked` `flush`) in one ~200-line PR that's easy to review. The interim behaviour is strictly safer than `main` today,
+which commits after a lost DLQ write. Splitting at the producer/consumer boundary leaves part a's tests valid in part b. The single exception is AC5's "`start` raises",
+whose no-commit assertions are kept while the exit expectation becomes "returns normally after the in-place retry". That's mandated by §2, not a weakened test.

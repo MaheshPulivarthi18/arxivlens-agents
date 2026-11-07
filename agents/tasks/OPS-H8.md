@@ -1,4 +1,4 @@
-# OPS-H8: Python consumer commits an offset only after success or a confirmed DLQ write; interruptible retry waits
+# OPS-H8 (part a): Python producer confirms delivery; no offset is committed past an unconfirmed DLQ write
 
 | | |
 |---|---|
@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror); **OPS-H1 (ArxivLens #14) merged**: #14 adds a worker heartbeat hook (`_heartbeat`, about 16 lines) to `services/common/kafka_client.py`, the file this task rewrites (AGENTS.md §3 independence). The design must keep that hook (touch after every `poll()` while assigned; no-op when `WORKER_HEARTBEAT_FILE` is unset) |
 | **Jira** | KAN-34 (`labels = "task-OPS-H8"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics for both Python workers |
-| **Status** | In Progress: built at `ebe80a7` (branch `agent/backend/OPS-H8` pushed), PR pending. **On hold (design condition 2): 487 changed lines > 400, and still 462 without §5, so the OPS-H8b seam doesn't fix it. Needs pm-lead's split decision before the PR is opened** (see Notes 2026-11-07 build) |
+| **Status** | In Progress (rework to the part-a subset; pm-lead split decision 2026-11-07, option A). Branch `agent/backend/OPS-H8` (full build at `ebe80a7`, kept in history for OPS-H8b); PR not yet opened |
 
 ## Goal
 Technical PRD §8.1 promises L4 for **all** consumers: the offset is committed only after the handler succeeds or the
@@ -29,89 +29,79 @@ and the embedder (`papers.chunked`) still breaks it. At `origin/main` `8b0a2d2`,
 
 Make the Python consumer keep the same promise as the Go one, so the pipeline is at-least-once end to end.
 
+**Split (pm-lead, 2026-11-07, option A from the build note; design `docs/design/OPS-H8.md` "PM decision" addendum).** The full build was
+487 changed lines, and the pre-named §5 seam only got it to 462. The work is now split at the layer boundary:
+- **OPS-H8 (this ticket, part a): the producer layer.** `publish` and `publish_dlq` raise `DeliveryError` unless the broker confirms delivery.
+  The consumer loop is **not** restructured. Because the existing `start` calls `publish_dlq` before `commit` and doesn't catch its exception, an
+  unconfirmed DLQ write now leaves `start` (consumer closed in `finally`) **before** the commit. The record is redelivered after the restart
+  (compose `restart: unless-stopped`). An unconfirmed `papers.chunked` publish fails the processor handler, which is retried and then DLQ'd.
+  Both silent-loss paths in the Goal (bullets 1 and 2) are closed. **Accepted interim behaviour** until OPS-H8b merges: while the DLQ is
+  unreachable, the worker exits and restarts, and the handler runs 3 more times per restart (design alt. 2). That costs time, never a record.
+- **[OPS-H8b](OPS-H8b.md): the consumer layer.** In-place DLQ retry (which replaces the interim exit), commit-error logging, stop flag and signals,
+  interruptible waits (no `time.sleep`), poison records, log hygiene, DLQ `traceparent` envelope fallback.
+  Bullets 3 and 4 of the Goal are OPS-H8b's.
+
 ## Scope
-- Files: `services/common/kafka_client.py`; new `tests/test_kafka_client.py` (fakes only, no broker);
-  `.github/workflows/ci.yml`: one added step in the `python` job that runs `python -m pytest -v tests/test_kafka_client.py`
-  (so CI runs the new tests without touching `Makefile`).
-- Small seams are fine if the tests need them: injectable `Producer`/`Consumer` objects (constructor parameters with the
-  current defaults), an injectable wait function, and a stop flag (e.g. `threading.Event`) that a SIGTERM/SIGINT handler
-  or the test can set. Worker call sites (`services/processor/worker.py`, `services/embedder/worker.py`) must keep working
-  unchanged; if a worker needs one line to install the signal handler, list it in the design and ask (the embedder worker
-  is ai-owned, so prefer doing it inside `ServiceKafkaConsumer.start`).
-- **Not in scope / do not touch** (open PRs edit them): `Makefile`, `docker-compose.yml`, `.github/workflows/stack.yml`,
-  `services/*/Dockerfile` (#14); `.github/workflows/db.yml`, `cmd/`, `internal/`, `migrations/` (#16);
-  `README.md`, `CONTRIBUTING.md` (#14 and #16). README:39 already describes the intended behaviour ("retries 3×, then routes to
-  `<topic>.dlq`"), so no doc edit is needed; if the design finds one, put the wording in Notes as a follow-up.
-- Out of scope: the Go consumer (OPS-H6, done; its shutdown poll-error log nit stays in Backlog), DLQ list/replay (OPS-H7),
-  changing the 3-attempt count or the 200/400 ms handler schedule, `shared/events/*` (shared contract; `DLQPayload` fields
-  stay as they are), the idempotency layers in `services/common/db.py` (OPS-H6 G1/G2 follow-ups).
+- Files: `services/common/kafka_client.py` (**producer layer only**: `DeliveryError`, `MESSAGE_TIMEOUT_MS` / `DELIVERY_TIMEOUT_S` named constants,
+  `message.timeout.ms` in the producer config, `_produce_confirmed` (`on_delivery` callback, then `flush` until it ran or the bound expires),
+  `publish` / `publish_dlq` raising `DeliveryError`, `build_dlq_payload` / `send_dlq` with `publish_dlq` = build + send, an injectable
+  `producer=` parameter on `ServiceKafkaProducer`, and the stack-trace fix `traceback.format_exception(error)` in place of `format_exc()`).
+  The `ServiceKafkaConsumer` class may only gain the injectable `consumer=` / `producer=` constructor parameters (defaults = today's calls)
+  that the AC5 test needs. **Its `start` loop is unchanged** (same lines as `origin/main`, including `time.sleep`, the decode, and the
+  unconditional `commit` after `publish_dlq`).
+- New `tests/test_kafka_client.py` (fakes only, no broker), holding only the part-a tests below. OPS-H8b extends the same file.
+- `.github/workflows/ci.yml`: one added step in the `python` job, `python -m pytest -v tests/test_kafka_client.py` (kept even though #22 may merge first; design condition 1).
+- **Not in scope (OPS-H8b):** anything in `ServiceKafkaConsumer.start` / `_heartbeat`, the in-place DLQ retry, `_dead_letter`, `_commit`, `stop`,
+  signal handlers, removing `time.sleep`, poison-record decoding, the per-attempt handler warning text, the DLQ `traceparent` fallback.
+- **Not in scope (unchanged):** worker files (`services/processor/worker.py`, `services/embedder/worker.py`), `tests/test_worker_heartbeat.py`,
+  `Makefile`, `docker-compose.yml`, `shared/events/*` (`DLQPayload` fields stay the same), `services/common/db.py`, the Go consumer, `README.md`, `CONTRIBUTING.md`.
 
 ## Design must answer (in `docs/design/OPS-H8.md`)
-1. **How a delivery is confirmed** with confluent-kafka: `flush()`'s return value alone isn't enough (a message can fail
-   with a delivery error and still leave the queue). Say how `publish_dlq` and `publish` learn the per-message outcome
-   (delivery callback / `on_delivery`, then `flush` or `poll` until the callback ran or a timeout), and what they raise.
-2. **Mechanism after the DLQ write fails.** Mirror OPS-H6 §1 (retry the DLQ write in place with a capped backoff,
-   `min(1 s << (round-1), 30 s)`, handler not re-run, one `CRITICAL` log per round, no commit until it lands) or justify a
-   different choice. Build the `DLQPayload` once (the stack trace must be the handler's, not a later one).
-3. **`max.poll.interval.ms = 300000`.** While retrying in place the loop doesn't call `poll()`. Say what happens after
-   5 minutes (the member leaves the group, the partition is reassigned, `commit` fails), confirm that this cannot lose the
-   record, and say whether `commit` errors are raised or logged. No swallowed commit error may be followed by moving on as if committed.
-4. **Shutdown.** How SIGTERM (Docker stop) and SIGINT interrupt a handler-retry wait or a DLQ-round wait promptly, with no
-   commit and no DLQ write for the interrupted record, and the consumer closed. A handler that fails *because* shutdown was
-   requested on its last attempt is not a processing failure (OPS-H6 AC6b).
-5. **Poison records.** A record whose value isn't valid JSON or doesn't build an `EventEnvelope` goes to `<topic>.dlq`
-   (with `original_value = {"raw_value": …}` as `publish_dlq` already does) after the same rules, then is committed. Say
-   whether it gets 3 attempts or 1 (decoding is deterministic) and why.
-6. **Redelivery against the idempotency layers.** Confirm the chain for a record redelivered after a failed `publish`
-   (processor: L2 ledger already recorded → "Duplicate event … proceeding to re-emit downstream", `worker.py:84-90`, so
-   `papers.chunked` is re-sent; embedder: L3 model join skips compute and re-marks `embedded`). Name any gap as a follow-up.
-7. Test plan: one named test per AC, fakes only.
+Answered. Design approved 2026-11-07 10:19Z with conditions. The split addendum maps §1 (and the §2 build-once trace fix) to part a and §2–§5 to OPS-H8b. No new design round.
 
 ## Acceptance criteria
-- [ ] AC1 — Success path unchanged: handler succeeds on attempt 1, or after 1–2 failures → exactly one commit for the
-  record, no DLQ produce. (Fake consumer + fake producer.)
-- [ ] AC2 — DLQ path: handler fails 3× → exactly one DLQ message to `<topic>.dlq` with `original_topic`, `partition`,
-  `offset`, `attempts = 3`, `consumer_group`, `traceparent` from the record; the commit happens **only after** the fake
-  reports the DLQ delivery as successful (test asserts call order).
-- [ ] AC3 — **DLQ delivery fails → no commit.** Feed `[p0@5 fails, p0@6 ok]`; the fake producer reports a delivery error
-  (and, in a second case, leaves the message undelivered: `flush` returns 1) for every DLQ write; stop after a few rounds.
-  Assert: no commit for @5 or @6, the DLQ write for @5 retried in place (≥ 2 produce calls for @5), handler for @5 called
-  exactly 3×, handler for @6 never called, `start` returns normally and closes the consumer. Records before @5 in the same
-  run are still committed.
-- [ ] AC4 — Recovery: the DLQ write fails twice then succeeds → exactly one successful DLQ message and one commit, with an
-  (injected) wait between rounds; the test asserts the wait durations `[1 s, 2 s]` and that handler calls stay at 3.
-- [ ] AC5 — `publish` raises when the message isn't confirmed delivered (delivery error or still queued after the timeout);
-  a processor-style handler that calls `publish` therefore fails and is retried, and its record is never committed while
-  `publish` keeps failing. Tested at the `ServiceKafkaProducer` level and through `start`.
-- [ ] AC6 — Interruptible waits: with a ≥ 5 s backoff injected and the stop flag set during the first handler-retry wait,
-  `start` returns within 200 ms with no commit and no DLQ write; same for a DLQ-round wait. **AC6b:** stop requested while
-  the handler runs its last attempt and it then raises → no DLQ write, no commit. `grep -n "time.sleep" services/common/kafka_client.py` is empty.
-- [ ] AC7 — Poison record: a record with value `b"not json"` (and one with valid JSON missing envelope fields) ends with one DLQ
-  message containing `raw_value` (or the decoded dict) and one commit; the loop keeps consuming the next record (no crash).
-- [ ] AC8 — Logs on a failed DLQ write include topic, partition, offset, DLQ topic, round and the error, but never the record value
-  (test with `caplog` and a value containing a marker string).
-- [ ] AC9 — No regressions: `make test-py` (M0 + eval-data) and the new `tests/test_kafka_client.py` CI step are green;
-  `tests/test_m4_chaos.py`'s direct `worker.producer.publish_dlq(..., original_msg=None, ...)` call keeps its signature and
-  return contract (returns on success, raises only on a failed delivery).
-- [ ] AC10 — Mutation check (QA, same method as OPS-H6 AC10): (a) re-adding the unconditional `commit` after a failed DLQ
-  write, (b) ignoring the delivery result in `publish_dlq` (back to bare `flush`), (c) reverting to `time.sleep`, each make at
-  least one named test fail in CI. The developer pushes each mutation as its own commit and a revert, waits for each CI run,
-  and lists the SHAs and run URLs in Notes; the final head is green.
-- [ ] AC11 — M4 (`tests/test_m4_chaos.py`) on the full stack, **delivered in this PR** (amended 2026-11-07 by pm-lead design review; OPS-H1 is merged
-  and `stack.yml` triggers on `services/common/**`). Evidence: the PR's `stack.yml` run URL plus its log lines showing the M4 tests passing. A run red only on
-  the known F1 step is acceptable if the M4 lines are green; an M4 failure fails QA.
-- [ ] AC12 — Diff ≤ 400 changed lines in total (code + tests + CI step). Before writing the full test file, record a counted skeleton in Notes. **Split seam
-  (pm-lead, design review):** if the projection is > 400, move design §5 (poison-record decode) + AC7 into follow-up **OPS-H8b** (backend, P0, same design); don't trim
-  AC1–AC6/AC8–AC10 tests. No size exception in advance. Docs: Technical PRD §8.1/§8.2 caveat removal is a pm-lead docs PR;
-  put the final sequence (when the Python consumer commits, what is redelivered) in this ticket's Notes.
+Renumbered for part a. The old ACs moved as follows: old AC5 (producer level), AC9 and condition 4 stay here; old AC1–AC4, AC5-through-the-final-loop,
+AC6/6b, AC7, AC8 and AC10a/c are in OPS-H8b. No AC was dropped or weakened. Where part a tests a narrower interim behaviour, OPS-H8b's ACs replace it.
+- [ ] AC1 — `publish` requires confirmation: `test_publish_requires_confirmation` (parametrised): delivery callback `ok` → returns the event id;
+  callback reports a delivery error (`flush` returns 0), message still queued (`flush` returns 1, no callback) and `produce` raising `BufferError`
+  → `DeliveryError` each. The `DeliveryError` message names the topic and the error and does **not** contain the record value (sentinel string in the payload).
+- [ ] AC2 — `publish_dlq` contract: `test_publish_dlq_direct_call_contract`: the M4-style call (`original_msg=None`, `attempts=3`, `traceparent`) returns `None`
+  on `ok` and raises `DeliveryError` on `err` and on `queued`. The signature is unchanged, and the `original_value or {}` / `dlq_topic.replace(".dlq", "")` fallbacks are
+  kept. `test_build_dlq_payload_is_total`: `build_dlq_payload` returns a `DLQPayload` for `original_msg=None`, a non-UTF-8 value, and a missing header.
+- [ ] AC3 — Real stack trace: a `DLQPayload` built for an exception raised in a named helper and passed in **after** its `except` block has ended (the consumer-path
+  situation) has a `stack_trace` that contains the helper's name and not `NoneType: None`.
+- [ ] AC4 — Delivery bound (design condition 4): `MESSAGE_TIMEOUT_MS` and `DELIVERY_TIMEOUT_S` are named module constants with a one-line comment.
+  `test_delivery_bound_outlasts_message_timeout` asserts `DELIVERY_TIMEOUT_S > MESSAGE_TIMEOUT_MS / 1000` and that the default producer config passes
+  `message.timeout.ms = MESSAGE_TIMEOUT_MS` (monkeypatched `Producer`, as `tests/test_worker_heartbeat.py` does).
+- [ ] AC5 — **No commit past an unconfirmed DLQ write (interim, through the unchanged `start`)**: `test_unconfirmed_dlq_write_stops_before_commit`
+  (parametrised `err`, `queued`). Script `[p0@4 ok, p0@5 handler always fails, p0@6 ok]`. Assert: `("commit", 4)` present; no commit for 5 or 6; handler@5
+  called exactly 3×; handler@6 never called; `start` raises `DeliveryError` (not swallowed); `("close",)` is the last fake-consumer call.
+  Plus `test_confirmed_dlq_write_then_commit`: DLQ `ok` → exactly one produce to `papers.downloaded.dlq` with `attempts == 3`, `original_topic`, `partition`, `offset`,
+  `consumer_group`, and the logged order is produce @5 → commit 5. Plus `test_failing_publish_in_handler_is_retried`: a processor-style handler calling
+  `ServiceKafkaProducer(producer=FakeProducer(all err)).publish` is called 3×, its record is DLQ'd (consumer producer `ok`) and committed only after that.
+  Handler retry waits go through the existing `time.sleep`, so patch `kafka_client.time.sleep` in these tests. Don't edit `start` to make it testable.
+- [ ] AC6 — No regressions: `make test-py` (M0 + eval-data) and the new `ci.yml` step are green in CI. `tests/test_worker_heartbeat.py` and both worker files are unchanged
+  (`git diff --stat origin/main...` lists only the three Scope files). The `git diff origin/main... -- services/common/kafka_client.py` hunks inside `ServiceKafkaConsumer.start` are empty.
+- [ ] AC7 — Mutation check (OPS-H6 procedure, design condition 6): (b) `_produce_confirmed` ignores the callback outcome (back to bare `flush`) → AC1/AC2/AC5 `err` rows red;
+  (a') `start` wraps `publish_dlq` in `try/except DeliveryError: pass` so it falls through to `commit` → AC5 red. Each mutation is its own commit (`mutation(AC7a|b): …`,
+  `kafka_client.py` only, no test edits), followed by `revert mutation(AC7x)`. Wait for each CI run to finish before the next push. SHAs and run URLs go in Notes. The final head is green.
+- [ ] AC8 — M4 on the full stack (old AC11): the PR's `stack.yml` run (it triggers on `services/common/**`) shows the `tests/test_m4_chaos.py` tests passing, with a real broker,
+  against the new `publish`/`publish_dlq`. Evidence: the run URL plus its M4 log lines. A run red only on the known F1 step is acceptable if the M4 lines are green.
+- [ ] AC9 — Size and PR text: the diff is ≤ 400 changed lines in total (`git diff --stat origin/main...` in the PR body; expected about 200). No size exception.
+  The PR body has a "Behaviour changes" section: (1) `publish`/`publish_dlq` raise `DeliveryError` when delivery isn't confirmed within `DELIVERY_TIMEOUT_S`
+  (`message.timeout.ms = 10000`); before, they returned silently; (2) the DLQ `stack_trace` is the handler's real traceback; (3) **interim:** while the DLQ is unreachable, the worker
+  exits without committing and compose restarts it (the handler re-runs 3× per restart) until OPS-H8b replaces this with an in-place retry. Ticket Notes record the
+  interim sequence (when the consumer commits and what is redelivered).
 
 ## Verification
 ```bash
 make test-unit                                   # CI (Go + M0 + eval data); Go 1.25 not available locally
 make lint
-python -m pytest -v tests/test_kafka_client.py   # new; also runs as its own step in ci.yml (python job)
-grep -n "time.sleep" services/common/kafka_client.py   # must print nothing
-# AC11: make stack-up && make migrate && pytest -q tests/test_m4_chaos.py   (after OPS-H1 merges; via stack.yml)
+python -m pytest -v tests/test_kafka_client.py   # new; also its own step in ci.yml (python job)
+pytest -q tests/test_worker_heartbeat.py         # unchanged, green
+git diff --stat origin/main...HEAD               # 3 files, <= 400 changed lines
+git diff origin/main...HEAD -- services/processor/worker.py services/embedder/worker.py tests/test_worker_heartbeat.py   # empty
+# AC8: stack.yml on the PR (make stack-up && make migrate && make test-full, includes tests/test_m4_chaos.py)
 ```
 
 ## Notes
@@ -191,3 +181,11 @@ grep -n "time.sleep" services/common/kafka_client.py   # must print nothing
     5. Also: DLQ `stack_trace` is now the handler's real traceback (it was `NoneType: None` on the consumer path). The per-attempt handler warning logs the exception type only (the message stays in the DLQ payload), so record values don't leak into logs.
   - **Final sequence** (for pm-lead's Technical PRD §8.1/§8.2 docs PR): as in design §7 "Final sequence", unchanged by the build.
   - Unverified: the real `confluent_kafka` import/behaviour (CI), `make test-py`, AC10 CI runs, AC11 M4 on `stack.yml`. Jira KAN-34 isn't touched from this session (orchestrator mirrors).
+- 2026-11-07 (pm-lead, split decision): **Option A, split by layer.** No size exception (B). This ticket is now part a (producer confirmation + the interim
+  "unconfirmed DLQ write leaves `start` before commit"). The rest is [OPS-H8b](OPS-H8b.md) (P0, depends on this ticket merged, same design). The ACs were rewritten above and the old→new map
+  is at the top of Acceptance criteria. Added beyond the developer's option-A list: AC5 (through-`start` proof that nothing is committed past an unconfirmed DLQ write, which is the
+  whole reason part a closes the loss) and AC7a' (mutation that swallows the `DeliveryError`). AC8 (M4) stays here because M4 exercises exactly the producer contract.
+  **What to change on the branch (no force-push):** add commit(s) on top of `ebe80a7` that restore `ServiceKafkaConsumer.start` (and the rest of the consumer
+  section, apart from the optional `consumer=`/`producer=` constructor params) to `origin/main` and drop the OPS-H8b tests from `tests/test_kafka_client.py`. `ebe80a7` stays
+  in the branch history as OPS-H8b's source (`git checkout ebe80a7 -- …` onto a fresh `main` later). Merge `origin/main` in if it moved (don't rebase a pushed branch). Re-run the
+  open-PR overlap check, then open the draft PR and run AC7 + AC8 on it. Record the counted `git diff --stat` in Notes before opening the PR.
