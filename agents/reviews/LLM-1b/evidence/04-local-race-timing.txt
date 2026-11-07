@@ -1,0 +1,9 @@
+$ bash -c export GOTOOLCHAIN=local; go version; go vet -modfile=/tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/go.mod ./internal/llm/... && echo 'vet ok'; echo "gofmt -l: [$(gofmt -l internal/llm)]"; go test -modfile=/tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/go.mod -race -count=3 ./internal/llm/...; go test -modfile=/tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/go.mod -race -count=10 -run 'TestRetry|TestTimeout|TestCancel|TestNoSecretLeaks|TestConcurrentComplete' ./internal/llm/
+go version go1.24.7 linux/amd64
+vet ok
+gofmt -l: []
+ok  	arxivlens/internal/llm	3.815s
+ok  	arxivlens/internal/llm/llmtest	1.318s
+ok  	arxivlens/internal/llm	8.751s
+
+[exit code 0]

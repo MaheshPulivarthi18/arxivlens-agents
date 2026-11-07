@@ -1,0 +1,92 @@
+$ bash -c export GOTOOLCHAIN=local; D=$(mktemp -d /tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/probeA.XXXX); git archive HEAD | tar -x -C $D && cp /tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/go.mod $D/go.mod && cp /tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/probe/qa_probe_test.go $D/internal/llm/ && echo "QA-only probe on a copy of $(git rev-parse --short HEAD); not part of the PR" && echo '--- probe source:' && cat /tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/probe/qa_probe_test.go && echo '--- run:' && cd $D && go test -modfile=go.mod -count=1 -run QAProbe -v ./internal/llm/ | grep -v '^=== RUN'
+QA-only probe on a copy of efbe972; not part of the PR
+--- probe source:
+package llm
+
+// QA probe (not part of the PR): a hostile server that answers with a malformed
+// HTTP response built from the request. net/http quotes the bytes it could not
+// parse in its transport error; attempt() copies that error into Error.detail.
+
+import (
+	"bufio"
+	"context"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
+)
+
+func rawServer(t *testing.T, respond func(body, auth string) string) string {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { ln.Close() })
+	go func() {
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				return
+			}
+			go func(c net.Conn) {
+				defer c.Close()
+				req, err := http.ReadRequest(bufio.NewReader(c))
+				if err != nil {
+					return
+				}
+				b, _ := io.ReadAll(req.Body)
+				_, _ = io.WriteString(c, respond(string(b), req.Header.Get("Authorization")))
+			}(conn)
+		}
+	}()
+	return "http://" + ln.Addr().String()
+}
+
+func TestQAProbeMalformedResponseLeak(t *testing.T) {
+	const key = "sk-SENTINEL-KEY-0123456789"
+	const prompt = "SENTINEL-PROMPT"
+	cases := []struct {
+		name    string
+		respond func(body, auth string) string
+	}{
+		{"status line is the request body", func(body, auth string) string { return body[:60] + "\r\n\r\n" }},
+		{"bad status code echoes prompt", func(body, auth string) string { return "HTTP/1.1 " + prompt + " OK\r\n\r\n" }},
+		{"bad status code echoes key", func(body, auth string) string { return "HTTP/1.1 " + strings.TrimPrefix(auth, "Bearer ") + " OK\r\n\r\n" }},
+		{"bad header line echoes prompt", func(body, auth string) string { return "HTTP/1.1 200 OK\r\n" + prompt + "\r\n\r\n" }},
+	}
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			url := rawServer(t, tt.respond)
+			c, err := New(Config{BaseURL: url, Model: "m", APIKey: NewSecret(key), Timeout: time.Second})
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = c.Complete(context.Background(), Request{Messages: []Message{{Role: RoleUser, Content: prompt}}})
+			msg := fmt.Sprint(err)
+			leakP, leakK := strings.Contains(msg, prompt), strings.Contains(msg, key)
+			t.Logf("err=%q", msg)
+			t.Logf("prompt leaked=%t key leaked=%t", leakP, leakK)
+		})
+	}
+}
+--- run:
+    qa_probe_test.go:67: err="llm: provider error: transport: net/http: HTTP/1.x transport connection broken: malformed HTTP response \"{\\\"model\\\":\\\"m\\\",\\\"messages\\\":[{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"SENTINEL-\" after 1 attempt"
+    qa_probe_test.go:68: prompt leaked=false key leaked=false
+    qa_probe_test.go:67: err="llm: provider error: transport: net/http: HTTP/1.x transport connection broken: malformed HTTP status code \"SENTINEL-PROMPT\" after 1 attempt"
+    qa_probe_test.go:68: prompt leaked=true key leaked=false
+    qa_probe_test.go:67: err="llm: provider error: transport: net/http: HTTP/1.x transport connection broken: malformed HTTP status code \"[REDACTED]\" after 1 attempt"
+    qa_probe_test.go:68: prompt leaked=false key leaked=false
+    qa_probe_test.go:67: err="llm: provider error: transport: net/http: HTTP/1.x transport connection broken: malformed MIME header: missing colon: \"SENTINEL-PROMPT\" after 1 attempt"
+    qa_probe_test.go:68: prompt leaked=true key leaked=false
+--- PASS: TestQAProbeMalformedResponseLeak (0.00s)
+    --- PASS: TestQAProbeMalformedResponseLeak/status_line_is_the_request_body (0.00s)
+    --- PASS: TestQAProbeMalformedResponseLeak/bad_status_code_echoes_prompt (0.00s)
+    --- PASS: TestQAProbeMalformedResponseLeak/bad_status_code_echoes_key (0.00s)
+    --- PASS: TestQAProbeMalformedResponseLeak/bad_header_line_echoes_prompt (0.00s)
+PASS
+ok  	arxivlens/internal/llm	0.008s
+
+[exit code 0]

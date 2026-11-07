@@ -1,0 +1,22 @@
+$ bash -c git rev-parse HEAD origin/main; git merge-base origin/main HEAD; echo "--- stat"; git diff origin/main --stat; echo "--- AC8 count"; git diff origin/main --numstat -- internal/llm | awk '$3 !~ /_test\.go$/ {p+=$1+$2} $3 ~ /_test\.go$/ {t+=$1+$2} END {print "prod", p, "test", t}'; echo "--- go.mod/go.sum diff (empty = unchanged)"; git diff origin/main --stat -- go.mod go.sum; echo "--- files outside internal/llm (empty = none)"; git diff origin/main --name-only | grep -v "^internal/llm/" ; echo "--- callers of attemptsText"; grep -n "attemptsText(" internal/llm/*.go
+efbe972f0fc74b18c7e8226b0cb0a4ad2b3ea423
+2b71772a827b19fc999a299218c90493663357a3
+2b71772a827b19fc999a299218c90493663357a3
+--- stat
+ internal/llm/config.go      |  15 ++
+ internal/llm/config_test.go |  39 ++-
+ internal/llm/openai.go      | 274 +++++++++++++++++++
+ internal/llm/openai_test.go | 637 ++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 964 insertions(+), 1 deletion(-)
+--- AC8 count
+prod 289 test 676
+--- go.mod/go.sum diff (empty = unchanged)
+--- files outside internal/llm (empty = none)
+--- callers of attemptsText
+internal/llm/llm.go:140:func attemptsText(n int) string {
+internal/llm/llm_test.go:69:	if attemptsText(1) != "after 1 attempt" || attemptsText(2) != "after 2 attempts" {
+internal/llm/openai.go:188:		return nil, newError(ErrProvider, 0, n, 0, err, key, "transport: "+err.Error()+" "+attemptsText(n))
+internal/llm/openai.go:199:		return nil, newError(kind, res.StatusCode, n, ra, nil, key, fmt.Sprintf("HTTP %d %s", res.StatusCode, attemptsText(n)))
+internal/llm/openai.go:241:		return newError(ErrTimeout, status, attempts, retryAfter, context.DeadlineExceeded, key, "deadline exceeded "+attemptsText(attempts))
+
+[exit code 0]

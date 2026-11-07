@@ -1,0 +1,296 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128388800285/logs | sed -n 367,660p
+2026-11-07T11:18:41.4342913Z ##[group]Run go test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out
+2026-11-07T11:18:41.4344007Z [36;1mgo test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out[0m
+2026-11-07T11:18:41.4344594Z [36;1mawk -F'[: ]' 'NR>1 {t[$1]+=$3; if ($4>0) c[$1]+=$3} END {for (f in t) printf "%s %.1f%%\n", f, 100*c[f]/t[f]}' llm.out | sort[0m
+2026-11-07T11:18:41.4396586Z shell: /usr/bin/bash -e {0}
+2026-11-07T11:18:41.4396818Z ##[endgroup]
+2026-11-07T11:18:46.7925228Z === RUN   TestConfigFromEnv
+2026-11-07T11:18:46.7925788Z === RUN   TestConfigFromEnv/model_unset_disables_the_provider
+2026-11-07T11:18:46.7926315Z === RUN   TestConfigFromEnv/model_only_takes_the_local_defaults
+2026-11-07T11:18:46.7926629Z === RUN   TestConfigFromEnv/every_variable_set
+2026-11-07T11:18:46.7926881Z === RUN   TestConfigFromEnv/blank_model
+2026-11-07T11:18:46.7927140Z === RUN   TestConfigFromEnv/timeout_not_a_duration
+2026-11-07T11:18:46.7927720Z === RUN   TestConfigFromEnv/timeout_bare_number
+2026-11-07T11:18:46.7927984Z === RUN   TestConfigFromEnv/timeout_zero
+2026-11-07T11:18:46.7928227Z === RUN   TestConfigFromEnv/timeout_negative
+2026-11-07T11:18:46.7928480Z === RUN   TestConfigFromEnv/max_tokens_not_an_int
+2026-11-07T11:18:46.7928733Z === RUN   TestConfigFromEnv/max_tokens_zero
+2026-11-07T11:18:46.7928989Z === RUN   TestConfigFromEnv/max_tokens_negative
+2026-11-07T11:18:46.7929238Z === RUN   TestConfigFromEnv/max_tokens_too_big
+2026-11-07T11:18:46.7929488Z === RUN   TestConfigFromEnv/base_url_relative
+2026-11-07T11:18:46.7929728Z === RUN   TestConfigFromEnv/base_url_no_scheme
+2026-11-07T11:18:46.7929971Z === RUN   TestConfigFromEnv/base_url_ftp
+2026-11-07T11:18:46.7930203Z === RUN   TestConfigFromEnv/base_url_no_host
+2026-11-07T11:18:46.7930452Z === RUN   TestConfigFromEnv/base_url_unparseable
+2026-11-07T11:18:46.7930704Z === RUN   TestConfigFromEnv/base_url_userinfo
+2026-11-07T11:18:46.7930962Z === RUN   TestConfigFromEnv/base_url_query_key
+2026-11-07T11:18:46.7931207Z === RUN   TestConfigFromEnv/base_url_empty_query
+2026-11-07T11:18:46.7931449Z === RUN   TestConfigFromEnv/base_url_fragment
+2026-11-07T11:18:46.7931698Z --- PASS: TestConfigFromEnv (0.00s)
+2026-11-07T11:18:46.7932076Z     --- PASS: TestConfigFromEnv/model_unset_disables_the_provider (0.00s)
+2026-11-07T11:18:46.7932526Z     --- PASS: TestConfigFromEnv/model_only_takes_the_local_defaults (0.00s)
+2026-11-07T11:18:46.7932924Z     --- PASS: TestConfigFromEnv/every_variable_set (0.00s)
+2026-11-07T11:18:46.7933519Z     --- PASS: TestConfigFromEnv/blank_model (0.00s)
+2026-11-07T11:18:46.7933889Z     --- PASS: TestConfigFromEnv/timeout_not_a_duration (0.00s)
+2026-11-07T11:18:46.7934244Z     --- PASS: TestConfigFromEnv/timeout_bare_number (0.00s)
+2026-11-07T11:18:46.7934567Z     --- PASS: TestConfigFromEnv/timeout_zero (0.00s)
+2026-11-07T11:18:46.7934887Z     --- PASS: TestConfigFromEnv/timeout_negative (0.00s)
+2026-11-07T11:18:46.7935237Z     --- PASS: TestConfigFromEnv/max_tokens_not_an_int (0.00s)
+2026-11-07T11:18:46.7935581Z     --- PASS: TestConfigFromEnv/max_tokens_zero (0.00s)
+2026-11-07T11:18:46.7935913Z     --- PASS: TestConfigFromEnv/max_tokens_negative (0.00s)
+2026-11-07T11:18:46.7936254Z     --- PASS: TestConfigFromEnv/max_tokens_too_big (0.00s)
+2026-11-07T11:18:46.7936583Z     --- PASS: TestConfigFromEnv/base_url_relative (0.00s)
+2026-11-07T11:18:46.7936908Z     --- PASS: TestConfigFromEnv/base_url_no_scheme (0.00s)
+2026-11-07T11:18:46.7937219Z     --- PASS: TestConfigFromEnv/base_url_ftp (0.00s)
+2026-11-07T11:18:46.7937541Z     --- PASS: TestConfigFromEnv/base_url_no_host (0.00s)
+2026-11-07T11:18:46.7937873Z     --- PASS: TestConfigFromEnv/base_url_unparseable (0.00s)
+2026-11-07T11:18:46.7938212Z     --- PASS: TestConfigFromEnv/base_url_userinfo (0.00s)
+2026-11-07T11:18:46.7938535Z     --- PASS: TestConfigFromEnv/base_url_query_key (0.00s)
+2026-11-07T11:18:46.7938877Z     --- PASS: TestConfigFromEnv/base_url_empty_query (0.00s)
+2026-11-07T11:18:46.7939447Z     --- PASS: TestConfigFromEnv/base_url_fragment (0.00s)
+2026-11-07T11:18:46.7939718Z === RUN   TestConfigRedactsKey
+2026-11-07T11:18:46.7939948Z --- PASS: TestConfigRedactsKey (0.00s)
+2026-11-07T11:18:46.7940186Z === RUN   TestConfigNormalize
+2026-11-07T11:18:46.7940431Z === RUN   TestConfigNormalize/zero_fields_take_defaults
+2026-11-07T11:18:46.7940723Z === RUN   TestConfigNormalize/trailing_slash_trimmed
+2026-11-07T11:18:46.7940977Z === RUN   TestConfigNormalize/no_model
+2026-11-07T11:18:46.7941220Z === RUN   TestConfigNormalize/negative_timeout
+2026-11-07T11:18:46.7941481Z === RUN   TestConfigNormalize/max_tokens_too_big
+2026-11-07T11:18:46.7941742Z === RUN   TestConfigNormalize/negative_max_tokens
+2026-11-07T11:18:46.7941994Z === RUN   TestConfigNormalize/bad_base_url
+2026-11-07T11:18:46.7942238Z --- PASS: TestConfigNormalize (0.00s)
+2026-11-07T11:18:46.7942574Z     --- PASS: TestConfigNormalize/zero_fields_take_defaults (0.00s)
+2026-11-07T11:18:46.7942962Z     --- PASS: TestConfigNormalize/trailing_slash_trimmed (0.00s)
+2026-11-07T11:18:46.7943575Z     --- PASS: TestConfigNormalize/no_model (0.00s)
+2026-11-07T11:18:46.7943916Z     --- PASS: TestConfigNormalize/negative_timeout (0.00s)
+2026-11-07T11:18:46.7944259Z     --- PASS: TestConfigNormalize/max_tokens_too_big (0.00s)
+2026-11-07T11:18:46.7944609Z     --- PASS: TestConfigNormalize/negative_max_tokens (0.00s)
+2026-11-07T11:18:46.7944937Z     --- PASS: TestConfigNormalize/bad_base_url (0.00s)
+2026-11-07T11:18:46.7945208Z === RUN   TestPrintFormsShowSizesOnly
+2026-11-07T11:18:46.7945462Z --- PASS: TestPrintFormsShowSizesOnly (0.00s)
+2026-11-07T11:18:46.7945706Z === RUN   TestErrorShape
+2026-11-07T11:18:46.7945911Z === RUN   TestErrorShape/kind_and_detail
+2026-11-07T11:18:46.7946153Z === RUN   TestErrorShape/kind_and_cause
+2026-11-07T11:18:46.7946393Z === RUN   TestErrorShape/cancel_has_nil_kind
+2026-11-07T11:18:46.7946630Z === RUN   TestErrorShape/zero_value
+2026-11-07T11:18:46.7946874Z === RUN   TestErrorShape/key_redacted_from_detail
+2026-11-07T11:18:46.7947137Z --- PASS: TestErrorShape (0.00s)
+2026-11-07T11:18:46.7947424Z     --- PASS: TestErrorShape/kind_and_detail (0.00s)
+2026-11-07T11:18:46.7947724Z     --- PASS: TestErrorShape/kind_and_cause (0.00s)
+2026-11-07T11:18:46.7948039Z     --- PASS: TestErrorShape/cancel_has_nil_kind (0.00s)
+2026-11-07T11:18:46.7948344Z     --- PASS: TestErrorShape/zero_value (0.00s)
+2026-11-07T11:18:46.7948670Z     --- PASS: TestErrorShape/key_redacted_from_detail (0.00s)
+2026-11-07T11:18:46.7948929Z === RUN   TestErrorsIsAs
+2026-11-07T11:18:46.7949115Z === RUN   TestErrorsIsAs/timeout
+2026-11-07T11:18:46.7949326Z === RUN   TestErrorsIsAs/rate_limited
+2026-11-07T11:18:46.7949556Z === RUN   TestErrorsIsAs/provider
+2026-11-07T11:18:46.7949774Z === RUN   TestErrorsIsAs/bad_response
+2026-11-07T11:18:46.7950000Z === RUN   TestErrorsIsAs/invalid_request
+2026-11-07T11:18:46.7950224Z === RUN   TestErrorsIsAs/cancel
+2026-11-07T11:18:46.7950441Z --- PASS: TestErrorsIsAs (0.00s)
+2026-11-07T11:18:46.7950695Z     --- PASS: TestErrorsIsAs/timeout (0.00s)
+2026-11-07T11:18:46.7951004Z     --- PASS: TestErrorsIsAs/rate_limited (0.00s)
+2026-11-07T11:18:46.7951291Z     --- PASS: TestErrorsIsAs/provider (0.00s)
+2026-11-07T11:18:46.7951578Z     --- PASS: TestErrorsIsAs/bad_response (0.00s)
+2026-11-07T11:18:46.7951872Z     --- PASS: TestErrorsIsAs/invalid_request (0.00s)
+2026-11-07T11:18:46.7952157Z     --- PASS: TestErrorsIsAs/cancel (0.00s)
+2026-11-07T11:18:46.7952375Z === RUN   TestNew
+2026-11-07T11:18:46.7952548Z === RUN   TestNew/defaults
+2026-11-07T11:18:46.7952752Z === RUN   TestNew/trailing_slash
+2026-11-07T11:18:46.7952950Z === RUN   TestNew/no_model
+2026-11-07T11:18:46.7953338Z === RUN   TestNew/hand-built_userinfo_rejected_unprinted
+2026-11-07T11:18:46.7953630Z === RUN   TestNew/hand-built_query_key_rejected_unprinted
+2026-11-07T11:18:46.7953893Z === RUN   TestNew/negative_timeout
+2026-11-07T11:18:46.7954107Z --- PASS: TestNew (0.00s)
+2026-11-07T11:18:46.7954331Z     --- PASS: TestNew/defaults (0.00s)
+2026-11-07T11:18:46.7954731Z     --- PASS: TestNew/trailing_slash (0.00s)
+2026-11-07T11:18:46.7954998Z     --- PASS: TestNew/no_model (0.00s)
+2026-11-07T11:18:46.7955325Z     --- PASS: TestNew/hand-built_userinfo_rejected_unprinted (0.00s)
+2026-11-07T11:18:46.7955712Z     --- PASS: TestNew/hand-built_query_key_rejected_unprinted (0.00s)
+2026-11-07T11:18:46.7956036Z     --- PASS: TestNew/negative_timeout (0.00s)
+2026-11-07T11:18:46.7956284Z === RUN   TestCompleteSuccess
+2026-11-07T11:18:46.7956503Z === RUN   TestCompleteSuccess/full_response
+2026-11-07T11:18:46.7956760Z === RUN   TestCompleteSuccess/missing_usage_is_zero
+2026-11-07T11:18:46.7957089Z === RUN   TestCompleteSuccess/null_usage_is_zero,_model_falls_back_to_config
+2026-11-07T11:18:46.7957425Z === RUN   TestCompleteSuccess/only_the_first_choice
+2026-11-07T11:18:46.7957678Z --- PASS: TestCompleteSuccess (0.01s)
+2026-11-07T11:18:46.7957969Z     --- PASS: TestCompleteSuccess/full_response (0.00s)
+2026-11-07T11:18:46.7958308Z     --- PASS: TestCompleteSuccess/missing_usage_is_zero (0.00s)
+2026-11-07T11:18:46.7958873Z     --- PASS: TestCompleteSuccess/null_usage_is_zero,_model_falls_back_to_config (0.00s)
+2026-11-07T11:18:46.7959307Z     --- PASS: TestCompleteSuccess/only_the_first_choice (0.00s)
+2026-11-07T11:18:46.7959575Z === RUN   TestAuthHeader
+2026-11-07T11:18:46.7959768Z === RUN   TestAuthHeader/key=false
+2026-11-07T11:18:46.7959992Z === RUN   TestAuthHeader/key=true
+2026-11-07T11:18:46.7960206Z --- PASS: TestAuthHeader (0.00s)
+2026-11-07T11:18:46.7960462Z     --- PASS: TestAuthHeader/key=false (0.00s)
+2026-11-07T11:18:46.7960741Z     --- PASS: TestAuthHeader/key=true (0.00s)
+2026-11-07T11:18:46.7960974Z === RUN   TestRequestWire
+2026-11-07T11:18:46.7961203Z === RUN   TestRequestWire/default_max_tokens,_no_system
+2026-11-07T11:18:46.7961519Z === RUN   TestRequestWire/system_first,_turns_in_order,_override,_json
+2026-11-07T11:18:46.7961808Z --- PASS: TestRequestWire (0.00s)
+2026-11-07T11:18:46.7962133Z     --- PASS: TestRequestWire/default_max_tokens,_no_system (0.00s)
+2026-11-07T11:18:46.7962626Z     --- PASS: TestRequestWire/system_first,_turns_in_order,_override,_json (0.00s)
+2026-11-07T11:18:46.7962946Z === RUN   TestInvalidRequest
+2026-11-07T11:18:46.7963294Z === RUN   TestInvalidRequest/no_messages
+2026-11-07T11:18:46.7963546Z === RUN   TestInvalidRequest/negative_max_tokens
+2026-11-07T11:18:46.7963835Z === RUN   TestInvalidRequest/system_role_in_messages
+2026-11-07T11:18:46.7964099Z === RUN   TestInvalidRequest/empty_role
+2026-11-07T11:18:46.7964340Z === RUN   TestInvalidRequest/NaN_temperature
+2026-11-07T11:18:46.7964579Z --- PASS: TestInvalidRequest (0.00s)
+2026-11-07T11:18:46.7964861Z     --- PASS: TestInvalidRequest/no_messages (0.00s)
+2026-11-07T11:18:46.7965192Z     --- PASS: TestInvalidRequest/negative_max_tokens (0.00s)
+2026-11-07T11:18:46.7965547Z     --- PASS: TestInvalidRequest/system_role_in_messages (0.00s)
+2026-11-07T11:18:46.7965875Z     --- PASS: TestInvalidRequest/empty_role (0.00s)
+2026-11-07T11:18:46.7966186Z     --- PASS: TestInvalidRequest/NaN_temperature (0.00s)
+2026-11-07T11:18:46.7966440Z === RUN   TestRetry
+2026-11-07T11:18:46.7966631Z === RUN   TestRetry/429_then_200_retries_once
+2026-11-07T11:18:46.7966856Z === RUN   TestRetry/502_then_200
+2026-11-07T11:18:46.7967055Z === RUN   TestRetry/504_then_200
+2026-11-07T11:18:46.7967276Z === RUN   TestRetry/503_twice_gives_up_after_2
+2026-11-07T11:18:46.7967520Z === RUN   TestRetry/429_twice_is_rate_limited
+2026-11-07T11:18:46.7967749Z === RUN   TestRetry/400_is_not_retried
+2026-11-07T11:18:46.7967966Z === RUN   TestRetry/500_is_not_retried
+2026-11-07T11:18:46.7968185Z === RUN   TestRetry/401_is_not_retried
+2026-11-07T11:18:46.7968419Z === RUN   TestRetry/short_Retry-After_is_honoured
+2026-11-07T11:18:46.7968702Z === RUN   TestRetry/Retry-After_past_the_deadline_fails_now
+2026-11-07T11:18:46.7969002Z === RUN   TestRetry/HTTP-date_Retry-After_past_the_deadline
+2026-11-07T11:18:46.7969261Z --- PASS: TestRetry (0.07s)
+2026-11-07T11:18:46.7969526Z     --- PASS: TestRetry/429_then_200_retries_once (0.01s)
+2026-11-07T11:18:46.7969931Z     --- PASS: TestRetry/502_then_200 (0.01s)
+2026-11-07T11:18:46.7970194Z     --- PASS: TestRetry/504_then_200 (0.01s)
+2026-11-07T11:18:46.7970497Z     --- PASS: TestRetry/503_twice_gives_up_after_2 (0.01s)
+2026-11-07T11:18:46.7970814Z     --- PASS: TestRetry/429_twice_is_rate_limited (0.01s)
+2026-11-07T11:18:46.7971112Z     --- PASS: TestRetry/400_is_not_retried (0.00s)
+2026-11-07T11:18:46.7971395Z     --- PASS: TestRetry/500_is_not_retried (0.00s)
+2026-11-07T11:18:46.7971684Z     --- PASS: TestRetry/401_is_not_retried (0.00s)
+2026-11-07T11:18:46.7971998Z     --- PASS: TestRetry/short_Retry-After_is_honoured (0.01s)
+2026-11-07T11:18:46.7972374Z     --- PASS: TestRetry/Retry-After_past_the_deadline_fails_now (0.00s)
+2026-11-07T11:18:46.7972771Z     --- PASS: TestRetry/HTTP-date_Retry-After_past_the_deadline (0.00s)
+2026-11-07T11:18:46.7973313Z === RUN   TestParseRetryAfter
+2026-11-07T11:18:46.7973618Z --- PASS: TestParseRetryAfter (0.00s)
+2026-11-07T11:18:46.7973944Z === RUN   TestTimeout
+2026-11-07T11:18:46.7974372Z === RUN   TestTimeout/our_timeout
+2026-11-07T11:18:46.7974746Z === RUN   TestTimeout/shorter_caller_deadline_wins
+2026-11-07T11:18:46.7975140Z --- PASS: TestTimeout (0.35s)
+2026-11-07T11:18:46.7975545Z     --- PASS: TestTimeout/our_timeout (0.20s)
+2026-11-07T11:18:46.7975877Z     --- PASS: TestTimeout/shorter_caller_deadline_wins (0.15s)
+2026-11-07T11:18:46.7976145Z === RUN   TestCancel
+2026-11-07T11:18:46.7976358Z === RUN   TestCancel/cancel_during_a_2_s_backoff_wait
+2026-11-07T11:18:46.7976623Z === RUN   TestCancel/cancel_during_the_request
+2026-11-07T11:18:46.7976871Z === RUN   TestCancel/cancelled_before_the_call
+2026-11-07T11:18:46.7977105Z --- PASS: TestCancel (0.10s)
+2026-11-07T11:18:46.7977402Z     --- PASS: TestCancel/cancel_during_a_2_s_backoff_wait (0.05s)
+2026-11-07T11:18:46.7977748Z     --- PASS: TestCancel/cancel_during_the_request (0.05s)
+2026-11-07T11:18:46.7978072Z     --- PASS: TestCancel/cancelled_before_the_call (0.00s)
+2026-11-07T11:18:46.7978327Z === RUN   TestBadResponse
+2026-11-07T11:18:46.7978535Z === RUN   TestBadResponse/not_JSON
+2026-11-07T11:18:46.7978763Z === RUN   TestBadResponse/wrong_JSON_type
+2026-11-07T11:18:46.7978995Z === RUN   TestBadResponse/empty_choices
+2026-11-07T11:18:46.7979236Z === RUN   TestBadResponse/no_choices_field
+2026-11-07T11:18:46.7979472Z === RUN   TestBadResponse/null_content
+2026-11-07T11:18:46.7979701Z === RUN   TestBadResponse/whitespace_content
+2026-11-07T11:18:46.7979935Z === RUN   TestBadResponse/oversized_body
+2026-11-07T11:18:46.7980162Z === RUN   TestBadResponse/empty_body
+2026-11-07T11:18:46.7980390Z --- PASS: TestBadResponse (0.03s)
+2026-11-07T11:18:46.7980653Z     --- PASS: TestBadResponse/not_JSON (0.00s)
+2026-11-07T11:18:46.7980950Z     --- PASS: TestBadResponse/wrong_JSON_type (0.00s)
+2026-11-07T11:18:46.7981256Z     --- PASS: TestBadResponse/empty_choices (0.00s)
+2026-11-07T11:18:46.7981573Z     --- PASS: TestBadResponse/no_choices_field (0.00s)
+2026-11-07T11:18:46.7981873Z     --- PASS: TestBadResponse/null_content (0.00s)
+2026-11-07T11:18:46.7982189Z     --- PASS: TestBadResponse/whitespace_content (0.00s)
+2026-11-07T11:18:46.7982504Z     --- PASS: TestBadResponse/oversized_body (0.02s)
+2026-11-07T11:18:46.7982809Z     --- PASS: TestBadResponse/empty_body (0.00s)
+2026-11-07T11:18:46.7983200Z === RUN   TestBodyCapBoundary
+2026-11-07T11:18:46.7983422Z --- PASS: TestBodyCapBoundary (0.07s)
+2026-11-07T11:18:46.7983651Z === RUN   TestTransportError
+2026-11-07T11:18:46.7983869Z --- PASS: TestTransportError (0.00s)
+2026-11-07T11:18:46.7984093Z === RUN   TestConcurrentComplete
+2026-11-07T11:18:46.7984319Z --- PASS: TestConcurrentComplete (0.02s)
+2026-11-07T11:18:46.7984552Z === RUN   TestNoSecretLeaks
+2026-11-07T11:18:46.7984774Z === RUN   TestNoSecretLeaks/429_twice
+2026-11-07T11:18:46.7984998Z === RUN   TestNoSecretLeaks/503_twice
+2026-11-07T11:18:46.7985218Z === RUN   TestNoSecretLeaks/400
+2026-11-07T11:18:46.7985474Z === RUN   TestNoSecretLeaks/Retry-After_past_the_deadline
+2026-11-07T11:18:46.7985747Z === RUN   TestNoSecretLeaks/hang
+2026-11-07T11:18:46.7987707Z === RUN   TestNoSecretLeaks/non-JSON
+2026-11-07T11:18:46.7988110Z === RUN   TestNoSecretLeaks/empty_choices
+2026-11-07T11:18:46.7988438Z === RUN   TestNoSecretLeaks/oversized
+2026-11-07T11:18:46.7988774Z === RUN   TestNoSecretLeaks/connection_refused
+2026-11-07T11:18:46.7989131Z === RUN   TestNoSecretLeaks/cancel_during_backoff
+2026-11-07T11:18:46.7989488Z --- PASS: TestNoSecretLeaks (0.20s)
+2026-11-07T11:18:46.7989896Z     --- PASS: TestNoSecretLeaks/429_twice (0.01s)
+2026-11-07T11:18:46.7990337Z     --- PASS: TestNoSecretLeaks/503_twice (0.01s)
+2026-11-07T11:18:46.7990719Z     --- PASS: TestNoSecretLeaks/400 (0.00s)
+2026-11-07T11:18:46.7991214Z     --- PASS: TestNoSecretLeaks/Retry-After_past_the_deadline (0.00s)
+2026-11-07T11:18:46.7991559Z     --- PASS: TestNoSecretLeaks/hang (0.10s)
+2026-11-07T11:18:46.7991860Z     --- PASS: TestNoSecretLeaks/non-JSON (0.00s)
+2026-11-07T11:18:46.7992173Z     --- PASS: TestNoSecretLeaks/empty_choices (0.00s)
+2026-11-07T11:18:46.7992904Z     --- PASS: TestNoSecretLeaks/oversized (0.02s)
+2026-11-07T11:18:46.7993391Z     --- PASS: TestNoSecretLeaks/connection_refused (0.00s)
+2026-11-07T11:18:46.7993747Z     --- PASS: TestNoSecretLeaks/cancel_during_backoff (0.05s)
+2026-11-07T11:18:46.7993999Z PASS
+2026-11-07T11:18:46.7994183Z coverage: 97.5% of statements
+2026-11-07T11:18:46.7994461Z ok  	arxivlens/internal/llm	1.876s	coverage: 97.5% of statements
+2026-11-07T11:18:46.7994759Z === RUN   TestFakeScript
+2026-11-07T11:18:46.7994972Z --- PASS: TestFakeScript (0.00s)
+2026-11-07T11:18:46.7995198Z === RUN   TestFakeReturnsCopies
+2026-11-07T11:18:46.7995426Z --- PASS: TestFakeReturnsCopies (0.00s)
+2026-11-07T11:18:46.7995659Z === RUN   TestFakeRequests
+2026-11-07T11:18:46.7995878Z --- PASS: TestFakeRequests (0.00s)
+2026-11-07T11:18:46.7996089Z === RUN   TestFakeHang
+2026-11-07T11:18:46.7996275Z === RUN   TestFakeHang/deadline
+2026-11-07T11:18:46.7996478Z === RUN   TestFakeHang/cancel
+2026-11-07T11:18:46.7996689Z --- PASS: TestFakeHang (0.10s)
+2026-11-07T11:18:46.7996951Z     --- PASS: TestFakeHang/deadline (0.05s)
+2026-11-07T11:18:46.7997221Z     --- PASS: TestFakeHang/cancel (0.05s)
+2026-11-07T11:18:46.7997444Z === RUN   TestFakeConcurrent
+2026-11-07T11:18:46.7997662Z --- PASS: TestFakeConcurrent (0.00s)
+2026-11-07T11:18:46.7997866Z PASS
+2026-11-07T11:18:46.7998037Z coverage: 100.0% of statements
+2026-11-07T11:18:46.7998321Z ok  	arxivlens/internal/llm/llmtest	1.116s	coverage: 100.0% of statements
+2026-11-07T11:18:46.8624546Z arxivlens/internal/llm/config.go:35:		NewSecret	100.0%
+2026-11-07T11:18:46.8625138Z arxivlens/internal/llm/config.go:42:		reveal		100.0%
+2026-11-07T11:18:46.8625612Z arxivlens/internal/llm/config.go:49:		String		100.0%
+2026-11-07T11:18:46.8626106Z arxivlens/internal/llm/config.go:56:		GoString	100.0%
+2026-11-07T11:18:46.8626601Z arxivlens/internal/llm/config.go:57:		MarshalJSON	100.0%
+2026-11-07T11:18:46.8627047Z arxivlens/internal/llm/config.go:68:		String		100.0%
+2026-11-07T11:18:46.8627457Z arxivlens/internal/llm/config.go:73:		GoString	100.0%
+2026-11-07T11:18:46.8627806Z arxivlens/internal/llm/config.go:80:		ConfigFromEnv	100.0%
+2026-11-07T11:18:46.8628255Z arxivlens/internal/llm/config.go:115:		FromEnv		85.7%
+2026-11-07T11:18:46.8628758Z arxivlens/internal/llm/config.go:128:		normalize	100.0%
+2026-11-07T11:18:46.8629240Z arxivlens/internal/llm/llm.go:41:		String		100.0%
+2026-11-07T11:18:46.8629706Z arxivlens/internal/llm/llm.go:46:		GoString	100.0%
+2026-11-07T11:18:46.8630122Z arxivlens/internal/llm/llm.go:58:		String		100.0%
+2026-11-07T11:18:46.8630630Z arxivlens/internal/llm/llm.go:64:		GoString	100.0%
+2026-11-07T11:18:46.8631121Z arxivlens/internal/llm/llm.go:77:		String		100.0%
+2026-11-07T11:18:46.8631579Z arxivlens/internal/llm/llm.go:83:		GoString	100.0%
+2026-11-07T11:18:46.8631976Z arxivlens/internal/llm/llm.go:107:		Error		100.0%
+2026-11-07T11:18:46.8632249Z arxivlens/internal/llm/llm.go:119:		GoString	100.0%
+2026-11-07T11:18:46.8632664Z arxivlens/internal/llm/llm.go:122:		Unwrap		100.0%
+2026-11-07T11:18:46.8633616Z arxivlens/internal/llm/llm.go:133:		newError	100.0%
+2026-11-07T11:18:46.8634119Z arxivlens/internal/llm/llm.go:140:		attemptsText	100.0%
+2026-11-07T11:18:46.8634665Z arxivlens/internal/llm/llmtest/fake.go:26:	Reply		100.0%
+2026-11-07T11:18:46.8635232Z arxivlens/internal/llm/llmtest/fake.go:29:	Fail		100.0%
+2026-11-07T11:18:46.8635731Z arxivlens/internal/llm/llmtest/fake.go:32:	Hang		100.0%
+2026-11-07T11:18:46.8636135Z arxivlens/internal/llm/llmtest/fake.go:44:	New		100.0%
+2026-11-07T11:18:46.8636600Z arxivlens/internal/llm/llmtest/fake.go:46:	Name		100.0%
+2026-11-07T11:18:46.8636921Z arxivlens/internal/llm/llmtest/fake.go:49:	Complete	100.0%
+2026-11-07T11:18:46.8637243Z arxivlens/internal/llm/llmtest/fake.go:74:	Requests	100.0%
+2026-11-07T11:18:46.8637576Z arxivlens/internal/llm/llmtest/fake.go:84:	copyRequest	100.0%
+2026-11-07T11:18:46.8637938Z arxivlens/internal/llm/openai.go:42:		New		100.0%
+2026-11-07T11:18:46.8638218Z arxivlens/internal/llm/openai.go:56:		Name		100.0%
+2026-11-07T11:18:46.8638691Z arxivlens/internal/llm/openai.go:59:		String		100.0%
+2026-11-07T11:18:46.8639088Z arxivlens/internal/llm/openai.go:62:		GoString	100.0%
+2026-11-07T11:18:46.8639500Z arxivlens/internal/llm/openai.go:97:		Complete	100.0%
+2026-11-07T11:18:46.8639930Z arxivlens/internal/llm/openai.go:136:		encode		100.0%
+2026-11-07T11:18:46.8640352Z arxivlens/internal/llm/openai.go:168:		attempt		91.5%
+2026-11-07T11:18:46.8640800Z arxivlens/internal/llm/openai.go:239:		ctxError	100.0%
+2026-11-07T11:18:46.8641330Z arxivlens/internal/llm/openai.go:246:		retryable	100.0%
+2026-11-07T11:18:46.8641970Z arxivlens/internal/llm/openai.go:255:		parseRetryAfter	100.0%
+2026-11-07T11:18:46.8642428Z total:						(statements)	97.8%
+2026-11-07T11:18:46.8677985Z arxivlens/internal/llm/config.go 98.2%
+2026-11-07T11:18:46.8678420Z arxivlens/internal/llm/llm.go 100.0%
+2026-11-07T11:18:46.8678829Z arxivlens/internal/llm/llmtest/fake.go 100.0%
+2026-11-07T11:18:46.8679246Z arxivlens/internal/llm/openai.go 96.6%
+2026-11-07T11:18:46.8714154Z ##[group]Run make build-go
+

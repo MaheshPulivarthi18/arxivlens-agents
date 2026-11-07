@@ -1,0 +1,26 @@
+$ bash -c export GOTOOLCHAIN=local; D=$(mktemp -d /tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/mutA.XXXX); git archive HEAD | tar -x -C $D && cp /tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/go.mod $D/go.mod && echo "copy of $(git rev-parse --short HEAD) in $D" && python3 /tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/mutate.py $D
+copy of efbe972 in /tmp/claude-0/-home-claude/84145e36-39d9-50b9-b9d7-2075550c27a1/scratchpad/mutA.7Tl5
+M01 429 not retryable: KILLED by TestRetry
+M02 two retries (3 attempts): KILLED by TestRetry
+M03 retry 500 too: KILLED by TestRetry
+M04 no deadline cap on Retry-After: KILLED by TestNoSecretLeaks, TestRetry
+M05 Authorization even without key: KILLED by TestAuthHeader
+M06 no response_format in JSON mode: KILLED by TestRequestWire
+M07 backoff wait ignores ctx: KILLED by TestCancel
+M08 usage estimated when missing: KILLED by TestCompleteSuccess
+M09 no 1 MiB cap check: KILLED by TestBadResponse
+M10 non-2xx body echoed in error detail: KILLED by TestNoSecretLeaks
+M11 cancel reported as timeout: KILLED by TestCancel
+M12 FromEnv typed nil: KILLED by TestConfigFromEnv
+M13 New skips normalize: KILLED by TestNew, TestRequestWire
+M14 full url.Error in detail: KILLED by TestTransportError
+M15 no empty-choices check: KILLED by TestBadResponse
+M16 no key redaction in newError: KILLED by TestErrorShape
+M17 client String prints key: KILLED by TestConfigRedactsKey, TestNoSecretLeaks
+M18 per-attempt timeout (fresh deadline): KILLED by TestCancel, TestTimeout
+M19 Retry-After ignored (always backoff): KILLED by TestCancel, TestNoSecretLeaks, TestRetry
+M20 drop model fallback to config: KILLED by TestCompleteSuccess
+
+20/20 mutants killed
+
+[exit code 0]

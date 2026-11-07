@@ -1,0 +1,34 @@
+$ gh api .../actions/jobs/128388800285/logs (step: go test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out; per-file awk)
+--- PASS: TestConfigFromEnv (0.00s)
+--- PASS: TestConfigRedactsKey (0.00s)
+--- PASS: TestConfigNormalize (0.00s)
+--- PASS: TestPrintFormsShowSizesOnly (0.00s)
+--- PASS: TestErrorShape (0.00s)
+--- PASS: TestErrorsIsAs (0.00s)
+--- PASS: TestNew (0.00s)
+--- PASS: TestCompleteSuccess (0.01s)
+--- PASS: TestAuthHeader (0.00s)
+--- PASS: TestRequestWire (0.00s)
+--- PASS: TestInvalidRequest (0.00s)
+--- PASS: TestRetry (0.07s)
+--- PASS: TestParseRetryAfter (0.00s)
+--- PASS: TestTimeout (0.35s)
+--- PASS: TestCancel (0.10s)
+--- PASS: TestBadResponse (0.03s)
+--- PASS: TestBodyCapBoundary (0.07s)
+--- PASS: TestTransportError (0.00s)
+--- PASS: TestConcurrentComplete (0.02s)
+--- PASS: TestNoSecretLeaks (0.20s)
+ok  	arxivlens/internal/llm	1.876s	coverage: 97.5% of statements
+--- PASS: TestFakeScript (0.00s)
+--- PASS: TestFakeReturnsCopies (0.00s)
+--- PASS: TestFakeRequests (0.00s)
+--- PASS: TestFakeHang (0.10s)
+--- PASS: TestFakeConcurrent (0.00s)
+ok  	arxivlens/internal/llm/llmtest	1.116s	coverage: 100.0% of statements
+total:						(statements)	97.8%
+arxivlens/internal/llm/config.go 98.2%
+arxivlens/internal/llm/llm.go 100.0%
+arxivlens/internal/llm/llmtest/fake.go 100.0%
+arxivlens/internal/llm/openai.go 96.6%
+
