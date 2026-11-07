@@ -370,3 +370,8 @@ Format:
 - `ca21768` on ArxivLens `agent/ai/EVAL-7` (pushed, PR not opened): `scripts/answer_review.py` export/score, 16 `review` tests (synthetic fixtures; 9/9 mutants killed), evals/README "Human review". Diff 399 lines.
 - Export re-asks `/v1/ask` for claim text (results JSON has none) and skips drifted cases; `--db-url` is an optional passage source, so the CLI is `--api-url [--db-url]`, not the spec's `|` (flagged in the ticket). CSV dropped to stay < 400.
 - Unverified: `make test-py` (sandbox lacks torch/confluent_kafka), `--db-url` path, a real export. No judgments written.
+
+## 2026-11-07 — backend-engineer: OPS-H8 build (stopped at the size gate)
+- Built on `agent/backend/OPS-H8` from `2b71772`, head `ebe80a7` (pushed, **no PR**). Design §1–§5 and §7 implemented; 29 new fake-only tests pass locally against a stub `confluent_kafka` (PyPI is blocked by the proxy); `test_worker_heartbeat.py` unchanged and green.
+- Size: 487 changed lines (174 prod + 311 tests + 2 ci). With the OPS-H8b seam (§5 + AC7 out) it's still 462. Binding condition 2 → stopped and reported. Options (split by layer: producer confirmation vs consumer loop, or a one-off exception) are in the ticket Notes for pm-lead.
+- AC10 (CI mutation runs) and AC11 (M4 via `stack.yml`) need the PR, so they're not done. Local mutation smoke: a/b/c → 4/11/8 failing tests.

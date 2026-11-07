@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror); **OPS-H1 (ArxivLens #14) merged**: #14 adds a worker heartbeat hook (`_heartbeat`, about 16 lines) to `services/common/kafka_client.py`, the file this task rewrites (AGENTS.md §3 independence). The design must keep that hook (touch after every `poll()` while assigned; no-op when `WORKER_HEARTBEAT_FILE` is unset) |
 | **Jira** | KAN-34 (`labels = "task-OPS-H8"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics for both Python workers |
-| **Status** | Ready: design APPROVED with conditions (`docs/design/OPS-H8.md`, `f1b5c0e`); #23 merged (`43713ce`), so the build may start from fresh `origin/main`. Next backend slot after cycle 11:00Z |
+| **Status** | In Progress: built at `ebe80a7` (branch `agent/backend/OPS-H8` pushed), PR pending. **On hold (design condition 2): 487 changed lines > 400, and still 462 without §5, so the OPS-H8b seam doesn't fix it. Needs pm-lead's split decision before the PR is opened** (see Notes 2026-11-07 build) |
 
 ## Goal
 Technical PRD §8.1 promises L4 for **all** consumers: the offset is committed only after the handler succeeds or the
@@ -142,3 +142,52 @@ grep -n "time.sleep" services/common/kafka_client.py   # must print nothing
   skeleton + OPS-H8b split seam (AC12 amended); (3) AC11 delivered in this PR via `stack.yml` (AC11 amended); (4) delivery-bound test; (5) PR body lists the
   behaviour changes for Mahesh; (6) AC10 mutation procedure as OPS-H6; (7) `tests/test_worker_heartbeat.py` and worker call sites unchanged.
 - 2026-11-07 11:00Z (pm-lead, grooming): #23 (LLM-1, `ci.yml`) merged as `43713ce`, so the build wait is over. Not picked this cycle: the two backend slots went to LLM-1b (P0, unblocks QA-8) and OPS-H10 (unblocks AI-9's open PR), per unblocks-others > P0. First in line for the next free backend slot. Cut the branch from a fresh `origin/main`.
+- 2026-11-07 (backend-engineer, build): built on `agent/backend/OPS-H8` from `origin/main` `2b71772`, head **`ebe80a7`** (pushed; **no PR opened**).
+  **Stopped by binding condition 2 (size):** the counted total is over 400 with and without the OPS-H8b seam, so I'm reporting here instead of opening the PR.
+  - Open-PR recheck at build start (condition 1): #24 `services/embedder/api.py`, `tests/test_m0.py`; #26 `stack.yml`, README, CONTRIBUTING; #27 `internal/llm/*`; #28 `internal/query/rag*.go`.
+    None of them touches `services/common/`, `ci.yml`, `tests/test_kafka_client.py` or the worker files.
+  - **Counted skeleton (condition 2, recorded before the test bodies):** `kafka_client.py` done = 174 (125+/49-); test file with fakes + 17 stubbed functions = 140;
+    `ci.yml` = 2. That's 316 before any test body. Full test file = 311, so the total is **487** (`git diff --stat origin/main...ebe80a7`: 3 files, 438+, 49-; ownership-check warns at > 400).
+    **Seam projection** (scratch copy, §5 decode `try` reverted to the original 2 lines, AC7 test removed): `kafka_client.py` 164 (117+/47-), tests 296, ci 2, so **462 > 400**.
+    Per condition 2 ("still > 400 without §5 → stop and report"), I stopped. I didn't trim any AC test.
+    The design estimate (~120 prod + ~250 tests) ran low on both: prod 174 (the build/send split, the signal install/restore, and the 15-line old DLQ call deleted), tests 311 (fakes ~120).
+  - **Options for pm-lead** (your call, I haven't done either):
+    (A) **Split by layer.** OPS-H8 = producer confirmation only (`DeliveryError`, `_produce_confirmed`, constants, `publish`/`publish_dlq` raise, `build_dlq_payload`/`send_dlq`, trace fix)
+    plus AC5 (producer level), AC9 and the bound test, about 75 prod + about 90 tests, under 200. This alone closes the silent loss: an unconfirmed DLQ write raises out of `start` before
+    `commit`, so the record is redelivered (the worker crash-restarts while the DLQ is down, which is design alt. 2, interim only).
+    OPS-H8b = the consumer loop (in-place DLQ retry, commit gating/logging, stop flag + signals, poison) plus AC1–AC4, AC5-through-`start`, AC6/6b, AC7, AC8, AC10, AC11, about 100 prod + about 225 tests, about 325.
+    (B) A one-off size exception for 487 (condition 2 says none is granted in advance, so this is your decision, not mine).
+  - **Built (all in `ebe80a7`):** design §1 (`on_delivery` confirmation, `MESSAGE_TIMEOUT_MS = 10000` / `DELIVERY_TIMEOUT_S = 12.0` as named constants, `publish`/`publish_dlq`
+    raise `DeliveryError`), §2 (payload built once, DLQ write retried in place `min(1 << (round-1), 30)` s, one CRITICAL line per round), §3 (only `KafkaException` from `commit` is logged),
+    §4 (`threading.Event` stop flag; SIGTERM/SIGINT installed in `start` on the main thread and restored in `finally`; second signal → `KeyboardInterrupt`; AC6b), §5 (poison → DLQ `attempts=1`), §7 (DLQ traceparent falls back to the envelope).
+    Shape change from design §7: per lesson OPS-H6 (re-indent doubles the diff), the retry body stays inline in `start` at its original indentation (`stopped` flag) rather than in a `_process` method.
+    `_dead_letter`, `_commit`, `_coords` and `stop` are as designed.
+    One addition the design implied (AC8: "the handler error contains the sentinel; no log contains it"): the per-attempt handler warning now logs `type(e).__name__` instead of `str(e)`.
+    The full message stays in the DLQ payload. This is an operator-visible change and goes in the PR body (item 5 below).
+  - **Commands + output (sandbox; CI not run, because no PR exists and `ci.yml` runs only on `pull_request`/push to main):**
+    - PyPI is blocked by the egress proxy (`pypi.org:443 connect_rejected`), so `confluent-kafka` and `ulid-py` couldn't be installed. Tests ran against a **local stub** `confluent_kafka`/`ulid`
+      (scratchpad, not committed: `KafkaException`, `KafkaError._PARTITION_EOF`, `Message`, `Producer`, `Consumer`). Real-library import compatibility is **unverified until CI**.
+    - `PYTHONPATH=<stub> python3 -m pytest -v tests/test_kafka_client.py` (Python 3.13): **29 passed in 0.20s**.
+    - `pytest -q tests/test_worker_heartbeat.py` (unmodified): **6 passed**.
+    - `grep -n "time.sleep" services/common/kafka_client.py`: no output (rc 1).
+    - `.github/scripts/ownership-check.sh origin/main agent/backend/OPS-H8`: `Ownership OK for role=backend (487 changed lines)` + `::warning::487 changed lines (> 400)`.
+    - Local mutation smoke (scratch, not pushed): (a) unconditional DLQ-then-commit gives 4 failed; (b) `_produce_confirmed` ignores the callback outcome gives 11 failed; (c) `time.sleep` in the handler wait gives 8 failed.
+      The AC10 CI procedure (commit, revert, a finished run each) needs the PR, so it's **not done**.
+    - Not run: `make test-unit` / `make test-py` (no BGE/torch here), `make lint` (Go 1.25 unavailable; there's no Python linter in the harness), M4/`stack.yml` (AC11, needs the PR).
+  - **ACs (local evidence only):** AC1 `test_success_path`[0/1/2] + `test_commit_error_is_logged_and_loop_continues` pass. AC2 `test_dlq_then_commit` pass. AC3 `test_dlq_failure_blocks_and_never_commits`[err/queued] pass.
+    AC4 `test_dlq_recovers_after_two_failures` + `test_dlq_backoff_schedule` pass. AC5 `test_publish_requires_confirmation`[ok/err/queued/raise] + `test_failing_publish_in_handler_is_retried_not_committed`[ok/err] pass.
+    AC6 `test_stop_during_wait_returns_promptly`[handler-wait/dlq-wait] (real `Event.wait`, 5 s backoff, < 0.2 s) pass, grep empty. AC6b `test_stop_during_last_attempt_is_not_a_failure`[3/1] pass.
+    AC7 `test_poison_record_goes_to_dlq_and_loop_continues`[not json / missing fields / list] pass. AC8 `test_dlq_failure_log_has_coordinates_not_value`[handler/poison] pass.
+    AC9 `test_publish_dlq_direct_call_contract`[ok/err] + `test_build_dlq_payload_is_total` pass, heartbeat suite unmodified and green; `make test-py` not run. **AC10, AC11: not done (need the PR). AC12: FAIL (487).**
+  - **Binding conditions:** 1 met (built after #23; overlap rechecked; ci.yml step kept). 2 **triggered: stop** (counts above). 3 pending the PR. 4 met (`test_delivery_bound_outlasts_message_timeout`).
+    5 text ready (below). 6 pending the PR (local smoke only). 7 met (`tests/test_worker_heartbeat.py` and both worker files unchanged; embedder untouched).
+  - **PR body, "Behaviour changes (decided by pm-lead in design review)":**
+    1. `ServiceKafkaProducer.publish` and `publish_dlq` raise `DeliveryError` when the broker hasn't confirmed delivery within 12 s (`message.timeout.ms = 10000`). Before, they returned silently.
+       The processor's handler therefore fails and is retried when `papers.chunked` isn't delivered.
+    2. A `KafkaException` from `commit` is logged (`Commit failed (topic=… partition=… offset=…): …; the record will be redelivered`) and the loop continues. Before, it killed the worker.
+    3. An undecodable record (not JSON, or not a valid `EventEnvelope`) goes to `<topic>.dlq` with `attempts = 1` and is committed. Before, it crash-looped the worker. Tell poison records apart by `error_type`.
+    4. The first SIGTERM/SIGINT finishes the running handler call, commits only if that record resolved, and exits. A second signal forces the stop with no commit.
+       While the DLQ is unreachable the worker stalls on that record with one CRITICAL line per round (1, 2, 4 … 30 s) and commits nothing after it.
+    5. Also: DLQ `stack_trace` is now the handler's real traceback (it was `NoneType: None` on the consumer path). The per-attempt handler warning logs the exception type only (the message stays in the DLQ payload), so record values don't leak into logs.
+  - **Final sequence** (for pm-lead's Technical PRD §8.1/§8.2 docs PR): as in design §7 "Final sequence", unchanged by the build.
+  - Unverified: the real `confluent_kafka` import/behaviour (CI), `make test-py`, AC10 CI runs, AC11 M4 on `stack.yml`. Jira KAN-34 isn't touched from this session (orchestrator mirrors).
