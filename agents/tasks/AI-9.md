@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged `71cb609`: `stack.yml` runs the stack and the "Known failure F1" step). None open. |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-AI-9"`) |
 | **Design required** | no: P1, one file, no contract change. The ranking-neutral constraint (AC2) is what keeps it small. |
-| **Status** | Ready (Wave 2: starts when an ai slot frees, i.e. AI-7 or EVAL-6 reaches Ready to merge) |
+| **Status** | In Progress (built on `agent/ai/AI-9` @ `3e6420e`; draft PR to be opened by the orchestrator → In QA) |
 
 ## Goal
 On GitHub's CPU runners, `/internal/rerank` scoring the ADR-0010 pool of 20 passages takes about 10 s, so three M3 tests
@@ -53,3 +53,33 @@ python3 -m pytest -q tests/test_m0.py -k rerank
   (403), so model timings only come from `stack.yml` on GitHub runners. Follow-up for backend after merge: remove the "Known
   failure F1" step and its `F1_TESTS` deselection in `stack.yml`.
 - Wave 2: `api.py` is touched by no other planned task.
+- 2026-11-07 (ai-engineer): build on `agent/ai/AI-9` commit `3e6420e` (2 files, +241/-9; ownership check OK).
+  - `services/embedder/api.py`: new `score_pairs()` keeps the same tokenizer call (truncation, `max_length=512`) and model,
+    sorts pairs by token length (stable), scores batches of 8 (`RERANK_BATCH_SIZE`) under `torch.inference_mode()` and writes
+    each score back to its input index. One log line per request: `rerank passages= batches= max_len= tokens= padded_tokens=
+    single_batch_padded_tokens= threads= tokenize_ms= forward_ms= total_ms=` (no text). Startup: `torch.set_num_threads` from
+    `EMBEDDER_TORCH_THREADS` (default = cores available to the process, logged as `torch threads: A -> B`) and a 3-passage
+    warm-up rerank (logged as `rerank warm-up ...`). No change to max_length, dtype, model, pool size or timeouts.
+  - `tests/test_m0.py`: mocked tokenizer/model tests for `score_pairs` and `rerank_endpoint` (20 mixed-length passages,
+    batch 4, compared with the old single-batch algorithm kept in the test), a thread env test, and
+    `test_rerank_real_cross_encoder_scores_match_single_batch` (real `bge-reranker-base`, 3 queries x 20 synthetic
+    passages of 1-30 sentences, old vs new within 1e-4 and identical ranking; parity numbers are emitted as pytest warnings
+    so they show in CI's `-q` log; it skips if the model can't load). It downloads ~1.1 GB in CI's Python job: the HF cache
+    key there only covers bge-base, so the download happens on every run.
+  - Sandbox: torch/transformers/fastapi can't be installed (pypi.org and download.pytorch.org are denied by the proxy, 403).
+    The 4 rerank tests ran under a numpy-backed fake `torch` plus stubbed third-party modules (scratch harness, not committed):
+    3 passed, 1 skipped (real model not loadable). AC3 mutation (scores appended in sorted order, write-back removed):
+    `test_rerank_score_pairs_keeps_input_order_after_length_sorting` and `test_rerank_endpoint_returns_scores_in_input_order`
+    FAILED with "Mismatched elements: 20 / 20". Restored: 3 passed, 1 skipped. Real torch only runs in CI.
+  - AC1/AC4: need CI. The before numbers come from the previous `stack.yml` run's embedder logs (old code has no timing line;
+    use the M3 client-side durations), and the after numbers from this PR's `stack.yml` run (grep `rerank passages=20` in
+    `stack-logs/compose.log`). If F1 still fails after this, stop and hand the AC1 numbers to pm-lead for an ADR (int8,
+    lower max_length, smaller pool). Expect limited padding savings, because fixture chunks are ~512 tokens: compare
+    `padded_tokens` with `single_batch_padded_tokens` in the log line.
+  - AC2: covered in CI by the real-model parity test (synthetic passages, not the fixture DB chunks). For the fixture corpus:
+    the scoring path is deterministic (eval mode, no sampling), so run the embedder API at `71cb609` and at `3e6420e`, send the
+    same `/internal/rerank` bodies (≥ 3 queries x the 20 pool passages, captured from the stack) to both, and diff the
+    `scores` arrays (≤ 1e-4, same argsort). Not run: needs the stack plus HF access.
+  - AC5: **deferred to a follow-up after #21 merges** (open PR #21 changes `README.md`). The follow-up adds an
+    `EMBEDDER_TORCH_THREADS` row to the README Environment table.
+  - Jira KAN-39 not updated from this session; the orchestrator mirrors the stage when it opens the PR.
