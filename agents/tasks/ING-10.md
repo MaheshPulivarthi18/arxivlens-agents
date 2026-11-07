@@ -59,3 +59,27 @@ go test ./internal/query/ ./internal/downloader/ ./internal/crawler/ ./internal/
   FE-4 is the first place users see "vN", so its design approval checks that ING-10 has merged.
 - Rows that may be mislabelled (for the PR text, not to run): `SELECT arxiv_id, version FROM papers WHERE source_url = 'https://arxiv.org/pdf/' || arxiv_id || '.pdf';`
   (every unversioned source URL is suspect; the on-demand rows are the likely wrong ones).
+- 2026-11-07 (backend-engineer): built on `agent/backend/ING-10` @ `d2b133f` (worktree `/root/wt/ING-10`; not pushed, no PR yet).
+  - Diff (`git diff --stat origin/main...HEAD`): 8 files, +288 / -33. `ownership-check.sh origin/main agent/backend/ING-10` → `Ownership OK for role=backend (321 changed lines)`.
+    New `internal/arxiv/id.go` (`SplitVersion`, `PDFURL`) + `id_test.go`; `crawler.go`, `downloader.go`, `ingester.go` + their tests.
+  - Shape: crawler and ingester both call `arxiv.SplitVersion`. Ingester fails with `arXiv entry ID "<id>" for <arxiv_id> has no valid version; not ingesting`
+    before the PDF request. Downloader fetches `arxiv.PDFURL(id, envelope version)` and logs a warning when the `version==0 → 1` default fires.
+    Crawler: versioned `SourceURL` when the entry has a version; a version-less entry keeps the unversioned URL (version unknown; stored 1 is a default),
+    so the suspect-rows SQL above still finds it. To get infra-free tests, `downloader` and `ingester` now hold small interfaces over `*db.DB`, `*storage.Storage`,
+    `*kafka.Producer` and `*minio.Client` (constructors unchanged; a nil `*minio.Client` stays a nil interface).
+  - **AC4 wording conflict (needs pm-lead/QA decision):** one ING-9 test body line changed. `TestIngestSpacesArxivRequests` expected the substring
+    `arxiv.org/pdf/2307.08691.pdf`, and a versioned URL can't contain it. The literal is now `arxiv.org/pdf/2307.08691v1.pdf` (the stub's entry is v1).
+    That is stricter, not weaker: the request count, order, spacing and UA checks are unchanged. No other ING-9 test line changed (`limiter_test.go`, `checkSpaced`, `TestConcurrentIngestsShareOneLimiter`, `TestFetchPDFIsSpacedAndIdentified` untouched).
+  - Commands: Go 1.25 isn't available here (`go: download go1.25.0 … Forbidden` via the proxy; no module cache), so `make lint` / `make test-unit` were **not run locally: no Go 1.25 toolchain or modules**.
+    Instead, Go 1.24 (`GOTOOLCHAIN=local`) on a scratch module: the real `internal/arxiv`, `crawler`, `downloader`, `query/ingester{,_test}.go`, `config`, `shared/events` with
+    stub `db`/`kafka`/`storage`/minio/kgo/ulid whose method signatures copy the real ones. `go vet ./internal/...` was clean. `go test -race ./internal/...` gave `ok` for all 4 packages, and the
+    verification `-run` set passed (TestIngestUsesEntryVersion, TestIngestRejectsUnversionedEntry, TestHandleRecordFetchesTheEnvelopesVersion, TestParseAtomFeed, TestSplitVersion, the ING-9 tests).
+    Mutation check: 6/6 killed (ingester default-v1, unversioned ingester URL, payload version 1, downloader unversioned URL, crawler unversioned SourceURL, helper accepts v0).
+    `gofmt -l` on every tracked file + new files printed nothing.
+  - AC status: AC1 met (unit test `TestIngestUsesEntryVersion`: requests [Atom, `/pdf/2401.12345v3.pdf`], row v3 + key + source_url, MinIO put, payload `version: 3`).
+    AC2 met (`TestIngestRejectsUnversionedEntry`: no version, `v`, `v0`, `vx`; error names the ID; only the Atom request; 0 DB/MinIO/ingest calls).
+    AC3 met (`TestHandleRecordFetchesTheEnvelopesVersion` n = 1, 2, plus 0 → v1; crawler `2307.08691v2` → `…/2307.08691v2.pdf`). AC4: request count unchanged (2 per ingest, 1 per download, asserted); see the conflict above.
+    AC5 **not verified**: needs `stack.yml` on the PR. Risk: `tests/test_m4_chaos.py` hard-codes `raw/2608.20331_v1.pdf` and `version: 1`. If arXiv now has 2608.20331 at v2+, the seeded row becomes v2 and M4 fails.
+    I couldn't check arXiv from here (proxy 403); if it fails that way, file the fixture follow-up for ai and don't loosen it. AC6: 321 changed lines (< 400); the PR should carry the suspect-rows SQL above, not run.
+  - README: the "On-demand ingest" row doesn't describe the PDF source, so no change. Optional follow-up wording for `README.md` line 164 (after #26 merges):
+    `| POST | /v1/papers/ingest | On-demand ingest by arXiv ID or URL (stores the latest arXiv version; a vN suffix in the input is ignored) |`.
