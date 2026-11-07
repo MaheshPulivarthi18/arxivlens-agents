@@ -268,4 +268,49 @@ Runtime target: < 1 s, with no real waits except AC6's ≤ 0.2 s pair.
 6. File **G5** (undeliverable DLQ message, P3) and optionally **G4** (embedder L2 unused) as Backlog?
 
 ## PM decision
-_(pm-lead fills)_
+**Decision: APPROVED with conditions** (pm-lead, 2026-11-07 10:19Z, design at `f1b5c0e`, code at ArxivLens `origin/main` `71cb609`).
+
+Why: the design answers all seven "Design must answer" items in the ticket and mirrors the approved OPS-H6 semantics: retry the DLQ write in place,
+build the payload once, no commit until the write lands, interruptible waits, AC6b. With per-record sync commits in a single sequential loop,
+"nothing at or after N is committed" is structural. I checked the refs against `71cb609`. `start` is at `:157-219`: decode `:178-179` is outside the retry `try`,
+`time.sleep` is at `:199`, and `commit(message=msg, asynchronous=False)` runs unconditionally after `publish_dlq`. `DLQPayload` (`shared/events/events.py:31-43`)
+keeps its fields. Neither worker installs a signal handler today, so installing one inside `start` collides with nothing. The redelivery table (§6) matches
+Technical PRD §8.1 L2/L3. The `format_exc()` trace finding is real, and fixing it here is in scope (AC2 diagnostics, Product PRD §5.3). There is one named test
+per AC, and failure paths are listed. No shared contract changes: event envelope, `DLQPayload` fields, topics, HTTP, schema and model all stay the same. So none of the
+six questions needs an ADR.
+
+Answers to the open questions (all within pm-lead authority; **none needs Mahesh**. Items 1–3 change what operators see, so they go in the PR body for visibility, condition 5):
+1. **Commit errors logged, not raised: accepted.** Same policy as the approved OPS-H6 Go consumer (its test plan, "commit error (logged, loop continues)").
+   The ticket's rule ("no swallowed commit error may be followed by moving on as if committed") holds: nothing reads a committed state, and an uncommitted
+   processed record is either covered by the next cumulative commit or redelivered. Only `KafkaException` from `commit` is caught. Any other exception still propagates.
+2. **`message.timeout.ms = 10000` with a 12 s confirmation bound: accepted.** It is producer-internal config, not a retry count or a gate. It turns "not confirmed" into
+   "failed, won't arrive later", so outages don't build a queue of late duplicates. Define both values once, as named module constants with a one-line comment, and add a test that
+   asserts `delivery_timeout_s > message.timeout.ms / 1000` (condition 4). Known consequence, accepted: a `flush` (≤ 12 s) can outlast Docker's 10 s stop grace. SIGKILL comes
+   before any commit, so the cost is a duplicate, never a loss. The compose `stop_grace_period` is a Backlog item, not this PR (`docker-compose.yml` is out of scope).
+3. **Poison records `attempts = 1`: accepted.** Technical PRD §8.2 lists `attempts` as a diagnostic field. "Attempts made" is the honest value, and decoding is deterministic.
+   The field's meaning will be written down in the pm-lead Technical PRD §8.2 docs PR (Backlog, already listed). Operators tell poison records apart by
+   `error_type` (`JSONDecodeError` / `ValidationError` / `TypeError`), not by `attempts`.
+4. **First SIGINT/SIGTERM finishes the running handler call, second forces the stop: accepted.** This is the behaviour Docker stop needs (OPS-1), and local Ctrl-C keeps an
+   escape hatch. Handlers are installed only on the main thread and restored in `finally`. Keep `test_signal_handler_sets_stop_and_is_restored`.
+5. **DLQ `traceparent` falls back to `envelope.traceparent`: accepted.** Technical PRD §9 says "W3C `traceparent` on every event and DLQ record". At `:180-181` the
+   envelope's value is already the header value when a header is present, so this only fills today's `None` case. The poison path stays header-only (no envelope).
+6. **Backlog: G5 is filed** (backend, P3). **G4 is filed** (ai, P3, low value: L3 already makes redelivery safe; fold into the next `services/embedder/worker.py` change).
+   Also filed: compose `stop_grace_period` for the workers (backend, P3, from answer 2). All three are in `agents/board.md` Backlog.
+
+Binding conditions:
+1. **Sequencing.** No build this cycle. Cut `agent/backend/OPS-H8` from a fresh `origin/main` **only after ArxivLens #23 (LLM-1, changes `.github/workflows/ci.yml`) merges**.
+   `Makefile` is in open #22 (EVAL-3), so the CI-step route in Scope stands. At build start, recheck that no open PR touches `services/common/`, `.github/workflows/ci.yml`,
+   `tests/test_kafka_client.py` or either worker file (AGENTS.md §3). On 2026-11-07 10:19Z, open #20–#25 touch none of them except #23's `ci.yml`. If #22 has also merged by then,
+   keep the CI step anyway. Moving the file into `make test-py` stays the follow-up in Notes, not scope creep here.
+2. **Size (lesson LLM-1: estimates near 400 run low).** Before writing the full test file, record a counted skeleton in ticket Notes (`git diff --stat` of `kafka_client.py`
+   done plus the stubbed test functions with their fakes). **Split seam, named now:** if the projected total is > 400, move §5 (poison-record decode `try`) and the AC7 tests
+   into follow-up **OPS-H8b** (backend, P0, covered by this design, no new design round). OPS-H8 then ships AC1–AC6 and AC8–AC12 unchanged, and AC7 moves to OPS-H8b. Don't trim
+   AC1–AC6 or AC8–AC10 tests to fit. No size exception is granted in advance. If it's still > 400 without §5, stop and report in Notes.
+3. **AC11 is delivered in this PR** (amended in the ticket). `stack.yml` runs on the PR (`paths` include `services/common/**`). Evidence: the run URL, plus the M4 test lines
+   (`tests/test_m4_chaos.py`) passing in that run's log. If the run is red only on the known F1 deselection/step, QA shows the M4 lines are green. If M4 itself fails, the PR doesn't pass QA.
+4. **Delivery bound test:** `message.timeout.ms` and `delivery_timeout_s` are named constants, and one test asserts the bound in answer 2. It's a few lines inside the AC5 test module.
+5. **PR body:** a "Behaviour changes (decided by pm-lead in design review)" section listing the four visible changes (publish/publish_dlq raise `DeliveryError`; commit error
+   logged; poison → DLQ with `attempts=1`; first signal = graceful stop) plus the stack-trace fix, so Mahesh sees them at merge.
+6. **AC10 mutations** follow the OPS-H6 procedure exactly. Each mutation is its own commit (`mutation(AC10a|b|c): …`) containing only the `kafka_client.py` mutation and no test edits,
+   followed by `revert mutation(AC10x)`. Wait for each CI run to finish before the next push (`ci.yml` cancels in-progress runs). SHAs and run URLs go in Notes. The final head is green.
+7. Keep `tests/test_worker_heartbeat.py` unmodified and green, and keep worker call sites unchanged (§7). Don't touch the embedder worker (ai-owned).

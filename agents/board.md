@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 by pm-lead (EVAL-3 #22 PM APPROVE → Ready to merge; EVAL-9 specced (Ready once #22 merges). Earlier: LLM-1 #23 PM APPROVE → Ready to merge; LLM-1b Ready once it merges. Earlier: AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Proposed)
+Last updated: 2026-11-07 by pm-lead (OPS-H8 design APPROVED with conditions; build waits for #23. Earlier: EVAL-3 #22 PM APPROVE → Ready to merge; EVAL-9 specced (Ready once #22 merges). Earlier: LLM-1 #23 PM APPROVE → Ready to merge; LLM-1b Ready once it merges. Earlier: AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Proposed)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -12,7 +12,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | 1b | [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (code already written) | backend-engineer | P0 | **LLM-1 merged** | 1b | ≈ 279 non-test lines; covered by LLM-1 design |
 | 5 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | 1 | **Env-blocked:** registry.npmjs.org; needs Mahesh (allow the host, or push the lockfile) |
 | 6 | [AI-6](tasks/AI-6.md) | Context selection, token budget, prompt, structured-output parser (writes `docs/design/QA-8.md`) | ai-engineer | P0 | AI-7 merged | 2 | Pure functions, `Ask` unchanged |
-| 7 | [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python consumer: commit after success or confirmed DLQ (design-required) | backend-engineer | P0 | OPS-H1 (merged); backend slot | 2 | Swap with EVAL-3 if Mahesh wants data-loss fix first |
+| 7 | [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python consumer: commit after success or confirmed DLQ (design-required) | backend-engineer | P0 | OPS-H1 (merged); **#23 merged** (`ci.yml`); backend slot | 2 | Design APPROVED w/ conditions 2026-11-07; build waits for #23 merge. Split seam → OPS-H8b (AC7) if > 400 lines |
 | 8 | [AI-9](tasks/AI-9.md) | CPU rerank latency without changing scores (F1) | ai-engineer | P1 | ai slot | 2 | Timings only from `stack.yml` (HF blocked in sandbox) |
 | 9 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1, AI-7 merged | 2 | |
 | 10 | [RET-2](tasks/RET-2.md) | `SearchHit` carries paper version + page (design-required) | backend-engineer | P1 | **ADR-0014 Accepted**, AI-7 + EVAL-6 merged | 2 | Blocked until Mahesh decides ADR-0014 |
@@ -114,6 +114,9 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 - backend nits from the RET-1 review (fold into the next `search.go` change): `context.Canceled` fallback test case, `±Inf` score test
 - From the AI-1 review: `/internal/rerank` bi-encoder fallback (no cross-encoder) returns uncalibrated dot products → decided in ADR-0011, done in AI-5 if accepted; aux-section match is a substring (`"Notable"` contains `"table"`) → small ai follow-up after AI-5
 - pm-lead PRD docs PR: Product PRD QA-5 ✅ → ◐ (fails open during reranker outages; ADR-0011/AI-5), back to ✅ when AI-5 merges
+- From the OPS-H8 design review, G5 (backend, P3): a DLQ message that can never be delivered (e.g. > `message.max.bytes`, 1 MiB) stalls the Python consumer for good; on non-retriable produce errors (`MSG_SIZE_TOO_LARGE`) truncate `original_value` + `stack_trace` and retry once. Not reachable today (claim-check envelopes)
+- From the OPS-H8 design review, G4 (ai, P3, fold into the next `services/embedder/worker.py` change): the embedder imports `check_and_record_ledger` but doesn't use L2; redelivery is safe via L3 but costs a SELECT + status UPDATE
+- From the OPS-H8 design review (backend, P3, after OPS-H8 merges): compose `stop_grace_period` (~20 s) for processor/embedder so one confirmed `flush` (≤ 12 s) fits inside Docker's stop grace (today 10 s → SIGKILL → duplicate, never loss)
 - OTLP span export to Jaeger/Tempo (backend) — Technical PRD §11 P1
 - Prometheus metrics: consumer lag, DLQ depth, stage latency (backend) + OPS-6 dashboard (frontend)
 - Auth + rate limiting on query API (backend) — before any shared deployment

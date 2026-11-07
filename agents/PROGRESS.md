@@ -311,3 +311,9 @@ Format:
 - PR body at `/tmp/claude-0/s/pr22-body.md` for the orchestrator (ready for review, KAN-29 → Ready to merge). Board: EVAL-3 → Ready to merge.
 - QA [spec] 5 + nits 1/2/7 → new **EVAL-9** (backend, P1, Ready once #22 merges: seed step 45→70 min, job 100→120, seed-time summary + ≥ 75% warning, label fixes).
   Finding 4 → "Decisions for Mahesh" in the PR body. Backlog: PRD numbers docs PR after merge; seeded-state cache option (P3).
+
+## 2026-11-07 10:19Z — pm-lead — OPS-H8 design review (KAN-34)
+- `docs/design/OPS-H8.md` (`f1b5c0e`) **APPROVED with conditions**; refs re-checked against ArxivLens `71cb609` (`kafka_client.py:157-219`, `shared/events/events.py:31-43`; no signal handlers in either worker).
+- Open questions 1–6 decided by pm-lead, none needs Mahesh/ADR (no shared contract change): commit errors logged (KafkaException only, as OPS-H6); `message.timeout.ms=10000` + 12 s bound; poison `attempts=1`; first signal graceful / second forces; DLQ traceparent envelope fallback. Visible behaviour changes go in the PR body for Mahesh.
+- Conditions: build only after #23 (LLM-1, `ci.yml`) merges; counted skeleton + named split seam OPS-H8b (§5/AC7) if > 400 lines (AC12 amended); AC11 (M4) delivered in this PR via `stack.yml` (AC11 amended); delivery-bound test; OPS-H6 mutation procedure.
+- Backlog: G5 (backend P3), G4 (ai P3), compose `stop_grace_period` (backend P3). Jira not touched (orchestrator mirrors).

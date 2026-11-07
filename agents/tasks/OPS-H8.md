@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror); **OPS-H1 (ArxivLens #14) merged**: #14 adds a worker heartbeat hook (`_heartbeat`, about 16 lines) to `services/common/kafka_client.py`, the file this task rewrites (AGENTS.md §3 independence). The design must keep that hook (touch after every `poll()` while assigned; no-op when `WORKER_HEARTBEAT_FILE` is unset) |
 | **Jira** | KAN-34 (`labels = "task-OPS-H8"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics for both Python workers |
-| **Status** | Design: [`docs/design/OPS-H8.md`](../../docs/design/OPS-H8.md) written 2026-11-07, awaiting pm-lead approval. **Build waits for ArxivLens #23 (LLM-1) to merge** (it also changes `.github/workflows/ci.yml`). No product code yet |
+| **Status** | **Design approved; build waits for #23 merge.** Design [`docs/design/OPS-H8.md`](../../docs/design/OPS-H8.md) APPROVED with conditions by pm-lead 2026-11-07 (design `f1b5c0e`). Cut `agent/backend/OPS-H8` from fresh `origin/main` only after ArxivLens #23 (LLM-1, `ci.yml`) merges. No product code yet |
 
 ## Goal
 Technical PRD §8.1 promises L4 for **all** consumers: the offset is committed only after the handler succeeds or the
@@ -97,11 +97,12 @@ Make the Python consumer keep the same promise as the Go one, so the pipeline is
   write, (b) ignoring the delivery result in `publish_dlq` (back to bare `flush`), (c) reverting to `time.sleep`, each make at
   least one named test fail in CI. The developer pushes each mutation as its own commit and a revert, waits for each CI run,
   and lists the SHAs and run URLs in Notes; the final head is green.
-- [ ] AC11 — Deferred, with an owner: M4 (`tests/test_m4_chaos.py`) on the full stack. Not runnable until OPS-H1 (#14)
-  merges and `stack.yml` exists on `main`. Stop-and-report rule: the PR states "M4 not run: no stack" and this AC stays open
-  on the ticket; it is closed by the first green `stack.yml` run on `main` after both merge (pm-lead files the run URL in
-  `agents/reviews/OPS-H8/`). If that run fails in M4, a follow-up task is opened for backend before anything else in the area.
-- [ ] AC12 — Diff ≤ 400 changed lines in total (code + tests + CI step); if the design shows it can't fit, split the poison-record AC7 into its own task. Docs: Technical PRD §8.1/§8.2 caveat removal is a pm-lead docs PR;
+- [ ] AC11 — M4 (`tests/test_m4_chaos.py`) on the full stack, **delivered in this PR** (amended 2026-11-07 by pm-lead design review; OPS-H1 is merged
+  and `stack.yml` triggers on `services/common/**`). Evidence: the PR's `stack.yml` run URL plus its log lines showing the M4 tests passing. A run red only on
+  the known F1 step is acceptable if the M4 lines are green; an M4 failure fails QA.
+- [ ] AC12 — Diff ≤ 400 changed lines in total (code + tests + CI step). Before writing the full test file, record a counted skeleton in Notes. **Split seam
+  (pm-lead, design review):** if the projection is > 400, move design §5 (poison-record decode) + AC7 into follow-up **OPS-H8b** (backend, P0, same design); don't trim
+  AC1–AC6/AC8–AC10 tests. No size exception in advance. Docs: Technical PRD §8.1/§8.2 caveat removal is a pm-lead docs PR;
   put the final sequence (when the Python consumer commits, what is redelivered) in this ticket's Notes.
 
 ## Verification
@@ -134,3 +135,9 @@ grep -n "time.sleep" services/common/kafka_client.py   # must print nothing
   - Open questions for pm-lead/Mahesh: design §"Open questions" 1–6 (commit-error policy, `message.timeout.ms=10000`, poison `attempts=1`, SIGINT semantics,
     DLQ traceparent fallback, file G5/G4).
   - Jira KAN-34 → Design and the design link: not done from this session (no Jira tool available to the backend agent here); orchestrator to mirror.
+- 2026-11-07 10:19Z (pm-lead, design review): **APPROVED with conditions** (design `docs/design/OPS-H8.md` "PM decision"). Open questions 1–6 all decided by pm-lead,
+  none needs Mahesh/ADR (no shared contract change): commit errors logged (KafkaException only); `message.timeout.ms=10000` + 12 s bound as named constants with a bound
+  test; poison `attempts=1`; first signal graceful, second forces; DLQ traceparent falls back to the envelope; G5, G4 and a compose `stop_grace_period` item go to the
+  board Backlog. Conditions: (1) build starts only after #23 merges; recheck open-PR overlap at start; keep the `ci.yml` step even if #22 has merged; (2) counted
+  skeleton + OPS-H8b split seam (AC12 amended); (3) AC11 delivered in this PR via `stack.yml` (AC11 amended); (4) delivery-bound test; (5) PR body lists the
+  behaviour changes for Mahesh; (6) AC10 mutation procedure as OPS-H6; (7) `tests/test_worker_heartbeat.py` and worker call sites unchanged.
