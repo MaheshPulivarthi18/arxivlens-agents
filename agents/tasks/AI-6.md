@@ -8,7 +8,7 @@
 | **Depends on** | **AI-7 merged** (same file, `rag.go`). No dependency on LLM-1: these are pure functions with no `internal/llm` import. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-6"`) |
 | **Design required** | **yes**: P0. Write `docs/design/QA-8.md` here, covering both AI-6 and QA-8 (context, prompt, output format, fallback), so QA-8 needs only an addendum. pm-lead approves before code. |
-| **Status** | In Progress: built at `c457576` (branch `agent/ai/AI-6`), PR pending. **Split per design condition 1 seam (c):** `parseSynthesis` (AC3) moves to AI-6b, which pm-lead specs as a QA-8 dependency |
+| **Status** | Rework r1 done (PR #28 draft, head `c457576`, PR body fixed for QA findings 1–2); awaiting pm-lead on findings 3/4/6, then QA round 2. **Split per design condition 1 seam (c):** `parseSynthesis` (AC3) moves to AI-6b, which pm-lead specs as a QA-8 dependency |
 
 ## Goal
 An LLM answer is only as good as the passages it sees and the format it must answer in. Build the deterministic part of
@@ -80,3 +80,8 @@ go test -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | gre
     - [x] AC5: rag.go 98.5% per-file, from a pasted `go tool cover` run (scratch module). CI doesn't print coverage.
     - [x] AC6: 302 changed lines (< 400).
   - Unverified: CI (`make lint`, `make test-unit` under Go 1.25), which runs once the PR exists. Jira was not touched (the orchestrator moves it). Design note for pm-lead: the PM decision's "Next" line names branch `agent/ai-engineer/AI-6`, but `ownership-check.sh` only accepts the role `ai`, so the branch is `agent/ai/AI-6`.
+- 2026-11-07 (ai-engineer, rework r1): QA round 1 FAIL ([report](../reviews/AI-6/report.md)). PR-description fixes only; no code change, head still `c457576`. PR #28 stays in draft.
+  - [x] Finding 1 (design condition 4): the PR body now has a "System prompt (verbatim, design condition 4)" section. It holds the `synthesisSystemPrompt` const, extracted programmatically from `internal/query/rag.go` at `c457576`, in a fenced block, plus `synthesisPromptVersion = "synthesis-v1"`.
+  - [x] Finding 2 (design condition 5): the PR body now has a "Mutation check (design condition 5)" table with all 6 mutations and their failing test names. It notes the stdlib-only scratch module and `cmp` restore, and says the out-of-range-marker mutation moves to AI-6b.
+  - [ ] Findings 3, 4, 6 → pm-lead (AI-6b spec + AC3 "moved" annotation; record the `metaField` refinement and `sort` import in `docs/design/QA-8.md`; fix the branch name in the design's "Next" line). Until AI-6b exists, the PR's "Follow-ups created" line now reads "Follow-ups requested".
+  - Finding 5 and the missing-tests list: no change in this PR. Candidates for AI-6b/QA-8 (look-alike delimiter regexp `(?i)<\s*(/?)\s*(passage|question)`, empty-content hits, the truncation-after-skip case).
