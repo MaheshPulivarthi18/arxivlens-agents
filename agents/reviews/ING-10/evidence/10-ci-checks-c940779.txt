@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/c9407793e55c6fb1ec3f5bac141cb69814ae269e/check-runs --jq .check_runs[] | "\(.name) | \(.status) | \(.conclusion) | \(.head_sha) | \(.completed_at)"
+Full stack (compose + make test-full) | completed | success | c9407793e55c6fb1ec3f5bac141cb69814ae269e | 2026-11-07T20:46:52Z
+Go (vet, gofmt, test, build) | completed | success | c9407793e55c6fb1ec3f5bac141cb69814ae269e | 2026-11-07T20:37:03Z
+Frontend (lint, test, build) | completed | success | c9407793e55c6fb1ec3f5bac141cb69814ae269e | 2026-11-07T20:36:25Z
+Agent ownership check | completed | success | c9407793e55c6fb1ec3f5bac141cb69814ae269e | 2026-11-07T20:36:16Z
+Python M0 unit tests | completed | success | c9407793e55c6fb1ec3f5bac141cb69814ae269e | 2026-11-07T20:37:24Z
+DB (migrate twice, HNSW plan + recall) | completed | success | c9407793e55c6fb1ec3f5bac141cb69814ae269e | 2026-11-07T20:37:29Z
+
+[exit code 0]

@@ -1,0 +1,32 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/42411848508 --jq "\"run \(.id) \(.name) event=\(.event) branch=\(.head_branch) head_sha=\(.head_sha) conclusion=\(.conclusion) \(.html_url)\""; gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/42411848508/jobs --jq ".jobs[] | \"job \(.id) \(.name) \(.conclusion)\", (.steps[] | \"  \(.number) \(.name): \(.conclusion)\")"
+run 42411848508 Full stack event=workflow_dispatch branch=agent/backend/ING-10 head_sha=c9407793e55c6fb1ec3f5bac141cb69814ae269e conclusion=success https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42411848508
+job 128521476877 Full stack (compose + make test-full) success
+  1 Set up job: success
+  2 Run actions/checkout@v4: success
+  3 Run actions/setup-go@v5: success
+  4 Run actions/setup-python@v5: success
+  5 Lint the harness (actionlint, compose config): success
+  6 Cache Hugging Face models: success
+  7 Host Python deps (make setup-py, CPU torch): success
+  8 Pre-fetch models into the shared HF cache: success
+  9 Build Go CLI: success
+  10 AC1: plain docker compose up -d starts infra only: success
+  11 AC2: make stack-up: success
+  12 Worker health follows this container, not the group: success
+  13 Migrate: success
+  14 AC3: crawl 2 papers (before the downloader starts): success
+  15 Start Go downloader and query service on the host: success
+  16 AC3: wait until both crawled papers are embedded: success
+  17 Seed the M3/M4 fixture (on-demand ingest of 2608.20331): success
+  18 AC4: make test-full: success
+  19 Known failure F1 (CPU rerank latency, tracked): success
+  20 Diagnostics: skipped
+  21 Upload logs: success
+  22 Teardown: success
+  41 Post Cache Hugging Face models: success
+  42 Post Run actions/setup-python@v5: success
+  43 Post Run actions/setup-go@v5: success
+  44 Post Run actions/checkout@v4: success
+  45 Complete job: success
+
+[exit code 0]

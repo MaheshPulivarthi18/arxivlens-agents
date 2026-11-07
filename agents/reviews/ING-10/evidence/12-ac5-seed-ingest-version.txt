@@ -1,0 +1,10 @@
+$ gh api .../actions/jobs/128521476877/logs | grep -n (seed step: on-demand ingest of 2608.20331)
+3470:2026-11-07T20:45:01.9366194Z ##[group]Run sleep 3
+3474:2026-11-07T20:45:01.9367387Z [36;1m  -H 'Content-Type: application/json' -d '{"arxiv_id":"2608.20331"}')"[0m
+3477:2026-11-07T20:45:01.9368071Z [36;1m./bin/arxivlens status --arxiv-id 2608.20331[0m
+3490:2026-11-07T20:45:49.8620880Z {"status":"success","arxiv_id":"2608.20331","version":1,"title":"G-CARL: Grounded Checklist-Aligned Reward Learning for Patient-Oriented Medical Report Interpretation","sections":68,"chunks":57,"embeddings":57}
+3493:2026-11-07T20:45:49.8725929Z Paper ID:       2608.20331 (v1)
+3495:2026-11-07T20:45:49.8727379Z Status:         embedded
+3497:2026-11-07T20:45:49.8728120Z PDF Storage Key:raw/2608.20331_v1.pdf
+3501:2026-11-07T20:45:49.8772782Z ##[group]Run sudo chown -R "$(id -u):$(id -g)" "$ARXIVLENS_HF_CACHE"
+

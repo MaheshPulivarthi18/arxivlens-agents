@@ -1,0 +1,11 @@
+$ python3 /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/dotmap.py /tmp/claude-0/-home-claude/5188166b-78bb-586f-afee-ba0599940e11/scratchpad/stack.log
+summary line: 96 passed, 1 skipped, 3 deselected in 6.94s
+progress chars: 97   mapped ids: 97   non-dot chars: [(56, 's')]
+
+ 56 s  tests/test_evals_data.py::test_chunk_counts_sql_against_real_postgres
+ 85 .  tests/test_m3_query.py::test_query_service_health
+ 86 .  tests/test_m3_query.py::test_paper_status_endpoint
+ 87 .  tests/test_m4_chaos.py::test_idempotency_duplicate_event_row_invariance
+ 88 .  tests/test_m4_chaos.py::test_corrupt_pdf_dlq_routing_and_diagnostic_payload
+
+[exit code 0]

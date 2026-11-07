@@ -1,0 +1,23 @@
+$ bash -c git diff --stat d2b133f c940779; git diff d2b133f c940779; echo; git diff --shortstat origin/main...c940779
+ internal/crawler/crawler.go | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+diff --git a/internal/crawler/crawler.go b/internal/crawler/crawler.go
+index 65c2b21..5089708 100644
+--- a/internal/crawler/crawler.go
++++ b/internal/crawler/crawler.go
+@@ -195,8 +195,9 @@ func parseAtomFeed(body []byte) ([]db.PaperRecord, error) {
+ 	for _, entry := range feed.Entries {
+ 		// Extract arXiv ID and version (e.g., from http://arxiv.org/abs/2401.12345v2)
+ 		arxivID, version, versioned := arxiv.SplitVersion(entry.ID)
+-		// An entry without a version keeps the unversioned URL: the version is unknown, and the
+-		// stored 1 is only a default.
++		// An entry without a version is stored as version 1, and the downloader fetches v1
++		// explicitly. Its source_url stays unversioned on purpose: the feed didn't say which
++		// version it listed, so the row stays visible to the suspect-rows query.
+ 		pdfURL := fmt.Sprintf("https://arxiv.org/pdf/%s.pdf", arxivID)
+ 		if versioned {
+ 			pdfURL = arxiv.PDFURL(arxivID, version)
+
+ 8 files changed, 289 insertions(+), 33 deletions(-)
+
+[exit code 0]
