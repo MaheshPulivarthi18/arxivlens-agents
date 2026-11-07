@@ -1,0 +1,17 @@
+$ bash -c echo '# Python M0 job duration (baseline EVAL-3 run 42344527016 vs PR run 42362802400):'; for r in 42344527016 42362802400; do gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/$r/jobs --jq '.jobs[] | select(.name|test("Python")) | "  run '$r' head \(.head_sha[0:7]): \(.started_at) -> \(.completed_at)"'; done; echo; echo '# pytest summary lines:'; echo -n '  baseline Python job: '; grep -E '[0-9]+ passed' /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/ci/base-py.log | tail -1 | cut -c30-; echo -n '  PR Python job:       '; grep -E '[0-9]+ passed' /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/ci/py.log | tail -1 | cut -c30-; echo -n '  baseline stack AC4:  '; grep -E '[0-9]+ passed, 1 skipped, 3 deselected' /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/ci/base-stack.log | tail -1 | cut -c30-; echo -n '  PR stack AC4:        '; grep -E '[0-9]+ passed, 1 skipped, 3 deselected' /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/ci/pr-stack.log | tail -1 | cut -c30-; echo; echo '# HF cache keys (ci.yml vs stack.yml) and restore result in PR Python job:'; grep -nE 'key: hf-' .github/workflows/ci.yml .github/workflows/stack.yml; grep -E 'Cache restored from key: hf-' /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/ci/py.log | cut -c30-
+# Python M0 job duration (baseline EVAL-3 run 42344527016 vs PR run 42362802400):
+  run 42344527016 head 8fc1209: 2026-11-07T05:52:18Z -> 2026-11-07T05:53:31Z
+  run 42362802400 head 3e6420e: 2026-11-07T10:10:19Z -> 2026-11-07T10:12:07Z
+
+# pytest summary lines:
+  baseline Python job: 68 passed, 1 skipped in 5.76s
+  PR Python job:       72 passed, 1 skipped, 5 warnings in 59.86s
+  baseline stack AC4:  80 passed, 1 skipped, 3 deselected in 8.66s
+  PR stack AC4:        84 passed, 1 skipped, 3 deselected, 5 warnings in 74.30s (0:01:14)
+
+# HF cache keys (ci.yml vs stack.yml) and restore result in PR Python job:
+.github/workflows/ci.yml:41:          key: hf-${{ runner.os }}-bge-base-en-v1.5
+.github/workflows/stack.yml:63:          key: hf-${{ runner.os }}-bge-base-en-v1.5-bge-reranker-base
+Cache restored from key: hf-Linux-bge-base-en-v1.5
+
+[exit code 0]

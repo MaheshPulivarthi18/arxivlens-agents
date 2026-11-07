@@ -1,0 +1,7 @@
+$ bash -c cd /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/mut-orig && PYTHONPATH=/tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/stubs:/tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/mut-orig python3 -m pytest -q -p no:cacheprovider tests/test_m0.py -k rerank -rs 2>&1 | tail -6
+...s                                                                     [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_m0.py:214: bge-reranker-base not loadable: QA stub: no Hugging Face access in sandbox
+3 passed, 1 skipped, 3 deselected in 0.25s
+
+[exit code 0]

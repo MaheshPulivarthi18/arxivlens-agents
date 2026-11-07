@@ -1,0 +1,10 @@
+$ bash -c L=/tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/ci/pr-stack.log; echo "# source: gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128374515419/logs (run 42362802353, head 3e6420e)"; grep -nE "python3 -m pytest -q tests/test_m3_query.py::test_rag|^\S+ FFF|^\S+ FAILED tests/test_m3|[0-9]+ failed in" "$L" | cut -c1-330
+# source: gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128374515419/logs (run 42362802353, head 3e6420e)
+2910:2026-11-07T10:23:15.2794098Z python3 -m pytest -q tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank 
+2911:2026-11-07T10:23:46.0822680Z FFF                                                                      [100%]
+4318:2026-11-07T10:23:46.2088178Z FAILED tests/test_m3_query.py::test_rag_ask_with_groundedness_support - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+4319:2026-11-07T10:23:46.2090516Z FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+4320:2026-11-07T10:23:46.2092773Z FAILED tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+4321:2026-11-07T10:23:46.2094189Z 3 failed in 30.59s
+
+[exit code 0]

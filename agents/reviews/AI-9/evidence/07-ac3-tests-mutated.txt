@@ -1,0 +1,13 @@
+$ bash -c cd /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/mut-mut && PYTHONPATH=/tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/stubs:/tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/mut-mut python3 -m pytest -q -p no:cacheprovider tests/test_m0.py -k rerank -rs 2>&1 | grep -E '^(FAILED|SKIPPED|E +comparison|E +Max)|^_+ test_|passed|failed'
+________ test_rerank_score_pairs_keeps_input_order_after_length_sorting ________
+E         comparison failed. Mismatched elements: 20 / 20:
+E         Max absolute difference: 0.8980515878647566
+E         Max relative difference: 26.758159977389955
+______________ test_rerank_endpoint_returns_scores_in_input_order ______________
+E         comparison failed. Mismatched elements: 20 / 20:
+E         Max absolute difference: 0.9027355443686247
+E         Max relative difference: 25.365095439337306
+SKIPPED [1] tests/test_m0.py:214: bge-reranker-base not loadable: QA stub: no Hugging Face access in sandbox
+2 failed, 1 passed, 1 skipped, 3 deselected in 0.24s
+
+[exit code 0]

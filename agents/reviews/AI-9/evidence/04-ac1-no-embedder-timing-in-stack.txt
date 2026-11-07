@@ -1,0 +1,23 @@
+$ bash -c echo '# PR stack job 128374515419 steps:'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128374515419 --jq '.steps[] | select(.number>=17 and .number<=21) | "  \(.number) \(.name): \(.conclusion)"'; echo; echo '# stack-logs artifact of run 42362802353 (compose.log would be MBs):'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/42362802353/artifacts --jq '.artifacts[] | "  \(.name) \(.size_in_bytes) bytes"'; echo; echo '# stack.yml: compose.log is written only in the Diagnostics step:'; grep -nE 'name: Diagnostics|if: "failure\(\)"|compose.log|continue-on-error' .github/workflows/stack.yml; echo; echo '# grep for the new timing line in the full PR stack job log:'; grep -c 'rerank passages=' /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/ci/pr-stack.log; echo '(0 matches)'
+# PR stack job 128374515419 steps:
+  17 Seed the M3/M4 fixture (on-demand ingest of 2608.20331): success
+  18 AC4: make test-full: success
+  19 Known failure F1 (CPU rerank latency, tracked): success
+  20 Diagnostics: skipped
+  21 Upload logs: success
+
+# stack-logs artifact of run 42362802353 (compose.log would be MBs):
+  stack-logs 7136 bytes
+
+# stack.yml: compose.log is written only in the Diagnostics step:
+219:        continue-on-error: true
+232:      - name: Diagnostics
+233:        if: "failure()"
+238:          docker compose --profile workers logs --no-color --timestamps > stack-logs/compose.log 2>&1
+239:          cat stack-logs/compose.log
+
+# grep for the new timing line in the full PR stack job log:
+0
+(0 matches)
+
+[exit code 0]

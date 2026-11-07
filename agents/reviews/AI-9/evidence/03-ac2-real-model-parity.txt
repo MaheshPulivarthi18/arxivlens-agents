@@ -1,0 +1,12 @@
+$ bash -c echo '# source: gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128374515303/logs (CI Python M0 unit tests, head 3e6420e)'; grep -nE 'python3 -m pytest -q|AI-9 parity query=|test_rerank_real_cross_encoder|[0-9]+ passed' /tmp/claude-0/-home-claude/bc4bbfd4-3462-557c-a878-b69f2d98bfaa/scratchpad/ci/py.log | grep -v 'warnings.warn' | cut -c1-420
+# source: gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128374515303/logs (CI Python M0 unit tests, head 3e6420e)
+439:2026-11-07T10:11:03.6572010Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py
+461:2026-11-07T10:12:04.2819582Z tests/test_m0.py::test_rerank_real_cross_encoder_scores_match_single_batch
+462:2026-11-07T10:12:04.2820596Z   /home/runner/work/ArxivLens/ArxivLens/tests/test_m0.py:228: UserWarning: AI-9 parity query=0 max_abs_diff=0.00e+00 passages=20 batches=3 max_len=512 tokens=3880 padded_tokens=5328 single_batch_padded_tokens=10240 threads=2 tokenize_ms=5.4 forward_ms=4620.9 total_ms=4626.3
+465:2026-11-07T10:12:04.2822294Z tests/test_m0.py::test_rerank_real_cross_encoder_scores_match_single_batch
+466:2026-11-07T10:12:04.2823290Z   /home/runner/work/ArxivLens/ArxivLens/tests/test_m0.py:228: UserWarning: AI-9 parity query=1 max_abs_diff=5.36e-07 passages=20 batches=3 max_len=512 tokens=4060 padded_tokens=5488 single_batch_padded_tokens=10240 threads=2 tokenize_ms=6.0 forward_ms=4889.5 total_ms=4895.5
+469:2026-11-07T10:12:04.2824966Z tests/test_m0.py::test_rerank_real_cross_encoder_scores_match_single_batch
+470:2026-11-07T10:12:04.2826868Z   /home/runner/work/ArxivLens/ArxivLens/tests/test_m0.py:228: UserWarning: AI-9 parity query=2 max_abs_diff=2.56e-09 passages=20 batches=3 max_len=512 tokens=3880 padded_tokens=5328 single_batch_padded_tokens=10240 threads=2 tokenize_ms=5.6 forward_ms=4751.7 total_ms=4757.3
+474:2026-11-07T10:12:04.2828976Z 72 passed, 1 skipped, 5 warnings in 59.86s
+
+[exit code 0]
