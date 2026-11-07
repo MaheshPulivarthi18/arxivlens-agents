@@ -1,0 +1,30 @@
+$ bash -c echo '== head 3f1c32d, job 128533105508'; grep -h 'HEAD is now at\|Run ./bin/arxivlens migrate\|\[Migration\]\|Schema identical\|##\[error\]' /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/job-128533105508.log | cut -c1-200; echo '== before ef238b5, job 128532661915'; grep -h 'HEAD is now at\|Schema identical\|000003' /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/job-128532661915.log | cut -c1-200; echo '== +4 objects = 2 columns + pkey index + index_valid; migration file:'; cat migrations/000003_paper_chunk_pages.up.sql migrations/000003_paper_chunk_pages.down.sql
+== head 3f1c32d, job 128533105508
+2026-11-07T21:24:19.4769635Z HEAD is now at 1880cee Merge 3f1c32d92bd7ccae55b97af3f310cf8a43780844 into 2b71772a827b19fc999a299218c90493663357a3
+2026-11-07T21:24:31.5102151Z ##[group]Run ./bin/arxivlens migrate
+2026-11-07T21:24:31.5385945Z 2026/11/07 21:24:31 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026-11-07T21:24:31.5897193Z 2026/11/07 21:24:31 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+2026-11-07T21:24:31.5907323Z 2026/11/07 21:24:31 [Migration] Running migration file: migrations/000003_paper_chunk_pages.up.sql
+2026-11-07T21:24:31.5922608Z 2026/11/07 21:24:31 [Migration] Database schema migrated successfully (3 file(s))
+2026-11-07T21:24:31.8965682Z ##[group]Run ./bin/arxivlens migrate
+2026-11-07T21:24:31.8968192Z [36;1mecho "Schema identical after run 2: $(wc -l < /tmp/run2.txt) objects (extensions, columns, indexes)"[0m
+2026-11-07T21:24:31.9286754Z 2026/11/07 21:24:31 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026-11-07T21:24:31.9288123Z 2026/11/07 21:24:31 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+2026-11-07T21:24:31.9318332Z 2026/11/07 21:24:31 [Migration] Running migration file: migrations/000003_paper_chunk_pages.up.sql
+2026-11-07T21:24:31.9319666Z 2026/11/07 21:24:31 [Migration] Database schema migrated successfully (3 file(s))
+2026-11-07T21:24:32.0344636Z Schema identical after run 2: 71 objects (extensions, columns, indexes)
+== before ef238b5, job 128532661915
+2026-11-07T21:22:32.2363246Z HEAD is now at 52fcdbe Merge ef238b528ad32291948828c6eeb7be3957a9fc22 into 2b71772a827b19fc999a299218c90493663357a3
+2026-11-07T21:22:44.0994789Z [36;1mecho "Schema identical after run 2: $(wc -l < /tmp/run2.txt) objects (extensions, columns, indexes)"[0m
+2026-11-07T21:22:44.2066024Z Schema identical after run 2: 67 objects (extensions, columns, indexes)
+== +4 objects = 2 columns + pkey index + index_valid; migration file:
+-- ING-11: the page each chunk's text starts on, when the chunker recorded it.
+-- No row = page unknown (every chunk written before this migration, ADR-0014). No backfill, no default.
+-- IF NOT EXISTS: `arxivlens migrate` re-applies every *.up.sql in order.
+CREATE TABLE IF NOT EXISTS paper_chunk_pages (
+    chunk_id   BIGINT PRIMARY KEY REFERENCES paper_chunks(id) ON DELETE CASCADE,
+    page_start INT NOT NULL CHECK (page_start >= 1)
+);
+DROP TABLE IF EXISTS paper_chunk_pages;
+
+[exit code 0]

@@ -1,0 +1,11 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/33 --jq .body | sed -n '/### Backfilling/,/### Not verified/p' | fold -w 138 -s
+### Backfilling the existing corpus (Mahesh's decision, not done in this PR)
+Existing chunks stay "page unknown" until reprocessed, and after this PR they stay unknown until AI-11 merges too (the chunker is what 
+emits `page_start`). Once AI-11 is merged, if you want pages for the existing corpus: re-publish `papers.downloaded` for each paper 
+**with a fresh `event_id`** (the processor's L2 ledger skips a duplicate `event_id`). Chunk ids are kept by the `(paper_id, chunk_index)` 
+upsert and content is byte-identical, so the embedder's L3 check skips re-embedding. Whether and when to do this is your call; nothing 
+here reprocesses.
+
+### Not verified / risks
+
+[exit code 0]

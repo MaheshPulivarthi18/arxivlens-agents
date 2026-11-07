@@ -1,0 +1,21 @@
+$ python3 /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/bin/mutate.py /root/wt/qa-33 /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/stubs
+SUMMARY: {'KILLED': 14, 'SURVIVED': 3, 'INVALID': 0}
+KILLED    W1 drop the page_breaks append                   PR tests: 1 failed, 5 passed, 2 deselected in 0.16s | QA identity check: FAIL
+KILLED    W2 append on every line (no page dedupe)         PR tests: 1 failed, 5 passed, 2 deselected in 0.18s | QA identity check: FAIL
+KILLED    W3 record only the first break                   PR tests: 1 failed, 5 passed, 2 deselected in 0.19s | QA identity check: FAIL
+KILLED    W4 0-based page                                  PR tests: 1 failed, 5 passed, 2 deselected in 0.17s | QA identity check: FAIL
+KILLED    W5 offset off by one                             PR tests: 1 failed, 5 passed, 2 deselected in 0.15s | QA identity check: FAIL
+SURVIVED  W6 change section text bytes (double space)      PR tests: 6 passed, 2 deselected in 0.14s | QA identity check: FAIL
+KILLED    W7 page_breaks missing on heading sections       PR tests: 1 failed, 5 passed, 2 deselected in 0.15s | QA identity check: FAIL
+SURVIVED  W8 Abstract bucket without page_breaks (:118)    PR tests: 6 passed, 2 deselected in 0.14s | QA identity check: FAIL
+KILLED    D1 drop RETURNING id                             PR tests: 4 failed, 2 passed, 2 deselected in 0.16s | QA identity check: n/a
+KILLED    D2 always INSERT (even page_start None)          PR tests: 3 failed, 3 passed, 2 deselected in 0.17s | QA identity check: n/a
+KILLED    D3 never DELETE stale rows                       PR tests: 3 failed, 3 passed, 2 deselected in 0.17s | QA identity check: n/a
+KILLED    D4 page_number stored as page_start              PR tests: 2 failed, 4 passed, 2 deselected in 0.16s | QA identity check: n/a
+KILLED    D5 wrong id (section id)                         PR tests: 5 failed, 1 passed, 2 deselected in 0.21s | QA identity check: n/a
+KILLED    D6 commit inside db.py                           PR tests: 5 failed, 1 passed, 2 deselected in 0.20s | QA identity check: n/a
+KILLED    D7 page_number overwritten by page_start         PR tests: 1 failed, 5 passed, 2 deselected in 0.19s | QA identity check: n/a
+KILLED    D8 ON CONFLICT DO NOTHING (stale page kept)      PR tests: 2 failed, 4 passed, 2 deselected in 0.17s | QA identity check: n/a
+SURVIVED  D9 truthiness check (page_start 0 -> DELETE)     PR tests: 6 passed, 2 deselected in 0.16s | QA identity check: n/a
+
+[exit code 0]

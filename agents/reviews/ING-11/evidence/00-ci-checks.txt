@@ -1,0 +1,9 @@
+$ bash -c gh api 'repos/MaheshPulivarthi18/ArxivLens/commits/3f1c32d92bd7ccae55b97af3f310cf8a43780844/check-runs?per_page=100' --jq '.check_runs[] | "\(.conclusion)  \(.name)  job=\(.id)  \(.html_url)"'
+success  Full stack (compose + make test-full)  job=128533181081  https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42415675293/job/128533181081
+success  Frontend (lint, test, build)  job=128533106260  https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42415675504/job/128533106260
+success  Python M0 unit tests  job=128533106203  https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42415675504/job/128533106203
+success  Agent ownership check  job=128533106113  https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42415675504/job/128533106113
+success  Go (vet, gofmt, test, build)  job=128533106017  https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42415675504/job/128533106017
+success  DB (migrate twice, HNSW plan + recall)  job=128533105508  https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42415675317/job/128533105508
+
+[exit code 0]

@@ -1,0 +1,13 @@
+$ env PYTHONPATH=/tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/stubs:/root/wt/qa-33 python3 -m pytest -p no:cacheprovider -q -rA tests/test_processor_pages.py -k page_breaks or save_chunks
+......                                                                   [100%]
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_processor_pages.py::test_page_breaks_invariants
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-set]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[missing]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[none]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows_use_each_returned_id
+6 passed, 2 deselected in 0.18s
+
+[exit code 0]

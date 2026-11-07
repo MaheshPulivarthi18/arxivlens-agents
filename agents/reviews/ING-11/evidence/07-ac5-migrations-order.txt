@@ -1,0 +1,19 @@
+$ bash -c echo '== CI Go job 128533106017 (head 3f1c32d)'; grep -h 'HEAD is now at\|Run make lint-go\|Run make test-go\|arxivlens/internal/db\|^.\{28\}FAIL' /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/job-128533106017.log | cut -c1-200; echo; echo '== local scratch module'; PATH=/usr/local/go/bin:$PATH /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/bin/go-scratch.sh /root/wt/qa-33
+== CI Go job 128533106017 (head 3f1c32d)
+2026-11-07T21:24:07.4900239Z HEAD is now at 1880cee Merge 3f1c32d92bd7ccae55b97af3f310cf8a43780844 into 2b71772a827b19fc999a299218c90493663357a3
+2026-11-07T21:24:16.2341177Z ##[group]Run make lint-go
+2026-11-07T21:24:17.4250385Z ##[group]Run make test-go
+2026-11-07T21:24:22.6531806Z ok  	arxivlens/internal/db	0.004s
+
+== local scratch module
+migrations/: 000001_init_schema.down.sql 000001_init_schema.up.sql 000002_chunk_embeddings_hnsw.down.sql 000002_chunk_embeddings_hnsw.up.sql 000003_paper_chunk_pages.down.sql 000003_paper_chunk_pages.up.sql 
+=== RUN   TestRepoMigrationsOrder
+--- PASS: TestRepoMigrationsOrder (0.00s)
+PASS
+ok  	scratch/internal/db	0.002s
+--- negative control: drop 000003 from migrations/ (want FAIL)
+FAIL
+FAIL	scratch/internal/db	0.002s
+FAIL
+
+[exit code 0]

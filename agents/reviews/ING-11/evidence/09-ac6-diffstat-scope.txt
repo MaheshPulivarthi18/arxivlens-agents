@@ -1,0 +1,32 @@
+$ bash -c git diff --stat origin/main...HEAD; git diff --numstat origin/main...HEAD | awk '{a+=$1; d+=$2} END {print "total changed lines:", a+d, "(+" a " -" d ")"}'; echo; git log --format='%h %s' origin/main..HEAD | while read h rest; do echo "== $h $rest"; git show --stat --format= $h | tail -n +1; done; echo; echo '== Agent ownership check job 128533106113:'; grep -h 'ownership\|OK\|allowed\|outside' /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/job-128533106113.log | grep -v '##\[group\]\|shell:\|\[36;1m' | cut -c30-200 | head -8
+ Makefile                                     |   4 +-
+ internal/db/db_test.go                       |   2 +-
+ migrations/000003_paper_chunk_pages.down.sql |   1 +
+ migrations/000003_paper_chunk_pages.up.sql   |   7 +
+ services/common/db.py                        |  15 +-
+ services/processor/worker.py                 |   6 +-
+ tests/test_processor_pages.py                | 214 +++++++++++++++++++++++++++
+ 7 files changed, 244 insertions(+), 5 deletions(-)
+total changed lines: 249 (+244 -5)
+
+== 3f1c32d ING-11: Record section page breaks; store chunk start pages in paper_chunk_pages
+ internal/db/db_test.go                       |  2 +-
+ migrations/000003_paper_chunk_pages.down.sql |  1 +
+ migrations/000003_paper_chunk_pages.up.sql   |  7 +++
+ services/common/db.py                        | 15 ++++-
+ services/processor/worker.py                 |  6 +-
+ tests/test_processor_pages.py                | 94 ++++++++++++++++++++++++++++
+ 6 files changed, 122 insertions(+), 3 deletions(-)
+== ef238b5 ING-11: Pin the chunk-output snapshot captured from unchanged production code
+ tests/test_processor_pages.py | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
+== 59bbae1 ING-11: Add chunk-output snapshot test on a generated multi-page PDF (no production change)
+ Makefile                      |   4 +-
+ tests/test_processor_pages.py | 105 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 107 insertions(+), 2 deletions(-)
+
+== Agent ownership check job 128533106113:
+Complete job name: Agent ownership check
+Ownership OK for role=backend (249 changed lines)
+
+[exit code 0]

@@ -1,0 +1,26 @@
+$ bash -c grep -h 'HEAD is now at\|000003\|Run ./bin/arxivlens crawl\|DLQ Topic\|Status: .*embedded\|passed, \|^.\{28\}FAILED\|failed in\|##\[error\]' /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/job-128533181081.log | cut -c1-200; echo '== status transitions (first/last poll):'; grep -h '|chunked\||embedded' /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/job-128533181081.log | sed -n '1,2p;$p' | cut -c1-120; echo '== stack.yml F1 step is the documented pre-existing known failure:'; sed -n 34,36p .github/workflows/stack.yml; grep -n 'Known failure F1' -A2 .github/workflows/stack.yml | grep -n 'continue-on-error' ; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128533181081 --jq '.steps[] | select(.conclusion!="success" and .conclusion!="skipped") | "step: \(.name) -> \(.conclusion)"'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128533181081 --jq '"job conclusion: \(.conclusion)"'
+2026-11-07T21:24:25.2356696Z HEAD is now at 1880cee Merge 3f1c32d92bd7ccae55b97af3f310cf8a43780844 into 2b71772a827b19fc999a299218c90493663357a3
+2026-11-07T21:29:39.5029044Z [36;1m[ "$ok" = 1 ] || { echo "::error::probe failed in the running processor with 2 members"; exit 1; }[0m
+2026-11-07T21:31:00.5824889Z 2026/11/07 21:31:00 [Migration] Running migration file: migrations/000003_paper_chunk_pages.up.sql
+2026-11-07T21:31:00.5906485Z ##[group]Run ./bin/arxivlens crawl --query "cat:cs.LG" --limit 2
+2026-11-07T21:34:11.1916538Z Status:         embedded
+2026-11-07T21:34:11.2099652Z Status:         embedded
+2026-11-07T21:34:12.2150554Z === DLQ Topic: papers.discovered.dlq (Total: 0) ===
+2026-11-07T21:34:14.4739156Z === DLQ Topic: papers.downloaded.dlq (Total: 0) ===
+2026-11-07T21:34:16.7912989Z === DLQ Topic: papers.chunked.dlq (Total: 0) ===
+2026-11-07T21:35:15.8166901Z Status:         embedded
+2026-11-07T21:35:24.3626800Z 104 passed, 1 skipped, 3 deselected in 7.75s
+2026-11-07T21:35:56.2155513Z 3 failed in 30.52s
+2026-11-07T21:35:56.2504120Z ##[error]Process completed with exit code 2.
+== status transitions (first/last poll):
+2026-11-07T21:31:14.8686260Z 2611.08478|chunked
+2026-11-07T21:31:14.8687063Z 2611.08487|chunked
+2026-11-07T21:34:00.7923700Z 2611.08487|embedded
+== stack.yml F1 step is the documented pre-existing known failure:
+      # Known failure F1 (Mahesh, 2026-11-04): CPU cross-encoder rerank makes /v1/ask take ~10 s, over M3's 10 s
+      # client timeout. Deselected from AC4 and run on their own, visibly, in "Known failure F1". Tracked in OPS-H1 Notes.
+      F1_TESTS: >-
+8:219-        continue-on-error: true
+job conclusion: success
+
+[exit code 0]

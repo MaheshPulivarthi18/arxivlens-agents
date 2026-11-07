@@ -1,0 +1,21 @@
+$ python3 -I /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/bin/snapcheck.py /tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa33/job-128531883258.log
+CI-printed snapshot from job 128531883258 (commit 59bbae1, production code = origin/main 2b71772):
+  sections: [['Introduction', 1, 1], ['Method', 1, 3]]  chunks: [[0, 496], [1, 496], [2, 223], [3, 105]]
+EXPECTED_SNAPSHOT @ 59bbae1: None (placeholder)
+EXPECTED_SNAPSHOT @ ef238b5: == CI-printed: True
+EXPECTED_SNAPSHOT @ 3f1c32d: == CI-printed: True
+head test file starts with the full ef238b5 test file (append-only): True
+  build_fixture_doc                             identical before/after: True  sha256=8c6dabf9f789
+  _body_lines                                   identical before/after: True  sha256=62ce47f622aa
+  parse_fixture_sections                        identical before/after: True  sha256=aa3f856d0556
+  snapshot                                      identical before/after: True  sha256=b92a9fcaac25
+  _sha                                          identical before/after: True  sha256=60ebce47ff36
+  test_chunk_output_identical_to_pre_change     identical before/after: True  sha256=641f611045b6
+  test_fixture_vocabulary_is_single_wordpiece   identical before/after: True  sha256=5258444c2e8b
+  chunker                                       identical before/after: True  sha256=1399171edc1c
+production diff origin/main..ef238b5 -- services/processor/worker.py: none
+production diff origin/main..ef238b5 -- services/common/db.py: none
+production diff origin/main..ef238b5 -- scripts/m0_skeleton.py: none
+production diff origin/main..ef238b5 -- migrations: none
+
+[exit code 0]
