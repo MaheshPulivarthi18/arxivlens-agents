@@ -8,7 +8,7 @@
 | **Depends on** | none (no ADR: no shared contract changes). Start only when no open PR touches `internal/query/ingester.go`, `internal/query/ingester_test.go` or `internal/downloader/` (AGENTS.md §3). |
 | **Jira** | not created yet (orchestrator: story under the ingestion epic, labels `task-ING-9`, `agent-backend`, `arxivlens`) |
 | **Design required** | no. It's P1, adds no CLI command, table, service or contract, and is a small change to existing code. |
-| **Status** | Ready (not in the 2026-11-07 plan; start with a free backend slot) |
+| **Status** | In Progress (built on `agent/backend/ING-9` @ c5dc873; awaiting draft PR + CI) |
 
 ## Goal
 Every arXiv request the Go code makes waits its turn: at least 3 s between request starts **within a process**, and an
@@ -82,3 +82,18 @@ git diff origin/main --stat
   EVAL-3 nightly `seed.log` shows arXiv 429/403 responses.
 - Docs truthfulness: Product PRD ING-1 ✅ says "respecting arXiv's ~1 req / 3 s policy", which holds for the crawler only. The next
   pm-lead PRD docs PR adds the caveat ("crawler only; ingester/downloader: ING-9"), and it's removed when this merges.
+- 2026-11-07 (backend-engineer): built on `agent/backend/ING-9` (commit `c5dc873`, base `71cb609`), not pushed (orchestrator opens the draft PR).
+  - New `internal/arxiv/limiter.go`: `Limiter` (capacity-1 channel as the "turn" + `last` permit time; a waiter cancelled while queued
+    or while sleeping returns `ctx.Err()` without setting `last`, so it uses no slot), `DefaultInterval = 3s` const, `UserAgent(component)`,
+    `Interval()` accessor for the AC5 tests. Package doc states the guarantee is per process.
+  - `ingester.go`: `limiter` field set in `NewPaperIngester` (signature unchanged); new `doArxiv(req)` waits, sets
+    `arxiv.UserAgent("Query Ingester")` and sends, used for Atom-by-ID, PDF and Atom search. `ArxivLens-Bot/1.0` is gone.
+  - `downloader.go`: `limiter` field set in `NewDownloader` (signature unchanged); PDF GET moved into `fetchPDF(ctx, url)`, which waits
+    first; UA via `arxiv.UserAgent("Downloader Pipeline")` (same string as before).
+  - Diff: 6 files, +376/-22 = 398 changed lines (ownership-check OK); `cmd/`, `go.mod`, `go.sum` unchanged.
+  - Local verification (sandbox Go 1.24, no module proxy): scratch module with the three packages copied in and minimal stubs for
+    db/storage/kafka/events/minio/kgo. `go vet` clean; `go test -race -count=1 -v` passes for arxiv, downloader and the
+    `Ingest|Discover` query tests; `-count=20 -race` stable; `limiter.go` coverage 100%. Mutants (Wait removed from doArxiv/fetchPDF,
+    sleep removed, ctx ignored while sleeping) are each caught. Full-repo `make lint`/`make test-unit` and `stack.yml` (AC8) need CI.
+  - Test timing: HTTP tests use a 50 ms interval with 10 ms slack between permit and transport timestamp; limiter tests use 20 ms slack.
+
