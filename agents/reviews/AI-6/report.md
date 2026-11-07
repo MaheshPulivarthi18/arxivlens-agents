@@ -103,3 +103,31 @@ AC1 ✅ · AC2 ✅ · AC3 moved to AI-6b (not part of AI-6's closure, per the an
 
 ## Hand-off
 **PASS** → pm-lead for final review (Jira KAN-38 → PM review). Jira: if this session can't reach the Atlassian connector, the orchestrator posts the `[qa-reviewer]` comment and links.
+
+---
+
+# PM verdict — AI-6 · PR #28 @ `c457576`
+
+**Verdict:** APPROVE
+**Reviewer:** pm-lead · **Date:** 2026-11-07 · **Reviewed head:** `c45757622c2476f37128eaa4c8c0da527cb5e210` (PR head and branch tip, re-fetched; draft, mergeable `clean`, base `2b71772`)
+**Inputs read:** [`agents/tasks/AI-6.md`](../../tasks/AI-6.md), [`agents/tasks/AI-6b.md`](../../tasks/AI-6b.md), Product PRD QA-3, QA-8 and §7 principle 1, Technical PRD §7.2, ADR-0002 (Accepted), [`docs/design/QA-8.md`](../../../docs/design/QA-8.md) (PM decision + post-build record), QA rounds 1–2 above, the full `rag.go` diff (`git diff origin/main...origin/agent/ai/AI-6`), and the current PR body (REST).
+**Evidence opened:** all 14 PNGs (`00`–`09` at `b6c9dfb`, `r2-00`–`r2-03` at `0c29174`) and the `.txt` next to each image I had a question about. Each image shows the commit it ran on, the exact command and real output, and each proves what its AC row claims. The red line in `r2-03` ("…ErrorHasNoCompletionText found") is only keyword colouring: the `.txt` shows `[OK]`. `04-ac3-parser-absent` ("AI-6b spec does not exist yet") was true at round 1. `r2-03` supersedes it.
+
+## Decision checks
+| Check | Result |
+|---|---|
+| **PRD fit** (QA-8 / Tech §7.2 "Synthesize answer", QA-3 multi-paper, §7 principle 1 evidence first) | ✅ This PR builds the deterministic half of LLM synthesis behind tests. Rerank priority is kept, because packing stops instead of skipping (ADR-0010). Grouping by paper plus system rule 4 serve QA-3 comparison questions. Rule 2 ("every factual statement must be cited") and rule 5 (`insufficient_evidence`) put evidence first and allow an honest refusal. `passageHits` makes later validation score against exactly the text the model saw. The prompt wording is product content, and it's in the PR body verbatim for Mahesh (condition 4). |
+| **Scope** | ✅ Right size, nothing extra. Two files, 302 insertions and 0 deletions. `rag.go` adds one `sort` import and one block after `buildTemplateAnswer`. There's no `Ask`/`finalize`/response/README change, no `internal/llm` import and no `search.go` change. `passageHits` stays in, because seam (c) supersedes (b), and QA-8 needs it with these semantics. |
+| **Nothing missing the ticket intended** | ✅ with the formal split. AC3 (`parseSynthesis`) moved to AI-6b under design condition 1 seam (c), as the approved design allows. Its text is copied unchanged, and AI-6b is Ready, Jira **KAN-52**, and a QA-8 dependency. AI-6 closes on AC1, AC2 and AC4–AC6. |
+| **Every AC has convincing evidence; no ⚠ on anything that matters** | ✅ AC1 → `02` (10 subtests + oversize + token bound + passageHits) and the 20k-case property check in `09`. AC2 → `03` + `r2-01` (prompt byte-for-byte). AC4 → `05` (0 removed lines, `Ask` grep = 0, 19 pre-existing tests unchanged) + CI `01`. AC5 → `06` (98.5%, every new function 100%, pasted run, condition 6). AC6 → `07` (302, ownership OK). Condition 5 → `r2-02` (PR table identical to QA's independent `08`, 14/14 killed). CI → `00`/`01`/`r2-00`: 5/5 success on the head, Go 1.25.0 `ok arxivlens/internal/query`. The only local-only item is AC5 coverage, and CI doesn't print coverage. Condition 6 allows a pasted `go tool cover` run, and QA reproduced it independently. |
+| **Design conditions 1–6** | ✅ all, per QA round 2. Checked against the diff myself: dedup by `ChunkID` only when it's non-zero (cond. 2), the empty-result contract is in the doc comment (cond. 3), and the system prompt const matches design §4 line for line. |
+| **Docs / PRD status / README** | ✅ for this PR. Nothing is user-visible (`Ask` unchanged), so no README change and no PRD status change: QA-8 stays ⏳ until QA-8 ships. The PRD QA-8 row still reads "Blocked on ADR-0001 and ADR-0002 (Proposed)", but both are Accepted. That drift is not caused by this PR, and it's already on the board as a pending pm-lead docs PR (`board.md` follow-ups). It doesn't block AI-6. |
+| **Human feedback** | none on PR #28 (0 reviews, and the only comments are the QA bot posts). |
+
+## Notes (non-blocking)
+1. Behaviour carried to AI-6b, not reachable today: an empty-content hit is currently sent with an empty `text:`, and whitespace look-alike delimiters (`</ passage>`) aren't escaped. Nothing calls this code until QA-8, and QA-8 depends on AI-6b (AC4 widened regexp, AC5 empty-content skip). So neither ships to users.
+2. The round-1 QA report above was saved by the orchestrator with stray backticks around some links. It's cosmetic, and the links in the PR body are clean.
+3. QA's round-2 nit is fixed in the raised PR body: "Follow-ups requested" → "Follow-ups created: AI-6b (KAN-52)".
+
+## Hand-off
+APPROVE → the orchestrator raises PR #28 with the pm-lead body (`ready_for_review`, label `ready-to-merge` if allowed). Jira KAN-38 → **Ready to merge**, with the comment `[pm-lead] APPROVE — PR #28 raised for review → <report link>`. When #28 merges, AI-6b (KAN-52) becomes startable (Wave 3). Merge: Mahesh.

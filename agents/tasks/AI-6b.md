@@ -6,7 +6,7 @@
 | **Priority** | P0 (Phase 1 items 2–3; QA-8 calls it to turn the model's reply into cited claims or a refusal) |
 | **PRD ref** | Product PRD QA-8, §7 principles 1–2 (evidence first, honest refusal), risk "Hallucinated citations"; Technical PRD §7.2; ADR-0002, ADR-0003 (Accepted) |
 | **Depends on** | **AI-6 merged** (ArxivLens PR #28; same files `rag.go` + `rag_test.go`). No dependency on LLM-1/LLM-1b: pure function, no `internal/llm` import. |
-| **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-6b"`) |
+| **Jira** | KAN-52, story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-6b"`) |
 | **Design required** | covered: `docs/design/QA-8.md` §1 (types, errors), §5 (`parseSynthesis`), the test-plan AC3 rows and PM decision (open question 3, conditions 1, 5, 6), plus the pm-lead post-build record at the end of that file. **No new design.** |
 | **Status** | Ready (Wave 3: starts when AI-6 #28 is merged). Branch `agent/ai/AI-6b` |
 
@@ -76,3 +76,4 @@ git diff --shortstat origin/main
   Empty-content passages: pm-lead decision is **skip** (an empty passage can't support a citation, and the template path already handles
   "nothing to cite"). Missing test 3 (whitespace-only question) is left out: `Ask` returns earlier.
 - Cut the branch from `origin/main` after #28 merges (not from `agent/ai/AI-6`). Branch name `agent/ai/AI-6b` (`ownership-check.sh` accepts role `ai` only).
+- 2026-11-07 (pm-lead): Jira story is **KAN-52**. Its dependency AI-6 (#28) got PM APPROVE and is Ready to merge. This task still waits for the **merge**.
