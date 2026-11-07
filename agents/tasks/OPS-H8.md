@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror); **OPS-H1 (ArxivLens #14) merged**: #14 adds a worker heartbeat hook (`_heartbeat`, about 16 lines) to `services/common/kafka_client.py`, the file this task rewrites (AGENTS.md §3 independence). The design must keep that hook (touch after every `poll()` while assigned; no-op when `WORKER_HEARTBEAT_FILE` is unset) |
 | **Jira** | KAN-34 (`labels = "task-OPS-H8"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics for both Python workers |
-| **Status** | In Progress (rework to the part-a subset; pm-lead split decision 2026-11-07, option A). Branch `agent/backend/OPS-H8` (full build at `ebe80a7`, kept in history for OPS-H8b); PR not yet opened |
+| **Status** | In Progress: part a built at `007aecc`, PR pending. Branch `agent/backend/OPS-H8` (full build at `ebe80a7`, kept in history for OPS-H8b) |
 
 ## Goal
 Technical PRD §8.1 promises L4 for **all** consumers: the offset is committed only after the handler succeeds or the
@@ -189,3 +189,28 @@ git diff origin/main...HEAD -- services/processor/worker.py services/embedder/wo
   section, apart from the optional `consumer=`/`producer=` constructor params) to `origin/main` and drop the OPS-H8b tests from `tests/test_kafka_client.py`. `ebe80a7` stays
   in the branch history as OPS-H8b's source (`git checkout ebe80a7 -- …` onto a fresh `main` later). Merge `origin/main` in if it moved (don't rebase a pushed branch). Re-run the
   open-PR overlap check, then open the draft PR and run AC7 + AC8 on it. Record the counted `git diff --stat` in Notes before opening the PR.
+- 2026-11-07 (backend-engineer, part-a rework): one new commit **`007aecc`** on top of `ebe80a7` (no rebase, no force-push; pushed). `origin/main` is still `2b71772` (the merge base), so no merge was needed.
+  **No PR opened** (the orchestrator opens it, then the AC7 CI mutation commits and AC8 run on it).
+  - **Counted `git diff --stat origin/main...007aecc` (AC9):** `.github/workflows/ci.yml | 2 +`, `services/common/kafka_client.py | 78`, `tests/test_kafka_client.py | 198 +`: 3 files changed, 252 insertions(+), 26 deletions(-), so **278 changed lines**.
+    `.github/scripts/ownership-check.sh origin/main agent/backend/OPS-H8`: `Ownership OK for role=backend (278 changed lines)`, no size warning.
+  - **What changed vs `ebe80a7`:** the `ServiceKafkaConsumer` section is restored to `origin/main`, except the optional `consumer=` / `producer=` constructor params (defaults = today's calls).
+    That covers `start`, `_heartbeat`, the imports (`time` back; `itertools`/`signal`/`threading` out), and the removal of the stop flag, signals, `_dead_letter`, `_commit`, `_coords`, poison decoding and the warning-text change.
+    The text from `def _heartbeat` to EOF is byte-identical to `origin/main` (scripted comparison: True), so the AC6 `start` hunks are empty. Two `build_dlq_payload` lines also went back to main because they only matter on the poison path (OPS-H8b brings them back from `ebe80a7`):
+    the `isinstance(orig_val, dict)` guard and the key `decode(..., errors="replace")`.
+    The producer layer is unchanged from `ebe80a7`.
+  - **Open-PR recheck (REST, GraphQL is blocked):** open #24 `services/embedder/api.py`, `tests/test_m0.py`; #26 `stack.yml`, README, CONTRIBUTING; #27 `internal/llm/*`; #28 `internal/query/rag*.go`;
+    #29 `evals/README.md`, `evals/answer_judgments/.gitkeep`, `scripts/answer_review.py`, `tests/test_evals_data.py`. None of them touches the 3 Scope files or either worker file.
+  - **Commands (sandbox, local stand-in `confluent_kafka`/`ulid` stubs on `PYTHONPATH`, not committed; PyPI is blocked, so real-library compatibility is unverified until CI):**
+    `python3 -m pytest -v tests/test_kafka_client.py`: **16 passed in 0.09s**. `pytest -q tests/test_worker_heartbeat.py` (unmodified): **6 passed**.
+    `git diff origin/main...HEAD -- services/processor/worker.py services/embedder/worker.py tests/test_worker_heartbeat.py`: empty.
+    Local mutation smoke (scratch copy, not pushed): (b) `_produce_confirmed` ignores the outcome → 7 failed (AC1 err/queued, AC2 err/queued, AC5 err/queued, AC5 handler-publish);
+    (a') `start` swallows `DeliveryError` around `publish_dlq` → 2 failed (AC5 err/queued); `format_exc()` restored → 2 failed (AC3, AC5 confirmed).
+    Not run: `make test-unit` / `make test-py` / `make lint` (no Go 1.25, no torch/BGE), AC7 CI procedure and AC8 `stack.yml` (both need the PR).
+  - **ACs (local evidence):** AC1 `test_publish_requires_confirmation`[ok/err/queued/raise] pass. AC2 `test_publish_dlq_direct_call_contract`[ok/err/queued] + `test_build_dlq_payload_is_total`[None/non-UTF-8/no header] pass.
+    AC3 `test_dlq_stack_trace_is_the_errors_own` pass. AC4 `test_delivery_bound_outlasts_message_timeout` pass. AC5 `test_unconfirmed_dlq_write_stops_before_commit`[err/queued] + `test_confirmed_dlq_write_then_commit` + `test_failing_publish_in_handler_is_retried` pass
+    (`kafka_client.time.sleep` patched; `start` not edited). AC6: the scope and diff parts are met, CI is pending. AC7, AC8: pending the PR. AC9: 278 ≤ 400 met, PR text below.
+  - **Interim sequence (AC9, until OPS-H8b):** the consumer polls record N, the handler fails 3×, and `publish_dlq` raises `DeliveryError` (callback error or not confirmed within 12 s).
+    The exception leaves `start` before `commit(N)`, and `finally` closes the consumer. The worker exits non-zero and compose (`restart: unless-stopped`) restarts it. The group's committed offset is still N (everything before N that succeeded or was DLQ'd is committed,
+    one sync commit per record), so N is redelivered first, and the handler runs 3× again on each restart until the DLQ write is confirmed. After that N is committed and N+1 onward is consumed. Nothing at or after N is committed while the DLQ is unreachable.
+    A processor handler whose `papers.chunked` publish isn't confirmed raises `DeliveryError`, which is an ordinary handler failure (retried 3×, then the DLQ path above).
+  - **PR body, "Behaviour changes (decided by pm-lead in design review)":** see the hand-off; the text is the same as the three items in AC9.
