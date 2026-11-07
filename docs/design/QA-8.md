@@ -300,7 +300,7 @@ non-wrapping parse error keeps completion text out of logs (QA-8 AC6). The struc
    ground its answer. The split is: parse error = "reply unusable" → template (QA-8 AC5); well-formed reply with nothing citable →
    refusal. Same for `insufficient_evidence: true` with claims present → refusal (claims discarded). Approved.
 4. **Passage budget 4000 estimated tokens: approved as QA-8's default const**, not `max_citations × chunk`. It also bounds the prompt
-   when a client sends a large `max_citations` (`server.go:52` doesn't clamp it). The QA-8 addendum must add condition 5.
+   when a client sends a large `max_citations` (`server.go:52` doesn't clamp it). The QA-8 addendum must cover item A1 below.
 
 ### Conditions for the AI-6 PR (binding; QA checks each)
 1. **Diff < 400, no size exception.** AC6 stands. (Lesson LLM-1: a near-400 estimate came in 72% low.) The split seams, in order:
@@ -321,17 +321,17 @@ non-wrapping parse error keeps completion text out of logs (QA-8 AC6). The struc
    CI output or a pasted `go tool cover` run, never from an estimate.
 
 ### Items the QA-8 addendum must decide (not AI-6 work; recorded here so they aren't lost)
-5. **Context window.** State the total prompt estimate (system ~250 + question + ≤ 4000 passage + `max_tokens`) and the minimum
+A1. **Context window.** State the total prompt estimate (system ~250 + question + ≤ 4000 passage + `max_tokens`) and the minimum
    server context it needs. The README's local Ollama example must set a large enough context (e.g. `OLLAMA_CONTEXT_LENGTH` /
    `num_ctx` ≥ 8192). Otherwise a small default window silently truncates the prompt, system rules first.
-6. **Multi-sentence claims (author's risk): decided.** When QA-8 renders a claim, it appends the claim's markers to **every**
+A2. **Multi-sentence claims (author's risk): decided.** When QA-8 renders a claim, it appends the claim's markers to **every**
    sentence `splitIntoSentences` finds in it, so no LLM sentence goes out without validation. Over-splitting on abbreviations
    only creates more, shorter validated fragments. That fails safe (may flag more unsupported) and never passes text unchecked.
    QA-8 test: a 2-sentence claim citing `[1]` → both sentences carry `[1]` and both are checked.
-7. **Which hits back the answer, the refusal evidence and the fallback.** LLM path: `finalize` gets `passageHits(...)` (marker
+A3. **Which hits back the answer, the refusal evidence and the fallback.** LLM path: `finalize` gets `passageHits(...)` (marker
    order = grouped order). AI-7's refusal evidence is then the passages the model saw, in grouped order, not every relevant hit in
    rank order. The addendum must state this and test it. Template fallback after an LLM error: over `relevantHits`, exactly as today.
-8. **Counts in the usage log line:** `DroppedMarkers`, `DroppedClaims`, `k`, `truncated` (numbers/bools only). EVAL-8 needs the
+A4. **Counts in the usage log line:** `DroppedMarkers`, `DroppedClaims`, `k`, `truncated` (numbers/bools only). EVAL-8 needs the
    fabricated-marker rate.
 
 Next: ai-engineer builds AI-6 on `agent/ai-engineer/AI-6` (Jira → In Progress).
