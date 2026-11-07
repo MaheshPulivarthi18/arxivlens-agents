@@ -23,7 +23,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## Ready — not in this plan (lower priority; start only with a free slot and no file overlap)
 | ID | Title | Owner | Pri | Depends on |
 |---|---|---|---|---|
-| [ING-11](tasks/ING-11.md) (KAN-55) | Part a (producer): `page_breaks` in the processor, `paper_chunk_pages` table, `db.py` writes it (nothing reads it yet) | backend-engineer | P1 | Design approved 2026-11-07 (`docs/design/ING-11.md`, conditions 1–9). Build: none |
+| [ING-11](tasks/ING-11.md) (KAN-55) | Part a (producer): `page_breaks` in the processor, `paper_chunk_pages` table, `db.py` writes it (nothing reads it yet) | backend-engineer | P1 | Design approved 2026-11-07 (conditions 1–9). **In QA**: draft PR #33 (`3f1c32d`, CI green) |
 | [AI-11](tasks/AI-11.md) | `TokenChunker` emits `page_start` from `page_breaks` (fail-safe: unknown, never guessed); AC1 end-to-end on ING-11's fixture | ai-engineer | P1 | **ING-11 merged** (its test file is in `make test-py`; `tests/test_m0.py` is held by #24) |
 | [ING-11b](tasks/ING-11b.md) | Part b (consumer): `/v1/search` returns `page` from `paper_chunk_pages`; parity fragment; README; real-stack write check | backend-engineer | P1 | **AI-11 + RET-2 merged** |
 | [OPS-H7f](tasks/OPS-H7f.md) | DLQ replay never publishes an empty/unreplayable envelope (B1/B2 fix; OPS-H7 part 1 of 4) | backend-engineer | P1 | OPS-H6 (Done). Touches no open-PR file: **can start now** |
