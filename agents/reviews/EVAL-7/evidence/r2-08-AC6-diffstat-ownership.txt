@@ -1,0 +1,10 @@
+$ bash -c git diff --stat origin/main...HEAD; git diff --shortstat origin/main...HEAD; bash .github/scripts/ownership-check.sh origin/main agent/ai/EVAL-7
+ evals/README.md                 |  23 ++++
+ evals/answer_judgments/.gitkeep |   0
+ scripts/answer_review.py        | 241 ++++++++++++++++++++++++++++++++++++++++
+ tests/test_evals_data.py        | 135 +++++++++++++++++++++-
+ 4 files changed, 398 insertions(+), 1 deletion(-)
+ 4 files changed, 398 insertions(+), 1 deletion(-)
+Ownership OK for role=ai (399 changed lines)
+
+[exit code 0]

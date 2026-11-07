@@ -1,0 +1,34 @@
+$ bash -c D=$(mktemp -d /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/mut2.XXXX); python3 /tmp/claude-0/-home-claude/f39d3cf9-31a3-53e0-b53b-49671c4ac091/scratchpad/probe/mutants_r2.py /root/wt/qa-EVAL-7-r2 $D
+SUMMARY: 28/29 killed; survived: ['--save skips strict re-validation']
+
+M01 sheet leaks the system verdict               KILLED  | 1 failed, 21 passed, 76 deselected in 0.17s
+M02 row carries the score, sheet prints it       KILLED  | 1 failed, 21 passed, 76 deselected in 0.17s
+M03 judgments JSONL keeps claim text             KILLED  | 1 failed, 21 passed, 76 deselected in 0.17s
+M04 drift check removed                          KILLED  | 1 failed, 21 passed, 76 deselected in 0.17s
+M05 re-asked refusal not treated as drift        KILLED  | 1 failed, 21 passed, 76 deselected in 0.20s
+M06 refused cases not skipped                    KILLED  | 1 failed, 21 passed, 76 deselected in 0.16s
+M07 precision counts partial as support          KILLED  | 2 failed, 20 passed, 76 deselected in 0.19s
+M08 unjudged rows counted as judged              KILLED  | 2 failed, 20 passed, 76 deselected in 0.21s
+M09 claim correctness per row, not per claim     KILLED  | 1 failed, 21 passed, 76 deselected in 0.20s
+M10 confusion true/false swapped                 KILLED  | 2 failed, 20 passed, 76 deselected in 0.19s
+M11 committed mode allows notes                  KILLED  | 1 failed, 21 passed, 76 deselected in 0.17s
+M12 unknown keys allowed                         KILLED  | 4 failed, 18 passed, 76 deselected in 0.24s
+M13 labels case-insensitive                      KILLED  | 1 failed, 21 passed, 76 deselected in 0.18s
+M14 string length cap removed                    KILLED  | 1 failed, 21 passed, 76 deselected in 0.17s
+M15 reviewer not required                        KILLED  | 2 failed, 20 passed, 76 deselected in 0.19s
+M16 --save keeps notes                           KILLED  | 1 failed, 21 passed, 76 deselected in 0.18s
+M17 --save skips strict re-validation            SURVIVED  | 22 passed, 76 deselected in 0.15s
+M18 duplicate row_id allowed                     KILLED  | 1 failed, 21 passed, 76 deselected in 0.16s
+M19 out-of-range markers kept                    KILLED  | 2 failed, 20 passed, 76 deselected in 0.20s
+M20 export overwrites judgments                  KILLED  | 1 failed, 21 passed, 76 deselected in 0.19s
+M21 R2 fingerprint = (marker, chunk_id) only     KILLED  | 1 failed, 21 passed, 76 deselected in 0.21s
+M22 R2 fingerprint without score                 KILLED  | 1 failed, 21 passed, 76 deselected in 0.18s
+M23 R2 fingerprint without supported             KILLED  | 1 failed, 21 passed, 76 deselected in 0.17s
+M24 R2 arxiv_id shape check off                  KILLED  | 1 failed, 21 passed, 76 deselected in 0.18s
+M25 R2 run_id shape check off                    KILLED  | 1 failed, 21 passed, 76 deselected in 0.18s
+M26 R2 case_id shape check off                   KILLED  | 1 failed, 21 passed, 76 deselected in 0.17s
+M27 R2 row_id shape check off                    KILLED  | 2 failed, 20 passed, 76 deselected in 0.21s
+M28 R2 --save overwrites                         KILLED  | 1 failed, 21 passed, 76 deselected in 0.18s
+M29 R2 --save ignores --force                    KILLED  | 1 failed, 21 passed, 76 deselected in 0.19s
+
+[exit code 0]

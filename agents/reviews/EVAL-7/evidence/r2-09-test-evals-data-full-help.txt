@@ -1,0 +1,29 @@
+$ bash -c python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py | tail -3; python3 scripts/answer_review.py --help; python3 scripts/answer_review.py score --help
+.......................................................s................ [ 73%]
+..........................                                               [100%]
+97 passed, 1 skipped in 0.12s
+usage: answer_review.py [-h] {export,score} ...
+
+Blind human review of /v1/ask answers (EVAL-7, report-only).
+
+positional arguments:
+  {export,score}
+    export        Write a blind review sheet + empty judgments file for a
+                  results JSON
+    score         Score a judgments JSONL
+
+options:
+  -h, --help      show this help message and exit
+usage: answer_review.py score [-h] --judgments JUDGMENTS [--results RESULTS]
+                              [--save SAVE] [--json-out JSON_OUT] [--force]
+
+options:
+  -h, --help            show this help message and exit
+  --judgments JUDGMENTS
+  --results RESULTS     Results JSON of the same run, for the confusion matrix
+  --save SAVE           Write the committable copy (IDs + labels, no notes),
+                        e.g. evals/answer_judgments/
+  --json-out JSON_OUT
+  --force               Overwrite an existing judgments file
+
+[exit code 0]

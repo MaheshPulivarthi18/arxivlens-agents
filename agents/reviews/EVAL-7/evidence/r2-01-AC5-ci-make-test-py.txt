@@ -1,0 +1,23 @@
+$ gh api .../actions/jobs/128451485649/logs (lines 425-445)
+2026-11-07T15:56:08.4908836Z 
+2026-11-07T15:56:08.4931829Z Successfully installed MarkupSafe-3.0.4 PyMuPDF-2.1 annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.16.0 argon2-cffi-25.1.0 argon2-cffi-bindings-26.1.0 certifi-2026.10.23 cffi-2.1.1 charset_normalizer-3.5.2 click-8.5.1 cloudpickle-3.1.2 confluent-kafka-2.16.1 fastapi-0.162.2 filelock-4.2.9 flatbuffers-25.12.19 fsspec-2026.9.0 h11-0.16.0 hf-xet-1.8.0 httpcore2-2.16.0 httpx2-2.16.0 huggingface-hub-2.4.0 idna-3.20 iniconfig-2.3.1 jinja2-3.1.6 joblib-1.6.0 markdown-it-py-4.2.0 mdurl-0.1.2 minio-7.2.20 mpmath-1.3.0 narwhals-2.28.0 networkx-3.6.1 numpy-2.4.6 onnxruntime-1.31.1 opentelemetry-api-1.45.2 packaging-26.3 pluggy-1.7.0 protobuf-7.36.2 psutil-7.2.2 psycopg-3.3.8 psycopg-binary-3.3.8 pycparser-3.12 pycryptodome-4.4.0 pydantic-2.14.3 pydantic-core-2.50.4 pygments-2.21.0 pymupdf-layout-2.1 pymupdf4llm-2.1 pytest-9.2.0 pyyaml-6.0.3 regex-2026.11.7 requests-2.34.2 rich-15.0.0 safetensors-0.8.0 scikit-learn-1.9.1 scipy-1.17.1 sentence-transformers-6.2.0 shellingham-1.5.4 starlette-1.10.0 sympy-1.14.0 tabulate-0.10.0 threadpoolctl-3.8.0 tokenizers-0.23.3 torch-2.15.0+cpu tqdm-4.70.1 transformers-5.22.2 truststore-0.10.5 typer-0.28.0 typing-extensions-4.16.0 typing-inspection-0.4.5 ulid-py-1.1.0 urllib3-2.8.0 uvicorn-0.54.0
+2026-11-07T15:56:08.6875116Z ##[group]Run make test-py
+2026-11-07T15:56:08.6875491Z [36;1mmake test-py[0m
+2026-11-07T15:56:08.6897905Z shell: /usr/bin/bash -e {0}
+2026-11-07T15:56:08.6898208Z env:
+2026-11-07T15:56:08.6898580Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T15:56:08.6899011Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-07T15:56:08.6899399Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T15:56:08.6899745Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T15:56:08.6900127Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T15:56:08.6900485Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-07T15:56:08.6900802Z ##[endgroup]
+2026-11-07T15:56:08.6973538Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py
+2026-11-07T15:56:13.4263966Z ..........................................................s............. [ 67%]
+2026-11-07T15:56:13.6392953Z ...................................                                      [100%]
+2026-11-07T15:56:13.6393440Z 106 passed, 1 skipped in 4.08s
+2026-11-07T15:56:14.0717271Z Post job cleanup.
+2026-11-07T15:56:14.1512176Z (node:2394) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-07T15:56:14.1513017Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-07T15:56:14.1513707Z Cache hit occurred on the primary key hf-Linux-bge-base-en-v1.5, not saving cache.
+

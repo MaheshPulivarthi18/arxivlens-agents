@@ -1,0 +1,8 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/d01ffcb.../check-runs
+head_sha: d01ffcb59ee7fe05f7ad78d2f2b05eab0f9f8c95
+Python M0 unit tests | completed | success | job 128451485649 | 2026-11-07T15:56:16Z
+Agent ownership check | completed | success | job 128451485575 | 2026-11-07T15:55:26Z
+Frontend (lint, test, build) | completed | success | job 128451485555 | 2026-11-07T15:55:30Z
+Go (vet, gofmt, test, build) | completed | success | job 128451485368 | 2026-11-07T15:56:06Z
+DB (migrate twice, HNSW plan + recall) | completed | success | job 128451485194 | 2026-11-07T15:56:33Z
+
