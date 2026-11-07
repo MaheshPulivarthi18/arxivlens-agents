@@ -8,7 +8,7 @@
 | **Depends on** | ING-9 (Done, `2b71772`: same files, already merged). No open PR touches these files (checked 2026-11-07: #26 `stack.yml`/README, #27 `internal/llm`, #28 `rag.go`, #29 evals, #30 Python). Independent of RET-2: no shared files. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-ING-10"`) |
 | **Design required** | no. P1, no new command, table or service. The storage key format (`raw/<id>_v<n>.pdf`), event envelope and HTTP API are unchanged |
-| **Status** | Ready (2026-11-07, from the RET-2 design review, finding 3 / Q2) |
+| **Status** | Ready to merge (2026-11-07: QA PASS r2 + pm-lead APPROVE on `c940779`; PR #31 raised, waiting on Mahesh) |
 
 ## Goal
 A paper row says `version = N` only when the PDF that was chunked is version N. Today on-demand ingest hard-codes
@@ -37,14 +37,22 @@ unversioned URL, so a version released between crawl and download gets the wrong
   - The downloader's `version == 0 → 1` default (`downloader.go:50-52`) for envelopes without a version. Keep it, but log a warning when it fires (one line).
 
 ## Acceptance criteria
-- [ ] AC1: On-demand ingest of a paper whose Atom `entry.ID` ends in `v3` writes `version = 3`, storage key `raw/<id>_v3.pdf`,
+- [x] AC1: On-demand ingest of a paper whose Atom `entry.ID` ends in `v3` writes `version = 3`, storage key `raw/<id>_v3.pdf`,
   `source_url` `https://arxiv.org/pdf/<id>v3.pdf`, and sends `"version": 3` to `/internal/ingest` (unit test, fake arXiv and embedder servers).
-- [ ] AC2: An `entry.ID` with no version (or a malformed one) fails the ingest with an error that names the ID. No PDF request, no DB write, no MinIO put (unit test, using counters on the fakes).
-- [ ] AC3: The downloader requests `/pdf/<id>v<n>.pdf` for an envelope with version n (test with n = 1 and n = 2). The crawler's `SourceURL` is versioned (`crawler_test.go` against `testdata/arxiv_feed.xml`, which has `2307.08691v2`).
-- [ ] AC4: Requests per ingest are unchanged, and all ING-9 limiter/UA tests pass **unmodified** (`git diff` shows no edits to their bodies).
-- [ ] AC5: The milestone suite passes on the PR: `stack.yml` (it runs on Go PRs once OPS-H10 #26 merges; otherwise dispatch it on the branch and say so).
+  Evidence: `TestIngestUsesEntryVersion` ([01](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/01-ci-go-job.png?raw=true), [02](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/02-local-ticket-tests.png?raw=true), [03](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/03-mutation.png?raw=true)).
+- [x] AC2: An `entry.ID` with no version (or a malformed one) fails the ingest with an error that names the ID. No PDF request, no DB write, no MinIO put (unit test, using counters on the fakes).
+  Evidence: `TestIngestRejectsUnversionedEntry`, mutants M01/M02/M08 killed ([02](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/02-local-ticket-tests.png?raw=true), [03](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/03-mutation.png?raw=true)).
+- [x] AC3: The downloader requests `/pdf/<id>v<n>.pdf` for an envelope with version n (test with n = 1 and n = 2). The crawler's `SourceURL` is versioned (`crawler_test.go` against `testdata/arxiv_feed.xml`, which has `2307.08691v2`).
+  Evidence: `TestHandleRecordFetchesTheEnvelopesVersion`, `TestParseAtomFeed`, mutants M10–M13 killed ([02](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/02-local-ticket-tests.png?raw=true), [03](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/03-mutation.png?raw=true)).
+- [x] AC4 *(amended 2026-11-07, see Notes)*: Requests per ingest are unchanged, and all ING-9 limiter/UA tests pass. Their count, order, spacing and UA
+  assertions are unchanged (`git diff` shows no edits to them); expected PDF URL literals may only become versioned (`<id>.pdf` → `<id>v<n>.pdf`).
+  ~~all ING-9 limiter/UA tests pass **unmodified** (`git diff` shows no edits to their bodies)~~
+  Evidence: only changed ING-9 line is the `TestIngestSpacesArxivRequests` URL literal, `limiter_test.go` untouched ([04](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/04-ac4-ing9-test-diff.png?raw=true)); all ING-9 tests pass ([05](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/05-ac4-ing9-tests.png?raw=true)); T01/M17 ([03](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/03-mutation.png?raw=true)).
+- [x] AC5: The milestone suite passes on the PR: `stack.yml` (it runs on Go PRs once OPS-H10 #26 merges; otherwise dispatch it on the branch and say so).
   If `tests/test_m3_query.py` / `test_m4_chaos.py` assume fixture `2608.20331` is v1 and arXiv has a later version, stop and file the fixture follow-up for ai. Never loosen the asserts.
-- [ ] AC6: Diff < 400 changed lines. The PR lists the SQL to find possibly mislabelled on-demand rows (Notes) and does not run it against any shared DB.
+  Evidence: dispatched run https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42411848508 on `c940779`, success; seed ingest `"version":1`, M4 fixture holds, no ai follow-up ([10](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/2512967/agents/reviews/ING-10/evidence/10-ci-checks-c940779.png?raw=true), [11](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/2512967/agents/reviews/ING-10/evidence/11-ac5-stack-run-meta.png?raw=true), [12](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/2512967/agents/reviews/ING-10/evidence/12-ac5-seed-ingest-version.png?raw=true), [13](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/2512967/agents/reviews/ING-10/evidence/13-ac5-test-full.png?raw=true), [14](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/2512967/agents/reviews/ING-10/evidence/14-ac5-m3-m4-dot-map.png?raw=true)).
+- [x] AC6: Diff < 400 changed lines. The PR lists the SQL to find possibly mislabelled on-demand rows (Notes) and does not run it against any shared DB.
+  Evidence: 322 changed lines (CI ownership check); SQL in the PR body, marked do-not-run ([08](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/7cc504d/agents/reviews/ING-10/evidence/08-ac6-diff-size-sql.png?raw=true), [15](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/2512967/agents/reviews/ING-10/evidence/15-r1-r2-diff.png?raw=true)).
 
 ## Verification
 ```bash
@@ -93,3 +101,10 @@ go test ./internal/query/ ./internal/downloader/ ./internal/crawler/ ./internal/
   - Finding 2 [spec, pm-lead]: AC4 wording. I made no change and left the ACs untouched. This is pm-lead's call.
   - Finding 3 [nit]: I reworded only the `crawler.go:198-200` comment, which now says the row is stored as v1, the downloader fetches v1, and `source_url` stays unversioned on purpose for the
     suspect-rows query. Behaviour is unchanged. Commit `c940779`.
+- 2026-11-07 (pm-lead): **AC4 amended** (QA r1 finding 2 / r2 finding 1, `[spec]`). The original wording "ING-9 tests pass **unmodified**" couldn't be met
+  together with this ticket's own scope: ING-9's `TestIngestSpacesArxivRequests` expected the substring `arxiv.org/pdf/2307.08691.pdf`, and a versioned URL can never
+  contain it (QA mutant T01: reverting the literal fails against the new code). The amendment is **not a weakening**: the ING-9 count/order/spacing/UA
+  assertions are byte-identical, `limiter_test.go` is untouched, and the new literal `…2307.08691v1.pdf` is stricter (on its own it kills an unversioned-URL regression, M17).
+  New rule in AC4: those assertions stay unchanged; expected PDF URL literals may only become versioned. My spec error: I wrote "unmodified" without checking which ING-9 asserts embed the URL.
+- 2026-11-07 (pm-lead): final review **APPROVE** on `c940779` (`agents/reviews/ING-10/report.md`). PR #31 marked ready for review, label `ready-to-merge`, evidence in the description.
+  Follow-up (pm-lead, docs PR): Technical PRD §7.3 step 2 should say the PDF is the version named in the Atom entry ID and a version-less entry is refused.
