@@ -1,0 +1,23 @@
+$ bash -c f=job-128331784672.log; grep -nE "key: hf-|Cache hit for: hf-|Cache Size: ~1205|Cache restored from key: hf-|cache-hit=|HIT: |Loading weights: 100|Cache saved|Cache not found" $f; echo "--- model-hub fetches anywhere in the log (huggingface.co / snapshot / model.safetensors / pytorch_model):"; grep -ciE "huggingface\.co|snapshot_download|model\.safetensors|pytorch_model" $f || true; echo "--- seed / gate lines:"; grep -nE "31/31 ingested|GATE:|exit code 1|Latency p50|ask_p95_ms|correct_refusal_rate" $f
+281:2026-11-07T06:49:26.1763173Z   key: hf-Linux-bge-base-en-v1.5-bge-reranker-base
+297:2026-11-07T06:49:26.4630229Z Cache hit for: hf-Linux-bge-base-en-v1.5-bge-reranker-base
+308:2026-11-07T06:49:35.2405693Z Cache Size: ~1205 MB (1263179285 B)
+311:2026-11-07T06:49:38.2299921Z Cache restored from key: hf-Linux-bge-base-en-v1.5-bge-reranker-base
+565:2026-11-07T06:50:28.6129850Z [36;1mecho "cache-hit=${HIT:-false} HF_HUB_OFFLINE=${HF_HUB_OFFLINE:-0}"[0m
+579:2026-11-07T06:50:28.6182947Z   HIT: true
+581:2026-11-07T06:50:28.6265762Z cache-hit=true HF_HUB_OFFLINE=1
+584:2026-11-07T06:50:34.4756042Z Loading weights: 100%|██████████| 199/199 [00:00<00:00, 6678.99it/s]
+587:2026-11-07T06:50:34.5582468Z Loading weights: 100%|██████████| 201/201 [00:00<00:00, 7387.06it/s]
+2858:2026-11-07T07:32:59.0163261Z Loading weights: 100%|██████████| 199/199 [00:00<00:00, 6590.60it/s]
+--- model-hub fetches anywhere in the log (huggingface.co / snapshot / model.safetensors / pytorch_model):
+0
+--- seed / gate lines:
+2804:2026-11-07T07:32:55.0238963Z eval-seed: 31/31 ingested
+2838:2026-11-07T07:32:55.0664544Z [36;1m  sed -n '/^=====/,/^GATE:/p' eval.log; if [ "$rc" = 2 ]; then tail -n 20 eval.log; fi[0m
+2876:2026-11-07T07:49:01.9303021Z Latency p50 / p95 (ms)   : 12178 / 14922
+2886:2026-11-07T07:49:01.9308304Z correct_refusal_rate                             |    0.9091 |    >= 0.95 | FAIL
+2887:2026-11-07T07:49:01.9308647Z ask_p95_ms                                       | 14922.3207 |     < 3000 | FAIL
+2894:2026-11-07T07:49:01.9311179Z GATE: FAIL
+2896:2026-11-07T07:49:02.7575465Z ##[error]Process completed with exit code 1.
+
+[exit code 0]

@@ -97,3 +97,49 @@ PENDING → re-review next cycle once a second Eval run exists (re-run attempt 2
 | `evidence/05-ac5-eval-seed-dry-run.png` | `make eval-seed` failure matrix and request gaps |
 | `evidence/06-ac6-eval-numbers.png` | Full `make eval` output from the CI log |
 | `evidence/07-ac7-ac8-size-contributing.png` | Line counts, ownership check output, CONTRIBUTING rows |
+
+---
+
+# QA report — EVAL-3 · PR #22 · round 1 (continued)
+
+<!-- Written by qa-reviewer (fresh context, 2026-11-07 cycle, after Eval run 42344527129 attempt 2). Evidence 08-10 rendered with agents/tools/render_evidence.py from real gh api output and the downloaded job log. -->
+
+**Verdict:** PASS
+**Reviewed commit:** `8fc120916e03475bdea01c870d294e32e724496c` (same as the PENDING report; no new commits) · **Date:** 2026-11-07
+**What changed since PENDING:** Eval run [42344527129](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42344527129) was re-run (attempt 2, job 128331784672, 06:48:58Z to 07:49:22Z, conclusion failure because the gate exited 1, as in attempt 1). This round only re-checks AC4 and the CI checks. AC1-AC3 and AC5-AC8 are unchanged from round 1.
+
+## Test results (delta)
+| Check | Source | Result |
+|---|---|---|
+| CI check runs for `8fc1209` | `commits/<sha>/check-runs` | 6 green (Go, Python M0, Frontend, Ownership, DB, Full stack). `eval` now points at attempt-2 job 128331784672: failure = gate exit 1 (allowed by AC6). → `evidence/08-ci-checks-attempt2.png` |
+| Eval attempt 2 (warm) | job 128331784672 log | `Cache hit for: hf-Linux-bge-base-en-v1.5-bge-reranker-base`, `Cache Size: ~1205 MB`, `Cache restored from key: hf-Linux-bge-base-en-v1.5-bge-reranker-base`. Pre-fetch printed `cache-hit=true HF_HUB_OFFLINE=1` and loaded both models offline (199/201 weights) in 7 s. Step 9 "Save Hugging Face models" was **skipped**. No `huggingface.co` / `model.safetensors` / `pytorch_model` / `snapshot_download` line anywhere in the log (count 0). Seed 31/31 on first attempts, `make eval` completed, `GATE: FAIL`, `Process completed with exit code 1`. → `evidence/09-ac4-cold-vs-warm-steps.png`, `evidence/10-ac4-warm-cache-log.png` |
+| Artifacts after attempt 2 | `runs/42344527129/artifacts` | `eval-results-42344527129` (expires 2026-12-07, 30 d) and `eval-stack-logs-42344527129` (expires 2026-11-14, 7 d), re-uploaded by attempt 2. AC3 holds on a second gate-red run |
+| `make lint`, `make test-unit` | not run locally: Go 1.25 toolchain download blocked in the sandbox. CI green | — |
+
+## Acceptance criteria (delta)
+| AC | Met? | Evidence |
+|---|---|---|
+| AC4 warm cache | ✅ (log) / ⚠ (PR text) | Warm run restores the model cache from the exact key the cold run saved, runs the pre-fetch with `HF_HUB_OFFLINE=1` (it would fail rather than download a missing file), skips the save step, and has no model download line. Runtimes: **cold 49 m 57 s** (attempt 1, job 05:52:18Z to 06:42:15Z), **warm 60 m 24 s** (attempt 2, job 06:48:58Z to 07:49:22Z). The model steps themselves (restore + pre-fetch + save) took 64 s cold and 69 s warm. The warm run was slower overall because of seeding (37 m 48 s vs 30 m 24 s, arXiv fetch + CPU embedding) and `make eval` (16 m 07 s vs 13 m 50 s), not the models. Both runtimes still have to go into the PR description (finding 3, pm-lead stage 4). → `evidence/09`, `evidence/10` |
+| AC1-AC3, AC5-AC8 | ✅ unchanged | Round 1 above. No new commits, so the round-1 evidence still applies |
+
+### Second measurement (attempt 2, same code, informational for AC6 / finding 4)
+Retrieval numbers are identical to attempt 1 (Recall@5 0.9804, MRR 0.9853, NDCG@5 0.9735 gated; BM25/Dense/RRF unchanged), as expected for a deterministic retrieval path over the same corpus. supported_citation_rate 0.9032 PASS, correct_refusal_rate 0.9091 FAIL (same), ask_errors 0. **`/v1/ask` p50/p95 = 12 178 / 14 922 ms** (attempt 1: 10 685 / 12 787 ms). Rerank avg 11 796 ms/query (attempt 1: 9 964). So latency on the 4-vCPU CPU runner varies by about 15-20 % between runs and stays 4-5x above the 3 s gate.
+
+## Findings (round 1 continued)
+Round-1 findings 1-6 stand (1-2 nits, 3-6 [spec] hand-offs to pm-lead). No blocking findings. Updates:
+3. [spec] (update) The PR description also needs the warm runtime (60 m 24 s) next to the cold one (49 m 57 s), plus the attempt-2 link (run 42344527129, attempt 2). It should say plainly that the model cache works (no model download) but doesn't shorten the job, because the HF download was already quick (about 20 s on a cold run).
+5. [spec] (escalated, still not blocking) Seeding took **37 m 48 s** on the warm run, which is 84 % of the step's 45-min `timeout-minutes` (round 1: 30 m 24 s, 68 %). The whole job took 60 of its 100 min. Seed time is now the main risk to the nightly run, and the cache can't help with it. Per design condition 3 nothing is tuned in this PR. pm-lead should open a follow-up (e.g. raise the seed step budget, or cache the ingested DB/MinIO state per corpus hash) before the nightly turns flaky.
+7. [nit] A cache restore of ~1205 MB took 12 s, while a cold download plus save took about 27 s. The cache is worth keeping because it removes the dependency on Hugging Face availability (an offline failure is loud), not because it saves time. Optional: say so in CONTRIBUTING.
+
+## Missing tests (unchanged)
+The exit-2 path and the non-closed-port seed failure paths are still verified only locally (round 1). AC4's warm path has now been seen in CI.
+
+## Hand-off
+PASS → pm-lead final review. pm-lead must write into the PR description: the run link (both attempts), cold/warm runtimes, the AC6 numbers + machine profile + main SHA `71cb609` + "AI-7/EVAL-6 not merged" + "no prior baseline; first measurement with RET-1 (`RerankPool = 20`) live", and a note that the red Eval check is an expected gate fail (exit 1), not a broken workflow. Then record findings 4/5 for Mahesh (ADR-0010, Technical PRD §9).
+
+## Evidence (added this round)
+| File | Shows |
+|---|---|
+| `evidence/08-ci-checks-attempt2.png` | Check runs for `8fc1209` with the Eval check on attempt-2 job 128331784672 |
+| `evidence/09-ac4-cold-vs-warm-steps.png` | Step conclusions + timings for attempts 1 and 2: step 9 save success (cold) vs skipped (warm), job runtimes |
+| `evidence/10-ac4-warm-cache-log.png` | Warm job log: cache hit/restore lines, `cache-hit=true HF_HUB_OFFLINE=1`, offline weight loads, 0 model-hub download lines, 31/31 seeded, gate exit 1 |

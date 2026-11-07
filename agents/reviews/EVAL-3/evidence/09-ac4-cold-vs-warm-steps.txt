@@ -1,0 +1,45 @@
+$ bash -c for a in 1 2; do echo "== run 42344527129 attempt $a =="; gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/42344527129/attempts/$a/jobs --jq ".jobs[] | \"job \(.id) \(.name) \(.conclusion) \(.started_at) -> \(.completed_at)\", (.steps[] | select(.number<=19) | \"  \(.number) \(.conclusion) \(.started_at[11:19])-\(.completed_at[11:19]) \(.name[0:80])\")"; done
+== run 42344527129 attempt 1 ==
+job 128319267738 eval failure 2026-11-07T05:52:18Z -> 2026-11-07T06:42:15Z
+  1 success 05:52:19-05:52:20 Set up job
+  2 success 05:52:20-05:52:21 Run actions/checkout@v4
+  3 success 05:52:21-05:52:29 Run actions/setup-go@v5
+  4 success 05:52:29-05:52:32 Run actions/setup-python@v5
+  5 success 05:52:32-05:52:43 Lint the harness (actionlint, compose config)
+  6 success 05:52:43-05:52:43 Restore Hugging Face models
+  7 success 05:52:43-05:53:20 Host Python deps (make setup-py, CPU torch)
+  8 success 05:53:20-05:53:40 Pre-fetch models (offline on a cache hit, so a missing file fails instead of dow
+  9 success 05:53:40-05:53:47 Save Hugging Face models (before any container writes)
+  10 success 05:53:47-05:56:54 Build Go CLI, make stack-up, migrate
+  11 success 05:56:54-05:56:54 Start the query service on the host
+  12 success 05:56:54-05:57:43 Self-test: eval-seed fails on an unreachable API (no arXiv request)
+  13 success 05:57:43-06:28:07 make eval-seed (31 corpus IDs from arXiv)
+  14 success 06:28:07-06:28:07 Machine profile
+  15 failure 06:28:07-06:41:57 make eval
+  16 success 06:41:57-06:41:58 Upload eval results
+  17 success 06:41:58-06:41:58 Collect stack logs
+  18 success 06:41:58-06:41:59 Upload stack logs
+  19 success 06:41:59-06:42:12 Teardown
+== run 42344527129 attempt 2 ==
+job 128331784672 eval failure 2026-11-07T06:48:58Z -> 2026-11-07T07:49:22Z
+  1 success 06:48:59-06:49:01 Set up job
+  2 success 06:49:01-06:49:02 Run actions/checkout@v4
+  3 success 06:49:02-06:49:11 Run actions/setup-go@v5
+  4 success 06:49:11-06:49:16 Run actions/setup-python@v5
+  5 success 06:49:16-06:49:26 Lint the harness (actionlint, compose config)
+  6 success 06:49:26-06:49:38 Restore Hugging Face models
+  7 success 06:49:38-06:50:28 Host Python deps (make setup-py, CPU torch)
+  8 success 06:50:28-06:50:35 Pre-fetch models (offline on a cache hit, so a missing file fails instead of dow
+  9 skipped 06:50:35-06:50:35 Save Hugging Face models (before any container writes)
+  10 success 06:50:35-06:54:16 Build Go CLI, make stack-up, migrate
+  11 success 06:54:16-06:54:18 Start the query service on the host
+  12 success 06:54:18-06:55:07 Self-test: eval-seed fails on an unreachable API (no arXiv request)
+  13 success 06:55:07-07:32:55 make eval-seed (31 corpus IDs from arXiv)
+  14 success 07:32:55-07:32:55 Machine profile
+  15 failure 07:32:55-07:49:02 make eval
+  16 success 07:49:02-07:49:03 Upload eval results
+  17 success 07:49:03-07:49:04 Collect stack logs
+  18 success 07:49:04-07:49:05 Upload stack logs
+  19 success 07:49:05-07:49:18 Teardown
+
+[exit code 0]
