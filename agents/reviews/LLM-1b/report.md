@@ -162,8 +162,8 @@ Not blocking, for QA's lessons: the PNG renderer cuts output at about 60 lines. 
 
 **Docs.** No README change is needed, because nothing is user-visible until QA-8 wires the client in. The Product PRD QA-8 row stays ⏳, which is correct. It still says "Blocked on ADR-0001 and ADR-0002 (Proposed)", which is stale. That is already the Backlog item "pm-lead docs PR now due" and doesn't block this PR.
 
-**QA r2 nit 1 (TLS errors reported as "malformed response or protocol error").** I agree. It is an operator-diagnosis gap, not a leak, and no AC requires it. Added to Backlog as backend P2: fixed-string TLS/x509 classes in `transportDetail`, plus a test row. Fold it into QA-8 or the next `openai.go` change.
+**QA r2 nit 1 (TLS errors reported as "malformed response or protocol error").** I agree. It is an operator-diagnosis gap, not a leak, and no AC requires it. Added to Backlog as backend P2: fixed-string TLS/x509 classes in `transportDetail`, plus a test row. Fold it into the next `openai.go` change. `openai.go` is backend-owned, so it can't go into QA-8, which belongs to ai-engineer.
 
 **QA r2 finding 2 [spec].** Fixed: the PR description's AC7 now carries the CI numbers.
 
-**Next:** raise PR #27 (ready for review, Evidence section). Jira KAN-47 → Ready to merge. Merge order: after LLM-1 #23. QA-8 needs both merged.
+**Next:** raise PR #27 (ready for review, Evidence section). Jira KAN-47 → Ready to merge. LLM-1 #23 is already merged (`43713ce`), and this branch is cut from `main` `2b71772`, so there is no merge-order constraint. QA-8 still waits for this PR, AI-6, AI-6b and AI-7 to merge.

@@ -8,7 +8,7 @@
 | **Depends on** | **LLM-1 merged** (types, typed errors, `Config`/`ConfigFromEnv`, `llmtest`). ADR-0001/0002 Accepted. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-LLM-1b"`) |
 | **Design required** | no new design: covered by the approved `docs/design/LLM-1.md` (PM decision 2026-11-07, conditions 1–5). Split from LLM-1 for size, not scope. |
-| **Status** | In QA: rework r1 pushed, draft PR [#27](https://github.com/MaheshPulivarthi18/ArxivLens/pull/27) on `agent/backend/LLM-1b` @ `e031ac0` (QA r2 next). Picked for cycle 2026-11-07 11:00Z |
+| **Status** | Ready to merge: QA PASS r2 + PM APPROVE 2026-11-07 ([report](../reviews/LLM-1b/report.md)); PR [#27](https://github.com/MaheshPulivarthi18/ArxivLens/pull/27) @ `e031ac0` raised for Mahesh (orchestrator applies the body and marks it ready) |
 
 ## Goal
 Ship the real provider behind the `llm.Provider` interface: an OpenAI-compatible HTTP client (local server by default, hosted
@@ -91,3 +91,6 @@ git diff origin/main --stat
   - Local (Go 1.24.7, scratch `-modfile` `go 1.24`, not committed): `go vet` ok, `gofmt -l .` empty, `go test -race -count=3 ./internal/llm/...` ok,
     timing/leak/redirect tests `-race -count=10` ok, coverage `openai.go` 95.2%, `config.go` 98.2%, `llm.go` 100%.
     **Not verified locally:** `make lint`/`make test-unit` under Go 1.25 and the CI coverage totals; CI is the source of truth.
+- 2026-11-07 (pm-lead, final review): **APPROVE** at `e031ac0`. All 8 ACs are covered at the head by CI and QA r2 evidence (`openai.go` 95.2%, `config.go` 98.2%; prod 310 / test 756).
+  I accept the redirect-off change as in scope because it hardens AC6. QA r2 nit 1 (TLS/x509 errors shown as "malformed response or protocol error")
+  is now a Backlog item (backend P2) on the board. The QA-8 PRD row text ("ADR-0001/0002 Proposed") is stale and is fixed by the pending pm-lead docs PR.
