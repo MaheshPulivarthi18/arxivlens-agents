@@ -302,3 +302,12 @@ Format:
 - LLM-1: production code 655 lines → pm-lead split into LLM-1 + LLM-1b (KAN-47; full implementation kept on local branch `wip/LLM-1b` `8a776d6`, not pushed). #23: QA FAIL r1 (errors.Is table missing) → rework `8e333c4` → QA PASS r2.
 - EVAL-3 #22: first real eval run 42344527129 (Recall@5 0.980; ask p95 12.8 s and correct refusals 0.909 fail gates — findings for Mahesh); QA PENDING on AC4; warm-cache attempt 2 triggered.
 - This session then paused ~3 h; its lock went stale and the 10:00Z cycle took over (it completed QA EVAL-3 and PM LLM-1). Recorded here without touching that cycle's lock.
+
+## 2026-11-07 pm-lead: EVAL-3 #22 final review → APPROVE
+- Reviewed `8fc1209` against the ticket, design (+ conditions, 2 build deviations), Product PRD §8, Technical PRD §9/§10, ADR-0006/0010 and the QA pack
+  (round 1 PENDING on AC4 → round 1 continued PASS; evidence `753f86a` + `5b988a1`, all 11 PNGs opened). Verdict **APPROVE** (`agents/reviews/EVAL-3/report.md`).
+- First measured numbers (Eval run 42344527129, `main` `71cb609`, pre-AI-7/EVAL-6): Recall@5 0.9804, MRR 0.9853, NDCG@5 0.9735 (gated), supported 0.9032 pass;
+  correct refusals 0.9091 and `/v1/ask` p95 12.8 s (attempt 2: 14.9 s) fail → `make eval` exit 1 both attempts. Red Eval check allowed by AC6; nothing tuned.
+- PR body at `/tmp/claude-0/s/pr22-body.md` for the orchestrator (ready for review, KAN-29 → Ready to merge). Board: EVAL-3 → Ready to merge.
+- QA [spec] 5 + nits 1/2/7 → new **EVAL-9** (backend, P1, Ready once #22 merges: seed step 45→70 min, job 100→120, seed-time summary + ≥ 75% warning, label fixes).
+  Finding 4 → "Decisions for Mahesh" in the PR body. Backlog: PRD numbers docs PR after merge; seeded-state cache option (P3).

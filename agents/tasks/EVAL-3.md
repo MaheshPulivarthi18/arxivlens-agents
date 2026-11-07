@@ -6,9 +6,9 @@
 | **Priority** | P1 (first real quality numbers; unblocks every "`make eval` doesn't regress" DoD item) |
 | **PRD ref** | Product PRD §8 (every Quality/Latency row is measured by `make eval`; none has a number yet); Technical PRD §9 (reference hardware, *Proposed*), §10; DoD 3 |
 | **Depends on** | OPS-H1 (merged `71cb609`: compose stack with workers + embedder API, `make stack-up`). Carries RET-1 AC6 (moved here from EVAL-2 AC10). |
-| **Jira** | not created yet (orchestrator: story under epic "Retrieval & answer quality gates", labels `task-EVAL-3`, `agent-backend`, `design-required`, `arxivlens`) |
+| **Jira** | KAN-29 |
 | **Design required** | **yes**: new CI workflow with real runtime/cost (nightly full stack, ~440 MB embedder + cross-encoder downloads, arXiv fetches for 31 papers). The design must fix caching, timeouts and politeness before any YAML is written. |
-| **Status** | Ready (Wave 1, 2026-11-07 plan). Design approved with conditions 2026-11-07 (`docs/design/EVAL-3.md`) |
+| **Status** | Ready to merge (ArxivLens #22, KAN-29): QA PASS r1 (continued) · PM APPROVE 2026-11-07 ([report](../reviews/EVAL-3/report.md)) |
 
 ## Goal
 `evals/BASELINE.md` still says "not run: infra unavailable". No agent sandbox can bring up the stack, but GitHub-hosted
@@ -45,24 +45,24 @@ repeatable way to check "doesn't regress".
    something to work around (no `continue-on-error` on the gate step, no threshold edits).
 
 ## Acceptance criteria
-- [ ] AC1: `eval.yml` triggers exactly as in Scope: a normal PR that doesn't touch the file does not start it (QA shows the
+- [x] AC1: `eval.yml` triggers exactly as in Scope: a normal PR that doesn't touch the file does not start it (QA shows the
   run list of an unrelated PR, or the `on:` block plus GitHub's path-filter docs).
-- [ ] AC2: One run, from a clean runner: compose stack up (OPS-H1 target), `migrate`, query service healthy, corpus
+- [x] AC2: One run, from a clean runner: compose stack up (OPS-H1 target), `migrate`, query service healthy, corpus
   seeded, `make eval` runs to completion. The run link is in the PR.
-- [ ] AC3: `evals/results/*.json` is uploaded as an artifact on pass **and** fail, with the retention you chose. The step
+- [x] AC3: `evals/results/*.json` is uploaded as an artifact on pass **and** fail, with the retention you chose. The step
   summary shows the metric table and the exit code.
-- [ ] AC4: A second run with a warm cache shows a cache hit for the model cache and doesn't download the models (log line in evidence). Both runtimes are given in the PR.
-- [ ] AC5: The seeding target fails the job if any corpus ID fails to ingest. QA shows this with a bogus ID in a scratch
+- [x] AC4: A second run with a warm cache shows a cache hit for the model cache and doesn't download the models (log line in evidence). Both runtimes are given in the PR.
+- [x] AC5: The seeding target fails the job if any corpus ID fails to ingest. QA shows this with a bogus ID in a scratch
   run, or a unit-style dry run of the target. It never deletes or skips corpus IDs.
-- [ ] AC6 (RET-1 AC6 / formerly EVAL-2 AC10): The PR description reports, from the AC2 run, Recall@5 / MRR / NDCG@5
+- [x] AC6 (RET-1 AC6 / formerly EVAL-2 AC10): The PR description reports, from the AC2 run, Recall@5 / MRR / NDCG@5
   (gated mode and baselines), supported-citation rate, correct-refusal rate, `/v1/ask` p50/p95, and `/v1/search` p95 if EVAL-2
   AC2 has merged, together with the runner's machine profile (CPU model, cores, RAM, torch device). The pre-RET-1 baseline was
   never measured, so say "no prior baseline; first measurement with RET-1 (`RerankPool = 20`) live". **If `/v1/ask` p95 ≥ 3 s
   or any gate fails: don't touch `RerankPool`, `RRF_POOL_SIZE`, thresholds or the workflow's gate step. Paste the numbers and
   hand them to pm-lead, who records them for Mahesh in ADR-0010 (pool decision) and Technical PRD §9 (hardware rule).** A red gate
   does not block merging the workflow; a run that didn't complete (exit 2) does.
-- [ ] AC7: `CONTRIBUTING.md` as in Scope (how to trigger the workflow, where results go, artifact retention). The stale EVAL-1 wording is gone.
-- [ ] AC8: The workflow is < 150 lines, and the total diff is < 400 changed lines (ownership check output).
+- [x] AC7: `CONTRIBUTING.md` as in Scope (how to trigger the workflow, where results go, artifact retention). The stale EVAL-1 wording is gone.
+- [x] AC8: The workflow is < 150 lines, and the total diff is < 400 changed lines (ownership check output).
 
 ## Verification
 ```bash
@@ -97,3 +97,8 @@ gh run download <run-id> -n <artifact-name>   # results JSON for AC3/AC6
   stays as specced (AC1), because each run costs 62 arXiv requests and up to ~100 min. After this merges, PRs that change retrieval or answering get one
   `workflow_dispatch` run on their branch as DoD 3 evidence (*Proposed* rules item for Mahesh). QA: a missing `scripts/`/`evals/` path is not a finding.
 
+- 2026-11-07 (pm-lead, final review): **APPROVE** at `8fc1209` after QA PASS (round 1 + continued; evidence `753f86a`, `5b988a1`). All 8 ACs met;
+  AC2/AC4/AC6 PR-text items are in the new PR body (`/tmp/claude-0/s/pr22-body.md`, applied by the orchestrator). Eval run 42344527129: attempt 1 cold
+  49 m 57 s, attempt 2 warm 60 m 24 s, both `make eval` exit 1 (`correct_refusal_rate` 0.9091, `ask_p95_ms` 12 787 / 14 922) = allowed by AC6;
+  nothing tuned. Numbers are pre-AI-7/EVAL-6 on `main` `71cb609`. QA finding 5 (seed at 84% of its 45-min budget) + nits 1, 2, 7 → **[EVAL-9](EVAL-9.md)**.
+  Finding 4 → "Decisions for Mahesh" in the PR body (ubuntu-latest is 4 vCPU, below Technical PRD §9's proposed 8-vCPU CPU profile). EVAL-4 unblocks on merge.

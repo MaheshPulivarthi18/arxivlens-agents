@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 by pm-lead (LLM-1 #23 PM APPROVE → Ready to merge; LLM-1b Ready once it merges. Earlier: AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Proposed)
+Last updated: 2026-11-07 by pm-lead (EVAL-3 #22 PM APPROVE → Ready to merge; EVAL-9 specced (Ready once #22 merges). Earlier: LLM-1 #23 PM APPROVE → Ready to merge; LLM-1b Ready once it merges. Earlier: AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Proposed)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -10,7 +10,6 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | # | ID | Title | Owner | Pri | Depends on | Wave | Note |
 |---|---|---|---|---|---|---|---|
 | 1b | [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (code already written) | backend-engineer | P0 | **LLM-1 merged** | 1b | ≈ 279 non-test lines; covered by LLM-1 design |
-| 2 | [EVAL-3](tasks/EVAL-3.md) | Full-stack `make eval` in GitHub Actions + first numbers (design-required) | backend-engineer | P1 | OPS-H1 (merged) | 1 | Docker + arXiv seeding only on GitHub runners; README line moved to EVAL-4 |
 | 5 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | 1 | **Env-blocked:** registry.npmjs.org; needs Mahesh (allow the host, or push the lockfile) |
 | 6 | [AI-6](tasks/AI-6.md) | Context selection, token budget, prompt, structured-output parser (writes `docs/design/QA-8.md`) | ai-engineer | P0 | AI-7 merged | 2 | Pure functions, `Ask` unchanged |
 | 7 | [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python consumer: commit after success or confirmed DLQ (design-required) | backend-engineer | P0 | OPS-H1 (merged); backend slot | 2 | Swap with EVAL-3 if Mahesh wants data-loss fix first |
@@ -21,6 +20,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | 12 | [EVAL-7](tasks/EVAL-7.md) | Blind human-review sheet → citation precision, claim correctness | ai-engineer | P1 | EVAL-6 merged | 3 | Judging is Mahesh's, not an agent's |
 | 13 | [AI-8](tasks/AI-8.md) | Claims + provenance (version, chunk, section, page, quote, status) (design-required) | ai-engineer | P0 | **ADR-0014**, QA-8, RET-2 merged | 3 | |
 | 14 | [FE-4](tasks/FE-4.md) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | P0 | **ADR-0014**, AI-8, FE-3 merged | 3 | |
+| 15a | [EVAL-9](tasks/EVAL-9.md) | `eval.yml` seed-step timeout headroom (45→70 min, job 100→120), seed-time summary line, two label nits | backend-engineer | P1 | **EVAL-3 merged**; no other open PR on `eval.yml` | 3 | From EVAL-3 QA finding 5 (seed at 84% of budget) |
 | 15 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | EVAL-3 merged; no open README PR | 3 | |
 
 ## Ready — not in this plan (lower priority; start only with a free slot and no file overlap)
@@ -50,6 +50,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | [EVAL-6](tasks/EVAL-6.md) | Answer eval: ADR-0003 classification, report-only coverage, near-miss set | ai-engineer | ArxivLens [#20](https://github.com/MaheshPulivarthi18/ArxivLens/pull/20) (KAN-37) · **merge before AI-7 #21** | QA PASS r1 · PM APPROVE ([report](reviews/EVAL-6/report.md)) |
 | [AI-7](tasks/AI-7.md) | ADR-0003 refusal with evidence + `refusal_reason` (first in the `rag.go` chain; AI-6 starts once merged) | ai-engineer | ArxivLens [#21](https://github.com/MaheshPulivarthi18/ArxivLens/pull/21) (KAN-36) · **merge after EVAL-6 #20** | QA PASS r1 · PM APPROVE ([report](reviews/AI-7/report.md)); AC9 not run → EVAL-4 AC5 |
 | [LLM-1](tasks/LLM-1.md) | `internal/llm`: provider interface, typed errors, config, `llmtest` fake (part a; LLM-1b follows after merge) | backend-engineer | ArxivLens [#23](https://github.com/MaheshPulivarthi18/ArxivLens/pull/23) (KAN-35) · no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/LLM-1/report.md)) |
+| [EVAL-3](tasks/EVAL-3.md) | Full-stack `make eval` workflow (`eval.yml`, `make eval-seed`) + first measured numbers | backend-engineer | ArxivLens [#22](https://github.com/MaheshPulivarthi18/ArxivLens/pull/22) (KAN-29) · Eval check red = expected gate exit 1 (AC6) · no file overlap with #20/#21/#23 | QA PENDING r1 → PASS r1 cont. · PM APPROVE ([report](reviews/EVAL-3/report.md)); follow-up EVAL-9 |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -101,6 +102,8 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 - From the #8 review: some code comments cite PRD sections (`§4`, `§6 Tier 1`) that now live in this repo; reword or link them (backend/ai, nit)
 - From the AI-2 review + Mahesh's #11 review (ai, P2, after AI-4, same files): split the unverified log line into separate counters — sentence embed errors, missing sentence vectors, chunk embed errors, missing chunk vectors, dimension mismatches (today `sentence_embed_errors` and `chunks_without_vector` lump these); assert each counter in tests; mixed verified+unverified test (`unverified=1 citations=2`); one hit cited by two sentences, one checked < 0.50 and one unverified → evidence score = the checked score, reason B (AI-7 QA missing test); a correct-length batch with one empty slot (AI-3 QA optional test); log sentence/chunk dimension mismatch as unverified
 - pm-lead docs PR now due (#11 merged): Product PRD QA-4 ◐ → ✅, drop AI-2 caveat in §8 supported row, Technical PRD §9 known-gap paragraph
+- pm-lead docs PR (after EVAL-3 #22 merges): Technical PRD §9 "Reference hardware" + Product PRD §8 Latency rows: record EVAL-3's first CPU numbers (`/v1/ask` p95 12.8–14.9 s, rerank ≈ 10–12 s/query, single-paper ingest mostly 30–80 s, outliers ≈ 157 s) with the profile they came from (GitHub `ubuntu-latest`, 4 vCPU AMD EPYC 9V45, 15 GiB, torch CPU: below the *Proposed* 8-vCPU CPU-only profile). Numbers only; the gating rule stays Mahesh's decision.
+- backend option (P3, only if EVAL-9's 70-min seed budget gets tight): cache the seeded Postgres/MinIO state per `evals/corpus.txt` hash + migrations hash, so nightly runs skip the 31 arXiv ingests. Needs a design (cache invalidation when ingest/chunking code changes would hide regressions).
 - backend docs nit: `CONTRIBUTING.md:28,42,54` still say "once EVAL-1 lands" (folded into EVAL-3 AC7); AGENTS.md §2 ownership table omits `.gitignore` for backend (CI script allows it) (pm-lead rules PR)
 - From Mahesh's #12 review (backend, P2, small): split `make test-py` into `test-m0` and `test-evals-data` (and two CI steps), so the eval-data tests still run when the ML stack (torch/sentence-transformers) fails to install/import; `test-py` keeps running both; update `CONTRIBUTING.md:23` + README Testing block. Not folded into EVAL-3 because it shouldn't wait for OPS-H1. (Where `evals/results` go and artifact retention: EVAL-3 AC3/AC7.)
 - OPS-H6 design G1 (backend, P1): a redelivered `papers.discovered` record downgrades an already-`embedded` paper's status (`UpdatePaperDownloaded` forces `'downloaded'`). Don't downgrade a later status, or skip the re-publish when the status is already past `downloaded`

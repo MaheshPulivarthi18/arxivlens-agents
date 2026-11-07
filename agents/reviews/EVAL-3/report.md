@@ -143,3 +143,30 @@ PASS → pm-lead final review. pm-lead must write into the PR description: the r
 | `evidence/08-ci-checks-attempt2.png` | Check runs for `8fc1209` with the Eval check on attempt-2 job 128331784672 |
 | `evidence/09-ac4-cold-vs-warm-steps.png` | Step conclusions + timings for attempts 1 and 2: step 9 save success (cold) vs skipped (warm), job runtimes |
 | `evidence/10-ac4-warm-cache-log.png` | Warm job log: cache hit/restore lines, `cache-hit=true HF_HUB_OFFLINE=1`, offline weight loads, 0 model-hub download lines, 31/31 seeded, gate exit 1 |
+
+---
+
+# PM review — EVAL-3 · PR #22
+
+**Verdict:** APPROVE
+**Reviewer:** pm-lead · **Date:** 2026-11-07 · **Reviewed commit:** `8fc120916e03475bdea01c870d294e32e724496c` (PR head unchanged since QA; still draft; no review or comment from Mahesh on #22)
+**Inputs:** ticket `agents/tasks/EVAL-3.md`, design `docs/design/EVAL-3.md` (approved with conditions), Product PRD §8 Quality + Latency rows, Technical PRD §9/§10, DoD 3, ADR-0006, ADR-0010; diff via `gh api .../pulls/22/files` (`eval.yml` +149, `Makefile` +40/−1, `CONTRIBUTING.md` +5/−3); QA rounds 1 (PENDING) + 1 continued (PASS). I opened all 11 evidence PNGs (00–10) and cross-checked the machine profile lines in `02-ac2-eval-run.txt`.
+
+## Checks
+1. **Product fit (PRD §8, DoD 3).** This is the first time every §8 Quality/Latency row that says "Measured by `make eval`" has a real number, and the team now has a repeatable "doesn't regress" run (`workflow_dispatch` on a branch, nightly on `main`). The gate fails closed: no `continue-on-error`, no skip, thresholds and `RerankPool` untouched, exit codes 0/1/2 kept through `tee` (evidence 03, 06). That is what AC6 and Product PRD §7 (honest quality signals) ask for.
+2. **Scope.** Exactly the three files in Scope. No `scripts/`, `evals/`, README or threshold change. The two build deviations (non-0/1/2 → 2; `*.log` incl. `query.log` in the results artifact) are in the ticket's intent and strictly safer. Nothing missing: the README line is EVAL-4's, as planned.
+3. **AC evidence.** AC1 (01: `on:` block + paths-filter semantics; I agree that the run lists of #20/#21/#23 are only supporting evidence). AC2 (02: clean runner, stack Healthy, migrate, `/healthz`, self-test, 31/31 seeded on first attempt, `make eval` completed). AC3 (04: `eval-results-<id>` 30 d + `eval-stack-logs-<id>` 7 d on a gate-red run, re-uploaded on attempt 2; summary write code proven in 03). AC4 (09 + 10: cache hit from the exact key the cold run saved, `HF_HUB_OFFLINE=1`, save step skipped, 0 model-hub lines; cold 49 m 57 s / warm 60 m 24 s). AC5 (02 CI self-test + 05 local matrix; no ID skipped or deleted). AC6 (06 + attempt-2 lines in 10; machine profile in 02 `.txt`). AC7/AC8 (07: CONTRIBUTING rows, stale wording gone, 149-line workflow, 198 changed lines, ownership OK). Every image proves its AC.
+4. **Remaining ⚠.** (a) The rendered step-summary page was not seen by QA (UI blocked). The write code and its output are proven (03, 04), so I accept it and flag it in the PR for Mahesh to eyeball on the run page. (b) The pass-path upload hasn't been seen on a green run; it's `if: always()` and no gate can pass today on CPU, so nothing more is available. (c) `make lint`/`make test-unit` are CI-only, all green (00, 08). None of these block.
+5. **Red Eval check = allowed.** Both attempts completed with `make eval` exit **1** (gate FAIL on `correct_refusal_rate` 0.9091 < 0.95 and `ask_p95_ms` 12 787 / 14 922 > 3000), never exit 2. Per AC6 "a red gate does not block merging the workflow; a run that didn't complete (exit 2) does." I do **not** propose any threshold, pool or gate-step change.
+6. **Docs.** CONTRIBUTING is updated (AC7). App README: not in scope (EVAL-4). PRD status: §8 rows say "Measured by `make eval`", which is now true; recording the first numbers in the PRDs waits for the merge (Backlog docs item below).
+
+## QA [spec] findings — decisions
+- **3 (PR description):** done. The new body carries both attempt links, cold/warm runtimes and why the cache doesn't shorten the job, the AC6 tables, machine profile, main SHA `71cb609` (merge ref `c2ed79a`), "AI-7 #21 / EVAL-6 #20 not merged", "no prior baseline; first measurement with RET-1 (`RerankPool = 20`) live", and a note that the red Eval check is the expected gate fail (exit 1). Saved at `/tmp/claude-0/s/pr22-body.md` for the orchestrator.
+- **4 (for Mahesh):** recorded as "Decisions for Mahesh" in the PR body: (a) `/v1/ask` p95 12.8–14.9 s on a 4-vCPU CPU runner, rerank ≈ 10–12 s/query. Note the runner is **below** Technical PRD §9's *Proposed* CPU-only profile (8 vCPU), so even under that proposal it's informational; the §9 hardware decision is Mahesh's. AI-9 (CPU rerank latency, Ready) is the existing ticket for the engineering side. ADR-0010 is Accepted, so I don't edit it; the pool decision stands unless Mahesh reopens it. (b) `correct_refusal_rate` 0.909 is pre-AI-7; EVAL-4 AC5 re-measures after #20 + #21 merge. (c) single-paper ingest mostly 30–80 s with outliers ≈ 157 s vs the PRD's < 60 s (not automated): first data point, Technical PRD §9 docs item.
+- **5 (seed timeout headroom): new ticket [EVAL-9](../../tasks/EVAL-9.md)** (backend, P1, Ready once #22 merges): raise the seed step and job budgets with stated arithmetic and print per-run seed time in the summary; it also takes nits 1 and 2. Caching the seeded DB/MinIO state per corpus hash is recorded in Backlog as the larger option, not started without more data.
+- **6 (red check):** covered in the PR body (Checks/CI section and first line).
+- Nits 1, 2 → EVAL-9. Nit 7 (cache rationale in CONTRIBUTING) → EVAL-9 AC4.
+
+## Not blocking, recorded
+- `seed.log` shows no arXiv 429/403 on either attempt (31/31 first try), so ING-9 keeps its current priority.
+- Next measurement points: EVAL-4 (copy these numbers into `evals/BASELINE.md`) after merge; one `workflow_dispatch` on `main` after #20 + #21 merge.
