@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/532440e04dad297fc08ed31fbaca4945e5fed73d/check-runs --jq .check_runs[] | "\(.name) \(.status) \(.conclusion) \(.details_url)"
+Agent ownership check completed success https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42384934403/job/128440214032
+Python M0 unit tests completed success https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42384934403/job/128440213987
+Go (vet, gofmt, test, build) completed success https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42384934403/job/128440213975
+DB (migrate twice, HNSW plan + recall) completed success https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42384934402/job/128440213864
+Full stack (compose + make test-full) completed success https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42384934435/job/128440213767
+Frontend (lint, test, build) completed success https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42384934403/job/128440213765
+
+[exit code 0]

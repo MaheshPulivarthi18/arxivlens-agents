@@ -1,0 +1,22 @@
+$ bash -c git log --oneline 9ebb49e..0558a34; git diff --stat 9ebb49e 0558a34; git diff 9ebb49e 0558a34; echo '--- stack.yml 9ebb49e vs PR head 532440e:'; git diff --stat 9ebb49e 532440e -- .github/; echo '(empty = identical)'
+0558a34 OPS-H10 AC3 scratch: force exit 1 in the crawl step (throwaway, do not merge)
+ .github/workflows/stack.yml | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+diff --git a/.github/workflows/stack.yml b/.github/workflows/stack.yml
+index 1592ab7..7336836 100644
+--- a/.github/workflows/stack.yml
++++ b/.github/workflows/stack.yml
+@@ -153,7 +153,8 @@ jobs:
+ 
+       - name: "AC3: crawl 2 papers (before the downloader starts)"
+         timeout-minutes: 2
+-        run: ./bin/arxivlens crawl --query "cat:cs.LG" --limit 2
++        run: |
++          echo "::error::OPS-H10 AC3 scratch: forced failure before the host services start"; exit 1
+ 
+       - name: Start Go downloader and query service on the host
+         timeout-minutes: 2
+--- stack.yml 9ebb49e vs PR head 532440e:
+(empty = identical)
+
+[exit code 0]

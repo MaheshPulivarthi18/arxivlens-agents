@@ -1,0 +1,15 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128392773584/logs | grep -nE 'forced failure|exit code 1\.|^.{29}total [0-9]+$|runner runner|##\[group\]Run (mkdir|actions/upload)|files uploaded|successfully uploaded'
+2707:2026-11-07T11:44:07.9581753Z ##[group]Run echo "::error::OPS-H10 AC3 scratch: forced failure before the host services start"; exit 1
+2708:2026-11-07T11:44:07.9582408Z [36;1mecho "::error::OPS-H10 AC3 scratch: forced failure before the host services start"; exit 1[0m
+2721:2026-11-07T11:44:07.9692030Z ##[error]OPS-H10 AC3 scratch: forced failure before the host services start
+2722:2026-11-07T11:44:07.9706447Z ##[error]Process completed with exit code 1.
+2723:2026-11-07T11:44:07.9777126Z ##[group]Run mkdir -p stack-logs || true
+2746:2026-11-07T11:44:08.1006676Z total 256
+2747:2026-11-07T11:44:08.1007150Z -rw-r--r-- 1 runner runner 256934 Nov  7 11:44 compose.log
+2748:2026-11-07T11:44:08.1007597Z -rw-r--r-- 1 runner runner     57 Nov  7 11:44 embedder-timing.log
+2749:2026-11-07T11:44:08.1049532Z ##[group]Run mkdir -p stack-logs
+4100:2026-11-07T11:44:11.2455164Z ##[group]Run actions/upload-artifact@v4
+4127:2026-11-07T11:44:11.4770457Z With the provided path, there will be 4 files uploaded
+4137:2026-11-07T11:44:12.5141866Z Artifact stack-logs has been successfully uploaded! Final size is 28662 bytes. Artifact ID is 13572664383
+
+[exit code 0]

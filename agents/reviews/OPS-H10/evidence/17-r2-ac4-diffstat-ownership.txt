@@ -1,0 +1,8 @@
+$ bash -c git diff --stat origin/main...532440e; bash .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H10
+ .github/workflows/stack.yml | 27 +++++++++++++++++++++++----
+ CONTRIBUTING.md             |  2 +-
+ README.md                   |  3 ++-
+ 3 files changed, 26 insertions(+), 6 deletions(-)
+Ownership OK for role=backend (32 changed lines)
+
+[exit code 0]

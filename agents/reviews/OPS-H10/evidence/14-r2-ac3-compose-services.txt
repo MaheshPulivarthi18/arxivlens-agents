@@ -1,0 +1,12 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128392773584/logs | sed -n '2749,4099p' | sed -E 's/^[^ ]+ //' | awk '{print $1}' | grep '^arxivlens-' | sort | uniq -c
+     37 arxivlens-embedder-api
+      8 arxivlens-embedder-worker
+   1108 arxivlens-kafka
+     67 arxivlens-kafka-init
+     13 arxivlens-minio
+      1 arxivlens-minio-data-init
+     13 arxivlens-minio-init
+     59 arxivlens-postgres
+     11 arxivlens-processor
+
+[exit code 0]

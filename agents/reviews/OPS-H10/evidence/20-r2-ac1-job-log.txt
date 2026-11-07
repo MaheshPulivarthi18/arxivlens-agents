@@ -1,0 +1,16 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128440213767/logs | grep -nE '^.{29}total [0-9]+$|runner runner|##\[group\]Run (mkdir -p stack-logs|actions/upload)|files uploaded|successfully uploaded|[0-9]+ (passed|failed)|exit code'
+2931:2026-11-07T15:19:22.5601282Z 96 passed, 1 skipped, 3 deselected in 7.34s
+4365:2026-11-07T15:19:54.3380391Z 3 failed in 30.55s
+4367:2026-11-07T15:19:54.4069690Z ##[error]Process completed with exit code 2.
+4368:2026-11-07T15:19:54.4165419Z ##[group]Run mkdir -p stack-logs || true
+4391:2026-11-07T15:19:54.5851682Z total 292
+4392:2026-11-07T15:19:54.5855701Z -rw-r--r-- 1 runner runner 280074 Nov  7 15:19 compose.log
+4393:2026-11-07T15:19:54.5856020Z -rw-r--r-- 1 runner runner    819 Nov  7 15:19 downloader.log
+4394:2026-11-07T15:19:54.5856666Z -rw-r--r-- 1 runner runner     57 Nov  7 15:19 embedder-timing.log
+4395:2026-11-07T15:19:54.5856900Z -rw-r--r-- 1 runner runner    211 Nov  7 15:19 ingest.json
+4396:2026-11-07T15:19:54.5857161Z -rw-r--r-- 1 runner runner   1794 Nov  7 15:19 query.log
+4397:2026-11-07T15:19:54.5939823Z ##[group]Run actions/upload-artifact@v4
+4424:2026-11-07T15:19:54.8220406Z With the provided path, there will be 7 files uploaded
+4434:2026-11-07T15:19:55.5406281Z Artifact stack-logs has been successfully uploaded! Final size is 38284 bytes. Artifact ID is 13579885920
+
+[exit code 0]
