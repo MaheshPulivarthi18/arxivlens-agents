@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged). **#21 (AI-7, changes `README.md`) and #22 (EVAL-3, changes `CONTRIBUTING.md`) merged** (both are Ready to merge, waiting on Mahesh), per the AGENTS.md §3 same-file rule. No open PR changes `stack.yml` (checked 2026-11-07: #20–#25 don't). OPS-H9 no longer touches `stack.yml` (its optional step was removed to keep the two apart). |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H10`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P1 CI-only change, no new command/table/service, no shared contract |
-| **Status** | Ready (#21 `8406b18` and #22 `122eee3` merged). Picked for cycle 2026-11-07 11:00Z |
+| **Status** | In Progress: built on `agent/backend/OPS-H10` (`9ebb49e`, local), waiting for PR + CI run (AC1–AC3 need CI) |
 
 ## Goal
 Two gaps in the Full stack workflow keep QA from getting evidence:
@@ -79,3 +79,16 @@ git diff --stat origin/main...agent/backend/OPS-H10
 - The F1 step keeps running (and failing) on every Go PR now. That's expected while ADR-0015 is pending; it's `continue-on-error`.
 - Unblocks: AI-9 AC1 (rebase #24 onto a `main` with this merged), then ADR-0015's fixture-pool numbers.
 - 2026-11-07 11:00Z (pm-lead, grooming): #21 and #22 merged; no open PR changes `stack.yml`, `README.md` or `CONTRIBUTING.md` (open PR #24 changes only `services/embedder/api.py` and `tests/test_m0.py`). AI-9's README note (AC5) is written on its rework rebase, which happens only after this merges, so the two never edit `README.md` at the same time. Cut from `origin/main` `2b71772`; re-check the README line numbers in Scope against that SHA.
+- 2026-11-07 (backend-engineer, build): commit `9ebb49e` on `agent/backend/OPS-H10` (cut from `2b71772`), 3 files, 26+/6- (32 changed lines).
+  - `stack.yml`: 5 new `paths` (`cmd/**`, `internal/**`, `go.mod`, `go.sum`, `tests/**`). New step "Collect service logs" (`if: always()`, between F1
+    and Diagnostics; every command guarded with `|| true`) writes `stack-logs/compose.log`, copies `downloader.log`/`query.log`/`ingest.json`,
+    greps `rerank passages=` / `rerank warm-up` / `torch threads` into `embedder-timing.log` (or the "no embedder rerank timing lines (embedder
+    predates AI-9)" line), and puts `head -n 200` of it under `### Embedder rerank timing` in the step summary. Diagnostics keeps `ps`, `dlq list`
+    and `cat` but reads the files from `stack-logs/` (no second `docker compose logs`). F1, `F1_TESTS`, existing `timeout-minutes`, permissions,
+    concurrency and the artifact name are unchanged. The new step has its own `timeout-minutes: 5`.
+  - README Full stack paragraph (now lines 230-235) and CONTRIBUTING `stack.yml` row updated.
+  - Local checks: YAML parses (paths list + step order checked), `bash -n` on both changed `run:` blocks is clean, ownership check
+    `Ownership OK for role=backend (32 changed lines)`. **Not run locally:** actionlint/shellcheck (not installed; installing it from GitHub was blocked
+    by the sandbox's permission system), so the PR run's "Lint the harness" step is the first actionlint check. `make lint`/`make test-unit` can't run here
+    (`go.mod requires go >= 1.25.0 (running go 1.24.7)`); this change has no Go/Python code.
+  - Needs CI: AC1/AC2 (the PR's own `stack.yml` run + artifact listing), AC3 (scratch-branch dispatch with a forced `exit 1`, then delete the branch).
