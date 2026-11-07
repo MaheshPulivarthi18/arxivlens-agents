@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged). **#21 (AI-7, changes `README.md`) and #22 (EVAL-3, changes `CONTRIBUTING.md`) merged** (both are Ready to merge, waiting on Mahesh), per the AGENTS.md §3 same-file rule. No open PR changes `stack.yml` (checked 2026-11-07: #20–#25 don't). OPS-H9 no longer touches `stack.yml` (its optional step was removed to keep the two apart). |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H10`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P1 CI-only change, no new command/table/service, no shared contract |
-| **Status** | In QA (round 2): draft PR [#26](https://github.com/MaheshPulivarthi18/ArxivLens/pull/26), branch `agent/backend/OPS-H10`, head `532440e` |
+| **Status** | Ready to merge: QA PASS r2 + PM APPROVE (2026-11-07). PR [#26](https://github.com/MaheshPulivarthi18/ArxivLens/pull/26), branch `agent/backend/OPS-H10`, head `532440e`, Jira KAN-50. Waiting on Mahesh (merge + delete scratch branch `agent/backend/OPS-H10-ac3`) |
 
 ## Goal
 Two gaps in the Full stack workflow keep QA from getting evidence:
@@ -44,20 +44,28 @@ Two gaps in the Full stack workflow keep QA from getting evidence:
   skip in `ci.yml` instead), `eval.yml` (EVAL-9), `db.yml` (OPS-H9).
 
 ## Acceptance criteria
-- [ ] AC1: The PR's own `stack.yml` run (it triggers because the workflow file changes) finishes green apart from the known F1
+- [x] AC1: The PR's own `stack.yml` run (it triggers because the workflow file changes) finishes green apart from the known F1
   step. Its `stack-logs` artifact contains `compose.log`, `query.log`, `downloader.log` and `embedder-timing.log`, with the file
-  list and sizes taken from `gh api .../actions/runs/<id>/artifacts` plus an unzip listing. On a green job,
-  `compose.log` > 7,136 bytes (the size of AI-9's logs-less artifact) and contains lines from the `embedder-api` service.
-- [ ] AC2: The run's step summary has the `### Embedder rerank timing` section. On this branch, without AI-9's code, it shows the
-  "no embedder rerank timing lines" message, and the step concluded `success`.
-- [ ] AC3: "Collect service logs" runs when an earlier step failed. Show it with a scratch dispatch on a throwaway branch
+  list and sizes taken from `gh api .../actions/runs/<id>/artifacts` plus ~~an unzip listing~~ the Collect step's in-log
+  `ls -l stack-logs` and the upload step's file count. On a green job, `compose.log` > 7,136 bytes (the size of AI-9's
+  logs-less artifact) and contains lines from the `embedder-api` service (shown by a per-service count of the Collect-produced
+  `compose.log` as printed in a job log, e.g. Diagnostics' `cat` on the AC3 run). *Amended 2026-11-07 by pm-lead (QA [spec] #2):
+  the sandbox proxy blocks the artifact blob host, so the unzip listing is a human check for Mahesh in the PR, not an agent AC.*
+  Met: run 42384934435 + scratch run 42368916365 (QA r2 evidence 14, 19, 20).
+- [x] AC2: The run's step summary has the `### Embedder rerank timing` section. On this branch, without AI-9's code, it shows the
+  "no embedder rerank timing lines" message, and the step concluded `success`. *Amended 2026-11-07 by pm-lead (QA [spec] #3):
+  job summaries aren't in the REST API, so agent evidence is the step conclusion + `embedder-timing.log` = 57 B (the fallback
+  line); the rendered summary block is a human check for Mahesh in the PR.* Met (QA evidence 09, 20).
+- [x] AC3: "Collect service logs" runs when an earlier step failed. Show it with a scratch dispatch on a throwaway branch
   (never on `main`), where a step before it is forced to `exit 1` (e.g. `workflow_dispatch` on a scratch branch whose seed step
   fails). Both "Collect service logs" and "Diagnostics" ran, and `compose.log` is in the artifact. Delete the scratch branch
-  afterwards and link the run.
-- [ ] AC4: The `git diff` of `stack.yml` shows the five new `paths` entries and no change to the F1 step, `F1_TESTS`, any
+  afterwards and link the run. *Amended 2026-11-07 by pm-lead (QA r2 #6): agent sandboxes can't delete refs, so the deletion
+  is Mahesh's (`git push origin --delete agent/backend/OPS-H10-ac3`), listed in the PR's human checks.* Met: run 42368916365
+  (QA evidence 12–15); branch deletion pending Mahesh.
+- [x] AC4: The `git diff` of `stack.yml` shows the five new `paths` entries and no change to the F1 step, `F1_TESTS`, any
   `timeout-minutes` or permissions. `actionlint` is clean (the workflow's own "Lint the harness" step). Ownership check OK.
   Total diff < 80 changed lines.
-- [ ] AC5: `CONTRIBUTING.md` `stack.yml` row and the README Full stack paragraph updated.
+- [x] AC5: `CONTRIBUTING.md` `stack.yml` row and the README Full stack paragraph updated.
 - [ ] Post-merge check (pm-lead, not blocking the PR): the next Go-only PR (e.g. ING-9's rework push or #21 rebased) gets a
   `stack.yml` run without a manual dispatch.
 
@@ -112,3 +120,8 @@ git diff --stat origin/main...agent/backend/OPS-H10
   - Findings 2 and 3 are [spec] for pm-lead; left as they are.
   - **Scratch branch `agent/backend/OPS-H10-ac3` still exists — needs Mahesh to delete it (agent sandbox can't delete refs).** AC3's
     "delete the scratch branch afterwards" is therefore open on Mahesh's side.
+- 2026-11-07 (pm-lead, final review): **APPROVE** on head `532440e` after QA r2 PASS. Verdict in `agents/reviews/OPS-H10/report.md`.
+  I amended AC1 (unzip listing replaced by the in-log `ls -l` + per-service count; the artifact listing is a human check), AC2 (the rendered
+  step summary is a human check) and AC3 (Mahesh deletes the scratch branch). Human checks for Mahesh are in the PR #26 description:
+  open artifact 13579885920 (expires ~2026-11-14), view the run summary's `### Embedder rerank timing` block, and delete
+  `agent/backend/OPS-H10-ac3`. Post-merge (pm-lead): confirm the next Go-only PR triggers `stack.yml`; AI-9 #24 rebases onto it for AC1.
