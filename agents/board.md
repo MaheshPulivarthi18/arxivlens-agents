@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 by pm-lead (OPS-H8 split by layer: OPS-H8 part a = producer confirmation, new OPS-H8b = consumer loop; no size exception)
+Last updated: 2026-11-07 by pm-lead (EVAL-7 PM APPROVE → Ready to merge, #29; two EVAL-7 follow-ups to Backlog)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -19,7 +19,6 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | 9 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1, AI-7 merged | 2 | |
 | 10 | [RET-2](tasks/RET-2.md) | `SearchHit` carries paper version + page (design-required) | backend-engineer | P1 | ADR-0014 (Accepted 2026-11-07), AI-7 + EVAL-6 merged | 2 | Waits for #20 + #21 merge |
 | 11 | [QA-8](tasks/QA-8.md) (KAN-7) | LLM synthesis in `/v1/ask` via provider, template fallback (design addendum) | ai-engineer | P0 | LLM-1, LLM-1b, AI-6, AI-6b merged | 3 | Fake provider in tests; real-LLM numbers are EVAL-8 |
-| 12 | [EVAL-7](tasks/EVAL-7.md) | Blind human-review sheet → citation precision, claim correctness | ai-engineer | P1 | EVAL-6 merged | 3 | Judging is Mahesh's, not an agent's |
 | 13 | [AI-8](tasks/AI-8.md) | Claims + provenance (version, chunk, section, page, quote, status) (design-required) | ai-engineer | P0 | ADR-0014 (Accepted), QA-8, RET-2 merged | 3 | |
 | 14 | [FE-4](tasks/FE-4.md) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | P0 | ADR-0014 (Accepted), AI-8, FE-3 merged | 3 | |
 | 15a | [EVAL-9](tasks/EVAL-9.md) | `eval.yml` seed-step timeout headroom (45→70 min, job 100→120), seed-time summary line, two label nits | backend-engineer | P1 | **EVAL-3 merged**; no other open PR on `eval.yml` | 3 | From EVAL-3 QA finding 5 (seed at 84% of budget) |
@@ -53,6 +52,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | [LLM-1](tasks/LLM-1.md) | `internal/llm`: provider interface, typed errors, config, `llmtest` fake (part a; LLM-1b follows after merge) | backend-engineer | ArxivLens [#23](https://github.com/MaheshPulivarthi18/ArxivLens/pull/23) (KAN-35) · no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/LLM-1/report.md)) |
 | [EVAL-3](tasks/EVAL-3.md) | Full-stack `make eval` workflow (`eval.yml`, `make eval-seed`) + first measured numbers | backend-engineer | ArxivLens [#22](https://github.com/MaheshPulivarthi18/ArxivLens/pull/22) (KAN-29) · Eval check red = expected gate exit 1 (AC6) · no file overlap with #20/#21/#23 | QA PENDING r1 → PASS r1 cont. · PM APPROVE ([report](reviews/EVAL-3/report.md)); follow-up EVAL-9 |
 | [ING-9](tasks/ING-9.md) | arXiv politeness: one 3 s limiter per process + identifying UA (ingester, downloader) | backend-engineer | ArxivLens [#25](https://github.com/MaheshPulivarthi18/ArxivLens/pull/25) (KAN-48) · no file overlap with open PRs · stack run [42364519257](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42364519257) | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/ING-9/report.md)) |
+| [EVAL-7](tasks/EVAL-7.md) | Blind human-review sheet → citation precision, claim correctness (report-only) | ai-engineer | ArxivLens [#29](https://github.com/MaheshPulivarthi18/ArxivLens/pull/29) (KAN-42) · no file overlap with open PRs · first real judging session is Mahesh's | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/EVAL-7/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -69,13 +69,17 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the EVAL-7 review (ai, P3, small `tests/` + `scripts/answer_review.py` PR after #29 merges): tests for `build_rows` with a fake `fetch_passages`
+  (the `--db-url` branch, unverified so far) and for an empty export; make `score --save` validate strictly *before* writing (today a strict failure leaves the file behind)
+- From the EVAL-7 review (ai, P2, revisit after QA-8 merges): the drift fingerprint `(marker, chunk_id, round(score,3), supported)` can miss a changed sentence with the
+  same score and verdict. If real LLM runs show many drifts or an odd confusion matrix, store a hash of each cited sentence in EVAL-6's `case_record` (no text) and compare it in `export`
 - **Human (Mahesh or a reviewer he names), from EVAL-6:** review the 15 rows of `evals/refusal_near_miss.jsonl` (`answered_by` ID correct; no corpus
   paper answers the question; n005 and n009 first). ai-engineer then commits the `reviewed_by` values (small `evals/` PR)
-- From the EVAL-6 review (ai, P3, fold into the next `scripts/evaluate_answers.py` change, e.g. EVAL-7): `classify()` treats a non-string `refusal_reason`
+- From the EVAL-6 review (ai, P3, fold into the next `scripts/evaluate_answers.py` change; EVAL-7 did not touch it): `classify()` treats a non-string `refusal_reason`
   as an error case instead of raising `TypeError`; tests for `main` loading the real near-miss file and `--near-miss ''`. String `claims[].markers` → note for AI-8
 - *Proposed* rules PR (Mahesh decides), from EVAL-6 QA finding 5: once EVAL-3 merges, AGENTS.md §4 item 3 + qa-reviewer: PRs that change retrieval or answering get one
   `workflow_dispatch` run of `eval.yml` on their branch as DoD 3 evidence (`eval.yml` keeps its self-only PR path filter: 62 arXiv requests per run)
-- pm-lead docs PR, after #20 merges: Product PRD §8 supported-citation row "answered responses only (ADR-0003)" and correct-refusal row "case B = error, not a refusal"; add the report-only metrics to the §8 method notes
+- pm-lead docs PR, after #20 merges: Product PRD §8 supported-citation row "answered responses only (ADR-0003)" and correct-refusal row "case B = error, not a refusal"; add the report-only metrics to the §8 method notes; after EVAL-7 #29 merges, point the supported-citation row's "Measured by" at the human review (`scripts/answer_review.py`, report-only)
 - **Left out of the 2026-11-07 plan on purpose** (see PROGRESS 2026-11-07 pm-lead): Phase 2 research workflow (collections, comparison
   tables, conversational follow-ups, notes, PDF viewer; FE-2 export stays Ready) waits for Phase 1's exit; entailment verifier
   (NLI / LLM judge, ADR-0014 reserved statuses) waits for EVAL-7 human judgments to show cosine's error rate; real readiness

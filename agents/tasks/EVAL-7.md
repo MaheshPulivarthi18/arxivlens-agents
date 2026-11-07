@@ -8,7 +8,7 @@
 | **Depends on** | **EVAL-6 merged** (per-case records in the results JSON; shared `tests/test_evals_data.py` and `evals/README.md`) |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-EVAL-7"`) |
 | **Design required** | no: offline tooling, report-only, no gate or contract change |
-| **Status** | In QA (round 2): rework r1 at `d01ffcb` (branch `agent/ai/EVAL-7`, PR #29 draft) |
+| **Status** | Ready to merge: QA FAIL r1 → PASS r2, PM APPROVE at `d01ffcb` (PR #29, KAN-42). Waiting on Mahesh |
 
 ## Goal
 Cosine similarity ≥ 0.50 says a sentence and a passage are related, not that the passage supports the sentence. The
@@ -17,8 +17,13 @@ that review cheap and repeatable, so its results can later decide whether an ent
 
 ## Scope
 - New `scripts/answer_review.py`:
-  - `export --results <evals/results/X.json> --api-url ... | --db-url ...`: for each answered case, one row per (claim or
-    sentence, cited passage). Passage text is fetched by `chunk_id`. Output is a local review sheet under `evals/results/`
+  - `export --results <evals/results/X.json> --api-url ... [--db-url ...]`: for each answered case, one row per (claim or
+    sentence, cited passage). Passage text is fetched by `chunk_id`. *(Amended 2026-11-07 by pm-lead, QA r1 finding 5
+    [spec]: was `--api-url ... | --db-url ...`. EVAL-6's results JSON is text-free on purpose (public artifacts) and
+    Postgres holds no answer text, so the claim text can only come from re-asking `/v1/ask`: `--api-url` is always
+    needed and `--db-url` is an optional passage source. A re-asked case counts as drifted, and is skipped and listed,
+    when it is refused now or its per-citation fingerprint `(marker, chunk_id, round(score, 3), supported)` differs
+    from the results file. That keeps the human label paired with the verdict the run actually recorded.)* Output is a local review sheet under `evals/results/`
     (already git-ignored, OPS-H4), in Markdown or CSV for reading and JSONL for answers. The sheet **hides** `score` and
     `supported`, so the reviewer isn't anchored by the system's verdict.
   - Reviewer fills `supports: yes | partial | no | contradicts`, `claim_correct: yes | no | unsure`, `reviewer`, `notes`.
@@ -36,7 +41,7 @@ that review cheap and repeatable, so its results can later decide whether an ent
 - [x] AC2 — `score` on a fixture judgments file reports precision, partial, contradiction, claim correctness, judged/unjudged counts and the confusion matrix (test with known numbers).
 - [x] AC3 — Invalid labels and rows with text fields are rejected by the validator (tests).
 - [x] AC4 — `evals/answer_judgments/` files contain no passage/answer text (a test scans them).
-- [ ] AC5 — README "Human review" section. `make test-py` passes.
+- [x] AC5 — README "Human review" section. `make test-py` passes. (README section in `evals/README.md`; CI `make test-py` at `d01ffcb`: 106 passed, 1 skipped, job 128451485649)
 - [x] AC6 — Diff < 400 lines.
 
 ## Verification
@@ -105,3 +110,9 @@ python3 scripts/answer_review.py --help
     row_id / arxiv / run_id / case_id shape each removed, `--save` overwrite, `--force` ignored).
   - Still unverified (as r1): `make test-py` locally (no torch/confluent_kafka), `--db-url` path, a real export.
     QA's optional missing tests (fake `fetch_passages`, empty export) not added: no diff budget left.
+- 2026-11-07 (pm-lead, final review, Step 6): **APPROVE** at `d01ffcb` ([verdict](../reviews/EVAL-7/report.md#pm-verdict)).
+  QA r1 finding 5 [spec] fixed in Scope above (`--api-url [--db-url]` + the drift fingerprint). AC5 ticked: README section
+  present, CI `make test-py` green at the head. QA r2's non-blocking nits 1 (sentence hash after QA-8) and 2 (`--db-url` /
+  empty-export tests) are Backlog items on the board. Still unverified and accepted: the `--db-url` path (no DB in the
+  sandbox; it's an optional passage source), a real export against a stack, and the README time estimate (labelled as one).
+  The first real judging session is Mahesh's; it needs a results file from an EVAL-3 workflow run.
