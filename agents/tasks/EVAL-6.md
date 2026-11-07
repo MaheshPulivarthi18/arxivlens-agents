@@ -67,3 +67,11 @@ make eval   # needs the stack (EVAL-3 workflow or make stack-up)
   locally. PyPI and arxiv.org are unreachable, so don't fetch papers to write rows; `answered_by` is checked against
   `corpus.txt` only, and a human confirms the rest via `reviewed_by`.
 - Wave 1. Files are disjoint from AI-7 (rag.go/README), LLM-1, EVAL-3 (eval.yml/Makefile/CONTRIBUTING).
+- 2026-11-07 (ai-engineer): built on `agent/ai/EVAL-6` (commit `4dc4846`, not pushed). `classify()` handles ADR-0003 A/B/unknown;
+  supported rate covers answered responses only; report-only `citation_coverage` (rag.go sentence splitter port, abbreviation
+  list drift-guarded), `refusal_reason_counts`, `verification_unavailable_count`, `near_miss_correct_refusal_rate` (near-miss calls
+  are kept out of gated latency/errors); per-case records hold IDs and numbers only. 15 near-miss rows, `reviewed_by: null`;
+  **arXiv IDs come from memory and were not checked online** (arxiv.org blocked), so a human reviewer must confirm them.
+  `tests/test_evals_data.py`: 75 passed, 1 skipped; each new branch was mutation-checked. `make test-py`/`make lint` fail in the sandbox
+  for environmental reasons (no confluent_kafka/torch; Go 1.25 download blocked), same on origin/main. `make eval` not run: no stack in sandbox
+  (`make eval`). Diff is 443 lines (ownership-check warns at > 400). PR must ask Mahesh to confirm the supported-rate reading of ADR-0003.
