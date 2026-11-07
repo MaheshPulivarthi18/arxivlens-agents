@@ -23,7 +23,7 @@ Three 2026-11-07 merge-review follow-ups that each could make CI pass or fail fo
   against the migrated pgvector service (as the PR #19 probe did, job 128158303587).
 - `docker-compose.yml` and `db.yml`: pin a pgvector image tag that includes pgvector ≥ 0.8 (verify the tag exists; quote the
   registry response in the PR). Add a check that fails clearly when `SELECT extversion FROM pg_extension WHERE extname = 'vector'` is
-  below 0.8.0, in `db.yml` (and optionally `stack.yml`).
+  below 0.8.0, in `db.yml` only (not `stack.yml`: OPS-H10 owns that file's next change; pm-lead 2026-11-07).
 - MinIO digests: a scheduled (weekly) + `workflow_dispatch` job, or a step in an existing scheduled workflow, that resolves
   each pinned digest (`docker manifest inspect`) and fails with a "re-pin" message naming the image. Add a `CONTRIBUTING.md`
   runbook entry: how to re-pin and verify. No new registry, no secrets, no `packages: write`.
@@ -49,3 +49,5 @@ gh workflow run <digest-check workflow> --ref agent/backend/OPS-H9
 ## Notes
 - 2026-11-07 (pm-lead): bundles merge-review follow-ups (5) `real_postgres` step, (6) pgvector ≥ 0.8, (2) Chainguard pin durability.
   All three are small and touch the same CI files, so one PR. Docker is available on GitHub runners only (no daemon in the sandbox). Wave 3.
+- 2026-11-07 (pm-lead): dropped the optional `stack.yml` extension check so this ticket shares no workflow file with OPS-H10
+  (`stack.yml` logs + path filter). Both edit `CONTRIBUTING.md` (different rows): whichever starts second waits for the other's merge.

@@ -317,3 +317,23 @@ Format:
 - Open questions 1–6 decided by pm-lead, none needs Mahesh/ADR (no shared contract change): commit errors logged (KafkaException only, as OPS-H6); `message.timeout.ms=10000` + 12 s bound; poison `attempts=1`; first signal graceful / second forces; DLQ traceparent envelope fallback. Visible behaviour changes go in the PR body for Mahesh.
 - Conditions: build only after #23 (LLM-1, `ci.yml`) merges; counted skeleton + named split seam OPS-H8b (§5/AC7) if > 400 lines (AC12 amended); AC11 (M4) delivered in this PR via `stack.yml` (AC11 amended); delivery-bound test; OPS-H6 mutation procedure.
 - Backlog: G5 (backend P3), G4 (ai P3), compose `stop_grace_period` (backend P3). Jira not touched (orchestrator mirrors).
+
+## 2026-11-07 pm-lead: AI-9 #24 QA r1 FAIL → decisions; ING-9 [spec] 2
+- AI-9 (KAN-39, head `3e6420e`, QA evidence `cd2ced2`): the score-preserving work is correct (parity 5.36e-07, AC3 mutant killed), but F1 is
+  unchanged (3/3 `ReadTimeout` at 10 s, runs 42362802353 vs 42344527109). The AC4 stop clause applies. **Decision:** keep AI-9, re-scoped as
+  the score-neutral, instrumented step (AC4 replaced with "report F1, no timeout change, hand numbers to ADR-0015"; F1 pass moved to
+  **AI-10**). **#24 stays draft.** Status **Blocked (needs OPS-H10 merged)**, because AC1's stack after-numbers can't exist until `stack.yml`
+  keeps the embedder log on green runs. [spec] 4: synthetic passages accepted for AC2 if ≥ 3/20 exceed 512 tokens. [spec] 5: AC5 done in
+  the same rebase (after #21). Nit 3: new AC6 (parity test `local_files_only`, skips in `ci.yml` only when not cached, other load errors
+  fail; real-model coverage stays in `stack.yml`). No backend `ci.yml` cache-key change. Round-2 checklist in the ticket Notes.
+- **ADR-0015 Proposed** (`docs/adr/0015-cpu-rerank-latency-ranking-changing-options.md`): measured numbers so far, 6 options; recommends
+  int8 dynamic quantisation + `max_length` 384/256 as env-configurable candidates (defaults unchanged), measured on the eval corpus.
+  Adoption rule: first config in order that passes F1 and keeps every gate with Recall@5/MRR/NDCG@5 within 0.01 abs (tolerance is
+  Mahesh's). Pool and model changes not proposed. No timeout or threshold change proposed.
+- New **OPS-H10** (backend, P1, Ready once #21 + #22 merge for README/CONTRIBUTING): `stack.yml` "Collect service logs" step
+  (`if: always()`, `embedder-timing.log` + summary) and `pull_request.paths` += `cmd/**`, `internal/**`, `go.mod`, `go.sum`, `tests/**`.
+  Folds in the AI-7 Backlog P3 (`query.log` every run). No overlap with EVAL-9 (`eval.yml`). OPS-H9's optional `stack.yml` check removed.
+- New **AI-10** (ai, P1, design-required): Blocked on ADR-0015 Accepted, then AI-9 merged. F1-drop Backlog item now follows AI-10.
+- ING-9 [spec] 2: AC8 reworded to "a dispatched `stack.yml` run of the PR head". The widened filter is OPS-H10. Board: ING-9 → In progress (rework).
+- Board hygiene: ADR-0014 is Accepted (agents #8), so the stale Blocked row was removed and the RET-2/AI-8/FE-4 dependency notes updated.
+- Jira not touched (orchestrator mirrors).

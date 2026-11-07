@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 by pm-lead (OPS-H8 design APPROVED with conditions; build waits for #23. Earlier: EVAL-3 #22 PM APPROVE → Ready to merge; EVAL-9 specced (Ready once #22 merges). Earlier: LLM-1 #23 PM APPROVE → Ready to merge; LLM-1b Ready once it merges. Earlier: AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Proposed)
+Last updated: 2026-11-07 by pm-lead (AI-9 #24 QA r1 FAIL → Blocked on new OPS-H10; F1 fix → AI-10, Blocked on ADR-0015 (Proposed); ING-9 AC8 → dispatched stack run. Earlier: OPS-H8 design APPROVED with conditions; build waits for #23. Earlier: EVAL-3 #22 PM APPROVE → Ready to merge; EVAL-9 specced (Ready once #22 merges). Earlier: LLM-1 #23 PM APPROVE → Ready to merge; LLM-1b Ready once it merges. Earlier: AI-7 #21 PM APPROVE → Ready to merge, merge after #20; AI-7 AC9 moved to EVAL-4 AC5. Earlier: EVAL-6 #20 PM APPROVE → Ready to merge; LLM-1 split into LLM-1 + LLM-1b at AC8. Earlier: design reviews LLM-1/EVAL-3/AI-7 approved with conditions; ING-9 specced. Plan from the 2026-11-07 external review: 15 tasks in 3 waves; ADR-0001/0002/0003 Accepted `51d8ff5`; ADR-0014 Accepted since)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -12,14 +12,14 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | 1b | [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (code already written) | backend-engineer | P0 | **LLM-1 merged** | 1b | ≈ 279 non-test lines; covered by LLM-1 design |
 | 5 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | 1 | **Env-blocked:** registry.npmjs.org; needs Mahesh (allow the host, or push the lockfile) |
 | 6 | [AI-6](tasks/AI-6.md) | Context selection, token budget, prompt, structured-output parser (writes `docs/design/QA-8.md`) | ai-engineer | P0 | AI-7 merged | 2 | Pure functions, `Ask` unchanged |
+| 6a | [OPS-H10](tasks/OPS-H10.md) | `stack.yml`: keep service logs on green runs (embedder timing) + run on Go/`tests/` PRs | backend-engineer | P1 | **#21 + #22 merged** (README/CONTRIBUTING); backend slot | 2 | Unblocks AI-9 AC1 → ADR-0015 numbers; no other open PR on `stack.yml` |
 | 7 | [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python consumer: commit after success or confirmed DLQ (design-required) | backend-engineer | P0 | OPS-H1 (merged); **#23 merged** (`ci.yml`); backend slot | 2 | Design APPROVED w/ conditions 2026-11-07; build waits for #23 merge. Split seam → OPS-H8b (AC7) if > 400 lines |
-| 8 | [AI-9](tasks/AI-9.md) | CPU rerank latency without changing scores (F1) | ai-engineer | P1 | ai slot | 2 | Timings only from `stack.yml` (HF blocked in sandbox) |
 | 9 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1, AI-7 merged | 2 | |
-| 10 | [RET-2](tasks/RET-2.md) | `SearchHit` carries paper version + page (design-required) | backend-engineer | P1 | **ADR-0014 Accepted**, AI-7 + EVAL-6 merged | 2 | Blocked until Mahesh decides ADR-0014 |
+| 10 | [RET-2](tasks/RET-2.md) | `SearchHit` carries paper version + page (design-required) | backend-engineer | P1 | ADR-0014 (Accepted 2026-11-07), AI-7 + EVAL-6 merged | 2 | Waits for #20 + #21 merge |
 | 11 | [QA-8](tasks/QA-8.md) (KAN-7) | LLM synthesis in `/v1/ask` via provider, template fallback (design addendum) | ai-engineer | P0 | LLM-1, LLM-1b, AI-6 merged | 3 | Fake provider in tests; real-LLM numbers are EVAL-8 |
 | 12 | [EVAL-7](tasks/EVAL-7.md) | Blind human-review sheet → citation precision, claim correctness | ai-engineer | P1 | EVAL-6 merged | 3 | Judging is Mahesh's, not an agent's |
-| 13 | [AI-8](tasks/AI-8.md) | Claims + provenance (version, chunk, section, page, quote, status) (design-required) | ai-engineer | P0 | **ADR-0014**, QA-8, RET-2 merged | 3 | |
-| 14 | [FE-4](tasks/FE-4.md) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | P0 | **ADR-0014**, AI-8, FE-3 merged | 3 | |
+| 13 | [AI-8](tasks/AI-8.md) | Claims + provenance (version, chunk, section, page, quote, status) (design-required) | ai-engineer | P0 | ADR-0014 (Accepted), QA-8, RET-2 merged | 3 | |
+| 14 | [FE-4](tasks/FE-4.md) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | P0 | ADR-0014 (Accepted), AI-8, FE-3 merged | 3 | |
 | 15a | [EVAL-9](tasks/EVAL-9.md) | `eval.yml` seed-step timeout headroom (45→70 min, job 100→120), seed-time summary line, two label nits | backend-engineer | P1 | **EVAL-3 merged**; no other open PR on `eval.yml` | 3 | From EVAL-3 QA finding 5 (seed at 84% of budget) |
 | 15 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | EVAL-3 merged; no open README PR | 3 | |
 
@@ -30,11 +30,11 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 (merged) |
 | [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 (Done) |
 | [FE-2](tasks/FE-2.md) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 |
-| [ING-9](tasks/ING-9.md) | arXiv politeness: one 3 s limiter per process + identifying User-Agent (ingester, downloader) | backend-engineer | P1 | none; no open PR on `ingester.go`/`downloader/` (moves up if EVAL-3's `seed.log` shows arXiv 429/403) |
 
 ## In progress
 | ID | Title | Owner | Branch |
 |---|---|---|---|
+| [ING-9](tasks/ING-9.md) | arXiv politeness limiter + UA | backend-engineer | `agent/backend/ING-9`, draft #25 (KAN-48): QA r1 FAIL on AC8 only; needs a **dispatched** `stack.yml` run of the head (AC8 reworded), then QA r2 |
 
 ## In QA
 | ID | Title | Owner | PR |
@@ -55,7 +55,9 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
-| ADR-0014 | Claim-level evidence + citation provenance fields in `/v1/ask` / `/v1/search` (Proposed 2026-11-07) | Mahesh | human decision; blocks RET-2, AI-8, FE-4 |
+| [AI-9](tasks/AI-9.md) | CPU rerank: score-neutral sort-and-batch, timing log, threads (re-scoped; does not fix F1) | ai-engineer | draft #24 (KAN-39), QA r1 FAIL. **OPS-H10 merged** (AC1 stack numbers) + #21 merged (AC5); then round-2 checklist in the ticket |
+| ADR-0015 | CPU rerank latency: which ranking-changing options (int8, `max_length`; not pool/model) + adoption rule (Proposed 2026-11-07) | Mahesh | human decision; blocks AI-10 |
+| [AI-10](tasks/AI-10.md) | Configurable int8/`max_length` reranker, measured, makes F1 pass (design-required) | ai-engineer | ADR-0015 Accepted, then AI-9 merged |
 | [EVAL-8](tasks/EVAL-8.md) | First answer eval with a real LLM (carries QA-8's old AC3) | backend + ai | Mahesh: model + where it runs; cost cap (ADR-0001) for a hosted model; then QA-8, EVAL-3, EVAL-6 merged |
 | [ING-8](tasks/ING-8.md) | Measure PDF section-extraction quality (scorer/tests/docs built on `agent/ai/ING-8` `d2ad9c5`, pushed, no PR) | ai-engineer | arxiv.org access to license-check and hand-label `evals/extraction.jsonl` (AC1) and run the baseline (AC5) (KAN-32) |
 | [AI-5](tasks/AI-5.md) | `/v1/ask` relevance bar when rerank scores are missing (reranker outage fails open) | ai-engineer | ADR-0011 (human decision); also `rag.go`, so it queues behind the plan's `rag.go` chain |
@@ -83,7 +85,8 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 - From the 2026-11-07 merge review: `/internal/ingest` builds `ProcessorWorker()`/`EmbedderWorker()` per request (model reload; ai,
   `services/embedder/api.py`, after AI-9 which edits the same file) and ignores client cancellation (backend side: honour the
   `INGEST_TIMEOUT` ctx end to end). P2: ingest is off the Phase 1 path and F2 is fixed by the timeout
-- After AI-9 merges (backend, small): drop the "Known failure F1" step and `F1_TESTS` deselection in `stack.yml`; in the same change (from the AI-7 review, P3), copy `query.log`/`downloader.log` into `stack-logs/` on every run, not only in the failure-only Diagnostics step, so a green run keeps the query log. Don't add `internal/**` to the `pull_request` paths (cost; `eval.yml` measures answers)
+- After AI-10 merges with F1 passing (backend, small): drop the "Known failure F1" step and `F1_TESTS` deselection in `stack.yml`. (The always-keep-logs part and the `internal/**` path filter moved to OPS-H10; pm-lead reversed the earlier "don't add `internal/**`" note on 2026-11-07, because DoD 2 needs the milestone suite on pipeline/query PRs)
+- From ADR-0015 option 6 (backend + ai, P3, only if AI-10's measured options fall short): ONNX Runtime fp32 export of `bge-reranker-base` (score-preserving within 1e-4 if measured so; new dependency → `requirements*.txt` + embedder Dockerfile decision)
 - *Proposed* rules PR (Mahesh decides): AGENTS.md §3 "< 400 changed lines": say whether `_test.go` lines count (LLM-1 got a one-off non-test-only exception, 2026-11-07)
 - pm-lead PRD docs PR: Product PRD ING-1 ✅ "respecting ~1 req / 3 s" holds for the crawler only → caveat pointing to ING-9 until it merges
 - pm-lead docs PR, after #21 merges: Product PRD QA-4/QA-5 notes and Technical PRD §7.2 say `/v1/ask` refuses with evidence + `refusal_reason` when no citation is supported (ADR-0003, AI-7); fold into the PR below

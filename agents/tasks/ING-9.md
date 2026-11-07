@@ -62,7 +62,7 @@ ingest still makes 2 arXiv requests back to back.
 - [ ] AC7: Per-file coverage ≥ 90% for `internal/arxiv/limiter.go`:
       `go test -coverprofile=c.out ./internal/arxiv/ && go tool cover -func=c.out` (CI output, or a scratch-module run on local Go, since the
       package is stdlib only; lesson AI-1).
-- [ ] AC8: `stack.yml` on the PR is green apart from the known F1 step (the crawl → download → embed path and the on-demand ingest step still
+- [ ] AC8: A `stack.yml` run of the PR head (dispatched: `gh workflow run stack.yml --ref agent/backend/ING-9`, because the workflow's path filter skips Go-only PRs until OPS-H10 merges) is green apart from the known F1 step (the crawl → download → embed path and the on-demand ingest step still
       work, now with the waits). Diff < 400 changed lines; `cmd/`, `go.mod`/`go.sum` unchanged.
 
 ## Verification
@@ -96,4 +96,6 @@ git diff origin/main --stat
     `Ingest|Discover` query tests; `-count=20 -race` stable; `limiter.go` coverage 100%. Mutants (Wait removed from doArxiv/fetchPDF,
     sleep removed, ctx ignored while sleeping) are each caught. Full-repo `make lint`/`make test-unit` and `stack.yml` (AC8) need CI.
   - Test timing: HTTP tests use a 50 ms interval with 10 ms slack between permit and transport timestamp; limiter tests use 20 ms slack.
-
+- 2026-11-07 (pm-lead, ING-9 QA r1 [spec] finding 2): AC8 reworded to "a dispatched `stack.yml` run of the PR head". The path filter
+  doesn't match `internal/**`, so the run never starts by itself. The orchestrator or backend dispatches it on the rework head, and the run link goes
+  in these Notes and the PR. Widening the filter is new ticket **OPS-H10** (backend), not this PR (`stack.yml` is out of this ticket's files).
