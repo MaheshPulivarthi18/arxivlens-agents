@@ -69,3 +69,7 @@ git diff --stat origin/main...HEAD                     # <= 400
 - 2026-11-07 (pm-lead): created by the OPS-H8 split decision (option A, split by layer; see `docs/design/OPS-H8.md` PM decision addendum and `agents/tasks/OPS-H8.md` Notes).
   Measured starting point from the developer's build: consumer layer about 100 prod + about 225 test lines. Until this merges, Technical PRD §8.1 L4 holds for the Python
   consumer only via OPS-H8's crash-restart interim, so the PRD caveat removal (pm-lead docs PR) waits for this ticket.
+- 2026-11-07 (pm-lead, OPS-H8 part-a final review): carried over from QA OPS-H8 r1 (finding 4 and "missing tests"). Add these to `tests/test_kafka_client.py` alongside this ticket's ACs:
+  (1) `test_publish_requires_confirmation[ok]` asserts that the return value **equals** the produced envelope's `event_id`, not just that it's truthy; (2) `produce` raising `KafkaException` → `DeliveryError`
+  (only `BufferError` is covered today); (3) the DLQ `produce` raising, driven through `start`, gives no commit. Also, the `ci.yml` step from part a is named "(commit-after-process, DLQ, shutdown; fakes only)".
+  Part a has no shutdown tests, so this ticket's stop/signal tests make the name true; if they're cut, rename the step.

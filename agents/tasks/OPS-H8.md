@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror); **OPS-H1 (ArxivLens #14) merged**: #14 adds a worker heartbeat hook (`_heartbeat`, about 16 lines) to `services/common/kafka_client.py`, the file this task rewrites (AGENTS.md §3 independence). The design must keep that hook (touch after every `poll()` while assigned; no-op when `WORKER_HEARTBEAT_FILE` is unset) |
 | **Jira** | KAN-34 (`labels = "task-OPS-H8"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics for both Python workers |
-| **Status** | In Progress: part a built at `007aecc`, PR pending. Branch `agent/backend/OPS-H8` (full build at `ebe80a7`, kept in history for OPS-H8b) |
+| **Status** | **Ready to merge** (2026-11-07): QA r1 PASS + PM APPROVE at `0d70fab`; ArxivLens [#30](https://github.com/MaheshPulivarthi18/ArxivLens/pull/30) raised (ready for review, `ready-to-merge`). Branch `agent/backend/OPS-H8` (full build at `ebe80a7`, kept in history for OPS-H8b) |
 
 ## Goal
 Technical PRD §8.1 promises L4 for **all** consumers: the offset is committed only after the handler succeeds or the
@@ -62,36 +62,45 @@ Answered. Design approved 2026-11-07 10:19Z with conditions. The split addendum 
 ## Acceptance criteria
 Renumbered for part a. The old ACs moved as follows: old AC5 (producer level), AC9 and condition 4 stay here; old AC1–AC4, AC5-through-the-final-loop,
 AC6/6b, AC7, AC8 and AC10a/c are in OPS-H8b. No AC was dropped or weakened. Where part a tests a narrower interim behaviour, OPS-H8b's ACs replace it.
-- [ ] AC1 — `publish` requires confirmation: `test_publish_requires_confirmation` (parametrised): delivery callback `ok` → returns the event id;
+- [x] AC1 — `publish` requires confirmation: `test_publish_requires_confirmation` (parametrised): delivery callback `ok` → returns the event id;
   callback reports a delivery error (`flush` returns 0), message still queued (`flush` returns 1, no callback) and `produce` raising `BufferError`
   → `DeliveryError` each. The `DeliveryError` message names the topic and the error and does **not** contain the record value (sentinel string in the payload).
-- [ ] AC2 — `publish_dlq` contract: `test_publish_dlq_direct_call_contract`: the M4-style call (`original_msg=None`, `attempts=3`, `traceparent`) returns `None`
+  **Evidence:** [01](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/01-ci-python-head-kafka-client.png), [09](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/09-qa-extra-mutants.png).
+- [x] AC2 — `publish_dlq` contract: `test_publish_dlq_direct_call_contract`: the M4-style call (`original_msg=None`, `attempts=3`, `traceparent`) returns `None`
   on `ok` and raises `DeliveryError` on `err` and on `queued`. The signature is unchanged, and the `original_value or {}` / `dlq_topic.replace(".dlq", "")` fallbacks are
   kept. `test_build_dlq_payload_is_total`: `build_dlq_payload` returns a `DLQPayload` for `original_msg=None`, a non-UTF-8 value, and a missing header.
-- [ ] AC3 — Real stack trace: a `DLQPayload` built for an exception raised in a named helper and passed in **after** its `except` block has ended (the consumer-path
+  **Evidence:** [01](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/01-ci-python-head-kafka-client.png), [09](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/09-qa-extra-mutants.png).
+- [x] AC3 — Real stack trace: a `DLQPayload` built for an exception raised in a named helper and passed in **after** its `except` block has ended (the consumer-path
   situation) has a `stack_trace` that contains the helper's name and not `NoneType: None`.
-- [ ] AC4 — Delivery bound (design condition 4): `MESSAGE_TIMEOUT_MS` and `DELIVERY_TIMEOUT_S` are named module constants with a one-line comment.
+  **Evidence:** [01](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/01-ci-python-head-kafka-client.png), [09](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/09-qa-extra-mutants.png) (M4).
+- [x] AC4 — Delivery bound (design condition 4): `MESSAGE_TIMEOUT_MS` and `DELIVERY_TIMEOUT_S` are named module constants with a one-line comment.
   `test_delivery_bound_outlasts_message_timeout` asserts `DELIVERY_TIMEOUT_S > MESSAGE_TIMEOUT_MS / 1000` and that the default producer config passes
   `message.timeout.ms = MESSAGE_TIMEOUT_MS` (monkeypatched `Producer`, as `tests/test_worker_heartbeat.py` does).
-- [ ] AC5 — **No commit past an unconfirmed DLQ write (interim, through the unchanged `start`)**: `test_unconfirmed_dlq_write_stops_before_commit`
+  **Evidence:** [01](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/01-ci-python-head-kafka-client.png), [09](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/09-qa-extra-mutants.png) (M5, M6).
+- [x] AC5 — **No commit past an unconfirmed DLQ write (interim, through the unchanged `start`)**: `test_unconfirmed_dlq_write_stops_before_commit`
   (parametrised `err`, `queued`). Script `[p0@4 ok, p0@5 handler always fails, p0@6 ok]`. Assert: `("commit", 4)` present; no commit for 5 or 6; handler@5
   called exactly 3×; handler@6 never called; `start` raises `DeliveryError` (not swallowed); `("close",)` is the last fake-consumer call.
   Plus `test_confirmed_dlq_write_then_commit`: DLQ `ok` → exactly one produce to `papers.downloaded.dlq` with `attempts == 3`, `original_topic`, `partition`, `offset`,
   `consumer_group`, and the logged order is produce @5 → commit 5. Plus `test_failing_publish_in_handler_is_retried`: a processor-style handler calling
   `ServiceKafkaProducer(producer=FakeProducer(all err)).publish` is called 3×, its record is DLQ'd (consumer producer `ok`) and committed only after that.
   Handler retry waits go through the existing `time.sleep`, so patch `kafka_client.time.sleep` in these tests. Don't edit `start` to make it testable.
-- [ ] AC6 — No regressions: `make test-py` (M0 + eval-data) and the new `ci.yml` step are green in CI. `tests/test_worker_heartbeat.py` and both worker files are unchanged
+  **Evidence:** [01](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/01-ci-python-head-kafka-client.png), [09](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/09-qa-extra-mutants.png).
+- [x] AC6 — No regressions: `make test-py` (M0 + eval-data) and the new `ci.yml` step are green in CI. `tests/test_worker_heartbeat.py` and both worker files are unchanged
   (`git diff --stat origin/main...` lists only the three Scope files). The `git diff origin/main... -- services/common/kafka_client.py` hunks inside `ServiceKafkaConsumer.start` are empty.
-- [ ] AC7 — Mutation check (OPS-H6 procedure, design condition 6): (b) `_produce_confirmed` ignores the callback outcome (back to bare `flush`) → AC1/AC2/AC5 `err` rows red;
+  **Evidence:** [00](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/00-ci-checks.png), [01](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/01-ci-python-head-kafka-client.png), [02](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/02-ac6-ac9-scope-diff.png).
+- [x] AC7 — Mutation check (OPS-H6 procedure, design condition 6): (b) `_produce_confirmed` ignores the callback outcome (back to bare `flush`) → AC1/AC2/AC5 `err` rows red;
   (a') `start` wraps `publish_dlq` in `try/except DeliveryError: pass` so it falls through to `commit` → AC5 red. Each mutation is its own commit (`mutation(AC7a|b): …`,
   `kafka_client.py` only, no test edits), followed by `revert mutation(AC7x)`. Wait for each CI run to finish before the next push. SHAs and run URLs go in Notes. The final head is green.
-- [ ] AC8 — M4 on the full stack (old AC11): the PR's `stack.yml` run (it triggers on `services/common/**`) shows the `tests/test_m4_chaos.py` tests passing, with a real broker,
-  against the new `publish`/`publish_dlq`. Evidence: the run URL plus its M4 log lines. A run red only on the known F1 step is acceptable if the M4 lines are green.
-- [ ] AC9 — Size and PR text: the diff is ≤ 400 changed lines in total (`git diff --stat origin/main...` in the PR body; expected about 200). No size exception.
+  **Evidence:** [03](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/03-ac7b-mutation-ci.png), [04](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/04-ac7a-mutation-ci.png), [05](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/05-ac7-timeline.png). (b)'s Full stack run was cancelled by the revert push, which pm-lead accepted: all (b) rows are in the completed `ci.yml` job.
+- [x] AC8 — M4 on the full stack (old AC11): the PR's `stack.yml` run (it triggers on `services/common/**`) shows the `tests/test_m4_chaos.py` tests passing, with a real broker,
+  against the new `publish`/`publish_dlq`. Evidence: the run URL plus the M4 tests' results, either as named lines (`-rA`) or, with `pytest -q`, as a dot-position map checked against a failing run of the same job (amended 2026-11-07, pm-lead). A run red only on the known F1 step is acceptable if the M4 lines are green.
+  **Evidence:** [06](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/06-ac8-m4-fullstack.png), run https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409999965/job/128515856719 (wording amended 2026-11-07, see Notes).
+- [x] AC9 — Size and PR text: the diff is ≤ 400 changed lines in total (`git diff --stat origin/main...` in the PR body; expected about 200). No size exception.
   The PR body has a "Behaviour changes" section: (1) `publish`/`publish_dlq` raise `DeliveryError` when delivery isn't confirmed within `DELIVERY_TIMEOUT_S`
   (`message.timeout.ms = 10000`); before, they returned silently; (2) the DLQ `stack_trace` is the handler's real traceback; (3) **interim:** while the DLQ is unreachable, the worker
   exits without committing and compose restarts it (the handler re-runs 3× per restart) until OPS-H8b replaces this with an in-place retry. Ticket Notes record the
   interim sequence (when the consumer commits and what is redelivered).
+  **Evidence:** [02](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/02-ac6-ac9-scope-diff.png) (278 lines), [07](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/42eb4a1f6d1c02b4e49b3b1f9f7eabe08f82e1a7/agents/reviews/OPS-H8/evidence/07-ac9-pr-body.png); literal diff --stat block added to the PR body at raise.
 
 ## Verification
 ```bash
@@ -219,3 +228,7 @@ git diff origin/main...HEAD -- services/processor/worker.py services/embedder/wo
   - (a') `455ec67` `mutation(AC7a)` (`start` wraps `publish_dlq` in `try/except DeliveryError: pass`, `kafka_client.py` only): Python M0 **failure** https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409058097/job/128513003099, Full stack failure https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409058118/job/128513002770 (both waited to completion before the revert).
     Revert `0d70fab` (tree identical to `5892d6e`, `git diff 5892d6e 0d70fab` empty): all 6 checks green (Python M0 https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409999817/job/128515856797, Full stack https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42409999965/job/128515856719).
   - Which test rows went red in each run is for QA to read from the logs. Head for QA r1: `0d70fab`.
+- 2026-11-07 (pm-lead, final review): **APPROVE** at `0d70fab` (verdict in `agents/reviews/OPS-H8/report.md`). PR #30 raised: body rewritten with a literal diff --stat, evidence table (pinned to `42eb4a1`), CI results, and QA/PM verdicts. The Behaviour changes section was kept byte-identical. Marked ready for review, label `ready-to-merge`.
+  - **AC8 amended ([spec], QA finding 3):** "M4 log lines" could never be met, because `make test-full` runs `pytest -q` (dots only). AC8 now accepts a dot-position map checked against a failing run of the same job, which is what QA 06 did. Follow-up for the board Backlog: backend, P3, after #26 merges, `stack.yml` passes `PYTEST_ARGS=-rA` to `make test-full`.
+  - AC7(b) Full stack cancelled (QA finding 1): accepted, since every (b) row runs in the `ci.yml` job, which completed. QA finding 4 and the 3 missing tests went to OPS-H8b Notes.
+  - Left open (not this PR): the pm-lead docs PR (Product OPS-1 ✅ → ◐, Technical §8.1 L4 caveat until OPS-H8b).
