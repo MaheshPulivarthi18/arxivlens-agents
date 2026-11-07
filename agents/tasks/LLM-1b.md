@@ -8,7 +8,7 @@
 | **Depends on** | **LLM-1 merged** (types, typed errors, `Config`/`ConfigFromEnv`, `llmtest`). ADR-0001/0002 Accepted. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-LLM-1b"`) |
 | **Design required** | no new design: covered by the approved `docs/design/LLM-1.md` (PM decision 2026-11-07, conditions 1–5). Split from LLM-1 for size, not scope. |
-| **Status** | Ready (LLM-1 merged `43713ce`). Picked for cycle 2026-11-07 11:00Z |
+| **Status** | In Progress: built on `agent/backend/LLM-1b` @ `efbe972` (local), draft PR pending (orchestrator). Picked for cycle 2026-11-07 11:00Z |
 
 ## Goal
 Ship the real provider behind the `llm.Provider` interface: an OpenAI-compatible HTTP client (local server by default, hosted
