@@ -1,0 +1,32 @@
+$ bash /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/ing11.sh
+== SUMMARY
+PR merge-base with main: d3f9408 = ING-11: Record section page breaks and store chunk start pages (producer) (#33)
+Go readers of paper_chunk_pages/page_start at CI merge 1a9ee6c (code, not comments):
+  (none)
+Producers of chunk['page_start'] at main 9651294 (scripts/, services/):
+  9651294:services/common/db.py:126:            if chunk.get("page_start") is not None:
+  9651294:services/common/db.py:129:                    INSERT INTO paper_chunk_pages (chunk_id, page_start) VALUES (%s, %s)
+  9651294:services/common/db.py:130:                    ON CONFLICT (chunk_id) DO UPDATE SET page_start = EXCLUDED.page_start;
+  9651294:services/common/db.py:132:                    (chunk_id, chunk["page_start"]),
+
+== Earlier failed DB run on this PR (job 128673836567, b1c5b9b merged onto d3f9408 = ING-11 already on main):
+HEAD is now at 3585352 Merge b1c5b9b5261dd11052805e76894bf98362290772 into d3f940857ac36ac943f0931df063a75a8654d7f0
+--- PASS: TestHNSWVectorHits (26.19s)
+    search_provenance_integration_test.go:99: PROVENANCE chunk_id=10001 arxiv_id=prov.00001 version=1 page=<nil> rrf_score=0.032787
+    search_provenance_integration_test.go:99: PROVENANCE chunk_id=10002 arxiv_id=prov.00001 version=2 page=<nil> rrf_score=0.032258
+    search_provenance_integration_test.go:99: PROVENANCE chunk_id=10003 arxiv_id=prov.00001 version=2 page=<nil> rrf_score=0.031746
+    search_provenance_integration_test.go:43: cleanup: closed pool
+--- FAIL: TestSearchProvenance (0.03s)
+
+== Job cited in the 08:49Z orchestrator PR comment (128676482889):
+name=DB (migrate twice, HNSW plan + recall) conclusion=success head_sha=ff1bd48cff6818d4607541f635ee02d04cd93190
+head ff1bd48 belongs to PR #34 agent/backend/OPS-H8b
+
+== Fix commit 3bf5dab (test-only):
+
+ internal/query/search_provenance_integration_test.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+-	defer d.Close()
++	t.Cleanup(d.Close) // registered first so it runs last, after the seed cleanup (t.Cleanup is LIFO)
+
+[exit code 0]
