@@ -547,7 +547,69 @@ Counted against the current file layout: one function per row, test tables one l
 5. **PM item A3 side effect** (R4): citations on the LLM path show the sanitized passage text. Acceptable until AI-8?
 
 ### PM decision (QA-8 addendum)
-_(pm-lead fills)_
+**APPROVED with conditions** (pm-lead, 2026-11-08, reviewed at design commit `9a29238` against `agents/tasks/QA-8.md` AC1–AC10,
+Product PRD QA-3/QA-8 and §7 principles 1–2, Technical PRD §7.2, ADR-0001/0002/0003/0014 (Accepted); app `origin/main` `9651294`:
+`internal/query/rag.go` (`Ask` :81–114, `parseSynthesis` :295, `finalize` :355, `checkCitations` :433), `internal/llm/config.go`
+(`ConfigFromEnv` :79, `FromEnv` :115, `normalize`), `llm.go` (sentinels :87–91, `Error.Kind` nil on caller cancel), `openai.go:62`
+(`Name()`), `llmtest/fake.go` (`Hang`, `ErrScriptExhausted`), `server.go:137`).
+
+Why: the addendum covers every ticket AC with a named test and a mutant, and it keeps the one rule that matters for §7 principles 1–2:
+**nothing the model writes reaches `Answer` without `checkCitations`/`finalize` over the exact passages it saw**, and an unusable reply
+gives today's validated template. It follows ADR-0001 (own timeout, template on timeout/error, logged with trace ID, token usage logged,
+no cost cap), ADR-0002 (synthesis in `rag.go`), ADR-0003 (refusal, no regeneration; alternative 4 rejected correctly) and ADR-0014
+(no response-shape change; `prompt_version`/`answer_source` in logs only). It also closes the four items A1–A4 the AI-6 decision handed
+over: A1 (Q7 prompt-size budget, ≥ 6,144 context, README asks for 8192), A2 (markers on every sentence, Q3.1 invariant tested),
+A3 (`passageHits` on the LLM path, `relevantHits` on the template path, both tested), A4 (counts in the usage line). I checked the code
+claims: `ConfigFromEnv` errors name the variable without its value, `normalize` rejects userinfo/query/fragment so `base_host` can't carry
+a key, `parseSynthesis` already strips inline `[n]` from claim text (so `renderClaims` is the only source of markers), `llm.Error` unwraps
+to its `Kind` and cause (so the Q5 `errors.Is` order works), and `Fake.Hang` only returns on `ctx.Done()` (so the outer `WithTimeout` is required).
+
+#### Answers to Q13
+1. **`ConfigFromEnv` + `llm.New` instead of the literal `llm.FromEnv`: approved.** The ticket's intent is "build the provider from the
+   `LLM_*` env through `internal/llm`, config errors → template"; `FromEnv` is exactly those two calls, and parsing once is what keeps the
+   timeout and startup metadata consistent with the provider. Condition 1 covers the `llm.New` error branch. I'll reword the ticket's Scope line.
+2. **Caller cancel returns `ctx.Err()` (no template): approved.** The ticket's fallback list is "provider error, timeout or parse error";
+   a client that has gone away is none of these, and running two embedder calls on a dead context only produces a misleading
+   `citation support unverified` line. It is the only non-fallback class, it still logs one `ask llm fallback class=canceled` line, and
+   `server.go`'s 500 goes to a closed connection. Condition 2 pins what the returned error may contain.
+3. **Question cap = 500 estimated tokens (≈ 1,500 bytes) → template, no call: approved.** A 400 from `server.go` would be an HTTP-API
+   behaviour change (shared contract → ADR, and backend-owned), and refusing a long question is worse for users than answering it with
+   the template that every request got until now. Condition 3: say so in the README, so the behaviour isn't hidden. If EVAL-8 or users show
+   real questions near the cap, a Proposed ADR can revisit (raise the cap, or truncate the question block instead of skipping the LLM).
+4. **Split QA-8 / QA-8c: pre-approved as described in Q9**, triggered only by the early check (`rag.go` > 150 changed lines, or the
+   projected total ≥ 400). The spec is written now so the build doesn't stall: [`agents/tasks/QA-8c.md`](../../agents/tasks/QA-8c.md)
+   (Status: *Not active*, becomes Ready the moment QA-8's PR says the seam was taken). AC mapping for the split is condition 5.
+5. **Sanitized `&lt;passage` in LLM-path citation `content` until AI-8: accepted.** It's rare (a chunk must contain `<passage`/`<question`),
+   cosmetic, and consistent with what the support score was computed on, so the flag the user sees is honest. Recorded as an input for AI-8
+   in `agents/tasks/AI-8.md` Notes (AI-8 adds verbatim quotes, which must come from the raw chunk).
+
+#### Conditions for the QA-8 PR (binding; QA checks each)
+1. **`llm.New` error = config error.** If `llm.New(*cfg)` returns an error (unreachable today, `config.go:121`), `provider` stays nil and the
+   startup line is `answer synthesis: template (llm config error: …)`, same as a `ConfigFromEnv` error. It doesn't need its own test (AC7 is
+   per-file ≥ 90%); the design's "new functions 100%" is a target, not a gate, and the PR names any uncovered line.
+2. **Caller-cancel error carries no provider text.** `Ask` returns `fmt.Errorf("ask canceled: %w", ctx.Err())`: it wraps the **parent ctx's**
+   error, never the provider's `err` (whose `detail` is provider-controlled). `TestAskLLMCallerCancel` asserts `errors.Is(err, context.Canceled)`
+   and that `err.Error()` is exactly `ask canceled: context canceled`.
+3. **README states the question cap**: one clause in the `LLM_MODEL` row or Known limitations, e.g. "questions longer than about 1,500 bytes
+   use the template answer". (Counts toward AC9, a few words, inside the 15-line README budget.)
+4. **Size discipline as in Q9:** the early `git diff --shortstat origin/main` after `rag.go` is written goes in the ticket Notes with its numbers.
+   Diff < 400 with no exception (AC10). If the seam is taken, the PR and the ticket Notes say so, and QA-8c becomes Ready.
+5. **If split:** QA-8 keeps AC1 (existing tests unmodified + `TestAskLLMOffMakesNoCall`), AC2–AC5, AC6 for the question/passage/claim/
+   completion sentinels (via the struct-literal seam), AC7 and AC10; QA-8c takes `TestNewRAGServiceFromEnv`, the AC6 **key** sentinel via
+   `newRAGServiceFromEnv`, AC8 (template-path `make eval`, which would be trivially identical in QA-8 since `provider` is always nil in
+   production) and AC9 (README, including condition 3). QA-8's PR description says plainly "LLM path is not reachable in production until QA-8c".
+6. **Mutation evidence**: all 12 Q8 mutants in the PR, each with the test that kills it (lesson OPS-H7f). Local scratch-module runs are fine;
+   the PR says CI is the source of truth, and the AC7 coverage line comes from CI output or a pasted `go tool cover` run.
+7. **AC8 wording**: "real-LLM eval: EVAL-8", never "passes", for anything beyond the template path. The README model name is an example only.
+8. **Log lines are counted, not just grepped**: the tests assert exactly one `ask llm` line per LLM-path `Ask` (Q6) and that no line contains
+   `err.Error()` output (mutant 12).
+
+Non-binding nit: if `res.Model` is empty (a server that omits `model`), the usage line logs `model=""`; the startup line already has the
+configured model, so cost can still be joined by process. Fine for v1; EVAL-8 can ask for a fallback if it matters.
+
+**Build timing:** QA-8 (unsplit) edits the app `README.md`, which open PR #35 (RET-2, Ready to merge) also edits, so the build starts after
+#35 merges, on a `main` that contains it, on branch `agent/ai/QA-8`. The ai-engineer must also be under the WIP limit (2 active PRs).
+After merge, pm-lead moves Product PRD QA-8 to ◐ via a `docs/` PR (AC9) and refreshes its stale "Blocked on ADR-0001/0002 (Proposed)" note.
 
 ## PM decision
 **APPROVED with conditions** (pm-lead, 2026-11-07, reviewed at design commit `effaf87` against `agents/tasks/AI-6.md`,
