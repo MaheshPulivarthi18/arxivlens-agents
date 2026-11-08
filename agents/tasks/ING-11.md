@@ -8,7 +8,7 @@
 | **Depends on** | **Build:** none (design approved 2026-11-07). Independence check at start: no open PR touches `services/processor/worker.py`, `services/common/db.py`, `migrations/`, `internal/db/db_test.go`, `Makefile` or `tests/test_processor_pages.py` (on 2026-11-07 none does; #30 edits `services/common/kafka_client.py` and `ci.yml`, a different file). ING-8's branch `agent/ai/ING-8` calls `_parse_doc_sections(None, doc)`: keep that contract (design decision 4) |
 | **Jira** | KAN-55 (`labels = "task-ING-11"`), under epic KAN-1 "Grounded LLM answers" |
 | **Design required** | yes, **approved**: `docs/design/ING-11.md` (PM decision 2026-11-07, conditions 1–9; this ticket is bound by 2, 3, 7, 8) |
-| **Status** | **In QA**: draft PR [#33](https://github.com/MaheshPulivarthi18/ArxivLens/pull/33), head `3f1c32d`, all CI green (2026-11-07). Followed by **AI-11** (chunker emits `page_start`), then **ING-11b** (search returns `page`) |
+| **Status** | **Ready to merge**: PR [#33](https://github.com/MaheshPulivarthi18/ArxivLens/pull/33) raised for Mahesh, head `3f1c32d`, all CI green. QA PASS r1 · PM APPROVE 2026-11-08 ([report](../reviews/ING-11/report.md)). Followed by **AI-11** (chunker emits `page_start`), then **ING-11b** (search returns `page`) |
 
 ## Goal
 `paper_chunks.page_number` is the page of a chunk's *section heading*, which is wrong for every later chunk of a section that
@@ -40,8 +40,11 @@ transaction. Nothing reads it yet, and no chunk has a `page_start` until AI-11, 
   download, nothing binary committed), where the Introduction runs over pages 1–3 and a second section starts mid-page 3:
   each section's `(title, level, page, sha256(text))` and each chunk's `(chunk_index, token_count, content_hash, sha256(content))`
   through the production `_parse_doc_sections(None, doc)` + `TokenChunker` equal a literal captured from unchanged production code.
-  **Before** evidence: the first pushed commit adds only the test file + Makefile line and its `ci.yml` python job is green;
-  **after**: the same test is green on the code commits (condition 2; both run IDs in the PR). `make eval`: "not run: chunk text identical (AC2)".
+  **Before** evidence (design condition 2): the commits before any production change add only the test file + Makefile line,
+  and the `ci.yml` python job is green on unchanged production code. Either the first commit carries the literal, or (fallback)
+  the first commit prints it on mismatch and the next commit pins it; **after**: the same test, unmodified, is green on the code
+  commits (both run IDs in the PR). `make eval`: "not run: chunk text identical (AC2)". *(Wording aligned with condition 2 at
+  PM review 2026-11-08, QA finding 2; not a weakening: the design already allowed the fallback.)*
 - [x] AC2b: `page_breaks` invariants on the fixture: every section has one; first offset 0; offsets and pages strictly ascending;
   every offset < `len(text)`; at least one section has ≥ 2 breaks; the fixture's vocabulary is asserted single-wordpiece up front (test).
 - [x] AC2c: `db.py` write path (fake cursor, table-driven, no DB): `page_start` set → the page upsert uses the id from `RETURNING id`
@@ -80,3 +83,7 @@ go test ./internal/db/ -run TestRepoMigrationsOrder          # AC5
   - AC6: `git diff --stat origin/main` +244/−5.
   - Follow-up: `CONTRIBUTING.md:23` lists the `make test-unit` pytest files; add `tests/test_processor_pages.py` after #26 merges (not edited here).
   - Jira KAN-55 not updated by me: this session had no Jira tool. Needs: → In QA, link PR #33 and the design.
+- 2026-11-07 (qa-reviewer): round 1 **PASS** at `3f1c32d` ([report](../reviews/ING-11/report.md), evidence at `a30c246`).
+- 2026-11-08 (pm-lead): final review **APPROVE** at `3f1c32d`; PR #33 raised for review. QA findings: 1 (Abstract bucket and
+  heading-at-page-bottom untested) → new AI-11 AC5; 2 `[spec]` → AC2 wording aligned with design condition 2 (above);
+  3 `[spec]` → `CONTRIBUTING.md:23` test-unit list on the board Backlog (backend, after #26 merges), with ING-11b as backstop.

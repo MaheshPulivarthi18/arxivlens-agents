@@ -26,6 +26,9 @@ chunk the chunker couldn't place). Ranking doesn't change.
 - `tests/test_evals_data.py`: the one outer-SELECT `_GO_TO_EVAL_SQL` fragment. `scripts/evaluate_retrieval.py` unchanged.
 - `tests/test_m2_pipeline.py`: the real-pipeline write check (AC5, design condition 4).
 - App `README.md` `/v1/search` row: "`page` is the page the chunk's text starts on, when recorded; omitted otherwise (ADR-0014)".
+- `CONTRIBUTING.md:23` (backstop, only if still missing when this starts): the `make test-unit` row lists the pytest files
+  run by `test-py`; add `tests/test_processor_pages.py` (added to `test-py` by ING-11 #33). Board Backlog has it as an earlier
+  one-liner for the first backend PR after #26 merges.
 - Out of scope: reprocessing the corpus, page ranges, `citations[].page` (AI-8), the frontend (FE-4). Technical PRD §5/§6.2 is a pm-lead docs PR after merge.
 
 ## Acceptance criteria

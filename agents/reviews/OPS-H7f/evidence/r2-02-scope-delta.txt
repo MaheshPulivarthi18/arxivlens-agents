@@ -1,0 +1,22 @@
+$ bash -c echo "== git rev-parse HEAD origin/main merge-base"; git rev-parse HEAD origin/main; git merge-base origin/main HEAD; echo "== delta since QA r1 head 0120d3d"; git diff --stat 0120d3d HEAD; echo "== prod files changed since r1 (expect none)"; git diff --name-only 0120d3d HEAD -- . ":!*_test.go" | sed "s/^/CHANGED: /"; echo "(end)"; echo "== whole PR vs origin/main"; git diff --stat origin/main...HEAD; echo "== ownership check"; bash .github/scripts/ownership-check.sh origin/main HEAD agent/backend/OPS-H7f 2>&1 || bash .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H7f 2>&1; echo "== gofmt -l internal/dlq shared"; gofmt -l internal/dlq shared; echo "(gofmt end)"
+== git rev-parse HEAD origin/main merge-base
+6cd6ae47f23936bb114a053ed4e4e7c19fde1ade
+2b71772a827b19fc999a299218c90493663357a3
+2b71772a827b19fc999a299218c90493663357a3
+== delta since QA r1 head 0120d3d
+ internal/dlq/envelope_test.go | 30 ++++++++++++++++++++++++++----
+ 1 file changed, 26 insertions(+), 4 deletions(-)
+== prod files changed since r1 (expect none)
+(end)
+== whole PR vs origin/main
+ internal/dlq/envelope.go      |  54 ++++++++++++++++
+ internal/dlq/envelope_test.go | 145 ++++++++++++++++++++++++++++++++++++++++++
+ internal/dlq/manager.go       |  22 ++-----
+ 3 files changed, 206 insertions(+), 15 deletions(-)
+== ownership check
+Unknown role 'HEAD' in branch 'HEAD' (expected agent/<ai|backend|frontend>/<TASK-ID>)
+Ownership OK for role=backend (221 changed lines)
+== gofmt -l internal/dlq shared
+(gofmt end)
+
+[exit code 0]

@@ -1,0 +1,27 @@
+$ bash -c cd /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/head.1TaG && cmp -s internal/dlq/envelope_test.go /root/wt/qa-OPS-H7f-r2/internal/dlq/envelope_test.go && cmp -s internal/dlq/envelope.go /root/wt/qa-OPS-H7f-r2/internal/dlq/envelope.go && cmp -s internal/dlq/manager.go /root/wt/qa-OPS-H7f-r2/internal/dlq/manager.go && echo 'scratch module dlq sources == worktree HEAD 6cd6ae4 (cmp)'; GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off go vet ./internal/dlq/ && echo 'go vet ./internal/dlq/: clean'; GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off go test -race -count=1 -v -run 'TestReplayEnvelope|TestReplayEnvelopeNeverEmpty|TestReplaySkipLine' ./internal/dlq/ 2>&1 | grep -E '^( *--- |PASS|FAIL|ok)'
+scratch module dlq sources == worktree HEAD 6cd6ae4 (cmp)
+go vet ./internal/dlq/: clean
+--- PASS: TestReplayEnvelope (0.00s)
+    --- PASS: TestReplayEnvelope/a_full_envelope (0.00s)
+    --- PASS: TestReplayEnvelope/a_full_envelope,_empty_key (0.00s)
+    --- PASS: TestReplayEnvelope/a_full_envelope,_other_event_type_and_key (0.00s)
+    --- PASS: TestReplayEnvelope/b_raw_object (0.00s)
+    --- PASS: TestReplayEnvelope/b_partial_envelope (0.00s)
+    --- PASS: TestReplayEnvelope/b_full_envelope_minus_event_id (0.00s)
+    --- PASS: TestReplayEnvelope/b_full_envelope_minus_event_type (0.00s)
+    --- PASS: TestReplayEnvelope/b_full_envelope_minus_paper_id (0.00s)
+    --- PASS: TestReplayEnvelope/b_raw_value_plus_another_key (0.00s)
+    --- PASS: TestReplayEnvelope/b_envelope_with_wrong_field_type (0.00s)
+    --- PASS: TestReplayEnvelope/c_nil_value_(B2) (0.00s)
+    --- PASS: TestReplayEnvelope/c_empty_object (0.00s)
+    --- PASS: TestReplayEnvelope/c_raw_value_only (0.00s)
+    --- PASS: TestReplayEnvelope/c_raw_object,_empty_key (0.00s)
+    --- PASS: TestReplayEnvelope/c_partial_envelope,_empty_key (0.00s)
+    --- PASS: TestReplayEnvelope/c_full_envelope_minus_event_id,_empty_key (0.00s)
+--- PASS: TestReplayEnvelopeNeverEmpty (0.00s)
+--- PASS: TestReplayEnvelopeSkipReasonsDistinct (0.00s)
+--- PASS: TestReplaySkipLine (0.00s)
+PASS
+ok  	arxivlens/internal/dlq	1.020s
+
+[exit code 0]

@@ -1,0 +1,7 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/6cd6ae47f23936bb114a053ed4e4e7c19fde1ade/check-runs --jq '.check_runs[] | name status conclusion id sha completed_at'
+Go (vet, gofmt, test, build)	completed	success	128539420920	6cd6ae4	2026-11-07T21:51:28Z
+Frontend (lint, test, build)	completed	success	128539420860	6cd6ae4	2026-11-07T21:50:45Z
+Agent ownership check	completed	success	128539420818	6cd6ae4	2026-11-07T21:50:35Z
+DB (migrate twice, HNSW plan + recall)	completed	success	128539420725	6cd6ae4	2026-11-07T21:51:28Z
+Python M0 unit tests	completed	success	128539420639	6cd6ae4	2026-11-07T21:51:57Z
+
