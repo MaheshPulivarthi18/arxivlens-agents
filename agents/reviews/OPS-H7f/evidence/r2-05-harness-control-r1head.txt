@@ -1,0 +1,11 @@
+$ bash -c python3 /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/scripts/mutate.py /root/wt/qa-OPS-H7f-r1head > /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/ctl2.out 2>&1; sed -n '2,/^TOTAL/p' /home/claude/arxivlens-agents/agents/reviews/OPS-H7f/evidence/06-ac4-mutation.txt > /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/r1-06b.out; diff /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/r1-06b.out /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/ctl2.out && echo 'diff vs r1 evidence 06-ac4-mutation.txt: IDENTICAL'; grep -E '^(TOTAL|M7|M8|M9|M11|M13|M14) ' /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/ctl2.out
+diff vs r1 evidence 06-ac4-mutation.txt: IDENTICAL
+M7   SURVIVED  QA-harness=green guard: drop event_id check only
+M8   SURVIVED  QA-harness=green guard: drop event_type check only
+M9   SURVIVED  QA-harness=green guard: drop paper_id check only
+M11  SURVIVED  QA-harness=green keep path: overwrite event_type with target topic
+M13  SURVIVED  QA-harness=green raw_value: skip whenever the key is present (ignore 'only key')
+M14  SURVIVED  QA-harness=red   manager: apply rule only in real runs (dry-run counts skips)
+TOTAL 14: KILLED 8, SURVIVED 6, INVALID 0
+
+[exit code 0]
