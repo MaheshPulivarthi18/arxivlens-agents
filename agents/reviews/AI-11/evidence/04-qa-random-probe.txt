@@ -1,0 +1,5 @@
+$ python3 /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/ai11/harness/probe.py scripts/m0_skeleton.py /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/ai11/harness/base_m0_skeleton.py
+RESULT trials=400 chunks=12389 with_page_start=6468 breaks_but_unknown=1289 P1_identity_fail=0 P2_oracle_fail=0 P3_unknown_fail=0
+first failures: []
+
+[exit code 0]

@@ -1,0 +1,20 @@
+$ bash -c cd /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/ai11 && echo '== PR #38 job 128726083334 (head_sha 0085fee) =='; grep -E 'HEAD is now at|python3 -m pytest -q|passed|failed|error' job-128726083334.log | grep -v -E 'Collecting|Using cached|Installing|Successfully' | cut -c1-200; echo; echo '== main job 128680958751 (head_sha 9651294) =='; grep -E 'python3 -m pytest -q|passed|failed' job-128680958751.log | grep -v -E 'Collecting|Using cached' | cut -c1-200; echo; echo '== skip position (1-based dot index) in PR job =='; grep -A2 'python3 -m pytest -q tests/test_m0.py' job-128726083334.log | tail -2 | cut -c30- | tr -d ' \n' | sed 's/\[[^]]*\]//g' | grep -o . | grep -n s
+== PR #38 job 128726083334 (head_sha 0085fee) ==
+2026-11-08T12:08:27.8214612Z HEAD is now at 1c5be47 Merge 0085feedd08b4358686f12a996e7676f1f6f8961 into 9651294733ba4031efc50d51cee5d90fd13ab40e
+2026-11-08T12:08:28.4525376Z (node:2430) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. C
+2026-11-08T12:08:31.0097267Z (node:2463) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. C
+2026-11-08T12:09:22.1609190Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py
+2026-11-08T12:09:29.4733317Z 126 passed, 1 skipped in 6.59s
+2026-11-08T12:09:30.5893175Z tests/test_kafka_client.py::test_dlq_stack_trace_is_the_errors_own PASSED [ 32%]
+2026-11-08T12:09:30.5936647Z tests/test_kafka_client.py::test_commit_error_is_logged_and_loop_continues PASSED [ 45%]
+2026-11-08T12:09:30.7417014Z ============================== 37 passed in 0.28s ==============================
+
+== main job 128680958751 (head_sha 9651294) ==
+2026-11-08T08:50:44.2513073Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py
+2026-11-08T08:50:51.4378725Z 114 passed, 1 skipped in 6.45s
+2026-11-08T08:50:52.7364632Z ============================== 37 passed in 0.28s ==============================
+
+== skip position (1-based dot index) in PR job ==
+59:s
+
+[exit code 0]

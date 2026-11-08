@@ -1,0 +1,30 @@
+$ bash -c ruff check --select E,F,W --line-length 130 --output-format concise tests/test_processor_pages.py scripts/m0_skeleton.py; echo; echo 'added line ranges:'; git diff -U0 origin/main...HEAD | grep '^@@\|^+++'
+scripts/m0_skeleton.py:15:8: F401 [*] `sys` imported but unused
+scripts/m0_skeleton.py:19:37: F401 [*] `typing.Tuple` imported but unused
+scripts/m0_skeleton.py:19:44: F401 [*] `typing.Optional` imported but unused
+scripts/m0_skeleton.py:134:131: E501 Line too long (138 > 130)
+scripts/m0_skeleton.py:143:131: E501 Line too long (154 > 130)
+scripts/m0_skeleton.py:303:1: W293 [*] Blank line contains whitespace
+scripts/m0_skeleton.py:347:11: F541 [*] f-string without any placeholders
+scripts/m0_skeleton.py:349:11: F541 [*] f-string without any placeholders
+scripts/m0_skeleton.py:352:11: F541 [*] f-string without any placeholders
+scripts/m0_skeleton.py:359:11: F541 [*] f-string without any placeholders
+scripts/m0_skeleton.py:366:11: F541 [*] f-string without any placeholders
+scripts/m0_skeleton.py:383:1: W293 [*] Blank line contains whitespace
+scripts/m0_skeleton.py:403:11: F541 [*] f-string without any placeholders
+scripts/m0_skeleton.py:409:11: F541 [*] f-string without any placeholders
+scripts/m0_skeleton.py:414:11: F541 [*] f-string without any placeholders
+scripts/m0_skeleton.py:420:131: E501 Line too long (143 > 130)
+tests/test_processor_pages.py:211:131: E501 Line too long (134 > 130)
+Found 17 errors.
+[*] 13 fixable with the `--fix` option.
+
+added line ranges:
++++ b/scripts/m0_skeleton.py
+@@ -15,0 +16 @@ import sys
+@@ -205,0 +207,11 @@ class TokenChunker:
+@@ -229,0 +242,4 @@ class TokenChunker:
++++ b/tests/test_processor_pages.py
+@@ -214,0 +215,200 @@ def test_save_chunks_page_rows_use_each_returned_id():
+
+[exit code 0]

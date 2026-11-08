@@ -1,0 +1,9 @@
+$ python3 /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/ai11/harness/m03_demo.py scripts/m0_skeleton.py
+head break=chunk1_char+0: chunk1 page_start=2 want=2 OK
+head break=chunk1_char+1: chunk1 page_start=1 want=1 OK
+head break=chunk1_char+3: chunk1 page_start=1 want=1 OK
+M03  break=chunk1_char+0: chunk1 page_start=2 want=2 OK
+M03  break=chunk1_char+1: chunk1 page_start=2 want=1 WRONG
+M03  break=chunk1_char+3: chunk1 page_start=2 want=1 WRONG
+
+[exit code 0]

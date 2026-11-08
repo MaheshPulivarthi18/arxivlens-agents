@@ -1,0 +1,192 @@
+$ bash -c cd /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/ai11/harness && for f in standin.py run_pr_tests.py probe.py mutate.py m03_demo.py; do echo "===== $f ====="; cat $f; done
+===== standin.py =====
+"""QA stand-in modules (NOT the real BGE tokenizer): a whitespace word-level 'fast' tokenizer with offset mapping,
+plus MagicMock stubs for pymupdf/torch/transformers.AutoModel and the processor worker module (PDF tests can't run)."""
+import re, sys, types
+from unittest import mock
+
+class StandInFastTokenizer:
+    is_fast = True
+    def __init__(self):
+        self.vocab, self.inv = {}, {}
+        self.model_max_length = 512
+    def _id(self, w):
+        if w not in self.vocab:
+            i = len(self.vocab) + 1000
+            self.vocab[w], self.inv[i] = i, w
+        return self.vocab[w]
+    def _spans(self, text):
+        return [(m.group(0).lower(), m.start(), m.end()) for m in re.finditer(r"\S+", text)]
+    def tokenize(self, text):
+        return [w for w, _, _ in self._spans(text)]
+    def encode(self, text, add_special_tokens=True):
+        return [self._id(w) for w, _, _ in self._spans(text)]
+    def __call__(self, text, add_special_tokens=True, return_offsets_mapping=False):
+        sp = self._spans(text)
+        out = {"input_ids": [self._id(w) for w, _, _ in sp]}
+        if return_offsets_mapping:
+            out["offset_mapping"] = [(s, e) for _, s, e in sp]
+        return out
+    def decode(self, ids, skip_special_tokens=True):
+        return " ".join(self.inv[i] for i in ids)
+
+def install():
+    tr = types.ModuleType("transformers")
+    tr.AutoTokenizer = types.SimpleNamespace(from_pretrained=lambda name: StandInFastTokenizer())
+    tr.AutoModel = mock.MagicMock()
+    sys.modules["transformers"] = tr
+    for m in ("pymupdf", "torch"):
+        sys.modules[m] = mock.MagicMock()
+    w = types.ModuleType("services.processor.worker")
+    w.ProcessorWorker = mock.MagicMock()
+    sys.modules["services.processor.worker"] = w
+===== run_pr_tests.py =====
+"""Run the PR's non-PDF AI-11 tests (AC3 a-d, e, f, g) against the stand-in tokenizer. argv[1] = repo dir."""
+import os, sys
+repo = sys.argv[1]
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import standin; standin.install()
+sys.path.insert(0, repo); os.chdir(repo)
+import pytest
+sys.exit(pytest.main(["-q", "-p", "no:cacheprovider", "tests/test_processor_pages.py",
+                      "-k", "hand_made_sections or absent_when_unknown"] + sys.argv[2:]))
+===== probe.py =====
+"""QA probe (stand-in tokenizer). argv[1] = head m0_skeleton.py, argv[2] = base (origin/main) m0_skeleton.py.
+P1 byte identity: for random sections (random lead ws, random breaks), head chunks minus page_start == base chunks.
+P2 oracle: page_start == page of the last break <= the char where the chunk body occurs in the unique raw text
+   (found with str.find, not offsets); key absent iff that char < first break. P3 unknown cases never get the key."""
+import importlib.util, os, random, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import standin; standin.install()
+
+def load(path, name):
+    spec = importlib.util.spec_from_file_location(name, path); m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m); return m
+
+head, base = load(sys.argv[1], "head_m0"), load(sys.argv[2], "base_m0")
+WORDS = [f"w{i}" for i in range(400)]
+fails = {"P1": 0, "P2": 0, "P3": 0}; n_chunks = n_paged = n_unpaged = 0; first = []
+
+def mk(cls, rng, tok):
+    c = cls.TokenChunker("stand-in"); c.tokenizer = tok
+    c.target_tokens, c.overlap_tokens, c.min_tokens = rng.choice([(60, 20, 5), (40, 10, 3), (120, 30, 8), (512, 75, 50)])
+    return c
+
+for trial in range(400):
+    rng = random.Random(trial)
+    tok = standin.StandInFastTokenizer()
+    h, b = mk(head, rng, tok), mk(base, random.Random(trial), tok)
+    secs = []
+    for s in range(rng.randint(1, 3)):
+        n = rng.randint(30, 700)
+        lead = rng.choice(["", " ", "\n\t ", "   "])
+        body = " ".join(rng.sample(WORDS, min(n, 400)) + [f"x{trial}_{s}_{i}" for i in range(max(0, n - 400))])
+        raw = lead + body + rng.choice(["", " ", "\n"])
+        starts = [i for i, ch in enumerate(raw) if ch != " " and (i == 0 or raw[i - 1] == " ")]
+        kind = rng.choice(["breaks", "breaks", "breaks", "none", "empty", "late"])
+        sec = {"title": f"Sec {s}", "text": raw, "page": rng.randint(1, 5), "level": 1}
+        if kind in ("breaks", "late"):
+            k = rng.randint(1, 5)
+            offs = sorted(set(rng.sample(range(len(raw)), k)))  # any char, word starts or not
+            if kind == "breaks" and rng.random() < 0.7:
+                offs = sorted(set([0] + offs))
+            p0 = sec["page"]; sec["page_breaks"] = [(o, p0 + j) for j, o in enumerate(offs)]
+        elif kind == "empty":
+            sec["page_breaks"] = []
+        secs.append(sec)
+    plain = [{k: v for k, v in s.items() if k != "page_breaks"} for s in secs]
+    got, want = h.chunk_sections("Title X", secs), b.chunk_sections("Title X", plain)
+    if [{k: v for k, v in c.items() if k != "page_start"} for c in got] != want:
+        fails["P1"] += 1; first.append(("P1", trial))
+    by_title = {s["title"]: s for s in secs}
+    for c in got:
+        n_chunks += 1
+        s = by_title[c["section_title"]]; pb = s.get("page_breaks") or []
+        if not pb:
+            if "page_start" in c: fails["P3"] += 1; first.append(("P3", trial))
+            continue
+        bodytxt = c["content"].split("\n\n", 1)[1]
+        raw = s["text"]; assert raw.count(bodytxt) == 1
+        pos = raw.find(bodytxt)
+        pages = [p for o, p in pb if o <= pos]
+        exp = pages[-1] if pages else None
+        if c.get("page_start") != exp or (exp is None and "page_start" in c):
+            fails["P2"] += 1; first.append(("P2", trial, c["chunk_index"], c.get("page_start"), exp))
+        if "page_start" in c: n_paged += 1
+        else: n_unpaged += 1
+print(f"RESULT trials=400 chunks={n_chunks} with_page_start={n_paged} breaks_but_unknown={n_unpaged} "
+      f"P1_identity_fail={fails['P1']} P2_oracle_fail={fails['P2']} P3_unknown_fail={fails['P3']}")
+print("first failures:", first[:5])
+sys.exit(1 if any(fails.values()) else 0)
+===== mutate.py =====
+"""Single-edit mutants of the PR's production lines in scripts/m0_skeleton.py. Each mutant: fresh mktemp copy of
+scripts/ + tests/ (+ services/), one exact replacement (must match exactly once, else INVALID), then
+  T = the PR's non-PDF AI-11 tests (run_pr_tests.py, stand-in tokenizer), and
+  P = QA randomized probe (probe.py).
+KILLED = a run exits non-zero for a test failure; collection/import errors are reported as INVALID (pytest exit 2-4)."""
+import os, shutil, subprocess, sys, tempfile
+H = os.path.dirname(os.path.abspath(__file__)); REPO = sys.argv[1]; BASE = os.path.join(H, "base_m0_skeleton.py")
+M = [
+ ("M01 lead=0", 'lead = len(raw) - len(raw.lstrip())', 'lead = 0'),
+ ("M02 lead from stripped text", 'raw = sec.get("text", "")', 'raw = sec_text'),
+ ("M03 offsets from raw text (double lead)", 'enc = self.tokenizer(sec_text, add_special_tokens', 'enc = self.tokenizer(sec.get("text", ""), add_special_tokens'),
+ ("M04 bisect_left", 'bisect.bisect_right(', 'bisect.bisect_left('),
+ ("M05 first-break check > not >=", 'token_chars[start_i] >= break_offsets[0]', 'token_chars[start_i] > break_offsets[0]'),
+ ("M06 drop first-break check", 'token_chars is not None and token_chars[start_i] >= break_offsets[0]', 'token_chars is not None'),
+ ("M07 drop ids compare", 'if enc["input_ids"] == tokens:', 'if True:'),
+ ("M08 drop is_fast check", 'if page_breaks and getattr(self.tokenizer, "is_fast", False):', 'if page_breaks:'),
+ ("M09 is_fast default True", 'getattr(self.tokenizer, "is_fast", False)', 'getattr(self.tokenizer, "is_fast", True)'),
+ ("M10 end offset", 'lead + start for start, _ in enc', 'lead + end for _, end in enc'),
+ ("M11 next token's offset", 'bisect.bisect_right(break_offsets, token_chars[start_i])', 'bisect.bisect_right(break_offsets, token_chars[min(start_i + 1, len(token_chars) - 1)])'),
+ ("M12 page index off by one", 'all_chunks[-1]["page_start"] = page_breaks[at][1]', 'all_chunks[-1]["page_start"] = page_breaks[max(at - 1, 0)][1]'),
+ ("M13 default page when unknown", '                    "content_hash": content_hash,\n                })', '                    "content_hash": content_hash,\n                    "page_start": sec.get("page", 1),\n                })'),
+ ("M14 empty list treated as present", 'if page_breaks and getattr', 'if page_breaks is not None and getattr'),
+ ("M15 window end char", 'token_chars[start_i] >= break_offsets[0]:\n                    # Page', 'token_chars[min(start_i + effective_target, len(token_chars)) - 1] >= break_offsets[0]:\n                    # Page'),
+ ("M16 first chunk's page for all", 'all_chunks[-1]["page_start"]', 'all_chunks[0]["page_start"]'),
+ ("M17 page = section page", 'all_chunks[-1]["page_start"] = page_breaks[at][1]', 'all_chunks[-1]["page_start"] = sec.get("page", 1)'),
+ ("M18 None page_breaks not tolerated", 'page_breaks = sec.get("page_breaks") or []', 'page_breaks = sec.get("page_breaks", [])'),
+]
+rows = []
+for name, old, new in M:
+    src = open(os.path.join(REPO, "scripts/m0_skeleton.py")).read()
+    if src.count(old) != 1:
+        rows.append((name, "INVALID (pattern count %d)" % src.count(old), "-")); continue
+    d = tempfile.mkdtemp(prefix="ai11mut-", dir=os.environ.get("SCRATCH", None))
+    for sub in ("scripts", "tests", "services", "shared"):
+        if os.path.isdir(os.path.join(REPO, sub)): shutil.copytree(os.path.join(REPO, sub), os.path.join(d, sub))
+    open(os.path.join(d, "scripts/m0_skeleton.py"), "w").write(src.replace(old, new))
+    t = subprocess.run([sys.executable, os.path.join(H, "run_pr_tests.py"), d], capture_output=True, text=True)
+    p = subprocess.run([sys.executable, os.path.join(H, "probe.py"), os.path.join(d, "scripts/m0_skeleton.py"), BASE], capture_output=True, text=True)
+    tr = "KILLED" if t.returncode == 1 else ("survived" if t.returncode == 0 else f"INVALID(rc={t.returncode})")
+    last = [l for l in t.stdout.splitlines() if " passed" in l or " failed" in l]
+    pr = "KILLED" if p.returncode == 1 else ("survived" if p.returncode == 0 else f"ERROR(rc={p.returncode})")
+    res = [l for l in p.stdout.splitlines() if l.startswith("RESULT")]
+    rows.append((name, f"{tr} [{last[-1].strip() if last else t.stdout[-120:]}]", f"{pr} [{(res[0][7:] if res else p.stderr.strip().splitlines()[-1:])}]"))
+for r in rows: print(f"{r[0]:<40} | PR tests: {r[1]}\n{'':<40} | QA probe: {r[2]}")
+===== m03_demo.py =====
+"""QA demo (stand-in tokenizer): M03 = offsets taken from the raw (unstripped) text, so `lead` is counted twice.
+Same text and LEAD as the PR's d-leading-ws case, but the break sits 1..len(LEAD)-1 chars AFTER chunk 1's first char,
+so chunk 1 must stay on page 1. argv[1] = head m0_skeleton.py."""
+import importlib.util, os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import standin; standin.install()
+src = open(sys.argv[1]).read()
+old = 'enc = self.tokenizer(sec_text, add_special_tokens'
+mut = src.replace(old, 'enc = self.tokenizer(sec.get("text", ""), add_special_tokens'); assert src.count(old) == 1
+def load(code, name):
+    m = type(sys)(name); exec(compile(code, name, "exec"), m.__dict__); return m
+import random
+rng = random.Random(11); words = [f"w{i}" for i in range(400)]
+text = " ".join(rng.sample(words, 150)); LEAD = "\n \t "
+for label, code in (("head", src), ("M03", mut)):
+    m = load(code, label); c = m.TokenChunker("stand-in"); c.target_tokens, c.overlap_tokens, c.min_tokens = 60, 20, 5
+    base = c.chunk_sections("T", [{"title": "S", "text": text, "page": 1}])
+    body1 = base[1]["content"].split("\n\n", 1)[1]; c1 = text.find(body1)
+    for delta in (0, 1, 3):
+        raw = LEAD + text; brk = len(LEAD) + c1 + delta
+        got = c.chunk_sections("T", [{"title": "S", "text": raw, "page": 1, "page_breaks": [(0, 1), (brk, 2)]}])
+        want = 2 if delta == 0 else 1
+        print(f"{label:4} break=chunk1_char+{delta}: chunk1 page_start={got[1].get('page_start')} want={want} "
+              f"{'OK' if got[1].get('page_start') == want else 'WRONG'}")
+
+[exit code 0]

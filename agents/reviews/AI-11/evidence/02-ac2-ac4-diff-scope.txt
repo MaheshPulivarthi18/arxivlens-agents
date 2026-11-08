@@ -1,0 +1,19 @@
+$ bash -c git diff --numstat origin/main...HEAD; echo; echo 'hunks in tests/test_processor_pages.py:'; git diff origin/main...HEAD -- tests/test_processor_pages.py | grep '^@@'; echo -n 'deleted lines in whole diff: '; git diff origin/main...HEAD | grep -c '^-[^-]'; echo -n 'tests/test_m0.py diff lines: '; git diff origin/main...HEAD -- tests/test_m0.py | wc -l; echo 'base vs head, lines 1-213 of tests/test_processor_pages.py (snapshot test + literal + builder):'; diff <(git show origin/main:tests/test_processor_pages.py) <(git show HEAD:tests/test_processor_pages.py | head -n $(git show origin/main:tests/test_processor_pages.py | wc -l)) && echo IDENTICAL; echo; grep -n 'Ownership\|changed lines' /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/ai11/job-128726083458.log | cut -c1-160; echo; echo 'open PRs touching the same files:'; for n in 37 35 24; do echo "#$n: $(gh api repos/MaheshPulivarthi18/ArxivLens/pulls/$n/files --jq '[.[].filename]|join(",")')"; done
+16	0	scripts/m0_skeleton.py
+200	0	tests/test_processor_pages.py
+
+hunks in tests/test_processor_pages.py:
+@@ -212,3 +212,203 @@ def test_save_chunks_page_rows_use_each_returned_id():
+deleted lines in whole diff: 0
+tests/test_m0.py diff lines: 0
+base vs head, lines 1-213 of tests/test_processor_pages.py (snapshot test + literal + builder):
+IDENTICAL
+
+172:2026-11-08T12:08:29.3936343Z Ownership OK for role=ai (216 changed lines)
+
+open PRs touching the same files:
+#37: .github/workflows/eval.yml,CONTRIBUTING.md
+#35: .github/workflows/db.yml,README.md,internal/query/search.go,internal/query/search_provenance_integration_test.go,internal/query/search_provenance_test.go,tests/test_evals_data.py
+#24: README.md,services/embedder/api.py,tests/test_m0.py
+
+[exit code 0]

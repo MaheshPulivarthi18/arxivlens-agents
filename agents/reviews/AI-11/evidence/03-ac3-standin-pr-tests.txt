@@ -1,0 +1,17 @@
+$ python3 /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/ai11/harness/run_pr_tests.py /root/wt/qa-AI-11 -rA
+..........                                                               [100%]
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_processor_pages.py::test_page_start_hand_made_sections[a-known-offsets]
+PASSED tests/test_processor_pages.py::test_page_start_hand_made_sections[b-straddle]
+PASSED tests/test_processor_pages.py::test_page_start_hand_made_sections[c-exact-break]
+PASSED tests/test_processor_pages.py::test_page_start_hand_made_sections[c-break-inside-first-word]
+PASSED tests/test_processor_pages.py::test_page_start_hand_made_sections[d-leading-ws]
+PASSED tests/test_processor_pages.py::test_page_start_hand_made_sections[first-break-after-start]
+PASSED tests/test_processor_pages.py::test_page_start_absent_when_unknown[no-key]
+PASSED tests/test_processor_pages.py::test_page_start_absent_when_unknown[empty-list]
+PASSED tests/test_processor_pages.py::test_page_start_absent_when_unknown[is_fast-false]
+PASSED tests/test_processor_pages.py::test_page_start_absent_when_unknown[call-ids-differ]
+10 passed, 10 deselected in 0.17s
+
+[exit code 0]

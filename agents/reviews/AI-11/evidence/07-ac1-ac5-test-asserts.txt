@@ -1,0 +1,25 @@
+$ bash -c grep -n -E 'def test_chunk_page_start|def _assert_chunks_on_oracle_page|assert "page_start" in c|page_start"\] >= 1|first_word_page\(body\)|any\(c\["page_start"\] >|sections\] == \[|page_breaks"\] ==|page_breaks"\]\[0\] ==|section_title"\] for c in chunks\} ==|intro\[0\]' tests/test_processor_pages.py; echo; echo 'services/processor/worker.py text writes:'; grep -n -E 'line_text = |\.strip\(\)$|"text": ""|current_section\["text"\] \+=' services/processor/worker.py
+119:    assert [s["title"] for s in sections] == ["Introduction", "Method"]
+120:    assert [s["page"] for s in sections] == [1, 3]
+245:def _assert_chunks_on_oracle_page(chunks):
+248:        assert "page_start" in c, f"chunk {c['chunk_index']}: no page_start"
+249:        assert c["page_start"] >= 1, c["page_start"]  # 0 would hit paper_chunk_pages' CHECK and fail the transaction
+251:        assert c["page_start"] == first_word_page(body), f"chunk {c['chunk_index']}: {c['page_start']} vs {body[:40]!r}"
+254:def test_chunk_page_start_matches_first_word_page(chunker):
+259:    assert any(c["page_start"] > sec_page[c["section_title"]] for c in chunks), [c["page_start"] for c in chunks]
+262:def test_chunk_page_start_abstract_bucket_and_heading_at_page_end(chunker):
+264:    assert [(s["title"], s["page"]) for s in sections] == [("Abstract", 1), ("Introduction", 1)]
+265:    assert sections[0]["page_breaks"] == [(0, 1)]
+266:    assert sections[1]["page_breaks"][0] == (0, 2)
+269:    assert {c["section_title"] for c in chunks} == {"Abstract", "Introduction"}
+271:    assert intro[0]["page_start"] == 2 and intro[0]["page_number"] == 1
+
+services/processor/worker.py text writes:
+118:        current_section = {"title": "Abstract", "level": 1, "text": "", "page": 1, "page_breaks": []}
+140:                    line_text = " ".join(
+142:                    ).strip()
+157:                        norm_title = re.sub(r"^(\d+\.?\d*|[IVXLCDM]+\.)\s*", "", line_text).strip()
+163:                            "text": "",
+171:                        current_section["text"] += line_text + " "
+
+[exit code 0]
