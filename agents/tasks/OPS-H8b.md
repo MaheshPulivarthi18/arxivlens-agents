@@ -73,3 +73,38 @@ git diff --stat origin/main...HEAD                     # <= 400
   (1) `test_publish_requires_confirmation[ok]` asserts that the return value **equals** the produced envelope's `event_id`, not just that it's truthy; (2) `produce` raising `KafkaException` → `DeliveryError`
   (only `BufferError` is covered today); (3) the DLQ `produce` raising, driven through `start`, gives no commit. Also, the `ci.yml` step from part a is named "(commit-after-process, DLQ, shutdown; fakes only)".
   Part a has no shutdown tests, so this ticket's stop/signal tests make the name true; if they're cut, rename the step.
+- 2026-11-08 (backend-engineer, build): branch `agent/backend/OPS-H8b` from `origin/main` `d3f9408` (OPS-H8 part a merged as `db6f670`), head **`f357f15`**, pushed; PR not opened yet (orchestrator).
+  - **Source:** `services/common/kafka_client.py` = `git checkout ebe80a7 -- …`. Reconcile result: part a's producer layer on `main` is byte-identical to `ebe80a7`'s, so the file diff vs `main` is exactly the
+    consumer layer plus `build_dlq_payload` totality (non-dict JSON → `raw_value`, key `decode(errors="replace")`). That totality lives in the producer class but is in scope here: AC7's `b"[1, 2]"` row needs it
+    and design §2 relies on it. `tests/test_kafka_client.py` keeps every part-a test and fake; consumer tests ported from `ebe80a7` onto part a's names.
+  - **AC12 counted skeleton** (recorded before the test bodies): `kafka_client.py` done = 96 (+73/−23); test file = imports +6, fakes/`make`/`handler_failing` ≈ +40/−20, 15 named test functions ≈ +150 → projected ≈ 310.
+    **Actual `git diff --stat origin/main`: 2 files, +255/−65 = 320** (`kafka_client.py` 96, `tests/test_kafka_client.py` 224). No seam needed; AC7 stays in.
+  - **AC3 replaced expectation:** part a's `test_unconfirmed_dlq_write_stops_before_commit` keeps its name and its no-commit assertion (`commits == [("commit", 4)]`, `calls == {4: 1, 5: 3}`, `close` last);
+    `pytest.raises(DeliveryError)` became "returns normally after 3 in-place DLQ rounds" (`waits == [0.2, 0.4, 1, 2, 4]`, 3 produces for @5). Rows `err`, `queued`, plus `raise` and `raise-kafka` (carry-over 3).
+  - **Carry-overs from the part-a review:** (1) `test_publish_requires_confirmation[ok]` asserts the return value equals the produced envelope's `event_id`; (2) new row `raise-kafka` (`produce` raises `KafkaException` → `DeliveryError`);
+    (3) `test_unconfirmed_dlq_write_stops_before_commit[raise|raise-kafka]` drives a raising DLQ `produce` through `start` → no commit. The `ci.yml` step name ("…shutdown; fakes only") is now true (stop/signal tests present), so no rename.
+  - **AC → tests:** AC1 `test_success_path[0|1|2]`, `test_commit_error_is_logged_and_loop_continues` · AC2 `test_confirmed_dlq_write_then_commit[header|envelope]` (call order asserted; `envelope` row = traceparent fallback) ·
+    AC3 `test_unconfirmed_dlq_write_stops_before_commit[err|queued|raise|raise-kafka]` · AC4 `test_dlq_recovers_after_two_failures`, `test_dlq_backoff_schedule` · AC5 `test_failing_publish_in_handler_is_retried[ok|err]` ·
+    AC6 `test_stop_during_wait_returns_promptly[handler-wait|dlq-wait]` (real `threading.Event`, 5 s backoff, < 200 ms), AC6b `test_stop_during_last_attempt_is_not_a_failure[3|1]`, `test_signal_handler_sets_stop_and_is_restored`;
+    `grep -n "time.sleep" services/common/kafka_client.py` → no output (rc 1) · AC7 `test_poison_record_goes_to_dlq_and_loop_continues[not json|missing fields|[1, 2]]` · AC8 `test_dlq_failure_log_has_coordinates_not_value[False|True]` (sentinel in value and handler error).
+  - **Local runs (sandbox):** PyPI unreachable (DNS for pypi.org fails; `pip install confluent-kafka` → "No matching distribution"), so `confluent_kafka` and `ulid` were stubbed in a scratch `PYTHONPATH` dir (pydantic 2.13.5 real), pytest run from a different cwd:
+    `pytest -v tests/test_kafka_client.py tests/test_worker_heartbeat.py` → **43 passed** (37 + 6). `ruff check --isolated --select E,F,W --line-length 130` on both files → clean. `make lint` is Go + frontend only (no Python linter in the Makefile); Go untouched. `make test-unit`/`make test-py` not run locally (BGE download, no deps): CI.
+  - **AC10 pre-check (local, stubbed, scratch copies, not the CI evidence):** (a) commit after a failed DLQ write → 6 red (`test_unconfirmed_dlq_write_stops_before_commit[*]`, `test_failing_publish_in_handler_is_retried[err]`, `test_stop_during_wait_returns_promptly[dlq-wait]`);
+    (b) bare `flush` (drop both confirmation checks) → 12 red (incl. `test_publish_requires_confirmation[err|queued]`, `test_dlq_recovers_after_two_failures`); (c) `time.sleep` in the handler wait → 11 red (incl. `test_success_path[1|2]`, `test_stop_during_wait_returns_promptly[handler-wait]`).
+    Extra probe: handler-path DLQ traceparent reverted to header-only → `test_confirmed_dlq_write_then_commit[envelope]` red.
+    **Still to do (needs the PR, `ci.yml` runs on `pull_request` only):** the three `mutation(AC10a|b|c)` commits + reverts with a finished CI run each, SHAs/URLs here; AC11 `stack.yml` M4 run on the PR.
+  - **PR body, "Behaviour changes" (condition 5):** (2) a commit `KafkaException` is logged at ERROR and the loop continues (was: worker dies); (3) poison records → DLQ with `attempts=1`, committed (was: crash loop);
+    (4) first SIGTERM/SIGINT finishes the running handler call and stops cleanly, second forces the stop; while the DLQ is unreachable the worker stalls on that record with one CRITICAL line per round
+    (replaces OPS-H8's interim exit/restart); the handler warning now logs the exception type only; DLQ `traceparent` falls back to the envelope's own.
+  - **Final sequence (design §7, for pm-lead's Technical PRD §8.1/§8.2 docs PR):**
+    ```
+    poll (1 record) → decode
+      undecodable → DLQ path with attempts=1
+      attempt 1..3: handle; on error, if stop requested → stop (no DLQ, no commit); else wait 0.2 s, 0.4 s (interruptible)
+      success → commit (commit error → log ERROR; record redelivered later)
+      3 failures → build DLQPayload once → produce to <topic>.dlq, confirmed by delivery callback within 12 s
+         confirmed → commit
+         not confirmed → CRITICAL log, wait 1,2,4…30 s (interruptible) and send again; no commit, no next record, until it lands or stop
+    SIGTERM/SIGINT → finish the running handler call, commit only if it resolved, close. Second signal → force stop, no commit.
+    On restart/rebalance everything after the last committed offset is redelivered; L2 (processor) and L3 (embedder) keep row counts unchanged.
+    ```
