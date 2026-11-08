@@ -1,0 +1,24 @@
+$ bash /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/h/ac4.sh
+local HEAD (PR head):            ec60ab76f3f8856ac87e5931c1d163109265040b
+origin/main via ls-remote (real): 9651294733ba4031efc50d51cee5d90fd13ab40e
+== GITHUB_EVENT_NAME=workflow_dispatch GITHUB_SHA=ec60ab76f3f8856ac87e5931c1d163109265040b GITHUB_REF_NAME=agent/backend/EVAL-9 BASE_SHA='' ==
+run SHA/ref: ec60ab76f3f8856ac87e5931c1d163109265040b (agent/backend/EVAL-9); main SHA: 9651294733ba4031efc50d51cee5d90fd13ab40e
+   step exit=0
+   summary line: run SHA/ref: ec60ab76f3f8856ac87e5931c1d163109265040b (agent/backend/EVAL-9); main SHA: 9651294733ba4031efc50d51cee5d90fd13ab40e
+== GITHUB_EVENT_NAME=schedule GITHUB_SHA=9651294733ba4031efc50d51cee5d90fd13ab40e GITHUB_REF_NAME=main BASE_SHA='' ==
+run SHA/ref: 9651294733ba4031efc50d51cee5d90fd13ab40e (main); main SHA: 9651294733ba4031efc50d51cee5d90fd13ab40e
+   step exit=0
+   summary line: run SHA/ref: 9651294733ba4031efc50d51cee5d90fd13ab40e (main); main SHA: 9651294733ba4031efc50d51cee5d90fd13ab40e
+== GITHUB_EVENT_NAME=pull_request GITHUB_SHA=0123456789abcdef0123456789abcdef01234567 GITHUB_REF_NAME=37/merge BASE_SHA='9651294733ba4031efc50d51cee5d90fd13ab40e' ==
+run SHA/ref: 0123456789abcdef0123456789abcdef01234567 (37/merge); main (PR base) SHA: 9651294733ba4031efc50d51cee5d90fd13ab40e
+   step exit=0
+   summary line: run SHA/ref: 0123456789abcdef0123456789abcdef01234567 (37/merge); main (PR base) SHA: 9651294733ba4031efc50d51cee5d90fd13ab40e
+
+== extracted body ==
+     1	if [ "$GITHUB_EVENT_NAME" = pull_request ]; then main="main (PR base) SHA: $BASE_SHA"
+     2	else main="main SHA: $(git ls-remote origin refs/heads/main | cut -f1)"; fi
+     3	{ echo "### Machine profile"; echo '```'; echo "run SHA/ref: $GITHUB_SHA ($GITHUB_REF_NAME); $main"
+     4	  lscpu | grep -E '^(Model name|CPU\(s\))'; free -g; echo "embedder /healthz: $(curl -fsS localhost:8081/healthz)"
+     5	  echo '```'; } | tee -a "$GITHUB_STEP_SUMMARY"
+
+[exit code 0]

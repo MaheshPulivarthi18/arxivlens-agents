@@ -1,0 +1,84 @@
+$ bash /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/h/ac3.sh
+== results (body extracted from .github/workflows/eval.yml step 'make eval-seed') ==
+target=50% (SECONDS=2100) stub_exit=0 -> step_exit=0 warning_lines=0 EXIT_MATCH
+    log: seed: 35m0s for 31 IDs (50% of the 70-min step budget)
+    summary: ### make eval-seed: make exit 0 (non-zero = at least one corpus ID failed; see seed-ids.log)
+    summary: seed: 35m0s for 31 IDs (50% of the 70-min step budget)
+target=50% (SECONDS=2100) stub_exit=2 -> step_exit=2 warning_lines=0 EXIT_MATCH
+    log: seed: 35m0s for 31 IDs (50% of the 70-min step budget)
+    summary: ### make eval-seed: make exit 2 (non-zero = at least one corpus ID failed; see seed-ids.log)
+    summary: seed: 35m0s for 31 IDs (50% of the 70-min step budget)
+target=74% (SECONDS=3108) stub_exit=0 -> step_exit=0 warning_lines=0 EXIT_MATCH
+    log: seed: 51m48s for 31 IDs (74% of the 70-min step budget)
+    summary: ### make eval-seed: make exit 0 (non-zero = at least one corpus ID failed; see seed-ids.log)
+    summary: seed: 51m48s for 31 IDs (74% of the 70-min step budget)
+target=74% (SECONDS=3108) stub_exit=2 -> step_exit=2 warning_lines=0 EXIT_MATCH
+    log: seed: 51m48s for 31 IDs (74% of the 70-min step budget)
+    summary: ### make eval-seed: make exit 2 (non-zero = at least one corpus ID failed; see seed-ids.log)
+    summary: seed: 51m48s for 31 IDs (74% of the 70-min step budget)
+target=75% (SECONDS=3150) stub_exit=0 -> step_exit=0 warning_lines=1 EXIT_MATCH
+    log: seed: 52m30s for 31 IDs (75% of the 70-min step budget)
+    log: ::warning::eval-seed used 75% of its time budget
+    summary: ### make eval-seed: make exit 0 (non-zero = at least one corpus ID failed; see seed-ids.log)
+    summary: seed: 52m30s for 31 IDs (75% of the 70-min step budget)
+target=75% (SECONDS=3150) stub_exit=2 -> step_exit=2 warning_lines=1 EXIT_MATCH
+    log: seed: 52m30s for 31 IDs (75% of the 70-min step budget)
+    log: ::warning::eval-seed used 75% of its time budget
+    summary: ### make eval-seed: make exit 2 (non-zero = at least one corpus ID failed; see seed-ids.log)
+    summary: seed: 52m30s for 31 IDs (75% of the 70-min step budget)
+target=80% (SECONDS=3360) stub_exit=0 -> step_exit=0 warning_lines=1 EXIT_MATCH
+    log: seed: 56m0s for 31 IDs (80% of the 70-min step budget)
+    log: ::warning::eval-seed used 80% of its time budget
+    summary: ### make eval-seed: make exit 0 (non-zero = at least one corpus ID failed; see seed-ids.log)
+    summary: seed: 56m0s for 31 IDs (80% of the 70-min step budget)
+target=80% (SECONDS=3360) stub_exit=2 -> step_exit=2 warning_lines=1 EXIT_MATCH
+    log: seed: 56m0s for 31 IDs (80% of the 70-min step budget)
+    log: ::warning::eval-seed used 80% of its time budget
+    summary: ### make eval-seed: make exit 2 (non-zero = at least one corpus ID failed; see seed-ids.log)
+    summary: seed: 56m0s for 31 IDs (80% of the 70-min step budget)
+real clock, stub sleeps 3 s, exit 2 -> step_exit=2
+    log: seed: 0m3s for 31 IDs (0% of the 70-min step budget)
+
+== extracted body ==
+     1	set +e; make eval-seed 2>&1 | tee seed.log
+     2	rc=${PIPESTATUS[0]}; t=$SECONDS; budget=70; n=$(grep -cE '^[0-9]{4}\.[0-9]{4,5}' evals/corpus.txt)
+     3	pct=$((t * 100 / (budget * 60))); line="seed: $((t / 60))m$((t % 60))s for $n IDs ($pct% of the $budget-min step budget)"
+     4	echo "$line"; if [ "$pct" -ge 75 ]; then echo "::warning::eval-seed used $pct% of its time budget"; fi
+     5	{ echo "### make eval-seed: make exit $rc (non-zero = at least one corpus ID failed; see seed-ids.log)"; echo "$line"
+     6	  echo '```'; cat seed-ids.log; tail -n 3 seed.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+     7	exit "$rc"
+== harness source ==
+     1	#!/bin/bash
+     2	# AC3 harness: run the seed-step body extracted verbatim from .github/workflows/eval.yml (PR head)
+     3	# under the GitHub shell (bash --noprofile --norc -eo pipefail), with a stub `make` on PATH and a faked SECONDS.
+     4	H=$(dirname "$(readlink -f "$0")"); WF=$PWD/.github/workflows/eval.yml
+     5	python3 -I "$H/extract.py" "$WF" "make eval-seed" > "$H/seed-body.sh" || exit 9
+     6	echo "== results (body extracted from .github/workflows/eval.yml step 'make eval-seed') =="
+     7	for pct in 50 74 75 80; do for stub in 0 2; do
+     8	  d=$(mktemp -d); mkdir -p "$d/bin" "$d/evals"; cp evals/corpus.txt "$d/evals/"
+     9	  printf '#!/bin/sh\necho "stub make $*"; printf "2608.20331\\tok\\n" > seed-ids.log; exit %s\n' "$stub" > "$d/bin/make"; chmod +x "$d/bin/make"
+    10	  fake=$((pct * 70 * 60 / 100))
+    11	  out=$(cd "$d" && PATH="$d/bin:$PATH" GITHUB_STEP_SUMMARY="$d/summary.md" \
+    12	        bash --noprofile --norc -eo pipefail -c "SECONDS=$fake; source '$H/seed-body.sh'" 2>&1); rc=$?
+    13	  w=$(grep -c '^::warning::' <<<"$out")
+    14	  printf 'target=%s%% (SECONDS=%s) stub_exit=%s -> step_exit=%s warning_lines=%s %s\n' "$pct" "$fake" "$stub" "$rc" "$w" "$([ "$rc" = "$stub" ] && echo EXIT_MATCH || echo EXIT_MISMATCH)"
+    15	  grep -E '^(seed:|::warning::)' <<<"$out" | sed 's/^/    log: /'
+    16	  sed 's/^/    summary: /' "$d/summary.md" | head -2
+    17	done; done
+    18	# real clock (no faked SECONDS): stub sleeps 3 s and exits 2
+    19	d=$(mktemp -d); mkdir -p "$d/bin" "$d/evals"; cp evals/corpus.txt "$d/evals/"
+    20	printf '#!/bin/sh\nsleep 3; : > seed-ids.log; exit 2\n' > "$d/bin/make"; chmod +x "$d/bin/make"
+    21	out=$(cd "$d" && PATH="$d/bin:$PATH" GITHUB_STEP_SUMMARY="$d/summary.md" bash --noprofile --norc -eo pipefail "$H/seed-body.sh" 2>&1); rc=$?
+    22	echo "real clock, stub sleeps 3 s, exit 2 -> step_exit=$rc"; grep -E '^(seed:|::warning::)' <<<"$out" | sed 's/^/    log: /'
+    23	echo; echo "== extracted body =="; cat -n "$H/seed-body.sh"; echo "== harness source =="; cat -n "$0"; cat -n "$H/extract.py"
+     1	import sys, yaml
+     2	wf = yaml.safe_load(open(sys.argv[1]))
+     3	steps = wf['jobs']['eval']['steps']
+     4	name = sys.argv[2]
+     5	for s in steps:
+     6	    if s.get('name','').startswith(name):
+     7	        sys.stdout.write(s['run']); break
+     8	else:
+     9	    sys.exit("step not found: "+name)
+
+[exit code 0]

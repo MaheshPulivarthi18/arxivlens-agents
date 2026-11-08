@@ -1,0 +1,26 @@
+$ bash -c wc -l .github/workflows/eval.yml; git diff --numstat origin/main...HEAD; git diff --shortstat origin/main...HEAD; echo '-- ownership check job 128725381632:'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128725381632/logs | grep -E 'Ownership|role='; echo '-- Eval job 128725381504 steps 1-12:'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/42478602587/jobs --jq '.jobs[0].steps[] | select(.number<=13) | "\(.number) \(.name): \(.status)/\(.conclusion)"'; echo '-- actionlint version pinned in eval.yml:'; grep -n 'actionlint' .github/workflows/eval.yml
+156 .github/workflows/eval.yml
+15	8	.github/workflows/eval.yml
+1	1	CONTRIBUTING.md
+ 2 files changed, 16 insertions(+), 9 deletions(-)
+-- ownership check job 128725381632:
+2026-11-08T12:05:29.5739132Z Ownership OK for role=backend (25 changed lines)
+-- Eval job 128725381504 steps 1-12:
+1 Set up job: completed/success
+2 Run actions/checkout@v4: completed/success
+3 Run actions/setup-go@v5: completed/success
+4 Run actions/setup-python@v5: completed/success
+5 Lint the harness (actionlint, compose config): completed/success
+6 Restore Hugging Face models: completed/success
+7 Host Python deps (make setup-py, CPU torch): completed/success
+8 Pre-fetch models (offline on a cache hit, so a missing file fails instead of downloading): completed/success
+9 Save Hugging Face models (before any container writes): completed/success
+10 Build Go CLI, make stack-up, migrate: completed/success
+11 Start the query service on the host: completed/success
+12 Self-test: eval-seed fails on an unreachable API (no arXiv request): completed/success
+13 make eval-seed (31 corpus IDs from arXiv): in_progress/null
+-- actionlint version pinned in eval.yml:
+38:      - name: Lint the harness (actionlint, compose config)
+41:          docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color .github/workflows/eval.yml
+
+[exit code 0]
