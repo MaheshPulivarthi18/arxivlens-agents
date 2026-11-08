@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-3 merged (ArxivLens #22). No other open PR may touch `eval.yml` or the CONTRIBUTING commands table rows for `eval-seed`/`eval.yml`. |
 | **Jira** | not created yet (orchestrator: story under epic "Retrieval & answer quality gates", labels `task-EVAL-9`, `agent-backend`, `arxivlens`) |
 | **Design required** | no (P1, no new command/table/service, no shared contract; timeouts are not quality gates) |
-| **Status** | Ready (EVAL-3 merged `122eee3`). Not in cycle 11:00Z: shares `CONTRIBUTING.md` with OPS-H10 |
+| **Status** | In QA (draft PR [#37](https://github.com/MaheshPulivarthi18/ArxivLens/pull/37), head `ec60ab7`; Eval run 42478602587 in progress) |
 
 ## Goal
 On EVAL-3's two runs, `make eval-seed` took 30 m 24 s (cold) and 37 m 48 s (warm), which is 68% and 84% of the seed step's
@@ -69,3 +69,13 @@ git diff --stat origin/main...agent/backend/EVAL-9
   don't re-run for cosmetics. If ING-9 lands first, the PR's run already includes its extra waits; quote that in the PR.
 - Don't raise the budget further "to be safe": if a run needs > 70 min of seeding, that's a signal for the Backlog caching option, not a bigger number.
 - 2026-11-07 11:00Z (pm-lead, grooming): EVAL-3 merged. Not picked in cycle 11:00Z: no backend slot, and it edits `CONTRIBUTING.md` (the `eval.yml` row) while OPS-H10 edits the `stack.yml` row of the same file. Start once OPS-H10 merges.
+- 2026-11-08 12:15Z (backend-engineer): built on `agent/backend/EVAL-9` from `9651294`. Draft PR #37, head `ec60ab7`, 2 files, 16+/9−
+  (`eval.yml` 15+/8−, now 156 lines; `CONTRIBUTING.md` 1+/1−). Ownership check OK (25 lines). ING-9 (#25) is already on main, so the PR's run includes its waits.
+  - AC1: seed step 70, job 120, arithmetic in YAML comments; no other control lines touched (see the PR diff).
+  - AC3 (local, `bash --noprofile --norc -eo pipefail`, stub `make` on PATH, faked `SECONDS`): 80%/rc0 → warning, exit 0; 50%/rc0 → no warning, exit 0;
+    80%/rc2 → warning, exit 2; 50%/rc2 → no warning, exit 2; boundary 74% no warning, 75% warning.
+  - AC4 (local): `workflow_dispatch` on this branch prints `run SHA/ref: ec60ab7… (agent/backend/EVAL-9); main SHA: 9651294…` (two different SHAs);
+    `pull_request` prints `main (PR base) SHA: <base>`. The real main SHA comes from `git ls-remote origin refs/heads/main`, so no fetch or shallow-ref issues.
+  - CI on `ec60ab7`: CI success, DB success. Eval run [42478602587](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42478602587): "Lint the harness" (actionlint) success,
+    self-test success, seed step started 12:11:46Z, still running at hand-off. AC2 (eval exit 0/1, seed line in the summary) and the PR-run part of AC4 are still to verify from this run's summary. Don't re-run it (62 arXiv requests).
+  - Not run locally: `make test-unit`/`make lint` (sandbox Go 1.24.7) and actionlint/shellcheck (no docker daemon or binaries); CI covers all of them.
