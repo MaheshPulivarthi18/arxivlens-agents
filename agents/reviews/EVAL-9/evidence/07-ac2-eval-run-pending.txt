@@ -1,0 +1,15 @@
+$ bash -c date -u; gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/42478602587 --jq '"run \(.id) event=\(.event) head=\(.head_sha) status=\(.status) conclusion=\(.conclusion) created=\(.created_at)"'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/42478602587/jobs --jq '.jobs[0].steps[] | select(.number>=10 and .number<=19) | "\(.number) \(.name): \(.status)/\(.conclusion) \(.started_at) -> \(.completed_at)"'
+Sun Nov  8 12:41:37 UTC 2026
+run 42478602587 event=pull_request head=ec60ab76f3f8856ac87e5931c1d163109265040b status=in_progress conclusion=null created=2026-11-08T12:05:23Z
+10 Build Go CLI, make stack-up, migrate: completed/success 2026-11-08T12:07:17Z -> 2026-11-08T12:10:57Z
+11 Start the query service on the host: completed/success 2026-11-08T12:10:57Z -> 2026-11-08T12:10:57Z
+12 Self-test: eval-seed fails on an unreachable API (no arXiv request): completed/success 2026-11-08T12:10:57Z -> 2026-11-08T12:11:46Z
+13 make eval-seed (31 corpus IDs from arXiv): in_progress/null 2026-11-08T12:11:46Z -> null
+14 Machine profile: pending/null null -> null
+15 make eval: pending/null null -> null
+16 Upload eval results: pending/null null -> null
+17 Collect stack logs: pending/null null -> null
+18 Upload stack logs: pending/null null -> null
+19 Teardown: pending/null null -> null
+
+[exit code 0]
