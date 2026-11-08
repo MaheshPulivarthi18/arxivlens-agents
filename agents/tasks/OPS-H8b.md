@@ -108,3 +108,24 @@ git diff --stat origin/main...HEAD                     # <= 400
     SIGTERM/SIGINT → finish the running handler call, commit only if it resolved, close. Second signal → force stop, no commit.
     On restart/rebalance everything after the last committed offset is redelivered; L2 (processor) and L3 (embedder) keep row counts unchanged.
     ```
+- 2026-11-08 (backend-engineer, AC10 + AC11 on PR #34): mutation sequence per condition 6. Each mutation commit touches only `services/common/kafka_client.py`. I waited for each `ci.yml` run to finish before the next push, and every revert's tree equals `f357f15` (`git diff --quiet f357f15 HEAD`).
+  | Step | SHA | `Python M0 unit tests` job | Result |
+  |---|---|---|---|
+  | base | `f357f15` | [128673766380](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42462223189/job/128673766380) | all 6 checks green, incl. Full stack [128673766440](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42462223236/job/128673766440) |
+  | mutation(AC10a) commit after a failed DLQ write | `a76026f` | [128676202673](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42463022038/job/128676202673) | **red, 6 failed / 31 passed**: `test_unconfirmed_dlq_write_stops_before_commit[err,queued,raise,raise-kafka]`, `test_failing_publish_in_handler_is_retried[err]`, `test_stop_during_wait_returns_promptly[dlq-wait]` |
+  | revert mutation(AC10a) | `ff1bd48` | [128676483153](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42463109479/job/128676483153) | green |
+  | mutation(AC10b) bare flush (both confirmation checks removed) | `60bf3c2` | [128676951819](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42463268318/job/128676951819) | **red, 12 failed / 25 passed**: `test_publish_requires_confirmation[err,queued]`, `test_publish_dlq_direct_call_contract[err,queued]`, `test_unconfirmed_dlq_write_stops_before_commit[err,queued]`, `test_dlq_recovers_after_two_failures`, `test_failing_publish_in_handler_is_retried[ok,err]`, `test_stop_during_wait_returns_promptly[dlq-wait]`, `test_dlq_failure_log_has_coordinates_not_value[False,True]` |
+  | revert mutation(AC10b) | `fba3294` | [128677436265](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42463429847/job/128677436265) | green |
+  | mutation(AC10c) `time.sleep` in the handler-retry wait | `bd342eb` | [128677905903](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42463586861/job/128677905903) | **red, 11 failed / 26 passed**: `test_success_path[1,2]`, `test_confirmed_dlq_write_then_commit[header,envelope]`, `test_unconfirmed_dlq_write_stops_before_commit[err,queued,raise,raise-kafka]`, `test_dlq_recovers_after_two_failures`, `test_stop_during_wait_returns_promptly[handler-wait]` (99.4 s, not < 0.2 s), `test_stop_during_last_attempt_is_not_a_failure[3]` |
+  | **revert mutation(AC10c) = final head** | **`3fd4ece`** | [128678378133](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42463739625/job/128678378133) | **all 6 checks green** (Go, Python M0, Frontend, ownership, DB [128678378049](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42463739684/job/128678378049), Full stack [128678440243](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42463739581/job/128678440243)) |
+  The other suites in each mutated run stayed green (`114 passed, 1 skipped`). The `stack.yml` runs on the five intermediate SHAs were cancelled by the workflow's own concurrency when the next push landed (expected); only `f357f15` and `3fd4ece` have finished Full-stack runs.
+  - **AC11 (M4), Full stack job 128678440243 on `3fd4ece`, success, 08:38:02Z–08:48:41Z.** The main step (F1 deselected) logged:
+    ```
+    python3 -m pytest -q tests/ --deselect tests/test_m3_query.py::test_rag_ask_with_groundedness_support --deselect tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query --deselect tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank
+    .......................................................s................ [ 43%]
+    ........................................................................ [ 87%]
+    ....................                                                     [100%]
+    163 passed, 1 skipped, 3 deselected in 9.37s
+    ```
+    `-q` prints dots only, so I mapped the dots to test ids (lesson OPS-H8 QA). I collected the head's `tests/` locally with stubbed third-party imports: 167 ids minus 3 deselected = 164, which equals the 164 result characters. Dot **146 = `test_m4_chaos.py::test_idempotency_duplicate_event_row_invariance`** and **147 = `test_m4_chaos.py::test_corrupt_pdf_dlq_routing_and_diagnostic_payload`**, both `.` (passed). The single `s` (56) is `test_evals_data.py::test_chunk_counts_sql_against_real_postgres`.
+    The separate F1 step failed only the 3 known F1 tests (`test_m3_query.py`, `ReadTimeout` on :8080), so it is red by design. The job conclusion is success.
