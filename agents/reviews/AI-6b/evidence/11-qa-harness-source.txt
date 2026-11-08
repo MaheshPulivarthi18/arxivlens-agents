@@ -1,0 +1,141 @@
+$ bash -c cd /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b && for f in run.sh cover.sh ac6.sh probe.sh qa_probe_test.go mod/go.mod mod/pgxstub/pgx.go mod/internal/db/db.go; do echo "===== $f"; cat $f; done
+===== run.sh
+#!/usr/bin/env bash
+# QA scratch runner: copy the REAL internal/query files from the checkout in $PWD into the stub module, then run go.
+# Usage (from the app checkout): run.sh <go subcommand and args...>
+set -euo pipefail
+MOD=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/mod
+for f in rag.go rag_test.go search.go search_test.go client.go; do cp "internal/query/$f" "$MOD/internal/query/$f"; done
+echo "# checkout $(git rev-parse --short HEAD); sha256 of copied files:"
+(cd internal/query && sha256sum rag.go rag_test.go) | sed 's/^/#   /'
+echo "# stubs only: internal/db, github.com/jackc/pgx/v5 (signatures); $(GOTOOLCHAIN=local go version)"
+cd "$MOD" && GOTOOLCHAIN=local GOFLAGS=-mod=mod go "$@"
+===== cover.sh
+#!/usr/bin/env bash
+# Coverage of the REAL rag.go (copied by run.sh) in the stub module: per-function lines + per-file total from the profile.
+set -euo pipefail
+MOD=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/mod
+/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/run.sh test -count=1 -coverprofile=c.out ./internal/query/
+cd "$MOD"
+echo "## per-file total for rag.go (from c.out: statements covered / total)"
+awk -F'[ ]' '/rag\.go:/ {n=$2; t+=n; if ($3>0) c+=n} END {printf "rag.go: %d/%d statements = %.1f%%\n", c, t, 100*c/t}' c.out
+echo "## go tool cover -func, rag.go functions (parseSynthesis, selectContext, sanitizeBlock first)"
+GOTOOLCHAIN=local go tool cover -func=c.out | grep 'rag.go' | grep -E 'parseSynthesis|selectContext|sanitizeBlock'
+GOTOOLCHAIN=local go tool cover -func=c.out | grep 'rag.go' | grep -vE 'parseSynthesis|selectContext|sanitizeBlock'
+===== ac6.sh
+#!/usr/bin/env bash
+# AC6 checks, run in the app checkout at the PR head; base = merge-base with origin/main.
+B=$(git merge-base origin/main HEAD); echo "# base $(git rev-parse --short $B), head $(git rev-parse --short HEAD)"
+ASK='/^func \(r \*RAGService\) Ask\(/,/^}/'
+echo "1) Ask references new code (design §7 check, must print 0):"
+awk "$ASK" internal/query/rag.go | grep -cE 'selectContext|buildSynthesisPrompt|parseSynthesis|passageHits' || true
+echo "2) Ask body diff base..head (must be empty):"; diff <(git show $B:internal/query/rag.go | awk "$ASK") <(awk "$ASK" internal/query/rag.go) && echo "   (no difference)"
+echo "3) rag_test.go removed lines (must be 0):"; git diff $B HEAD -- internal/query/rag_test.go | grep -cE '^-[^-]' || true
+echo "4) rag.go removed lines (only blockTagRegex + skip condition allowed):"; git diff $B HEAD -- internal/query/rag.go | grep -E '^-[^-]'
+echo "5) rag.go import hunk (first hunk of the diff):"; git diff $B HEAD -- internal/query/rag.go | sed -n "5,15p"
+echo "6) full query package tests (pre-existing + new), count of results:"
+S=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b
+$S/run.sh test -count=1 -v ./internal/query/ > $S/full-v.log 2>&1; echo "   exit $?; top-level PASS $(grep -c '^--- PASS' $S/full-v.log), FAIL $(grep -c -- '--- FAIL' $S/full-v.log)"
+echo "   pre-existing top-level tests in rag_test.go at base: $(git show $B:internal/query/rag_test.go | grep -cE '^func Test')"
+for t in $(git show $B:internal/query/rag_test.go | grep -oE '^func Test\w+' | cut -d' ' -f2); do grep -q "^--- PASS: $t " $S/full-v.log || echo "   NOT PASSING: $t"; done; echo "   (every base rag_test.go test listed above as NOT PASSING if it did not pass)"
+echo "7) go vet + gofmt -l (scratch module, real files):"; $S/run.sh vet ./internal/query/ && echo "   vet clean"; echo "   gofmt -l: [$(gofmt -l internal/query/rag.go internal/query/rag_test.go)]"
+===== probe.sh
+#!/usr/bin/env bash
+# Run QA probes against the REAL query files of the checkout in $PWD, in a fresh mktemp copy of the stub module.
+set -euo pipefail
+SCR=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b
+D=$(mktemp -d); cp -r $SCR/mod/. $D/
+for f in rag.go rag_test.go search.go search_test.go client.go; do cp internal/query/$f $D/internal/query/; done
+cp $SCR/qa_probe_test.go $D/internal/query/
+echo "# checkout $(git rev-parse --short HEAD); rag.go sha256 $(sha256sum internal/query/rag.go | cut -c1-16)"
+cd $D && GOTOOLCHAIN=local GOFLAGS=-mod=mod go test -count=1 -run TestQAProbeAI6b ./internal/query/ -v | grep -E '^PROBE|^ok|FAIL'
+===== qa_probe_test.go
+package query
+
+// QA AI-6b probes (not part of the PR). Each line: PROBE <name>: <observed>.
+import (
+	"fmt"
+	"testing"
+)
+
+func TestQAProbeAI6b(t *testing.T) {
+	const v = `{"claims": [{"text": "A.", "citations": [1]}]}`
+	show := func(name, raw string, k int) {
+		r, err := parseSynthesis(raw, k)
+		fmt.Printf("PROBE %-46s claims=%v insufficient=%v droppedMarkers=%d droppedClaims=%d err=%v\n",
+			name+":", r.Claims, r.InsufficientEvidence, r.DroppedMarkers, r.DroppedClaims, err)
+	}
+	show("P1 open fence, JSON, 3 trailing non-fence chars", "```json\n"+v+"xyz", 3)
+	show("P2 open fence, JSON, two closing backticks", "```json\n"+v+"\n``", 3)
+	show("P3 uppercase ```JSON fence", "```JSON\n"+v+"\n```", 3)
+	show("P4 citations [1.0]", `{"claims": [{"text": "A.", "citations": [1.0]}]}`, 3)
+	show("P5 capitalised keys Claims/Text/Citations", `{"Claims": [{"Text": "A.", "Citations": [1]}]}`, 3)
+	show("P6 duplicate insufficient_evidence true,false", `{"insufficient_evidence": true, "claims": [{"text": "A.", "citations": [1]}], "insufficient_evidence": false}`, 3)
+	show("P7 inline marker overflow [99999999999999999999]", `{"claims": [{"text": "A [99999999999999999999].", "citations": [1]}]}`, 3)
+	show("P8 inline marker mid-sentence", `{"claims": [{"text": "X [2] y.", "citations": [1]}]}`, 3)
+	show("P9 k = 0", v, 0)
+	show("P10 inline list marker [1, 2] (not markerRegex)", `{"claims": [{"text": "A [1, 2].", "citations": [1]}]}`, 3)
+	show("P11 insufficient_evidence:\"true\" (string)", `{"claims": [], "insufficient_evidence": "true"}`, 3)
+	show("P12 fenced insufficient", "```json\n{\"claims\": [], \"insufficient_evidence\": true}\n```", 3)
+	for _, s := range []string{"< /passage>", "<\v/passage>", "<\n/\npassage>", "＜/passage＞", "</passagE >"} {
+		fmt.Printf("PROBE P13 sanitizeBlock(%q) = %q\n", s, sanitizeBlock(s))
+	}
+	for _, c := range []string{" ", " 　", "​"} {
+		ps := selectContext([]SearchHit{ctxHit(1, "A", c), ctxHit(2, "A", "real")}, 1000)
+		fmt.Printf("PROBE P14 selectContext(content %q, \"real\") -> hit indexes %v\n", c, hitIndexes(ps))
+	}
+}
+===== mod/go.mod
+module arxivlens
+
+go 1.24
+
+require github.com/jackc/pgx/v5 v5.0.0
+
+replace github.com/jackc/pgx/v5 => ./pgxstub
+===== mod/pgxstub/pgx.go
+// Package pgx is a QA scratch stub (signatures only) so search.go compiles without the real module.
+package pgx
+
+import "context"
+
+type TxAccessMode string
+
+const ReadOnly TxAccessMode = "read only"
+
+type TxOptions struct{ AccessMode TxAccessMode }
+
+type CommandTag struct{}
+
+type Rows interface {
+	Close()
+	Next() bool
+	Scan(dest ...any) error
+	Err() error
+}
+
+type Tx interface {
+	Rollback(ctx context.Context) error
+	Exec(ctx context.Context, sql string, args ...any) (CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (Rows, error)
+}
+===== mod/internal/db/db.go
+// Package db is a QA scratch stub (signatures only).
+package db
+
+import (
+	"context"
+	"errors"
+
+	"github.com/jackc/pgx/v5"
+)
+
+type Pool struct{}
+
+func (p *Pool) BeginTx(ctx context.Context, o pgx.TxOptions) (pgx.Tx, error) {
+	return nil, errors.New("stub")
+}
+
+type DB struct{ Pool *Pool }
+
+[exit code 0]

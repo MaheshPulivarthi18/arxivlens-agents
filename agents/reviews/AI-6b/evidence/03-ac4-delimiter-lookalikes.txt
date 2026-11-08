@@ -1,0 +1,15 @@
+$ bash -c git diff origin/main...HEAD -- internal/query/rag.go | grep -E '^[-+].*blockTagRegex'; echo; /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/run.sh test -count=1 -run 'BuildSynthesisPrompt|PassageTokens' -v ./internal/query/ | grep -E -- '^#|--- (PASS|FAIL)|^(ok|FAIL|PASS)'
+-var blockTagRegex = regexp.MustCompile(`(?i)<(/?)(passage|question)`)
++var blockTagRegex = regexp.MustCompile(`(?i)<\s*(/?)\s*(passage|question)`)
+
+# checkout b39fa04; sha256 of copied files:
+#   1ed3e70b4cee7bf19125ad97e79d67f74d3d0755135380b4f473b3dcd25ebba1  rag.go
+#   802da61036fe42a2b0e2e684a3cec75f641d9780d585720eebfcac1a0a33d387  rag_test.go
+# stubs only: internal/db, github.com/jackc/pgx/v5 (signatures); go version go1.24.7 linux/amd64
+--- PASS: TestPassageTokensBoundsRenderedBlock (0.00s)
+--- PASS: TestBuildSynthesisPrompt (0.00s)
+--- PASS: TestBuildSynthesisPromptInjection (0.00s)
+PASS
+ok  	arxivlens/internal/query	0.003s
+
+[exit code 0]

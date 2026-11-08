@@ -1,0 +1,26 @@
+$ python3 /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/mutate.py
+SUMMARY: 22 mutants, 21 KILLED, 1 SURVIVED, 0 INVALID
+M1   AC8-1  KILLED    out-of-range marker kept  ->  TestParseSynthesis
+M2   AC8-2  KILLED    claim with no citations kept  ->  TestParseSynthesis
+M3   AC8-3  KILLED    insufficient_evidence with claims returns the claims  ->  TestParseSynthesis
+M4   AC8-4  KILLED    error wraps the JSON error  ->  TestParseSynthesis, TestParseSynthesisErrorHasNoCompletionText
+M5   AC8-5  KILLED    trailing data accepted  ->  TestParseSynthesis, TestParseSynthesisErrorHasNoCompletionText
+M6   AC8-6  KILLED    old blockTagRegex restored  ->  TestBuildSynthesisPromptInjection
+M7   AC8-7  KILLED    empty-content skip removed  ->  TestSelectContext, TestSelectContextOversizeTopPassage
+M8   QA     KILLED    regex: no whitespace allowed after '/'  ->  TestBuildSynthesisPromptInjection
+M9   QA     KILLED    regex: no whitespace allowed after '<'  ->  TestBuildSynthesisPromptInjection
+M10  QA     KILLED    top-level '{' check removed (null/array)  ->  TestParseSynthesis
+M11  QA     SURVIVED  fence suffix check removed  ->  
+M12  QA     KILLED    inline in-range markers not merged  ->  TestParseSynthesis
+M13  QA     KILLED    inline markers not stripped from text  ->  TestParseSynthesis
+M14  QA     KILLED    dedup removed  ->  TestParseSynthesis
+M15  QA     KILLED    dedup after range check ([9,9] counts 2)  ->  TestParseSynthesis
+M16  QA     KILLED    quote dropped  ->  TestParseSynthesis
+M17  QA     KILLED    all claims dropped -> errSynthesisNoClaims  ->  TestParseSynthesis
+M18  QA     KILLED    lower bound off by one (0 kept)  ->  TestParseSynthesis
+M19  QA     KILLED    upper bound off by one (k dropped)  ->  TestParseSynthesis
+M20  QA     KILLED    truncation keyed on hit index 0, not 'nothing taken'  ->  TestSelectContextOversizeTopPassage
+M21  QA     KILLED    empty skip also burns a cap slot  ->  TestSelectContext
+M22  QA     KILLED    JSON fence keyword not stripped  ->  TestParseSynthesis
+
+[exit code 0]

@@ -1,0 +1,94 @@
+$ cat /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/mutate.py
+#!/usr/bin/env python3
+"""QA AI-6b mutation harness. Run from the app checkout (reads ./internal/query/*.go, never writes there).
+
+Each mutant: fresh mktemp copy of the stub module + the REAL query files, one exact string replacement
+(must match exactly once, else INVALID), `go vet` (build failure = INVALID, never KILLED), then
+`go test ./internal/query/`. KILLED lists the failing top-level tests. Summary is printed first.
+"""
+import os, re, shutil, subprocess, sys, tempfile
+
+MOD = "/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/mod"
+FILES = ["rag.go", "rag_test.go", "search.go", "search_test.go", "client.go"]
+OLD_RE = 'regexp.MustCompile(`(?i)<\\s*(/?)\\s*(passage|question)`)'
+
+M = [  # (id, AC8 item or QA extra, description, file, old, new)
+ ("M1", "AC8-1", "out-of-range marker kept", "rag.go", "if n < 1 || n > k {", "if false {"),
+ ("M2", "AC8-2", "claim with no citations kept", "rag.go", 'if text == "" || len(cites) == 0 {', 'if text == "" {'),
+ ("M3", "AC8-3", "insufficient_evidence with claims returns the claims", "rag.go",
+  "if reply.InsufficientEvidence {", "if reply.InsufficientEvidence && len(reply.Claims) == 0 {"),
+ ("M4", "AC8-4", "error wraps the JSON error", "rag.go",
+  'if !strings.HasPrefix(s, "{") || dec.Decode(&reply) != nil || dec.Decode(&struct{}{}) != io.EOF {\n\t\treturn synthesisResult{}, errSynthesisMalformed\n\t}',
+  'if !strings.HasPrefix(s, "{") {\n\t\treturn synthesisResult{}, errSynthesisMalformed\n\t}\n'
+  '\tif err := dec.Decode(&reply); err != nil {\n\t\treturn synthesisResult{}, fmt.Errorf("%w: %v", errSynthesisMalformed, err)\n\t}\n'
+  '\tif dec.Decode(&struct{}{}) != io.EOF {\n\t\treturn synthesisResult{}, errSynthesisMalformed\n\t}'),
+ ("M5", "AC8-5", "trailing data accepted", "rag.go", " || dec.Decode(&struct{}{}) != io.EOF {", " || (dec.Decode(&struct{}{}) != io.EOF && false) {"),
+ ("M6", "AC8-6", "old blockTagRegex restored", "rag.go", OLD_RE, 'regexp.MustCompile(`(?i)<(/?)(passage|question)`)'),
+ ("M7", "AC8-7", "empty-content skip removed", "rag.go", 'if norm == "" || (h.ChunkID', "if (h.ChunkID"),
+ ("M8", "QA", "regex: no whitespace allowed after '/'", "rag.go", OLD_RE, 'regexp.MustCompile(`(?i)<\\s*(/?)(passage|question)`)'),
+ ("M9", "QA", "regex: no whitespace allowed after '<'", "rag.go", OLD_RE, 'regexp.MustCompile(`(?i)<(/?)\\s*(passage|question)`)'),
+ ("M10", "QA", "top-level '{' check removed (null/array)", "rag.go", '!strings.HasPrefix(s, "{") || ', ""),
+ ("M11", "QA", "fence suffix check removed", "rag.go", 'len(s) < 6 || !strings.HasSuffix(s, "```")', "len(s) < 6"),
+ ("M12", "QA", "inline in-range markers not merged", "rag.go", "nums = append(nums, n)", "_ = n"),
+ ("M13", "QA", "inline markers not stripped from text", "rag.go",
+  'strings.TrimSpace(markerRegex.ReplaceAllString(c.Text, ""))', "strings.TrimSpace(c.Text)"),
+ ("M14", "QA", "dedup removed", "rag.go", "if seen[n] {\n\t\t\t\tcontinue", "if false {\n\t\t\t\tcontinue"),
+ ("M15", "QA", "dedup after range check ([9,9] counts 2)", "rag.go",
+  "if seen[n] {\n\t\t\t\tcontinue\n\t\t\t}\n\t\t\tseen[n] = true\n\t\t\tif n < 1 || n > k {\n\t\t\t\tres.DroppedMarkers++\n\t\t\t\tcontinue\n\t\t\t}",
+  "if n < 1 || n > k {\n\t\t\t\tres.DroppedMarkers++\n\t\t\t\tcontinue\n\t\t\t}\n\t\t\tif seen[n] {\n\t\t\t\tcontinue\n\t\t\t}\n\t\t\tseen[n] = true"),
+ ("M16", "QA", "quote dropped", "rag.go", "Citations: cites, Quote: c.Quote}", "Citations: cites}"),
+ ("M17", "QA", "all claims dropped -> errSynthesisNoClaims", "rag.go",
+  "\treturn res, nil\n}\n\n// finalize", "\tif len(res.Claims) == 0 {\n\t\treturn res, errSynthesisNoClaims\n\t}\n\treturn res, nil\n}\n\n// finalize"),
+ ("M18", "QA", "lower bound off by one (0 kept)", "rag.go", "if n < 1 || n > k {", "if n < 0 || n > k {"),
+ ("M19", "QA", "upper bound off by one (k dropped)", "rag.go", "if n < 1 || n > k {", "if n < 1 || n >= k {"),
+ ("M20", "QA", "truncation keyed on hit index 0, not 'nothing taken'", "rag.go", "if len(taken) == 0 {", "if i == 0 {"),
+ ("M21", "QA", "empty skip also burns a cap slot", "rag.go",
+  'if norm == "" || (h.ChunkID', 'if norm == "" && func() bool { perPaper[h.ArxivID]++; return true }() || (h.ChunkID'),
+ ("M22", "QA", "JSON fence keyword not stripped", "rag.go", 'strings.TrimPrefix(s[3:len(s)-3], "json")', "s[3:len(s)-3]"),
+]
+
+def run(cmd, cwd):
+    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True,
+                          env={**os.environ, "GOTOOLCHAIN": "local", "GOFLAGS": "-mod=mod"})
+
+PROBE = sys.argv[2] if len(sys.argv) > 2 and sys.argv[1] == "--probe" else None
+
+def main():
+    src = os.path.join(os.getcwd(), "internal/query")
+    rows = []
+    for mid, ac, desc, f, old, new in M:
+        d = tempfile.mkdtemp(prefix=f"mut-{mid}-")
+        shutil.copytree(MOD, d, dirs_exist_ok=True)
+        for g in FILES:
+            shutil.copy(os.path.join(src, g), os.path.join(d, "internal/query", g))
+        p = os.path.join(d, "internal/query", f)
+        body = open(p).read()
+        if body.count(old) != 1:
+            rows.append((mid, ac, desc, f"INVALID (pattern matched {body.count(old)}x)", "")); continue
+        open(p, "w").write(body.replace(old, new))
+        b = run(["go", "vet", "./internal/query/"], d)
+        if b.returncode != 0:
+            rows.append((mid, ac, desc, "INVALID (build/vet failed)", b.stderr.strip().splitlines()[-1][:90])); continue
+        if PROBE:  # --probe <id>: run the QA probe test on this mutant and print its PROBE lines
+            if mid != PROBE:
+                continue
+            shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), "qa_probe_test.go"), os.path.join(d, "internal/query"))
+            t = run(["go", "test", "-count=1", "-run", "TestQAProbeAI6b", "-v", "./internal/query/"], d)
+            print(f"# probe on mutant {mid} ({desc}): {old!r} -> {new!r}")
+            print("\n".join(l for l in t.stdout.splitlines() if l.startswith(("PROBE P1 ", "PROBE P2 "))))
+            return
+        t = run(["go", "test", "-count=1", "./internal/query/"], d)
+        out = t.stdout + t.stderr
+        failed = sorted(set(re.findall(r"^--- FAIL: (\w+)", out, re.M)))
+        if "panic:" in out and not failed:
+            failed = ["panic"]
+        rows.append((mid, ac, desc, "KILLED" if t.returncode != 0 else "SURVIVED", ", ".join(failed)))
+    k = sum(r[3] == "KILLED" for r in rows); s = sum(r[3] == "SURVIVED" for r in rows)
+    print(f"SUMMARY: {len(rows)} mutants, {k} KILLED, {s} SURVIVED, {len(rows)-k-s} INVALID")
+    for r in rows:
+        print(f"{r[0]:<4} {r[1]:<6} {r[3]:<9} {r[2]}  ->  {r[4]}")
+
+if __name__ == "__main__":
+    main()
+
+[exit code 0]

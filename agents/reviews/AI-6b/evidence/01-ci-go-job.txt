@@ -1,0 +1,47 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128673905151/logs | sed -n '201,232p;670,681p'
+# job 128673905151 log (gh api .../actions/jobs/128673905151/logs), timestamps stripped; lines 201-232 and 670-681 verbatim
+GOVERSION='go1.25.0'
+GOWORK=''
+PKG_CONFIG='pkg-config'
+
+##[endgroup]
+##[group]Run make lint-go
+[36;1mmake lint-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go vet ./...
+##[group]Run make test-go
+[36;1mmake test-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go test ./...
+?   	arxivlens/cmd/arxivlens	[no test files]
+ok  	arxivlens/internal/arxiv	0.747s
+ok  	arxivlens/internal/config	0.005s
+ok  	arxivlens/internal/crawler	0.004s
+ok  	arxivlens/internal/db	0.005s
+ok  	arxivlens/internal/dlq	0.004s
+ok  	arxivlens/internal/downloader	0.107s
+ok  	arxivlens/internal/kafka	0.032s
+ok  	arxivlens/internal/llm	0.769s
+ok  	arxivlens/internal/llm/llmtest	0.104s
+ok  	arxivlens/internal/query	0.317s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+##[group]Run go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go
+[36;1mgo test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go[0m
+shell: /usr/bin/bash -e {0}
+total:						(statements)	97.0%
+arxivlens/internal/llm/config.go 98.2%
+arxivlens/internal/llm/llm.go 100.0%
+arxivlens/internal/llm/llmtest/fake.go 100.0%
+arxivlens/internal/llm/openai.go 95.2%
+##[group]Run make build-go
+[36;1mmake build-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go build -o bin/arxivlens ./cmd/arxivlens
+Post job cleanup.
+(node:8230) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+

@@ -1,0 +1,8 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/36 --jq '"state=\(.state) merged=\(.merged) merged_at=\(.merged_at) merged_by=\(.merged_by.login) head=\(.head.sha) merge_commit=\(.merge_commit_sha)"'; echo '# git diff --stat b39fa04 e7ab58d (empty = identical trees):'; git diff --stat b39fa04 e7ab58d; echo '# done'; git log -1 --format='%h %s%n%b' e7ab58d
+state=closed merged=true merged_at=2026-11-08T08:49:27Z merged_by=MaheshPulivarthi18 head=b39fa04e4877f22826368aa0c043710c8d2c29e6 merge_commit=e7ab58ddeef85bbde94b5487c175cc8b57523afd
+# git diff --stat b39fa04 e7ab58d (empty = identical trees):
+# done
+e7ab58d AI-6b: parseSynthesis structured-output parser (not yet called) + delimiter look-alikes + selectContext empty-content skip (#36)
+Merged at Mahesh's request (2026-11-08) after orchestrator review; CI 6/6 green on b39fa04.
+
+[exit code 0]

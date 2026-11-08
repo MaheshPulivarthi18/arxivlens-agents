@@ -1,0 +1,21 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/36 --jq .body > /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/pr36-body.md; echo "# PR #36 body: $(wc -l < /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/pr36-body.md) lines; grep -n -i -E 'mutat|mutant|kill|TestParse|TestSelect|blockTagRegex restored|trailing data accepted':"; grep -n -i -E 'mutat|mutant|kill|TestParse|TestSelect|blockTagRegex restored|trailing data accepted' /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/pr36-body.md; echo; echo '# full Acceptance criteria + Evidence sections:'; sed -n '/^### Acceptance criteria/,/^### Verification/p;/^### Evidence/,/^### Review/p' /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/pr36-body.md
+# PR #36 body: 39 lines; grep -n -i -E 'mutat|mutant|kill|TestParse|TestSelect|blockTagRegex restored|trailing data accepted':
+11:- [ ] AC3 — `TestParseSynthesis` (25 rows), `TestParseSynthesisErrorHasNoCompletionText`
+13:- [ ] AC5 — `TestSelectContext` empty-content row; oversize block in `TestSelectContextOversizeTopPassage` (AC5(b) wording note in ticket)
+14:- [ ] AC6–AC9 — `Ask` untouched, test diff additions only, coverage, 7 mutations, size
+
+# full Acceptance criteria + Evidence sections:
+### Acceptance criteria
+- [ ] AC3 — `TestParseSynthesis` (25 rows), `TestParseSynthesisErrorHasNoCompletionText`
+- [ ] AC4 — look-alike loop in `TestBuildSynthesisPromptInjection`, `TestPassageTokensBoundsRenderedBlock`
+- [ ] AC5 — `TestSelectContext` empty-content row; oversize block in `TestSelectContextOversizeTopPassage` (AC5(b) wording note in ticket)
+- [ ] AC6–AC9 — `Ask` untouched, test diff additions only, coverage, 7 mutations, size
+(Developer claims; QA verifies.)
+
+### Verification
+### Evidence (filled by pm-lead when raising the PR)
+Pending QA.
+
+### Review status (filled by the workflow)
+
+[exit code 0]

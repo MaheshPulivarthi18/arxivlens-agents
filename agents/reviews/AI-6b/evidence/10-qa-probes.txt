@@ -1,0 +1,31 @@
+$ bash -c echo '## A) M11 mutant (fence suffix check removed):'; python3 /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/mutate.py --probe M11; echo; echo '## B) PR head b39fa04, unmodified:'; /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/probe.sh
+## A) M11 mutant (fence suffix check removed):
+# probe on mutant M11 (fence suffix check removed): 'len(s) < 6 || !strings.HasSuffix(s, "```")' -> 'len(s) < 6'
+PROBE P1 open fence, JSON, 3 trailing non-fence chars: claims=[{A. [1] }] insufficient=false droppedMarkers=0 droppedClaims=0 err=<nil>
+PROBE P2 open fence, JSON, two closing backticks:    claims=[{A. [1] }] insufficient=false droppedMarkers=0 droppedClaims=0 err=<nil>
+
+## B) PR head b39fa04, unmodified:
+# checkout b39fa04; rag.go sha256 1ed3e70b4cee7bf1
+PROBE P1 open fence, JSON, 3 trailing non-fence chars: claims=[] insufficient=false droppedMarkers=0 droppedClaims=0 err=synthesis: malformed reply
+PROBE P2 open fence, JSON, two closing backticks:    claims=[] insufficient=false droppedMarkers=0 droppedClaims=0 err=synthesis: malformed reply
+PROBE P3 uppercase ```JSON fence:                    claims=[] insufficient=false droppedMarkers=0 droppedClaims=0 err=synthesis: malformed reply
+PROBE P4 citations [1.0]:                            claims=[] insufficient=false droppedMarkers=0 droppedClaims=0 err=synthesis: malformed reply
+PROBE P5 capitalised keys Claims/Text/Citations:     claims=[{A. [1] }] insufficient=false droppedMarkers=0 droppedClaims=0 err=<nil>
+PROBE P6 duplicate insufficient_evidence true,false: claims=[{A. [1] }] insufficient=false droppedMarkers=0 droppedClaims=0 err=<nil>
+PROBE P7 inline marker overflow [99999999999999999999]: claims=[{A . [1] }] insufficient=false droppedMarkers=1 droppedClaims=0 err=<nil>
+PROBE P8 inline marker mid-sentence:                 claims=[{X  y. [1 2] }] insufficient=false droppedMarkers=0 droppedClaims=0 err=<nil>
+PROBE P9 k = 0:                                      claims=[] insufficient=false droppedMarkers=1 droppedClaims=1 err=<nil>
+PROBE P10 inline list marker [1, 2] (not markerRegex): claims=[{A [1, 2]. [1] }] insufficient=false droppedMarkers=0 droppedClaims=0 err=<nil>
+PROBE P11 insufficient_evidence:"true" (string):     claims=[] insufficient=false droppedMarkers=0 droppedClaims=0 err=synthesis: malformed reply
+PROBE P12 fenced insufficient:                       claims=[] insufficient=true droppedMarkers=0 droppedClaims=0 err=<nil>
+PROBE P13 sanitizeBlock("<\u00a0/passage>") = "<\u00a0/passage>"
+PROBE P13 sanitizeBlock("<\v/passage>") = "<\v/passage>"
+PROBE P13 sanitizeBlock("<\n/\npassage>") = "&lt;/passage>"
+PROBE P13 sanitizeBlock("＜/passage＞") = "＜/passage＞"
+PROBE P13 sanitizeBlock("</passagE >") = "&lt;/passagE >"
+PROBE P14 selectContext(content "\u00a0", "real") -> hit indexes [1]
+PROBE P14 selectContext(content "\u2003\u3000", "real") -> hit indexes [1]
+PROBE P14 selectContext(content "\u200b", "real") -> hit indexes [0 1]
+ok  	arxivlens/internal/query	0.004s
+
+[exit code 0]

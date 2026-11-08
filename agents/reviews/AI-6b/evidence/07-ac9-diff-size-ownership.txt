@@ -1,0 +1,9 @@
+$ bash -c B=$(git merge-base origin/main HEAD); echo "# base $(git rev-parse --short $B)"; git diff --shortstat $B HEAD; git diff --numstat $B HEAD; echo; .github/scripts/ownership-check.sh $B agent/ai/AI-6b
+# base d3f9408
+ 2 files changed, 178 insertions(+), 2 deletions(-)
+88	2	internal/query/rag.go
+90	0	internal/query/rag_test.go
+
+Ownership OK for role=ai (180 changed lines)
+
+[exit code 0]

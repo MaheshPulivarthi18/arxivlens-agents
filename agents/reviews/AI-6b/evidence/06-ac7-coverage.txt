@@ -1,0 +1,34 @@
+$ /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/cover.sh
+# checkout b39fa04; sha256 of copied files:
+#   1ed3e70b4cee7bf19125ad97e79d67f74d3d0755135380b4f473b3dcd25ebba1  rag.go
+#   802da61036fe42a2b0e2e684a3cec75f641d9780d585720eebfcac1a0a33d387  rag_test.go
+# stubs only: internal/db, github.com/jackc/pgx/v5 (signatures); go version go1.24.7 linux/amd64
+ok  	arxivlens/internal/query	0.013s	coverage: 76.8% of statements
+## per-file total for rag.go (from c.out: statements covered / total)
+rag.go: 229/232 statements = 98.7%
+## go tool cover -func, rag.go functions (parseSynthesis, selectContext, sanitizeBlock first)
+arxivlens/internal/query/rag.go:170:	sanitizeBlock		100.0%
+arxivlens/internal/query/rag.go:194:	selectContext		100.0%
+arxivlens/internal/query/rag.go:295:	parseSynthesis		100.0%
+arxivlens/internal/query/rag.go:68:	NewRAGService		100.0%
+arxivlens/internal/query/rag.go:75:	generateTraceID		100.0%
+arxivlens/internal/query/rag.go:81:	Ask			100.0%
+arxivlens/internal/query/rag.go:117:	buildTemplateAnswer	100.0%
+arxivlens/internal/query/rag.go:167:	estimateTokens		100.0%
+arxivlens/internal/query/rag.go:173:	metaField		100.0%
+arxivlens/internal/query/rag.go:176:	passageTokens		100.0%
+arxivlens/internal/query/rag.go:181:	renderPassage		100.0%
+arxivlens/internal/query/rag.go:235:	truncateAtWord		100.0%
+arxivlens/internal/query/rag.go:249:	passageHits		100.0%
+arxivlens/internal/query/rag.go:260:	buildSynthesisPrompt	100.0%
+arxivlens/internal/query/rag.go:355:	finalize		100.0%
+arxivlens/internal/query/rag.go:377:	newCitation		100.0%
+arxivlens/internal/query/rag.go:393:	filterRelevantHits	100.0%
+arxivlens/internal/query/rag.go:418:	validateCitations	100.0%
+arxivlens/internal/query/rag.go:433:	checkCitations		98.1%
+arxivlens/internal/query/rag.go:520:	embedBatch		90.0%
+arxivlens/internal/query/rag.go:536:	splitIntoSentences	94.7%
+arxivlens/internal/query/rag.go:569:	endsWithAbbreviation	100.0%
+arxivlens/internal/query/rag.go:582:	cosineSimilarity	100.0%
+
+[exit code 0]

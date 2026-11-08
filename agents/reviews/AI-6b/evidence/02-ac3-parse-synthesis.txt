@@ -1,0 +1,36 @@
+$ bash -c /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa-AI-6b/run.sh test -count=1 -run 'ParseSynthesis' -v ./internal/query/ | grep -E -- '^#|--- (PASS|FAIL)|^(ok|FAIL|PASS)'
+# checkout b39fa04; sha256 of copied files:
+#   1ed3e70b4cee7bf19125ad97e79d67f74d3d0755135380b4f473b3dcd25ebba1  rag.go
+#   802da61036fe42a2b0e2e684a3cec75f641d9780d585720eebfcac1a0a33d387  rag_test.go
+# stubs only: internal/db, github.com/jackc/pgx/v5 (signatures); go version go1.24.7 linux/amd64
+--- PASS: TestParseSynthesis (0.00s)
+    --- PASS: TestParseSynthesis/valid (0.00s)
+    --- PASS: TestParseSynthesis/fenced_json (0.00s)
+    --- PASS: TestParseSynthesis/fenced_bare (0.00s)
+    --- PASS: TestParseSynthesis/out-of-range_[9]_dropped_and_counted (0.00s)
+    --- PASS: TestParseSynthesis/inline_markers_stripped,_merged,_counted (0.00s)
+    --- PASS: TestParseSynthesis/duplicates_deduplicated (0.00s)
+    --- PASS: TestParseSynthesis/all_citations_out_of_range (0.00s)
+    --- PASS: TestParseSynthesis/uncited_and_empty_claims_dropped (0.00s)
+    --- PASS: TestParseSynthesis/insufficient,_no_claims (0.00s)
+    --- PASS: TestParseSynthesis/insufficient_wins_over_claims (0.00s)
+    --- PASS: TestParseSynthesis/unknown_keys_ignored (0.00s)
+    --- PASS: TestParseSynthesis/quote_kept (0.00s)
+    --- PASS: TestParseSynthesis/non-JSON (0.00s)
+    --- PASS: TestParseSynthesis/empty_reply (0.00s)
+    --- PASS: TestParseSynthesis/prose_before_JSON (0.00s)
+    --- PASS: TestParseSynthesis/prose_after_JSON (0.00s)
+    --- PASS: TestParseSynthesis/trailing_object (0.00s)
+    --- PASS: TestParseSynthesis/unclosed_fence (0.00s)
+    --- PASS: TestParseSynthesis/fence_only (0.00s)
+    --- PASS: TestParseSynthesis/string_citations (0.00s)
+    --- PASS: TestParseSynthesis/JSON_array (0.00s)
+    --- PASS: TestParseSynthesis/JSON_null (0.00s)
+    --- PASS: TestParseSynthesis/empty_claims (0.00s)
+    --- PASS: TestParseSynthesis/missing_claims (0.00s)
+    --- PASS: TestParseSynthesis/null_claims (0.00s)
+--- PASS: TestParseSynthesisErrorHasNoCompletionText (0.00s)
+PASS
+ok  	arxivlens/internal/query	0.009s
+
+[exit code 0]
