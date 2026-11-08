@@ -1,0 +1,31 @@
+$ bash -c for t in qa-OPS-H7f-base qa-OPS-H7f-r2; do D=$(mktemp -d -p /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa ev09.XXXX); /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/scripts/mkmod.sh /root/wt/$t $D; (cd $D && GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off go test -count=1 -v -run TestQAAC5 ./internal/dlq/ 2>&1 | grep -vE '^(=== RUN|--- PASS|PASS$|ok )' > $D.out); echo "$t: $(git -C /root/wt/$t rev-parse --short HEAD) $(wc -l < $D.out) lines -> $D.out"; done; B=$(ls -t /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/ev09.*.out | sed -n 2p); H=$(ls -t /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/ev09.*.out | sed -n 1p); if diff $B $H; then echo 'diff: IDENTICAL (counts, log lines, published envelopes)'; fi; echo; cat $H
+qa-OPS-H7f-base: 2b71772 24 lines -> /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/ev09.jfXW.out
+qa-OPS-H7f-r2: 6cd6ae4 24 lines -> /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/ev09.hHch.out
+diff: IDENTICAL (counts, log lines, published envelopes)
+
+== --topic=papers.downloaded.dlq --error-type="" --limit=100 --dry-run=false -> count=3 err=<nil>
+[DLQ Replay] Event key=2401.00000 (error=ValueError) -> Target Topic: papers.downloaded (DryRun=false)
+[DLQ Replay] Event key=2401.00001 (error=PdfParseError) -> Target Topic: papers.downloaded (DryRun=false)
+[DLQ Replay] Event key=2401.00002 (error=valueerror) -> Target Topic: papers.downloaded (DryRun=false)
+PUBLISH papers.downloaded {"event_id":"01JC0000000000000000000000","event_type":"papers.downloaded","occurred_at":"2026-11-07T00:00:00Z","paper_id":"2401.00000","version":2,"attempt":0,"traceparent":"00-dlq-0-01","payload":{"arxiv_id":"2401.00000","n":0}}
+PUBLISH papers.downloaded {"event_id":"01JC0000000000000000000001","event_type":"papers.downloaded","occurred_at":"2026-11-07T00:00:00Z","paper_id":"2401.00001","version":2,"attempt":0,"traceparent":"00-dlq-1-01","payload":{"arxiv_id":"2401.00001","n":1}}
+PUBLISH papers.downloaded {"event_id":"01JC0000000000000000000002","event_type":"papers.downloaded","occurred_at":"2026-11-07T00:00:00Z","paper_id":"2401.00002","version":2,"attempt":0,"traceparent":"00-dlq-2-01","payload":{"arxiv_id":"2401.00002","n":2}}
+== --topic=papers.downloaded.dlq --error-type="" --limit=100 --dry-run=true -> count=3 err=<nil>
+[DLQ Replay] Event key=2401.00000 (error=ValueError) -> Target Topic: papers.downloaded (DryRun=true)
+[DLQ Replay] Event key=2401.00001 (error=PdfParseError) -> Target Topic: papers.downloaded (DryRun=true)
+[DLQ Replay] Event key=2401.00002 (error=valueerror) -> Target Topic: papers.downloaded (DryRun=true)
+== --topic=papers.downloaded.dlq --error-type="VALUEERROR" --limit=100 --dry-run=false -> count=2 err=<nil>
+[DLQ Replay] Event key=2401.00000 (error=ValueError) -> Target Topic: papers.downloaded (DryRun=false)
+[DLQ Replay] Event key=2401.00002 (error=valueerror) -> Target Topic: papers.downloaded (DryRun=false)
+PUBLISH papers.downloaded {"event_id":"01JC0000000000000000000000","event_type":"papers.downloaded","occurred_at":"2026-11-07T00:00:00Z","paper_id":"2401.00000","version":2,"attempt":0,"traceparent":"00-dlq-0-01","payload":{"arxiv_id":"2401.00000","n":0}}
+PUBLISH papers.downloaded {"event_id":"01JC0000000000000000000002","event_type":"papers.downloaded","occurred_at":"2026-11-07T00:00:00Z","paper_id":"2401.00002","version":2,"attempt":0,"traceparent":"00-dlq-2-01","payload":{"arxiv_id":"2401.00002","n":2}}
+== --topic=papers.downloaded.dlq --error-type="" --limit=2 --dry-run=false -> count=2 err=<nil>
+[DLQ Replay] Event key=2401.00000 (error=ValueError) -> Target Topic: papers.downloaded (DryRun=false)
+[DLQ Replay] Event key=2401.00001 (error=PdfParseError) -> Target Topic: papers.downloaded (DryRun=false)
+PUBLISH papers.downloaded {"event_id":"01JC0000000000000000000000","event_type":"papers.downloaded","occurred_at":"2026-11-07T00:00:00Z","paper_id":"2401.00000","version":2,"attempt":0,"traceparent":"00-dlq-0-01","payload":{"arxiv_id":"2401.00000","n":0}}
+PUBLISH papers.downloaded {"event_id":"01JC0000000000000000000001","event_type":"papers.downloaded","occurred_at":"2026-11-07T00:00:00Z","paper_id":"2401.00001","version":2,"attempt":0,"traceparent":"00-dlq-1-01","payload":{"arxiv_id":"2401.00001","n":1}}
+== --topic=papers.chunked.dlq --error-type="PdfParseError" --limit=100 --dry-run=false -> count=1 err=<nil>
+[DLQ Replay] Event key=2401.00001 (error=PdfParseError) -> Target Topic: papers.downloaded (DryRun=false)
+PUBLISH papers.downloaded {"event_id":"01JC0000000000000000000001","event_type":"papers.downloaded","occurred_at":"2026-11-07T00:00:00Z","paper_id":"2401.00001","version":2,"attempt":0,"traceparent":"00-dlq-1-01","payload":{"arxiv_id":"2401.00001","n":1}}
+
+[exit code 0]

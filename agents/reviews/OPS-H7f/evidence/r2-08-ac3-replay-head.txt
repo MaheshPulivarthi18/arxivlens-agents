@@ -1,0 +1,16 @@
+$ bash -c D=$(mktemp -d -p /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa ev08.XXXX) && /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/scripts/mkmod.sh /root/wt/qa-OPS-H7f-r2 $D pr && cd $D && GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off go test -race -count=1 -v -run 'TestQAReplay' ./internal/dlq/ | grep -vE '^=== RUN'
+    qa_replay_test.go:61: filter="" dry-run count=3 published=0 | real count=3 published=3
+    qa_replay_test.go:76: real log: [DLQ Replay] Event key=2401.00001 (error=ValueError) -> Target Topic: papers.downloaded (DryRun=false)
+    qa_replay_test.go:76: real log: [DLQ Replay] Event key=2401.00002 (error=ValueError) -> Target Topic: papers.downloaded (DryRun=false)
+    qa_replay_test.go:76: real log: [DLQ Replay] Skipped unreplayable event key="2401.00003" error_type="ValueError": original_value is missing (the failed record was not a JSON object)
+    qa_replay_test.go:76: real log: [DLQ Replay] Skipped unreplayable event key="2401.00004" error_type="JSONDecodeError": original_value holds only raw_value (undecodable bytes; republishing would fail again)
+    qa_replay_test.go:76: real log: [DLQ Replay] Skipped unreplayable event key="2401.00005" error_type="ValueError": original_value is an empty object
+    qa_replay_test.go:76: real log: [DLQ Replay] Skipped unreplayable event key="" error_type="KeyError": original_value is not a full envelope and original_key is empty (no paper_id to re-envelope with)
+    qa_replay_test.go:76: real log: [DLQ Replay] Event key=2401.00007 (error=PdfParseError) -> Target Topic: papers.downloaded (DryRun=false)
+    qa_replay_test.go:61: filter="valueerror" dry-run count=2 published=0 | real count=2 published=2
+    qa_replay_test.go:61: filter="JSONDecodeError" dry-run count=0 published=0 | real count=0 published=0
+--- PASS: TestQAReplayDryRunEqualsReal (0.00s)
+PASS
+ok  	arxivlens/internal/dlq	1.017s
+
+[exit code 0]

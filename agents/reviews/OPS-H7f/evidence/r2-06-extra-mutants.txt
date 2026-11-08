@@ -1,0 +1,20 @@
+$ bash -c python3 /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/scripts/mutate_r2.py /root/wt/qa-OPS-H7f-r2 > /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/r2mut.out 2>&1; grep ^TOTAL /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/r2mut.out; cat /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa/r2mut.out
+TOTAL 7: KILLED 7, SURVIVED 0, INVALID 0
+PR tests: go test -race -count=1 -run 'TestReplayEnvelope|TestReplayEnvelopeNeverEmpty|TestReplayEnvelopeSkipReasonsDistinct|TestReplaySkipLine' ./internal/dlq/   (QA harness column: TestQAReplayDryRunEqualsReal)
+R1   KILLED    QA-harness=green keep path: overwrite paper_id with OriginalKey
+      red: TestReplayEnvelope/a_full_envelope,_empty_key, TestReplayEnvelope/a_full_envelope,_other_event_type_and_key, TestReplayEnvelopeNeverEmpty
+R2   KILLED    QA-harness=green keep path: reset version to 1
+      red: TestReplayEnvelope/a_full_envelope, TestReplayEnvelope/a_full_envelope,_empty_key, TestReplayEnvelope/a_full_envelope,_other_event_type_and_key
+R3   KILLED    QA-harness=green keep path: drop payload
+      red: TestReplayEnvelope/a_full_envelope, TestReplayEnvelope/a_full_envelope,_empty_key, TestReplayEnvelope/a_full_envelope,_other_event_type_and_key
+R4   KILLED    QA-harness=green keep path: fresh occurred_at
+      red: TestReplayEnvelope/a_full_envelope, TestReplayEnvelope/a_full_envelope,_empty_key, TestReplayEnvelope/a_full_envelope,_other_event_type_and_key
+R5   KILLED    QA-harness=red   keep path: fresh event_id (breaks OPS-3 same-id)
+      red: TestReplayEnvelope/a_full_envelope, TestReplayEnvelope/a_full_envelope,_empty_key, TestReplayEnvelope/a_full_envelope,_other_event_type_and_key
+R6   KILLED    QA-harness=red   guard: || instead of && between the ID checks
+      red: TestReplayEnvelope/b_envelope_with_wrong_field_type, TestReplayEnvelope/b_full_envelope_minus_event_id, TestReplayEnvelope/b_full_envelope_minus_event_type, TestReplayEnvelope/b_full_envelope_minus_paper_id, TestReplayEnvelope/b_partial_envelope, TestReplayEnvelope/c_full_envelope_minus_event_id,_empty_key, TestReplayEnvelope/c_partial_envelope,_empty_key, TestReplayEnvelopeNeverEmpty
+R7   KILLED    QA-harness=red   wrap path: event_type from value instead of target
+      red: TestReplayEnvelope/b_envelope_with_wrong_field_type, TestReplayEnvelope/b_full_envelope_minus_event_id, TestReplayEnvelope/b_full_envelope_minus_event_type, TestReplayEnvelope/b_full_envelope_minus_paper_id, TestReplayEnvelope/b_partial_envelope, TestReplayEnvelope/b_raw_object, TestReplayEnvelope/b_raw_value_plus_another_key
+TOTAL 7: KILLED 7, SURVIVED 0, INVALID 0
+
+[exit code 0]

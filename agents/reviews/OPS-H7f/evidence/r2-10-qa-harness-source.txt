@@ -1,0 +1,53 @@
+$ bash -c cd /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa && for f in scripts/mkmod.sh scripts/mutate.py scripts/probe.sh qatests/*.go stubs/ulid/ulid.go stubs/franz-go/pkg/kgo/kgo.go stubs/kafka/producer.go; do echo "===== $f"; cat $f; done | sed 's#/tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/qa#<SCRATCH>#g' | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/now.txt; sed -n '2,$p' /home/claude/arxivlens-agents/agents/reviews/OPS-H7f/evidence/09-qa-harness-source.txt | sed '/^\[exit code/,$d' | sed 's#/tmp/claude-0/-home-claude/690b83b9-9aae-5cbe-ae25-749ad277111f/scratchpad/qa#<SCRATCH>#g' | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/r1src.txt; diff /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/r1src.txt /tmp/claude-0/-home-claude/6ac404a4-6db5-55da-92e8-cb5b94c7e6c8/scratchpad/now.txt && echo 'r1 harness sources (evidence 09) vs r2 harness: IDENTICAL modulo scratch path and trailing blank line'; for f in stubs/ulid/go.mod stubs/franz-go/go.mod; do echo "===== $f (new in r2; not captured in 09)"; cat $f; done; echo '===== scripts/mutate_r2.py: diff vs scripts/mutate.py'; diff scripts/mutate.py scripts/mutate_r2.py
+r1 harness sources (evidence 09) vs r2 harness: IDENTICAL modulo scratch path and trailing blank line
+===== stubs/ulid/go.mod (new in r2; not captured in 09)
+module github.com/oklog/ulid/v2
+
+go 1.24
+===== stubs/franz-go/go.mod (new in r2; not captured in 09)
+module github.com/twmb/franz-go
+
+go 1.24
+===== scripts/mutate_r2.py: diff vs scripts/mutate.py
+10,33c10,23
+<  ("M1", "AC4: full-envelope guard -> plain Unmarshal", "envelope.go",
+<   'json.Unmarshal(b, &env) == nil &&\n\t\t' + G + ' {', 'json.Unmarshal(b, &env) == nil {'),
+<  ("M2", "AC4: drop the raw_value case", "envelope.go",
+<   '\tif _, raw := v["raw_value"]; raw && len(v) == 1 {\n\t\treturn events.EventEnvelope{}, skipRawValue, false\n\t}\n', ''),
+<  ("M3", "drop the empty OriginalKey check", "envelope.go",
+<   '\tif p.OriginalKey == "" {\n\t\treturn events.EventEnvelope{}, skipNoKey, false\n\t}\n', ''),
+<  ("M4", "drop the nil check (B2)", "envelope.go",
+<   '\tif v == nil {\n\t\treturn events.EventEnvelope{}, skipNilValue, false\n\t}\n', ''),
+<  ("M5", "keep path: no DLQ traceparent", "envelope.go",
+<   '\t\tenv.Traceparent = p.Traceparent\n\t\treturn env, "", true', '\t\treturn env, "", true'),
+<  ("M6", "keep path: no attempt reset", "envelope.go", '\t\tenv.Attempt = 0 // Reset attempt counter (§6)\n', ''),
+<  ("M7", "guard: drop event_id check only", "envelope.go", G, 'env.EventType != "" && env.PaperID != ""'),
+<  ("M8", "guard: drop event_type check only", "envelope.go", G, 'env.EventID != "" && env.PaperID != ""'),
+<  ("M9", "guard: drop paper_id check only", "envelope.go", G, 'env.EventID != "" && env.EventType != ""'),
+<  ("M10", "wrap path: no traceparent", "envelope.go",
+<   '\tenv = events.NewEventEnvelope(targetTopic, p.OriginalKey, 1, v)\n\tenv.Traceparent = p.Traceparent\n',
+<   '\tenv = events.NewEventEnvelope(targetTopic, p.OriginalKey, 1, v)\n'),
+<  ("M11", "keep path: overwrite event_type with target topic", "envelope.go",
+<   '\t\tenv.Attempt = 0', '\t\tenv.EventType = targetTopic\n\t\tenv.Attempt = 0'),
+<  ("M12", "skip line: drop error_type", "envelope.go", ' error_type=%q: %s", p.OriginalKey, p.ErrorType, reason)', ': %s", p.OriginalKey, reason)'),
+<  ("M13", "raw_value: skip whenever the key is present (ignore 'only key')", "envelope.go", 'raw && len(v) == 1', 'raw'),
+<  ("M14", "manager: apply rule only in real runs (dry-run counts skips)", "manager.go",
+<   '\t\tif !ok {\n\t\t\tlog.Print(skipLine(dlqEv, reason))\n\t\t\tcontinue\n\t\t}\n',
+<   '\t\tif !ok && !dryRun {\n\t\t\tlog.Print(skipLine(dlqEv, reason))\n\t\t\tcontinue\n\t\t}\n'),
+---
+>  ("R1", "keep path: overwrite paper_id with OriginalKey", "envelope.go",
+>   '\t\tenv.Attempt = 0', '\t\tenv.PaperID = p.OriginalKey\n\t\tenv.Attempt = 0'),
+>  ("R2", "keep path: reset version to 1", "envelope.go",
+>   '\t\tenv.Attempt = 0', '\t\tenv.Version = 1\n\t\tenv.Attempt = 0'),
+>  ("R3", "keep path: drop payload", "envelope.go",
+>   '\t\tenv.Attempt = 0', '\t\tenv.Payload = nil\n\t\tenv.Attempt = 0'),
+>  ("R4", "keep path: fresh occurred_at", "envelope.go",
+>   '\t\tenv.Attempt = 0', '\t\tenv.OccurredAt = "2099-01-01T00:00:00Z"\n\t\tenv.Attempt = 0'),
+>  ("R5", "keep path: fresh event_id (breaks OPS-3 same-id)", "envelope.go",
+>   '\t\tenv.Attempt = 0', '\t\tenv.EventID = events.NewEventEnvelope(targetTopic, env.PaperID, 1, nil).EventID\n\t\tenv.Attempt = 0'),
+>  ("R6", "guard: || instead of && between the ID checks", "envelope.go",
+>   'env.EventID != "" && env.EventType != "" && env.PaperID != ""', 'env.EventID != "" || env.EventType != "" || env.PaperID != ""'),
+>  ("R7", "wrap path: event_type from value instead of target", "envelope.go",
+>   '\tenv = events.NewEventEnvelope(targetTopic, p.OriginalKey, 1, v)', '\tenv = events.NewEventEnvelope(p.OriginalTopic+".x", p.OriginalKey, 1, v)'),
+
+[exit code 1]
