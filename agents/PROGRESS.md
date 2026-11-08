@@ -452,3 +452,9 @@ Format:
 - Review: nothing queued (#26–#33 all QA PASS + PM APPROVE at current heads; #24 Blocked draft).
 - New work: **none started**, same reasons as 01:00Z–04:00Z (backend Ready tasks overlap open PRs or wait on merges; AI-6b/QA-8/AI-11 wait on #28/#33; FE-1/FE-3: `npm view` still times out).
 - **Waiting on Mahesh: 8 PRs ready for review (#26–#33).**
+
+## 2026-11-08 ~14:20 IST: orchestrator (interactive, Mahesh: "review the open PRs and merge if all tests pass; update Jira")
+- Merged #36 AI-6b `e7ab58d` and #34 OPS-H8b `9651294` after orchestrator review, CI 6/6 green; merged ahead of the running cycle's QA round, at Mahesh's request. Jira KAN-52 and KAN-53 → Done.
+- Not merged: #35 RET-2. DB job `TestSearchProvenance` fails: ING-11 (#33) now stores chunk pages, but the test still expects the page omitted. KAN-41 → In Progress, PR comment posted.
+- Not merged: #24 AI-9 (draft, QA r1 FAIL, r2 rework not yet QA'd; F1 latency moved to AI-10 / ADR-0015).
+- Lesson added (qa-reviewer): mutants run locally, not pushed to the PR branch.
