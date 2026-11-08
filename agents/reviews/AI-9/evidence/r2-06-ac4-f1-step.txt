@@ -1,0 +1,20 @@
+$ bash -c L=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stack-r.log; echo '== F1 step (job 128672129558) =='; grep -m1 -E '^.{29}  F1_TESTS:' $L | cut -c30-; grep -E 'Known failure F1|^.{29}FAILED |^.{29}[0-9]+ (failed|passed).* in [0-9.]+s$' $L | cut -c30- | cut -c1-200; echo; echo '== files the PR changes vs main (merge-base) =='; git diff --name-only origin/main...HEAD; echo; echo '== PR diff of .github/ tests/test_m3_query.py internal/ (empty = unchanged) =='; git diff origin/main...HEAD -- .github tests/test_m3_query.py internal | wc -l; echo; echo '== timeout lines touched by the PR diff =='; git diff origin/main...HEAD | grep -iE '^[+-].*timeout' || echo '(none)'
+== F1 step (job 128672129558) ==
+  F1_TESTS: tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank
+[36;1m  echo "### Known failure F1 (exit $rc; expected to fail on CPU runners until the F1 follow-up lands)"; echo '```'[0m
+FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+FAILED tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+2 failed, 1 passed in 29.84s
+
+== files the PR changes vs main (merge-base) ==
+README.md
+services/embedder/api.py
+tests/test_m0.py
+
+== PR diff of .github/ tests/test_m3_query.py internal/ (empty = unchanged) ==
+0
+
+== timeout lines touched by the PR diff ==
+(none)
+
+[exit code 0]

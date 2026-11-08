@@ -1,0 +1,35 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/24 --jq '"draft=\(.draft) head=\(.head.sha)", .body' | head -32
+draft=true head=c32ec234a5127cd98d7ac101b111290081b6c5ca
+## AI-9: Cut CPU cross-encoder rerank latency without changing scores (Known failure F1)
+
+> **This PR does not fix Known failure F1** (see ADR-0015 / AI-10). It is the score-neutral, instrumented step: timing log line, `score_pairs` seam, `EMBEDDER_TORCH_THREADS` thread setting and start-up warm-up. Making F1 pass is AI-10, which needs ADR-0015 Accepted.
+>
+> **Round 2 (2026-11-08):** merged `origin/main` (OPS-H10 #26, AI-7 #21); AC2 passages > 512 tokens; AC5 README `EMBEDDER_TORCH_THREADS` row; AC6 parity test `local_files_only=True`; added the QA r1 missing tests. Head `c32ec23`.
+
+
+**Agent:** ai-engineer · **Spec:** [agents/tasks/AI-9.md](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/main/agents/tasks/AI-9.md) · **PRD ref:** Product PRD §8 latency rows; Technical PRD §7.1, §9; ADR-0010 · **Jira:** KAN-39
+
+### What changed
+- `services/embedder/api.py`: new `score_pairs()` — same tokenizer call (truncation, `max_length=512`) and same model; pairs sorted by token length (stable), scored in batches of 8 under `torch.inference_mode()`, each score written back to its input position.
+- `/internal/rerank` logs one numbers-only line per request: `rerank passages= batches= max_len= tokens= padded_tokens= single_batch_padded_tokens= threads= tokenize_ms= forward_ms= total_ms=`.
+- `load_models`: `torch.set_num_threads` from `EMBEDDER_TORCH_THREADS` (default: usable cores), plus a 3-passage warm-up rerank at startup.
+- `tests/test_m0.py`: 4 tests (`-k rerank`): mocked order/batching test, endpoint order test, thread-env parsing, and a real-`bge-reranker-base` parity test (3 queries × 20 passages, old single-batch vs new within 1e-4, same ranking; skips if the model can't load).
+- Unchanged: `max_length`, dtype, model, pool size (ADR-0010), timeouts, `stack.yml`, README.
+
+### Acceptance criteria (developer status; QA verifies)
+- [ ] AC1 — before/after timing: needs this PR's `stack.yml` run (`rerank passages=20` lines in the embedder log)
+- [ ] AC2 — scores within 1e-4: real-model parity test runs in CI's Python job; fixture-corpus comparison needs the stack
+- [x] AC3 — order preserved: mocked test passes; removing the write-back makes 2 tests fail (shown with a numpy stand-in for torch; real torch only in CI)
+- [ ] AC4 — the three F1 tests pass in the "Known failure F1" step: needs this PR's `stack.yml` run
+- [ ] AC5 — README env row for `EMBEDDER_TORCH_THREADS`: **deferred** to a follow-up after #21 merges (#21 holds `README.md`)
+
+### Verification
+| Command | Result |
+|---|---|
+| `make test-unit` | CI (sandbox lacks torch / Go 1.25) |
+| `make lint` | CI (Go + frontend only; doesn't cover these files) |
+| `make eval` | not run: no stack / Hugging Face in sandbox; scores are meant to be unchanged (AC2) |
+
+### Not verified / risks
+
+[exit code 0]

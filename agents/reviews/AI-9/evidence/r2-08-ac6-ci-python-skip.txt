@@ -1,0 +1,8 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128672037689/logs > /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/py-r.log; grep -nE 'Cache restored from key: hf|AI-9 parity|passed|skipped|bge-reranker' /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/py-r.log | sed -E 's/^([0-9]+):[0-9T:.-]+Z /\1: /; s#/home/runner/work/ArxivLens/ArxivLens/##' | cut -c1-200
+178: Cache restored from key: hf-Linux-bge-base-en-v1.5
+464:   tests/test_m0.py:336: UserWarning: AI-9 parity skipped: bge-reranker-base not in local HF cache
+465:     warnings.warn(f"AI-9 parity skipped: {reason}")  # `make test-py` runs -q without -rs; this shows the reason
+468: 127 passed, 2 skipped, 3 warnings in 5.39s
+504: ============================== 16 passed in 0.09s ==============================
+
+[exit code 0]

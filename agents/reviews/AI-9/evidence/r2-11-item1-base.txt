@@ -1,0 +1,21 @@
+$ bash -c git log --oneline -4 HEAD; echo; git log -1 --format='merge %h parents %p' 031963e; for c in 54cad79 8406b18; do git merge-base --is-ancestor $c HEAD && echo "$c is an ancestor of HEAD: $(git log -1 --format=%s $c)"; done; echo; echo '== main moved since d3f9408; files changed there =='; git log -1 --format='origin/main %h' origin/main; git diff --name-only d3f9408 origin/main; echo; echo '== PR mergeability =='; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/24 --jq '"mergeable=\(.mergeable) state=\(.mergeable_state)"'
+c32ec23 AI-9: Show the parity test's skip reason in make test-py's -q output
+94cb79c AI-9: Parity test cache-only with >512-token passages; load_models, batch-size, single-passage and thread-fallback tests; README env row
+031963e AI-9: Merge origin/main (OPS-H10, #21) into agent/ai/AI-9
+d3f9408 ING-11: Record section page breaks and store chunk start pages (producer) (#33)
+
+merge 031963e parents 3e6420e d3f9408
+54cad79 is an ancestor of HEAD: OPS-H10: stack.yml keeps service logs on every run and runs on Go/tests PRs (#26)
+8406b18 is an ancestor of HEAD: Merge pull request #21 from MaheshPulivarthi18/agent/ai/AI-7
+
+== main moved since d3f9408; files changed there ==
+origin/main 9651294
+internal/query/rag.go
+internal/query/rag_test.go
+services/common/kafka_client.py
+tests/test_kafka_client.py
+
+== PR mergeability ==
+mergeable=true state=clean
+
+[exit code 0]

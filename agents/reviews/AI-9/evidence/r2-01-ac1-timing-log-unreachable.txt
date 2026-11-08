@@ -1,0 +1,23 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128672129558/logs > /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stack-r.log; L=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stack-r.log; echo '== job 128672129558: log-capture step (OPS-H10) =='; grep -E 'embedder-timing|Embedder rerank timing|compose.log' $L | cut -c30- ; echo; echo '== job-log lines matching the timing lines (] rerank passages= | rerank warm-up passages | torch threads: N) =='; grep -cE '\] rerank passages=|rerank warm-up passages|torch threads: [0-9]' $L; echo; echo '== step summary via REST (check-run output) =='; gh api repos/MaheshPulivarthi18/ArxivLens/check-runs/128672129558 --jq .output; echo; echo '== artifacts of run 42461656086 =='; gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/42461656086/artifacts --jq '.artifacts[] | "\(.id) \(.name) \(.size_in_bytes) bytes expired=\(.expired)"'; echo; echo '== download attempt (SAS path/query redacted) =='; gh api repos/MaheshPulivarthi18/ArxivLens/actions/artifacts/13610397629/zip > /dev/null 2> /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/dl.err; echo "gh exit $?"; sed -E 's/\?[^"]*"/?<redacted>"/; s#/actions-results/[^?]*#/actions-results/<redacted>#' /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/dl.err
+== job 128672129558: log-capture step (OPS-H10) ==
+[36;1mdocker compose --profile workers logs --no-color --timestamps > stack-logs/compose.log 2>&1 || true[0m
+[36;1mt=stack-logs/embedder-timing.log[0m
+[36;1mgrep -F -e 'rerank passages=' -e 'rerank warm-up' -e 'torch threads' stack-logs/compose.log > "$t" || true[0m
+[36;1m{ echo "### Embedder rerank timing"; echo '```'; head -n 200 "$t"; echo '```'; } >> "$GITHUB_STEP_SUMMARY" || true[0m
+-rw-r--r-- 1 runner runner 284165 Nov  8 08:22 compose.log
+-rw-r--r-- 1 runner runner    888 Nov  8 08:22 embedder-timing.log
+
+== job-log lines matching the timing lines (] rerank passages= | rerank warm-up passages | torch threads: N) ==
+0
+
+== step summary via REST (check-run output) ==
+{"annotations_count":3,"annotations_url":"https://api.github.com/repos/MaheshPulivarthi18/ArxivLens/check-runs/128672129558/annotations","summary":null,"text":null,"title":null}
+
+== artifacts of run 42461656086 ==
+13610397629 stack-logs 40255 bytes expired=false
+
+== download attempt (SAS path/query redacted) ==
+gh exit 1
+Get "https://productionresultssa1.blob.core.windows.net/actions-results/<redacted>?<redacted>": Forbidden
+
+[exit code 0]

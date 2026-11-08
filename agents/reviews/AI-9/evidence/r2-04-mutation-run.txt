@@ -1,0 +1,64 @@
+$ python3 /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/qa/mutate.py /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/orig /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs
+SUMMARY
+  KILLED (7 failed)            M1 write-back removed (scores kept in length-sorted order)  [AC3]
+  KILLED (1 failed)            M2 warm-up try/except removed (warm-up error aborts start-up)  [item 5]
+  KILLED (1 failed)            M3 early return after cross-encoder load failure removed  [item 5]
+  KILLED (4 failed)            M4 remainder batch dropped  [item 5: batch sizes]
+  KILLED (1 failed)            M5 no-sched_getaffinity fallback returns 1  [item 5: _torch_threads]
+  KILLED (2 failed)            M6 .view(-1) -> .squeeze() (scalar probs for one passage)  [item 5: single passage]
+  KILLED (2 failed)            M7 warm-up call removed  [item 5: warm-up runs]
+  KILLED (2 failed)            M8 log stats carry query text  [scope: counts/timings only]
+  KILLED (7 failed)            M9 RERANK_MAX_LENGTH 512 -> 256 (ranking change, not allowed)  [AC2 guard]
+  KILLED (1 failed)            M10 EMBEDDER_TORCH_THREADS ignored  [AC5 env var]
+
+DETAILS
+- M1 write-back removed (scores kept in length-sorted order)  [AC3]
+  7 failed, 6 passed, 1 skipped, 3 deselected, 1 warning in 0.45s
+    FAILED test_rerank_score_pairs_keeps_input_order_after_length_sorting
+    FAILED test_rerank_endpoint_returns_scores_in_input_order
+    FAILED test_rerank_score_pairs_batch_sizes[1-20]
+    FAILED test_rerank_score_pairs_batch_sizes[3-7]
+    FAILED test_rerank_score_pairs_batch_sizes[4-5]
+    FAILED test_rerank_score_pairs_batch_sizes[20-1]
+    FAILED test_rerank_score_pairs_batch_sizes[32-1]
+- M2 warm-up try/except removed (warm-up error aborts start-up)  [item 5]
+  1 failed, 12 passed, 1 skipped, 3 deselected, 1 warning in 0.29s
+    FAILED test_rerank_load_models_continues_when_warm_up_fails
+- M3 early return after cross-encoder load failure removed  [item 5]
+  1 failed, 12 passed, 1 skipped, 3 deselected, 1 warning in 0.26s
+    FAILED test_rerank_load_models_returns_early_when_cross_encoder_fails
+- M4 remainder batch dropped  [item 5: batch sizes]
+  4 failed, 9 passed, 1 skipped, 3 deselected, 1 warning in 0.29s
+    FAILED test_rerank_endpoint_returns_scores_in_input_order
+    FAILED test_rerank_score_pairs_batch_sizes[3-7]
+    FAILED test_rerank_score_pairs_batch_sizes[32-1]
+    FAILED test_rerank_single_passage_returns_one_score
+- M5 no-sched_getaffinity fallback returns 1  [item 5: _torch_threads]
+  1 failed, 12 passed, 1 skipped, 3 deselected, 1 warning in 0.30s
+    FAILED test_rerank_torch_threads_fallback_without_sched_getaffinity
+- M6 .view(-1) -> .squeeze() (scalar probs for one passage)  [item 5: single passage]
+  2 failed, 11 passed, 1 skipped, 3 deselected, 1 warning in 0.28s
+    FAILED test_rerank_score_pairs_batch_sizes[1-20]
+    FAILED test_rerank_single_passage_returns_one_score
+- M7 warm-up call removed  [item 5: warm-up runs]
+  2 failed, 11 passed, 1 skipped, 3 deselected, 1 warning in 0.28s
+    FAILED test_rerank_load_models_runs_warm_up
+    FAILED test_rerank_load_models_continues_when_warm_up_fails
+- M8 log stats carry query text  [scope: counts/timings only]
+  2 failed, 11 passed, 1 skipped, 3 deselected, 1 warning in 0.19s
+    FAILED test_rerank_score_pairs_keeps_input_order_after_length_sorting
+    FAILED test_rerank_load_models_runs_warm_up
+- M9 RERANK_MAX_LENGTH 512 -> 256 (ranking change, not allowed)  [AC2 guard]
+  7 failed, 6 passed, 1 skipped, 3 deselected, 1 warning in 0.25s
+    FAILED test_rerank_score_pairs_keeps_input_order_after_length_sorting
+    FAILED test_rerank_endpoint_returns_scores_in_input_order
+    FAILED test_rerank_score_pairs_batch_sizes[1-20]
+    FAILED test_rerank_score_pairs_batch_sizes[3-7]
+    FAILED test_rerank_score_pairs_batch_sizes[4-5]
+    FAILED test_rerank_score_pairs_batch_sizes[20-1]
+    FAILED test_rerank_score_pairs_batch_sizes[32-1]
+- M10 EMBEDDER_TORCH_THREADS ignored  [AC5 env var]
+  1 failed, 12 passed, 1 skipped, 3 deselected, 1 warning in 0.24s
+    FAILED test_rerank_torch_threads_env
+
+[exit code 0]

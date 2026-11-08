@@ -1,0 +1,145 @@
+$ bash -c cd /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad && for f in stubs/torch/__init__.py stubs/transformers/__init__.py stubs/huggingface_hub.py stubs/fastapi.py stubs/psycopg/__init__.py stubs/psycopg/rows.py stubs/ulid.py qa/mutate.py; do echo "===== $f"; cat $f; done; echo '(pymupdf, confluent_kafka, minio: same as ulid.py)'; for m in pymupdf confluent_kafka minio; do cmp stubs/ulid.py stubs/$m.py && echo "stubs/$m.py == stubs/ulid.py"; done
+===== stubs/torch/__init__.py
+"""QA stub (AI-9 r2): numpy-backed stand-in for the few torch calls api.py/test_m0.py use. Not real torch."""
+import contextlib, numpy as _np
+
+class Tensor:
+    def __init__(self, a): self.a = _np.asarray(a)
+    @property
+    def shape(self): return self.a.shape
+    def tolist(self): return self.a.tolist()
+    def view(self, *s): return Tensor(self.a.reshape(*s))
+    def squeeze(self): return Tensor(self.a.squeeze())
+    def float(self): return Tensor(self.a.astype(_np.float32))
+    def __getitem__(self, k): return Tensor(self.a[k])
+
+def tensor(x): return Tensor(x)
+def sigmoid(t): return Tensor((1.0 / (1.0 + _np.exp(-t.a.astype(_np.float64)))).astype(_np.float32))
+_threads = [2]
+def get_num_threads(): return _threads[0]
+def set_num_threads(n): _threads[0] = int(n)
+@contextlib.contextmanager
+def inference_mode(): yield
+@contextlib.contextmanager
+def no_grad(): yield
+class _NA:
+    @staticmethod
+    def is_available(): return False
+class backends: mps = _NA
+cuda = _NA
+class nn:
+    class functional:
+        @staticmethod
+        def normalize(x, p=2, dim=1): return x
+===== stubs/transformers/__init__.py
+"""QA stub: no Hugging Face access in the sandbox."""
+class _Auto:
+    @classmethod
+    def from_pretrained(cls, *a, **k): raise OSError("QA stub: no Hugging Face access in sandbox")
+class AutoTokenizer(_Auto): pass
+class AutoModel(_Auto): pass
+class AutoModelForSequenceClassification(_Auto): pass
+===== stubs/huggingface_hub.py
+"""QA stub: QA_HF_CACHE_PRESENT=1 makes the cache lookup report the model as cached (for the AC6 'other load error fails' probe)."""
+import os
+def try_to_load_from_cache(repo_id, filename, *a, **k):
+    return "/fake/cache/config.json" if os.getenv("QA_HF_CACHE_PRESENT") == "1" else None
+===== stubs/fastapi.py
+"""QA stub: decorators are identity; HTTPException is a plain exception."""
+class HTTPException(Exception):
+    def __init__(self, status_code=500, detail=None): super().__init__(detail); self.status_code = status_code; self.detail = detail
+class FastAPI:
+    def __init__(self, *a, **k): pass
+    def _deco(self, *a, **k): return lambda f: f
+    on_event = post = get = _deco
+===== stubs/psycopg/__init__.py
+"""QA stub"""
+class Connection: pass
+def connect(*a, **k): raise RuntimeError("QA stub")
+===== stubs/psycopg/rows.py
+"""QA stub"""
+dict_row = None
+===== stubs/ulid.py
+"""QA stub"""
+def __getattr__(name):
+    return type(name, (), {"__init__": lambda self, *a, **k: None})
+===== qa/mutate.py
+"""QA AI-9 r2 mutation runner. Copies the PR-head tree per mutant, applies one exact text edit to
+services/embedder/api.py (must match exactly once, else INVALID), runs `pytest -k rerank` under the QA stubs.
+KILLED = >=1 test failed and collection succeeded; SURVIVED = all passed; INVALID = edit didn't apply or collection error."""
+import os, re, shutil, subprocess, sys, tempfile
+ORIG, STUBS = sys.argv[1], sys.argv[2]
+WB_OLD = """            for i, prob in zip(idx, probs):
+                scores[i] = float(prob)  # back to input order
+"""
+MUTANTS = [
+ ("M1 write-back removed (scores kept in length-sorted order)  [AC3]",
+  [(WB_OLD, "            sorted_scores.extend(float(p) for p in probs)  # MUTANT\n"),
+   ("    scores = [0.0] * len(pairs)\n", "    scores = [0.0] * len(pairs)\n    sorted_scores = []\n"),
+   ("    return scores, stats\n", "    return sorted_scores, stats\n")]),
+ ("M2 warm-up try/except removed (warm-up error aborts start-up)  [item 5]",
+  [("""    try:
+        # Warm-up so the first real request doesn't pay one-time kernel/allocator setup costs.
+        _, stats = score_pairs(reranker_tokenizer, reranker_model, "warm-up query",
+                               ["warm-up passage " * n for n in (8, 64, 256)])
+        logger.info(f"rerank warm-up {_format_stats(stats)}")
+    except Exception as e:
+        logger.warning(f"rerank warm-up failed ({e}); continuing")
+""", """    _, stats = score_pairs(reranker_tokenizer, reranker_model, "warm-up query",
+                           ["warm-up passage " * n for n in (8, 64, 256)])
+    logger.info(f"rerank warm-up {_format_stats(stats)}")
+""")]),
+ ("M3 early return after cross-encoder load failure removed  [item 5]",
+  [("""falling back to bi-encoder")
+        return
+""", """falling back to bi-encoder")
+""")]),
+ ("M4 remainder batch dropped  [item 5: batch sizes]",
+  [("    for start in range(0, len(order), batch_size):\n",
+    "    for start in range(0, len(order) // batch_size * batch_size, batch_size):\n")]),
+ ("M5 no-sched_getaffinity fallback returns 1  [item 5: _torch_threads]",
+  [("        return max(1, os.cpu_count() or 1)\n", "        return 1\n")]),
+ ("M6 .view(-1) -> .squeeze() (scalar probs for one passage)  [item 5: single passage]",
+  [(".logits.view(-1, ).float()", ".logits.squeeze().float()")]),
+ ("M7 warm-up call removed  [item 5: warm-up runs]",
+  [("""        _, stats = score_pairs(reranker_tokenizer, reranker_model, "warm-up query",
+                               ["warm-up passage " * n for n in (8, 64, 256)])
+        logger.info(f"rerank warm-up {_format_stats(stats)}")
+""", "        pass\n")]),
+ ("M8 log stats carry query text  [scope: counts/timings only]",
+  [('        "passages": len(pairs),\n', '        "query": query,\n        "passages": len(pairs),\n')]),
+ ("M9 RERANK_MAX_LENGTH 512 -> 256 (ranking change, not allowed)  [AC2 guard]",
+  [("RERANK_MAX_LENGTH = 512\n", "RERANK_MAX_LENGTH = 256\n")]),
+ ("M10 EMBEDDER_TORCH_THREADS ignored  [AC5 env var]",
+  [('    raw = os.getenv("EMBEDDER_TORCH_THREADS", "").strip()\n', '    raw = ""\n')]),
+]
+rows = []
+for name, edits in MUTANTS:
+    work = tempfile.mkdtemp(prefix="mut-", dir=os.path.dirname(ORIG))
+    tree = os.path.join(work, "tree"); shutil.copytree(ORIG, tree)
+    p = os.path.join(tree, "services/embedder/api.py"); src = open(p).read()
+    ok = True
+    for old, new in edits:
+        if src.count(old) != 1: ok = False; break
+        src = src.replace(old, new)
+    if not ok: rows.append((name, "INVALID (edit did not apply exactly once)", "")); continue
+    open(p, "w").write(src)
+    env = dict(os.environ, PYTHONPATH=f"{STUBS}:{tree}")
+    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/test_m0.py", "-k", "rerank"],
+                       cwd=tree, env=env, capture_output=True, text=True)
+    last = [l for l in r.stdout.splitlines() if l.strip()][-1]
+    failed = re.findall(r"^FAILED (\S+)", r.stdout, re.M)
+    if "error" in last and "failed" not in last: verdict = "INVALID (collection error)"
+    elif failed: verdict = f"KILLED ({len(failed)} failed)"
+    else: verdict = "SURVIVED"
+    rows.append((name, verdict, last + "\n" + "\n".join("    FAILED " + f.split("::")[-1] for f in failed)))
+print("SUMMARY")
+for n, v, _ in rows: print(f"  {v:28s} {n}")
+print("\nDETAILS")
+for n, v, d in rows: print(f"- {n}\n  {d}")
+(pymupdf, confluent_kafka, minio: same as ulid.py)
+stubs/pymupdf.py == stubs/ulid.py
+stubs/confluent_kafka.py == stubs/ulid.py
+stubs/minio.py == stubs/ulid.py
+
+[exit code 0]

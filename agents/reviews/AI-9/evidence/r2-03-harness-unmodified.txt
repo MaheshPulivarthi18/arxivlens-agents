@@ -1,0 +1,11 @@
+$ bash -c cd /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/orig && git -C /root/wt/AI-9 diff --stat HEAD -- . ; diff -rq /root/wt/AI-9/services /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/orig/services -x __pycache__ && diff -q /root/wt/AI-9/tests/test_m0.py /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/orig/tests/test_m0.py && echo 'scratch tree == worktree c32ec23 (services/, tests/test_m0.py)'; PYTHONPATH=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs:/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/orig python3 -m pytest -q -p no:cacheprovider tests/test_m0.py -k rerank -rs 2>&1 | grep -vE 'warnings.warn|Docs:|^\s*$'
+scratch tree == worktree c32ec23 (services/, tests/test_m0.py)
+.............s                                                           [100%]
+=============================== warnings summary ===============================
+tests/test_m0.py::test_rerank_real_cross_encoder_scores_match_single_batch
+  /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/orig/tests/test_m0.py:336: UserWarning: AI-9 parity skipped: bge-reranker-base not in local HF cache
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_m0.py:337: bge-reranker-base not in local HF cache
+13 passed, 1 skipped, 3 deselected, 1 warning in 0.27s
+
+[exit code 0]

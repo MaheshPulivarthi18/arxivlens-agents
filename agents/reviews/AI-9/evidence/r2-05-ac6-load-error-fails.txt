@@ -1,0 +1,8 @@
+$ bash -c cd /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/orig && QA_HF_CACHE_PRESENT=1 PYTHONPATH=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs:/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/orig python3 -m pytest -q -p no:cacheprovider tests/test_m0.py -k real_cross_encoder -rs 2>&1 | grep -E 'passed|failed|skipped|OSError|^E ' | head -20
+            warnings.warn(f"AI-9 parity skipped: {reason}")  # `make test-py` runs -q without -rs; this shows the reason
+>   def from_pretrained(cls, *a, **k): raise OSError("QA stub: no Hugging Face access in sandbox")
+E   OSError: QA stub: no Hugging Face access in sandbox
+../stubs/transformers/__init__.py:4: OSError
+1 failed, 16 deselected in 0.28s
+
+[exit code 0]

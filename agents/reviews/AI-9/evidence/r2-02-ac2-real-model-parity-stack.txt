@@ -1,0 +1,13 @@
+$ bash -c grep -E 'AI-9 parity|passed, .*deselected|Cache restored from key' /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stack-r.log | cut -c30- | sed -E 's#/home/runner/work/ArxivLens/ArxivLens/##'
+Cache restored from key: setup-go-Linux-x64-ubuntu26-go-1.25.0-282abb17dbe996d56a2dfecbce61082860776038189ca3cb06eff71ee8aa2c93
+Cache restored from key: setup-python-Linux-x64-26.04-Ubuntu-python-3.11.18-pip-5b5eb47bfc5a2f8d997039df570b0d750735e6e65e4e8babb09d8f05a65a698a
+Cache restored from key: hf-Linux-bge-base-en-v1.5-bge-reranker-base
+  tests/test_m0.py:358: UserWarning: AI-9 parity query=0 max_abs_diff=2.18e-10 truncated=4/20 passages=20 batches=3 max_len=512 tokens=4062 padded_tokens=5328 single_batch_padded_tokens=10240 threads=2 tokenize_ms=11.6 forward_ms=6865.6 total_ms=6877.1
+    warnings.warn(f"AI-9 parity query={qi} max_abs_diff={diff:.2e} truncated={truncated}/20 "
+  tests/test_m0.py:358: UserWarning: AI-9 parity query=1 max_abs_diff=1.19e-07 truncated=4/20 passages=20 batches=3 max_len=512 tokens=4222 padded_tokens=5488 single_batch_padded_tokens=10240 threads=2 tokenize_ms=15.5 forward_ms=6818.2 total_ms=6833.7
+    warnings.warn(f"AI-9 parity query={qi} max_abs_diff={diff:.2e} truncated={truncated}/20 "
+  tests/test_m0.py:358: UserWarning: AI-9 parity query=2 max_abs_diff=2.91e-10 truncated=4/20 passages=20 batches=3 max_len=512 tokens=4062 padded_tokens=5328 single_batch_padded_tokens=10240 threads=2 tokenize_ms=11.2 forward_ms=6764.0 total_ms=6775.2
+    warnings.warn(f"AI-9 parity query={qi} max_abs_diff={diff:.2e} truncated={truncated}/20 "
+156 passed, 1 skipped, 3 deselected, 5 warnings in 75.42s (0:01:15)
+
+[exit code 0]
