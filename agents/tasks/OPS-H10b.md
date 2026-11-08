@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H10 (merged `54cad79`). No open PR changes `stack.yml` (checked 2026-11-08: #24, #35, #37, #38 don't) |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H10b`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P1 CI-only, a few lines, no command/table/service/contract change |
-| **Status** | Ready |
+| **Status** | In QA (draft PR [#39](https://github.com/MaheshPulivarthi18/ArxivLens/pull/39)) |
 
 ## Goal
 OPS-H10 writes `stack-logs/embedder-timing.log` to the step summary and the artifact only. Neither is reachable from agent
@@ -37,3 +37,10 @@ git diff --stat origin/main
 ## Notes
 - 2026-11-08 (pm-lead): from AI-9 QA r2 finding 1(b). After this merges, AI-9's #24 merges `origin/main` (no force-push) so its own
   `stack.yml` run prints the AI-9 timing lines; QA then re-reviews AI-9 AC1 only.
+- 2026-11-08 (backend-engineer): built on `agent/backend/OPS-H10b` (head `24754ec`), draft PR #39. One-line change in "Collect service logs":
+  the timing block now goes through `| tee -a "$GITHUB_STEP_SUMMARY" || true` (was `>> ... || true`), plus a comment line;
+  `git diff --stat origin/main` = `stack.yml | 3 ++-`. YAML parse + `bash -n` of the step body OK; ownership check OK (3 lines).
+  CI on `24754ec` (merge `70e3141` onto main `9651294`): all 6 checks success. Stack job 128734574951 (run 42481614481), fetched via
+  `actions/jobs/<id>/logs`: L4700 `### Embedder rerank timing`, L4701 fence, L4702 `no embedder rerank timing lines (embedder predates AI-9)`,
+  L4703 fence (AC1); L4704-4709 `ls -l stack-logs` lists `embedder-timing.log` (57 B); L4747 artifact `stack-logs` 13617694192 uploaded (AC2).
+  Step summary content not readable from the sandbox (REST `output.summary` null); `tee -a` keeps the append.
