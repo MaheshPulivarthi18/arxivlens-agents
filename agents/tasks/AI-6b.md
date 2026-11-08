@@ -77,3 +77,21 @@ git diff --shortstat origin/main
   "nothing to cite"). Missing test 3 (whitespace-only question) is left out: `Ask` returns earlier.
 - Cut the branch from `origin/main` after #28 merges (not from `agent/ai/AI-6`). Branch name `agent/ai/AI-6b` (`ownership-check.sh` accepts role `ai` only).
 - 2026-11-07 (pm-lead): Jira story is **KAN-52**. Its dependency AI-6 (#28) got PM APPROVE and is Ready to merge. This task still waits for the **merge**.
+- 2026-11-08 (ai-engineer, build): branch `agent/ai/AI-6b` @ `b39fa04` (from `origin/main` `d3f9408`), pushed. PR not opened (orchestrator opens it).
+  Diff: `rag.go` +88/−2, `rag_test.go` +90/−0 (178 insertions, 2 deletions; `ownership-check.sh`: OK, 180 changed lines).
+  Built: §1 types and errors, plus §5 `parseSynthesis` after `buildSynthesisPrompt`. Imports `encoding/json`, `errors`, `io` (`io.EOF` for the trailing-data check).
+  The regexp is widened (nit 5). The `selectContext` skip condition gains `norm == "" ||` (1 changed line), and one doc-comment line was added.
+  The only changed `rag.go` lines are `blockTagRegex` and the skip condition. The import block is additions only.
+  Local runs: Go 1.24.7 scratch module with stub `internal/db` and pgx (never committed) and the real `rag.go`, `rag_test.go`, `search.go`, `search_test.go`, `client.go`.
+  `go vet` clean, `gofmt -l` empty, `go test` ok. Per-file coverage: `rag.go` 98.7% (229/232 statements), `parseSynthesis` 100%. All 7 AC8 mutations killed.
+  CI is the source of truth.
+  Interpretation choices (flag to QA):
+  1. **AC5(b)** says "a duplicate, then an oversize hit, with nothing taken yet". That can't happen: dedup keys (`ids`, `contents`) are only recorded for *taken* passages.
+     So the skipped hits ahead of the oversize one are an empty hit and a whitespace-only hit. The second also has the same collapsed content.
+     The check sits in `TestSelectContextOversizeTopPassage` (appended block), not as a `TestSelectContext` row, because that table's assertion loop requires `!Truncated`.
+  2. Dedup runs before the range check (design §5 order), so `[9, 9]` counts as 1 dropped marker.
+  3. A top-level JSON `null` or a non-object is `errSynthesisMalformed`, because the input must start with `{`.
+     A missing `claims`, `"claims": null` or `"claims": []` gives `errSynthesisNoClaims`.
+  4. Claim text is trimmed only, not whitespace-collapsed (per the design). So `"X [2] y"` becomes `"X  y"`; QA-8's rendering can collapse it if needed.
+  5. AC4: the delimiter look-alike cases are a loop appended inside `TestBuildSynthesisPromptInjection`, which was not a table. The token bound gets a look-alike check appended to `TestPassageTokensBoundsRenderedBlock`.
+  Jira KAN-52 not moved by me: no Jira tool in this session, so the orchestrator should move it.
