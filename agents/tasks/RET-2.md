@@ -63,3 +63,12 @@ python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_
   - **AC3 + Verification:** `-k parity` collected 1 of 76 tests and missed the SQL mirror test. It is now the whole file plus the three
     guards by node ID. This is stricter than before.
   - Q2: ship `version` as the owning `papers` row's version. Label correctness on on-demand ingests → ING-10 (Ready). Follow-ups ING-10 and ING-11 are filed.
+- 2026-11-08 08:00Z (backend-engineer, build): branch `agent/backend/RET-2` at `b1c5b9b` (from origin/main `d3f9408`), pushed; PR not opened yet (orchestrator).
+  377+/7- = 384 lines, 6 files: `search.go` (+`Version`, +`Page` never set, with comment naming ING-11; outer SELECT `+ p.version`; scan `+ &h.Version`),
+  new `search_provenance_test.go` (unit) and `search_provenance_integration_test.go` (`db.yml`), `db.yml` run pattern `'TestHNSW|TestSearchProvenance'`,
+  the one `_GO_TO_EVAL_SQL` fragment in `tests/test_evals_data.py`, README `/v1/search` row. `search_test.go`, `search_integration_test.go`, `rag*.go`, `scripts/` unchanged (`git diff --quiet`).
+  Local: `pytest -q tests/test_evals_data.py` 97 passed, 1 skipped; the three guards by node ID 3 passed; `gofmt -l` clean; ownership check OK (384 lines).
+  Go 1.25 unavailable: ran `search.go` + both unit test files with Go 1.24.7 in a scratch module (stubs only for `db`/`pgx`): all 12 tests PASS with `-race`;
+  8/8 mutants killed (drop `p.version`, drop `&h.Version`, swap scan order, select `c.page_number`, keyword LIMIT, RRF constant, `version` omitempty, `page` not omitempty).
+  Integration test compiles + vets (`-tags integration`) against the stubs; not run locally (no Docker daemon, no pgvector) → AC2 evidence is the `db.yml` log (`PROVENANCE ...` lines).
+  `make lint`/`make test-unit` not run (Go 1.25) → CI. Deviations from design recorded in `docs/design/RET-2.md` § Build notes.

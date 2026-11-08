@@ -249,3 +249,13 @@ crosses a page break, so returning it would break ADR-0014's "page is only retur
 - [ING-11](../../agents/tasks/ING-11.md) (backend + paired ai part, P1, Ready for design, build after RET-2 merges): record
   each chunk's real start page and return it as `page`.
 - Board Backlog line: v1/v2 near-duplicates can take two top-5 slots (product rule: latest version only, or dedupe by `arxiv_id`).
+
+## Build notes (backend-engineer, 2026-11-08, `b1c5b9b`)
+- Unit tests went into a **new** file `internal/query/search_provenance_test.go` instead of being appended to `search_test.go`,
+  so `search_test.go` has a zero diff (AC4 "ordering tests unmodified" is a `git diff --quiet`). Tests (a)–(d) as designed:
+  `TestSearchHitJSON`, `TestSearchHitProvenanceTravelsWithHit`, `TestSearchSQLColumnsMatchScan`, `TestSearchSQLOuterSelectOnly`
+  (golden copy of origin/main `d3f9408`'s `vectorHitsSQL` + `hybridSearchSQL`).
+- README row: the handler returns `{query, count, hits: [...]}` (`server.go:117-121`), not a bare array, so the row reads
+  `→ {query, count, hits: [{chunk_id, arxiv_id, version, title, section, content, rrf_score, rerank_score?, page?}]}` with condition 2's wording.
+- Size: 384 changed lines vs the ~215 estimate (golden SQL copy ~40, column/scan parser ~35, integration seed/fake embedder ~70). Under 400, so no split (condition 7).
+- ING-11 (#33) merged first and added `paper_chunk_pages.page_start`; RET-2 still selects no page column. The `Page` comment names ING-11 as the place that fills it.
