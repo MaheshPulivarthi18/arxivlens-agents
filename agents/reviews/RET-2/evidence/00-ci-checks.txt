@@ -1,0 +1,25 @@
+$ gh api check-runs + job logs
+PR #35 head 3bf5dab05d3e5c41a80ff6716dadf7e96b3eb2c4 - check runs (gh api .../commits/<head>/check-runs)
+
+Frontend (lint, test, build)	completed	success	128681427461	2026-11-08T08:51:50Z	2026-11-08T08:52:05Z
+Agent ownership check	completed	success	128681427417	2026-11-08T08:51:50Z	2026-11-08T08:51:56Z
+Go (vet, gofmt, test, build)	completed	success	128681427414	2026-11-08T08:51:51Z	2026-11-08T08:53:00Z
+Full stack (compose + make test-full)	completed	success	128681427389	2026-11-08T08:51:50Z	2026-11-08T09:01:44Z
+Python M0 unit tests	completed	success	128681427223	2026-11-08T08:51:50Z	2026-11-08T08:53:13Z
+DB (migrate twice, HNSW plan + recall)	completed	success	128681427063	2026-11-08T08:51:50Z	2026-11-08T08:52:57Z
+
+Workflow runs: DB 42464712452, CI 42464712468, Full stack 42464712509 (event pull_request)
+
+Commit each job checked out (from the 6 job logs):
+job 128681427063: HEAD is now at 1a9ee6c Merge 3bf5dab05d3e5c41a80ff6716dadf7e96b3eb2c4 into 9651294733ba4031efc50d51cee5d90fd13ab40e
+job 128681427414: HEAD is now at 1a9ee6c Merge 3bf5dab05d3e5c41a80ff6716dadf7e96b3eb2c4 into 9651294733ba4031efc50d51cee5d90fd13ab40e
+job 128681427223: HEAD is now at 1a9ee6c Merge 3bf5dab05d3e5c41a80ff6716dadf7e96b3eb2c4 into 9651294733ba4031efc50d51cee5d90fd13ab40e
+job 128681427389: HEAD is now at 1a9ee6c Merge 3bf5dab05d3e5c41a80ff6716dadf7e96b3eb2c4 into 9651294733ba4031efc50d51cee5d90fd13ab40e
+job 128681427417: HEAD is now at 1a9ee6c Merge 3bf5dab05d3e5c41a80ff6716dadf7e96b3eb2c4 into 9651294733ba4031efc50d51cee5d90fd13ab40e
+job 128681427461: HEAD is now at 1a9ee6c Merge 3bf5dab05d3e5c41a80ff6716dadf7e96b3eb2c4 into 9651294733ba4031efc50d51cee5d90fd13ab40e
+
+origin/main now: 9651294733ba4031efc50d51cee5d90fd13ab40e
+merge 1a9ee6c parents:
+parent 9651294733ba4031efc50d51cee5d90fd13ab40e
+parent 3bf5dab05d3e5c41a80ff6716dadf7e96b3eb2c4
+

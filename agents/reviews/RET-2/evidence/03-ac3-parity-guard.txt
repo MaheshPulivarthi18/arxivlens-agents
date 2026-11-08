@@ -1,0 +1,21 @@
+$ bash -c python3 -m pytest -q tests/test_evals_data.py 2>&1 | tail -2; echo; python3 -m pytest -v tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go tests/test_evals_data.py::test_adr0010_parity_pool_one_call_stable_ties_top5 tests/test_evals_data.py::test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets 2>&1 | grep -E "PASSED|FAILED|SKIPPED|ERROR|passed|failed"; echo; echo "--- same on CI merge commit 1a9ee6c (3bf5dab + main 9651294):"; cd /root/wt/qa-RET-2-merge && python3 -m pytest -q tests/test_evals_data.py tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go tests/test_evals_data.py::test_adr0010_parity_pool_one_call_stable_ties_top5 tests/test_evals_data.py::test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets 2>&1 | tail -1; echo; echo "--- allowed-difference change + scripts/ untouched:"; cd /root/wt/qa-RET-2 && git diff --stat d3f9408...HEAD -- scripts/ tests/; git diff d3f9408...HEAD -- tests/test_evals_data.py | grep "^[-+] "
+..........................                                               [100%]
+97 passed, 1 skipped in 0.18s
+
+tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go PASSED     [ 33%]
+tests/test_evals_data.py::test_adr0010_parity_pool_one_call_stable_ties_top5 PASSED [ 66%]
+tests/test_evals_data.py::test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets PASSED [100%]
+============================== 3 passed in 0.04s ===============================
+
+--- same on CI merge commit 1a9ee6c (3bf5dab + main 9651294):
+97 passed, 1 skipped in 0.26s
+
+--- allowed-difference change + scripts/ untouched:
+ tests/test_evals_data.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+-    # outer SELECT: the eval needs only (id, arxiv_id, content); no titles, so no paper_sections join
+-    ("SELECT c.id, c.content, p.arxiv_id, p.title, COALESCE(ps.title, '') AS section_title,",
++    # outer SELECT: the eval needs only (id, arxiv_id, content); no titles or version (RET-2), so no paper_sections join
++    ("SELECT c.id, c.content, p.arxiv_id, p.title, COALESCE(ps.title, '') AS section_title, p.version,",
+
+[exit code 0]
