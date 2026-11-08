@@ -72,3 +72,9 @@ python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_
   8/8 mutants killed (drop `p.version`, drop `&h.Version`, swap scan order, select `c.page_number`, keyword LIMIT, RRF constant, `version` omitempty, `page` not omitempty).
   Integration test compiles + vets (`-tags integration`) against the stubs; not run locally (no Docker daemon, no pgvector) → AC2 evidence is the `db.yml` log (`PROVENANCE ...` lines).
   `make lint`/`make test-unit` not run (Go 1.25) → CI. Deviations from design recorded in `docs/design/RET-2.md` § Build notes.
+- 2026-11-08 (backend-engineer, CI fix on PR #35): `db.yml` FAILED on `b1c5b9b` (job 128673836567). Every assertion passed and the 3 `PROVENANCE` lines were right
+  (v1 → 1, both v2 chunks → 2, `page` absent). The failure was in my test's teardown: `defer d.Close()` ran before `t.Cleanup`, so the seed `DELETE` hit a closed pool (`cleanup: closed pool`).
+  Fix `3bf5dab`: `t.Cleanup(d.Close)`, registered first so it runs last. Test-only, 1 line; no assertion, threshold or product code changed.
+  All 6 checks green on `3bf5dab` (DB job 128681427063: `--- PASS: TestHNSWVectorHits`, `--- PASS: TestSearchProvenance`).
+  `TestHNSW` RESULT rows: every generic, auto (production) and `hybridSearchSQL` row matches main `d3f9408` (job 128645946281) exactly. Custom-plan rows differ by <= 0.01 recall,
+  and they also differ between `b1c5b9b` and `3bf5dab`, which have identical `search.go`, so this is run-to-run HNSW variation, not RET-2 (`vectorHitsSQL` unchanged, AC4 golden test).
