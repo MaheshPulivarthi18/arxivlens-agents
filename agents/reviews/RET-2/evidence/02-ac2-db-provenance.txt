@@ -7,12 +7,15 @@ L386: go test -tags integration -count=1 -v -timeout 20m -run 'TestHNSW|TestSear
 
 L1468: --- PASS: TestHNSWVectorHits (22.27s)
 L1469: === RUN   TestSearchProvenance
-L1470:     search_provenance_integration_test.go:99: PROVENANCE chunk_id=10001 arxiv_id=prov.00001 version=1 page=<nil> rrf_score=0.032787 json={"chun
-k_id":10001,"arxiv_id":"prov.00001","title":"Provenance v1","section":"","content":"zyxprov alpha one","rrf_score":0.03278688524590164,"version":1}
-L1471:     search_provenance_integration_test.go:99: PROVENANCE chunk_id=10002 arxiv_id=prov.00001 version=2 page=<nil> rrf_score=0.032258 json={"chun
-k_id":10002,"arxiv_id":"prov.00001","title":"Provenance v2","section":"","content":"zyxprov alpha two","rrf_score":0.03225806451612903,"version":2}
-L1472:     search_provenance_integration_test.go:99: PROVENANCE chunk_id=10003 arxiv_id=prov.00001 version=2 page=<nil> rrf_score=0.031746 json={"chun
-k_id":10003,"arxiv_id":"prov.00001","title":"Provenance v2","section":"","content":"zyxprov beta two","rrf_score":0.031746031746031744,"version":2}
+L1470:  search_provenance_integration_test.go:99: PROVENANCE chunk_id=10001 arxiv_id=prov.00001 version=1 page=<nil
+> rrf_score=0.032787 json={"chunk_id":10001,"arxiv_id":"prov.00001","title":"Provenance v1","section":"","content":
+"zyxprov alpha one","rrf_score":0.03278688524590164,"version":1}
+L1471:  search_provenance_integration_test.go:99: PROVENANCE chunk_id=10002 arxiv_id=prov.00001 version=2 page=<nil
+> rrf_score=0.032258 json={"chunk_id":10002,"arxiv_id":"prov.00001","title":"Provenance v2","section":"","content":
+"zyxprov alpha two","rrf_score":0.03225806451612903,"version":2}
+L1472:  search_provenance_integration_test.go:99: PROVENANCE chunk_id=10003 arxiv_id=prov.00001 version=2 page=<nil
+> rrf_score=0.031746 json={"chunk_id":10003,"arxiv_id":"prov.00001","title":"Provenance v2","section":"","content":
+"zyxprov beta two","rrf_score":0.031746031746031744,"version":2}
 L1473: --- PASS: TestSearchProvenance (0.03s)
 L1475: ok  	arxivlens/internal/query	22.307s
 
