@@ -20,7 +20,7 @@ chunk the chunker couldn't place). Ranking doesn't change.
   after `p.version` (scalar PK subquery, not a `LEFT JOIN`; design Q3); the scan gains `&h.Page` in the same position (NULL → nil →
   omitted). The `Page` comment becomes "start page when recorded (`paper_chunk_pages`), omitted otherwise". RRF arms, `rrf_score`,
   `ORDER BY`, `LIMIT` byte-identical.
-- `internal/query/search_test.go`: RET-2's golden/source checks also strip the page column and expect `&h.Page`. Ordering tests not edited.
+- `internal/query/search_provenance_test.go` (RET-2's unit tests; `search_test.go` has a zero diff in RET-2): the golden/source checks (`TestSearchSQLOuterSelectOnly`, `TestSearchSQLColumnsMatchScan`) also strip the page column and expect `&h.Page`; `TestSearchHitProvenanceTravelsWithHit` gains the NaN-score and `context.Canceled` rerank-fallback rows (RET-2 QA nit 3) with a non-nil `Page`. `search_test.go` ordering tests not edited.
 - `internal/query/search_provenance_integration_test.go`: seed one `paper_chunk_pages` row; assertions per AC3.
 - `.github/workflows/db.yml` "Migrate run 1": `grep -E '^column\|paper_chunk_pages\.page_start\|integer$' /tmp/run1.txt`.
 - `tests/test_evals_data.py`: the one outer-SELECT `_GO_TO_EVAL_SQL` fragment. `scripts/evaluate_retrieval.py` unchanged.
@@ -61,3 +61,4 @@ python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_
 ## Notes
 - 2026-11-07 (pm-lead): split from ING-11 at its design approval (Q2, producer/consumer seam). Carries the original ING-11 AC3, AC4
   and the README half of AC6, plus the new real-pipeline write check (design condition 4).
+- 2026-11-08 (pm-lead, RET-2 final review): RET-2 (#35) put its unit tests in a new `search_provenance_test.go`, not `search_test.go`, so Scope now names that file. Two RET-2 QA nits land here: the `Page` comment in `search.go` still says "ING-11 fills Page" (Scope already rewrites it), and the NaN / `context.Canceled` fallback rows (added to Scope).

@@ -8,7 +8,7 @@
 | **Depends on** | **ADR-0014 Accepted** (adds `version`/`page` to `/v1/search` hits: HTTP API contract). **AI-7 merged** (both edit the README API table). **EVAL-6 merged** (both may edit `tests/test_evals_data.py`, which holds the ADR-0010 SQL parity guard). |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-RET-2"`) |
 | **Design required** | **yes** (short, `docs/design/RET-2.md`): it touches a shared contract (HTTP API) and the SQL the parity guard mirrors. |
-| **Status** | Design approved 2026-11-07; build waits for ArxivLens #26 (OPS-H10) to merge (README same-file rule). Conditions 1–7 in `docs/design/RET-2.md` § PM decision |
+| **Status** | **Ready to merge**: PR [#35](https://github.com/MaheshPulivarthi18/ArxivLens/pull/35) raised for Mahesh, head `3bf5dab`, all 6 CI checks green. QA PASS r1 · PM APPROVE 2026-11-08 ([report](../reviews/RET-2/report.md)). Design conditions 1–7 met. Followed by **ING-11b** (search returns `page`) and **AI-8** (maps `version`/`page` into citations) |
 
 ## Goal
 A citation should say which version of a paper it came from, and the page when the system knows it, so one click reaches
@@ -31,11 +31,11 @@ the right place in the PDF (Product PRD §7 principle 3). `papers.version` and `
   write it up as a Backlog item or ADR if the design finds a problem. Also out: `rag.go` (AI-8 maps the fields into citations) and the frontend.
 
 ## Acceptance criteria
-- [ ] AC1 — `/v1/search` hits include `version` (int) for every hit; `page` only when reliable (per the design's finding).
-- [ ] AC2 — Integration test on real pgvector (`db.yml`): a paper with v1 and v2 returns the right version per chunk, and a chunk with a stored `page_number` returns no `page` (no hit carries `page`; real chunk pages → ING-11). *(amended 2026-11-07, see Notes)*
-- [ ] AC3 — The ADR-0010 parity guard passes: the whole `tests/test_evals_data.py` file, plus `test_rrf_pool_sql_mirrors_search_go`, `test_adr0010_parity_pool_one_call_stable_ties_top5` and `test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets` run by node ID. Any allowed-difference change is shown in the PR. *(amended 2026-11-07, see Notes)*
-- [ ] AC4 — No change to ranking: the RRF arms are byte-identical (`git diff` shows only the outer SELECT and scan); `search_test.go` ordering tests pass unmodified.
-- [ ] AC5 — README `/v1/search` row updated. Diff < 400 lines.
+- [x] AC1 — `/v1/search` hits include `version` (int) for every hit; `page` only when reliable (per the design's finding).
+- [x] AC2 — Integration test on real pgvector (`db.yml`): a paper with v1 and v2 returns the right version per chunk, and a chunk with a stored `page_number` returns no `page` (no hit carries `page`; real chunk pages → ING-11b, the query side of ING-11). *(amended 2026-11-07, see Notes; ING-11 → ING-11b 2026-11-08)*
+- [x] AC3 — The ADR-0010 parity guard passes: the whole `tests/test_evals_data.py` file, plus `test_rrf_pool_sql_mirrors_search_go`, `test_adr0010_parity_pool_one_call_stable_ties_top5` and `test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets` run by node ID. Any allowed-difference change is shown in the PR. *(amended 2026-11-07, see Notes)*
+- [x] AC4 — No change to ranking: the RRF arms are byte-identical (`git diff` shows only the outer SELECT and scan); `search_test.go` ordering tests pass unmodified.
+- [x] AC5 — README `/v1/search` row updated. Diff < 400 lines.
 
 ## Verification
 ```bash
@@ -78,3 +78,10 @@ python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_
   All 6 checks green on `3bf5dab` (DB job 128681427063: `--- PASS: TestHNSWVectorHits`, `--- PASS: TestSearchProvenance`).
   `TestHNSW` RESULT rows: every generic, auto (production) and `hybridSearchSQL` row matches main `d3f9408` (job 128645946281) exactly. Custom-plan rows differ by <= 0.01 recall,
   and they also differ between `b1c5b9b` and `3bf5dab`, which have identical `search.go`, so this is run-to-run HNSW variation, not RET-2 (`vectorHitsSQL` unchanged, AC4 golden test).
+- 2026-11-08 (pm-lead, final review): **APPROVE** ([report](../reviews/RET-2/report.md) § PM verdict). QA PASS r1 at `3bf5dab`; all 6 CI checks green on merge `1a9ee6c`.
+  Fixed QA's `[spec]` finding 5: Status no longer says the build waits for #26 (merged `54cad79`), and AC2 now names ING-11b. QA nits, none blocking:
+  - Nit 1 (`search.go` `Page` comment names ING-11, not ING-11b): accurate in substance (the query side of ING-11). ING-11b's Scope already rewrites
+    this comment when it sets `Page`, so no RET-2 rework. Follow-up: ING-11b Scope (line added there).
+  - Nit 2 (PR body PRD ref): fixed by pm-lead in the rewritten PR description (QA-3, ING-7, §7 principle 3; Technical §5, §7.1; ADR-0014).
+  - Nit 3 (no NaN / `context.Canceled` rows in `TestSearchHitProvenanceTravelsWithHit`): all fallbacks share one return path and QA mutant M16
+    (fallback drops `Page`) is killed by the existing rows. Follow-up: add the two rows in ING-11b, which edits `search_provenance_test.go` anyway (Notes line added there).
