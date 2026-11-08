@@ -116,3 +116,42 @@ python3 -m pytest -q tests/test_m0.py -k rerank
     6. [ ] PR description: "does not fix F1; see ADR-0015 / AI-10".
   - Rework count: QA r1 FAIL = round 1 of 2 for this task.
 - 2026-11-07 11:00Z (pm-lead, grooming): #21 merged (`8406b18`), so only OPS-H10 remains. OPS-H10 is in cycle 11:00Z; the round-2 rework (rebase onto a `main` with OPS-H10, then AC1/AC4/AC5/AC6) starts after it merges. #24 stays draft.
+- 2026-11-08 08:00Z cycle (ai-engineer): **Round-2 rework** on #24 (still draft). Head `c32ec23` (merge `031963e` of
+  origin/main `d3f9408` + `94cb79c` + `c32ec23`). PR diff vs main: 3 files, +370/-9. `api.py` is unchanged this round.
+  1. [x] **Rebase onto main**, done as a *merge* of `origin/main` (`d3f9408`, includes OPS-H10 #26 and #21), so no
+     force-push. No conflicts. CI on `c32ec23`: Go, Python M0, Frontend, DB, Agent ownership check and Full stack all green.
+     Stack run [42461656086](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42461656086) (job 128672129558).
+     **AC1 numbers not retrieved yet:** the artifact `stack-logs` (id 13610397629) has `embedder-timing.log`
+     (888 bytes, per the step's `ls -l`), but the sandbox can't download artifacts (blob host refused by proxy), and the
+     job log doesn't print it (the step summary has it; the API doesn't expose summaries). 888 bytes is only ~3-4 lines, so
+     the log likely holds the `torch threads` line, the warm-up line and only 1-2 `rerank passages=` lines. Whoever can
+     fetch the artifact (QA/orchestrator) should paste p50/max from it. Runner-host numbers from the same run
+     (synthetic passages, the parity test in AC4 `make test-full`, *not* the container, so not AC1): threads=2,
+     tokenize 11.2-15.5 ms, forward 6764-6866 ms, total 6775-6877 ms per 20 pairs, padded_tokens 5328-5488 vs
+     single_batch 10240.
+  2. [x] **AC2**: parity passages now 1-45 sentences, four > 512 tokens (asserted ≥ 3 with the real tokenizer).
+     Stack run: `max_abs_diff=2.18e-10 / 1.19e-07 / 2.91e-10`, `truncated=4/20` on all 3 queries, ranking identical.
+  3. [x] **AC5**: README Environment table gets an `EMBEDDER_TORCH_THREADS (embedder API)` row. `RERANK_BATCH_SIZE` is a module
+     constant, not an env var, so it gets no row.
+  4. [x] **AC6**: the parity test checks the cache first with `huggingface_hub.try_to_load_from_cache` (no network). If the
+     model isn't cached it warns and then skips with "bge-reranker-base not in local HF cache"; otherwise it loads with
+     `local_files_only=True` and doesn't catch anything. ci.yml Python job 128672037689: log shows `UserWarning: AI-9 parity skipped: bge-reranker-base not in local HF cache`,
+     `127 passed, 2 skipped, 3 warnings in 5.39s` (r1: 59.86 s; baseline 5.76 s). The warning is there because
+     `make test-py` runs `-q` without `-rs`, which hides skip reasons. Stack: the test ran and passed (`156 passed, 1 skipped, 3 deselected` in AC4).
+     Fake-torch check: with the cache reporting "present" and `from_pretrained` raising `OSError`, the test FAILS (not skipped).
+  5. [x] **Missing tests** (mocked, no download): `load_models` warm-up runs (3 passages, `rerank warm-up passages=3` logged);
+     warm-up raises → start-up continues and logs the warning; cross-encoder load fails → early return, no warm-up,
+     bi-encoder kept; batch sizes 1/3/4/20/32 over 20 passages (remainder, exact multiple, = and > pool); a single
+     passage (score_pairs + endpoint); `_torch_threads` without `sched_getaffinity` (cpu_count 6 → 6, None → 1).
+     Local run (numpy **fake torch** harness in scratchpad, not committed): `-k rerank` 13 passed, 1 skipped. Mutations, each
+     killed: warm-up try/except removed → warm-up-failure test FAILS; early `return` removed → early-return test
+     FAILS; remainder batch dropped → 4 FAIL; cpu_count fallback → `return 1` → fallback test FAILS; write-back removed
+     (r1 AC3) → 7 FAIL. CI with real torch: green.
+  6. [ ] PR description: the orchestrator writes it. Wording I'd want: "This PR does **not** fix Known failure F1; it is the score-neutral,
+     instrumented step (timing log, `score_pairs` seam, thread setting, warm-up). Making F1 pass is AI-10, which needs ADR-0015."
+  - **AC4**: F1 step on run 42461656086 (unchanged step, `F1_TESTS` and timeouts): `2 failed, 1 passed in 29.84s`.
+    `test_rag_early_refusal_on_unrelated_query` and `test_hybrid_search_with_rrf_and_rerank` still `ReadTimeout (read timeout=10)`.
+    `test_rag_ask_with_groundedness_support` passed this time (r1: 3 failed). One run only, so don't read it as a fix. F1 is still
+    red, and the "Known failure F1" step stays.
+  - Not verified locally: real torch/transformers (PyPI and download.pytorch.org blocked), Go 1.25 (`make lint`/`test-go`), and the
+    full `make test-py` (needs BGE). CI is the source of truth for these. Jira KAN-39 not touched; the orchestrator mirrors it.
