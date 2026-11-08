@@ -31,6 +31,8 @@ Repeated `dlq replay --limit N` runs work through a DLQ of any size, each DLQ re
 - [ ] AC3 (OPS-H7 AC5): `TestReplayFilterKeepsSkippedEligible`: with mixed error types, `--error-type A` publishes only As, and the checkpoint stops at the first B.
   A run without the filter publishes only the Bs. Each record is published exactly once overall. `unreplayable` records (OPS-H7f rule) are resolved under any filter.
 - [ ] AC4 (OPS-H7 AC6): `TestReplayDryRun`: 0 `Publish`, 0 `MarkResolved`. Checkpoints are unchanged, and the output lists the would-be `P/O` and `event_id`, labelled `DRY RUN`.
+  The input includes OPS-H7f's unreplayable records (nil, `raw_value`-only, no key), and the test asserts the dry-run count equals a real run's `Publish` count on the
+  same input (OPS-H7f QA nit 5: mutant M14, "apply the rule only in real runs", must go red).
 - [ ] AC5 (OPS-H7 AC7, replay half): `--topic`, `--error-type`, `--limit` (counts published records) and `--dry-run` parse and reach `Replay` (`TestDLQFlags`).
 - [ ] AC6: Migration. `db.yml`'s migrate-twice step stays green with the two new tables in both snapshots. The down file drops them.
 - [ ] AC7: Postgres down / not migrated → `replay` fails before reading Kafka, with a message naming `arxivlens migrate` (unit test on the store error path).
@@ -50,3 +52,4 @@ DATABASE_URL=postgres://... KAFKA_BROKERS=localhost:9092 go test -tags integrati
 ## Notes
 - 2026-11-07 (pm-lead): part b of the OPS-H7 split. Interim risk: until OPS-H7c, two concurrent replays can double-publish (that's true today too).
   Full envelopes still dedupe in L2. OPS-H7c is the next task on these files.
+- 2026-11-08 (pm-lead): AC4 extended from OPS-H7f QA r2 nit 5. OPS-H7f's own tests can't catch a dry-run-only envelope rule (no publisher seam); `fakePublisher` here can.

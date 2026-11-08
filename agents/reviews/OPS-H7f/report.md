@@ -102,3 +102,36 @@ Unchanged from round 1. Replay can no longer publish an envelope with an empty `
 
 ### Hand-off
 PASS → pm-lead final review. No blocking findings remain. Nits 4 and 5 belong to OPS-H7c and OPS-H7a/b, and nit 6 is for pm-lead when raising the PR.
+
+---
+
+# PM review: OPS-H7f · PR #32 · head `6cd6ae4`
+
+**Verdict:** APPROVE · **Date:** 2026-11-08 · **Reviewer:** pm-lead
+**Inputs:** ticket `agents/tasks/OPS-H7f.md`; design `docs/design/OPS-H7.md` § Q5 + PM decision condition 1; Product PRD OPS-2, OPS-3, §5.3; Technical §4, §5, §8.2; QA r1 (FAIL, `0120d3d`) and r2 (PASS, `6cd6ae4`); PR #32 files via REST.
+
+### Evidence opened
+I opened all 11 round-2 images and their `.txt` files (`r2-00` … `r2-10`, pinned at `2ea3675`). Each PNG shows the *result* for its AC, not only the command:
+r2-00 (5/5 check runs success on `6cd6ae4`), r2-01 (go1.25.0, `go vet ./...`, `ok arxivlens/internal/dlq`), r2-02 (r1→r2 delta is test-only, 3 files, `Ownership OK … 221`, `gofmt` empty),
+r2-03 (16 table rows + 3 tests PASS on the PR's real sources, `cmp`-checked), r2-04 (13/14 mutants killed, M7/M8/M9 now red), r2-05 (control: rebuilt harness reproduces r1's 8/6 byte-for-byte),
+r2-06 (7/7 extra mutants killed), r2-07 (near-full probe: head PASS, M7/M8/M9 publish an empty ID), r2-08 (dry-run count = real count = publishes 3/3, 2/2, 0/0; skips logged with key/error_type/reason),
+r2-09 (5 flag combinations base vs head IDENTICAL), r2-10 (harness sources; its `exit code 1` is `diff` reporting the expected mutate.py/mutate_r2.py difference). I re-checked live: PR head `6cd6ae4`, 5/5 checks success, `mergeable_state: clean`, base `2b71772` = `main`.
+
+### Checks QA can't make
+1. **Product fit.** Meets Technical §8.2 and Product OPS-2/§5.3: replay can no longer publish `event_id: ""` (B1) or an all-empty envelope (B2), so the L2 ledger can't be keyed on `""`; unreplayable records are reported, not silently republished; full envelopes keep their `event_id` (OPS-3, killed by R5). An operator running `--dry-run` now sees the same count a real run publishes (§7 principle: no surprises in ops tools).
+2. **Design condition 1 (i)-(iv).** Read in the diff: (i) wrap needs a non-empty `OriginalKey` (`skipNoKey`); (ii) `raw_value`-only is unreplayable, `raw_value` + other keys is wrapped (M13 killed); (iii) every returned envelope has the three IDs (AC2 + M7/M8/M9 killed); (iv) the helper runs above `if !dryRun` and a skip `continue`s before `replayedCount++`.
+3. **Scope.** Exactly the three ticketed files in `internal/dlq/`; no shared contract, flag, README or CLI-output change beyond the new skip line, which the PR names. Size 221 vs the ~130 target (76 prod incl. doc comments, 145 test); the overrun is test rows that QA asked for. Under 400, accepted.
+4. **AC coverage.** AC1-AC5 all have result-bearing evidence; no ⚠ left on anything that matters. The two "not verified" items (Go 1.25 `-race -v` run; real Kafka) are covered by CI's plain `go test ./...` and by OPS-H7c AC3 respectively.
+5. **Docs.** No README/CONTRIBUTING change needed (no flag or command change; README is held by #26 anyway). PRD status: OPS-2 should read ◐ until OPS-H7c (design condition 7); that pm-lead docs PR is still owed and is now a board Backlog line. This PR doesn't change it.
+
+### Observation (not blocking)
+- Old code logged and skipped a record whose `original_value` failed `json.Marshal`; new code falls through to the wrap path. `original_value` is a `map[string]any` decoded from JSON, so `Marshal` can't fail in practice. No action.
+
+### QA open items, dispositioned
+- Nit 4 (all IDs present but a mistyped non-ID field → fresh `event_id`) → note added to `agents/tasks/OPS-H7c.md` (its deterministic-ID AC2 must cover row `b_envelope_with_wrong_field_type`, and its PR must name the case).
+- Nit 5 (M14: dry-run-only rule not caught by the PR's tests) → `agents/tasks/OPS-H7b.md` AC4 extended: `TestReplayDryRun` includes OPS-H7f unreplayable records and asserts dry-run count = real-run publishes (M14 must go red). OPS-H7b owns `fakePublisher`; OPS-H7a has no publisher seam.
+- Nit 6 (PR body cites CI on `0120d3d`) → fixed in the PR #32 description rewrite (CI on `6cd6ae4`, evidence pinned at `2ea3675`).
+- Finding 7 `[spec]` (one mutant per conjunct) → pm-lead lesson added; template change proposed there, no rules PR opened.
+
+### Hand-off
+APPROVE → PR #32 description rewritten with the Evidence section and marked ready for review. Merge is Mahesh's. OPS-H7a still waits for **OPS-H7f merged and #26 merged**.

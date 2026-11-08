@@ -47,3 +47,7 @@ make stack-up && ./bin/arxivlens migrate && make test-full
 
 ## Notes
 - 2026-11-07 (pm-lead): part c of the OPS-H7 split. When it merges, OPS-H7 is Done and Product PRD OPS-2 goes back to ✅ (pm-lead docs PR).
+- 2026-11-08 (pm-lead, from OPS-H7f QA r2 nit 4): an `original_value` with all three IDs but a wrongly typed non-ID field (e.g. `"version":"2"`) fails `Unmarshal`
+  and goes down the wrap path, so it gets a **new** `event_id` (OPS-H7f row `b_envelope_with_wrong_field_type`). Here AC2 must cover that row with the
+  deterministic ULID (stable across replays), and the PR description must name the case: its original `event_id` is not kept, so L2 won't dedupe it against the first attempt.
+  Don't add lenient parsing to keep the ID without a design note.

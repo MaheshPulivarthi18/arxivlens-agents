@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (merged). Design: `docs/design/OPS-H7.md` § Q5 table + PM decision condition 1 (approved 2026-11-07) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7f`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | no (covered by the approved OPS-H7 design) |
-| **Status** | In QA, [PR #32](https://github.com/MaheshPulivarthi18/ArxivLens/pull/32) (draft, head `0120d3d`) |
+| **Status** | Ready to merge, [PR #32](https://github.com/MaheshPulivarthi18/ArxivLens/pull/32) @ `6cd6ae4` (QA FAIL r1 → PASS r2 · PM APPROVE 2026-11-08) |
 
 ## Goal
 `arxivlens dlq replay` today rebuilds the envelope with `json.Unmarshal` into `EventEnvelope` (`internal/dlq/manager.go:114-117`, `origin/main` `2b71772`).
@@ -26,20 +26,20 @@ replay publishes must be well-formed, and anything that can't be replayed must b
 - Size target: ~130 changed lines (≈ 35 prod, ≈ 95 test).
 
 ## Acceptance criteria
-- [ ] AC1: Envelope rule. A table-driven test of the helper covers every row:
+- [x] AC1: Envelope rule. A table-driven test of the helper covers every row:
   (a) `original_value` is a full envelope (`event_id`, `event_type`, `paper_id` all non-empty) → that envelope, **same `event_id`**, `Attempt = 0`, `Traceparent` = the DLQ payload's.
   (b) A non-empty object that is not a full envelope (e.g. `{"arxiv_id": "2401.00001", "version": 1}`, and the partial `{"event_id": "x"}`) with a non-empty
   `OriginalKey` → `NewEventEnvelope(target, OriginalKey, 1, value)`: `ulid.Parse(event_id)` succeeds, `event_type = target`, `paper_id = OriginalKey`, `payload = value`.
   (c) Unreplayable, nothing returned: nil `original_value` (B2), `{}`, an object whose only key is `raw_value` (`services/common/kafka_client.py:80`),
   and case (b) with an empty `OriginalKey`. Each comes with a distinct, human-readable skip reason.
-- [ ] AC2: No empty IDs. One test asserts the property over all AC1 inputs: every envelope the helper returns has non-empty `event_id`, `event_type` and `paper_id`.
-- [ ] AC3: `Replay` uses the helper in dry-run and real mode alike. A skipped record is logged with `key`, `error_type` and the reason, is **not** published, and
+- [x] AC2: No empty IDs. One test asserts the property over all AC1 inputs: every envelope the helper returns has non-empty `event_id`, `event_type` and `paper_id`.
+- [x] AC3: `Replay` uses the helper in dry-run and real mode alike. A skipped record is logged with `key`, `error_type` and the reason, is **not** published, and
   is **not** counted, so a dry-run's count equals what a real run publishes. Shown by the diff plus a log-line test or a review note citing the line.
   `Replay`'s producer can't be injected today, so don't add an injection seam just for this AC; that is OPS-H7a/b's job.
-- [ ] AC4: Mutation check (QA runs it). Revert the full-envelope guard to today's plain `Unmarshal`: AC1 (b) and AC2 go red. Drop the `raw_value`
+- [x] AC4: Mutation check (QA runs it). Revert the full-envelope guard to today's plain `Unmarshal`: AC1 (b) and AC2 go red. Drop the `raw_value`
   case: AC1 (c) goes red.
-- [ ] AC5: Existing flags (`--topic`, `--error-type`, `--limit`, `--dry-run`) behave as before for full-envelope records.
-- [ ] Docs: the PR description lists the behaviour change ("unreplayable DLQ records are now skipped and logged, not republished empty").
+- [x] AC5: Existing flags (`--topic`, `--error-type`, `--limit`, `--dry-run`) behave as before for full-envelope records.
+- [x] Docs: the PR description lists the behaviour change ("unreplayable DLQ records are now skipped and logged, not republished empty").
 
 ## Verification
 ```bash
@@ -60,3 +60,7 @@ CI (`ci.yml`) is the source of truth. "not run locally: Go 1.25 unavailable" is 
   `continue`s before `replayedCount++`, plus `TestReplaySkipLine`. AC4 is QA's mutation check. Not run locally: sandbox Go is 1.24.7 and proxy.golang.org module
   downloads are blocked; `gofmt -l internal/` printed nothing; ownership check OK. CI on `0120d3d`: all 5 check runs success (Go job: go1.25.0, `go vet ./...`, `ok arxivlens/internal/dlq`).
   Jira story still to be created (child of KAN-31); the PR says "story pending".
+- 2026-11-08 (pm-lead): QA r1 FAIL at `0120d3d` (single-conjunct mutants M7/M8/M9 survived); rework `6cd6ae4` is test-only (+26/-4) and QA r2 PASSed
+  (13/14 mutants killed, 7/7 extra). PM APPROVE: all ACs checked off against the r2 evidence ([report](../reviews/OPS-H7f/report.md), evidence pinned at `2ea3675`).
+  Size 221 changed lines vs ~130 (test rows); accepted. QA nit 4 → OPS-H7c Notes; nit 5 (M14) → OPS-H7b AC4; nit 6 → PR body refreshed to `6cd6ae4`.
+  PR #32 raised for review. Jira story is still to be created (orchestrator).

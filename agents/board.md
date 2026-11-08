@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-07 21:00Z by orchestrator (cycle 19:59Z: OPS-H8 part a #30 and ING-10 #31 → Ready to merge; RET-2 design approved (build waits for #26 merge, README); new ING-10 KAN-54, ING-11 KAN-55)
+Last updated: 2026-11-08 by pm-lead (OPS-H7f PM APPROVE, PR #32 → Ready to merge)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
@@ -25,8 +25,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 |---|---|---|---|---|
 | [AI-11](tasks/AI-11.md) | `TokenChunker` emits `page_start` from `page_breaks` (fail-safe: unknown, never guessed); AC1 end-to-end on ING-11's fixture | ai-engineer | P1 | **ING-11 merged** (its test file is in `make test-py`; `tests/test_m0.py` is held by #24) |
 | [ING-11b](tasks/ING-11b.md) | Part b (consumer): `/v1/search` returns `page` from `paper_chunk_pages`; parity fragment; README; real-stack write check | backend-engineer | P1 | **AI-11 + RET-2 merged** |
-| [OPS-H7f](tasks/OPS-H7f.md) | DLQ replay never publishes an empty/unreplayable envelope (B1/B2 fix; OPS-H7 part 1 of 4) | backend-engineer | P1 | OPS-H6 (Done). Touches no open-PR file: **can start now** |
-| [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to start-time high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | OPS-H7f merged, #26 merged (README; sequence with RET-2) |
+| [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to start-time high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | **OPS-H7f merged** (#32 is Ready to merge, not merged) + **#26 merged** (README; sequence with RET-2) |
 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: Postgres checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a merged |
 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs for raw payloads, stack replay run (OPS-H7 part 4; closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged, #26 merged (`stack.yml`) |
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 (merged) |
@@ -53,6 +52,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (transport errors carry no server bytes; no redirects) | backend-engineer | ArxivLens [#27](https://github.com/MaheshPulivarthi18/ArxivLens/pull/27) (KAN-47) · no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/LLM-1b/report.md)) |
 | [OPS-H10](tasks/OPS-H10.md) | `stack.yml` runs on Go/`tests/` PRs and keeps service logs on every run | backend-engineer | ArxivLens [#26](https://github.com/MaheshPulivarthi18/ArxivLens/pull/26) (KAN-50) · **human checks:** open artifact 13579885920, view step summary, delete scratch branch `agent/backend/OPS-H10-ac3` | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/OPS-H10/report.md)); unblocks AI-9 AC1 |
 | [ING-11](tasks/ING-11.md) | Part a (producer): `page_breaks` in the processor, `paper_chunk_pages` table (migration 000003), `db.py` writes it in the processor transaction (nothing reads it yet) | backend-engineer | ArxivLens [#33](https://github.com/MaheshPulivarthi18/ArxivLens/pull/33) (KAN-55) @ `3f1c32d` · no file overlap with open PRs · backfill of the existing corpus is Mahesh's call (PR body) | QA PASS r1 · PM APPROVE ([report](reviews/ING-11/report.md)); AI-11 starts after merge |
+| [OPS-H7f](tasks/OPS-H7f.md) | DLQ replay never publishes an empty/unreplayable envelope (B1/B2; OPS-H7 part 1 of 4) | backend-engineer | ArxivLens [#32](https://github.com/MaheshPulivarthi18/ArxivLens/pull/32) @ `6cd6ae4` · `internal/dlq/` only, no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/OPS-H7f/report.md)); OPS-H7a starts after this + #26 merge |
 | [AI-6](tasks/AI-6.md) | Context selection, token budget, synthesis prompt in `rag.go` (not yet called; parser → AI-6b) | ai-engineer | ArxivLens [#28](https://github.com/MaheshPulivarthi18/ArxivLens/pull/28) (KAN-38) · no file overlap with open PRs | QA FAIL r1 (PR text) → PASS r2 · PM APPROVE ([report](reviews/AI-6/report.md)); AI-6b (KAN-52) starts after merge |
 | [EVAL-7](tasks/EVAL-7.md) | Blind human-review sheet → citation precision, claim correctness (report-only) | ai-engineer | ArxivLens [#29](https://github.com/MaheshPulivarthi18/ArxivLens/pull/29) (KAN-42) · no file overlap with open PRs · first real judging session is Mahesh's | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/EVAL-7/report.md)) |
 
@@ -71,6 +71,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- pm-lead docs PR (OPS-H7 design condition 7): Product PRD OPS-2 ✅ → ◐ (`dlq list` doesn't reach the end; replay repeats the head) until OPS-H7c merges. Still owed; OPS-H7f doesn't change it.
 - From ING-11 QA finding 3 (backend, P3, one line, after #26 merges; fold into the first backend PR that starts then, ING-11b is the backstop): `CONTRIBUTING.md:23` `make test-unit` row lists the `test-py` pytest files and misses `tests/test_processor_pages.py` (#33)
 - From the OPS-H8 QA/PM review (backend, P3, after #26 merges): `stack.yml` passes `PYTEST_ARGS=-rA` to `make test-full` so the log names each test (AC evidence today needs a dot-position map)
 - PR-body image embeds: an outbound filter in the agent environment rewrites `![](…)` into backticked links and swaps the footer, so evidence images don't render inline in PR descriptions (#26–#31). Pinned URLs still work. Mahesh: check whether this is expected
