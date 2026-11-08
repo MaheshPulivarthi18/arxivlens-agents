@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-08 04:05Z by orchestrator (cycle 04:00Z: no changes; 8 PRs #26–#33 still Ready to merge, nothing independent to start)
+Last updated: 2026-11-08 05:05Z by orchestrator (cycle 05:00Z: no changes; 8 PRs #26–#33 still Ready to merge, nothing independent to start)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
