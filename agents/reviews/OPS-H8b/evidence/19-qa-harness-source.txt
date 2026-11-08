@@ -1,0 +1,179 @@
+$ bash -c for f in /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/harness/mutate.py /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/harness/probe.py /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs/confluent_kafka/__init__.py /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs/ulid/__init__.py; do echo "===== $f"; cat $f; done
+===== /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/harness/mutate.py
+"""QA OPS-H8b local mutation probe. Each mutant = one exact text replacement in services/common/kafka_client.py,
+applied in a fresh copy of the PR head (never pushed). Runs tests/test_kafka_client.py + tests/test_worker_heartbeat.py
+with stubbed confluent_kafka/ulid. KILLED = >=1 test failed; SURVIVED = all passed; INVALID = replacement not found
+or import/collection error."""
+import os, shutil, subprocess, sys, tempfile
+HEAD, STUBS = sys.argv[1], sys.argv[2]
+F = "services/common/kafka_client.py"
+M = [
+ ("M01 handler: drop `self._stop.is_set() or` (AC6b)",
+  "if self._stop.is_set() or (attempt < max_attempts and self._wait(", "if (attempt < max_attempts and self._wait("),
+ ("M02 handler: drop `attempt < max_attempts and` (extra wait after last attempt)",
+  "(attempt < max_attempts and self._wait(", "(self._wait("),
+ ("M03 poison: commit even if the DLQ write never landed (L4 on poison path)",
+  "                    if not self._dead_letter(msg, e, 1, traceparent):\n                        break\n",
+  "                    self._dead_letter(msg, e, 1, traceparent)\n"),
+ ("M04 poison: 3 attempts instead of 1",
+  "self._dead_letter(msg, e, 1, traceparent)", "self._dead_letter(msg, e, 3, traceparent)"),
+ ("M05 poison: log the exception text, not its type",
+  'logger.error(f"Undecodable record ({self._coords(msg)}): {type(e).__name__}")', 'logger.error(f"Undecodable record ({self._coords(msg)}): {e}")'),
+ ("M06 handler warning: log `{e}` instead of the type",
+  "for key={envelope.paper_id}: {type(e).__name__}", "for key={envelope.paper_id}: {e}"),
+ ("M07 _dead_letter: return True on stop (commit after stop)",
+  "                if self._wait(self._dlq_backoff(rnd)):\n                    return False",
+  "                if self._wait(self._dlq_backoff(rnd)):\n                    return True"),
+ ("M08 _commit: catch Exception, not only KafkaException",
+  "except KafkaException as e:  # never treated", "except Exception as e:  # never treated"),
+ ("M09 _commit: re-raise KafkaException (old behaviour: worker dies)",
+  '; the record will be redelivered")', '; the record will be redelivered")\n            raise'),
+ ("M10 signals: never restore the previous handlers",
+  "                signal.signal(sig, old if old is not None else signal.SIG_DFL)", "                pass"),
+ ("M11 signals: second signal does not force-stop",
+  "            raise KeyboardInterrupt  # second signal", "            return  # second signal"),
+ ("M12 signals: install SIGTERM only (SIGINT not graceful)",
+  "for sig in (signal.SIGTERM, signal.SIGINT):", "for sig in (signal.SIGTERM,):"),
+ ("M13 signals: install even off the main thread (drop main-thread guard)",
+  "if threading.current_thread() is threading.main_thread():", "if True:"),
+ ("M14 DLQ traceparent: header only on the handler path (answer 5)",
+  "max_attempts, envelope.traceparent)", "max_attempts, traceparent)"),
+ ("M15 build_dlq_payload: drop non-dict guard",
+  "            if not isinstance(orig_val, dict):  # DLQPayload.original_value is a dict\n", "            if orig_val is None:\n"),
+ ("M16 build_dlq_payload: strict key decode (non-UTF-8 key)",
+  'original_msg.key().decode("utf-8", errors="replace")', 'original_msg.key().decode("utf-8")'),
+ ("M17 DLQ backoff cap 60 instead of 30",
+  "min(1 << (rnd - 1), 30)", "min(1 << (rnd - 1), 60)"),
+ ("M18 CRITICAL line without round",
+  "dlq_topic={dlq_topic} round={rnd}):", "dlq_topic={dlq_topic}):"),
+ ("M19 poll loop ignores stop flag between records (stop only via wait)",
+  "            while not self._stop.is_set():", "            while not (self._stop.is_set() and False):"),
+ ("M20 build payload per round (not once)",
+  "        for rnd in itertools.count(1):\n            try:\n                self.producer.send_dlq(dlq_topic, payload)",
+  "        for rnd in itertools.count(1):\n            try:\n                payload = self.producer.build_dlq_payload(dlq_topic, msg, error, self.group_id, attempts, traceparent)\n                self.producer.send_dlq(dlq_topic, payload)"),
+]
+env = dict(os.environ, PYTHONPATH=f"{STUBS}:" + "{root}", PYTHONDONTWRITEBYTECODE="1")
+def run(root):
+    import re
+    e = dict(env, PYTHONPATH=env["PYTHONPATH"].format(root=root))
+    try:
+        p = subprocess.run([sys.executable, "-m", "pytest", "-q", "-rf", "-p", "no:cacheprovider", "--tb=no",
+                            f"--rootdir={root}", f"{root}/tests/test_kafka_client.py", f"{root}/tests/test_worker_heartbeat.py"],
+                           cwd=tempfile.gettempdir(), env=e, capture_output=True, text=True, timeout=60)
+        out = p.stdout + p.stderr
+    except subprocess.TimeoutExpired:
+        return "KILLED", "timeout after 60 s: start() never returns (hang)"
+    summ = [l.strip("= ") for l in out.splitlines() if re.search(r"\d+ (passed|failed|error)", l) and " in " in l]
+    if not summ or ("error" in summ[-1] and "failed" not in summ[-1]):
+        return "INVALID", (summ or ["no pytest summary"])[-1]
+    failed = [l.split(" - ")[0].replace("FAILED ", "").split("::")[-1] for l in out.splitlines() if l.startswith("FAILED")]
+    return ("KILLED" if p.returncode else "SURVIVED"), summ[-1] + ("  <- " + ", ".join(failed[:5]) + (" ..." if len(failed) > 5 else "") if failed else "")
+base = tempfile.mkdtemp(prefix="qa-h8b-")
+ctl = os.path.join(base, "control"); shutil.copytree(HEAD, ctl, ignore=shutil.ignore_patterns(".git", "frontend", "node_modules"))
+print("CONTROL (unmutated head):", run(ctl)[1])
+for name, old, new in M:
+    d = os.path.join(base, name.split()[0]); shutil.copytree(ctl, d)
+    src = open(os.path.join(d, F)).read()
+    if src.count(old) != 1:
+        print(f"INVALID  {name}: pattern found {src.count(old)}x"); continue
+    open(os.path.join(d, F), "w").write(src.replace(old, new))
+    v, info = run(d)
+    print(f"{v:8} {name}\n         {info}")
+===== /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/harness/probe.py
+"""QA OPS-H8b behaviour probe. Usage: probe.py <root> <stubs>. Imports kafka_client and the PR's own test fakes from <root>
+(the PR head, or a mutant copy) and prints one line per probe. Not a test the PR ships; QA evidence only."""
+import os, signal, sys, threading, time
+root, stubs = sys.argv[1], sys.argv[2]
+sys.path[:0] = [stubs, root, os.path.join(root, "tests")]
+import logging; logging.disable(logging.CRITICAL)
+from confluent_kafka import KafkaException
+import test_kafka_client as t
+from services.common import kafka_client as kc
+
+def commits(log): return [e[1] for e in log if e[0] == "commit"]
+def out(name, s): print(f"{name:<44} {s}")
+
+# P1 (M03): poison record, DLQ never confirms, stop during the 2nd DLQ wait -> must not commit @5
+c, log, _ = t.make([t.FakeMsg(5, value=b"not json"), t.FakeMsg(6)], dlq=["err"], stop_after_waits=2)
+c.start(t.handler_failing({}, {}))
+out("P1 poison + DLQ down + stop", f"commits={commits(log)} produces={sum(e[0]=='produce' for e in log)}")
+
+# P2 (M08): commit raises a non-Kafka error -> AC1 'only KafkaException is caught': must propagate
+class Boom(t.FakeConsumer):
+    def commit(self, message, asynchronous): raise RuntimeError("not a KafkaException")
+log = []
+c = kc.ServiceKafkaConsumer("g", [t.TOPIC], brokers="x", consumer=Boom([t.FakeMsg(5), t.FakeMsg(6)], log),
+                            producer=kc.ServiceKafkaProducer("x", producer=t.FakeProducer(["ok"], log)))
+c.consumer.owner = c
+seen = []
+try:
+    c.start(lambda env, msg: seen.append(msg.offset())); r = "swallowed"
+except RuntimeError: r = "propagated"
+out("P2 commit raises RuntimeError", f"{r}; handled={seen}")
+
+# P3 (M12): SIGINT handler while start runs
+c, log, _ = t.make([t.FakeMsg(5)]); got = {}
+c.start(lambda env, msg: got.update(term=signal.getsignal(signal.SIGTERM) == c._on_signal, int=signal.getsignal(signal.SIGINT) == c._on_signal))
+out("P3 graceful handler installed", f"SIGTERM={got['term']} SIGINT={got['int']}")
+
+# P4 (M13): start() called from a non-main thread
+c, log, _ = t.make([t.FakeMsg(5)]); res = {}
+def run():
+    try: c.start(t.handler_failing({}, {})); res["r"] = f"ok commits={commits(log)}"
+    except Exception as e: res["r"] = f"raised {type(e).__name__}"
+th = threading.Thread(target=run); th.start(); th.join(5)
+out("P4 start() off the main thread", res.get("r"))
+
+# P5 (M16): poison record with a non-UTF-8 key (design §2 'non-UTF-8 key' shape)
+class BadKey(t.FakeMsg):
+    def key(self): return b"\xff\xfe"
+c, log, _ = t.make([BadKey(5, value=b"not json"), t.FakeMsg(6)])
+try:
+    c.start(t.handler_failing({}, {}))
+    out("P5 poison + non-UTF-8 key", f"returned; commits={commits(log)} key={c.producer.producer.sent[0][0]['original_key']!r}")
+except Exception as e:
+    out("P5 poison + non-UTF-8 key", f"start raised {type(e).__name__} (worker crash; commits={commits(log)})")
+
+# P6 (M20): build once -> DLQ err, err, ok: how many payloads were built, and does failed_at change?
+c, log, _ = t.make([t.FakeMsg(5)], dlq=["err", "err", "ok"]); built = []
+orig = c.producer.build_dlq_payload
+def counting(*a, **k):
+    p = orig(*a, **k); built.append(p.failed_at); time.sleep(0.002); return p
+c.producer.build_dlq_payload = counting
+c.start(t.failing_at(5, {}))
+out("P6 DLQ err,err,ok: payload builds", f"{len(built)}; distinct failed_at={len(set(built))}")
+
+# P7 (head behaviour): a REAL SIGTERM (os.kill) during a 5 s handler-retry wait on the main thread
+before = signal.getsignal(signal.SIGTERM)
+c, log, _ = t.make([t.FakeMsg(5)]); c._wait = c._stop.wait; c._handler_backoff = lambda a: 5.0
+threading.Timer(0.05, os.kill, (os.getpid(), signal.SIGTERM)).start()
+t0 = time.monotonic(); c.start(t.failing_at(5, {})); dt = time.monotonic() - t0
+out("P7 real SIGTERM in 5 s wait", f"returned in {dt:.3f}s log={log} restored={signal.getsignal(signal.SIGTERM) is before}")
+
+# P8 (head behaviour): two REAL SIGTERMs while the handler is still running -> forced stop, no commit, consumer closed
+c, log, _ = t.make([t.FakeMsg(5), t.FakeMsg(6)]); n = []
+def slow(env, msg):
+    n.append(msg.offset()); os.kill(os.getpid(), signal.SIGTERM); time.sleep(0.01); os.kill(os.getpid(), signal.SIGTERM); time.sleep(0.05)
+c.start(slow)
+out("P8 two real SIGTERMs mid-handler", f"handled={n} log={log} restored={signal.getsignal(signal.SIGTERM) is before}")
+===== /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs/confluent_kafka/__init__.py
+"""QA stub of confluent_kafka (PyPI unreachable in the sandbox). Only names kafka_client imports; tests inject fakes."""
+class KafkaException(Exception):
+    pass
+class KafkaError:
+    _PARTITION_EOF = -191
+class Message:
+    pass
+class Consumer:
+    def __init__(self, conf): raise RuntimeError("stub: real Consumer not available")
+class Producer:
+    def __init__(self, conf): self.conf = conf
+    def __getitem__(self, k): return self.conf[k]
+===== /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs/ulid/__init__.py
+"""QA stub of ulid-py: ulid.new() returns a unique string-able id."""
+import itertools, os
+_c = itertools.count()
+def new():
+    return "01QA%022d" % (next(_c) + int.from_bytes(os.urandom(4), "big"))
+
+[exit code 0]

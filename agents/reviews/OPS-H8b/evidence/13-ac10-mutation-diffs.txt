@@ -1,0 +1,25 @@
+$ bash -c for c in a76026f 60bf3c2 bd342eb; do echo "== $c $(git log -1 --format=%s $c)"; git show --format= --name-only $c; git diff $c~1 $c | grep -E '^[+-][^+-]'; done; for c in ff1bd48 fba3294 3fd4ece; do git diff --quiet f357f15 $c && echo "$c tree == f357f15"; done
+== a76026f mutation(AC10a): commit after a failed DLQ write
+services/common/kafka_client.py
+-                if stopped or (not success and not self._dead_letter(msg, last_err, max_attempts, envelope.traceparent)):
++                if stopped:
++                    break
++                if not success and not self._dead_letter(msg, last_err, max_attempts, envelope.traceparent):
++                    self._commit(msg)
+== 60bf3c2 mutation(AC10b): bare flush, delivery not confirmed
+services/common/kafka_client.py
+-        if "err" not in outcome:
+-            raise DeliveryError(f"delivery to {topic} not confirmed within {self.delivery_timeout_s}s")
+-        if outcome["err"] is not None:
+-            raise DeliveryError(f"delivery to {topic} failed: {outcome['err']}")
++        pass
+== bd342eb mutation(AC10c): time.sleep in the handler-retry wait
+services/common/kafka_client.py
++import time
+-                        if self._stop.is_set() or (attempt < max_attempts and self._wait(self._handler_backoff(attempt))):
++                        if self._stop.is_set() or (attempt < max_attempts and time.sleep(self._handler_backoff(attempt))):
+ff1bd48 tree == f357f15
+fba3294 tree == f357f15
+3fd4ece tree == f357f15
+
+[exit code 0]

@@ -1,0 +1,12 @@
+$ bash -c echo '$ git diff --stat d3f9408 3fd4ece'; git diff --stat d3f9408 3fd4ece; echo '$ git diff --quiet d3f9408 3fd4ece -- tests/test_worker_heartbeat.py services/processor services/embedder shared .github Makefile docker-compose.yml'; git diff --quiet d3f9408 3fd4ece -- tests/test_worker_heartbeat.py services/processor services/embedder shared .github Makefile docker-compose.yml && echo 'unchanged (exit 0)'; echo '$ git diff --quiet 3fd4ece origin/main -- services tests  (origin/main = squash-merge 9651294)'; git diff --quiet 3fd4ece origin/main -- services tests && echo 'identical (exit 0)'; PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs:/root/wt/qa-OPS-H8b python3 -m pytest -p no:cacheprovider -q tests/test_worker_heartbeat.py 2>&1 | tail -1
+$ git diff --stat d3f9408 3fd4ece
+ services/common/kafka_client.py |  96 ++++++++++++-----
+ tests/test_kafka_client.py      | 224 ++++++++++++++++++++++++++++++++--------
+ 2 files changed, 255 insertions(+), 65 deletions(-)
+$ git diff --quiet d3f9408 3fd4ece -- tests/test_worker_heartbeat.py services/processor services/embedder shared .github Makefile docker-compose.yml
+unchanged (exit 0)
+$ git diff --quiet 3fd4ece origin/main -- services tests  (origin/main = squash-merge 9651294)
+identical (exit 0)
+6 passed in 0.08s
+
+[exit code 0]

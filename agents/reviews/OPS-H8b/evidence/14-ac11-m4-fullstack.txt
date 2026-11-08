@@ -1,0 +1,14 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/128678440243/logs | sed -n '2896,2901p;4332,4337p' | cut -c30-230
+##[endgroup]
+python3 -m pytest -q tests/ --deselect tests/test_m3_query.py::test_rag_ask_with_groundedness_support --deselect tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query --deselect tests/test_m3_query.py::test_hybrid_sear
+.......................................................s................ [ 43%]
+........................................................................ [ 87%]
+....................                                                     [100%]
+163 passed, 1 skipped, 3 deselected in 9.37s
+FAILED tests/test_m3_query.py::test_rag_ask_with_groundedness_support - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+FAILED tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+3 failed in 30.54s
+make: *** [Makefile:55: test-full] Error 1
+##[error]Process completed with exit code 2.
+

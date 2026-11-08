@@ -1,0 +1,44 @@
+$ bash -c python3 -I /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/harness/mutate.py /root/wt/qa-OPS-H8b /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs 2>&1
+CONTROL (unmutated head): 43 passed in 0.25s
+KILLED   M01 handler: drop `self._stop.is_set() or` (AC6b)
+         2 failed, 41 passed in 0.22s  <- test_stop_during_last_attempt_is_not_a_failure[3-want_waits0], test_stop_during_last_attempt_is_not_a_failure[1-want_waits1]
+KILLED   M02 handler: drop `attempt < max_attempts and` (extra wait after last attempt)
+         7 failed, 36 passed in 0.24s  <- test_confirmed_dlq_write_then_commit[header], test_confirmed_dlq_write_then_commit[envelope], test_unconfirmed_dlq_write_stops_before_commit[err], test_unconfirmed_dlq_write_stops_before_commit[queued], test_unconfirmed_dlq_write_stops_before_commit[raise] ...
+SURVIVED M03 poison: commit even if the DLQ write never landed (L4 on poison path)
+         43 passed in 0.25s
+KILLED   M04 poison: 3 attempts instead of 1
+         3 failed, 40 passed in 0.23s  <- test_poison_record_goes_to_dlq_and_loop_continues[not json-want0], test_poison_record_goes_to_dlq_and_loop_continues[{"event_id": "x"}-want1], test_poison_record_goes_to_dlq_and_loop_continues[[1, 2]-want2]
+KILLED   M05 poison: log the exception text, not its type
+         1 failed, 42 passed in 0.22s  <- test_dlq_failure_log_has_coordinates_not_value[True]
+KILLED   M06 handler warning: log `{e}` instead of the type
+         1 failed, 42 passed in 0.21s  <- test_dlq_failure_log_has_coordinates_not_value[False]
+KILLED   M07 _dead_letter: return True on stop (commit after stop)
+         6 failed, 37 passed in 0.23s  <- test_unconfirmed_dlq_write_stops_before_commit[err], test_unconfirmed_dlq_write_stops_before_commit[queued], test_unconfirmed_dlq_write_stops_before_commit[raise], test_unconfirmed_dlq_write_stops_before_commit[raise-kafka], test_failing_publish_in_handler_is_retried[err] ...
+SURVIVED M08 _commit: catch Exception, not only KafkaException
+         43 passed in 0.23s
+KILLED   M09 _commit: re-raise KafkaException (old behaviour: worker dies)
+         1 failed, 42 passed in 0.24s  <- test_commit_error_is_logged_and_loop_continues
+KILLED   M10 signals: never restore the previous handlers
+         1 failed, 42 passed in 0.27s  <- test_signal_handler_sets_stop_and_is_restored
+KILLED   M11 signals: second signal does not force-stop
+         1 failed, 42 passed in 0.24s  <- test_signal_handler_sets_stop_and_is_restored
+SURVIVED M12 signals: install SIGTERM only (SIGINT not graceful)
+         43 passed in 0.22s
+SURVIVED M13 signals: install even off the main thread (drop main-thread guard)
+         43 passed in 0.21s
+KILLED   M14 DLQ traceparent: header only on the handler path (answer 5)
+         1 failed, 42 passed in 0.24s  <- test_confirmed_dlq_write_then_commit[envelope]
+KILLED   M15 build_dlq_payload: drop non-dict guard
+         1 failed, 42 passed in 0.20s  <- test_poison_record_goes_to_dlq_and_loop_continues[[1, 2]-want2]
+SURVIVED M16 build_dlq_payload: strict key decode (non-UTF-8 key)
+         43 passed in 0.22s
+KILLED   M17 DLQ backoff cap 60 instead of 30
+         1 failed, 42 passed in 0.21s  <- test_dlq_backoff_schedule
+KILLED   M18 CRITICAL line without round
+         2 failed, 41 passed in 0.24s  <- test_dlq_failure_log_has_coordinates_not_value[False], test_dlq_failure_log_has_coordinates_not_value[True]
+KILLED   M19 poll loop ignores stop flag between records (stop only via wait)
+         timeout after 60 s: start() never returns (hang)
+SURVIVED M20 build payload per round (not once)
+         43 passed in 0.23s
+
+[exit code 0]

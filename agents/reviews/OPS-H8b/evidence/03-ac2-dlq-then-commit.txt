@@ -1,0 +1,6 @@
+$ bash -c PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs:/root/wt/qa-OPS-H8b python3 -m pytest -p no:cacheprovider -v tests/test_kafka_client.py -k 'test_confirmed_dlq_write_then_commit' 2>&1 | grep -E '::|passed|failed'
+tests/test_kafka_client.py::test_confirmed_dlq_write_then_commit[header] PASSED [ 50%]
+tests/test_kafka_client.py::test_confirmed_dlq_write_then_commit[envelope] PASSED [100%]
+======================= 2 passed, 35 deselected in 0.09s =======================
+
+[exit code 0]

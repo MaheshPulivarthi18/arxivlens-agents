@@ -1,0 +1,14 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/34 --jq '"state=\(.state) merged=\(.merged) merged_at=\(.merged_at) head=\(.head.sha)"'; echo '$ <body> | grep -niwE "behaviou?r|stalls?|CRITICAL|was:"   (whole words)'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/34 --jq .body | grep -niwE 'behaviou?r|stalls?|CRITICAL|was:'; echo "grep exit code: $? (1 = no match)"; echo '--- body headings:'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/34 --jq .body | grep -n '^#'
+state=closed merged=true merged_at=2026-11-08T08:49:35Z head=3fd4ece5001c9f5bfbf7590d21b642a36b66d487
+$ <body> | grep -niwE "behaviou?r|stalls?|CRITICAL|was:"   (whole words)
+grep exit code: 1 (1 = no match)
+--- body headings:
+1:## OPS-H8b: Python consumer: in-place DLQ retry, commit-error log, interruptible waits, graceful stop, poison records
+5:### What changed
+10:### Acceptance criteria
+18:### Verification
+25:### Not verified / risks
+29:### Evidence (filled by pm-lead when raising the PR)
+32:### Review status (filled by the workflow)
+
+[exit code 0]

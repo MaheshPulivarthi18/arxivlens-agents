@@ -1,0 +1,10 @@
+$ bash -c PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs:/root/wt/qa-OPS-H8b python3 -m pytest -p no:cacheprovider -v tests/test_kafka_client.py -k 'test_poison_record or test_build_dlq_payload_is_total' 2>&1 | grep -E '::|passed|failed'
+tests/test_kafka_client.py::test_build_dlq_payload_is_total[None-want_value0] PASSED [ 16%]
+tests/test_kafka_client.py::test_build_dlq_payload_is_total[msg1-want_value1] PASSED [ 33%]
+tests/test_kafka_client.py::test_build_dlq_payload_is_total[msg2-want_value2] PASSED [ 50%]
+tests/test_kafka_client.py::test_poison_record_goes_to_dlq_and_loop_continues[not json-want0] PASSED [ 66%]
+tests/test_kafka_client.py::test_poison_record_goes_to_dlq_and_loop_continues[{"event_id": "x"}-want1] PASSED [ 83%]
+tests/test_kafka_client.py::test_poison_record_goes_to_dlq_and_loop_continues[[1, 2]-want2] PASSED [100%]
+======================= 6 passed, 31 deselected in 0.10s =======================
+
+[exit code 0]

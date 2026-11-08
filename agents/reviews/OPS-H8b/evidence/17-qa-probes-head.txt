@@ -1,0 +1,11 @@
+$ bash -c cd /tmp && python3 -I /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/harness/probe.py /root/wt/qa-OPS-H8b /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs
+P1 poison + DLQ down + stop                  commits=[] produces=2
+P2 commit raises RuntimeError                propagated; handled=[5]
+P3 graceful handler installed                SIGTERM=True SIGINT=True
+P4 start() off the main thread               ok commits=[5]
+P5 poison + non-UTF-8 key                    returned; commits=[5, 6] key='��'
+P6 DLQ err,err,ok: payload builds            1; distinct failed_at=1
+P7 real SIGTERM in 5 s wait                  returned in 0.050s log=[('close',)] restored=True
+P8 two real SIGTERMs mid-handler             handled=[5] log=[('close',)] restored=True
+
+[exit code 0]

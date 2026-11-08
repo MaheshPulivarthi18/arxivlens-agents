@@ -1,0 +1,11 @@
+$ bash -c PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs:/root/wt/qa-OPS-H8b python3 -m pytest -p no:cacheprovider -v tests/test_kafka_client.py -k 'test_stop_during or test_signal_handler' 2>&1 | grep -E '::|passed|failed'; echo '$ grep -n time.sleep services/common/kafka_client.py'; grep -n time.sleep services/common/kafka_client.py; echo "grep exit code: $? (1 = no match)"
+tests/test_kafka_client.py::test_stop_during_wait_returns_promptly[handler-wait] PASSED [ 20%]
+tests/test_kafka_client.py::test_stop_during_wait_returns_promptly[dlq-wait] PASSED [ 40%]
+tests/test_kafka_client.py::test_stop_during_last_attempt_is_not_a_failure[3-want_waits0] PASSED [ 60%]
+tests/test_kafka_client.py::test_stop_during_last_attempt_is_not_a_failure[1-want_waits1] PASSED [ 80%]
+tests/test_kafka_client.py::test_signal_handler_sets_stop_and_is_restored PASSED [100%]
+======================= 5 passed, 32 deselected in 0.19s =======================
+$ grep -n time.sleep services/common/kafka_client.py
+grep exit code: 1 (1 = no match)
+
+[exit code 0]

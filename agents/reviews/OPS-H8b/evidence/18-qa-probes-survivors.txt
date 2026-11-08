@@ -1,0 +1,21 @@
+$ bash -c B=$(ls -dt /tmp/qa-h8b-* | head -1); for m in M03:P1 M08:P2 M12:P3 M13:P4 M16:P5 M20:P6; do mm=${m%%:*}; pp=${m#*:}; h=$(cd /tmp && python3 -I /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/harness/probe.py /root/wt/qa-OPS-H8b /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs | grep "^$pp "); x=$(cd /tmp && python3 -I /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/harness/probe.py $B/$mm /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/stubs | grep "^$pp "); echo "== $mm ($(grep "\"$mm " /tmp/claude-0/-home-claude/0308bd14-253b-5347-bbe5-9a53b162e2bf/scratchpad/harness/mutate.py | cut -c4-90))"; echo "  head:   $h"; echo "  mutant: $x"; done
+== M03 (M03 poison: commit even if the DLQ write never landed (L4 on poison path)",)
+  head:   P1 poison + DLQ down + stop                  commits=[] produces=2
+  mutant: P1 poison + DLQ down + stop                  commits=[5] produces=2
+== M08 (M08 _commit: catch Exception, not only KafkaException",)
+  head:   P2 commit raises RuntimeError                propagated; handled=[5]
+  mutant: P2 commit raises RuntimeError                swallowed; handled=[5, 6]
+== M12 (M12 signals: install SIGTERM only (SIGINT not graceful)",)
+  head:   P3 graceful handler installed                SIGTERM=True SIGINT=True
+  mutant: P3 graceful handler installed                SIGTERM=True SIGINT=False
+== M13 (M13 signals: install even off the main thread (drop main-thread guard)",)
+  head:   P4 start() off the main thread               ok commits=[5]
+  mutant: P4 start() off the main thread               raised ValueError
+== M16 (M16 build_dlq_payload: strict key decode (non-UTF-8 key)",)
+  head:   P5 poison + non-UTF-8 key                    returned; commits=[5, 6] key='��'
+  mutant: P5 poison + non-UTF-8 key                    start raised UnicodeDecodeError (worker crash; commits=[])
+== M20 (M20 build payload per round (not once)",)
+  head:   P6 DLQ err,err,ok: payload builds            1; distinct failed_at=1
+  mutant: P6 DLQ err,err,ok: payload builds            4; distinct failed_at=4
+
+[exit code 0]

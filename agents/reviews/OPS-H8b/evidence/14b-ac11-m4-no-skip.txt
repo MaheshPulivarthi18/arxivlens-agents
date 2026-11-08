@@ -1,0 +1,10 @@
+$ bash -c grep -n '^def test_' tests/test_m4_chaos.py; echo "skip refs in test_m4_chaos.py: $(grep -c skip tests/test_m4_chaos.py)"; echo 'skip markers in tests/:'; grep -rn 'mark.skip\|importorskip\|pytest.skip' tests/*.py; ls tests/conftest.py 2>&1
+21:def test_idempotency_duplicate_event_row_invariance():
+84:def test_corrupt_pdf_dlq_routing_and_diagnostic_payload():
+skip refs in test_m4_chaos.py: 0
+skip markers in tests/:
+tests/test_evals_data.py:702:@pytest.mark.skipif(not os.getenv("DATABASE_URL"), reason="opt-in: needs DATABASE_URL with migrations/ applied")
+tests/test_evals_data.py:705:    psycopg = pytest.importorskip("psycopg")
+ls: cannot access 'tests/conftest.py': No such file or directory
+
+[exit code 2]

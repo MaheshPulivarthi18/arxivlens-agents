@@ -1,0 +1,37 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/{128676202673,128676951819,128677905903}/logs | grep -E 'FAILED tests|passed|failed' | cut -c30-170
+== AC10a a76026f job 128676202673
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[err] - AssertionError: assert ([('commit', 4), ('commit', 5)] == [('commit', 4)]
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[queued] - AssertionError: assert ([('commit', 4), ('commit', 5)] == [('commit', 4)]
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[raise] - AssertionError: assert ([('commit', 4), ('commit', 5)] == [('commit', 4)]
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[raise-kafka] - AssertionError: assert ([('commit', 4), ('commit', 5)] == [('commit', 4)]
+FAILED tests/test_kafka_client.py::test_failing_publish_in_handler_is_retried[err] - AssertionError: assert (not [('commit', 5)])
+FAILED tests/test_kafka_client.py::test_stop_during_wait_returns_promptly[dlq-wait] - AssertionError: assert [('produce', ...), ('close',)] == [('produce', ...), ('close'
+========================= 6 failed, 31 passed in 0.25s =========================
+== AC10b 60bf3c2 job 128676951819
+FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[err-Message timed out] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_publish_requires_confirmation[queued-not confirmed] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[err] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_publish_dlq_direct_call_contract[queued] - Failed: DID NOT RAISE DeliveryError
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[err] - AssertionError: assert ([('commit', 4...('commit', 6)] == [('commit', 4)]
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[queued] - AssertionError: assert ([('commit', 4...('commit', 6)] == [('commit', 4)]
+FAILED tests/test_kafka_client.py::test_dlq_recovers_after_two_failures - AssertionError: assert [('produce', ...), ('close',)] == [('produce', ...), ('close',)]
+FAILED tests/test_kafka_client.py::test_failing_publish_in_handler_is_retried[ok] - assert [5] == [5, 5, 5]
+FAILED tests/test_kafka_client.py::test_failing_publish_in_handler_is_retried[err] - assert [5] == [5, 5, 5]
+FAILED tests/test_kafka_client.py::test_stop_during_wait_returns_promptly[dlq-wait] - AssertionError: assert [('produce', ...), ('close',)] == [('produce', ...), ('close'
+FAILED tests/test_kafka_client.py::test_dlq_failure_log_has_coordinates_not_value[False] - assert (0 == 1)
+FAILED tests/test_kafka_client.py::test_dlq_failure_log_has_coordinates_not_value[True] - assert (0 == 1)
+======================== 12 failed, 25 passed in 0.28s =========================
+== AC10c bd342eb job 128677905903
+FAILED tests/test_kafka_client.py::test_success_path[1-want_waits1] - assert ([] == approx([0.2 ± 2.0e-07])
+FAILED tests/test_kafka_client.py::test_success_path[2-want_waits2] - assert ([] == approx([0.2 ±....4 ± 4.0e-07])
+FAILED tests/test_kafka_client.py::test_confirmed_dlq_write_then_commit[header] - AssertionError: assert ([('produce', ...), ('close',)] == [('produce', ...), ('close',)]
+FAILED tests/test_kafka_client.py::test_confirmed_dlq_write_then_commit[envelope] - AssertionError: assert ([('produce', ...), ('close',)] == [('produce', ...), ('close',
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[err] - assert ([1, 2, 4, 8, 16] == approx([0.2 ±... 4 ± 4.0e-06])
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[queued] - assert ([1, 2, 4, 8, 16] == approx([0.2 ±... 4 ± 4.0e-06])
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[raise] - assert ([1, 2, 4, 8, 16] == approx([0.2 ±... 4 ± 4.0e-06])
+FAILED tests/test_kafka_client.py::test_unconfirmed_dlq_write_stops_before_commit[raise-kafka] - assert ([1, 2, 4, 8, 16] == approx([0.2 ±... 4 ± 4.0e-06])
+FAILED tests/test_kafka_client.py::test_dlq_recovers_after_two_failures - AssertionError: assert (1 == 1 and {5: 3} == {5: 3}
+FAILED tests/test_kafka_client.py::test_stop_during_wait_returns_promptly[handler-wait] - assert (99.39570933 - 94.395353268) < 0.2
+FAILED tests/test_kafka_client.py::test_stop_during_last_attempt_is_not_a_failure[3-want_waits0] - assert (3 == 3 and [] == approx([0.2 ±....4 ± 4.0e-07])
+======================== 11 failed, 26 passed in 12.70s ========================
+

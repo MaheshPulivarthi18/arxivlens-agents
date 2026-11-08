@@ -1,0 +1,51 @@
+$ for c in f357f15 a76026f ff1bd48 60bf3c2 fba3294 bd342eb 3fd4ece; do gh api repos/MaheshPulivarthi18/ArxivLens/commits/<sha>/check-runs --jq '...'; done
+== f357f15 OPS-H8b: Python consumer retries the DLQ write in place, gates commits, stops gracefully, DLQs poison records
+  Agent ownership check | completed | success | job 128673766413 | 2026-11-08T08:16:32Z → 2026-11-08T08:16:37Z
+  DB (migrate twice, HNSW plan + recall) | completed | success | job 128673766740 | 2026-11-08T08:16:32Z → 2026-11-08T08:17:35Z
+  Frontend (lint, test, build) | completed | success | job 128673766260 | 2026-11-08T08:16:32Z → 2026-11-08T08:16:46Z
+  Full stack (compose + make test-full) | completed | success | job 128673766440 | 2026-11-08T08:16:31Z → 2026-11-08T08:26:17Z
+  Go (vet, gofmt, test, build) | completed | success | job 128673766367 | 2026-11-08T08:16:32Z → 2026-11-08T08:17:14Z
+  Python M0 unit tests | completed | success | job 128673766380 | 2026-11-08T08:16:32Z → 2026-11-08T08:17:55Z
+== a76026f mutation(AC10a): commit after a failed DLQ write
+  Agent ownership check | completed | success | job 128676202896 | 2026-11-08T08:27:35Z → 2026-11-08T08:27:39Z
+  DB (migrate twice, HNSW plan + recall) | completed | success | job 128676202509 | 2026-11-08T08:27:35Z → 2026-11-08T08:28:38Z
+  Frontend (lint, test, build) | completed | success | job 128676202849 | 2026-11-08T08:27:35Z → 2026-11-08T08:27:44Z
+  Full stack (compose + make test-full) | completed | cancelled | job 128676202751 | 2026-11-08T08:27:35Z → 2026-11-08T08:29:11Z
+  Go (vet, gofmt, test, build) | completed | success | job 128676202763 | 2026-11-08T08:27:35Z → 2026-11-08T08:28:14Z
+  Python M0 unit tests | completed | failure | job 128676202673 | 2026-11-08T08:27:35Z → 2026-11-08T08:28:28Z
+== ff1bd48 revert mutation(AC10a)
+  Agent ownership check | completed | success | job 128676483063 | 2026-11-08T08:28:56Z → 2026-11-08T08:29:00Z
+  DB (migrate twice, HNSW plan + recall) | completed | success | job 128676482889 | 2026-11-08T08:28:55Z → 2026-11-08T08:30:02Z
+  Frontend (lint, test, build) | completed | success | job 128676483118 | 2026-11-08T08:28:56Z → 2026-11-08T08:29:10Z
+  Full stack (compose + make test-full) | completed | cancelled | job 128676543367 | 2026-11-08T08:29:14Z → 2026-11-08T08:31:26Z
+  Go (vet, gofmt, test, build) | completed | success | job 128676482886 | 2026-11-08T08:28:55Z → 2026-11-08T08:29:50Z
+  Python M0 unit tests | completed | success | job 128676483153 | 2026-11-08T08:28:56Z → 2026-11-08T08:30:11Z
+== 60bf3c2 mutation(AC10b): bare flush, delivery not confirmed
+  Agent ownership check | completed | success | job 128676951872 | 2026-11-08T08:31:08Z → 2026-11-08T08:31:12Z
+  DB (migrate twice, HNSW plan + recall) | completed | success | job 128676951648 | 2026-11-08T08:31:08Z → 2026-11-08T08:32:32Z
+  Frontend (lint, test, build) | completed | success | job 128676951642 | 2026-11-08T08:31:08Z → 2026-11-08T08:31:20Z
+  Full stack (compose + make test-full) | completed | cancelled | job 128677027531 | 2026-11-08T08:31:29Z → 2026-11-08T08:33:40Z
+  Go (vet, gofmt, test, build) | completed | success | job 128676951828 | 2026-11-08T08:31:08Z → 2026-11-08T08:31:57Z
+  Python M0 unit tests | completed | failure | job 128676951819 | 2026-11-08T08:31:08Z → 2026-11-08T08:32:20Z
+== fba3294 revert mutation(AC10b)
+  Agent ownership check | completed | success | job 128677436195 | 2026-11-08T08:33:23Z → 2026-11-08T08:33:28Z
+  DB (migrate twice, HNSW plan + recall) | completed | success | job 128677436397 | 2026-11-08T08:33:23Z → 2026-11-08T08:34:33Z
+  Frontend (lint, test, build) | completed | success | job 128677436023 | 2026-11-08T08:33:23Z → 2026-11-08T08:33:38Z
+  Full stack (compose + make test-full) | completed | cancelled | job 128677506475 | 2026-11-08T08:33:43Z → 2026-11-08T08:35:55Z
+  Go (vet, gofmt, test, build) | completed | success | job 128677436271 | 2026-11-08T08:33:24Z → 2026-11-08T08:34:21Z
+  Python M0 unit tests | completed | success | job 128677436265 | 2026-11-08T08:33:24Z → 2026-11-08T08:34:34Z
+== bd342eb mutation(AC10c): time.sleep in the handler-retry wait
+  Agent ownership check | completed | success | job 128677905952 | 2026-11-08T08:35:33Z → 2026-11-08T08:35:36Z
+  DB (migrate twice, HNSW plan + recall) | completed | success | job 128677905540 | 2026-11-08T08:35:33Z → 2026-11-08T08:36:58Z
+  Frontend (lint, test, build) | completed | success | job 128677905832 | 2026-11-08T08:35:33Z → 2026-11-08T08:35:43Z
+  Full stack (compose + make test-full) | completed | cancelled | job 128677997197 | 2026-11-08T08:35:58Z → 2026-11-08T08:37:59Z
+  Go (vet, gofmt, test, build) | completed | success | job 128677905788 | 2026-11-08T08:35:33Z → 2026-11-08T08:36:14Z
+  Python M0 unit tests | completed | failure | job 128677905903 | 2026-11-08T08:35:33Z → 2026-11-08T08:36:59Z
+== 3fd4ece revert mutation(AC10c)
+  Agent ownership check | completed | success | job 128678377928 | 2026-11-08T08:37:44Z → 2026-11-08T08:37:49Z
+  DB (migrate twice, HNSW plan + recall) | completed | success | job 128678378049 | 2026-11-08T08:37:44Z → 2026-11-08T08:38:43Z
+  Frontend (lint, test, build) | completed | success | job 128678378149 | 2026-11-08T08:37:44Z → 2026-11-08T08:38:01Z
+  Full stack (compose + make test-full) | completed | success | job 128678440243 | 2026-11-08T08:38:02Z → 2026-11-08T08:48:41Z
+  Go (vet, gofmt, test, build) | completed | success | job 128678378194 | 2026-11-08T08:37:44Z → 2026-11-08T08:38:33Z
+  Python M0 unit tests | completed | success | job 128678378133 | 2026-11-08T08:37:44Z → 2026-11-08T08:39:07Z
+
