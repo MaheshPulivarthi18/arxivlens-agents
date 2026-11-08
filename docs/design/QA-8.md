@@ -278,6 +278,277 @@ helper, reusing `ragHit`), and the injection test folded into `TestBuildSynthesi
 ## QA-8 addendum (provider call, timeout, fallback)
 _(Written in QA-8, before its code, and approved by pm-lead separately.)_
 
+**Author:** ai-engineer, 2026-11-08 · **Ticket:** `agents/tasks/QA-8.md` (AC1–AC10) · **Status:** Draft (waiting for pm-lead)
+Code refs are to ArxivLens `origin/main` `9651294` (LLM-1 `43713ce`, LLM-1b, AI-6 `537c6c5`, AI-6b `e7ab58d`, AI-7 `8406b18` all merged).
+The build starts after PR #35 (RET-2) merges, because both edit the app `README.md`.
+
+### Q1. Problem
+`Ask` still returns `buildTemplateAnswer(hits)` (`rag.go:113`). AI-6/AI-6b built `selectContext`, `buildSynthesisPrompt`,
+`passageHits` and `parseSynthesis`, and nothing calls them yet. QA-8 wires them to an `llm.Provider` behind one rule: **an LLM
+answer is never returned without going through the existing `checkCitations`/`finalize`, and any provider or parse failure
+gives exactly today's template answer.** Covers AC1–AC10, plus PM items A1–A4 above.
+
+### Q2. Provider wiring and test seam
+```go
+type RAGService struct {
+	searchEngine searcher
+	embedClient  embedder
+	provider     llm.Provider  // nil → template answers (LLM_MODEL unset or invalid config)
+	llmTimeout   time.Duration // bounds one provider call; <= 0 → llm.DefaultTimeout
+}
+
+func NewRAGService(se *SearchEngine, ec *EmbedClient) *RAGService { return newRAGServiceFromEnv(se, ec, os.Getenv) }
+
+// newRAGServiceFromEnv is the env seam (tests pass a map-backed getenv).
+func newRAGServiceFromEnv(se searcher, ec embedder, getenv func(string) string) *RAGService
+```
+- `newRAGServiceFromEnv` calls `llm.ConfigFromEnv(getenv)` and then `llm.New(*cfg)`. `llm.FromEnv` does these same two
+  steps (`config.go:115`), but it returns only the `Provider`, and `rag.go` also needs `cfg.Timeout` (for Q4) and `cfg.Model` /
+  the base-URL host (for the startup line). So it calls the two steps directly instead of parsing the env twice. This
+  departs from the ticket's literal wording "`llm.FromEnv`" (open question 1).
+- Exactly one startup line, from `log.Printf`:
+  - `LLM_MODEL` unset: `[Query Service] answer synthesis: template`
+  - Config error: `[Query Service] answer synthesis: template (llm config error: <err>)`. `ConfigFromEnv`/`normalize` errors name
+    the variable and never echo its value (`config.go:78`, `:147`). A test pins this with a sentinel key and a bad timeout (Q8).
+  - Configured: `[Query Service] answer synthesis: llm provider=openai-compatible model=%q base_host=%s timeout=%s max_tokens=%d`.
+    `base_host` is `url.Parse(cfg.BaseURL).Host`. `normalize` has already rejected userinfo, query and fragment, so the host
+    can't carry a key. `%q` on the model keeps an odd value on one line.
+- `NewRAGService` keeps its signature, so `cmd/` doesn't change. `TestAskResponseShapeAndConstructor` (`rag_test.go:384`) passes unmodified.
+- Test seam: tests build `&RAGService{searchEngine: …, embedClient: …, provider: llmtest.New(...), llmTimeout: …}`. That is
+  the struct-literal pattern every existing Ask test already uses. Existing tests leave `provider` nil, so they stay on the template path (AC1).
+- New imports in `rag.go`: `net/url`, `os`, `time`, `arxivlens/internal/llm`. In `rag_test.go`: `arxivlens/internal/llm/llmtest`, `time`.
+
+### Q3. Ask flow
+Only step 4 of `Ask` changes. Steps 1–3 (retrieval, `filterRelevantHits`, the QA-5 early refusal) are untouched.
+```go
+	// 4. LLM synthesis when a provider is configured; any failure → the template answer below.
+	if r.provider != nil {
+		if resp, ok, err := r.askLLM(ctx, traceID, question, hits); ok {
+			return resp, err
+		}
+	}
+	return r.finalize(ctx, traceID, buildTemplateAnswer(hits), hits), nil
+```
+`askLLM` returns `ok=false` when the caller should use the template. The flow, with the outcome of each branch:
+
+| # | Step | Branch → outcome | Log line (Q6) |
+|---|---|---|---|
+| 1 | `estimateTokens(question) > maxQuestionTokens` (500) | → template, **no call** | fallback `class=question_too_long` |
+| 2 | `passages := selectContext(hits, synthesisContextBudget)` (4000) | empty (condition 3 of the AI-6 decision) → template, **no call** | fallback `class=empty_context` |
+| 3 | `system, user := buildSynthesisPrompt(question, passages)`; `cctx, cancel := context.WithTimeout(ctx, timeout)`; `res, err := r.provider.Complete(cctx, llm.Request{System: system, Messages: []llm.Message{{Role: llm.RoleUser, Content: user}}, JSON: true, Temperature: 0})`; `cancel()` | error, caller cancelled → **`nil, ctx.Err()`** (no fallback; Q5) | fallback `class=canceled` |
+| | | any other error → template | fallback `class=<Q5 class>` |
+| 4 | `out, perr := parseSynthesis(res.Text, len(passages))` | `errSynthesisMalformed` / `errSynthesisNoClaims` → template | fallback `class=malformed` / `no_claims`, with tokens |
+| 5 | `out.InsufficientEvidence` | → QA-5 refusal: `Answer: "No indexed papers are relevant to this question."`, `Citations: []Citation{}`, no `refusal_reason` (same literal as `Ask` step 3, moved into one const) | usage `outcome=insufficient_evidence` |
+| 6 | `answer := renderClaims(out.Claims)` (Q3.1); `resp := r.finalize(ctx, traceID, answer, passageHits(passages))` | ≥ 1 supported citation → the LLM answer with per-citation flags | usage `outcome=answer` |
+| | | zero claims (all dropped, AI-6 decision Q3) or none supported → AI-7 refusal `all_citations_unsupported` / `verification_unavailable` | usage `outcome=refused` (+ AI-7's existing refusal line) |
+
+- **Validation can't be bypassed.** On the LLM path, `askLLM` only returns a `finalize` result or the QA-5 refusal (which has no
+  answer text). Nothing the model wrote reaches `AskResponse.Answer` any other way.
+- **`finalize` runs on the request `ctx`, not on `cctx`.** The LLM deadline must never cut citation embedding short, which would
+  turn a timeout into a `verification_unavailable` refusal. A test pins this (Q8, AC5 row, ctx-checking embedder).
+- **A3, which hits back what.** LLM path: `finalize` gets `passageHits(passages)`. Marker `n` is the n-th passage in grouped order,
+  `Content` is the text the model saw, and AI-7's refusal evidence is those `k` passages in grouped order, not all of
+  `relevantHits` in rank order. Template path (no provider, or any fallback): `finalize(…, hits)` over `relevantHits`, exactly as today.
+  Side effect: a citation's `content` on the LLM path is the sanitized text, so in the rare chunk that contains `<passage` the
+  user sees `&lt;passage`. That is what the model saw, and the support score is computed against it (risk R4).
+- **No response-shape change.** `prompt_version` and `answer_source` go only to logs, until AI-8 (ADR-0014).
+
+#### Q3.1 `renderClaims(claims []synthesisClaim) string` (PM item A2)
+For each claim, and for each sentence `s` of `splitIntoSentences(claim.Text)`: `m = "[a][b]…"` from `claim.Citations`. If `s` ends in `.`,
+`!` or `?`, emit `s[:len-1] + " " + m + s[len-1:]`, else `s + " " + m + "."`. Sentences are joined with one space.
+Example: claim `{"Transformers drop recurrence. They use attention.", [1, 3]}` → `Transformers drop recurrence [1][3]. They use attention [1][3].`
+- The marker goes **before** the terminal punctuation, as in the template (`… section [1].`). After it, `splitIntoSentences` would
+  attach `[1]` to the *next* sentence, because it splits at `". "`.
+- **Invariant (tested):** `splitIntoSentences(renderClaims(cs))` gives exactly one sentence per rendered (claim, sentence) pair, each
+  carrying all of its claim's markers. A rendered sentence ends in `].`, `]!` or `]?`, which isn't an abbreviation, and `splitIntoSentences`
+  found no split point inside it. So every LLM sentence goes through `checkCitations`.
+- Claims with zero citations never get here: `parseSynthesis` drops them (`DroppedClaims`).
+
+### Q4. Timeout and cancellation (AC5)
+- `timeout = r.llmTimeout`, from `cfg.Timeout` (`LLM_TIMEOUT`, default 2 s). It is `llm.DefaultTimeout` when ≤ 0, so a test
+  literal that leaves it out can't expire instantly. `Ask` sets its **own** `context.WithTimeout` around `Complete`. The real
+  client also enforces `cfg.Timeout` internally (`openai.go:110`), but the `Provider` interface doesn't promise that, and
+  `llmtest.Hang()` only waits on `ctx.Done()`. The outer deadline is what makes the AC5 bound hold for any provider.
+- **Bound:** `Ask` returns within `LLM_TIMEOUT` + (search + template `finalize`). With the fake searcher and embedder that
+  extra part is microseconds, which is AC5's `+ 200 ms`. In production it is the embedder's two calls, which the
+  `/v1/ask` p95 budget already covers (`config.go:14` comment: ≤ 1 s for search, rerank and validation, 2 s for the LLM).
+- `cancel()` runs right after `Complete` returns, not in a `defer` held until `finalize` ends, so timer resources are freed early.
+- **Caller cancel** (the HTTP client went away, so `ctx.Err() == context.Canceled`): `Ask` returns `nil, fmt.Errorf("ask canceled: %w", ctx.Err())`
+  and doesn't run the template. The template's `finalize` would make two embedder calls on a dead context, fail, and log a
+  misleading `citation support unverified` line for a response nobody reads. `server.go:137` turns the error into a 500 on a
+  closed connection. Open question 2.
+- **Caller deadline** (the parent ctx has a deadline earlier than `LLM_TIMEOUT`, which isn't set today): it is classed as
+  `timeout` and goes to the template. `finalize` then sees the expired parent and refuses with `verification_unavailable`
+  (fail closed, as today).
+- **No goroutine wrapper** around `Complete`, so a provider that ignores ctx isn't cut off by `Ask`. Both implementations honour
+  ctx, and a wrapper would leak a goroutine per timeout (alternative 3).
+
+### Q5. Error classes and fallback
+`llmErrorClass(ctx, err)` returns a fixed string. It checks in this order (first match wins):
+
+| Condition | `class` | Then |
+|---|---|---|
+| `errors.Is(ctx.Err(), context.Canceled)` (parent ctx) | `canceled` | return the error (Q4) |
+| `errors.Is(err, llm.ErrTimeout) \|\| errors.Is(err, context.DeadlineExceeded)` | `timeout` | template |
+| `errors.Is(err, llm.ErrRateLimited)` | `rate_limited` | template |
+| `errors.Is(err, llm.ErrProvider)` | `provider` | template |
+| `errors.Is(err, llm.ErrBadResponse)` | `bad_response` | template |
+| `errors.Is(err, llm.ErrInvalidRequest)` | `invalid_request` | template |
+| anything else (e.g. `llmtest.ErrScriptExhausted`) | `other` | template |
+| parse: `errSynthesisMalformed` / `errSynthesisNoClaims` | `malformed` / `no_claims` | template |
+| no call: question over cap / empty context | `question_too_long` / `empty_context` | template |
+
+`context.DeadlineExceeded` is in the timeout row because the fake (and any non-`llm.Error` provider) returns the raw ctx error.
+`finish_reason: "length"` usually shows up as `malformed` (truncated JSON). It is logged so EVAL-8 can tell "max_tokens too small" from "model ignores JSON".
+**The template is the answer for every class except `canceled`.** No retry here: the client already retries once on 429/502/503/504
+inside its deadline (`openai.go:118`).
+
+### Q6. Logging (AC6, PM item A4)
+Every line on the LLM path is one of these. **No `err.Error()`, prompt, question, passage, completion or claim text, and no `llm.Request`/`Response` value**
+(not even its redacted `%v`), is ever logged. Only named numeric/enum fields are, following the pm-lead note of 2026-11-07 in the ticket.
+- **Usage** (one per provider reply that parsed, logged after `finalize` so the outcome is known):
+  `[Query Service] ask llm trace_id=%s trace_id_source=%s outcome=%s model=%q prompt_version=%s prompt_tokens=%d completion_tokens=%d finish_reason=%q latency_ms=%d k=%d truncated=%t claims=%d dropped_markers=%d dropped_claims=%d`
+  - `outcome` ∈ `answer | refused | insufficient_evidence`. `model` is `res.Model`. `latency_ms` is measured by `Ask` around `Complete`
+    (not `res.Latency`, which the fake leaves at 0). `truncated` means any passage has `Truncated`.
+- **Fallback** (one per Ask that left the LLM path):
+  `[Query Service] ask llm fallback trace_id=%s trace_id_source=%s class=%s status=%d attempts=%d prompt_tokens=%d completion_tokens=%d finish_reason=%q latency_ms=%d`
+  - `status`/`attempts` come from `errors.As(err, &*llm.Error)`, else 0. Token counts and finish reason are filled when a reply came back
+    (parse classes), else 0/`""`. **A reply that failed to parse still cost tokens, and this line is where they get counted** (input for the ADR-0001 cost cap).
+- So each `Ask` on the LLM path logs **exactly one** `ask llm` line, plus AI-7's existing refusal/unverified lines where they apply. Tests count the lines.
+- `trace_id` comes from `traceIDFrom(ctx)`, the same as AI-7's lines, so it equals the response's `trace_id`.
+
+### Q7. Constants and PM item A1 (context window)
+```go
+const (
+	synthesisContextBudget = 4000 // estimated passage tokens (approved, AI-6 decision Q4)
+	maxQuestionTokens      = 500  // estimated; ≈ 1,500 bytes. Longer questions take the template (open question 3)
+)
+```
+Prompt size, in conservative estimated tokens (3 bytes/token, §2): system prompt 925 B ≈ **309**, question block ≤ **505**,
+passages ≤ **4000**, chat-template overhead ≈ **30** real tokens. Input total ≤ **≈ 4,850**. Plus output `LLM_MAX_TOKENS`
+(default **256**), that is ≤ **≈ 5,100** tokens. **The server needs a context window ≥ 6,144; the README asks for 8192.** Rule
+for the README: `context ≥ 4,900 + LLM_MAX_TOKENS`. Ollama's default context is smaller than this and it truncates silently,
+starting with the system prompt. So the README's local example is:
+```bash
+OLLAMA_CONTEXT_LENGTH=8192 ollama serve        # context ≥ 4,900 + LLM_MAX_TOKENS, or the rules get cut
+ollama pull llama3.1:8b
+LLM_MODEL=llama3.1:8b LLM_BASE_URL=http://localhost:11434/v1 LLM_TIMEOUT=10s ./bin/arxivlens query
+```
+plus the rows `LLM_MODEL` (unset → template answers), `LLM_BASE_URL` (`http://localhost:11434/v1`), `LLM_API_KEY` (unset →
+no auth header; **never commit a key**, use a git-ignored `.env`), `LLM_TIMEOUT` (`2s`; a laptop 8B model usually needs more,
+`config.go:20`), `LLM_MAX_TOKENS` (`256`, 1..8192). Known limitations: replace the "from a template" line with: "`/v1/ask` uses an LLM only
+when `LLM_MODEL` is set; otherwise, and on any LLM error or timeout, it uses the template. Answer quality with a real model
+is not measured yet (EVAL-8)." The model name in the example is only an example. The model choice is Mahesh's (EVAL-8).
+The exact `query` sub-command is checked against `cmd/arxivlens` at build time.
+
+### Q8. Test plan
+All tests are in `internal/query/rag_test.go`, use `llmtest.Fake` plus the existing `fakeSearcher`/`simEmbedder`/`ragHit`, and need no
+network, key or infra. One shared helper: `llmService(fake, hits, emb, timeout)` plus a `captureLog(t)` that returns the buffer.
+
+| AC | Test | Cases / assertions |
+|---|---|---|
+| AC1 | every pre-existing test, **unmodified** | `git diff origin/main -- internal/query/rag_test.go` shows additions only (plus the import block) |
+| AC1 | `TestNewRAGServiceFromEnv` (table) | `LLM_MODEL` unset → `provider == nil`, log = `answer synthesis: template`; valid env → provider `Name()=="openai-compatible"`, `llmTimeout` = `LLM_TIMEOUT`, line has `model=` and `base_host=localhost:11434`; invalid (`LLM_TIMEOUT=-1s`, base URL with `?key=`) → `provider == nil`, `llm config error`. Every case sets `LLM_API_KEY=sk-SENTINEL` and asserts no line contains it |
+| AC1 | `TestAskLLMOffMakesNoCall` | a Fake held by the test but `provider` nil → template answer equals `buildTemplateAnswer(hits)`, `len(fake.Requests()) == 0` |
+| AC2 | `TestAskLLMAnswer` | hits A1, B1, A2, A3, A4 (A4 over the per-paper cap), fake replies claims citing `[1]` and `[3]`. Answer == `renderClaims(...)`; `Requests()`: 1 request, `System == synthesisSystemPrompt`, `JSON`, `Temperature == 0`, one user message, which contains each selected passage's content and **not** A4's; citation `[3]` has B's ArxivID (grouped order, A3); citations validated (`Supported` from `simEmbedder`); response keys unchanged |
+| AC2 | `TestRenderClaims` (table) | one sentence; no terminal punctuation → `.` added; `!`/`?` kept; **2-sentence claim citing `[1]` → both sentences carry `[1]`** (A2); multi-citation `[1][3]`; invariant: `splitIntoSentences(out)` count == rendered sentences, and each contains its markers |
+| AC2 | `TestAskLLMValidatesEverySentence` | 2-sentence claim with `simEmbedder` supporting only sentence 1 → 2 citations, the second `Supported=false` (proves sentence 2 was checked) |
+| AC3 | `TestAskLLMFabricatedMarker` (table) | k = 3, claim cites `[9]` and `[1]` → answer has `[1]` only, no `[9]`; every claim cites only `[9]` → AI-7 refusal `all_citations_unsupported`, evidence = the 3 passages in grouped order (A3), usage `outcome=refused dropped_markers=1 dropped_claims=1` |
+| AC4 | `TestAskLLMInsufficientEvidence` | `{"claims":[…],"insufficient_evidence":true}` → QA-5 text, `Citations` non-nil and empty, `RefusalReason == ""`, no embed call, usage `outcome=insufficient_evidence` |
+| AC5 | `TestAskLLMFallback` (table) | `Fail(&llm.Error{Kind: k})` for each of the 5 sentinels, `Fail(errors.New("x"))` → `other`, `Reply("not json")` → `malformed`, `Reply("{\"claims\":[]}")` → `no_claims`, question of 1,501 bytes → `question_too_long` (0 requests) vs 1,500 bytes → call made (boundary), hits whose content is all whitespace → `empty_context` (0 requests). Each: answer == the template answer, citations equal the no-provider run, **exactly one** `ask llm fallback` line with the response's `trace_id` and the expected `class` |
+| AC5 | `TestAskLLMTimeout` | `Hang()`, `llmTimeout = 100ms`, parent ctx with a 2 s safety deadline: `100ms ≤ elapsed < 300ms`; template answer with supported citations through a ctx-checking embedder (fails if called with a done ctx, so `finalize` ran on the parent ctx); `class=timeout` |
+| AC5 | `TestAskLLMCallerCancel` | Hang, parent cancelled after 20 ms → `err` is `context.Canceled`, no embed call, `class=canceled` |
+| AC6 | `TestAskLLMLogsNoText` | sentinels in key (`LLM_API_KEY`, via `newRAGServiceFromEnv`, then `provider` swapped for the fake), question, passage content, claim text and a malformed reply. Runs happy, refused, insufficient, malformed and error paths. The usage line has `model="fake"`, `prompt_version=synthesis-v1`, `prompt_tokens=`, `completion_tokens=` (fake reply with token counts set), `latency_ms=`. **No captured line contains any sentinel** |
+| AC7 | coverage | `go test -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out \| grep rag.go`: every `rag.go` function ≥ 90%, the new ones 100% |
+| AC8 | `make eval`, template path | `eval.yml` `workflow_dispatch` on `agent/ai/QA-8` (it sets no `LLM_*`), metrics read from the job log, next to the latest EVAL-3 run on `main`. The PR says "real-LLM eval: EVAL-8" |
+| AC9 | README diff | the 5 rows, the Ollama example with the context-length line, the "never commit a key" note, and the Known limitations line (Q7) |
+| AC10 | `git diff --shortstat origin/main` | < 400 changed lines (Q9) |
+
+**Mutation check** (one mutant per guard, lesson OPS-H7f). Each must fail ≥ 1 named test, and the PR lists the test for each:
+(1) `finalize` on `cctx` → `TestAskLLMTimeout`; (2) no outer `WithTimeout` → `TestAskLLMTimeout` (elapsed ≈ 2 s); (3) markers on the last
+sentence only → `TestRenderClaims`/`TestAskLLMValidatesEverySentence`; (4) marker after the punctuation → `TestRenderClaims`; (5) `finalize` over `hits` instead of
+`passageHits` → `TestAskLLMAnswer`/`TestAskLLMFabricatedMarker`; (6) insufficient → template → `TestAskLLMInsufficientEvidence`; (7) parse error → refusal →
+`TestAskLLMFallback`; (8) each of the 7 error-class rows swapped with its neighbour → `TestAskLLMFallback`; (9) `>` → `>=` on the question cap →
+boundary case; (10) empty context still calls → `empty_context` case; (11) cancel → template → `TestAskLLMCallerCancel`; (12) log `err` → `TestAskLLMLogsNoText`.
+Local runs use the stdlib scratch module (lessons AI-1). `internal/llm` is copied in as-is, since it is stdlib-only. CI is the source of truth.
+
+Failure paths covered: config error, no provider, over-long question, empty context, every provider error kind, timeout, caller cancel,
+malformed / empty reply, model-declared insufficiency, all-fabricated markers, partially supported multi-sentence claims, secrets and text in logs.
+
+### Q9. Diff-size estimate (AC10)
+Counted against the current file layout: one function per row, test tables one line per case, as AI-6/AI-6b shipped.
+
+| Part | `rag.go` (+ / −) | `rag_test.go` | `README.md` (+ / −) |
+|---|---|---|---|
+| imports, struct fields, consts | 10 / 0 | 3 | — |
+| `NewRAGService` + `newRAGServiceFromEnv` + startup log | 22 / 4 | 32 (`TestNewRAGServiceFromEnv`) | — |
+| `Ask` step 4 + QA-5 const | 7 / 3 | 15 (AC1 no-call) | — |
+| `askLLM` (flow, timeout, usage/fallback lines) | 50 / 0 | 60 (answer, validates-every-sentence, fabricated, insufficient) | — |
+| `llmErrorClass` | 20 / 0 | 50 (fallback table, timeout, cancel) | — |
+| `renderClaims` | 15 / 0 | 22 | — |
+| helpers (`llmService`, `captureLog`, ctx-checking embedder) + AC6 test | — | 45 | — |
+| README rows, example, limitation | — | — | 14 / 1 |
+| **Total** | **≈ 124 / 7** | **≈ 227** | **≈ 14 / 1** |
+
+**≈ 373 changed lines, 27 below the limit.** After LLM-1 (estimate 72% low) and OPS-H8 I don't trust a 7% margin. So:
+- **Early check:** run `git diff --shortstat origin/main` after `rag.go` is written, before the tests. If `rag.go` is over **150** changed lines,
+  take the seam now rather than trimming tests later (lesson EVAL-7).
+- **Split seam (layer boundary, part a safe on its own):** **QA-8** = Q3–Q6 (`askLLM`, `renderClaims`, `llmErrorClass`, the struct fields)
+  with tests for AC2–AC7. `NewRAGService` is unchanged, so `provider` is always nil in production: dead code, nothing changes at runtime.
+  **QA-8c** (new, pm-lead specs it) = `newRAGServiceFromEnv` + the startup line + `TestNewRAGServiceFromEnv` + README (AC9) + the AC8 eval
+  run. That turns the path on, and its eval runs with the switch in place. It saves ≈ 75 lines. Moving only the README
+  (the ticket's AC10 suggestion) saves 15, which is too little to matter.
+
+### Q10. Alternatives considered
+1. **`llm.FromEnv` plus a second `ConfigFromEnv` for the metadata.** It parses the env twice, and the two results could disagree if the env
+   changed between calls (tests). Rejected in favour of the same two steps called once (open question 1).
+2. **Template fallback on caller cancel** (uniform "always fall back"). It wastes two embedder calls and logs a misleading
+   unverified line for a client that's gone. Rejected, but it's open question 2.
+3. **A goroutine + `select` around `Complete`**, so even a ctx-ignoring provider is cut off. It leaks a goroutine per timeout and
+   adds lines, and both providers honour ctx. Rejected.
+4. **Retry once on `malformed`** with a "reply with JSON only" nudge. It doubles latency on the bad path and breaks the p95
+   budget. ADR-0003 chose not to regenerate. Rejected. EVAL-8's `class=malformed` rate decides whether a follow-up is needed.
+5. **Markers after each claim's last sentence only** (`text [n]`). An earlier sentence would go out unchecked. Rejected by PM item A2.
+6. **No question cap.** A 100 KB question makes a ~33k-token prompt that a small context silently truncates, rules first. Rejected; the cap is open question 3.
+7. **Answer text from `finalize` with raw (unsanitized) content in citations.** That needs `finalize` to take two hit lists, and
+   support would be scored on text the model didn't see. Rejected for v1 (R4).
+
+### Q11. Contracts and invariants
+- Shared contracts: **none changed.** No HTTP shape change (AskResponse/Citation keys pinned by `TestAskResponseShapeAndConstructor`), no
+  route, event, schema, embedding model, chunk format or threshold. `evals/thresholds.json`, `server.go`, `cmd/` and `internal/llm` are not edited.
+- Grounding: every LLM answer passes `checkCitations` over the exact passages the model saw. Markers are in `1..k` (parser), and every
+  rendered sentence carries ≥ 1 marker (Q3.1). A reply with nothing supported refuses (AI-7). Model-declared insufficiency refuses (QA-5).
+  An unusable reply gives the template, which is itself validated as today.
+- Secrets: the key lives only in `llm.Secret`. No `rag.go` log line takes a value derived from the key, prompt or completion,
+  except `model` (the server's model name) and `finish_reason`, both `%q`-quoted.
+- Reliability invariants (idempotency, DLQ, traceparent, arXiv politeness): not affected. The query path has no Kafka/DB writes, and the trace ID is reused in every line.
+- Concurrency: `RAGService` fields are set once at construction. `llm.Provider` implementations are concurrency-safe (`llm.go:19`).
+
+### Q12. Risks and rollout
+- **R1. Default `LLM_TIMEOUT=2s` with a local 8B model mostly times out → template.** That is safe and visible as `class=timeout`. The README says to raise
+  `LLM_TIMEOUT`, and EVAL-8 measures it. Rollback: unset `LLM_MODEL` (instant, no deploy).
+- **R2. `LLM_MAX_TOKENS=256` may cut long JSON replies** (`finish_reason="length"` → `malformed` → template). About 45 tokens per claim gives
+  about 5 claims. The rate shows in the fallback line. Raising the default is an `internal/llm` change (backend-owned), not part of this task.
+- **R3. Latency on top of p95.** LLM time adds to search + validation. The 3 s p95 with a real model is EVAL-8's AC2. The template path adds
+  one `nil` check.
+- **R4. Sanitized `content` in LLM-path citations** (`&lt;passage` in a rare chunk). It's cosmetic and consistent with what was scored. Revisit with AI-8.
+- **R5. Small models follow rule 6 poorly** → high `malformed` rate → template. Safe, and measured in EVAL-8.
+- **R6. Context truncation on a misconfigured server** (Q7). It can't be detected from the client: the prompt is silently cut. Mitigated by the README line and
+  the question cap. EVAL-8 should log `prompt_tokens` against the estimate (≥ ~0.6× expected; a much smaller count suggests truncation).
+
+### Q13. Open questions (for pm-lead)
+1. **`ConfigFromEnv` + `llm.New` instead of the ticket's literal `llm.FromEnv`** (Q2). They are the same steps, done once, so the timeout and startup metadata
+   come from the same parsed config. OK?
+2. **Caller cancel returns `ctx.Err()`** (500 on a closed connection) instead of the template (Q4). It is the only class that doesn't fall back. OK, or keep
+   the uniform fallback?
+3. **Question cap: 500 estimated tokens (≈ 1,500 bytes) → template, with no call.** The eval questions are well under it. Would you rather make it a 400
+   from `server.go`? That would be a backend change and an API-behaviour change, and is not part of this task.
+4. **Split seam** (Q9): if the early check trips, do you approve QA-8 / QA-8c as described, with QA-8c specced by you?
+5. **PM item A3 side effect** (R4): citations on the LLM path show the sanitized passage text. Acceptable until AI-8?
+
+### PM decision (QA-8 addendum)
+_(pm-lead fills)_
+
 ## PM decision
 **APPROVED with conditions** (pm-lead, 2026-11-07, reviewed at design commit `effaf87` against `agents/tasks/AI-6.md`,
 `agents/tasks/QA-8.md`, Product PRD QA-3/QA-8 and §7 principles 1–2, Technical PRD §7.2, ADR-0001/0002/0003/0014 (Accepted);
