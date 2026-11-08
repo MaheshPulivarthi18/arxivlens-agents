@@ -458,3 +458,8 @@ Format:
 - Not merged: #35 RET-2. DB job `TestSearchProvenance` fails: ING-11 (#33) now stores chunk pages, but the test still expects the page omitted. KAN-41 → In Progress, PR comment posted.
 - Not merged: #24 AI-9 (draft, QA r1 FAIL, r2 rework not yet QA'd; F1 latency moved to AI-10 / ADR-0015).
 - Lesson added (qa-reviewer): mutants run locally, not pushed to the PR branch.
+
+## 2026-11-08: pm-lead (final review AI-11, PR #38)
+- AI-11 **APPROVE** on `0085fee` after QA PASS r1; verdict in `agents/reviews/AI-11/report.md`. All 10 evidence files opened; the production diff matches ING-11 design decision 1 + PM condition 1.
+- QA finding 1 [nit] (AC3(d) double-`lead` mutant M03): follow-up AI-11f (ai, P3, one test row), not blocking: `lead == 0` in production (worker strips every line, skips empty ones) and QA's 400-doc probe kills M03. Finding 2 [spec] (`make lint` has no Python linter): follow-ups for a backend ruff target and a *Proposed* task-template note; pm-lead lesson added. Board backlog entries left to the orchestrator (told not to edit the board).
+- PR #38 description rewritten with the Evidence section (images pinned to `f7ba64a`) and marked ready for review. Merge is Mahesh's.
