@@ -8,7 +8,7 @@
 | **Depends on** | **OPS-H8 merged** (same file `services/common/kafka_client.py` and same test file; AGENTS.md §3 independence). OPS-H1 merged (heartbeat hook kept) |
 | **Jira** | not yet created (orchestrator: story under the OPS epic, label `task-OPS-H8b`, link KAN-34) |
 | **Design required** | yes, **covered by the approved `docs/design/OPS-H8.md`** (§2–§5, §7; PM decision + split addendum 2026-11-07). No new design round. Binding conditions 1, 5, 6 and 7 apply |
-| **Status** | Ready (once OPS-H8 merges) |
+| **Status** | **Done**: PR #34 merged by Mahesh 2026-11-08 08:49Z as `9651294` on ArxivLens `main` |
 
 ## Goal
 OPS-H8 (part a) makes the producer confirm every delivery and keeps the existing loop from committing past an unconfirmed DLQ write. It does that by
@@ -129,3 +129,4 @@ git diff --stat origin/main...HEAD                     # <= 400
     ```
     `-q` prints dots only, so I mapped the dots to test ids (lesson OPS-H8 QA). I collected the head's `tests/` locally with stubbed third-party imports: 167 ids minus 3 deselected = 164, which equals the 164 result characters. Dot **146 = `test_m4_chaos.py::test_idempotency_duplicate_event_row_invariance`** and **147 = `test_m4_chaos.py::test_corrupt_pdf_dlq_routing_and_diagnostic_payload`**, both `.` (passed). The single `s` (56) is `test_evals_data.py::test_chunk_counts_sql_against_real_postgres`.
     The separate F1 step failed only the 3 known F1 tests (`test_m3_query.py`, `ReadTimeout` on :8080), so it is red by design. The job conclusion is success.
+- 2026-11-08 (pm-lead, grooming): PR #34 merged as `9651294` (08:49Z). Status → Done.

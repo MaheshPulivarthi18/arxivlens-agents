@@ -8,7 +8,7 @@
 | **Depends on** | **AI-6 merged** (ArxivLens PR #28; same files `rag.go` + `rag_test.go`). No dependency on LLM-1/LLM-1b: pure function, no `internal/llm` import. |
 | **Jira** | KAN-52, story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-6b"`) |
 | **Design required** | covered: `docs/design/QA-8.md` §1 (types, errors), §5 (`parseSynthesis`), the test-plan AC3 rows and PM decision (open question 3, conditions 1, 5, 6), plus the pm-lead post-build record at the end of that file. **No new design.** |
-| **Status** | Ready (Wave 3: starts when AI-6 #28 is merged). Branch `agent/ai/AI-6b` |
+| **Status** | **Done**: PR #36 merged by Mahesh 2026-11-08 08:49Z as `e7ab58d` on ArxivLens `main` |
 
 ## Goal
 Split out of AI-6 under design condition 1 seam (c): AI-6 ships context selection and the prompt; this task adds the parser for
@@ -95,3 +95,4 @@ git diff --shortstat origin/main
   4. Claim text is trimmed only, not whitespace-collapsed (per the design). So `"X [2] y"` becomes `"X  y"`; QA-8's rendering can collapse it if needed.
   5. AC4: the delimiter look-alike cases are a loop appended inside `TestBuildSynthesisPromptInjection`, which was not a table. The token bound gets a look-alike check appended to `TestPassageTokensBoundsRenderedBlock`.
   Jira KAN-52 not moved by me: no Jira tool in this session, so the orchestrator should move it.
+- 2026-11-08 (pm-lead, grooming): PR #36 merged as `e7ab58d` (08:49Z). Status → Done.

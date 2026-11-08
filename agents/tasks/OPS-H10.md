@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged). **#21 (AI-7, changes `README.md`) and #22 (EVAL-3, changes `CONTRIBUTING.md`) merged** (both are Ready to merge, waiting on Mahesh), per the AGENTS.md §3 same-file rule. No open PR changes `stack.yml` (checked 2026-11-07: #20–#25 don't). OPS-H9 no longer touches `stack.yml` (its optional step was removed to keep the two apart). |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H10`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P1 CI-only change, no new command/table/service, no shared contract |
-| **Status** | Ready to merge: QA PASS r2 + PM APPROVE (2026-11-07). PR [#26](https://github.com/MaheshPulivarthi18/ArxivLens/pull/26), branch `agent/backend/OPS-H10`, head `532440e`, Jira KAN-50. Waiting on Mahesh (merge + delete scratch branch `agent/backend/OPS-H10-ac3`) |
+| **Status** | **Done**: PR #26 merged by Mahesh 2026-11-08 06:00Z as `54cad79` on ArxivLens `main` |
 
 ## Goal
 Two gaps in the Full stack workflow keep QA from getting evidence:
@@ -125,3 +125,4 @@ git diff --stat origin/main...agent/backend/OPS-H10
   step summary is a human check) and AC3 (Mahesh deletes the scratch branch). Human checks for Mahesh are in the PR #26 description:
   open artifact 13579885920 (expires ~2026-11-14), view the run summary's `### Embedder rerank timing` block, and delete
   `agent/backend/OPS-H10-ac3`. Post-merge (pm-lead): confirm the next Go-only PR triggers `stack.yml`; AI-9 #24 rebases onto it for AC1.
+- 2026-11-08 (pm-lead, grooming): PR #26 merged as `54cad79` (06:00Z). Status → Done.

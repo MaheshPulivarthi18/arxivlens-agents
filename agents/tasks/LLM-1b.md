@@ -8,7 +8,7 @@
 | **Depends on** | **LLM-1 merged** (types, typed errors, `Config`/`ConfigFromEnv`, `llmtest`). ADR-0001/0002 Accepted. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-LLM-1b"`) |
 | **Design required** | no new design: covered by the approved `docs/design/LLM-1.md` (PM decision 2026-11-07, conditions 1–5). Split from LLM-1 for size, not scope. |
-| **Status** | Ready to merge: QA PASS r2 + PM APPROVE 2026-11-07 ([report](../reviews/LLM-1b/report.md)); PR [#27](https://github.com/MaheshPulivarthi18/ArxivLens/pull/27) @ `e031ac0` raised for Mahesh (orchestrator applies the body and marks it ready) |
+| **Status** | **Done**: PR #27 merged by Mahesh 2026-11-08 06:00Z as `70b0afe` on ArxivLens `main` |
 
 ## Goal
 Ship the real provider behind the `llm.Provider` interface: an OpenAI-compatible HTTP client (local server by default, hosted
@@ -94,3 +94,4 @@ git diff origin/main --stat
 - 2026-11-07 (pm-lead, final review): **APPROVE** at `e031ac0`. All 8 ACs are covered at the head by CI and QA r2 evidence (`openai.go` 95.2%, `config.go` 98.2%; prod 310 / test 756).
   I accept the redirect-off change as in scope because it hardens AC6. QA r2 nit 1 (TLS/x509 errors shown as "malformed response or protocol error")
   is now a Backlog item (backend P2) on the board. The QA-8 PRD row text ("ADR-0001/0002 Proposed") is stale and is fixed by the pending pm-lead docs PR.
+- 2026-11-08 (pm-lead, grooming): PR #27 merged as `70b0afe` (06:00Z). Status → Done.

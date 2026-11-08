@@ -8,7 +8,7 @@
 | **Depends on** | ING-9 (Done, `2b71772`: same files, already merged). No open PR touches these files (checked 2026-11-07: #26 `stack.yml`/README, #27 `internal/llm`, #28 `rag.go`, #29 evals, #30 Python). Independent of RET-2: no shared files. |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-ING-10"`) |
 | **Design required** | no. P1, no new command, table or service. The storage key format (`raw/<id>_v<n>.pdf`), event envelope and HTTP API are unchanged |
-| **Status** | Ready to merge (2026-11-07: QA PASS r2 + pm-lead APPROVE on `c940779`; PR #31 raised, waiting on Mahesh) |
+| **Status** | **Done**: PR #31 merged by Mahesh 2026-11-08 06:00Z as `4c15275` on ArxivLens `main` |
 
 ## Goal
 A paper row says `version = N` only when the PDF that was chunked is version N. Today on-demand ingest hard-codes
@@ -108,3 +108,4 @@ go test ./internal/query/ ./internal/downloader/ ./internal/crawler/ ./internal/
   New rule in AC4: those assertions stay unchanged; expected PDF URL literals may only become versioned. My spec error: I wrote "unmodified" without checking which ING-9 asserts embed the URL.
 - 2026-11-07 (pm-lead): final review **APPROVE** on `c940779` (`agents/reviews/ING-10/report.md`). PR #31 marked ready for review, label `ready-to-merge`, evidence in the description.
   Follow-up (pm-lead, docs PR): Technical PRD §7.3 step 2 should say the PDF is the version named in the Atom entry ID and a version-less entry is refused.
+- 2026-11-08 (pm-lead, grooming): PR #31 merged as `4c15275` (06:00Z). Status → Done.

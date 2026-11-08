@@ -8,7 +8,7 @@
 | **Depends on** | **EVAL-6 merged** (per-case records in the results JSON; shared `tests/test_evals_data.py` and `evals/README.md`) |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-EVAL-7"`) |
 | **Design required** | no: offline tooling, report-only, no gate or contract change |
-| **Status** | Ready to merge: QA FAIL r1 → PASS r2, PM APPROVE at `d01ffcb` (PR #29, KAN-42). Waiting on Mahesh |
+| **Status** | **Done**: PR #29 merged by Mahesh 2026-11-08 06:00Z as `2958240` on ArxivLens `main` |
 
 ## Goal
 Cosine similarity ≥ 0.50 says a sentence and a passage are related, not that the passage supports the sentence. The
@@ -116,3 +116,4 @@ python3 scripts/answer_review.py --help
   empty-export tests) are Backlog items on the board. Still unverified and accepted: the `--db-url` path (no DB in the
   sandbox; it's an optional passage source), a real export against a stack, and the README time estimate (labelled as one).
   The first real judging session is Mahesh's; it needs a results file from an EVAL-3 workflow run.
+- 2026-11-08 (pm-lead, grooming): PR #29 merged as `2958240` (06:00Z). Status → Done.

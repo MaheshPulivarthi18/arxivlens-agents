@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, ArxivLens #15 → `e9be32e`; its approved design `docs/design/OPS-H6.md` defines the semantics to mirror); **OPS-H1 (ArxivLens #14) merged**: #14 adds a worker heartbeat hook (`_heartbeat`, about 16 lines) to `services/common/kafka_client.py`, the file this task rewrites (AGENTS.md §3 independence). The design must keep that hook (touch after every `poll()` while assigned; no-op when `WORKER_HEARTBEAT_FILE` is unset) |
 | **Jira** | KAN-34 (`labels = "task-OPS-H8"`) |
 | **Design required** | **yes**: P0, and it changes the pipeline's delivery semantics for both Python workers |
-| **Status** | **Ready to merge** (2026-11-07): QA r1 PASS + PM APPROVE at `0d70fab`; ArxivLens [#30](https://github.com/MaheshPulivarthi18/ArxivLens/pull/30) raised (ready for review, `ready-to-merge`). Branch `agent/backend/OPS-H8` (full build at `ebe80a7`, kept in history for OPS-H8b) |
+| **Status** | **Done**: PR #30 merged by Mahesh 2026-11-08 06:00Z as `db6f670` on ArxivLens `main` |
 
 ## Goal
 Technical PRD §8.1 promises L4 for **all** consumers: the offset is committed only after the handler succeeds or the
@@ -232,3 +232,4 @@ git diff origin/main...HEAD -- services/processor/worker.py services/embedder/wo
   - **AC8 amended ([spec], QA finding 3):** "M4 log lines" could never be met, because `make test-full` runs `pytest -q` (dots only). AC8 now accepts a dot-position map checked against a failing run of the same job, which is what QA 06 did. Follow-up for the board Backlog: backend, P3, after #26 merges, `stack.yml` passes `PYTEST_ARGS=-rA` to `make test-full`.
   - AC7(b) Full stack cancelled (QA finding 1): accepted, since every (b) row runs in the `ci.yml` job, which completed. QA finding 4 and the 3 missing tests went to OPS-H8b Notes.
   - Left open (not this PR): the pm-lead docs PR (Product OPS-1 ✅ → ◐, Technical §8.1 L4 caveat until OPS-H8b).
+- 2026-11-08 (pm-lead, grooming): PR #30 merged as `db6f670` (06:00Z). Status → Done.

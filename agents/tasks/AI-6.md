@@ -8,7 +8,7 @@
 | **Depends on** | **AI-7 merged** (same file, `rag.go`). No dependency on LLM-1: these are pure functions with no `internal/llm` import. |
 | **Jira** | KAN-38, story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-6"`) |
 | **Design required** | **yes**: P0. Write `docs/design/QA-8.md` here, covering both AI-6 and QA-8 (context, prompt, output format, fallback), so QA-8 needs only an addendum. pm-lead approves before code. |
-| **Status** | PM APPROVE (2026-11-07) on PR #28 head `c457576`: Ready to merge, waiting on Mahesh. Closes on AC1, AC2, AC4–AC6; AC3 moved to [AI-6b](AI-6b.md) (KAN-52) |
+| **Status** | **Done**: PR #28 merged by Mahesh 2026-11-08 06:00Z as `537c6c5` on ArxivLens `main` |
 
 ## Goal
 An LLM answer is only as good as the passages it sees and the format it must answer in. Build the deterministic part of
@@ -88,3 +88,4 @@ go test -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | gre
   - Finding 5 and the missing-tests list: no change in this PR. Candidates for AI-6b/QA-8 (look-alike delimiter regexp `(?i)<\s*(/?)\s*(passage|question)`, empty-content hits, the truncation-after-skip case).
 - 2026-11-07 (pm-lead, after QA r1 finding 3 `[spec]`): AC3 annotated "moved to AI-6b (design condition 1 seam c)" (text not edited). Spec [`AI-6b.md`](AI-6b.md) created (parser, types, errors, `TestParseSynthesis`, `TestParseSynthesisErrorHasNoCompletionText`, out-of-range-marker mutation, plus QA nit 5 and missing tests 1–2), and added to QA-8's `Depends on`. The design's `passageTokens`/`metaField` refinement, the `sort` import and the branch name `agent/ai/AI-6` are now recorded in `docs/design/QA-8.md`. QA findings 1–2 (PR description: system prompt verbatim, mutation table) are still ai-engineer's to fix for round 2.
 - 2026-11-07 (pm-lead, final review): **APPROVE** after QA r2 PASS. Verdict in [`agents/reviews/AI-6/report.md`](../reviews/AI-6/report.md) ("PM verdict"). All 14 evidence images were checked. CI is 5/5 green on `c457576`, and design conditions 1–6 are met. PR body rewritten with the Evidence section, the verbatim system prompt and the mutation table, and with "Follow-ups created: AI-6b (KAN-52)". Next: the orchestrator raises #28 (ready for review) and moves KAN-38 to Ready to merge. AI-6b starts when #28 merges.
+- 2026-11-08 (pm-lead, grooming): PR #28 merged as `537c6c5` (06:00Z). Status → Done.

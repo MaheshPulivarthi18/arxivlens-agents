@@ -8,7 +8,7 @@
 | **Depends on** | **Build:** none (design approved 2026-11-07). Independence check at start: no open PR touches `services/processor/worker.py`, `services/common/db.py`, `migrations/`, `internal/db/db_test.go`, `Makefile` or `tests/test_processor_pages.py` (on 2026-11-07 none does; #30 edits `services/common/kafka_client.py` and `ci.yml`, a different file). ING-8's branch `agent/ai/ING-8` calls `_parse_doc_sections(None, doc)`: keep that contract (design decision 4) |
 | **Jira** | KAN-55 (`labels = "task-ING-11"`), under epic KAN-1 "Grounded LLM answers" |
 | **Design required** | yes, **approved**: `docs/design/ING-11.md` (PM decision 2026-11-07, conditions 1–9; this ticket is bound by 2, 3, 7, 8) |
-| **Status** | **Ready to merge**: PR [#33](https://github.com/MaheshPulivarthi18/ArxivLens/pull/33) raised for Mahesh, head `3f1c32d`, all CI green. QA PASS r1 · PM APPROVE 2026-11-08 ([report](../reviews/ING-11/report.md)). Followed by **AI-11** (chunker emits `page_start`), then **ING-11b** (search returns `page`) |
+| **Status** | **Done**: PR #33 merged by Mahesh 2026-11-08 06:00Z as `d3f9408` on ArxivLens `main` |
 
 ## Goal
 `paper_chunks.page_number` is the page of a chunk's *section heading*, which is wrong for every later chunk of a section that
@@ -87,3 +87,4 @@ go test ./internal/db/ -run TestRepoMigrationsOrder          # AC5
 - 2026-11-08 (pm-lead): final review **APPROVE** at `3f1c32d`; PR #33 raised for review. QA findings: 1 (Abstract bucket and
   heading-at-page-bottom untested) → new AI-11 AC5; 2 `[spec]` → AC2 wording aligned with design condition 2 (above);
   3 `[spec]` → `CONTRIBUTING.md:23` test-unit list on the board Backlog (backend, after #26 merges), with ING-11b as backstop.
+- 2026-11-08 (pm-lead, grooming): PR #33 merged as `d3f9408` (06:00Z). Status → Done.

@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged `71cb609`: `stack.yml` runs the stack and the "Known failure F1" step). **OPS-H10 merged** (stack keeps embedder logs on green runs; needed for AC1). #21 merged (README, AC5). |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-AI-9"`) |
 | **Design required** | no: P1, one file, no contract change. The ranking-neutral constraint (AC2) is what keeps it small. |
-| **Status** | Blocked (needs OPS-H10 merged for AC1's stack numbers; #21 merged; then rework round 2 on #24, which stays **draft**). F1 itself moved to AI-10 (needs ADR-0015) |
+| **Status** | **Blocked (needs AC1 timing lines from the `stack-logs` artifact of run 42461656086, or OPS-H10b merged)**. QA r2 FAIL on `c32ec23` ([report](../reviews/AI-9/report.md)) = second FAIL; missing evidence, not a code defect. PR #24 stays **draft**. F1 itself moved to AI-10 (needs ADR-0015) |
 
 ## Goal
 On GitHub's CPU runners, `/internal/rerank` scoring the ADR-0010 pool of 20 passages takes about 10 s, so three M3 tests
@@ -155,3 +155,11 @@ python3 -m pytest -q tests/test_m0.py -k rerank
     red, and the "Known failure F1" step stays.
   - Not verified locally: real torch/transformers (PyPI and download.pytorch.org blocked), Go 1.25 (`make lint`/`test-go`), and the
     full `make test-py` (needs BGE). CI is the source of truth for these. Jira KAN-39 not touched; the orchestrator mirrors it.
+- 2026-11-08 (pm-lead, after QA r2 FAIL on `c32ec23`, `agents/reviews/AI-9/report.md`): **Blocked**, rework round 2 of 2 used. Every AC except AC1 (and AC4's hand-over of AC1's numbers) is verified at `c32ec23`; checklist items 1–6 are met; 10/10 QA mutants killed. The only gap is that `embedder-timing.log` (888 B) sits in the artifact and the step summary, which no agent sandbox can read. More developer work can't fix that.
+  - **What unblocks it (either one):**
+    (a) *Fastest, needs Mahesh:* download `stack-logs` from run [42461656086](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42461656086) (or open the job summary "Embedder rerank timing") and paste `embedder-timing.log` verbatim as a #24 PR comment. QA computes p50/max from the paste; #24's head doesn't change.
+    (b) *Agent-only route:* backend ticket **[OPS-H10b](OPS-H10b.md)** (Ready, a few lines in `stack.yml`): the timing block also goes to the job log. After it merges, ai-engineer merges `origin/main` into `agent/ai/AI-9` (no force-push, no change to the PR's own files) so #24's `stack.yml` run prints the lines.
+    Either way QA re-reviews **AC1 only** (plus a check that the PR's diff vs `main` is unchanged from `c32ec23` on route b). That is a fresh round on new evidence, not a third rework of the code.
+  - **AC1 sample count (QA r2 finding 2 [spec], decided):** AC1 is met with p50/max over whatever `passages=20` lines the run produced, **minimum 2**, plus `threads=`, padded vs single-batch and the warm-up line. ADR-0015 needs the order of magnitude: the runner-host numbers already show ≈ 6.8 s forward per 20 pairs against a ≤ 1 s search+rerank budget, a gap far larger than run-to-run spread. If fewer than 2 lines exist, say so and pm-lead specs repeated `/internal/rerank` calls separately (not in OPS-H10b).
+  - **#24 stays draft** until QA PASS + PM APPROVE; it is not raised with AC1 marked unverified. It counts toward ai-engineer's WIP (2 active PRs), which is why route (a) is worth Mahesh's minute.
+  - QA r2 nit 3 (stale PR body below the top block): pm-lead rewrites the body at raise time. Nit 4 (invalid `EMBEDDER_TORCH_THREADS` asserts only `>= 1`): optional, not required for merge.

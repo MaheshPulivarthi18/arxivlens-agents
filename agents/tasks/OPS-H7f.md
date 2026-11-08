@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (merged). Design: `docs/design/OPS-H7.md` § Q5 table + PM decision condition 1 (approved 2026-11-07) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7f`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | no (covered by the approved OPS-H7 design) |
-| **Status** | Ready to merge, [PR #32](https://github.com/MaheshPulivarthi18/ArxivLens/pull/32) @ `6cd6ae4` (QA FAIL r1 → PASS r2 · PM APPROVE 2026-11-08) |
+| **Status** | **Done**: PR #32 merged by Mahesh 2026-11-08 06:00Z as `5e557bc` on ArxivLens `main` |
 
 ## Goal
 `arxivlens dlq replay` today rebuilds the envelope with `json.Unmarshal` into `EventEnvelope` (`internal/dlq/manager.go:114-117`, `origin/main` `2b71772`).
@@ -64,3 +64,4 @@ CI (`ci.yml`) is the source of truth. "not run locally: Go 1.25 unavailable" is 
   (13/14 mutants killed, 7/7 extra). PM APPROVE: all ACs checked off against the r2 evidence ([report](../reviews/OPS-H7f/report.md), evidence pinned at `2ea3675`).
   Size 221 changed lines vs ~130 (test rows); accepted. QA nit 4 → OPS-H7c Notes; nit 5 (M14) → OPS-H7b AC4; nit 6 → PR body refreshed to `6cd6ae4`.
   PR #32 raised for review. Jira story is still to be created (orchestrator).
+- 2026-11-08 (pm-lead, grooming): PR #32 merged as `5e557bc` (06:00Z). Status → Done.

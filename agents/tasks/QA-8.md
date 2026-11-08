@@ -8,7 +8,7 @@
 | **Depends on** | **LLM-1 merged** (`internal/llm` types + `llmtest` fake), **LLM-1b merged** (OpenAI-compatible client + `FromEnv`; split from LLM-1 on 2026-11-07), **AI-6 merged** (context selection + prompt, same file), **AI-6b merged** (`parseSynthesis` parser, same file; split from AI-6 on 2026-11-07 under design condition 1 seam c), AI-7 merged (refusal safety net; it comes before AI-6 in the `rag.go` order). EVAL-1, AI-1 (Done). |
 | **Jira** | KAN-7 (existing; re-scoped 2026-11-07, `labels = "task-QA-8"`) |
 | **Design required** | **yes**: an addendum to `docs/design/QA-8.md` (written in AI-6) covering the provider call, timeout and fallback. pm-lead approves before code. |
-| **Status** | Ready (Wave 3: starts when LLM-1b, AI-6 and AI-6b are merged; LLM-1 merged `43713ce`). The ADR blockers are gone (ADR-0001/0002 Accepted `51d8ff5`) |
+| **Status** | Ready (design addendum **APPROVED with conditions**, pm-lead 2026-11-08, `docs/design/QA-8.md` § "PM decision (QA-8 addendum)"). All dependencies merged (LLM-1 `43713ce`, LLM-1b `70b0afe`, AI-6 `537c6c5`, AI-6b `e7ab58d`, AI-7 `8406b18`). **Build starts after PR #35 (RET-2) merges** (both edit app `README.md`) and when ai-engineer is under 2 active PRs. Pre-approved split: [QA-8c](QA-8c.md) |
 
 ## Goal
 Replace the templated answer with an LLM-written synthesis over the selected passages whenever a provider is configured,
@@ -25,7 +25,7 @@ refusal when nothing is supported, and today's template behaviour whenever no pr
 
 ## Scope
 - `internal/query/rag.go`:
-  - `NewRAGService` reads the provider with `llm.FromEnv(os.Getenv)`. A config error is logged and leaves the template path on
+  - `NewRAGService` reads the provider from the `LLM_*` env through `internal/llm` (`llm.ConfigFromEnv` + `llm.New`, the two steps of `llm.FromEnv`, called once so the timeout and startup metadata come from the same config; design Q2, approved 2026-11-08). A config error is logged and leaves the template path on
     (the signature stays the same, so `cmd/` needs no change). Log once at startup: `answer synthesis: template` or
     `answer synthesis: llm model=<m> base_host=<host>` (never the key).
   - A test seam to inject a provider (e.g. an unexported field or `newRAGServiceWith(...)` used only by tests).
@@ -77,3 +77,4 @@ make eval   # template path, on the EVAL-3 workflow
   metadata fields (model, tokens, latency, finish reason). AC6's captured-logger test (sentinel key, no prompt/completion in any line) is the check.
 - 2026-11-07 11:00Z (pm-lead, grooming): LLM-1 merged (`43713ce`) and AI-7 merged (`8406b18`). Still waits on LLM-1b and AI-6 (both started in cycle 11:00Z; AI-6 writes `docs/design/QA-8.md`, which this task extends with an addendum).
 - 2026-11-08 (ai-engineer): design addendum written in `docs/design/QA-8.md` § "QA-8 addendum" (Q1–Q13) against app `origin/main` `9651294`: provider wiring via `ConfigFromEnv` + `llm.New` with a `newRAGServiceFromEnv` seam, the `askLLM` flow (select → prompt → `Complete` under its own `LLM_TIMEOUT` → parse → `renderClaims` → existing `finalize` over `passageHits`), error classes → template (caller cancel returns the error), one `ask llm` usage/fallback line per Ask (counts only), and the test plan for AC1–AC10. Estimate ≈ 373 changed lines, so the split seam QA-8 / QA-8c is named up front. 5 open questions. **Waiting for pm-lead approval; no code yet.** The build starts after PR #35 (RET-2, also edits README.md) merges.
+- 2026-11-08 (pm-lead, design gate): addendum Q1–Q13 **APPROVED with conditions** (8 binding conditions in `docs/design/QA-8.md`). Q13 answers: (1) `ConfigFromEnv` + `llm.New` approved (Scope line reworded); (2) caller cancel returns `ask canceled: context canceled`, no template, provider error text never wrapped; (3) 500-estimated-token question cap → template, no HTTP 400 (that would be an API change needing an ADR), and the README says so; (4) QA-8/QA-8c split pre-approved, triggered by the early check (`rag.go` > 150 changed lines or projected total ≥ 400), spec written now as `agents/tasks/QA-8c.md` (Not active); (5) sanitized `&lt;passage` in LLM-path citation `content` accepted until AI-8 (noted in `AI-8.md`). Build starts on `agent/ai/QA-8` after #35 merges.
