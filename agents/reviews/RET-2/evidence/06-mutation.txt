@@ -1,0 +1,26 @@
+$ python3 /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/qa-scripts/mutants.py /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/goharness.LfXd /root/wt/qa-RET-2 /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad
+SUMMARY: 20 mutants, 19 KILLED, 1 SURVIVED, 0 INVALID
+M01 drop p.version from outer SELECT                           KILLED                     TestSearchSQLColumnsMatchScan,TestSearchSQLOuterSelectOnly
+M02 drop &h.Version from scan                                  KILLED                     TestSearchSQLColumnsMatchScan
+M03 swap scan order Version/RRFScore                           KILLED                     TestSearchSQLColumnsMatchScan
+M04 move p.version after rrf_score                             KILLED                     TestQAGoldenEqualsMain,TestSearchSQLColumnsMatchScan,TestSearchSQLOuterSelectOnly
+M05 select c.page_number AS version                            KILLED                     TestQAGoldenEqualsMain,TestSearchSQLColumnsMatchScan,TestSearchSQLOuterSelectOnly
+M06 latest version via subquery                                KILLED                     TestQAGoldenEqualsMain,TestSearchSQLColumnsMatchScan,TestSearchSQLOuterSelectOnly
+M07 version json omitempty                                     KILLED                     TestSearchHitJSON
+M08 page json without omitempty                                KILLED                     TestSearchHitJSON
+M09 version json key renamed                                   KILLED                     TestSearchHitJSON
+M10 keyword arm LIMIT 50->40                                   KILLED                     TestQAGoldenEqualsMain,TestSearchSQLOuterSelectOnly
+M11 RRF k 60->61 (vector term)                                 KILLED                     TestQAGoldenEqualsMain,TestSearchSQLOuterSelectOnly
+M12 vector arm ORDER BY dropped                                KILLED                     TestQAGoldenEqualsMain,TestSearchSQLOuterSelectOnly
+M13 outer ORDER BY ASC                                         KILLED                     TestQAGoldenEqualsMain,TestSearchSQLOuterSelectOnly
+M00 CONTROL (no edit)                                          CONTROL ok                 
+M14 rerank success path zeroes Version                         KILLED                     TestSearchHitProvenanceTravelsWithHit
+M16 rerank fallback path drops Page                            KILLED                     TestSearchHitProvenanceTravelsWithHit
+M15 Page set from Version in fetchCandidates (integration-only) SURVIVED (unit)            
+P00 CONTROL (no edit)                                          CONTROL ok                 97 passed, 1 skipped in 0.27s
+P01 Go SQL drops p.version, test fragment kept (PR)            KILLED                     test_rrf_pool_sql_mirrors_search_go
+P02 revert the test's allowed-difference fragment              KILLED                     test_rrf_pool_sql_mirrors_search_go
+P03 Go keyword LIMIT 50->40                                    KILLED                     test_rrf_pool_sql_mirrors_search_go
+P04 Go p.version moved into keyword arm                        KILLED                     test_rrf_pool_sql_mirrors_search_go
+
+[exit code 0]

@@ -1,0 +1,23 @@
+$ bash -c cd /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/goharness.LfXd && for f in search.go client.go search_test.go search_provenance_test.go; do cmp -s internal/query/$f /root/wt/qa-RET-2/internal/query/$f && echo "identical to PR head: internal/query/$f"; done; GOTOOLCHAIN=local GOFLAGS=-mod=mod go test -race -count=1 -v ./internal/query/ 2>&1 | grep -E '^(--- |ok|FAIL|PASS)|qa_golden'
+identical to PR head: internal/query/search.go
+identical to PR head: internal/query/client.go
+identical to PR head: internal/query/search_test.go
+identical to PR head: internal/query/search_provenance_test.go
+    qa_golden_test.go:23: golden == main 9651294 (vector 356 bytes, hybrid 1249 bytes); PR hybrid = main + 11 bytes
+--- PASS: TestQAGoldenEqualsMain (0.00s)
+--- PASS: TestSearchHitJSON (0.00s)
+--- PASS: TestSearchHitProvenanceTravelsWithHit (0.00s)
+--- PASS: TestSearchSQLColumnsMatchScan (0.00s)
+--- PASS: TestSearchSQLOuterSelectOnly (0.00s)
+--- PASS: TestHybridSearchRerankOrdersByScore (0.00s)
+--- PASS: TestHybridSearchRerankTiesKeepRRFOrder (0.00s)
+--- PASS: TestHybridSearchRerankPoolSize (0.00s)
+--- PASS: TestHybridSearchRerankFallback (0.00s)
+--- PASS: TestTraceIDFrom (0.00s)
+--- PASS: TestHybridSearchNoRerankUnchanged (0.00s)
+--- PASS: TestHybridSearchFetchError (0.00s)
+--- PASS: TestNewSearchEngineWiresSeams (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.023s
+
+[exit code 0]

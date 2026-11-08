@@ -1,0 +1,173 @@
+$ bash -c cd /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/goharness.LfXd && for f in go.mod stubs/pgx/go.mod stubs/pgx/pgx.go internal/db/db.go internal/query/qa_stub.go internal/query/qa_golden_test.go; do echo "===== $f"; cat $f; done; echo '===== internal/query/qa_main_sql.go = git show 9651294:internal/query/search.go lines 85-121, sed s/vectorHitsSQL/qaMainVectorHitsSQL/g; s/hybridSearchSQL/qaMainHybridSearchSQL/g'; echo '===== PR files copied verbatim: internal/query/{search.go,client.go,search_test.go,search_provenance_test.go}'; echo '===== mutants.py'; cat /tmp/claude-0/-home-claude/f0395854-b645-5b4b-a1ac-859a9f3ff670/scratchpad/qa-scripts/mutants.py
+===== go.mod
+module arxivlens
+
+go 1.24
+
+require github.com/jackc/pgx/v5 v5.6.0
+
+replace github.com/jackc/pgx/v5 => ./stubs/pgx
+===== stubs/pgx/go.mod
+module github.com/jackc/pgx/v5
+
+go 1.24
+===== stubs/pgx/pgx.go
+// QA stub: only the pgx surface search.go uses (signatures shaped like pgx v5).
+package pgx
+
+import "context"
+
+type TxAccessMode string
+
+const ReadOnly TxAccessMode = "read only"
+
+type TxOptions struct{ AccessMode TxAccessMode }
+
+type CommandTag struct{}
+
+type Rows interface {
+	Next() bool
+	Scan(dest ...any) error
+	Err() error
+	Close()
+}
+
+type Tx interface {
+	Rollback(ctx context.Context) error
+	Exec(ctx context.Context, sql string, args ...any) (CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (Rows, error)
+}
+===== internal/db/db.go
+// QA stub of arxivlens/internal/db: just DB.Pool.BeginTx, which search.go calls.
+package db
+
+import (
+	"context"
+	"errors"
+
+	"github.com/jackc/pgx/v5"
+)
+
+type Pool struct{}
+
+func (p *Pool) BeginTx(ctx context.Context, o pgx.TxOptions) (pgx.Tx, error) {
+	return nil, errors.New("stub pool: no database")
+}
+
+type DB struct{ Pool *Pool }
+===== internal/query/qa_stub.go
+package query
+
+import (
+	"crypto/rand"
+	"fmt"
+)
+
+// QA stub: copied verbatim from rag.go:72-76 (rag.go pulls in the LLM client and its deps).
+func generateTraceID() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
+}
+===== internal/query/qa_golden_test.go
+package query
+
+import (
+	"strings"
+	"testing"
+)
+
+// QA: the PR's golden copy must equal the real pre-RET-2 SQL on current main, and the PR's SQL must be
+// main's SQL plus exactly " p.version," in the outer SELECT.
+func TestQAGoldenEqualsMain(t *testing.T) {
+	if goldenVectorHitsSQL != qaMainVectorHitsSQL {
+		t.Fatalf("goldenVectorHitsSQL != main vectorHitsSQL")
+	}
+	if goldenHybridSearchSQL != qaMainHybridSearchSQL {
+		t.Fatalf("goldenHybridSearchSQL != main hybridSearchSQL")
+	}
+	if vectorHitsSQL != qaMainVectorHitsSQL {
+		t.Fatalf("PR vectorHitsSQL != main")
+	}
+	if strings.Replace(hybridSearchSQL, " p.version,", "", 1) != qaMainHybridSearchSQL {
+		t.Fatalf("PR hybridSearchSQL minus p.version != main")
+	}
+	t.Logf("golden == main 9651294 (vector %d bytes, hybrid %d bytes); PR hybrid = main + %d bytes",
+		len(qaMainVectorHitsSQL), len(qaMainHybridSearchSQL), len(hybridSearchSQL)-len(qaMainHybridSearchSQL))
+}
+===== internal/query/qa_main_sql.go = git show 9651294:internal/query/search.go lines 85-121, sed s/vectorHitsSQL/qaMainVectorHitsSQL/g; s/hybridSearchSQL/qaMainHybridSearchSQL/g
+===== PR files copied verbatim: internal/query/{search.go,client.go,search_test.go,search_provenance_test.go}
+===== mutants.py
+#!/usr/bin/env python3
+"""QA RET-2 mutation run. Each mutant: fresh copy of the Go harness (PR files + stubs), one textual edit
+(must match exactly once, else INVALID), then `go test -count=1 ./internal/query/`.
+Build/vet failure => INVALID (never KILLED). Python mutants copy the PR worktree's tests/ + internal/query/search.go."""
+import os, shutil, subprocess, sys, tempfile
+H, W, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
+env = dict(os.environ, GOTOOLCHAIN="local", GOFLAGS="-mod=mod")
+SQ = "internal/query/search.go"
+GO = [
+ ("M01 drop p.version from outer SELECT", SQ, "AS section_title, p.version,", "AS section_title,"),
+ ("M02 drop &h.Version from scan", SQ, "&h.SectionTitle, &h.Version, &h.RRFScore", "&h.SectionTitle, &h.RRFScore"),
+ ("M03 swap scan order Version/RRFScore", SQ, "&h.Version, &h.RRFScore)", "&h.RRFScore, &h.Version)"),
+ ("M04 move p.version after rrf_score", SQ, "AS section_title, p.version,\n\t\t       COALESCE(1.0/(60 + v.rank), 0) + COALESCE(1.0/(60 + k.rank), 0) AS rrf_score",
+   "AS section_title,\n\t\t       COALESCE(1.0/(60 + v.rank), 0) + COALESCE(1.0/(60 + k.rank), 0) AS rrf_score, p.version"),
+ ("M05 select c.page_number AS version", SQ, "AS section_title, p.version,", "AS section_title, c.page_number AS version,"),
+ ("M06 latest version via subquery", SQ, "AS section_title, p.version,", "AS section_title, (SELECT MAX(p2.version) FROM papers p2 WHERE p2.arxiv_id = p.arxiv_id) AS version,"),
+ ("M07 version json omitempty", SQ, 'json:"version"', 'json:"version,omitempty"'),
+ ("M08 page json without omitempty", SQ, 'json:"page,omitempty"', 'json:"page"'),
+ ("M09 version json key renamed", SQ, 'json:"version"', 'json:"paper_version"'),
+ ("M10 keyword arm LIMIT 50->40", SQ, "ORDER BY ts_rank_cd(pc.content_tsv, q) DESC\n\t\t\tLIMIT 50", "ORDER BY ts_rank_cd(pc.content_tsv, q) DESC\n\t\t\tLIMIT 40"),
+ ("M11 RRF k 60->61 (vector term)", SQ, "COALESCE(1.0/(60 + v.rank), 0)", "COALESCE(1.0/(61 + v.rank), 0)"),
+ ("M12 vector arm ORDER BY dropped", SQ, "\t\t\tORDER BY ce.embedding <=> $1::halfvec\n\t\t\tLIMIT 50", "\t\t\tLIMIT 50"),
+ ("M13 outer ORDER BY ASC", SQ, "ORDER BY rrf_score DESC", "ORDER BY rrf_score ASC"),
+ ("M00 CONTROL (no edit)", SQ, "package query", "package query"),
+ ("M14 rerank success path zeroes Version", SQ, "hits[i].RerankScore = float64(scores[i])", "hits[i].RerankScore = float64(scores[i])\n\t\thits[i].Version = 0"),
+ ("M16 rerank fallback path drops Page", SQ, "\t\treturn hits[:min(limit, len(hits))]\n\t}\n\n\tfor i := range hits {", "\t\tfor i := range hits {\n\t\t\thits[i].Page = nil\n\t\t}\n\t\treturn hits[:min(limit, len(hits))]\n\t}\n\n\tfor i := range hits {"),
+ ("M15 Page set from Version in fetchCandidates (integration-only)", SQ, "\t\thits = append(hits, h)\n\t}\n\tif err := rows.Err()", "\t\th.Page = &h.Version\n\t\thits = append(hits, h)\n\t}\n\tif err := rows.Err()"),
+]
+def run(cmd, cwd):
+    p = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True, text=True, timeout=600)
+    return p.returncode, p.stdout + p.stderr
+def mutate(path, old, new):
+    s = open(path).read()
+    n = s.count(old)
+    if old == new: return 1
+    if n != 1: return n
+    open(path, "w").write(s.replace(old, new)); return 1
+rows = []
+base = tempfile.mkdtemp(prefix="mut-", dir=OUT)
+for name, f, old, new in GO:
+    d = os.path.join(base, name.split()[0]); shutil.copytree(H, d)
+    n = mutate(os.path.join(d, f), old, new)
+    if n != 1: rows.append((name, f"INVALID (pattern matched {n}x)", "")); continue
+    rc, out = run(["go", "vet", "./internal/query/"], d)
+    if rc != 0: rows.append((name, "INVALID (build/vet failed)", out.strip().splitlines()[-1][:90])); continue
+    rc, out = run(["go", "test", "-count=1", "./internal/query/"], d)
+    fails = sorted({l.split()[2] for l in out.splitlines() if l.startswith("--- FAIL") and "/" not in l.split()[2]})
+    rows.append((name, ("KILLED" if rc else "SURVIVED (unit)") if not name.endswith("(no edit)") else ("CONTROL ok" if rc == 0 else "CONTROL FAILED"), ",".join(fails)))
+# Python parity guard mutants (whole tests/test_evals_data.py)
+PY = [
+ ("P00 CONTROL (no edit)", SQ, "package query", "package query"),
+ ("P01 Go SQL drops p.version, test fragment kept (PR)", SQ, "AS section_title, p.version,", "AS section_title,"),
+ ("P02 revert the test's allowed-difference fragment", "tests/test_evals_data.py",
+   "COALESCE(ps.title, '') AS section_title, p.version,\",", "COALESCE(ps.title, '') AS section_title,\","),
+ ("P03 Go keyword LIMIT 50->40", SQ, "ORDER BY ts_rank_cd(pc.content_tsv, q) DESC\n\t\t\tLIMIT 50", "ORDER BY ts_rank_cd(pc.content_tsv, q) DESC\n\t\t\tLIMIT 40"),
+ ("P04 Go p.version moved into keyword arm", SQ, "AS section_title, p.version,", "AS section_title,"),
+]
+for name, f, old, new in PY:
+    d = os.path.join(base, name.split()[0]); os.makedirs(d)
+    subprocess.run(f"git -C {W} archive HEAD | tar -x -C {d}", shell=True, check=True)  # full PR tree
+    n = mutate(os.path.join(d, f), old, new)
+    if name.startswith("P04") and n == 1:
+        n = mutate(os.path.join(d, SQ), "SELECT pc.id AS chunk_id,\n\t\t\t       ROW_NUMBER() OVER (ORDER BY ts_rank_cd", "SELECT pc.id AS chunk_id, p.version,\n\t\t\t       ROW_NUMBER() OVER (ORDER BY ts_rank_cd")
+    if n != 1: rows.append((name, f"INVALID (pattern matched {n}x)", "")); continue
+    p = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/test_evals_data.py"], cwd=d, capture_output=True, text=True)
+    fails = sorted({l.split("::")[1].split()[0] for l in p.stdout.splitlines() if l.startswith("FAILED")})
+    rows.append((name, ("KILLED" if p.returncode else "SURVIVED") if not name.endswith("(no edit)") else ("CONTROL ok" if p.returncode == 0 else "CONTROL FAILED"), ",".join(fails) or p.stdout.strip().splitlines()[-1]))
+rows_all = rows; rows = [r for r in rows if not r[1].startswith("CONTROL")]
+k = sum(r[1] == "KILLED" for r in rows); sv = [r for r in rows if r[1].startswith("SURVIVED")]; inv = [r for r in rows if r[1].startswith("INVALID")]
+print(f"SUMMARY: {len(rows)} mutants, {k} KILLED, {len(sv)} SURVIVED, {len(inv)} INVALID")
+for r in rows_all: print(f"{r[0]:<62} {r[1]:<26} {r[2]}")
+
+[exit code 0]
