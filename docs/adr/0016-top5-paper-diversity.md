@@ -40,5 +40,5 @@ dataset names), where the keyword arm should matter.
 ## Consequences
 - `/v1/search?rerank=true` with `limit > 5` returns the same set of hits; only the first 5 positions are reordered.
 - `/v1/ask` sees more distinct papers among its 5 candidates. The relevance cutoff (rerank ≥ 0.45) still removes off-topic ones.
-- Two known limitations remain. On own-words queries the reranker's MRR is still 0.69, against 0.92 for dense alone:
+- A known limitation remains: on own-words queries the reranker's MRR is still 0.69, against 0.92 for dense alone:
   the right paper is now in the top 5 but not first. Diversity doesn't change which chunk ranks first.
