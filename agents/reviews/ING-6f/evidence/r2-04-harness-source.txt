@@ -1,0 +1,73 @@
+$ bash -c for f in $(find /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-r2-ING-6f -type f -name '*.sh' | sort) /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/extract.py; do echo "=== $f"; cat "$f"; done
+=== /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-r2-ING-6f/ac1_body_vs_log.sh
+#!/bin/bash
+# Round 2, finding 1(a): RISK1 lines in the PR #58 body vs the REST job log of job 134275963367, compared byte-for-byte.
+R=MaheshPulivarthi18/ArxivLens; J=134275963367; T=$(mktemp -d)
+gh api repos/$R/actions/jobs/$J --jq '"job \(.id) run \(.run_id) head_sha \(.head_sha) conclusion \(.conclusion)", (.steps[] | select(.name|startswith("ING-6 Risk 1")) | "step \(.number) \"\(.name)\" => \(.conclusion)")'
+gh api repos/$R/actions/jobs/$J/logs > $T/log
+gh api repos/$R/pulls/58 --jq .body > $T/body
+# job-log output lines (exclude the echoed script source, which GitHub prints with ANSI 36;1m, and the ##[group] header)
+grep 'RISK1' $T/log | grep -v '36;1m' | grep -v '##\[group\]' | tr -d '\r' > $T/log.lines
+# body: the fenced block under "### Risk 1 result"
+awk '/^### Risk 1 result/{s=1} s&&/^```/{f++; next} s&&f==1{print} f>=2{exit}' $T/body | tr -d '\r' > $T/body.lines
+echo "--- job log RISK1 output lines ($(wc -l < $T/log.lines)):"; cat $T/log.lines
+echo "--- PR body Risk 1 block ($(wc -l < $T/body.lines)):"; cat $T/body.lines
+echo "--- byte-for-byte (timestamps included): sha256 log=$(sha256sum < $T/log.lines | cut -c1-16) body=$(sha256sum < $T/body.lines | cut -c1-16)"
+if cmp -s $T/log.lines $T/body.lines; then echo "RESULT: IDENTICAL"; else echo "RESULT: DIFFERENT"; diff $T/log.lines $T/body.lines; fi
+echo "--- other body lines:"
+grep -nF 'job `134275963367` (run `44150168163`' $T/body | cut -c1-140
+grep -nF "Risk 1 cleared for this sample (2 entries; ongoing detection via ING-6c's \`out_of_order\`)" $T/body | cut -c1-160
+=== /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-r2-ING-6f/ac2_body_vs_rerun.sh
+#!/bin/bash
+# Round 2, finding 1(b): re-extract the step's script from stack.yml at the PR head, re-run it on QA's round-1 AC2 stores,
+# and diff the printed output + exit codes against the "AC2 local runs" block of the PR #58 body.
+WT=/root/wt/qa-ING-6f; Q=$1; T=$(mktemp -d)
+echo "worktree HEAD: $(git -C $WT rev-parse HEAD)"
+python3 $Q/extract.py $WT/.github/workflows/stack.yml $T
+echo "re-extracted risk1.py sha256=$(sha256sum < $T/risk1.py | cut -c1-16); round-1 QA risk1.py sha256=$(sha256sum < $Q/risk1.py | cut -c1-16); cmp: $(cmp -s $T/risk1.py $Q/risk1.py && echo identical || echo DIFFERENT)"
+# copy QA stores; rename key k1 -> the developer's 32-hex key so the warning path is comparable (content unchanged)
+K=0123456789abcdef0123456789abcdef
+for p in "01-asc asc" "02-desc desc" "03-idlist-only none" "04-not-xml bad"; do set -- $p
+  mkdir -p $T/s/$2/.arxiv-replay/api; cp $Q/stores/$1/.arxiv-replay/api/k1 $T/s/$2/.arxiv-replay/api/$K; cp $Q/stores/$1/.arxiv-replay/api/k1.json $T/s/$2/.arxiv-replay/api/$K.json; done
+for n in asc desc none bad; do echo "\$ store: $n"; (cd $T/s/$n && python3 -I $T/risk1.py 2>&1); echo "exit=$?"; done > $T/qa.out
+cat $T/qa.out
+gh api repos/MaheshPulivarthi18/ArxivLens/pulls/58 --jq .body > $T/body
+awk '/^### AC2 local runs/{s=1} s&&/^```/{f++; next} s&&f==1{print} f>=2{exit}' $T/body | tr -d '\r' > $T/body.blk
+echo "--- diff (command lines '\$ ...' dropped from both; everything else byte-for-byte):"
+if diff <(grep -v '^\$ ' $T/qa.out) <(grep -v '^\$ ' $T/body.blk); then echo "RESULT: IDENTICAL ($(grep -vc '^\$ ' $T/qa.out) lines, 4 exit codes)"; else echo "RESULT: DIFFERENT"; fi
+=== /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-r2-ING-6f/ac5_body_checks.sh
+#!/bin/bash
+# Round 2, finding 1(c)(d) + AC5: required content in the PR #58 body.
+T=$(mktemp); gh api repos/MaheshPulivarthi18/ArxivLens/pulls/58 --jq .body > $T
+c(){ printf '%-70s %s\n' "$1" "$(grep -cF -- "$2" $T)"; }
+echo "body updated_at: $(gh api repos/MaheshPulivarthi18/ArxivLens/pulls/58 --jq .updated_at)"
+echo "--- match counts:"
+c "verdict line 'RISK1 ORDER descending'" 'RISK1 ORDER descending'
+c "published 2026-11-16T18:59:38Z" '2026-11-16T18:59:38Z'
+c "published 2026-11-16T18:58:55Z" '2026-11-16T18:58:55Z'
+c "AC5 meaning line (exact)" "Risk 1 cleared for this sample (2 entries; ongoing detection via ING-6c's \`out_of_order\`)"
+c "job 134275963367" '134275963367'
+c "run 44150168163" '44150168163'
+c "'vs latest \`main\` run' (old AC3 wording)" 'latest `main`'
+echo "--- AC lines:"
+grep -nE '^- \[[ x]\] AC[0-9]' $T
+echo "--- unticked AC lines: $(grep -cE '^- \[ \] AC[0-9]' $T)"
+=== /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-r2-ING-6f/ci_checks.sh
+#!/bin/bash
+# Round 2: PR head and check runs for the head commit.
+R=MaheshPulivarthi18/ArxivLens
+gh api repos/$R/pulls/58 --jq '"PR #58 head.sha=\(.head.sha) draft=\(.draft) updated_at=\(.updated_at)"'
+gh api repos/$R/commits/61e44e191d5ec05c8cf38026fb38c9b11c5dc291/check-runs --jq '"check_runs total=\(.total_count)", (.check_runs[] | "\(.id)  \(.name)  \(.status)  \(.conclusion)  completed=\(.completed_at)")'
+=== /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/extract.py
+import sys, yaml
+wf = yaml.safe_load(open(sys.argv[1]))
+steps = wf["jobs"][next(iter(wf["jobs"]))]["steps"]
+names = [s.get("name") for s in steps]
+i = names.index("ING-6 Risk 1: published order of recorded search feeds")
+print("prev:", names[i-1], "| next:", names[i+1], file=sys.stderr)
+run = steps[i]["run"]
+open(sys.argv[2] + "/step_run.sh", "w").write(run)
+body = run.split("<<'PY'", 1)[1].split("\n", 1)[1].rsplit("PY", 1)[0]
+open(sys.argv[2] + "/risk1.py", "w").write(body)
+
+[exit code 0]

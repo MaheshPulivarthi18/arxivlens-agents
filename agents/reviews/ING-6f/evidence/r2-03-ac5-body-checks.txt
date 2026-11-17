@@ -1,0 +1,19 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-r2-ING-6f/ac5_body_checks.sh
+body updated_at: 2026-11-17T18:57:52Z
+--- match counts:
+verdict line 'RISK1 ORDER descending'                                  6
+published 2026-11-16T18:59:38Z                                         3
+published 2026-11-16T18:58:55Z                                         3
+AC5 meaning line (exact)                                               2
+job 134275963367                                                       3
+run 44150168163                                                        2
+'vs latest `main` run' (old AC3 wording)                               0
+--- AC lines:
+45:- [x] AC1: this PR's Full stack log (job 134275963367, run 44150168163) has the `RISK1 query=` line for `cat:cs.LG`, one `RISK1 entry` line per entry (2) and `RISK1 ORDER descending` (see "Risk 1 result")
+46:- [x] AC2: local runs on scratch stores: ascending → `NOT descending (first violation: entry 1 …)`, swapped → `descending`, `id_list` meta only → `RISK1 none`, non-XML body → `::warning::`; all exit 0 (see "AC2 local runs")
+47:- [x] AC3: the probe step exits 0 (success); step conclusions match ING-6a1 run 44143443574 / ING-6a2 run 44144065272 apart from the new step (stack.yml never runs on main). (44144065272 also skipped `Save arXiv replay store` on its cache hit.) `Lint the harness (actionlint, compose config)` success
+48:- [x] AC4: 1 file, 35 lines; ownership OK
+49:- [x] AC5: verdict `RISK1 ORDER descending` and `published` values `2026-11-16T18:59:38Z`, `2026-11-16T18:58:55Z` quoted above; Risk 1 cleared for this sample (2 entries; ongoing detection via ING-6c's `out_of_order`)
+--- unticked AC lines: 0
+
+[exit code 0]

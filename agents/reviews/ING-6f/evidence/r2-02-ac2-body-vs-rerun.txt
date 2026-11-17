@@ -1,0 +1,28 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-r2-ING-6f/ac2_body_vs_rerun.sh /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo
+worktree HEAD: 61e44e191d5ec05c8cf38026fb38c9b11c5dc291
+re-extracted risk1.py sha256=aa2626d884235fbf; round-1 QA risk1.py sha256=aa2626d884235fbf; cmp: identical
+$ store: asc
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+RISK1 entry 1 2307.08691v2 published=2023-07-17T17:50:36Z
+RISK1 entry 2 2401.12345 published=2024-01-22T09:00:00Z
+RISK1 ORDER NOT descending (first violation: entry 1 2023-07-17T17:50:36Z < entry 2 2024-01-22T09:00:00Z)
+exit=0
+$ store: desc
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+RISK1 entry 1 2401.12345 published=2024-01-22T09:00:00Z
+RISK1 entry 2 2307.08691v2 published=2023-07-17T17:50:36Z
+RISK1 ORDER descending
+exit=0
+$ store: none
+RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api
+::warning::RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api
+exit=0
+$ store: bad
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+::warning::RISK1 .arxiv-replay/api/0123456789abcdef0123456789abcdef.json: ParseError: syntax error: line 1, column 0
+exit=0
+--- diff (command lines '$ ...' dropped from both; everything else byte-for-byte):
+RESULT: IDENTICAL (16 lines, 4 exit codes)
+prev: Save arXiv replay store | next: Start the arXiv replay proxy (replay-only)
+
+[exit code 0]

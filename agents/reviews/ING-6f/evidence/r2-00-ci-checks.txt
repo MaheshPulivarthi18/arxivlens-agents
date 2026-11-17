@@ -1,0 +1,11 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-r2-ING-6f/ci_checks.sh
+PR #58 head.sha=61e44e191d5ec05c8cf38026fb38c9b11c5dc291 draft=true updated_at=2026-11-17T18:57:52Z
+check_runs total=6
+134275966107  Frontend (lint, test, build)  completed  success  completed=2026-11-17T18:39:29Z
+134275965642  Agent ownership check  completed  success  completed=2026-11-17T18:39:23Z
+134275964899  Go (vet, gofmt, test, build)  completed  success  completed=2026-11-17T18:40:09Z
+134275964520  Python M0 unit tests  completed  success  completed=2026-11-17T18:40:31Z
+134275964270  DB (migrate twice, HNSW plan + recall)  completed  success  completed=2026-11-17T18:40:33Z
+134275963367  Full stack (compose + make test-full)  completed  success  completed=2026-11-17T18:51:36Z
+
+[exit code 0]
