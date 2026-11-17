@@ -1,0 +1,40 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/133926588911/logs (lines 118-122,154-158,205-232, timestamps cut)
+Turn off this advice by setting config variable advice.detachedHead to false
+
+HEAD is now at fe1205f Merge 12e70b4155325a95ec72aaabdfa31f0ae82461ea into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+##[endgroup]
+[command]/usr/bin/git log -1 --format=%H
+Cache restored successfully
+Cache restored from key: setup-go-Linux-x64-ubuntu26-go-1.25.0-282abb17dbe996d56a2dfecbce61082860776038189ca3cb06eff71ee8aa2c93
+go version go1.25.0 linux/amd64
+
+##[group]go env
+
+##[endgroup]
+##[group]Run make lint-go
+[36;1mmake lint-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go vet ./...
+##[group]Run make test-go
+[36;1mmake test-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go test ./...
+?   	arxivlens/cmd/arxivlens	[no test files]
+ok  	arxivlens/internal/arxiv	1.556s
+ok  	arxivlens/internal/config	0.003s
+ok  	arxivlens/internal/crawler	0.008s
+ok  	arxivlens/internal/db	0.005s
+ok  	arxivlens/internal/dlq	0.004s
+ok  	arxivlens/internal/downloader	0.106s
+ok  	arxivlens/internal/kafka	0.031s
+ok  	arxivlens/internal/llm	0.779s
+ok  	arxivlens/internal/llm/llmtest	0.104s
+ok  	arxivlens/internal/query	0.341s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+##[group]Run go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go
+[36;1mgo test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go[0m
+

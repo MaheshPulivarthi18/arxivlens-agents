@@ -1,34 +1,27 @@
 # Board
 
-Last updated: 2026-11-08 05:05Z by orchestrator (cycle 05:00Z: no changes; 8 PRs #26–#33 still Ready to merge, nothing independent to start)
+Last updated: 2026-11-17 13:00Z by pm-lead (cycle 13:00Z planning: reconciled 18 merges since 2026-11-08; ArxivLens `main` = `40dec5a`)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
-Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merged** (or, where it says "slot", when the owner's WIP slot frees).
-`rag.go` order (one file, one owner): AI-7 → AI-6 → AI-6b → QA-8 → AI-8.
+"After #N" = start only once that PR is **merged** (file overlap or dependency). Open PRs and their files: #51 EVAL-4 (`README.md`,
+`evals/BASELINE.md`, `evals/README.md`), #52 ING-11b (`db.yml`, `CONTRIBUTING.md`, `README.md`, `internal/query/search*.go`, `tests/test_evals_data.py`,
+`tests/test_m2_pipeline.py`), #53 OPS-H2 (`ci.yml`, `Makefile`, `requirements*.txt`, both Dockerfiles), #54 AI-8a (`rag.go`, `rag_test.go`).
+`rag.go` order (one file, one owner): AI-8a → AI-8b → AI-5 (if ADR-0011 is Accepted).
+Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; what they changed for the tickets is recorded in the
+2026-11-17 grooming notes (QA-8 delivered by #46; AI-10/ADR-0015 premise changed by #43/#47; EVAL-8 question; ADR-0018 Proposed for #44/#46).
 
-## Ready — the 2026-11-07 plan, in execution order
-| # | ID | Title | Owner | Pri | Depends on | Wave | Note |
-|---|---|---|---|---|---|---|---|
-| 5 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | 1 | **Env-blocked:** registry.npmjs.org; needs Mahesh (allow the host, or push the lockfile) |
-| 6b | [AI-6b](tasks/AI-6b.md) | `parseSynthesis` structured-output parser + types/errors; delimiter look-alikes; `selectContext` edge cases | ai-engineer | P0 | **AI-6 #28 merged** (same files) | 3 | Covered by `docs/design/QA-8.md` §5 (no new design). Pure function, `Ask` unchanged |
-| 7b | [OPS-H8b](tasks/OPS-H8b.md) | Python consumer loop: in-place DLQ retry, commit-error log, interruptible waits, graceful stop, poison records | backend-engineer | P0 | **OPS-H8 merged** (same files) | 3 | Covered by `docs/design/OPS-H8.md` (split addendum). Code exists at `ebe80a7`; ~325 lines; seam = poison/AC7 → OPS-H8c |
-| 9 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1, AI-7 merged | 2 | |
-| 10 | [RET-2](tasks/RET-2.md) | `SearchHit` carries paper version (+ `page` field, omitted for all hits until ING-11) (design-required) | backend-engineer | P1 | ADR-0014 (Accepted 2026-11-07), AI-7 + EVAL-6 merged | 2 | **Design approved 2026-11-07** (conditions 1–7), build after #26 (OPS-H10) merges (README) |
-| 11 | [QA-8](tasks/QA-8.md) (KAN-7) | LLM synthesis in `/v1/ask` via provider, template fallback (design addendum) | ai-engineer | P0 | LLM-1, LLM-1b, AI-6, AI-6b merged | 3 | Fake provider in tests; real-LLM numbers are EVAL-8 |
-| 13 | [AI-8](tasks/AI-8.md) | Claims + provenance (version, chunk, section, page, quote, status) (design-required) | ai-engineer | P0 | ADR-0014 (Accepted), QA-8, RET-2 merged | 3 | |
-| 14 | [FE-4](tasks/FE-4.md) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | P0 | ADR-0014 (Accepted), AI-8, FE-3 merged | 3 | |
-| 15a | [EVAL-9](tasks/EVAL-9.md) | `eval.yml` seed-step timeout headroom (45→70 min, job 100→120), seed-time summary line, two label nits | backend-engineer | P1 | **EVAL-3 merged**; no other open PR on `eval.yml` | 3 | From EVAL-3 QA finding 5 (seed at 84% of budget) |
-| 15 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | EVAL-3 merged; no open README PR | 3 | |
-
-## Ready — not in this plan (lower priority; start only with a free slot and no file overlap)
-| ID | Title | Owner | Pri | Depends on |
-|---|---|---|---|---|
-| [AI-11](tasks/AI-11.md) | `TokenChunker` emits `page_start` from `page_breaks` (fail-safe: unknown, never guessed); AC1 end-to-end on ING-11's fixture | ai-engineer | P1 | **ING-11 merged** (its test file is in `make test-py`; `tests/test_m0.py` is held by #24) |
-| [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to start-time high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | **OPS-H7f merged** (#32 is Ready to merge, not merged) + **#26 merged** (README; sequence with RET-2) |
-| [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: Postgres checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a merged |
-| [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs for raw payloads, stack replay run (OPS-H7 part 4; closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged, #26 merged (`stack.yml`) |
-| [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 (Done) |
-| [FE-2](tasks/FE-2.md) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 |
+## Ready
+| # | ID | Title | Owner | Pri | Depends on / waits for | Note |
+|---|---|---|---|---|---|---|
+| 1 | [OPS-H11](tasks/OPS-H11.md) | Redelivered `papers.discovered` doesn't move an `embedded` paper back to `downloaded` (OPS-H6 G1) | backend-engineer | P1 | OPS-H6, ING-10, OPS-H10 (all merged) | **Independent now** (`internal/db/db.go`, `internal/downloader/*`, `tests/test_m4_chaos.py`); specced 2026-11-17 |
+| 2 | [ING-6](tasks/ING-6.md) (KAN-18) | Scheduled crawler with per-category `since` watermark (design-required) | backend-engineer | P1 | merged deps; **design first** | Design can start now (agents repo only). Build after #51/#52 merge (README) and needs a free backend slot |
+| 3 | [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to the high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | all deps merged; **after #52** (`db.yml`, README) | Next backend build once ING-11b merges |
+| 4 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | **after #52** (`db.yml`, README, CONTRIBUTING) **and** not alongside OPS-H7a (`db.yml`) | |
+| 5 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | **Env-blocked:** registry.npmjs.org unreachable (re-checked 2026-11-17 13:00Z); `frontend/package-lock.json` still has no vitest. Needs Mahesh (allow the host, or push the lockfile) |
+| 6 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 merged | |
+| 7 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 merged | |
+| 8 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (new migration), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a merged | |
+| 9 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs for raw payloads, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -37,37 +30,32 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
+| [AI-8a](tasks/AI-8a.md) (KAN-60) | Citation `status`/`paper_version`/`page`/`quote`, versioned `pdf_url`, raw `content` on the LLM path | ai-engineer | ArxivLens [#54](https://github.com/MaheshPulivarthi18/ArxivLens/pull/54) (draft) @ `12e70b4` |
 
 ## PM review
 | ID | Title | Owner | PR |
 |---|---|---|---|
+| [EVAL-4](tasks/EVAL-4.md) | Record EVAL-3's first numbers in `evals/BASELINE.md` (+ README Testing line) | ai-engineer | ArxivLens [#51](https://github.com/MaheshPulivarthi18/ArxivLens/pull/51) @ `156c394` · QA PASS r2 |
 
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
-| [ING-11b](tasks/ING-11b.md) | Part b (consumer): `/v1/search` returns `page` from `paper_chunk_pages`; parity fragment; README; real-stack write check | backend-engineer | ArxivLens [#52](https://github.com/MaheshPulivarthi18/ArxivLens/pull/52) (KAN-59) @ `706e43e` | QA PASS r1 · PM APPROVE 2026-11-17 (AC4 wording amended, finding 2 [spec]) |
+| [ING-11b](tasks/ING-11b.md) | Part b (consumer): `/v1/search` returns `page` from `paper_chunk_pages`; parity fragment; README; real-stack write check | backend-engineer | ArxivLens [#52](https://github.com/MaheshPulivarthi18/ArxivLens/pull/52) (KAN-59) @ `706e43e` | QA PASS r1 · PM APPROVE 2026-11-17 (AC4 wording amended, finding 2 [spec]); merging it unblocks AI-8b, OPS-H7a, OPS-H9 |
 | [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` (+ `requirements-dev.txt`; `requirements-m0.txt` shim) | backend-engineer | ArxivLens [#53](https://github.com/MaheshPulivarthi18/ArxivLens/pull/53) (KAN-14) @ `95ea3bb` | QA PASS r1 · PM APPROVE ([report](reviews/OPS-H2/report.md)); after merge: pm-lead `rules/` PR for `area-notes/services.md:9` + `docs/` PR for the PRD §11 row |
-| [OPS-H8](tasks/OPS-H8.md) | Python producer confirms delivery; `publish`/`publish_dlq` raise `DeliveryError` (part a; interim crash-restart until OPS-H8b) | backend-engineer | ArxivLens [#30](https://github.com/MaheshPulivarthi18/ArxivLens/pull/30) (KAN-34) @ `0d70fab` · AC7 mutations (b) `68f775f`, (a') `455ec67` red, reverted | QA PASS r1 · PM APPROVE ([report](reviews/OPS-H8/report.md)); OPS-H8b (KAN-53) starts after merge |
-| [ING-10](tasks/ING-10.md) | Stored version matches the PDF: on-demand ingest parses `entry.ID` version; versioned PDF URLs | backend-engineer | ArxivLens [#31](https://github.com/MaheshPulivarthi18/ArxivLens/pull/31) (KAN-54) @ `c940779` · stack.yml dispatched on branch (run 42411848508) · no file overlap with open PRs | QA FAIL r1 (AC5 no stack run) → PASS r2 · PM APPROVE, AC4 wording amended ([report](reviews/ING-10/report.md)) |
-| [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (transport errors carry no server bytes; no redirects) | backend-engineer | ArxivLens [#27](https://github.com/MaheshPulivarthi18/ArxivLens/pull/27) (KAN-47) · no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/LLM-1b/report.md)) |
-| [OPS-H10](tasks/OPS-H10.md) | `stack.yml` runs on Go/`tests/` PRs and keeps service logs on every run | backend-engineer | ArxivLens [#26](https://github.com/MaheshPulivarthi18/ArxivLens/pull/26) (KAN-50) · **human checks:** open artifact 13579885920, view step summary, delete scratch branch `agent/backend/OPS-H10-ac3` | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/OPS-H10/report.md)); unblocks AI-9 AC1 |
-| [ING-11](tasks/ING-11.md) | Part a (producer): `page_breaks` in the processor, `paper_chunk_pages` table (migration 000003), `db.py` writes it in the processor transaction (nothing reads it yet) | backend-engineer | ArxivLens [#33](https://github.com/MaheshPulivarthi18/ArxivLens/pull/33) (KAN-55) @ `3f1c32d` · no file overlap with open PRs · backfill of the existing corpus is Mahesh's call (PR body) | QA PASS r1 · PM APPROVE ([report](reviews/ING-11/report.md)); AI-11 starts after merge |
-| [OPS-H7f](tasks/OPS-H7f.md) | DLQ replay never publishes an empty/unreplayable envelope (B1/B2; OPS-H7 part 1 of 4) | backend-engineer | ArxivLens [#32](https://github.com/MaheshPulivarthi18/ArxivLens/pull/32) (KAN-56) @ `6cd6ae4` · `internal/dlq/` only, no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/OPS-H7f/report.md)); OPS-H7a starts after this + #26 merge |
-| [AI-6](tasks/AI-6.md) | Context selection, token budget, synthesis prompt in `rag.go` (not yet called; parser → AI-6b) | ai-engineer | ArxivLens [#28](https://github.com/MaheshPulivarthi18/ArxivLens/pull/28) (KAN-38) · no file overlap with open PRs | QA FAIL r1 (PR text) → PASS r2 · PM APPROVE ([report](reviews/AI-6/report.md)); AI-6b (KAN-52) starts after merge |
-| [EVAL-7](tasks/EVAL-7.md) | Blind human-review sheet → citation precision, claim correctness (report-only) | ai-engineer | ArxivLens [#29](https://github.com/MaheshPulivarthi18/ArxivLens/pull/29) (KAN-42) · no file overlap with open PRs · first real judging session is Mahesh's | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/EVAL-7/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
-| [AI-9](tasks/AI-9.md) | CPU rerank: score-neutral sort-and-batch, timing log, threads (re-scoped; does not fix F1) | ai-engineer | draft #24 (KAN-39), QA r1 FAIL. **OPS-H10 merged** (AC1 stack numbers) + #21 merged (AC5); then round-2 checklist in the ticket |
-| ADR-0015 | CPU rerank latency: which ranking-changing options (int8, `max_length`; not pool/model) + adoption rule (Proposed 2026-11-07) | Mahesh | human decision; blocks AI-10 |
-| [AI-10](tasks/AI-10.md) | Configurable int8/`max_length` reranker, measured, makes F1 pass (design-required) | ai-engineer | ADR-0015 Accepted, then AI-9 merged |
-| [EVAL-8](tasks/EVAL-8.md) | First answer eval with a real LLM (carries QA-8's old AC3) | backend + ai | Mahesh: model + where it runs; cost cap (ADR-0001) for a hosted model; then QA-8, EVAL-3, EVAL-6 merged |
-| [ING-8](tasks/ING-8.md) | Measure PDF section-extraction quality (scorer/tests/docs built on `agent/ai/ING-8` `d2ad9c5`, pushed, no PR) | ai-engineer | arxiv.org access to license-check and hand-label `evals/extraction.jsonl` (AC1) and run the baseline (AC5) (KAN-32) |
-| [AI-5](tasks/AI-5.md) | `/v1/ask` relevance bar when rerank scores are missing (reranker outage fails open) | ai-engineer | ADR-0011 (human decision); also `rag.go`, so it queues behind the plan's `rag.go` chain |
-| [EVAL-2](tasks/EVAL-2.md) | `/v1/search` p95 gate key in `make eval` | ai-engineer | ADR-0012 (Proposed) |
-| [EVAL-4](tasks/EVAL-4.md) | Record EVAL-3's first numbers in `evals/BASELINE.md` (+ README Testing line); AC5 = AI-7's refusal counts by reason | ai-engineer | EVAL-3 merged + one completed `eval.yml` run (AC5: on a `main` with #20 + #21) |
-| ADR-0013 | Search plan cache vs HNSW (generic plans → exact scan) | Mahesh | human decision |
+| [AI-8b](tasks/AI-8b.md) (KAN-61) | `claims[]`, `prompt_version`, README `/v1/ask` row, AC6 Python | ai-engineer | AI-8a (#54) merged + ING-11b (#52) merged; ai WIP slot |
+| [FE-4](tasks/FE-4.md) (KAN-44) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | AI-8a/AI-8b merged, FE-3 merged (FE-1 env-blocked) |
+| [AI-10](tasks/AI-10.md) (KAN-51) | Configurable int8/`max_length` reranker (design-required) | ai-engineer | Mahesh's answer on ADR-0015 (premise changed: GPU is the reference hardware since #43/#47). AI-9 is merged (`d4b1cf3`) |
+| [EVAL-8](tasks/EVAL-8.md) (KAN-46) | First answer eval with a real LLM | backend + ai | Mahesh: is his local qwen2.5:3b run in #46 "option 3" (EVAL-8 done, commit the results JSON), or does he want CI/hosted runs (option 1/2)? |
+| [ING-8](tasks/ING-8.md) (KAN-32) | Measure PDF section-extraction quality (scorer on `agent/ai/ING-8` `d2ad9c5`, no PR) | ai-engineer | hand labels for `evals/extraction.jsonl` from someone with arxiv.org access (AC1, AC5) |
+| [AI-5](tasks/AI-5.md) (KAN-25) | `/v1/ask` relevance bar when rerank scores are missing | ai-engineer | ADR-0011 (Proposed); also `rag.go` (queues behind AI-8b) |
+| [EVAL-2](tasks/EVAL-2.md) (KAN-12) | `/v1/search` p95 gate key in `make eval` | ai-engineer | ADR-0012 (Proposed) |
+| ADR-0018 | Two-stage `/v1/ask` + `answer_kind` (records #44/#46's contract changes) | Mahesh | human decision (Proposed 2026-11-17); AI-8b's README row follows it |
+| ADR-0013 | Search plan cache vs HNSW | Mahesh | human decision |
+| ADR-0004, ADR-0005 | On-demand ingest via Kafka · default crawl categories | Mahesh | human decision (ING-6 keeps categories configurable, so it doesn't wait on 0005) |
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
@@ -97,7 +85,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
   contract → ADR first); query-category eval slices and candidate-pool sweeps (no tuning without EVAL-3 numbers). Not doing:
   Kubernetes, another database, new agent roles, HNSW tuning, admin dashboard, collaboration.
 - From the 2026-11-07 merge review: `/internal/ingest` builds `ProcessorWorker()`/`EmbedderWorker()` per request (model reload; ai,
-  `services/embedder/api.py`, after AI-9 which edits the same file) and ignores client cancellation (backend side: honour the
+  `services/embedder/api.py`; AI-9 merged `d4b1cf3`, so this is unblocked) and ignores client cancellation (backend side: honour the
   `INGEST_TIMEOUT` ctx end to end). P2: ingest is off the Phase 1 path and F2 is fixed by the timeout
 - After AI-10 merges with F1 passing (backend, small): drop the "Known failure F1" step and `F1_TESTS` deselection in `stack.yml`. (The always-keep-logs part and the `internal/**` path filter moved to OPS-H10; pm-lead reversed the earlier "don't add `internal/**`" note on 2026-11-07, because DoD 2 needs the milestone suite on pipeline/query PRs)
 - From ADR-0015 option 6 (backend + ai, P3, only if AI-10's measured options fall short): ONNX Runtime fp32 export of `bge-reranker-base` (score-preserving within 1e-4 if measured so; new dependency → `requirements*.txt` + embedder Dockerfile decision)
@@ -125,7 +113,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 - backend option (P3, only if EVAL-9's 70-min seed budget gets tight): cache the seeded Postgres/MinIO state per `evals/corpus.txt` hash + migrations hash, so nightly runs skip the 31 arXiv ingests. Needs a design (cache invalidation when ingest/chunking code changes would hide regressions).
 - backend docs nit: `CONTRIBUTING.md:28,42,54` still say "once EVAL-1 lands" (folded into EVAL-3 AC7); AGENTS.md §2 ownership table omits `.gitignore` for backend (CI script allows it) (pm-lead rules PR)
 - From Mahesh's #12 review (backend, P2, small): split `make test-py` into `test-m0` and `test-evals-data` (and two CI steps), so the eval-data tests still run when the ML stack (torch/sentence-transformers) fails to install/import; `test-py` keeps running both; update `CONTRIBUTING.md:23` + README Testing block. Not folded into EVAL-3 because it shouldn't wait for OPS-H1. (Where `evals/results` go and artifact retention: EVAL-3 AC3/AC7.)
-- OPS-H6 design G1 (backend, P1): a redelivered `papers.discovered` record downgrades an already-`embedded` paper's status (`UpdatePaperDownloaded` forces `'downloaded'`). Don't downgrade a later status, or skip the re-publish when the status is already past `downloaded`
+- ~~OPS-H6 design G1~~ → specced as [OPS-H11](tasks/OPS-H11.md) (2026-11-17)
 - From the OPS-H6 PM review (backend, P2, next `internal/kafka/consumer.go` change; not folded into OPS-H8, which is Python-only): a clean shutdown logs `Poll error (topic= partition=-1): context canceled`; skip poll-error logging when `ctx.Err() != nil` and assert no such line on shutdown
 - OPS-H6 design G2 (backend, P2; pm-lead 21:02Z: `chunk_embeddings` has no `content_hash` column, so the fix lives in backend-owned `services/common/db.py` — e.g. `save_sections_and_chunks` deletes a chunk's embeddings when its `content_hash` changes — or a new column, which changes an existing table → ADR): embedder L3 dedupe joins `chunk_embeddings` on `model` only, not content. Key it on `content_hash` so a changed chunk text gets re-embedded (PRD says L3 is "content hashing")
 - pm-lead docs PR: Technical PRD §8.1 L4 / §8.2 diagram caveat ("commit after DLQ" not true until OPS-H6 + OPS-H8), Product PRD OPS-1 ✅ → ◐; Proposed Product PRD row ING-8 (extraction quality measured)
@@ -157,6 +145,22 @@ Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and 
 ## Done
 | ID | Title | PR |
 |---|---|---|
+| [AI-9](tasks/AI-9.md) | CPU rerank: length-sorted batches under `inference_mode` (scores unchanged) | ArxivLens [#24](https://github.com/MaheshPulivarthi18/ArxivLens/pull/24) → d4b1cf3 (KAN-39), merged by Mahesh 2026-11-14 while QA r2 FAIL (AC1 evidence) was open |
+| [EVAL-9](tasks/EVAL-9.md) | `eval.yml` seed budget 70 / job 120, seed-time summary | ArxivLens [#37](https://github.com/MaheshPulivarthi18/ArxivLens/pull/37) → c0376ab, merged before QA r2/PM review |
+| [OPS-H10b](tasks/OPS-H10b.md) | Embedder rerank timing block teed to the job log | ArxivLens [#39](https://github.com/MaheshPulivarthi18/ArxivLens/pull/39) → 5099130, merged before QA |
+| [AI-11](tasks/AI-11.md) | `TokenChunker` records `page_start` from `page_breaks` | ArxivLens [#38](https://github.com/MaheshPulivarthi18/ArxivLens/pull/38) → 68a57a9 |
+| [RET-2](tasks/RET-2.md) (KAN-41) | `SearchHit` carries the paper version (`page` omitted until ING-11b) | ArxivLens [#35](https://github.com/MaheshPulivarthi18/ArxivLens/pull/35) → 6cfd836 |
+| [QA-8](tasks/QA-8.md) (KAN-7) | LLM synthesis in `/v1/ask` (delivered by Mahesh's own PR, outside the agent workflow; QA-8c closed as not needed) | ArxivLens [#46](https://github.com/MaheshPulivarthi18/ArxivLens/pull/46) → cc57474 |
+| [AI-6b](tasks/AI-6b.md) (KAN-52) | `parseSynthesis` structured-output parser | ArxivLens [#36](https://github.com/MaheshPulivarthi18/ArxivLens/pull/36) → e7ab58d |
+| [OPS-H8b](tasks/OPS-H8b.md) (KAN-53) | Python consumer: in-place DLQ retry, graceful stop, poison records | ArxivLens [#34](https://github.com/MaheshPulivarthi18/ArxivLens/pull/34) → 9651294 |
+| [ING-11](tasks/ING-11.md) (KAN-55) | `page_breaks` + `paper_chunk_pages` (migration 000003), producer side | ArxivLens [#33](https://github.com/MaheshPulivarthi18/ArxivLens/pull/33) → d3f9408 |
+| [OPS-H7f](tasks/OPS-H7f.md) (KAN-56) | DLQ replay never publishes an empty/unreplayable envelope | ArxivLens [#32](https://github.com/MaheshPulivarthi18/ArxivLens/pull/32) → 5e557bc |
+| [ING-10](tasks/ING-10.md) (KAN-54) | Stored version matches the PDF (on-demand ingest + versioned URLs) | ArxivLens [#31](https://github.com/MaheshPulivarthi18/ArxivLens/pull/31) → 4c15275 |
+| [OPS-H8](tasks/OPS-H8.md) (KAN-34) | Python producer confirms delivery (`DeliveryError`) | ArxivLens [#30](https://github.com/MaheshPulivarthi18/ArxivLens/pull/30) → db6f670 |
+| [EVAL-7](tasks/EVAL-7.md) (KAN-42) | Blind human-review sheet (report-only) | ArxivLens [#29](https://github.com/MaheshPulivarthi18/ArxivLens/pull/29) → 2958240 |
+| [AI-6](tasks/AI-6.md) (KAN-38) | Context selection, token budget, synthesis prompt | ArxivLens [#28](https://github.com/MaheshPulivarthi18/ArxivLens/pull/28) → 537c6c5 |
+| [LLM-1b](tasks/LLM-1b.md) (KAN-47) | OpenAI-compatible LLM client + `FromEnv` | ArxivLens [#27](https://github.com/MaheshPulivarthi18/ArxivLens/pull/27) → 70b0afe |
+| [OPS-H10](tasks/OPS-H10.md) (KAN-50) | `stack.yml` on Go/`tests/` PRs, logs on every run | ArxivLens [#26](https://github.com/MaheshPulivarthi18/ArxivLens/pull/26) → 54cad79 |
 | [EVAL-6](tasks/EVAL-6.md) | Answer eval: ADR-0003 classification, report-only coverage, near-miss set | ArxivLens [#20](https://github.com/MaheshPulivarthi18/ArxivLens/pull/20) → 1273a3b (KAN-37) |
 | [AI-7](tasks/AI-7.md) | ADR-0003 refusal with evidence + `refusal_reason` | ArxivLens [#21](https://github.com/MaheshPulivarthi18/ArxivLens/pull/21) → 8406b18 (KAN-36) |
 | [LLM-1](tasks/LLM-1.md) | `internal/llm`: provider interface, typed errors, config, `llmtest` fake | ArxivLens [#23](https://github.com/MaheshPulivarthi18/ArxivLens/pull/23) → 43713ce (KAN-35) |

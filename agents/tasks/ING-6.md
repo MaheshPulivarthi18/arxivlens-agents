@@ -7,7 +7,7 @@
 | **PRD ref** | ING-6; Technical PRD §11 "Scheduled crawler" |
 | **Depends on** | OPS-H3 (Done). ING-9 (Done `2b71772`: one shared 3 s limiter). Mahesh's #45 (`393bcf3`: `arxiv.GetAPI` typed `*StatusError`, `arxiv.Retry` 5/15/45 s, `ARXIV_API_URL` override) is merged and must be reused. Default categories may change via ADR-0005 (Proposed), so keep them configurable |
 | **Design required** | **yes**: it adds a CLI command and a table (pm-lead rule). `docs/design/ING-6.md` doesn't exist yet |
-| **Status** | Ready for design (no design yet). Not picked in cycle 2026-11-17: backend is at 2 picks |
+| **Status** | Ready for design (no design yet). Proposed by pm-lead for cycle 2026-11-17T13:00Z as a design-only start: `docs/design/ING-6.md`, no app code until pm-lead approves it |
 
 ## Goal
 Keep the corpus fresh without someone running `arxivlens crawl` by hand (Product PRD goal 3).
@@ -39,3 +39,8 @@ make stack-up && ./bin/arxivlens migrate && ./bin/arxivlens crawl-loop --categor
   `ARXIV_API_URL` override (so CI can replay the loop's requests). **Migration number:** OPS-H7b's spec also claims `000004`. The
   design takes the next free number at build time and says so; whichever merges second renumbers. Also fold in the ING-9 follow-ups that
   touch `internal/arxiv`/`crawler` (board Backlog) only if they're on the same lines.
+- 2026-11-17 13:00Z (pm-lead, planning): design stage can start now (it writes only `docs/design/ING-6.md` here). Re-check before the
+  build starts: the build touches `README.md` (CLI table) and probably `docker-compose.yml` and `cmd/arxivlens/main.go`; README is
+  held by #51/#52 today, so the build waits until those merge or the README row moves to a follow-up. The design must also say how
+  AC2/AC3 are evidenced in CI (`stack.yml` runs on Go PRs; arXiv is replayed from the Actions cache since #45), and which migration
+  number it takes (next free at build time; OPS-H7b also wants one).

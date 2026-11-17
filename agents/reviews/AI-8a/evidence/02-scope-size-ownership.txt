@@ -1,0 +1,16 @@
+$ bash -c git fetch -q origin main agent/ai/AI-8a; echo "origin/main=$(git rev-parse --short origin/main) head=$(git rev-parse --short HEAD) origin/agent/ai/AI-8a=$(git rev-parse --short origin/agent/ai/AI-8a)"; echo "## git diff --stat origin/main...HEAD"; git diff --stat origin/main...HEAD; echo "## changed lines (added+deleted)"; git diff --numstat origin/main...HEAD | awk "{a+=\$1; d+=\$2} END {print a\"+\"d\"=\"a+d}"; echo "## .github/scripts/ownership-check.sh origin/main agent/ai/AI-8a"; bash .github/scripts/ownership-check.sh origin/main agent/ai/AI-8a 2>&1 | tail -5; echo "## files outside internal/query/rag(_test).go:"; git diff --name-only origin/main...HEAD | grep -vE "^internal/query/rag(_test)?\.go$" || echo "(none)"; echo "## synthesis_test.go changed? $(git diff --quiet origin/main...HEAD -- internal/query/synthesis_test.go && echo no || echo yes)"; echo "## gofmt -l internal/query/: [$(gofmt -l internal/query/)]"
+origin/main=40dec5a head=12e70b4 origin/agent/ai/AI-8a=12e70b4
+## git diff --stat origin/main...HEAD
+ internal/query/rag.go      | 150 ++++++++++++++++++----------
+ internal/query/rag_test.go | 237 ++++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 322 insertions(+), 65 deletions(-)
+## changed lines (added+deleted)
+322+65=387
+## .github/scripts/ownership-check.sh origin/main agent/ai/AI-8a
+Ownership OK for role=ai (387 changed lines)
+## files outside internal/query/rag(_test).go:
+(none)
+## synthesis_test.go changed? no
+## gofmt -l internal/query/: []
+
+[exit code 0]

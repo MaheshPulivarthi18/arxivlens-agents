@@ -483,3 +483,9 @@ Format:
 - PR #51 description rewritten with the Evidence section (pinned to `56f275b`/`ae6716a`), CI, and QA + PM verdicts; marked ready for review. Optional human check listed: artifact 14247998742 `answers.cases` (expires 2026-12-16).
 - Pending pm-lead PRD docs PR gains: §8 Recall@5 row ordering (ADR-0017/0016), "Technical PRD §9 (Proposed)" → Accepted in the latency rows.
 - Board not edited (orchestrator): EVAL-4 → Ready to merge; add EVAL-10.
+
+## 2026-11-17 13:00Z pm-lead: cycle planning (board reconciliation)
+- Board reconciled with ArxivLens `main` `40dec5a`: 16 rows → Done (#24 AI-9, #26–#39 agent PRs, QA-8 via Mahesh's #46). Eight stale Ready-to-merge rows dropped; #51 (PM review), #52/#53 (Ready to merge), #54 (In QA) kept.
+  Correction to the sync brief: **#24 AI-9 was merged** (`d4b1cf3`, 2026-11-14 13:22Z, `merged: true`), not closed unmerged; the ticket already said so.
+- New spec **OPS-H11** (backend, P1, from OPS-H6 design G1): the downloader skips re-publish when the `(arxiv_id, version)` row is `embedded` with the same sha256; unit table test + one real-stack M4 test. Files don't overlap #51–#54.
+- ING-6 proposed as a design-only start (`docs/design/ING-6.md`); its build waits on README (#51/#52). OPS-H7a and OPS-H9 wait on #52 (`db.yml`, README). FE still env-blocked on npm (lockfile has no vitest). No ai picks (WIP 2/2).
