@@ -7,7 +7,7 @@
 | **PRD ref** | ING-6; Technical PRD §11 "Scheduled crawler" |
 | **Depends on** | OPS-H3 (Done). ING-9 (Done `2b71772`: one shared 3 s limiter). Mahesh's #45 (`393bcf3`: `arxiv.GetAPI` typed `*StatusError`, `arxiv.Retry` 5/15/45 s, `ARXIV_API_URL` override) is merged and must be reused. Default categories may change via ADR-0005 (Proposed), so keep them configurable |
 | **Design required** | **yes**: it adds a CLI command and a table (pm-lead rule). `docs/design/ING-6.md` doesn't exist yet |
-| **Status** | Ready for design (no design yet). Proposed by pm-lead for cycle 2026-11-17T13:00Z as a design-only start: `docs/design/ING-6.md`, no app code until pm-lead approves it |
+| **Status** | Design: written, awaiting PM review ([`docs/design/ING-6.md`](../../docs/design/ING-6.md), 2026-11-17). No app code until pm-lead approves |
 
 ## Goal
 Keep the corpus fresh without someone running `arxivlens crawl` by hand (Product PRD goal 3).
@@ -44,3 +44,4 @@ make stack-up && ./bin/arxivlens migrate && ./bin/arxivlens crawl-loop --categor
   held by #51/#52 today, so the build waits until those merge or the README row moves to a follow-up. The design must also say how
   AC2/AC3 are evidenced in CI (`stack.yml` runs on Go PRs; arXiv is replayed from the Actions cache since #45), and which migration
   number it takes (next free at build time; OPS-H7b also wants one).
+- 2026-11-17 (backend-engineer, design): wrote `docs/design/ING-6.md` against app `40dec5a`. Key points: walk newest-first to find the gap, emit **oldest-first**, advance `W` to the last fully-emitted `published` group (fixes the silent skip on `--limit-per-run` truncation and on a crash between publishes); one shared `arxiv.Limiter` + `DefaultRetry`; first-run URL identical to the recorded CI replay URL, so AC2/AC3 are evidenced in `stack.yml` with no new recording. Proposed split: ING-6a decide (~360), 6b act (~310), 6c CLI + stack evidence + README (~160, after #51/#52), 6d compose (optional, ~55, profile `crawler` not `workers`). Watermark SQL lives in new `internal/db/watermarks.go`, so no `db.go` overlap with OPS-H11. Migration number: next free at 6a build time (`000004` unless OPS-H7b merged first). Six open questions for pm-lead at the end of the design.
