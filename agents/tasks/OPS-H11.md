@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, #15), ING-10 (Done, #31: the downloader uses the envelope's version), OPS-H10 (Done, #26: `stack.yml` runs on Go/`tests/` PRs). No ADR: no schema, event or HTTP contract change |
 | **Jira** | new story under epic KAN-3 "Dev harness & infrastructure" (`labels = "task-OPS-H11"`), like OPS-H6 (KAN-28) |
 | **Design required** | no: P1, two Go packages + one test file, no new CLI/table/service, no shared-contract change |
-| **Status** | In QA (draft PR [#55](https://github.com/MaheshPulivarthi18/ArxivLens/pull/55), head `2039650`; specced 2026-11-17 13:00Z by pm-lead) |
+| **Status** | Ready to merge (PR [#55](https://github.com/MaheshPulivarthi18/ArxivLens/pull/55) @ `2039650`: QA r1 PASS, PM APPROVE 2026-11-17, raised for Mahesh; specced 2026-11-17 13:00Z by pm-lead) |
 
 ## Goal
 Today `Downloader.HandleRecord` always runs `UpdatePaperDownloaded`, which sets `status = 'downloaded'`, and then re-publishes
@@ -38,23 +38,26 @@ downstream events, no re-chunking. The paper's status must stay truthful (OPS-4)
   `stack.yml`, `db.yml`, README (no user-visible command or API change).
 
 ## Acceptance criteria
-- [ ] AC1 — `TestHandleRecordSkipsAlreadyEmbedded` (table test, fakes, no infra). Rows: (a) object in MinIO, row `embedded`, same sha →
+- [x] AC1 — `TestHandleRecordSkipsAlreadyEmbedded` (table test, fakes, no infra). Rows: (a) object in MinIO, row `embedded`, same sha →
   `UpdatePaperDownloaded` not called, nothing published, no PDF request, `HandleRecord` returns nil; (b) `embedded` but different
   stored sha → today's path (one DB update, one `papers.downloaded`); (c) `embedded` with empty stored sha → today's path; (d) `chunked`,
   same sha → today's path; (e) no row (`""`) → today's path; (f) status lookup returns an error → today's path, error logged, not returned;
   (g) object **not** in MinIO, row `embedded` → today's path (fetch, upload, update, publish). Each row asserts DB-update count, publish count and PDF-request count.
-- [ ] AC2 — `TestHandleRecordFetchesTheEnvelopesVersion` still passes unchanged, and the status lookup is called with the envelope's
+- [x] AC2 — `TestHandleRecordFetchesTheEnvelopesVersion` still passes unchanged, and the status lookup is called with the envelope's
   version (v0 envelope → v1), asserted in AC1's fake.
-- [ ] AC3 — Mutation check (local, not pushed): (i) drop the sha comparison, (ii) drop the `embedded` check, (iii) return the lookup
+- [x] AC3 — Mutation check (local, not pushed): (i) drop the sha comparison, (ii) drop the `embedded` check, (iii) return the lookup
   error instead of falling through. Each makes at least one AC1 row fail. Record the three runs in Notes.
-- [ ] AC4 — Real stack: new `test_redelivered_discovered_keeps_embedded_status` in `tests/test_m4_chaos.py`. Pick one `embedded` paper
+- [x] AC4 — Real stack: new `test_redelivered_discovered_keeps_embedded_status` in `tests/test_m4_chaos.py`. Pick one `embedded` paper
   from `papers` (skip with a clear reason if none); record its `status`, `updated_at` and the end offsets of `papers.downloaded`;
   produce one `papers.discovered` envelope (new ULID, the paper's `arxiv_id` + `version`); wait (≤ 60 s, poll) until consumer group
   `downloader-v1`'s committed offset on that partition is past the produced offset; then assert status is still `embedded`, `updated_at`
   is unchanged, and no `papers.downloaded` record for that paper ID was appended after the recorded end offsets. Green in the PR's
   `stack.yml` run (it triggers on Go/`tests/` PRs); quote the test's line from the job log.
-- [ ] AC5 — `make test-unit` and `make lint` green in CI. Diff < 250 changed lines.
-- [ ] Docs: none required (no command/API change). Product PRD OPS-4 stays ✅; pm-lead adds a one-line note in the next `docs/` PR.
+  *Amended 2026-11-17 (pm-lead, QA r1 finding 1 [spec]):* `make test-full` runs `pytest -q`, which prints no test names on a green
+  run, so "quote the test's line" couldn't be met. A verified dot map (collected ids = outcome characters, the lone `s` on the lone
+  `skipif`) plus proof that the skip path wasn't taken is accepted instead. OPS-H12 makes `stack.yml` print `PASSED <node id>` lines.
+- [x] AC5 — `make test-unit` and `make lint` green in CI. Diff < 250 changed lines.
+- [x] Docs: none required (no command/API change). Product PRD OPS-4 stays ✅; pm-lead adds a one-line note in the next `docs/` PR.
 
 ## Verification
 ```bash
@@ -87,3 +90,8 @@ make lint
   Python M0, DB, Frontend, ownership, Full stack job 134069235738 (`make test-full`: `234 passed, 1 skipped, 3 deselected, 5 warnings in 54.21s`).
   AC4 has no named log line because `make test-full` runs `pytest -q` (stack.yml out of scope here); the new test did not skip (its skip path
   `warnings.warn`s and the warnings summary holds only 5 `tests/test_m0.py` entries) and no `F` appears. QA: map the dot positions if a named line is required.
+- 2026-11-17 (pm-lead): **APPROVE** at final review (`agents/reviews/OPS-H11/report.md`). All 10 evidence files checked; AC1–AC5 proven
+  (AC4 by QA's verified dot map 05 + control comparison 06; AC4 text amended above). Finding 1 [spec] → follow-up **OPS-H12** (backend, P2, Ready:
+  `-rA` in `stack.yml` only). Finding 2 [nit], no task: on a dev stack where `raw/<id>_v<N>.pdf` was deleted from MinIO, the new real-stack test
+  makes one arXiv fetch and then fails on `updated_at`. That's a loud failure, never a false pass; re-crawl the paper first. PRD OPS-4 note goes in
+  pm-lead's next `docs/` PR. PR #55 description rewritten with evidence and marked ready for review.

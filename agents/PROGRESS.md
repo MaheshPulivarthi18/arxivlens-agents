@@ -508,3 +508,10 @@ Format:
 - Migration number fixed: `000005_crawl_watermarks` (OPS-H7b keeps `000004`; `migrate` applies all sorted files idempotently, so no renumbering race). Note added to OPS-H7b.
 - New specs: **ING-6a** (Ready, buildable now: 6 new files, no overlap with #51–#55), ING-6b (Blocked: 6a merged), ING-6c (Blocked: 6b, #51, #52 merged), ING-6d / ING-6e / ING-9b (Backlog). ING-6 is now the umbrella.
 - Board and Jira not edited (orchestrator): add ING-6a Ready (backend), ING-6b/6c Blocked, ING-6d/6e/9b Backlog; Jira stories under KAN-18's epic with `task-<ID>` labels.
+
+## 2026-11-17 pm-lead: OPS-H11 final review
+- **APPROVE** PR #55 @ `2039650` (QA r1 PASS). All 10 evidence files (PNG + txt) checked; AC1–AC5 proven ([report](reviews/OPS-H11/report.md)). Scope matches the ticket's 4 files, 212 lines, no contract change.
+- Finding 1 [spec] (AC4 can't quote a named line under `pytest -q`, 3rd time): QA's verified dot map accepted, AC4 text amended. Follow-up **OPS-H12** (backend, P2, Ready): `-rA` via `PYTEST_ARGS` in `stack.yml` only, so it doesn't wait on #53 (`Makefile`/`ci.yml`). Finding 2 [nit] (no MinIO pre-check): no task, it fails loudly; noted in the ticket.
+- PR #55 description rewritten with the Evidence section (pinned to `52e57e8`), CI, and QA + PM verdicts; marked ready for review.
+- Pending pm-lead PRD docs PR gains: Product PRD OPS-4 note "redelivered `papers.discovered` no longer regresses `embedded` (OPS-H11)".
+- Board not edited (orchestrator): OPS-H11 → Ready to merge; add OPS-H12 Ready (backend). Jira: OPS-H11 → Ready to merge; create the OPS-H12 story under KAN-3, `labels = "task-OPS-H12"`.
