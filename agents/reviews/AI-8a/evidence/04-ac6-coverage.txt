@@ -1,0 +1,21 @@
+$ /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/cover.sh
+# stubs only: internal/db, github.com/jackc/pgx/v5; go version go1.24.7 linux/amd64
+ok  	arxivlens/internal/query	0.016s	coverage: 82.3% of statements
+## per-file total for rag.go (statements covered / total, from c.out)
+rag.go: 399/403 statements = 99.0%
+## go tool cover -func=c.out | grep rag.go  (functions below 100% first)
+arxivlens/internal/query/rag.go:207:	synthesize		93.1%
+arxivlens/internal/query/rag.go:796:	checkCitations		97.9%
+arxivlens/internal/query/rag.go:930:	splitIntoSentences	94.7%
+## functions changed by AI-8a:
+arxivlens/internal/query/rag.go:68:	citationStatus		100.0%
+arxivlens/internal/query/rag.go:207:	synthesize		93.1%
+arxivlens/internal/query/rag.go:267:	finalizeClaims		100.0%
+arxivlens/internal/query/rag.go:387:	inPassage		100.0%
+arxivlens/internal/query/rag.go:710:	refusal			100.0%
+arxivlens/internal/query/rag.go:730:	newCitation		100.0%
+arxivlens/internal/query/rag.go:796:	checkCitations		97.9%
+arxivlens/internal/query/rag.go:876:	scorePairs		100.0%
+arxivlens/internal/query/rag.go:915:	labelScore		100.0%
+
+[exit code 0]

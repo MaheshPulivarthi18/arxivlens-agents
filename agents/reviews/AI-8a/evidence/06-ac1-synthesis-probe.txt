@@ -1,0 +1,24 @@
+$ /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/ac1_synth_probe.sh
+inserted 11 checkCitationInvariants calls into synthesis_test.go
+  line 40:	checkCitationInvariants(t, resp) // QA AC1 probe
+  line 84:	checkCitationInvariants(t, resp) // QA AC1 probe
+  line 102:		checkCitationInvariants(t, resp) // QA AC1 probe
+  line 133:			checkCitationInvariants(t, resp) // QA AC1 probe
+  line 164:			checkCitationInvariants(t, resp) // QA AC1 probe
+  line 179:		checkCitationInvariants(t, resp) // QA AC1 probe
+  line 196:	checkCitationInvariants(t, resp) // QA AC1 probe
+  line 201:	checkCitationInvariants(t, full) // QA AC1 probe
+  line 206:	checkCitationInvariants(t, plain) // QA AC1 probe
+  line 225:	checkCitationInvariants(t, resp) // QA AC1 probe
+  line 248:	checkCitationInvariants(t, resp) // QA AC1 probe
+## exit 0; PASS 17, FAIL 0; ok  	arxivlens/internal/query	1.081s
+--- PASS: TestSynthesisAnswersWithVerifiedClaims
+--- PASS: TestSynthesisDropsUnsupportedClaims
+--- PASS: TestSynthesisRefusals
+--- PASS: TestSynthesisFallsBackToExtractive
+--- PASS: TestSynthesisClaimsUnsupportedFallBackToQuotes
+--- PASS: TestQuickAnswerSkipsSynthesis
+--- PASS: TestSynthesisMarkersFollowPromptOrder
+--- PASS: TestWithLLMNilKeepsExtractive
+
+[exit code 0]
