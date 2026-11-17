@@ -1,0 +1,12 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/132833622346 --jq '"job 132833622346 head_sha=" + .head_sha + " conclusion=" + .conclusion'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/132833622346/logs | grep -E 'passed, .* deselected|FAILED tests/test_m3|failed(, .*)? in ' | cut -c1-170; echo; echo 'PR #52 (this PR) job 133911818738: 234 passed, 1 skipped, 3 deselected (evidence 10) = 233 + the one new test'
+job 132833622346 head_sha=1b71c7dfbb6b2456df7fa94503a6daf135e353e5 conclusion=success
+2026-11-15T13:58:34.1659486Z [36;1m[ "$ok" = 1 ] || { echo "::error::probe failed in the running processor with 2 members"; exit 1; }[0m
+2026-11-15T14:05:44.7056038Z 233 passed, 1 skipped, 3 deselected, 5 warnings in 90.75s (0:01:30)
+2026-11-15T14:06:16.6754308Z FAILED tests/test_m3_query.py::test_rag_ask_with_groundedness_support - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost',
+2026-11-15T14:06:16.6755318Z FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhos
+2026-11-15T14:06:16.6756299Z FAILED tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost',
+2026-11-15T14:06:16.6756491Z 3 failed in 30.57s
+
+PR #52 (this PR) job 133911818738: 234 passed, 1 skipped, 3 deselected (evidence 10) = 233 + the one new test
+
+[exit code 0]

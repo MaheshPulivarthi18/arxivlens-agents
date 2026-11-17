@@ -1,0 +1,25 @@
+$ bash -c L=/tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/ci/stack.log; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/133911818738 --jq '"job head_sha=" + .head_sha + " conclusion=" + .conclusion'; echo '=== RESULT (dot map: offline collection at PR head vs CI progress dots)'; python3 /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/collect/dotmap.py /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/collect/ids.txt $L; echo '=== CI log excerpt'; grep -n -E 'HEAD is now at|python3 -m pytest -q tests/ --deselect|^.{29}[.sFE]+ +\[ *[0-9]+%\]$|[0-9]+ passed.*deselected' $L | cut -c1-190; echo '--- FAILED/ERROR lines inside the test-full step (expect 0):'; sed -n '/python3 -m pytest -q tests\/ --deselect/,/Run set +e/p' $L | grep -c -E '^.{29}(FAILED|ERROR) '; echo '=== F1 known-failure step (separate, expected to fail on CPU runners; test ids):'; grep -E 'Known failure F1|FAILED tests/test_m3|failed, .* passed in' $L | cut -c1-200
+job head_sha=706e43e0ca87b8d3cc593c11fd653b636e0017c7 conclusion=success
+=== RESULT (dot map: offline collection at PR head vs CI progress dots)
+collected offline: 235 ids; outcome chars in log: 235 (dots=234, s=1, F=0, E=0)
+pos  85 (row 2, col 13) outcome 's'  tests/test_evals_data.py::test_chunk_counts_sql_against_real_postgres
+pos 194 (row 3, col 50) outcome '.'  tests/test_m2_pipeline.py::test_paper_sections_and_chunks_stored
+pos 195 (row 3, col 51) outcome '.'  tests/test_m2_pipeline.py::test_chunk_embeddings_and_pgvector_cosine_ops
+pos 196 (row 3, col 52) outcome '.'  tests/test_m2_pipeline.py::test_embedded_chunks_have_recorded_start_pages
+=== CI log excerpt
+128:2026-11-17T08:21:33.9616230Z HEAD is now at 2ab3fa8 Merge 706e43e0ca87b8d3cc593c11fd653b636e0017c7 into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+3059:2026-11-17T08:30:33.0008721Z python3 -m pytest -q tests/ --deselect tests/test_m3_query.py::test_rag_ask_with_groundedness_support --deselect tests/test_m3_query.py::test_rag_early_refu
+3060:2026-11-17T08:30:39.3000286Z ........................................................................ [ 30%]
+3061:2026-11-17T08:30:39.3482120Z ............s........................................................... [ 61%]
+3062:2026-11-17T08:31:34.1451925Z ........................................................................ [ 91%]
+3063:2026-11-17T08:31:35.7370940Z ...................                                                      [100%]
+3096:2026-11-17T08:31:35.7384470Z 234 passed, 1 skipped, 3 deselected, 5 warnings in 61.95s (0:01:01)
+3122:2026-11-17T08:32:00.0231901Z .F.                                                                      [100%]
+--- FAILED/ERROR lines inside the test-full step (expect 0):
+0
+=== F1 known-failure step (separate, expected to fail on CPU runners; test ids):
+2026-11-17T08:31:36.7733673Z [36;1m  echo "### Known failure F1 (exit $rc; expected to fail on CPU runners until the F1 follow-up lands)"; echo '```'[0m
+2026-11-17T08:32:00.0557891Z FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out
+2026-11-17T08:32:00.0558769Z 1 failed, 2 passed in 23.11s
+
+[exit code 0]
