@@ -1,0 +1,39 @@
+$ bash -c echo '## git grep -n -E "pdf_url|\.content|supported" origin/main -- frontend/src scripts/'; git grep -n -E 'pdf_url|\.content|supported' origin/main -- frontend/src scripts/ | cut -c1-170; echo '## same files differ between origin/main and HEAD? '; git diff --stat origin/main...HEAD -- frontend/src scripts/ ; echo '(empty = unchanged)'
+## git grep -n -E "pdf_url|\.content|supported" origin/main -- frontend/src scripts/
+origin/main:frontend/src/components/ReferencesStack.jsx:45:        const pdfURL = cit.pdf_url || `https://arxiv.org/pdf/${cit.arxiv_id}.pdf`;
+origin/main:frontend/src/components/ReferencesStack.jsx:70:                <Badge variant={cit.supported ? 'verified' : 'secondary'} className="gap-1 text-[11px]">
+origin/main:frontend/src/components/ReferencesStack.jsx:96:                {cit.content || `"${cit.title} — [Section: ${cit.section}]"`}
+origin/main:frontend/src/components/SynthesisView.jsx:52:      const pdf = c.pdf_url || `https://arxiv.org/pdf/${c.arxiv_id}.pdf`;
+origin/main:scripts/answer_review.py:5:  re-asked; a case whose (marker, chunk_id, score, supported) fingerprint differs is skipped as drift. Writes a blind
+origin/main:scripts/answer_review.py:6:  Markdown sheet (no score/supported/status) and an IDs-only judgments JSONL. score: precision, rates, claim
+origin/main:scripts/answer_review.py:56:        want, got = [sorted((c.get("marker"), c.get("chunk_id"), round(c.get("score") or 0, 3), c.get("supported"))
+origin/main:scripts/answer_review.py:150:    if results is not None:  # human supports x system supported; "missing" = pair not in the results file
+origin/main:scripts/answer_review.py:151:        system = {(c["id"], cit.get("chunk_id"), cit.get("marker")): cit.get("supported")
+origin/main:scripts/answer_review.py:167:    print("human x system supported:", json.dumps(m["confusion_matrix"]) if m["confusion_matrix"] else "n/a, --results")
+origin/main:scripts/eval_gate.py:114:    checks.append(_check("supported_citation_rate", a.get("supported_citation_rate"),
+origin/main:scripts/eval_gate.py:115:                         ">=", thresholds["supported_citation_rate_min"]))
+origin/main:scripts/evaluate_answers.py:7:  - supported_citation_rate  : supported / all citations of *answered* answer-set responses (EVAL-6: a
+origin/main:scripts/evaluate_answers.py:21:  {"answer": str, "citations": [{"marker", "arxiv_id", "chunk_id", "supported", "score", ...}],
+origin/main:scripts/evaluate_answers.py:23:A failed request never counts as a correct refusal, a hit, or a supported citation.
+origin/main:scripts/evaluate_answers.py:70:REFUSAL_REASONS = {"all_citations_unsupported": "refusal", "verification_unavailable": "error",
+origin/main:scripts/evaluate_answers.py:143:        "citations": [{k: c.get(k) for k in ("arxiv_id", "chunk_id", "marker", "supported", "score")}
+origin/main:scripts/evaluate_answers.py:177:    total_citations = supported_citations = hits = refused_answers = 0
+origin/main:scripts/evaluate_answers.py:211:        supported_citations += sum(1 for c in citations if c.get("supported") is True)
+origin/main:scripts/evaluate_answers.py:247:        "supported_citation_rate": supported_citations / total_citations if total_citations else 0.0,
+origin/main:scripts/evaluate_answers.py:277:    print(f"Supported citations      : {m['supported_citation_rate']:.2%} ({m['citations_total']} citations)")
+origin/main:scripts/evaluate_retrieval.py:238:    WHERE pc.content_tsv @@ q
+origin/main:scripts/evaluate_retrieval.py:239:    ORDER BY ts_rank_cd(pc.content_tsv, q) DESC
+origin/main:scripts/evaluate_retrieval.py:267:               ROW_NUMBER() OVER (ORDER BY ts_rank_cd(pc.content_tsv, q) DESC) AS rank
+origin/main:scripts/evaluate_retrieval.py:269:        WHERE pc.content_tsv @@ q
+origin/main:scripts/evaluate_retrieval.py:270:        ORDER BY ts_rank_cd(pc.content_tsv, q) DESC
+origin/main:scripts/evaluate_retrieval.py:273:    SELECT c.id, p.arxiv_id, c.content,
+origin/main:scripts/m0_skeleton.py:80:            pdf_url = f"https://arxiv.org/pdf/{clean_id}.pdf"
+origin/main:scripts/m0_skeleton.py:82:            pdf_resp = requests.get(pdf_url, headers=headers, timeout=30)
+origin/main:scripts/m0_skeleton.py:85:                f.write(pdf_resp.content)
+origin/main:scripts/m0_skeleton.py:371:                is_supported = cos_sim >= self.threshold
+origin/main:scripts/m0_skeleton.py:379:                    "supported": is_supported,
+origin/main:scripts/m0_skeleton.py:456:        status = "✅ SUPPORTED" if cit["supported"] else "❌ UNSUPPORTED"
+## same files differ between origin/main and HEAD? 
+(empty = unchanged)
+
+[exit code 0]

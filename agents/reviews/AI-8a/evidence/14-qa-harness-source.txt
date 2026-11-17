@@ -1,0 +1,287 @@
+$ bash -c cd /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a && for f in run.sh targeted.sh cover.sh ac1_synth_probe.sh ac1_sites.sh probe.sh prbody.sh mutate.py qa_probe_test.go mod/go.mod mod/stubpgx/go.mod mod/stubpgx/pgx.go mod/internal/db/db.go; do echo "===== $f"; cat $f; done
+===== run.sh
+#!/usr/bin/env bash
+# QA AI-8a scratch runner: copy the REAL internal/query (rag, search, client + their unit tests), internal/llm and
+# internal/arxiv sources from the checkout in $PWD into the stub module (stubs only: internal/db, pgx), then run go.
+set -euo pipefail
+MOD=${MOD:-/tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/mod}
+for f in rag.go rag_test.go synthesis_test.go search.go search_test.go client.go; do cp "internal/query/$f" "$MOD/internal/query/$f"; done
+cp internal/llm/*.go "$MOD/internal/llm/"; cp internal/llm/llmtest/*.go "$MOD/internal/llm/llmtest/"; cp internal/arxiv/*.go "$MOD/internal/arxiv/"
+echo "# checkout $(git rev-parse --short HEAD); sha256 of copied files:"
+(cd internal/query && sha256sum rag.go rag_test.go synthesis_test.go) | sed 's/^/#   /'
+echo "# stubs only: internal/db, github.com/jackc/pgx/v5; $(GOTOOLCHAIN=local go version)"
+cd "$MOD" && GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod go "$@"
+===== targeted.sh
+#!/usr/bin/env bash
+# Ticket verification: go test -race -run 'Ask|Synth|Citation|Claim|Refusal|Quote|Provenance' -v ./internal/query/ (scratch module, real files)
+S=/tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a
+$S/run.sh test -count=1 -race -run 'Ask|Synth|Citation|Claim|Refusal|Quote|Provenance' -v ./internal/query/ > $S/targeted.log 2>&1; rc=$?
+head -4 $S/targeted.log
+echo "## exit $rc; tail: $(tail -1 $S/targeted.log)"
+echo "## --- PASS lines: $(grep -c -- '--- PASS' $S/targeted.log)  --- FAIL lines: $(grep -c -- '--- FAIL' $S/targeted.log)"
+echo "## the four AI-8a tests and their subtests:"
+grep -E -- '--- (PASS|FAIL): (TestCitationStatusRule|TestRefusalEvidenceStatus|TestCitationQuote|TestCitationProvenance|TestAskResponseShapeAndConstructor)' $S/targeted.log | sed 's/ (.*//'
+===== cover.sh
+#!/usr/bin/env bash
+# AC6: coverage of the REAL rag.go in the scratch module: per-file statements from the profile, then go tool cover -func rows.
+set -euo pipefail
+S=/tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a
+$S/run.sh test -count=1 -coverprofile=c.out ./internal/query/ | tail -2
+cd $S/mod
+echo "## per-file total for rag.go (statements covered / total, from c.out)"
+awk -F'[ ]' '/\/rag\.go:/ {n=$2; t+=n; if ($3>0) c+=n} END {printf "rag.go: %d/%d statements = %.1f%%\n", c, t, 100*c/t}' c.out
+echo "## go tool cover -func=c.out | grep rag.go  (functions below 100% first)"
+GOTOOLCHAIN=local go tool cover -func=c.out | grep 'rag.go' | awk '$NF!="100.0%"'
+echo "## functions changed by AI-8a:"
+GOTOOLCHAIN=local go tool cover -func=c.out | grep 'rag.go' | grep -E 'citationStatus|inPassage|newCitation|refusal|finalizeClaims|checkCitations|scorePairs|labelScore|synthesize'
+===== ac1_synth_probe.sh
+#!/usr/bin/env bash
+# QA AC1 probe (local only, never pushed): in a fresh mktemp copy of the scratch module, insert
+#   checkCitationInvariants(t, <var>)
+# after every Ask/AskWith call in synthesis_test.go (the PR leaves these 8 tests without the helper), then run them.
+set -euo pipefail
+S=/tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a
+D=$(mktemp -d); cp -r $S/mod/. $D/
+MOD=$D $S/run.sh vet ./internal/query/ >/dev/null   # copies the real files of the checkout into $D
+F=$D/internal/query/synthesis_test.go
+python3 - "$F" <<'PY'
+import re, sys
+p = sys.argv[1]; out = []; n = 0
+for line in open(p).read().split("\n"):
+    out.append(line)
+    m = re.match(r"^(\s*)(\w+), \w+ :?= .*\.Ask(With)?\(.*\)$", line)
+    if m:
+        out.append(f"{m.group(1)}checkCitationInvariants(t, {m.group(2)}) // QA AC1 probe"); n += 1
+open(p, "w").write("\n".join(out))
+print(f"inserted {n} checkCitationInvariants calls into synthesis_test.go")
+PY
+grep -n "QA AC1 probe" $F | sed 's/^/  line /'
+cd $D && GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod go test -count=1 -race -v -run 'TestSynthesis|TestQuickAnswerSkipsSynthesis|TestWithLLMNilKeepsExtractive' ./internal/query/ > $D/probe.log 2>&1; rc=$?
+echo "## exit $rc; PASS $(grep -c -- '--- PASS' $D/probe.log), FAIL $(grep -c -- '--- FAIL' $D/probe.log); $(tail -1 $D/probe.log)"
+grep -E -- '^--- (PASS|FAIL)|citation .* breaks' $D/probe.log | sed 's/ (.*//'
+===== ac1_sites.sh
+#!/usr/bin/env bash
+# AC1: per test function, AskResponse-producing calls (Ask/AskWith/finalize/finalizeClaims/refusal/synthesize) vs checkCitationInvariants calls.
+cd internal/query
+for f in rag_test.go synthesis_test.go; do echo "=== $f @ $(git rev-parse --short HEAD)"; awk '/^func Test/ {name=$2; sub(/\(.*/,"",name)} /\.Ask\(|\.AskWith\(|\.finalize\(|\.finalizeClaims\(|[^a-zA-Z]refusal\(|\.synthesize\(/ {asks[name]++} /checkCitationInvariants\(/ {inv[name]++} END {for (n in asks) printf "%-48s resp calls=%d invariant calls=%d\n", n, asks[n], inv[n]+0}' $f | sort; done
+echo "## total checkCitationInvariants call sites: rag_test.go $(grep -c 'checkCitationInvariants(t' rag_test.go), synthesis_test.go $(grep -c 'checkCitationInvariants(t' synthesis_test.go)"
+echo "## note: TestAskAnswersWithExtractedCitations 3rd call is the retrieval-error case (resp == nil)"
+===== probe.sh
+#!/usr/bin/env bash
+# Run QA probes against the REAL query files of the checkout in $PWD, in a fresh mktemp copy of the stub module.
+# Optional: MUTANT="old|||new" applies one literal edit to rag.go first (to show a survivor changes behaviour).
+set -euo pipefail
+S=/tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a
+D=$(mktemp -d); cp -r $S/mod/. $D/
+MOD=$D $S/run.sh env >/dev/null
+cp $S/qa_probe_test.go $D/internal/query/
+if [ -n "${MUTANT:-}" ]; then python3 -c 'import sys; p=sys.argv[1]; o,n=sys.argv[2].split("|||"); s=open(p).read(); assert s.count(o)==1; open(p,"w").write(s.replace(o,n))' $D/internal/query/rag.go "$MUTANT"; echo "# MUTANT applied: $MUTANT"; fi
+echo "# checkout $(git rev-parse --short HEAD); rag.go sha256 $(sha256sum internal/query/rag.go | cut -c1-16)"
+cd $D && GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod go test -count=1 -run TestQAProbeAI8a ./internal/query/ -v | grep -E '^PROBE|^ok|FAIL'
+===== prbody.sh
+#!/usr/bin/env bash
+# AC2/AC5/AC7/AC8: what the PR #54 body (fetched via REST) contains. Headings first, then each required item.
+B=/tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/pr-body.md
+gh api repos/MaheshPulivarthi18/ArxivLens/pulls/54 --jq .body > $B
+echo "## PR #54 body: $(wc -l < $B) lines; headings:"; grep -n '^#' $B
+chk() { if grep -qE "$2" $B; then echo "PRESENT  $1"; grep -nE "$2" $B | head -2 | cut -c1-150 | sed 's/^/           /'; else echo "ABSENT   $1   (pattern: $2)"; fi; }
+echo "## AC8"
+for f in status paper_version page quote pdf_url; do chk "AC8 field \`$f\` listed with meaning" "^- \`$f\`"; done
+chk "AC8 README row lands in AI-8b" 'README .*/v1/ask. row lands in AI-8b'
+chk "AC8 Q1 line for Mahesh (unverified reading)" '^- Q1:'
+chk "AC8 ADR-0018 line (answer_source not added)" 'ADR-0018.*answer_source'
+echo "## AC5"
+chk "AC5 git grep output of frontend/src + scripts/" 'git grep|frontend/src/|scripts/evaluate_answers'
+echo "## AC2"
+chk "AC2 per-mutation list (mutation -> failing test)" 'TestCitationStatusRule'
+chk "AC2 mutation count only" 'mutants killed'
+echo "## AC7"
+chk "AC7 not run + reason" 'AC7.*not run'
+chk "AC7 the dispatch command" 'gh workflow run eval.yml'
+===== mutate.py
+"""QA AI-8a mutation run (local only, never pushed). For each mutant: fresh mktemp copy of the scratch module with the
+REAL query/llm/arxiv files of the checkout in cwd, ONE literal edit to rag.go (anchor must occur exactly once), then
+  go test -count=1 ./internal/query/
+Result: KILLED (tests fail; failing top-level tests listed), SURVIVED (tests pass), INVALID (build/vet error or anchor
+not unique). Usage: python3 mutate.py [ID-prefix ...]  (from the app checkout at the PR head). Env RUN=<regex> limits go test to -run RUN."""
+import os, re, shutil, subprocess, sys, tempfile
+S = os.path.dirname(os.path.abspath(__file__))
+M = [
+ ("M01 labelScore: drop `failed ||`", "if failed || !(raw >= 0 && raw <= 1) {", "if !(raw >= 0 && raw <= 1) {"),
+ ("M02 labelScore: drop `raw >= 0`", "if failed || !(raw >= 0 && raw <= 1) {", "if failed || !(raw <= 1) {"),
+ ("M03 labelScore: drop `raw <= 1`", "if failed || !(raw >= 0 && raw <= 1) {", "if failed || !(raw >= 0) {"),
+ ("M04 scorePairs: drop nil-verifier branch", "if r.verifier == nil {\n\t\terr = errors.New(\"no verifier configured\")\n\t} else if", "if"),
+ ("M05 scorePairs: drop wrong-count check", "err == nil && len(got) != len(nliPairs) {", "false {"),
+ ("M06 scorePairs: drop `failed[i] = true`", "\t\t\tfailed[i] = true\n", "\t\t\t_ = i\n"),
+ ("M07 citationStatus: !ok -> unsupported", "case !ok:\n\t\treturn StatusUnverified", "case !ok:\n\t\treturn StatusUnsupported"),
+ ("M08 citationStatus: >= 0.50 -> > 0.50", "case score >= SupportThreshold:", "case score > SupportThreshold:"),
+ ("M09 newCitation: Supported independent of Status (score >= 0.50)", "Supported: status == StatusSupported,", "Supported: score >= SupportThreshold,"),
+ ("M10 newCitation: Supported = status != unsupported", "Supported: status == StatusSupported,", "Supported: status != StatusUnsupported,"),
+ ("M11 newCitation: paper_version not set", "c.PaperVersion, c.Status = hit.Version, status", "c.PaperVersion, c.Status = 0, status"),
+ ("M12 newCitation: versioned pdf_url also for version 0", "if hit.Version > 0 {", "if hit.Version >= 0 {"),
+ ("M13 newCitation: never versioned pdf_url", "if hit.Version > 0 {", "if hit.Version > 1<<30 {"),
+ ("M14 newCitation: page aliases the hit", "p := *hit.Page // copy: the citation must not alias the hit\n\t\tc.Page = &p", "c.Page = hit.Page"),
+ ("M15 newCitation: page dropped", "if hit.Page != nil {", "if false && hit.Page != nil {"),
+ ("M16 refusal: evidence always unsupported", "if check.hitScored[i] {", "if true {"),
+ ("M17 refusal: evidence always unverified", "if check.hitScored[i] {", "if false {"),
+ ("M18 insufficient_evidence: evidence unsupported", "newCitation(i+1, p.Hit, 0, StatusUnverified)", "newCitation(i+1, p.Hit, 0, StatusUnsupported)"),
+ ("M19 insufficient_evidence: sanitized content", "newCitation(i+1, p.Hit, 0, StatusUnverified)", "newCitation(i+1, func() SearchHit { h := p.Hit; h.Content = p.Text; return h }(), 0, StatusUnverified)"),
+ ("M20 finalizeClaims: score on raw chunk, not prompt text", "Passage: passages[m-1].Text})", "Passage: passages[m-1].Hit.Content})"),
+ ("M21 finalizeClaims: quote checked against prompt text", "raw := passages[h].Hit.Content", "raw := passages[h].Text"),
+ ("M22 finalizeClaims: citation content = prompt text", "cite := newCitation(rf.marker, passages[h].Hit, score, status)", "cite := newCitation(rf.marker, func() SearchHit { x := passages[h].Hit; x.Content = passages[h].Text; return x }(), score, status)"),
+ ("M23 finalizeClaims: empty/whitespace/[n] quote counted (cond. 1)", "modelQuote := normQuote(c.Quote) != \"\"", "modelQuote := c.Quote != \"\""),
+ ("M24 finalizeClaims: no fabricated-quote downgrade", "if modelQuote && !inPassage(c.Quote, raw) {", "if false {"),
+ ("M25 finalizeClaims: quote also on unsupported citations", "\t\tcase !cite.Supported:\n", "\t\tcase false:\n"),
+ ("M26 finalizeClaims: exact quote without raw-chunk check", "case exact[j] && inPassage(c.Text, raw):", "case exact[j]:"),
+ ("M27 finalizeClaims: model quote not kept", "\t\t\tcite.Quote = strings.TrimSpace(c.Quote)", "\t\t\t_ = c.Quote"),
+ ("M28 finalizeClaims: keep computed before the quote downgrade (cond. 2)", "keep[rf.claim] = keep[rf.claim] || cite.Supported", "keep[rf.claim] = keep[rf.claim] || citationStatus(score, ok) == StatusSupported"),
+ ("M29 checkCitations: quote on every supported (NLI) citation", "if exact[pi] && cite.Supported {", "if (exact[pi] || true) && cite.Supported {"),
+ ("M30 checkCitations: extractive quote dropped", "\t\t\tcite.Quote = normQuote(sentTexts[c.sentIdx])", "\t\t\t_ = sentTexts"),
+ ("M31 scorePairs: exact never set", "scores[i], exact[i] = 1, true", "scores[i], exact[i] = 1, false"),
+ ("M32 inPassage: empty quote true", "return q != \"\" && strings.Contains(normQuote(passage), q)", "return strings.Contains(normQuote(passage), q)"),
+ ("M33 inPassage: case-insensitive", "return q != \"\" && strings.Contains(normQuote(passage), q)", "return q != \"\" && strings.Contains(strings.ToLower(normQuote(passage)), strings.ToLower(q))"),
+ ("M34 inPassage: no normalisation of the passage", "return q != \"\" && strings.Contains(normQuote(passage), q)", "return q != \"\" && strings.Contains(passage, q)"),
+ ("M35 checkCitations: unverified citation not counted", "\t\t} else {\n\t\t\tunverified++\n", "\t\t} else {\n"),
+]
+src = open("internal/query/rag.go").read()
+head = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+print(f"# checkout {head}; {len(M)} single-edit mutants of internal/query/rag.go; go test -count=1 ./internal/query/ (scratch go1.24 module)")
+results = []
+sel = sys.argv[1:]
+run = ["-run", os.environ["RUN"]] if os.environ.get("RUN") else []
+if run: print(f"# go test -run {run[1]} only")
+for name, old, new in M:
+    if sel and not any(name.startswith(x) for x in sel): continue
+    n = src.count(old)
+    if n != 1:
+        results.append((name, f"INVALID (anchor found {n}x)", "")); continue
+    d = tempfile.mkdtemp(prefix="qa-ai8a-mut-")
+    shutil.copytree(os.path.join(S, "mod"), d, dirs_exist_ok=True)
+    env = dict(os.environ, MOD=d)
+    subprocess.run([os.path.join(S, "run.sh"), "env"], env=env, capture_output=True)  # copies the real files into d
+    open(os.path.join(d, "internal/query/rag.go"), "w").write(src.replace(old, new))
+    genv = dict(os.environ, GOTOOLCHAIN="local", GOPROXY="off", GOFLAGS="-mod=mod")
+    vet = subprocess.run(["go", "vet", "./internal/query/"], cwd=d, env=genv, capture_output=True, text=True)
+    if vet.returncode != 0:
+        results.append((name, "INVALID (build/vet)", vet.stderr.strip().splitlines()[-1][:80])); continue
+    t = subprocess.run(["go", "test", "-count=1", *run, "./internal/query/"], cwd=d, env=genv, capture_output=True, text=True)
+    fails = sorted(set(re.findall(r"^--- FAIL: (\w+)", t.stdout, re.M)))
+    if t.returncode == 0:
+        results.append((name, "SURVIVED", ""))
+    else:
+        why = ", ".join(fails) if fails else ("panic" if "panic:" in t.stdout else "fail")
+        results.append((name, "KILLED", why))
+k = sum(r[1] == "KILLED" for r in results); s = sum(r[1] == "SURVIVED" for r in results); inv = len(results) - k - s
+print(f"## SUMMARY: KILLED {k}, SURVIVED {s}, INVALID {inv} (of {len(results)})")
+for name, res, why in results:
+    print(f"{res:9} {name}" + (f"  <- {why}" if why else ""))
+===== qa_probe_test.go
+package query
+
+// QA AI-8a probes (not part of the PR). Each line: PROBE <name>: <observed>.
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"testing"
+
+	"arxivlens/internal/llm/llmtest"
+)
+
+func TestQAProbeAI8a(t *testing.T) {
+	captureLog(t)
+	ctx := context.Background()
+	show := func(name string, resp *AskResponse) {
+		out := []string{}
+		for _, c := range resp.Citations {
+			out = append(out, fmt.Sprintf("{m%d %s sup=%v score=%v quote=%q}", c.Marker, c.Status, c.Supported, c.Score, c.Quote))
+		}
+		fmt.Printf("PROBE %-58s kind=%q reason=%q %v\n", name+":", resp.AnswerKind, resp.RefusalReason, out)
+	}
+	llm := func(hits []SearchHit, v verifier, reply string) *AskResponse {
+		r, _ := llmRAG(hits, v, llmtest.Reply(reply))
+		resp, _ := r.Ask(ctx, "q", nil, 3)
+		return resp
+	}
+	// P1 ADR-0014 case-sensitivity: the model quote differs from the chunk only in case.
+	show("P1 model quote differs only in case (NLI 0.9)", llm(batchHits(), simVerifier(constSim(0.9)),
+		`{"claims": [{"text": "It raises accuracy.", "citations": [1, 2], "quote": "THE PROPOSED METHOD improves accuracy"}]}`))
+	// P2 Q4 normalisation on the chunk side: chunk has a newline, double space and an inline [12] inside the quoted span.
+	h := batchHits()
+	h[0].Content = "Paper — Method\n\nOur   model\nreaches 91% accuracy [12] on the held-out benchmark split."
+	show("P2 quote vs chunk with newline/double space/[12]", llm(h, simVerifier(constSim(0.9)),
+		`{"claims": [{"text": "It reaches 91%.", "citations": [1], "quote": "Our model reaches 91% accuracy on the held-out"}]}`))
+	// P3 verifier down + fabricated model quote: dev note says unsupported (quote check ran and failed).
+	show("P3 verifier error + fabricated quote", llm(batchHits(), &fakeVerifier{score: func(string, string) float64 { return 0.9 }, err: errors.New("down")},
+		`{"claims": [{"text": "It raises accuracy.", "citations": [1], "quote": "accuracy doubles"}]}`))
+	// P4 the same marker cited by two claims with different outcomes (ordering invariant, design).
+	show("P4 marker 1 cited by a fabricated-quote claim and a good claim", llm(batchHits(), simVerifier(constSim(0.9)),
+		`{"claims": [{"text": "It doubles.", "citations": [1, 2], "quote": "The Results section shows"}, {"text": "It raises accuracy.", "citations": [1]}]}`))
+	// P5 extractive quote from a sentence with an inline reference: quote invariant must hold against raw content.
+	h5 := []SearchHit{ragHit(1, "Method", 0.9)}
+	h5[0].Content = "Paper — Method\n\nThe proposed method improves accuracy on every benchmark [3, 4] we tried in this study."
+	r5 := newRAG(h5, nil)
+	resp5, _ := r5.Ask(ctx, "q", nil, 3)
+	show("P5 extractive, sentence with inline [3, 4]", resp5)
+	if len(resp5.Citations) > 0 {
+		c := resp5.Citations[0]
+		fmt.Printf("PROBE %-58s inPassage(quote, content)=%v\n", "P5 invariant:", c.Quote != "" && inPassage(c.Quote, c.Content))
+	}
+	// P6 JSON of an unverified refusal-evidence citation: status present, page absent, quote absent.
+	ev := refusal(ctx, "t", 0, citationCheck{hitScore: make([]float64, 1), hitScored: make([]bool, 1)}, []SearchHit{ragHit(1, "Method", 0.9)})
+	raw, _ := json.Marshal(ev.Citations[0])
+	fmt.Printf("PROBE %-58s %s\n", "P6 refusal evidence JSON:", raw)
+}
+===== mod/go.mod
+module arxivlens
+
+go 1.24
+
+require github.com/jackc/pgx/v5 v5.0.0
+
+replace github.com/jackc/pgx/v5 => ./stubpgx
+===== mod/stubpgx/go.mod
+module github.com/jackc/pgx/v5
+
+go 1.24
+===== mod/stubpgx/pgx.go
+// QA stub: only the identifiers search.go uses.
+package pgx
+
+type TxAccessMode string
+
+const ReadOnly TxAccessMode = "read only"
+
+type TxOptions struct{ AccessMode TxAccessMode }
+===== mod/internal/db/db.go
+// QA stub: search.go only needs DB.Pool.BeginTx -> tx.{Rollback,Exec,Query} -> rows.
+package db
+
+import (
+	"context"
+	"errors"
+
+	"github.com/jackc/pgx/v5"
+)
+
+type Rows struct{}
+
+func (Rows) Close()            {}
+func (Rows) Next() bool        { return false }
+func (Rows) Scan(...any) error { return nil }
+func (Rows) Err() error        { return nil }
+
+type Tx struct{}
+
+func (Tx) Rollback(context.Context) error                         { return nil }
+func (Tx) Exec(context.Context, string, ...any) (struct{}, error) { return struct{}{}, nil }
+func (Tx) Query(context.Context, string, ...any) (Rows, error)    { return Rows{}, nil }
+
+type Pool struct{}
+
+func (*Pool) BeginTx(context.Context, pgx.TxOptions) (Tx, error) { return Tx{}, errors.New("stub") }
+
+type DB struct{ Pool *Pool }
+
+[exit code 0]

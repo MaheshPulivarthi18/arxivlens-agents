@@ -1,0 +1,20 @@
+$ bash -c echo '## eval.yml runs on branch agent/ai/AI-8a:'; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/workflows/eval.yml/runs?branch=agent/ai/AI-8a&per_page=5' --jq '"total_count=\(.total_count)"'; echo '## latest eval.yml runs (any branch):'; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/workflows/eval.yml/runs?per_page=5' --jq '.workflow_runs[] | "\(.id) \(.event) \(.head_branch) \(.head_sha[0:7]) \(.conclusion) \(.created_at)"'; echo '## eval.yml triggers (PR path filter excludes internal/**):'; sed -n '5,12p' .github/workflows/eval.yml
+## eval.yml runs on branch agent/ai/AI-8a:
+total_count=0
+## latest eval.yml runs (any branch):
+43902662193 schedule main 40dec5a success 2026-11-16T16:00:29Z
+43725899839 workflow_dispatch feat/rerank-rank-fusion 1b71c7d success 2026-11-15T14:43:24Z
+43722323475 schedule main 538b2ea failure 2026-11-15T14:04:18Z
+43714444619 workflow_dispatch feat/top5-paper-diversity ff17ea7 success 2026-11-15T12:33:22Z
+43706779838 workflow_dispatch eval/harder-retrieval-set ab5e6b8 success 2026-11-15T11:00:24Z
+## eval.yml triggers (PR path filter excludes internal/**):
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * *"
+  pull_request:
+    paths:
+      - .github/workflows/eval.yml
+      - scripts/arxiv_replay.py
+
+[exit code 0]

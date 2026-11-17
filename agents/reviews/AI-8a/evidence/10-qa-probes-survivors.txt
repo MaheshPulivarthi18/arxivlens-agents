@@ -1,0 +1,13 @@
+$ bash -c MUTANT='return q != "" && strings.Contains(normQuote(passage), q)|||return q != "" && strings.Contains(strings.ToLower(normQuote(passage)), strings.ToLower(q))' /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/probe.sh | grep -E 'MUTANT|P1 |checkout|ok'; MUTANT='return q != "" && strings.Contains(normQuote(passage), q)|||return q != "" && strings.Contains(passage, q)' /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/probe.sh | grep -E 'MUTANT|P2 |P5|checkout|ok'
+# MUTANT applied: return q != "" && strings.Contains(normQuote(passage), q)|||return q != "" && strings.Contains(strings.ToLower(normQuote(passage)), strings.ToLower(q))
+# checkout 12e70b4; rag.go sha256 fcde69121c51580e
+PROBE P1 model quote differs only in case (NLI 0.9):             kind="synthesized" reason="" [{m1 supported sup=true score=0.9 quote="THE PROPOSED METHOD improves accuracy"} {m2 supported sup=true score=0.9 quote="THE PROPOSED METHOD improves accuracy"}]
+ok  	arxivlens/internal/query	0.005s
+# MUTANT applied: return q != "" && strings.Contains(normQuote(passage), q)|||return q != "" && strings.Contains(passage, q)
+# checkout 12e70b4; rag.go sha256 fcde69121c51580e
+PROBE P2 quote vs chunk with newline/double space/[12]:          kind="quoted" reason="" [{m1 supported sup=true score=1 quote="Our model reaches 91% accuracy on the held-out benchmark split."} {m2 supported sup=true score=1 quote="The Results section shows that the proposed method improves accuracy on every benchmark."} {m3 supported sup=true score=1 quote="The Discussion section shows that the proposed method improves accuracy on every benchmark."}]
+PROBE P5 extractive, sentence with inline [3, 4]:                kind="quoted" reason="" [{m1 supported sup=true score=1 quote="The proposed method improves accuracy on every benchmark we tried in this study."}]
+PROBE P5 invariant:                                              inPassage(quote, content)=false
+ok  	arxivlens/internal/query	0.004s
+
+[exit code 0]

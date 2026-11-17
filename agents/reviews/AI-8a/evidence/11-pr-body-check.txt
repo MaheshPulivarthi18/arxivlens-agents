@@ -1,0 +1,38 @@
+$ /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/prbody.sh
+## PR #54 body: 43 lines; headings:
+1:## AI-8a: citation status, paper_version, page, verified quote, versioned pdf_url (ADR-0014)
+5:### What changed (`internal/query/rag.go`, `rag_test.go` only; 387 changed lines)
+14:### Flags for Mahesh
+19:### Acceptance criteria (developer's claims; QA verifies independently)
+28:### Verification
+34:### Evidence (filled by pm-lead when raising the PR)
+37:### Review status (filled by the workflow)
+## AC8
+PRESENT  AC8 field `status` listed with meaning
+           7:- `status`: always present, `supported` | `unsupported` (a check ran and failed) | `unverified` (no check ran: verifier unavailable, or no statement
+PRESENT  AC8 field `paper_version` listed with meaning
+           8:- `paper_version`: always present, int from `papers.version`; 0 = unknown.
+PRESENT  AC8 field `page` listed with meaning
+           9:- `page`: int, omitted when unknown (every hit until ING-11b #52 merges).
+PRESENT  AC8 field `quote` listed with meaning
+           10:- `quote`: omitted when none; only on supported citations; occurs in `content` after whitespace + inline-reference normalisation. Extractive path: 
+PRESENT  AC8 field `pdf_url` listed with meaning
+           11:- `pdf_url` (value change): opens the cited version (`…v<N>.pdf`) when `paper_version > 0`.
+PRESENT  AC8 README row lands in AI-8b
+           15:- README `/v1/ask` row lands in AI-8b (design condition 4); until then the README doesn't list these fields.
+PRESENT  AC8 Q1 line for Mahesh (unverified reading)
+           16:- Q1: never-checked refusal evidence is `unverified`. This reads ADR-0014's "the check couldn't run" as "the check didn't run"; a one-line revert i
+PRESENT  AC8 ADR-0018 line (answer_source not added)
+           17:- ADR-0018 (Proposed): `answer_source` is not added; `answer_kind` covers it. Option 2 would be additive later.
+## AC5
+ABSENT   AC5 git grep output of frontend/src + scripts/   (pattern: git grep|frontend/src/|scripts/evaluate_answers)
+## AC2
+ABSENT   AC2 per-mutation list (mutation -> failing test)   (pattern: TestCitationStatusRule)
+PRESENT  AC2 mutation count only
+           31:| `make test-unit` / `make lint` | not run locally: Go 1.24.7, go.mod needs 1.25 → CI. Stubbed scratch module: `go test -race` ok, 114 targeted t
+## AC7
+PRESENT  AC7 not run + reason
+           26:- [ ] AC7 `eval.yml` on this branch vs nightly 43902662193 — **not run**: dispatch not permitted from the agent sandbox
+ABSENT   AC7 the dispatch command   (pattern: gh workflow run eval.yml)
+
+[exit code 0]
