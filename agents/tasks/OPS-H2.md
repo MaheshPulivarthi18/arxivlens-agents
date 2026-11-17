@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged `71cb609`). No open PR on `requirements*.txt`, `Makefile`, `ci.yml` or the two Dockerfiles (none in cycle 2026-11-17) |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H2`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P1 build plumbing, no contract change |
-| **Status** | Ready (re-specced 2026-11-17 against `main` `40dec5a`; see Notes for the current install lines). Branch `agent/backend/OPS-H2` |
+| **Status** | In QA (built 2026-11-17, branch `agent/backend/OPS-H2` head `95ea3bb`; PR to be opened by orchestrator) |
 
 ## Goal
 Setup currently needs `pip install -r requirements-m0.txt minio ulid-py fastapi uvicorn` (plus `opentelemetry-sdk` in `make setup-py`),
@@ -49,3 +49,9 @@ grep -rnE "minio ulid-py|ulid-py fastapi" . --exclude-dir=.git --exclude-dir=nod
   fastapi/uvicorn, a few MB, acceptable for one file; say so in the PR); `requirements-m0.txt` becomes the one-line shim. Verification is CI
   only (PyPI and Docker aren't reachable from the sandbox): `ci.yml` Python job (AC1), `stack.yml` (triggered by `requirements*.txt`,
   Dockerfiles and `Makefile`: AC3, both images build and the stack is healthy), and AC2's grep.
+- 2026-11-17 (backend-engineer, build): branch `agent/backend/OPS-H2` head `95ea3bb` (base `40dec5a`), 7 files, +28/-17 (ownership check: 45 changed lines, OK for backend).
+  - New `requirements.txt` (runtime: the old m0 pins minus `pytest`, same specifiers, plus unpinned `minio`, `ulid-py`, `fastapi`, `uvicorn`, as they were unpinned before) and `requirements-dev.txt` (`-r requirements.txt`, `pytest>=8.0.0`, `opentelemetry-sdk`).
+  - `requirements-m0.txt` = one line `-r requirements.txt  # Deprecated shim ...`, as specced. Trade-off for QA/PM: the old file contained `pytest`, and the shim (runtime only) doesn't, so an old `pip install -r requirements-m0.txt && pytest` needs pytest installed separately. Pointing it at `requirements-dev.txt` would keep pytest. That's a one-word change if pm-lead prefers it.
+  - `Makefile:18` and `ci.yml:49` install `-r requirements-dev.txt` (CI keeps the CPU torch `--extra-index-url`). Both Dockerfiles `COPY requirements.txt .` and install `-r requirements.txt`, so the processor image gains fastapi/uvicorn (a few MB). The CI Python job now also installs `opentelemetry-sdk`, which `make test-py` doesn't need, but it's harmless.
+  - Verified locally: AC2 grep is empty (exit 1). `requirements-m0` is no longer referenced anywhere except the shim. A static flatten script (packaging.Requirement) showed requirements-dev.txt == the old `make setup-py` set, requirements.txt == dev minus pytest/otel, every old pin identical, no duplicates. `pip install --dry-run --no-index -r requirements-dev.txt` parsed every file and failed only at resolution (no index). The compose build context is the repo root with no `.dockerignore`, so `COPY requirements.txt` resolves.
+  - Not run locally: AC1 (PyPI unreachable: `NameResolutionError pypi.org`), AC3 (no Docker daemon: `/var/run/docker.sock` missing), `make test-unit`/`make lint` (Go 1.25 download blocked; the change has no Go code). CI is the source of truth: `ci.yml` Python job (AC1) and `stack.yml` (AC3, triggered by requirements*/Dockerfiles/Makefile).
