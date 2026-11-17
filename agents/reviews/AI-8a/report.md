@@ -237,3 +237,70 @@ None blocking. Finding 10 (the AC7 eval dispatch) stays open as a hand-off item 
 ## Hand-off
 **PASS** → pm-lead final review. Before raising the PR, pm-lead should dispatch `gh workflow run eval.yml --ref agent/ai/AI-8a` and compare `supported_citation_rate`, correct refusals, answer coverage and `GATE:` against 43902662193 (design condition 6). Any regression there is a FAIL under review procedure step 8.
 
+
+---
+
+# PM final review — AI-8a · PR #54 @ `990aa5a`
+
+**Verdict: APPROVE** · pm-lead · 2026-11-17 · QA round 3 PASS (after FAIL r1 @ `12e70b4`, FAIL r2 @ `a0a2ced`)
+
+**Inputs read:** ticket `agents/tasks/AI-8a.md` (AC1 as amended 2026-11-17), Product PRD QA-3/QA-4 and §7 principles 1–3,
+Technical PRD §7.2, ADR-0014 and ADR-0003 (both Accepted), approved design `docs/design/AI-8.md` (conditions 1–8), the full
+`rag.go` diff (`git diff origin/main origin/agent/ai/AI-8a`), PR files (`rag.go` +101/-49, `rag_test.go` +233/-16 = 399 lines),
+check runs on `990aa5a`, and all three QA rounds. Opened every round-3 file (30–36) as an image. Of rounds 1–2, opened 12, 17, 19,
+22, 24, 25 and 29 as images and the rest as `.txt` heads; 14 is QA's harness source.
+
+**Earlier blocking findings, all closed at `990aa5a`:**
+- r1-1 AC5 grep in the PR body: closed (25: PR block byte-identical to QA's 33-line run; 12 is QA's own run).
+- r1-2 AC2 per-mutation list: closed (24; 17 shows all 10 AC2 mutants failing `TestCitationStatusRule` on its own).
+- r1-3 ADR-0014 case-sensitive quote: closed (M33 killed in 33; probe P1 at head falls back to `quoted`, 22).
+- r1-4 [spec] AC1 vs ownership: closed by my option (a): AC1 amended, the 11 `synthesis_test.go` sites are AI-8c. 29 shows the
+  helper is callable from `synthesis_test.go` and all 8 tests pass with it.
+- r2-8 `TestCitationProvenance` without the helper: closed (30: three 1-line `if` init-statement edits, no condition text changed;
+  31: 22 call sites in `rag_test.go`; 34: 3 `quoted` + 3 `synthesized` responses reach the helper from line 1262).
+
+**Product fit.** This is the ADR-0014 citation half of QA-3/QA-4. A reader can now tell "checked and failed" from "never
+checked", opens the PDF of the version that was indexed (not the latest), and sees a quote only when it really occurs in the
+passage (case-sensitive; fabricated model quotes fail closed). That is Principle 1 (evidence first), 2 (honest refusals: refusal
+evidence is never `supported`, and `unverified` vs `unsupported` is explicit) and 3 (one click to the exact source). The grounding
+invariants are enforced at the only constructor (`Supported = status == StatusSupported`), not just tested.
+
+**Scope.** Exactly the ticket: `rag.go` and `rag_test.go`, 399 changed lines (< 400, condition 5 not used), ownership OK.
+Nothing from AI-8b leaked (no `claims`, `prompt_version`, `answer_source`, reserved statuses or README change; design condition 8).
+`passageHits`/`TestPassageHits` deleted as the design says.
+
+**AC coverage.** AC1 (31, 34, 29), AC2 (32, 17, 33), AC2r (32, 33: M16–M19, M35), AC3 (32, 33: M20–M31, M33, M34; 22),
+AC4 (32, 33: M11–M15; 22 P6), AC5 (32 shape test, 25, 12), AC6 (30: 399 lines; 19: `rag.go` 99.0%, unchanged since `rag.go`
+is byte-identical to r2), AC8 (24). CI: all six checks `success` on `990aa5a` (35), Go job on the merge commit with go1.25.0,
+`ok arxivlens/internal/query` (36). The only surviving mutant, M32 (`inPassage("")`), is equivalent: every caller rules out an
+empty quote first. Local test runs are a Go 1.24 scratch module with only `internal/db`/`pgx` stubbed; CI is the source of truth
+and is green.
+
+**AC7 / DoD 3 (eval).** Not run, and I accept "not run" here (DoD 3 allows it with a reason). Reason: `eval.yml` only runs on
+`workflow_dispatch`/schedule for `internal/**` changes, and workflow dispatch was denied by the ai-engineer sandbox's permission
+policy; pm-lead's role doesn't edit or trigger CI in ArxivLens. Why it's safe to raise without it:
+1. CI's eval runs without an LLM, so only the quoted path is measured. On that path the diff keeps `supported` and `score`
+   byte-for-byte: before, `!ok → supported=false, score 0` and `ok → supported = score >= 0.50`; after, `citationStatus` gives the
+   same truth value and `Supported` is derived from it. Refusal evidence was never `supported` and still isn't. `refusal_reason`
+   selection is untouched. The new keys enter no metric (`evaluate_answers.py` reads marker, arxiv_id, chunk_id, supported, score;
+   evidence 12/25).
+2. The measurement doesn't float (lesson RET-1): the scheduled nightly `eval.yml` on `main` measures this code the first night
+   after merge, and AI-8b AC9 now requires comparing that nightly with 43902662193 before AI-8b's own run, with a stop-and-report
+   rule (AI-8b ticket amended in this commit).
+3. Optional human check, listed in the PR: Mahesh can run `gh workflow run eval.yml --ref agent/ai/AI-8a` before merging. It
+   costs no arXiv requests now (the replay cache is keyed on `evals/corpus.txt`, unchanged here). Expected: supported 100%,
+   correct refusals 100%, coverage and `GATE: PASS` identical to 43902662193 (and to 44123069827, the 2026-11-17 nightly on the
+   same `40dec5a`).
+
+**Docs.** README `/v1/ask` row deferred to AI-8b by design condition 4 (README was held by other PRs); the PR says so. PRD:
+Product PRD QA-4's status note is stale (it still describes the pre-AI-2 fail-open path). Added to the pending pm-lead PRD docs
+PR: QA-4 note → "verified by NLI (≥ 0.50); fail closed; citations carry `status` supported/unsupported/unverified, version and
+verified quote (AI-8a); `claims[]` in AI-8b". QA-3/QA-4 status columns change after AI-8b merges, as AI-8b's Docs line says.
+
+**Flags for Mahesh (already in the PR body, kept):** Q1 reading of `unverified` for never-checked refusal evidence (one-line
+revert in `refusal()` if you disagree); ADR-0018 is still Proposed and `answer_source` is not added (nothing in AI-8a depends on it).
+
+**Follow-ups:** none new. AI-8c (backend, the 11 `synthesis_test.go` helper calls) and AI-8b stay Blocked on this PR merging.
+
+**Next:** PR #54 description rewritten with the Evidence section, then marked ready for review. Jira KAN-60 → Ready to merge
+(orchestrator).

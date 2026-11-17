@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0014 Accepted ✅, QA-8 delivered (#46 `cc57474`) ✅, RET-2 merged (`6cfd836`) ✅. **Design approved with conditions**: `docs/design/AI-8.md`, PM decision 2026-11-17. Not a dependency: ADR-0018 (Proposed), ING-11b (`page` is tested with hand-built hits). Independence at start: no open PR touches `internal/query/rag.go`, `rag_test.go` or `synthesis_test.go` (cycle 2026-11-17: ING-11b, EVAL-4 and OPS-H2 don't) |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8a"`), linked to the AI-8 story |
 | **Design required** | yes, done: `docs/design/AI-8.md` (approved, conditions 1–8). No further design. |
-| **Status** | In Progress (rework r1 done, awaiting QA round 2): `agent/ai/AI-8a` @ `a0a2ced`, PR #54 (draft). AC1 partly blocked on file ownership (QA finding 4, pm-lead) |
+| **Status** | Ready to merge: QA r3 PASS + PM APPROVE (2026-11-17) @ `990aa5a`, PR #54 raised for review |
 
 ## Goal
 Every `/v1/ask` citation, in both answers and refusal evidence, says whether it was checked and passed, checked and failed,
@@ -145,3 +145,9 @@ gh workflow run eval.yml --ref agent/ai/AI-8a   # AC7, then read the job log's g
   - [x] 9 [nit]: the same pattern also checks `TestCitationQuote`'s first extractive `quoted` response and `TestRefusalEvidenceStatus`'s `early` refusal. No assertion, row or check was removed.
   - [ ] 10 [nit] AC7 numbers: not ai's to fix. **Still needs** pm-lead or the orchestrator to run `gh workflow run eval.yml --ref agent/ai/AI-8a` and compare with 43902662193.
   - Local runs (Go 1.24.7 scratch module, only `internal/db`/`pgx` stubbed): `gofmt -l` empty, `go vet` ok, `go test -race` on query/llm/arxiv ok, ticket targeted run 118 PASS / 0 FAIL (`TestCitationProvenance`, `TestCitationQuote` and `TestRefusalEvidenceStatus` pass), `rag.go` 99.0% (399/403; `synthesize` 93.1%, `checkCitations` 97.9%). `make test-unit`/`make lint` are left to CI. PR #54 is still a draft.
+- 2026-11-17 (pm-lead): **final review APPROVE** @ `990aa5a` (QA r3 PASS; [report](../reviews/AI-8a/report.md), PM section).
+  AC7 accepted as "not run": workflow dispatch is denied to the ai sandbox and isn't pm-lead's to trigger. The quoted path CI's eval
+  measures keeps `supported`/`score`/`refusal_reason` identical by construction. The measurement moves to the first nightly `eval.yml`
+  on `main` after merge, compared in **AI-8b AC9** (amended, with a stop-and-report rule). Mahesh can optionally dispatch
+  `gh workflow run eval.yml --ref agent/ai/AI-8a` before merging (listed in the PR). PRD QA-4 note correction goes to the pending
+  pm-lead PRD docs PR.

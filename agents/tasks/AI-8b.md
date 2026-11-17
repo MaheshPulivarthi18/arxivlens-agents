@@ -68,6 +68,11 @@ which prompt made it. The README documents the whole `/v1/ask` shape so FE-3/FE-
 - [ ] AC9: One `workflow_dispatch` of `eval.yml` on `agent/ai/AI-8b`. Paste `supported_citation_rate`, the correct-refusal rate,
   answer coverage and `GATE:` next to nightly 43902662193 and the AI-8a run. A coverage change is reported as a finding (design
   condition 6). Otherwise "not run: <reason>" with the command.
+  *Amended 2026-11-17 (pm-lead, AI-8a final review):* AI-8a was raised without its own `eval.yml` run (AC7 "not run": dispatch
+  denied to the ai sandbox). "The AI-8a run" therefore means **the first scheduled nightly `eval.yml` on `main` after AI-8a merges**
+  (or Mahesh's dispatch on `agent/ai/AI-8a`, if he ran one; its ID is then in PR #54). Before building, paste its
+  `supported_citation_rate`, correct-refusal rate, answer coverage and `GATE:` next to 43902662193. **Stop and report** (Notes +
+  pm-lead) if any of them differs: AI-8a was expected to leave all four identical on the quoted path.
 - [ ] Docs: the PR body notes that `answer_source` isn't added (ADR-0018 Option 1) and would be an additive follow-up under
   Option 2. pm-lead updates the Product PRD QA-3/QA-4 status column after merge (docs PR).
 
