@@ -1,0 +1,29 @@
+$ /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa/harness/mutate2.sh /root/wt/qa-ING-6a2 /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa/harness/mutants-r2.py
+SUMMARY: 11/11 killed in BOTH the full package and -run '^T$'
+mutant                                       | full pkg | -run ^T$ | T
+M5 drop undated skip (undated not ignored)   | KILLED   | KILLED   | TestWalkStopsAtWatermark
+M23 NewArxivFeed: DefaultRetry not set       | KILLED   | KILLED   | TestNewArxivFeedDefaults
+M24 NewArxivFeed(nil lim) stays unthrottled  | KILLED   | KILLED   | TestNewArxivFeedDefaults
+M27 ctx not checked between requests         | KILLED   | KILLED   | TestWalkStopsAtWatermark
+M28 nil lim -> NewLimiter(0) (unthrottled)   | KILLED   | KILLED   | TestNewArxivFeedDefaults
+M29 given lim ignored (always a new one)     | KILLED   | KILLED   | TestNewArxivFeedDefaults
+M30 retry Max dropped                        | KILLED   | KILLED   | TestNewArxivFeedDefaults
+M31 ctx cancel returns partial candidates    | KILLED   | KILLED   | TestWalkStopsAtWatermark
+M32 undated resets prev and boundary         | KILLED   | KILLED   | TestWalkStopsAtWatermark
+M33 undated resets boundary only             | KILLED   | KILLED   | TestWalkStopsAtWatermark
+M34 undated resets prev only                 | KILLED   | KILLED   | TestWalkStopsAtWatermark
+
+failing (sub)tests, full package run:
+  M5: page_ending_[<=W,_undated]_stops ; out_of_order_across_an_undated_entry ; first_run:_undated_not_a_candidate
+  M23: TestNewArxivFeedDefaults
+  M24: TestNewArxivFeedDefaults
+  M27: ctx_cancelled_between_requests
+  M28: TestNewArxivFeedDefaults
+  M29: TestNewArxivFeedDefaults
+  M30: TestNewArxivFeedDefaults
+  M31: ctx_cancelled_between_requests
+  M32: page_ending_[<=W,_undated]_stops ; out_of_order_across_an_undated_entry
+  M33: page_ending_[<=W,_undated]_stops
+  M34: out_of_order_across_an_undated_entry
+
+[exit code 0]

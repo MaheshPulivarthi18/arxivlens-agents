@@ -1,0 +1,36 @@
+$ /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa/harness/local-tests.sh /root/wt/qa-ING-6a2
+== scope: git diff --stat origin/main...HEAD (main=40dec5a)
+ internal/crawler/loop.go      | 177 ++++++++++++++++++++++++++++++
+ internal/crawler/loop_test.go | 249 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 426 insertions(+)
+== gofmt -l on the 2 files:
+(end gofmt)
+== go vet ./internal/crawler/ ./internal/arxiv/
+vet ok
+== ticket -run set + TestNewArxivFeedDefaults, -race: rc=0  PASS=20 FAIL=0
+--- PASS: TestWalkStopsAtWatermark
+    --- PASS: TestWalkStopsAtWatermark/5_new_+_5_old,_page_3
+    --- PASS: TestWalkStopsAtWatermark/nothing_new
+    --- PASS: TestWalkStopsAtWatermark/entry_==_W_is_not_a_candidate
+    --- PASS: TestWalkStopsAtWatermark/old_entry_on_top,_page's_last_>_W:_go_on
+    --- PASS: TestWalkStopsAtWatermark/repeat_across_pages_deduped
+    --- PASS: TestWalkStopsAtWatermark/undated_ignored,_not_a_boundary
+    --- PASS: TestWalkStopsAtWatermark/page_ending_[<=W,_undated]_stops
+    --- PASS: TestWalkStopsAtWatermark/out_of_order_across_an_undated_entry
+    --- PASS: TestWalkStopsAtWatermark/short_page_stops
+    --- PASS: TestWalkStopsAtWatermark/first_run_limit_4
+    --- PASS: TestWalkStopsAtWatermark/first_run:_undated_not_a_candidate
+    --- PASS: TestWalkStopsAtWatermark/first_run_limit_103:_n_=_remainder
+    --- PASS: TestWalkStopsAtWatermark/backlog_>_maxScan
+    --- PASS: TestWalkStopsAtWatermark/fetch_error
+    --- PASS: TestWalkStopsAtWatermark/ctx_cancelled_between_requests
+--- PASS: TestSelectBatch
+--- PASS: TestArxivFeedRequest
+--- PASS: TestNewArxivFeedDefaults
+--- PASS: TestParseCategories
+ok  	arxivlens/internal/crawler	1.088s
+== full packages -race:
+ok  	arxivlens/internal/crawler
+ok  	arxivlens/internal/arxiv
+
+[exit code 0]

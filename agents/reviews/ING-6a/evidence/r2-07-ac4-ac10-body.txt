@@ -1,0 +1,19 @@
+$ /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa/harness/ac4-ac10.sh
+AC4 amended string (ticket): max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+occurrences in loop_test.go: 1
+189:	const want = "/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0"
+AC10 fixture internal/crawler/testdata/arxiv_feed.xml <published> (file order):
+5:    <id>http://arxiv.org/abs/2307.08691v2</id>
+6:    <published>2023-07-17T17:50:36Z</published>
+19:    <id>http://arxiv.org/abs/2401.12345</id>
+20:    <published>2024-01-22T09:00:00Z</published>
+fixture changed by PR? 0 files
+PR #56 body lines quoting the fixture values:
+59:  - `internal/crawler/testdata/arxiv_feed.xml` lists `2023-07-17T17:50:36Z` (2307.08691v2), then `2024-01-22T09:00:00Z` (2401.12345). That is **ascending, not descending**. The file is a hand-written OPS-H3 parser fixture (`2401.12345` "A Paper Without Version" is synthetic), though, not an arXiv recording, so it says nothing about arXiv's order.
+PR #56 body stale markers (pre-rework):
+7:- **ING-6a1** = `migrations/000005_crawl_watermarks.{up,down}.sql` + `internal/db/watermarks.go` + `watermarks_integration_test.go` (107 lines). Pushed as branch `agent/backend/ING-6a1` @ `c86bd5a`. **No PR yet**: backend WIP is 2 with #55 and this PR.
+8:- **ING-6a2** = this PR (398 lines). It doesn't depend on 6a1: the compile-time check that `*db.DB` satisfies `watermarkStore` moves to 6b, which needs both parts merged.
+57:- [x] AC9 (this part): `git diff --stat origin/main` lists only `internal/crawler/loop.go` (177) and `internal/crawler/loop_test.go` (221), 398 lines in total. `ownership-check.sh`: `Ownership OK for role=backend (398 changed lines)`. `make test-unit` / `make lint` results: see CI on this PR.
+72:| scratch: `go test -count=1 -v -run 'TestWalkStopsAtWatermark\|TestSelectBatch\|TestArxivFeedRequest\|TestParseCategories' ./internal/crawler/` | all PASS (11 walk rows) |
+
+[exit code 0]

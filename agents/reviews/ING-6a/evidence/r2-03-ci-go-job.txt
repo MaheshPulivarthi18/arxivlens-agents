@@ -1,0 +1,11 @@
+$ grep -nE 'HEAD is now at|make lint-go|go vet|gofmt|internal/crawler|Ownership OK|changed lines|##[error]' go-job.log(134254277910) own.log(134254277918)
+go-job.log:34:2026-11-17T18:05:34.7707788Z Complete job name: Go (vet, gofmt, test, build)
+go-job.log:120:2026-11-17T18:05:35.5857551Z HEAD is now at bf3b33c Merge 3f8e903457da2ae023babcb5c16488b23ff05da7 into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+go-job.log:207:2026-11-17T18:05:43.4925755Z ##[group]Run make lint-go
+go-job.log:211:2026-11-17T18:05:43.5065028Z go vet ./...
+go-job.log:220:2026-11-17T18:05:49.4651636Z ok  	arxivlens/internal/crawler	0.062s
+own.log:170:2026-11-17T18:05:36.1073841Z HEAD is now at bf3b33c Merge 3f8e903457da2ae023babcb5c16488b23ff05da7 into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+own.log:181:2026-11-17T18:05:36.1733558Z ##[warning]426 changed lines (> 400). Consider splitting the change.
+own.log:182:2026-11-17T18:05:36.1740544Z Ownership OK for role=backend (426 changed lines)
+go job 134254277910 head_sha=3f8e903457da2ae023babcb5c16488b23ff05da7 conclusion=success
+

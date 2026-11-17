@@ -1,0 +1,31 @@
+$ /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa/harness/mutate.sh /root/wt/qa-ING-6a2
+mutant                                           | full pkg | -run ^T$ | failing tests (full)
+M1 AC8 '>' -> '>=' in candidate filter           | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/entry_==_W_is_not_a_candidate
+M2 AC8 stop on first <= W entry                  | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/old_entry_on_top,_page's_last_>_W:_go_on
+M3 AC8 drop tie extension                        | KILLED   | KILLED   | TestSelectBatch
+M4 AC8 drop dedupe                               | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/repeat_across_pages_deduped
+M5 drop undated skip (undated not ignored)       | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/page_ending_[<=W,_undated]_stops,TestWalkStopsAtWatermark/out_of_order_across_an_undated_entry
+M6 undated page counts as boundary               | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/undated_ignored,_not_a_boundary
+M7 out_of_order not counted                      | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/old_entry_on_top,_page's_last_>_W:_go_on,TestWalkStopsAtWatermark/out_of_order_across_an_undated_entry
+M8 no maxScan guard                              | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/backlog_>_maxScan
+M9 maxScan '>=' -> '>'                           | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/backlog_>_maxScan
+M10 first run: no remainder                      | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/first_run_limit_103:_n_=_remainder
+M11 no short-page stop                           | KILLED   | KILLED   | TIMEOUT
+M12 page size ignores limit                      | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/5_new_+_5_old,_page_3,TestWalkStopsAtWatermark/nothing_new
+M13 no 100 cap on page size                      | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/first_run_limit_103:_n_=_remainder
+M14 no arxiv_id tiebreak                         | KILLED   | KILLED   | TestSelectBatch
+M15 boundary = page's first dated entry          | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/5_new_+_5_old,_page_3,TestWalkStopsAtWatermark/entry_==_W_is_not_a_candidate
+M16 ParseCategories no dedupe                    | KILLED   | KILLED   | TestParseCategories
+M17 ParseCategories no trim                      | KILLED   | KILLED   | TestParseCategories
+M18 regex unanchored start                       | KILLED   | KILLED   | TestParseCategories
+M19 regex unanchored end                         | KILLED   | KILLED   | TestParseCategories
+M20 UA changed                                   | KILLED   | KILLED   | TestArxivFeedRequest
+M21 Page ignores f.retry (no retry)              | KILLED   | KILLED   | TestArxivFeedRequest
+M22 Page bypasses shared limiter                 | KILLED   | KILLED   | TestArxivFeedRequest
+M23 NewArxivFeed: DefaultRetry not set           | KILLED   | SURVIVED | TestNewArxivFeedDefaults
+M24 NewArxivFeed(nil lim) stays unthrottled      | KILLED   | SURVIVED | TestNewArxivFeedDefaults
+M25 Page ignores ARXIV_API_URL                   | KILLED   | KILLED   | TestArxivFeedRequest
+M26 sortOrder ascending                          | KILLED   | KILLED   | TestArxivFeedRequest
+M27 ctx not checked between requests             | KILLED   | KILLED   | TestWalkStopsAtWatermark,TestWalkStopsAtWatermark/ctx_cancelled_between_requests
+
+[exit code 0]

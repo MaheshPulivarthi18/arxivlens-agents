@@ -1,0 +1,10 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/56 --jq '"PR #56 head=\(.head.sha) base=\(.base.sha) draft=\(.draft) merged=\(.merged)"'; gh api repos/MaheshPulivarthi18/ArxivLens/commits/3f8e903457da2ae023babcb5c16488b23ff05da7/check-runs --jq '.check_runs[] | "\(.name) | \(.conclusion) | job \(.id) | \(.completed_at)"'
+PR #56 head=3f8e903457da2ae023babcb5c16488b23ff05da7 base=40dec5a41ddeab7b029d5a03d5b6d66fbde1f411 draft=true merged=false
+Full stack (compose + make test-full) | success | job 134254278257 | 2026-11-17T18:16:10Z
+DB (migrate twice, HNSW plan + recall) | success | job 134254278129 | 2026-11-17T18:06:52Z
+Agent ownership check | success | job 134254277918 | 2026-11-17T18:05:38Z
+Go (vet, gofmt, test, build) | success | job 134254277910 | 2026-11-17T18:06:13Z
+Frontend (lint, test, build) | success | job 134254277634 | 2026-11-17T18:05:51Z
+Python M0 unit tests | success | job 134254277224 | 2026-11-17T18:06:55Z
+
+[exit code 0]
