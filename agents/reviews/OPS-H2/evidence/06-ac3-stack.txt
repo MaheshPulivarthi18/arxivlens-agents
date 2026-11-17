@@ -1,0 +1,22 @@
+$ gh api .../actions/jobs/133911828707/logs | grep (and baseline job 132833622346)
+# PR job 133911828707 (stack.yml run 44046036021, head 95ea3bb, merge 33d5c69):
+128:2026-11-17T08:21:36.4675485Z HEAD is now at 33d5c69 Merge 95ea3bb6447ca586a64d3c1607904f31929f6ac4 into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+336:2026-11-17T08:22:17.8956711Z ##[group]Run make setup-py
+1989:2026-11-17T08:24:21.5152844Z #11 [embedder-worker 4/8] COPY requirements.txt .
+1992:2026-11-17T08:24:21.5154939Z #12 [processor 5/8] RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
+2342:2026-11-17T08:26:56.0861426Z  Image arxivlens-embedder-api Built 
+2343:2026-11-17T08:26:56.0862131Z  Image arxivlens-processor Built 
+2344:2026-11-17T08:26:56.0862484Z  Image arxivlens-embedder-worker Built 
+2382:2026-11-17T08:27:28.9684454Z stack-up: arxivlens-embedder-api healthy
+2383:2026-11-17T08:27:44.0929621Z stack-up: arxivlens-processor healthy
+2384:2026-11-17T08:27:44.1094156Z stack-up: arxivlens-embedder-worker healthy
+2798:2026-11-17T08:34:18.7824490Z 233 passed, 1 skipped, 3 deselected, 5 warnings in 84.98s (0:01:24)
+4234:2026-11-17T08:34:50.9776623Z 3 failed in 30.62s
+
+# Baseline: previous green stack.yml job 132833622346 (PR #50, merge onto 538b2ea):
+2586:2026-11-15T13:58:18.6637560Z stack-up: arxivlens-embedder-api healthy
+2587:2026-11-15T13:58:33.7748769Z stack-up: arxivlens-processor healthy
+2588:2026-11-15T13:58:33.7912474Z stack-up: arxivlens-embedder-worker healthy
+3014:2026-11-15T14:05:44.7056038Z 233 passed, 1 skipped, 3 deselected, 5 warnings in 90.75s (0:01:30)
+4450:2026-11-15T14:06:16.6756491Z 3 failed in 30.57s
+

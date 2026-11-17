@@ -1,0 +1,57 @@
+$ cat /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/pins.py
+"""Compare old (base 40dec5a) vs new (head 95ea3bb) Python install sets, per install site.
+Reads files via `git show <rev>:<path>` in the cwd (the PR worktree)."""
+import subprocess, re, sys
+from packaging.requirements import Requirement
+BASE, HEAD = "40dec5a", "95ea3bb"
+def show(rev, path):
+    return subprocess.run(["git","show",f"{rev}:{path}"],capture_output=True,text=True,check=True).stdout
+def flatten(rev, path, seen=None):
+    seen = seen or []
+    out = []
+    for line in show(rev, path).splitlines():
+        line = line.split("#",1)[0].strip()
+        if not line: continue
+        if line.startswith("-r "):
+            out += flatten(rev, line[3:].strip(), seen + [path]); continue
+        out.append(str(Requirement(line)))
+    return out
+def args(rev, tokens):
+    s = []
+    i = 0
+    while i < len(tokens):
+        t = tokens[i]
+        if t == "-r": s += flatten(rev, tokens[i+1]); i += 2; continue
+        if t.startswith("-"): i += 2 if t in ("--extra-index-url",) else 1; continue
+        s.append(str(Requirement(t))); i += 1
+    return s
+def norm(lst):
+    d = {}
+    for r in lst:
+        R = Requirement(r); d.setdefault(R.name.lower(), []).append(str(R))
+    return d
+sites = {
+ "Makefile setup-py": ("Makefile", r"pip install (.*)$"),
+ "ci.yml Python job": (".github/workflows/ci.yml", r"pip install --extra-index-url \S+ (.*)$"),
+ "embedder Dockerfile": ("services/embedder/Dockerfile", r"--extra-index-url \$\{TORCH_INDEX_URL\} (.*)$"),
+ "processor Dockerfile": ("services/processor/Dockerfile", r"--extra-index-url \$\{TORCH_INDEX_URL\} (.*)$"),
+}
+bad = 0
+for name,(path,rx) in sites.items():
+    res = {}
+    for rev in (BASE, HEAD):
+        m = [re.search(rx, l) for l in show(rev, path).splitlines()]
+        m = [x for x in m if x]
+        assert len(m)==1, (name, rev, len(m))
+        res[rev] = norm(args(rev, m[0].group(1).split()))
+    old, new = res[BASE], res[HEAD]
+    dups = {k:v for k,v in new.items() if len(v)>1}
+    added = sorted(set(new)-set(old)); removed = sorted(set(old)-set(new))
+    changed = sorted(k for k in set(old)&set(new) if old[k]!=new[k])
+    print(f"== {name}: old {len(old)} pkgs, new {len(new)} pkgs | added={added} removed={removed} spec-changed={changed} dups={list(dups)}")
+for rev,f in ((BASE,"requirements-m0.txt"),(HEAD,"requirements-m0.txt"),(HEAD,"requirements.txt"),(HEAD,"requirements-dev.txt")):
+    print(f"-- {rev}:{f} flattened -> {sorted(norm(flatten(rev,f)).keys())}")
+print("-- head requirements-dev.txt full specifiers:")
+for k,v in sorted(norm(flatten(HEAD,"requirements-dev.txt")).items()): print("   ", v[0])
+
+[exit code 0]

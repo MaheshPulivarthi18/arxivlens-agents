@@ -1,0 +1,17 @@
+$ bash -c grep -rnE "minio ulid-py|ulid-py fastapi" . --exclude-dir=.git --exclude-dir=node_modules; echo "grep exit=$? (1 = no match)"; echo; echo "--- every remaining pip install / requirements reference (git grep):"; git grep -nE "pip install|requirements-m0|requirements(-dev)?\.txt"
+grep exit=1 (1 = no match)
+
+--- every remaining pip install / requirements reference (git grep):
+.github/workflows/ci.yml:48:          python -m pip install --upgrade pip
+.github/workflows/ci.yml:49:          pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements-dev.txt
+Makefile:18:	$(PY) -m pip install -r requirements-dev.txt
+requirements-dev.txt:1:# Dev and test deps: runtime (requirements.txt) plus test-only tools. `make setup-py` installs this file.
+requirements-dev.txt:2:-r requirements.txt
+requirements-m0.txt:1:-r requirements.txt  # Deprecated shim (OPS-H2), kept one release so old instructions work; use `make setup-py` (requirements-dev.txt).
+requirements.txt:2:# Install: `make setup-py` (dev, adds requirements-dev.txt) or `pip install -r requirements.txt` (runtime only).
+services/embedder/Dockerfile:12:COPY requirements.txt .
+services/embedder/Dockerfile:13:RUN pip install --no-cache-dir --extra-index-url ${TORCH_INDEX_URL} -r requirements.txt
+services/processor/Dockerfile:12:COPY requirements.txt .
+services/processor/Dockerfile:13:RUN pip install --no-cache-dir --extra-index-url ${TORCH_INDEX_URL} -r requirements.txt
+
+[exit code 0]

@@ -1,0 +1,11 @@
+$ bash -c echo "\$ make -n setup-py"; make -n setup-py; echo; echo "\$ grep -rn pytest services/ scripts/ shared/ docker-compose.yml"; grep -rn pytest services/ scripts/ shared/ docker-compose.yml; echo "grep exit=$? (1 = no match)"; echo; echo "\$ diff <(sed -n 1,13p services/embedder/Dockerfile) <(sed -n 1,13p services/processor/Dockerfile)"; diff <(sed -n 1,13p services/embedder/Dockerfile) <(sed -n 1,13p services/processor/Dockerfile) && echo "identical (lines 1-13)"
+$ make -n setup-py
+python3 -m pip install -r requirements-dev.txt
+
+$ grep -rn pytest services/ scripts/ shared/ docker-compose.yml
+grep exit=1 (1 = no match)
+
+$ diff <(sed -n 1,13p services/embedder/Dockerfile) <(sed -n 1,13p services/processor/Dockerfile)
+identical (lines 1-13)
+
+[exit code 0]

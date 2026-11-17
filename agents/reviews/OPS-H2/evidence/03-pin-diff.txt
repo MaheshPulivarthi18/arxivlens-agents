@@ -1,0 +1,28 @@
+$ python3 -I /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/pins.py
+== Makefile setup-py: old 16 pkgs, new 16 pkgs | added=[] removed=[] spec-changed=[] dups=[]
+== ci.yml Python job: old 15 pkgs, new 16 pkgs | added=['opentelemetry-sdk'] removed=[] spec-changed=[] dups=[]
+== embedder Dockerfile: old 15 pkgs, new 14 pkgs | added=[] removed=['pytest'] spec-changed=[] dups=[]
+== processor Dockerfile: old 13 pkgs, new 14 pkgs | added=['fastapi', 'uvicorn'] removed=['pytest'] spec-changed=[] dups=[]
+-- 40dec5a:requirements-m0.txt flattened -> ['confluent-kafka', 'numpy', 'psycopg', 'pydantic', 'pymupdf', 'pytest', 'requests', 'sentence-transformers', 'sentencepiece', 'torch', 'transformers']
+-- 95ea3bb:requirements-m0.txt flattened -> ['confluent-kafka', 'fastapi', 'minio', 'numpy', 'psycopg', 'pydantic', 'pymupdf', 'requests', 'sentence-transformers', 'sentencepiece', 'torch', 'transformers', 'ulid-py', 'uvicorn']
+-- 95ea3bb:requirements.txt flattened -> ['confluent-kafka', 'fastapi', 'minio', 'numpy', 'psycopg', 'pydantic', 'pymupdf', 'requests', 'sentence-transformers', 'sentencepiece', 'torch', 'transformers', 'ulid-py', 'uvicorn']
+-- 95ea3bb:requirements-dev.txt flattened -> ['confluent-kafka', 'fastapi', 'minio', 'numpy', 'opentelemetry-sdk', 'psycopg', 'pydantic', 'pymupdf', 'pytest', 'requests', 'sentence-transformers', 'sentencepiece', 'torch', 'transformers', 'ulid-py', 'uvicorn']
+-- head requirements-dev.txt full specifiers:
+    confluent-kafka>=2.3.0
+    fastapi
+    minio
+    numpy>=1.24.0
+    opentelemetry-sdk
+    psycopg[binary]>=3.1.0
+    pydantic>=2.5.0
+    PyMuPDF>=1.23.0
+    pytest>=8.0.0
+    requests>=2.31.0
+    sentence-transformers>=2.3.0
+    sentencepiece>=0.1.99
+    torch>=2.1.0
+    transformers>=4.36.0
+    ulid-py
+    uvicorn
+
+[exit code 0]

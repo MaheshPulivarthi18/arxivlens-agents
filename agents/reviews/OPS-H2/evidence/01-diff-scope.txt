@@ -1,0 +1,13 @@
+$ bash -c git diff --stat 40dec5a 95ea3bb; echo; git diff 40dec5a 95ea3bb --name-only | grep -vE "^(cmd/|internal/|services/(processor|common)/|services/embedder/Dockerfile$|shared/|migrations/|tests/|docker-compose\.yml$|Makefile$|\.github/|requirements[^/]*\.txt$)" && echo "OUT-OF-OWNERSHIP FILES ABOVE" || echo "all changed files inside backend ownership regex"
+ .github/workflows/ci.yml      |  2 +-
+ Makefile                      |  2 +-
+ requirements-dev.txt          |  4 ++++
+ requirements-m0.txt           | 12 +-----------
+ requirements.txt              | 17 +++++++++++++++++
+ services/embedder/Dockerfile  |  4 ++--
+ services/processor/Dockerfile |  4 ++--
+ 7 files changed, 28 insertions(+), 17 deletions(-)
+
+all changed files inside backend ownership regex
+
+[exit code 0]
