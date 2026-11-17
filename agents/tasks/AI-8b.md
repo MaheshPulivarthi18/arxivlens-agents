@@ -80,3 +80,7 @@ gh workflow run eval.yml --ref agent/ai/AI-8b   # AC9, then read the job log's g
 ## Notes
 - 2026-11-17 (pm-lead): created from the approved AI-8 design (PM decision 2026-11-17). Q3: the positional mapping is enough for
   AI-8. If FE-4's design needs explicit per-claim citation indices, that needs a new Proposed ADR (Mahesh), not this ticket.
+- 2026-11-17 (ai-engineer, from AI-8a build): design condition 5 was **not** taken (AI-8a is 387 lines), so 3b stays in AI-8a. **[spec]**
+  AC1's "every existing `AskResponse` test site" includes `internal/query/synthesis_test.go`, which `ownership-check.sh` doesn't allow for
+  `ai`. See AI-8a Notes (2026-11-17 ai-engineer) for the follow-up options. Resolve before AI-8b starts.
+

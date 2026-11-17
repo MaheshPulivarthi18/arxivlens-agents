@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0014 Accepted ✅, QA-8 delivered (#46 `cc57474`) ✅, RET-2 merged (`6cfd836`) ✅. **Design approved with conditions**: `docs/design/AI-8.md`, PM decision 2026-11-17. Not a dependency: ADR-0018 (Proposed), ING-11b (`page` is tested with hand-built hits). Independence at start: no open PR touches `internal/query/rag.go`, `rag_test.go` or `synthesis_test.go` (cycle 2026-11-17: ING-11b, EVAL-4 and OPS-H2 don't) |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8a"`), linked to the AI-8 story |
 | **Design required** | yes, done: `docs/design/AI-8.md` (approved, conditions 1–8). No further design. |
-| **Status** | Ready. Branch `agent/ai/AI-8a` |
+| **Status** | In Progress: built and pushed, `agent/ai/AI-8a` @ `12e70b4` (PR to be opened by the orchestrator). AC1 partly blocked on file ownership (see Notes 2026-11-17 ai-engineer) |
 
 ## Goal
 Every `/v1/ask` citation, in both answers and refusal evidence, says whether it was checked and passed, checked and failed,
@@ -89,3 +89,37 @@ gh workflow run eval.yml --ref agent/ai/AI-8a   # AC7, then read the job log's g
 - 2026-11-17 (pm-lead): created from the approved AI-8 design (PM decision 2026-11-17, conditions 1–8). Q1: never-checked
   refusal evidence is `unverified` (a fix to the AI-8 ticket's rule). Q2: model quote checked per citation. Q4: `normQuote`
   match accepted. AI-8b depends on this being **merged**.
+- 2026-11-17 (ai-engineer): **build notes**, branch `agent/ai/AI-8a` @ `12e70b4` (from `40dec5a`). Files: `internal/query/rag.go` (150 lines
+  changed) and `internal/query/rag_test.go` (237). **387 changed lines** (`git diff --stat origin/main`),
+  so design condition 5 (moving 3b to AI-8b) was **not** taken. `ownership-check.sh origin/main agent/ai/AI-8a`: `Ownership OK for role=ai (387 changed lines)`.
+  - **[spec] ownership conflict, `synthesis_test.go`.** Scope says ai edits `synthesis_test.go`, but `ownership-check.sh` allows only
+    `internal/query/rag(_test)?\.go` for `ai` (AGENTS.md §2 agrees; the file is backend's under `internal/`). My first push candidate
+    failed the check (`::error file=internal/query/synthesis_test.go::outside ai's code area`). So the four new tests live in
+    `rag_test.go` and `synthesis_test.go` is untouched. **AC1 consequence:** `checkCitationInvariants` is called from every existing
+    `AskResponse` test in `rag_test.go` (13 sites) and from all new tests (LLM path included), but **not** from the 10 existing tests in
+    `synthesis_test.go`. **Follow-up request (pm-lead to pick one):** (a) a backend task adding one `checkCitationInvariants(t, resp)` line
+    to each of `TestSynthesisAnswersWithVerifiedClaims`, `TestSynthesisDropsUnsupportedClaims`, `TestSynthesisRefusals`,
+    `TestSynthesisFallsBackToExtractive`, `TestSynthesisClaimsUnsupportedFallBackToQuotes` (2 sites), `TestQuickAnswerSkipsSynthesis`
+    (resp, full, plain), `TestSynthesisMarkersFollowPromptOrder`, `TestWithLLMNilKeepsExtractive` (~13 lines; I ran them locally,
+    all pass); or (b) a `rules/` PR (Mahesh) adding `internal/query/synthesis_test.go` to the ai allow-list. AI-8b's AC1 has the same issue.
+  - Local runs: Go 1.24.7 only (go.mod needs 1.25, toolchain download blocked), so `make lint-go`/`make test-go` fail at the toolchain
+    download. Ran the real `rag.go`/`rag_test.go`/`synthesis_test.go`/`search.go`/`client.go`/`search_test.go` plus real `internal/arxiv` and
+    `internal/llm` in a scratch module (stubbed `internal/db` and `pgx` only, `GOTOOLCHAIN=local GOPROXY=off`): `gofmt -l` empty, `go vet` OK,
+    `go test -race ./internal/query/` ok, the ticket's `-run 'Ask|Synth|Citation|Claim|Refusal|Quote|Provenance'` 114 PASS, 0 FAIL.
+    `rag.go` per-file coverage **99.0% (399/403)** (baseline `40dec5a`: 99.0%, 382/386). CI is the source of truth.
+  - Mutations (local, never pushed): 20/20 killed. AC2 rows: drop `failed ||` / `raw >= 0` / `raw <= 1` in `labelScore`, drop
+    `failed[i] = true`, `!ok → unsupported`, `Supported = status != unsupported` → `TestCitationStatusRule` rows; drop nil-verifier branch →
+    row `nil_verifier` (panic); drop wrong-count check → row `wrong_score_count`. `Supported = score >= threshold`, quote vs `p.Text`, quote on
+    an unsupported citation, empty quote counted, keep before downgrade, LLM exact quote without the raw-chunk check, extractive quote dropped →
+    `TestCitationQuote`. Refusal evidence always unsupported, insufficient-evidence sanitized/unsupported → `TestRefusalEvidenceStatus`.
+    Unversioned `pdf_url`, aliased page → `TestCitationProvenance`. One mutant (LLM exact quote without `inPassage` on the raw chunk)
+    survived the first run; I added the row "(f) claim verbatim only in the escaped text: supported, no quote".
+  - Choices: an extractive `quote` is `normQuote(marker-free sentence)`, so it reads "…benchmark." and not "…benchmark ." (design §3a allows
+    `normQuote` differences). A model quote is kept as `TrimSpace(claim.Quote)` (design §3b). A fabricated model quote makes the citation
+    `unsupported` even when the verifier failed (the quote check itself ran and failed). `TestAskKeepsAnswerWithOneSupportedCitation` and the
+    verbatim-quote block of `TestAskRefusesVerificationUnavailable` call `finalize` directly, which leaves `answer_kind` to `AskWith`, so the
+    helper gets `{Citations, AnswerKind: quoted}` there (condition 3 would otherwise count them as refusals).
+  - **AC7 not run:** `gh workflow run eval.yml --ref agent/ai/AI-8a` was denied by this session's permission policy. Needs the orchestrator
+    or pm-lead to dispatch it and compare with nightly 43902662193. No push-triggered runs exist on the branch (CI runs on the PR).
+  - Jira KAN-60: this session has no Jira tool, so the In Progress/In QA moves and links are left to the orchestrator.
+

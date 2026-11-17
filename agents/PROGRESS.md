@@ -468,3 +468,10 @@ Format:
 - ING-11b **APPROVE** on `706e43e` (PR #52, KAN-59) after QA PASS r1; verdict in `agents/reviews/ING-11b/report.md`. Opened all 14 evidence files. Evidence 02's PNG cuts the AC3 `page=` values, so I added `evidence/pm-02b-AC3-page-values.png`, rendered from QA's committed `.txt`.
 - QA finding 2 [spec]: ticket AC4 "TestHNSW recall lines unchanged" reworded (non-iterative identical; iterative within main-to-main variance), with an amendment note in `docs/design/ING-11.md`. Finding 1: the test name, dot 196 and the summary line are in the PR body. Finding 4: board Backlog follow-up (backend, P3). pm-lead lesson added.
 - Board: ING-11b → Ready to merge; the `CONTRIBUTING.md:23` backlog line is marked done in #52. After merge: Technical PRD §5/§6.2 docs PR (pm-lead).
+
+## 2026-11-17 ai-engineer: AI-8a build
+- AI-8a built and pushed: `agent/ai/AI-8a` @ `12e70b4` (from `40dec5a`), `rag.go` + `rag_test.go`, 387 changed lines. Ownership OK. PR not opened (orchestrator).
+  Citation `status`/`paper_version`/`page`/`quote`, versioned `pdf_url`, raw `content` on the LLM path, `passageHits` removed. Scratch-module run (Go 1.24.7): vet and race tests OK,
+  `rag.go` 99.0%, 20/20 mutants killed.
+- [spec] `synthesis_test.go` is outside ai's allow-list in `ownership-check.sh`, so its 10 existing tests don't call `checkCitationInvariants` yet (AC1 partial). Follow-up options are in the AI-8a Notes; AI-8b has the same issue.
+- AC7 (`eval.yml` dispatch) not run: the dispatch was denied by this session's permission policy. Jira KAN-60 not updated (no Jira tool in session).
