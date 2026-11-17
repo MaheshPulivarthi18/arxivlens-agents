@@ -1,0 +1,12 @@
+$ bash /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/probe.sh
+# checkout a0a2ced; rag.go sha256 fcde69121c51580e
+PROBE P1 model quote differs only in case (NLI 0.9):             kind="quoted" reason="" [{m1 supported sup=true score=1 quote="The Method section shows that the proposed method improves accuracy on every benchmark."} {m2 supported sup=true score=1 quote="The Results section shows that the proposed method improves accuracy on every benchmark."} {m3 supported sup=true score=1 quote="The Discussion section shows that the proposed method improves accuracy on every benchmark."}]
+PROBE P2 quote vs chunk with newline/double space/[12]:          kind="synthesized" reason="" [{m1 supported sup=true score=0.9 quote="Our model reaches 91% accuracy on the held-out"}]
+PROBE P3 verifier error + fabricated quote:                      kind="quoted" reason="" [{m1 supported sup=true score=1 quote="The Method section shows that the proposed method improves accuracy on every benchmark."} {m2 supported sup=true score=1 quote="The Results section shows that the proposed method improves accuracy on every benchmark."} {m3 supported sup=true score=1 quote="The Discussion section shows that the proposed method improves accuracy on every benchmark."}]
+PROBE P4 marker 1 cited by a fabricated-quote claim and a good claim: kind="synthesized" reason="" [{m1 unsupported sup=false score=0.9 quote=""} {m2 supported sup=true score=0.9 quote="The Results section shows"} {m1 supported sup=true score=0.9 quote=""}]
+PROBE P5 extractive, sentence with inline [3, 4]:                kind="quoted" reason="" [{m1 supported sup=true score=1 quote="The proposed method improves accuracy on every benchmark we tried in this study."}]
+PROBE P5 invariant:                                              inPassage(quote, content)=true
+PROBE P6 refusal evidence JSON:                                  {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":0,"supported":false,"paper_version":0,"status":"unverified"}
+ok  	arxivlens/internal/query	0.005s
+
+[exit code 0]

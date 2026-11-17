@@ -1,0 +1,14 @@
+$ bash -c echo "## HEAD $(git rev-parse HEAD), origin/agent/ai/AI-8a $(git rev-parse origin/agent/ai/AI-8a)"; echo "## git diff --stat origin/main...HEAD (merge-base $(git merge-base origin/main HEAD | cut -c1-7))"; git diff --stat origin/main...HEAD; echo "## r1 -> r2 delta: git diff --stat 12e70b4 HEAD"; git diff --stat 12e70b4 HEAD; echo "## bash .github/scripts/ownership-check.sh origin/main agent/ai/AI-8a"; bash .github/scripts/ownership-check.sh origin/main agent/ai/AI-8a 2>&1; echo "exit $?"
+## HEAD a0a2ced62c406059b7287ef9d03ce6e27f43a288, origin/agent/ai/AI-8a a0a2ced62c406059b7287ef9d03ce6e27f43a288
+## git diff --stat origin/main...HEAD (merge-base 40dec5a)
+ internal/query/rag.go      | 150 ++++++++++++++++++---------
+ internal/query/rag_test.go | 249 ++++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 334 insertions(+), 65 deletions(-)
+## r1 -> r2 delta: git diff --stat 12e70b4 HEAD
+ internal/query/rag_test.go | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+## bash .github/scripts/ownership-check.sh origin/main agent/ai/AI-8a
+Ownership OK for role=ai (399 changed lines)
+exit 0
+
+[exit code 0]

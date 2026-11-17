@@ -1,0 +1,16 @@
+$ env RUN=^TestCitationStatusRule$ python3 /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/mutate.py M0 M10
+# checkout a0a2ced; 35 single-edit mutants of internal/query/rag.go; go test -count=1 ./internal/query/ (scratch go1.24 module)
+# go test -run ^TestCitationStatusRule$ only
+## SUMMARY: KILLED 10, SURVIVED 0, INVALID 0 (of 10)
+KILLED    M01 labelScore: drop `failed ||`  <- TestCitationStatusRule
+KILLED    M02 labelScore: drop `raw >= 0`  <- TestCitationStatusRule
+KILLED    M03 labelScore: drop `raw <= 1`  <- TestCitationStatusRule
+KILLED    M04 scorePairs: drop nil-verifier branch  <- TestCitationStatusRule
+KILLED    M05 scorePairs: drop wrong-count check  <- TestCitationStatusRule
+KILLED    M06 scorePairs: drop `failed[i] = true`  <- TestCitationStatusRule
+KILLED    M07 citationStatus: !ok -> unsupported  <- TestCitationStatusRule
+KILLED    M08 citationStatus: >= 0.50 -> > 0.50  <- TestCitationStatusRule
+KILLED    M09 newCitation: Supported independent of Status (score >= 0.50)  <- TestCitationStatusRule
+KILLED    M10 newCitation: Supported = status != unsupported  <- TestCitationStatusRule
+
+[exit code 0]

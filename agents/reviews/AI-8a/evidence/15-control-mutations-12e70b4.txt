@@ -1,0 +1,40 @@
+$ python3 /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/mutate.py
+# checkout 12e70b4; 35 single-edit mutants of internal/query/rag.go; go test -count=1 ./internal/query/ (scratch go1.24 module)
+## SUMMARY: KILLED 32, SURVIVED 3, INVALID 0 (of 35)
+KILLED    M01 labelScore: drop `failed ||`  <- TestAskRefusesVerificationUnavailable, TestCitationStatusRule, TestValidateCitationsFailClosedWhenUnverifiable
+KILLED    M02 labelScore: drop `raw >= 0`  <- TestCitationStatusRule, TestValidateCitationsFailClosedWhenUnverifiable
+KILLED    M03 labelScore: drop `raw <= 1`  <- TestCitationStatusRule, TestValidateCitationsFailClosedWhenUnverifiable
+KILLED    M04 scorePairs: drop nil-verifier branch  <- TestValidateCitationsFailClosedWhenUnverifiable
+KILLED    M05 scorePairs: drop wrong-count check  <- TestValidateCitationsFailClosedWhenUnverifiable
+KILLED    M06 scorePairs: drop `failed[i] = true`  <- TestAskRefusesVerificationUnavailable, TestCitationStatusRule, TestValidateCitationsFailClosedWhenUnverifiable
+KILLED    M07 citationStatus: !ok -> unsupported  <- TestCitationStatusRule
+KILLED    M08 citationStatus: >= 0.50 -> > 0.50  <- TestCitationStatusRule, TestValidateCitationsSupportThreshold
+KILLED    M09 newCitation: Supported independent of Status (score >= 0.50)  <- TestCitationQuote
+KILLED    M10 newCitation: Supported = status != unsupported  <- TestAskRefusesNoInRangeMarker, TestAskRefusesVerificationUnavailable, TestCitationStatusRule, TestFinalizeEvidenceKeepsBestComputedScore, TestRefusalEvidenceStatus, TestSynthesisClaimsUnsupportedFallBackToQuotes, TestSynthesisRefusals, TestValidateCitationsFailClosedWhenUnverifiable
+KILLED    M11 newCitation: paper_version not set  <- TestCitationProvenance
+KILLED    M12 newCitation: versioned pdf_url also for version 0  <- TestAskAnswersWithExtractedCitations, TestAskRefusesAllUnsupported, TestAskRefusesNoInRangeMarker, TestAskRefusesVerificationUnavailable, TestCitationProvenance, TestFinalizeEvidenceKeepsBestComputedScore, TestSynthesisRefusals
+KILLED    M13 newCitation: never versioned pdf_url  <- TestCitationProvenance
+KILLED    M14 newCitation: page aliases the hit  <- TestCitationProvenance
+KILLED    M15 newCitation: page dropped  <- TestCitationProvenance
+KILLED    M16 refusal: evidence always unsupported  <- TestRefusalEvidenceStatus
+KILLED    M17 refusal: evidence always unverified  <- TestRefusalEvidenceStatus
+KILLED    M18 insufficient_evidence: evidence unsupported  <- TestRefusalEvidenceStatus
+KILLED    M19 insufficient_evidence: sanitized content  <- TestRefusalEvidenceStatus
+KILLED    M20 finalizeClaims: score on raw chunk, not prompt text  <- TestCitationQuote
+KILLED    M21 finalizeClaims: quote checked against prompt text  <- TestCitationQuote
+KILLED    M22 finalizeClaims: citation content = prompt text  <- TestCitationQuote
+KILLED    M23 finalizeClaims: empty/whitespace/[n] quote counted (cond. 1)  <- TestCitationQuote
+KILLED    M24 finalizeClaims: no fabricated-quote downgrade  <- TestCitationQuote
+KILLED    M25 finalizeClaims: quote also on unsupported citations  <- TestCitationQuote
+KILLED    M26 finalizeClaims: exact quote without raw-chunk check  <- TestCitationQuote
+KILLED    M27 finalizeClaims: model quote not kept  <- TestCitationQuote
+KILLED    M28 finalizeClaims: keep computed before the quote downgrade (cond. 2)  <- TestCitationQuote
+KILLED    M29 checkCitations: quote on every supported (NLI) citation  <- TestAskKeepsAnswerWithOneSupportedCitation
+KILLED    M30 checkCitations: extractive quote dropped  <- TestCitationQuote
+KILLED    M31 scorePairs: exact never set  <- TestCitationQuote
+SURVIVED  M32 inPassage: empty quote true
+SURVIVED  M33 inPassage: case-insensitive
+SURVIVED  M34 inPassage: no normalisation of the passage
+KILLED    M35 checkCitations: unverified citation not counted  <- TestAskRefusesVerificationUnavailable, TestRefusalEvidenceStatus, TestValidateCitationsFailClosedWhenUnverifiable
+
+[exit code 0]

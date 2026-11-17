@@ -1,0 +1,5 @@
+$ bash /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/ac5_diff.sh
+## origin/main = 40dec5a; QA grep lines: 33; PR-body block lines: 33
+## IDENTICAL: PR body grep == QA grep
+
+[exit code 0]

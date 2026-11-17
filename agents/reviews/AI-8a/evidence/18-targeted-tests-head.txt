@@ -1,0 +1,40 @@
+$ bash /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/targeted.sh
+# checkout a0a2ced; sha256 of copied files:
+#   fcde69121c51580e51fc3af25546059da02470db51752e04620e766d5a69a746  rag.go
+#   53d461bd10189ed883a92824f1df9592a43aaccf1575bd69b41111033f49ed4a  rag_test.go
+#   5a76a1a77c69813034f2450f2201c14c57e4fdc8cb65ad96c005a8d5db535e20  synthesis_test.go
+## exit 0; tail: ok  	arxivlens/internal/query	1.186s
+## --- PASS lines: 118  --- FAIL lines: 0
+## the four AI-8a tests and their subtests:
+--- PASS: TestAskResponseShapeAndConstructor
+--- PASS: TestCitationStatusRule
+    --- PASS: TestCitationStatusRule/0.9
+    --- PASS: TestCitationStatusRule/0.50
+    --- PASS: TestCitationStatusRule/0.49
+    --- PASS: TestCitationStatusRule/checked_0
+    --- PASS: TestCitationStatusRule/verifier_error
+    --- PASS: TestCitationStatusRule/wrong_score_count
+    --- PASS: TestCitationStatusRule/nil_verifier
+    --- PASS: TestCitationStatusRule/NaN
+    --- PASS: TestCitationStatusRule/-0.1
+    --- PASS: TestCitationStatusRule/1.1
+    --- PASS: TestCitationStatusRule/fabricated_quote_at_0.9
+--- PASS: TestRefusalEvidenceStatus
+--- PASS: TestCitationQuote
+    --- PASS: TestCitationQuote/(b)_whitespace-varied_verbatim_quote_kept
+    --- PASS: TestCitationQuote/(c)_fabricated_quote_drops_the_only_claim
+    --- PASS: TestCitationQuote/(c)_case-changed_quote_drops_the_only_claim_(ADR-0014)
+    --- PASS: TestCitationQuote/(d)_quote_differing_only_in_case_is_unsupported
+    --- PASS: TestCitationQuote/(b)_quote_across_newline,_double_space_and_inline_refs_in_the_chunk_kept
+    --- PASS: TestCitationQuote/(c)_fabricated_quote_drops_that_claim_only
+    --- PASS: TestCitationQuote/(d)_quote_checked_per_citation
+    --- PASS: TestCitationQuote/(e)_empty_quote_is_no_quote
+    --- PASS: TestCitationQuote/(e)_whitespace_quote_is_no_quote
+    --- PASS: TestCitationQuote/(e)_marker-only_quote_is_no_quote
+    --- PASS: TestCitationQuote/(f)_raw-text_quote_of_an_escaped_chunk_kept
+    --- PASS: TestCitationQuote/(f)_claim_verbatim_only_in_the_escaped_text:_supported,_no_quote
+    --- PASS: TestCitationQuote/(g)_paraphrase_without_a_quote
+    --- PASS: TestCitationQuote/LLM_exact_match_quotes_the_claim
+--- PASS: TestCitationProvenance
+
+[exit code 0]

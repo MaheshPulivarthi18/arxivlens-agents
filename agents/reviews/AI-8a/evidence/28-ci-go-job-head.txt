@@ -1,0 +1,60 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/134070280332/logs (lines 100-121, 155-158, 206-232, last 5)
+2026-11-17T13:23:54.6941455Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-17T13:23:54.6967016Z ##[group]Checking out the ref
+2026-11-17T13:23:54.6969050Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/54/merge
+2026-11-17T13:23:54.7077780Z Note: switching to 'refs/remotes/pull/54/merge'.
+2026-11-17T13:23:54.7078845Z 
+2026-11-17T13:23:54.7079638Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-17T13:23:54.7081603Z changes and commit them, and you can discard any commits you make in this
+2026-11-17T13:23:54.7083960Z state without impacting any branches by switching back to a branch.
+2026-11-17T13:23:54.7085300Z 
+2026-11-17T13:23:54.7086181Z If you want to create a new branch to retain commits you create, you may
+2026-11-17T13:23:54.7088276Z do so (now or later) by using -c with the switch command. Example:
+2026-11-17T13:23:54.7089666Z 
+2026-11-17T13:23:54.7090276Z   git switch -c <new-branch-name>
+2026-11-17T13:23:54.7091297Z 
+2026-11-17T13:23:54.7091979Z Or undo this operation with:
+2026-11-17T13:23:54.7093184Z 
+2026-11-17T13:23:54.7093939Z   git switch -
+2026-11-17T13:23:54.7094696Z 
+2026-11-17T13:23:54.7095710Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-17T13:23:54.7097184Z 
+2026-11-17T13:23:54.7098803Z HEAD is now at 6023475 Merge a0a2ced62c406059b7287ef9d03ce6e27f43a288 into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T13:23:54.7104867Z ##[endgroup]
+2026-11-17T13:24:04.3200063Z Cache restored successfully
+2026-11-17T13:24:04.3278641Z Cache restored from key: setup-go-Linux-x64-ubuntu26-go-1.25.0-282abb17dbe996d56a2dfecbce61082860776038189ca3cb06eff71ee8aa2c93
+2026-11-17T13:24:04.3308073Z go version go1.25.0 linux/amd64
+2026-11-17T13:24:04.3308352Z 
+2026-11-17T13:24:04.3461497Z 
+2026-11-17T13:24:04.3461783Z ##[endgroup]
+2026-11-17T13:24:04.3672422Z ##[group]Run make lint-go
+2026-11-17T13:24:04.3672755Z [36;1mmake lint-go[0m
+2026-11-17T13:24:04.3708745Z shell: /usr/bin/bash -e {0}
+2026-11-17T13:24:04.3709019Z ##[endgroup]
+2026-11-17T13:24:04.3801831Z go vet ./...
+2026-11-17T13:24:05.5651054Z ##[group]Run make test-go
+2026-11-17T13:24:05.5651441Z [36;1mmake test-go[0m
+2026-11-17T13:24:05.5682271Z shell: /usr/bin/bash -e {0}
+2026-11-17T13:24:05.5682739Z ##[endgroup]
+2026-11-17T13:24:05.5741865Z go test ./...
+2026-11-17T13:24:09.2957760Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-17T13:24:11.0955995Z ok  	arxivlens/internal/arxiv	1.554s
+2026-11-17T13:24:11.0973950Z ok  	arxivlens/internal/config	0.002s
+2026-11-17T13:24:11.0977800Z ok  	arxivlens/internal/crawler	0.007s
+2026-11-17T13:24:11.0979051Z ok  	arxivlens/internal/db	0.004s
+2026-11-17T13:24:11.0980115Z ok  	arxivlens/internal/dlq	0.003s
+2026-11-17T13:24:11.0981064Z ok  	arxivlens/internal/downloader	0.107s
+2026-11-17T13:24:11.0981899Z ok  	arxivlens/internal/kafka	0.032s
+2026-11-17T13:24:11.0982730Z ok  	arxivlens/internal/llm	0.745s
+2026-11-17T13:24:11.0983978Z ok  	arxivlens/internal/llm/llmtest	0.106s
+2026-11-17T13:24:11.1830413Z ok  	arxivlens/internal/query	0.326s
+2026-11-17T13:24:11.1831215Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-17T13:24:11.2598892Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-17T13:24:11.2599372Z ?   	arxivlens/shared/events	[no test files]
+2026-11-17T13:24:11.2783939Z ##[group]Run go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go
+2026-11-17T13:24:38.0749328Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-17T13:24:38.0977478Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-17T13:24:38.1004784Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-17T13:24:38.1320086Z Cleaning up orphan processes
+2026-11-17T13:24:38.1579939Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-go@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+

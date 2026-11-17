@@ -1,0 +1,8 @@
+$ bash /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/ac1_newtests_probe.sh
+  inserted at line 1174:	checkCitationInvariants(t, early) // QA r2 probe (TestRefusalEvidenceStatus early)
+  inserted at line 1185:	checkCitationInvariants(t, quoted) // QA r2 probe (TestCitationQuote (a))
+  inserted at line 1266:			checkCitationInvariants(t, resp) // QA r2 probe (TestCitationProvenance)
+## exit 0; --- PASS: TestRefusalEvidenceStatus --- PASS: TestCitationQuote --- PASS: TestCitationProvenance 
+ok  	arxivlens/internal/query	1.065s
+
+[exit code 0]

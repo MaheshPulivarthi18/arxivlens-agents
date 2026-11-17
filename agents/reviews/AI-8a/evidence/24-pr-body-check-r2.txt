@@ -1,0 +1,44 @@
+$ bash /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/prbody.sh
+## PR #54 body: 124 lines; headings:
+1:## AI-8a: citation status, paper_version, page, verified quote, versioned pdf_url (ADR-0014)
+7:### What changed (`internal/query/rag.go`, `rag_test.go` only; 399 changed lines)
+16:### Flags for Mahesh
+21:### Rework round 1 (QA round 1 findings)
+30:### Acceptance criteria (developer's claims; QA verifies independently)
+39:### AC2 mutations (local only, never pushed; scratch module, Go 1.24.7)
+57:### AC5 consumer check
+102:### Verification
+113:### Evidence (filled by pm-lead when raising the PR)
+116:### Review status (filled by the workflow)
+## AC8
+PRESENT  AC8 field `status` listed with meaning
+           9:- `status`: always present. `supported` \| `unsupported` (a check ran and failed) \| `unverified` (no check ran: the verifier was unavailable, or no
+PRESENT  AC8 field `paper_version` listed with meaning
+           10:- `paper_version`: always present, an int from `papers.version`. 0 means unknown.
+PRESENT  AC8 field `page` listed with meaning
+           11:- `page`: an int, omitted when unknown (every hit until ING-11b #52 merges).
+PRESENT  AC8 field `quote` listed with meaning
+           12:- `quote`: omitted when there is none. Only on supported citations. It occurs in `content` after whitespace and inline-reference normalisation (cas
+PRESENT  AC8 field `pdf_url` listed with meaning
+           13:- `pdf_url` (value change): opens the cited version (`…v<N>.pdf`) when `paper_version > 0`.
+PRESENT  AC8 README row lands in AI-8b
+           17:- The README `/v1/ask` row lands in AI-8b (design condition 4). Until then the README doesn't list these fields.
+PRESENT  AC8 Q1 line for Mahesh (unverified reading)
+           18:- Q1: never-checked refusal evidence is `unverified`. This reads ADR-0014's "the check couldn't run" as "the check didn't run". If you disagree, it
+PRESENT  AC8 ADR-0018 line (answer_source not added)
+           19:- ADR-0018 (Proposed): `answer_source` is not added, because `answer_kind` covers it. Option 2 could be added later without breaking anything.
+## AC5
+PRESENT  AC5 git grep output of frontend/src + scripts/
+           22:- [x] 1 (AC5): the consumer `git grep` is pasted below.
+           58:`git grep -n -E 'pdf_url|\.content|supported' origin/main -- frontend/src scripts/` (origin/main = `40dec5a`):
+## AC2
+PRESENT  AC2 per-mutation list (mutation -> failing test)
+           25:- [x] 5 (nit): new `TestCitationStatusRule` row `fabricated quote at 0.9`. On the LLM path it expects `unsupported`, `supported == false` and score
+           40:Each mutation is a single edit to `rag.go`, run twice: the full `./internal/query/` suite, and `-run '^TestCitationStatusRule$'` alone.
+ABSENT   AC2 mutation count only   (pattern: mutants killed)
+## AC7
+ABSENT   AC7 not run + reason   (pattern: AC7.*not run)
+PRESENT  AC7 the dispatch command
+           37:- [ ] AC7: `eval.yml` on this branch vs nightly 43902662193. **Not run.** Command: `gh workflow run eval.yml --ref agent/ai/AI-8a`. Reason: workflo
+
+[exit code 0]
