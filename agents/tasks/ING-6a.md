@@ -8,7 +8,7 @@
 | **Depends on** | ING-9 (Done `2b71772`), #45 (merged `393bcf3`: `arxiv.GetAPI`, `DefaultRetry`, `ARXIV_API_URL`). Approved design `docs/design/ING-6.md` (PM decision 2026-11-17, conditions 1–10). No open PR touches its files |
 | **Jira** | to create under KAN-18's epic, `labels = "task-ING-6a"` |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | In QA: split per PM condition 8. **ING-6a2** = draft [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) @ `3756173`; **ING-6a1** = branch `agent/backend/ING-6a1` @ `c86bd5a`, PR not opened (backend WIP 2/2 with #55) |
+| **Status** | In QA, delivered by **two PRs** (split per PM condition 8; Done rule below): **ING-6a2** = draft [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) (QA r1 FAIL, rework r1 @ `3f8e903`, QA r2 pending); **ING-6a1** = draft [#57](https://github.com/MaheshPulivarthi18/ArxivLens/pull/57) @ `c86bd5a` (QA r1 pending) |
 
 ## Goal
 Land the pure, unit-testable half of the scheduled crawler: where the watermark lives, how it only moves forward, and how a run decides which
@@ -29,6 +29,17 @@ papers are new and which batch to emit. Nothing calls it yet (6b wires emit, 6c 
 - Size: design estimate ~360 changed lines. Commit a counted skeleton first; if it projects > 480, split per PM condition 8 (ING-6a1 = migration +
   `watermarks.go` + integration test; ING-6a2 = walk/feed/select).
 
+## Done rule (added 2026-11-17, pm-lead, QA r1 finding 8 [spec])
+- ING-6a is delivered by two PRs, each with its own QA report, PM review and raise, and each merged by Mahesh on its own:
+  - **ING-6a1** (#57, `agent/backend/ING-6a1`): migration `000005` + `internal/db/watermarks.go` + `watermarks_integration_test.go`. Owns **AC6, AC7**,
+    and AC9 for its 4 files.
+  - **ING-6a2** (#56, `agent/backend/ING-6a2`): `internal/crawler/loop.go` + `loop_test.go`. Owns **AC1–AC5, AC8, AC10**, and AC9 for its 2 files.
+- QA reviews each PR only against the ACs it owns (the other part's ACs are "out of this PR's scope", not "not met"). Both parts' reports go in
+  `agents/reviews/ING-6a/report.md`, each section headed with its part name and PR number. New evidence file names should make the part clear (for example an `a1-`/`a2-` prefix). Existing files keep their names.
+- **ING-6a is Done only when both #56 and #57 are merged.** Either may merge first (no shared files; 6a2 doesn't import 6a1).
+- **ING-6b needs both merged**: it edits `loop.go`/`loop_test.go` (6a2) and adds the `*db.DB` → `watermarkStore` compile-time check, which needs
+  `watermarks.go` (6a1). ING-6b also needs ING-6f's Risk 1 verdict (see AC10).
+
 ## Acceptance criteria
 - [ ] AC1 — `TestWalkStopsAtWatermark` (fake `pageFetcher` recording `(start, n)`) has every row of the design test plan: 5 new + 5 old with page size 3
   → requests `start=0,3` only and 5 candidates; nothing new → 1 request, 0 candidates; entry `== W` is not a candidate; an old entry at the top of a
@@ -41,6 +52,11 @@ papers are new and which batch to emit. Nothing calls it yet (6b wires emit, 6c 
   `stack.yml` records (`search_query=cat:cs.LG&start=0&max_results=2&sortBy=submittedDate&sortOrder=descending`); two categories' requests share one
   limiter (test interval, spacing asserted) and send the `Crawl Loop` UA; a 429 is retried through `arxiv.Retry`; a non-200 after retries returns
   `*arxiv.StatusError` and is not parsed.
+  *Amended 2026-11-17 (pm-lead, QA r1 finding 6 [spec]):* the string above is the **parameter set**, not the byte order. "Byte-identical to
+  the URL `stack.yml` records" means the bytes `Crawl` sends, which are `url.Values.Encode` output (keys sorted, `:` encoded):
+  `max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0`. Proof: `stack.yml` run 44092000441
+  (job 134069235738) logs `URL=http://127.0.0.1:8099/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy…`, and
+  `scripts/arxiv_replay.py` `search_query_string`/`api_key` sort the keys (QA evidence 07). The test asserting these bytes meets AC4.
 - [ ] AC5 — `TestParseCategories`: accepts `cs.AI`, `hep-th`, `math.CO`, `cs.AI, cs.LG,cs.AI` (trimmed, deduped, order kept); rejects empty,
   spaces-only, `cs.AI OR x`, `cat:cs.AI`.
 - [ ] AC6 — `TestAdvanceWatermarkMonotonic` exists and compiles under `-tags integration` (`go vet -tags integration ./internal/db/` output in the
@@ -51,8 +67,13 @@ papers are new and which batch to emit. Nothing calls it yet (6b wires emit, 6c 
 - [ ] AC8 — Mutants (local only, never pushed; PM condition 4): `>` → `>=` in the candidate filter; stop on the *first* `≤ W` entry instead of the
   page's last; drop the tie extension; drop dedupe. Each is killed by a named test, in the full package run **and** with `-run '^Test…$'`.
 - [ ] AC9 — No existing file changed (`git diff --stat origin/main` lists only the six new files); `make test-unit` and `make lint` green in CI.
+  *Amended 2026-11-17 (pm-lead):* per PR: #57 lists only its 4 new files, #56 only its 2 (Done rule above).
 - [ ] AC10 — PR description quotes the two `published` values of the recorded CI feed (`internal/crawler/testdata/arxiv_feed.xml` or the replay
   cache entry) and states whether they are descending (design Risk 1). If they are not, stop and tell pm-lead before ING-6b.
+  *Decision 2026-11-17 (pm-lead, QA r1 finding 7 [spec]):* AC10 is **met as worded by ING-6a2** (#56 quotes the fixture values and says they're
+  ascending), and Risk 1 is triggered because that fixture is synthetic. Answering it is not ING-6a's job: new harness task
+  **[ING-6f](ING-6f.md)** (backend, P1, `stack.yml` only) prints the recorded `cat:cs.LG` feed's `published` order in the job log. ING-6b's
+  Depends on now includes ING-6f's verdict `descending`. It doesn't block either 6a PR.
 
 ## Verification
 ```bash
@@ -97,3 +118,9 @@ git diff --stat origin/main   # only the six new files
   - Nit 5 and [spec] 6–8 are left to pm-lead. No existing row was changed.
   - Local checks: scratch module, Go 1.24.7 (stubs for db/kafka/ulid, real arxiv/crawler/events). `go vet` is clean, `gofmt -l` is empty, and
     `go test -race ./internal/...` is ok. Mutants ran in the scratch copy only and were never committed. Go 1.25 `make test-unit`/`make lint` run in CI only.
+- 2026-11-17 (pm-lead): **decisions on ING-6a2 QA r1 [spec] findings 6–8.** (6) AC4 amended to the real sorted-encode bytes, with the CI log
+  line as proof. The test was right and the AC text was wrong. (7) Risk 1 goes to new task **ING-6f** (backend, P1, Ready, `stack.yml` only).
+  It doesn't go in 6c, which comes after 6b, or in 6b's ACs, because 6b needs the answer before its build starts. ING-6f is independent of #56/#57 (no
+  shared files). It must not run in parallel with OPS-H12 (same file). ING-6b Depends on updated. (8) Done rule written above: ING-6a is Done when
+  #56 **and** #57 merge; 6b needs both. QA scopes each PR to its own ACs. Nit 5 (no counted-skeleton commit) needs no action: condition 8's
+  outcome (split at 505 > 480) is recorded in these Notes.

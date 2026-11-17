@@ -5,10 +5,10 @@
 | **Owner** | backend-engineer |
 | **Priority** | P1 |
 | **PRD ref** | Product ING-6; Technical PRD §11 "Scheduled crawler", §8.1 (L1). Umbrella: [ING-6](ING-6.md) |
-| **Depends on** | ING-6a **merged** (same files `loop.go` / `loop_test.go`). Approved design `docs/design/ING-6.md` §3–§5, PM conditions 4, 5, 7, 8 |
+| **Depends on** | **ING-6a Done = both ING-6a1 (#57) and ING-6a2 (#56) merged** (6b edits `loop.go` / `loop_test.go` from 6a2 and adds the `*db.DB` → `watermarkStore` compile-time check that needs 6a1's `watermarks.go`). **ING-6f verdict `RISK1 ORDER descending`** recorded in `agents/tasks/ING-6f.md` Notes (design Risk 1; ING-6f needn't be merged, no shared files). If ING-6f prints `NOT descending` or `none`, 6b stays Blocked until pm-lead revisits design §2. Approved design `docs/design/ING-6.md` §3–§5, PM conditions 4, 5, 7, 8 |
 | **Jira** | to create under KAN-18's epic, `labels = "task-ING-6b"` |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | Blocked (ING-6a not merged) |
+| **Status** | Blocked (needs #57 ING-6a1 and #56 ING-6a2 merged, and ING-6f verdict `descending`) |
 
 ## Goal
 Make a crawl pass actually publish: emit the selected batch oldest-first, and move each category's watermark only past papers that were
@@ -51,3 +51,5 @@ go test -count=1 ./internal/crawler/   # crawler_test.go unchanged and green
 
 ## Notes
 - 2026-11-17 (pm-lead): specced from the approved ING-6 design. Ready once ING-6a merges and no open PR edits `internal/crawler/`.
+- 2026-11-17 (pm-lead): Depends on updated after ING-6a QA r1 [spec] findings 7–8. ING-6a ships as two PRs (#56, #57) and both must merge. Design
+  Risk 1 is answered by ING-6f's `stack.yml` probe before 6b's build starts.

@@ -515,3 +515,16 @@ Format:
 - PR #55 description rewritten with the Evidence section (pinned to `52e57e8`), CI, and QA + PM verdicts; marked ready for review.
 - Pending pm-lead PRD docs PR gains: Product PRD OPS-4 note "redelivered `papers.discovered` no longer regresses `embedded` (OPS-H11)".
 - Board not edited (orchestrator): OPS-H11 → Ready to merge; add OPS-H12 Ready (backend). Jira: OPS-H11 → Ready to merge; create the OPS-H12 story under KAN-3, `labels = "task-OPS-H12"`.
+
+## 2026-11-17 pm-lead: AI-8a final review
+- **APPROVE** PR #54 @ `990aa5a` (QA FAIL r1 → FAIL r2 → PASS r3). Opened all round-3 evidence (30–36) and the key earlier files. Every blocking finding (r1 1–3, r2 8) is closed, and r1-4 [spec] was closed by option (a)/AI-8c ([report](reviews/AI-8a/report.md), PM section).
+- AC7 / DoD 3: accepted as "not run". The ai sandbox can't dispatch, and pm-lead doesn't trigger CI. On the quoted path that CI's eval measures, `supported`/`score`/`refusal_reason` are unchanged by construction. The measurement goes to the first nightly `eval.yml` on `main` after merge, compared in **AI-8b AC9** (amended, stop-and-report). An optional human dispatch is listed in the PR.
+- PR #54 description rewritten (Evidence pinned to `866e12b`/`9ace78b`/`31687b9`/`d993baf`, CI, QA + PM verdicts), marked ready (`draft=false` verified), and labelled `ready-to-merge`. The outbound filter rewrote the body again: embeds lost `!` and were wrapped in backticks, the 🤖 line was dropped, and the footer was appended (lesson OPS-H8, 5×).
+- Pending pm-lead PRD docs PR gains: Product PRD QA-4 note (stale pre-AI-2 fail-open text).
+- Board/Jira not edited (orchestrator): AI-8a → Ready to merge (KAN-60).
+
+## 2026-11-17 pm-lead: ING-6a QA r1 [spec] findings 6–8
+- (6) AC4 amended to the real sorted-encode bytes `max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0` (proof: stack run 44092000441's log line).
+- (7) Risk 1 → new **ING-6f** (backend, P1, Ready): an informational `stack.yml` step prints the recorded `cat:cs.LG` feed's `published` order plus a `RISK1 ORDER` verdict in the job log. It is independent of #56/#57. It must not run in parallel with OPS-H12 (same file), so ING-6f goes first. ING-6b now needs ING-6f's verdict `descending` (the result only, not a merge).
+- (8) Done rule in ING-6a: Done when **both** #57 (6a1: AC6, AC7) and #56 (6a2: AC1–5, AC8, AC10) merge. QA scopes each PR to its own ACs. ING-6b Depends on and Status updated. ING-6 umbrella lists 6f.
+- Board/Jira not edited (orchestrator): add ING-6f Ready (backend, P1); ING-6b blocker = #56 + #57 merged + ING-6f verdict; Jira story for ING-6f under KAN-18, `labels = "task-ING-6f"`.

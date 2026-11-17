@@ -7,7 +7,7 @@
 | **PRD ref** | ING-6; Technical PRD §11 "Scheduled crawler" |
 | **Depends on** | OPS-H3 (Done). ING-9 (Done `2b71772`: one shared 3 s limiter). Mahesh's #45 (`393bcf3`: `arxiv.GetAPI` typed `*StatusError`, `arxiv.Retry` 5/15/45 s, `ARXIV_API_URL` override) is merged and must be reused. Default categories may change via ADR-0005 (Proposed), so keep them configurable |
 | **Design required** | **yes**: it adds a CLI command and a table (pm-lead rule). `docs/design/ING-6.md` doesn't exist yet |
-| **Status** | **Umbrella.** Design approved with conditions (pm-lead 2026-11-17, [`docs/design/ING-6.md`](../../docs/design/ING-6.md) "PM decision"). Built as [ING-6a](ING-6a.md) (Ready) → [ING-6b](ING-6b.md) → [ING-6c](ING-6c.md). Done when ING-6c merges. Deferred: [ING-6d](ING-6d.md) (compose), [ING-6e](ING-6e.md) (lookback); follow-up [ING-9b](ING-9b.md) |
+| **Status** | **Umbrella.** Design approved with conditions (pm-lead 2026-11-17, [`docs/design/ING-6.md`](../../docs/design/ING-6.md) "PM decision"). Built as [ING-6a](ING-6a.md) (two PRs: 6a1 #57, 6a2 #56; Done when both merge) + [ING-6f](ING-6f.md) (Risk 1 probe) → [ING-6b](ING-6b.md) → [ING-6c](ING-6c.md). Done when ING-6c merges. Deferred: [ING-6d](ING-6d.md) (compose), [ING-6e](ING-6e.md) (lookback); follow-up [ING-9b](ING-9b.md) |
 
 ## Goal
 Keep the corpus fresh without someone running `arxivlens crawl` by hand (Product PRD goal 3).

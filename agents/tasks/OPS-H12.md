@@ -49,3 +49,5 @@ grep -E 'PASSED tests/test_m4_chaos.py::' stack.log
 ## Notes
 - 2026-11-17 (pm-lead): decided at the OPS-H11 final review. Put `-rA` in `stack.yml`, not in the `Makefile`, so this lands without
   waiting for #53, and `make test-full` stays quiet locally. In `run:` blocks keep `"${arr[@]}"` quoting (lesson OPS-H1, SC2086).
+- 2026-11-17 (pm-lead): **sequencing with ING-6f**. Both edit `.github/workflows/stack.yml`, so they must not run in parallel. ING-6f (P1, it
+  unblocks ING-6b) goes first, and OPS-H12 starts after ING-6f's PR merges, or rebases on it. Independence check at start: no open PR on `stack.yml`.
