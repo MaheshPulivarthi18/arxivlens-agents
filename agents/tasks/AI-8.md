@@ -89,3 +89,8 @@ gh workflow run eval.yml --ref agent/ai/AI-8   # AC8, then read the job log's ga
   build that follows the approved design: ING-11b (open in the same cycle) edits `tests/test_evals_data.py` and the README API table's `/v1/search`
   row. AI-8 edits only the `/v1/ask` row. If AC6 needs a new test in `tests/test_evals_data.py`, the build waits until ING-11b merges, or the
   test goes in a file ING-11b doesn't touch. AI-5 (also `rag.go`) stays blocked on ADR-0011, so no `rag.go` conflict.
+- 2026-11-17 (ai-engineer, design): `docs/design/AI-8.md` written (Draft), waiting for pm-lead approval. Split: **AI-8a** = citation
+  `status`/`paper_version`/`page`/`quote` + versioned `pdf_url` + raw `content` on the LLM path (~335 lines); **AI-8b** = `claims[]` +
+  `prompt_version` + README `/v1/ask` row + AC6 Python test (~180 lines; depends on AI-8a merged and ING-11b merged). Fallback seam if AI-8a
+  runs over 400 lines: the model-supplied quote check moves to AI-8b. Nothing depends on ADR-0018 being Accepted. Open questions Q1–Q4 are in the design,
+  Q1 refines the refusal-evidence rule: hits never checked are `unverified`, not `unsupported`. Jira not updated (no Jira tool in this session).
