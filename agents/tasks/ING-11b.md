@@ -8,7 +8,7 @@
 | **Depends on** | **AI-11 merged** (`68a57a9`, and ING-11 `d3f9408`), **RET-2 merged** (`6cfd836`). Independence check at start: no open PR touches `internal/query/search*.go`, `.github/workflows/db.yml`, `tests/test_evals_data.py`, `tests/test_m2_pipeline.py`, the README API table's `/v1/search` row or `CONTRIBUTING.md:23` (cycle 2026-11-17: no open PRs; OPS-H7a and OPS-H9 also edit `db.yml`, so neither runs alongside this) |
 | **Jira** | not yet created (orchestrator: story under epic KAN-1, labels `task-ING-11b`, `agent-backend`, `arxivlens`; link KAN-55) |
 | **Design required** | yes, **covered by the approved `docs/design/ING-11.md`** (decision 6, part b; PM conditions 4, 5, 6, 9). No new design round |
-| **Status** | **Ready** (all dependencies merged 2026-11-14; re-checked 2026-11-17 against `main` `40dec5a`). Branch `agent/backend/ING-11b` |
+| **Status** | **In Progress** (built 2026-11-17, head `706e43e` pushed; draft PR to be opened by the orchestrator). Branch `agent/backend/ING-11b` |
 
 ## Goal
 After ING-11 and AI-11, the processor stores each chunk's real start page in `paper_chunk_pages`. This part returns it from
@@ -73,3 +73,26 @@ python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_
   - AC5's `stack.yml` run now serves arXiv from the replay cache (#45), so the crawl step is deterministic. Re-ingest: #40/#42 change
     chunk text, but `stack.yml` starts from a fresh DB, so every chunk in the run gets a `paper_chunk_pages` row from AI-11's chunker.
   - README: edit only the API table's `/v1/search` row (`README.md:162`). EVAL-4 edits the Testing block (`:215-222`) in this cycle; AI-8 later edits the `/v1/ask` row.
+- 2026-11-17 (backend-engineer, build): head `706e43e` on `agent/backend/ING-11b` (base `40dec5a`), 8 files, +114/-25
+  (ownership check: "Ownership OK for role=backend (139 changed lines)"). No open PRs at start (REST `pulls?state=open` empty).
+  - `search.go`: outer SELECT gains `(SELECT cp.page_start FROM paper_chunk_pages cp WHERE cp.chunk_id = c.id) AS page` on its own
+    line after `p.version,`; scan `&h.Version, &h.Page, &h.RRFScore`; `Page` comment rewritten (RET-2 nit). Nothing else in the SQL changes.
+  - `search_provenance_test.go`: `outerSelectColumns` now anchors on `"\n\t\tSELECT "` (the old `LastIndex("SELECT ")` would find the
+    page subquery); `TestSearchSQLColumnsMatchScan` expects `Page`; `TestSearchSQLOuterSelectOnly` strips `p.version` and `pageColumn` and
+    compares to the unchanged golden; `TestSearchHitProvenanceTravelsWithHit` gains `fallback NaN score` and `fallback canceled` rows,
+    asserts `RerankScore == 0` on fallback rows and that at least one hit has a non-nil `Page`. `search_test.go`: zero diff.
+  - Integration: chunk `page_number` 7 gets a `paper_chunk_pages` row 6; `page_number` 4 and the NULL v1 chunk get none. `PROVENANCE` log
+    line prints `page=6`/`page=nil`. `db.yml` migrate run 1 greps `^column|paper_chunk_pages.page_start|integer$`.
+  - `test_evals_data.py`: only the outer-SELECT fragment changes; no `scripts/` path in the diff.
+  - `test_m2_pipeline.py::test_embedded_chunks_have_recorded_start_pages` (3rd test in the file, after the two existing ones).
+  - README `/v1/search` row (Scope wording); `CONTRIBUTING.md:23` lists all six `test-py` files in `Makefile:49` order.
+  - Local runs: Go 1.25 unavailable (`go.mod requires go >= 1.25.0 (running go 1.24.7; GOTOOLCHAIN=local)`), so `make test-unit`/`make lint`
+    not run locally. Scratch go1.24 module with the real `search.go`, `client.go`, `search_test.go`, `search_provenance_test.go` (+ stubs for
+    `db`, `pgx`, `generateTraceID` only): `go vet` OK, `go test -race` all 15 tests PASS; `go vet -tags integration` OK on the integration
+    file. 6 local mutants all killed (drop `&h.Page`; drop page column; `c.page_number AS page`; swap Page/Version scan; fallback clears
+    Page; LEFT JOIN instead of subquery). `pytest -q tests/test_evals_data.py`: 119 passed, 1 skipped (opt-in DATABASE_URL); the three
+    node IDs: 3 passed; old fragment + new search.go: `test_rrf_pool_sql_mirrors_search_go` fails (guard live). New M2 test checked with a
+    stub psycopg on 6 inputs (good, missing row, below page_number, decreasing, per-paper reset, empty) — all as expected.
+  - Not verified locally: `db.yml` (AC3), `stack.yml` (AC5; triggered by `internal/**` on the PR), CI `make test-unit`/`make lint`.
+    `make eval` not run: ranking SQL unchanged (AC4). No workflow runs on a branch push, so CI starts when the PR opens.
+
