@@ -1,0 +1,9 @@
+$ /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa/harness/control-verdicts.sh
+VERDICTS: all 27 mutants x 2 runs identical to round 1
+M11 (short-page stop removed => infinite walk) rerun 3x, full package, mutant applied to r1 head:
+1
+  run 1 rc=1 'panic: test timed out'=1 '--- FAIL'=0
+  run 2 rc=1 'panic: test timed out'=1 '--- FAIL'=0
+  run 3 rc=1 'panic: test timed out'=1 '--- FAIL'=0
+
+[exit code 0]
