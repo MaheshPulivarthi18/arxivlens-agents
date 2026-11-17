@@ -84,3 +84,16 @@ git diff --stat origin/main   # only the six new files
     Proposal: one `psql` line in `stack.yml` printing `arxiv_id, published_at` (outside 6a; place it in 6c or a small harness task before 6b).
   - Deviations written back into `docs/design/ING-6.md` §"Build notes (ING-6a)".
   - Jira: no `task-ING-6a` story exists yet, so nothing to move.
+- 2026-11-17 (backend-engineer): **rework r1 (QA round 1 FAIL on #56)**, test-only, `internal/crawler/loop_test.go`. ING-6a2 head `3756173` → `3f8e903`;
+  the PR is now 426 changed lines (177 + 249, all additions; ownership-check OK, warns > 400, under the 480 gate). `loop.go` unchanged.
+  - Finding 1 [blocking]: added 3 walk rows. `first run: undated not a candidate` (`feed(15,-1,14)`, no W → `p15 p14`), `page ending [<=W, undated] stops`
+    (`[15,9,undated]`, W=10 → exactly one request `0,3`), and `out_of_order across an undated entry` (`15,13,undated | 14,12,9` → out_of_order=1).
+    M5 (`if false && p.PublishedAt.IsZero()`) is killed by all 3 rows, both in the full package and with `-run '^TestWalkStopsAtWatermark$'`.
+  - Nits 2+3: new `TestNewArxivFeedDefaults` checks the given client and limiter, that retry Attempts/Base/Max equal `arxiv.DefaultRetry`, and that
+    `NewArxivFeed(client, nil)` gives a non-nil limiter with `Interval() == arxiv.DefaultInterval`. It kills M23 (NoRetry / zero retry) and M24 (nil stays nil /
+    `NewLimiter(0)`) in both runs.
+  - Nit 4: added the subtest `ctx cancelled between requests` (the fake cancels on its first request → `context.Canceled`, no candidates, one request).
+    It kills M27 (ctx check removed) in both runs.
+  - Nit 5 and [spec] 6–8 are left to pm-lead. No existing row was changed.
+  - Local checks: scratch module, Go 1.24.7 (stubs for db/kafka/ulid, real arxiv/crawler/events). `go vet` is clean, `gofmt -l` is empty, and
+    `go test -race ./internal/...` is ok. Mutants ran in the scratch copy only and were never committed. Go 1.25 `make test-unit`/`make lint` run in CI only.
