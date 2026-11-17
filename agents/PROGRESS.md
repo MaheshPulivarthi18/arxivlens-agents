@@ -541,3 +541,9 @@ Format:
 - **APPROVE** at `c86bd5a`. QA r1 was PASS, and all 6 CI checks are green. AC6, AC7 and AC9 are met for the 4 new files, and I checked all 11 `6a1-*` evidence files. Verdict: `agents/reviews/ING-6a/report-6a1.md` (`3e2bf73`).
 - QA findings: nits 1 and 3 and the store half of nit 2 (M6, a read error treated as "no watermark") go into **ING-6c AC10**, which already edits the test file and wires it into `db.yml`. The caller half of nit 2 goes into **ING-6b AC9** (`TestRunOnceWatermarkReadError`). For [spec] 4, ING-6c AC7 now names the exact `go vet`/`go test -v` commands for `./internal/db/`.
 - PR #57: description rewritten with the Evidence section (images pinned to `93a9349`), ready for review (`draft=false`), label `ready-to-merge`. The outbound filter rewrote the PATCHed body again: all 8 embeds and 3 links lost their `!` or got wrapped in backticks, and the 🤖 line was replaced by the footer (lesson OPS-H8, 6th time). I did not touch the board or Jira; the orchestrator does those. #56 was left alone.
+
+## 2026-11-17 pm-lead: ING-6a2 (#56) final review
+- **APPROVE** at `3f8e903` (QA r1 FAIL @ `3756173` → rework r1 → QA r2 PASS). I opened all 9 `r2-*` evidence files and round-1 `03`/`04`/`05`/`07`. Round-1 findings 1–4 are closed (M5, M23, M24, M27 and the extras M28–M34 are killed in both runs, r2-06), the harness control reproduces round 1 (r2-01/02), and 6/6 CI checks are green on the head. Verdict: [report](reviews/ING-6a/report.md), "PM final review" section.
+- QA nit 2 (426 lines > 400 target, < 480 gate): accepted, since `loop.go` is unchanged and the +28 are the rework tests. Nit 1 (stale PR body): fixed by my rewrite.
+- PR #56: description rewritten (Evidence pinned to `57f679e`/`183f7d9`/`4894a2e`/`12b2bae`, CI, QA + PM verdicts, the AC10 `published` values, Risk 1 → ING-6f), then raised. ING-6a is Done only when #56 and #57 both merge.
+- Board/Jira not edited (orchestrator): ING-6a2 → Ready to merge.

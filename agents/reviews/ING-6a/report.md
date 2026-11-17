@@ -127,3 +127,51 @@ None found in round 2: every round-1 gap now has a test, and none of the 34 dist
 
 ### Hand-off
 **PASS** → pm-lead final review (ING-6a2 / #56). ING-6a stays not Done until #57 (ING-6a1) also merges (Done rule).
+
+
+## PM final review — part ING-6a2 · PR #56
+
+[pm-lead] **APPROVE** · reviewed head `3f8e903457da2ae023babcb5c16488b23ff05da7` · QA r1 FAIL @ `3756173` → QA r2 **PASS** @ `3f8e903` · date 2026-11-17
+
+**Inputs checked:** ticket `agents/tasks/ING-6a.md` (Done rule; AC4 and AC10 amendments), Product PRD ING-6, Technical PRD §11 "Scheduled crawler" and §9,
+design `docs/design/ING-6.md` (conditions 1–10, Build notes), the live diff (`gh api …/pulls/56/files`: `internal/crawler/loop.go` +177, `internal/crawler/loop_test.go` +249,
+both added, nothing else), and the 6 check runs on `3f8e903` (all `completed success`, re-read live). I opened every round-2 file (`r2-00` … `r2-08`, PNG and
+the `.txt` where the PNG is cut) and the round-1 files the verdict leans on (`03`, `04`, `05`, `07`).
+
+**Round-1 findings closed**
+1. [blocking] M5 (undated-skip guard dead): closed. r2-06 shows M5 killed in both runs by 3 named rows, one per probe case (a)/(b)/(c) from evidence 05, and
+   M32–M34 show each row pins a different half of the guard. r2-04 shows the 3 rows PASS.
+2. [nit] `DefaultRetry` unasserted: closed. M23 and M30 killed by `TestNewArxivFeedDefaults` in both runs (r2-06).
+3. [nit] nil-limiter fallback: closed. M24, M28, M29 killed in both runs (r2-06). This is the one that matters for §9 politeness: the feed can no longer go out unthrottled unnoticed.
+4. [nit] `ctx.Err()` between requests: closed. M27 and M31 killed by `ctx_cancelled_between_requests` (r2-06).
+5–8 were mine and were decided in the ticket earlier today (AC4 amended, ING-6f, Done rule; nit 5 no action).
+
+The control run (r2-01, r2-02) is convincing: QA's rebuilt harness reproduces all 27 × 2 round-1 verdicts on `3756173`. The single byte that differs is the
+diagnostic column of M11, which dies by test timeout in 3 of 3 reruns, so it's still killed. r2-05's two `SURVIVED` cells (M23/M24 under
+`-run '^TestArxivFeedRequest$'`) are the round-1 table's target test, not their killing test; r2-06 reruns them against `TestNewArxivFeedDefaults` and both die.
+
+**AC coverage (this PR's ACs per the Done rule)**
+| AC | Verdict | Evidence that proves it |
+|---|---|---|
+| AC1 | met | r2-04 (14 walk rows + ctx subtest PASS), r2-05 (M1, M2, M4–M15 killed), r2-06 (M5 pinned) |
+| AC2 | met | r2-05 M7, r2-06 M34 (the new `out_of_order` row across an undated entry) |
+| AC3 | met | r2-05 M3, M14 killed by `TestSelectBatch` |
+| AC4 (amended) | met | r2-07: `loop_test.go:189` asserts the amended bytes exactly; 07: same bytes in stack run 44092000441's `Crawl` log line; r2-05 M20–M22, M25, M26 |
+| AC5 | met | r2-05 M16–M19 |
+| AC8 | met | r2-05 M1–M4 killed in the full package and with `-run '^T$'` |
+| AC9 (2 files) | met | r2-04 (`2 files changed, 426 insertions(+)`), r2-03 (CI `make lint-go` + `ok arxivlens/internal/crawler`, `Ownership OK`), r2-00 (6/6 green) |
+| AC10 (decided) | met as worded | r2-07 / 07: fixture `2023-07-17T17:50:36Z` then `2024-01-22T09:00:00Z`, ascending, synthetic OPS-H3 fixture. Risk 1 handed to **ING-6f** (Ready, P1); ING-6b needs its `descending` verdict |
+
+No "⚠ unverified" remains on an owned AC. The local runs are a Go 1.24.7 scratch module with stubs only for db/kafka/ulid; CI's Go 1.25 job is the source of
+truth for build, vet, gofmt and tests, and it is green.
+
+**Product fit and scope.** This is exactly the pure "decide" half of PRD ING-6 / Technical PRD §11: nothing calls it yet, so runtime behaviour is unchanged
+and no PRD status column moves (ING-6 stays ⏳ until 6b/6c). §9 politeness is now pinned by tests (one shared limiter, never nil, `DefaultRetry`, `Crawl Loop` UA).
+No contract file is touched; no README/CONTRIBUTING change is due (the CLI and its README rows are ING-6c's). Nothing extra beyond the ticket.
+
+**Size (QA nit 2).** 426 changed lines: over the 400 target, under condition 8's 480 gate. `loop.go` is unchanged since round 1 (177); the +28 are the
+test rows QA asked for. Splitting tests away from the code they pin would make both PRs worse. **Accepted, no action.**
+
+**QA nit 1 (stale PR body).** Fixed in the raise: the description is rewritten (426 lines, #57 raised, 14 walk rows + ctx subtest, AC10 met as decided, mutant table with M5/M23/M24/M27–M34).
+
+**Not blocking, carried forward:** ING-6a is Done only when #56 **and** #57 merge (#57 is already Ready to merge). ING-6b stays Blocked on both merges + ING-6f's verdict.
