@@ -73,3 +73,12 @@ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/<full stack job id>/logs 
 - The sample is the 2 entries the cache recorded once (fixed until the cache key changes). That's what design Risk 1 asked for; a bigger sample
   would need new arXiv requests and isn't worth it, because rule (a) already tolerates a few out-of-order entries and ING-6c prints `out_of_order`
   every pass.
+- 2026-11-17 (backend-engineer): built on `agent/backend/ING-6f`, head `61e44e1`; `.github/workflows/stack.yml` only, +35/-0
+  (ownership-check: OK, 35 lines). Step `ING-6 Risk 1: published order of recorded search feeds` sits between `Save arXiv replay store`
+  and `Start the arXiv replay proxy (replay-only)`, `if: ${{ !cancelled() }}` (prints even after an incomplete prefetch), `timeout-minutes: 1`,
+  stdlib Python behind `|| echo "::warning::…"` so the step always exits 0; header comment line added. Local checks: `yaml.safe_load` OK;
+  the step's script was extracted from the parsed YAML and run on scratch stores built from `arxiv_feed.xml`: as committed → `RISK1 ORDER NOT
+  descending (first violation: entry 1 2023-07-17T17:50:36Z < entry 2 2024-01-22T09:00:00Z)`; entries swapped → `RISK1 ORDER descending`;
+  `id_list` meta only → `RISK1 none` + `::warning::`; non-XML body → `::warning::… ParseError`; also a missing body and no store dir; all exit 0.
+  The full `run:` block under `bash -e` also exits 0. Not run locally: actionlint (no binary; Docker image run not permitted in the sandbox),
+  so CI's `Lint the harness` step covers it. AC1/AC3/AC5 need the PR's `Full stack` run.
