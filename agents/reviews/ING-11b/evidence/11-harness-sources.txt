@@ -1,0 +1,178 @@
+$ bash -c for f in /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr/go.mod /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr/stubpgx/pgx.go /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr/internal/db/db.go /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr/internal/query/stub_trace.go /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/mutate_go.py /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/m2probe.JlDY/stub/psycopg.py /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/m2probe.JlDY/probe.py; do echo "===== $f"; cat $f; done
+===== /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr/go.mod
+module arxivlens
+
+go 1.24
+
+require github.com/jackc/pgx/v5 v5.0.0
+
+replace github.com/jackc/pgx/v5 => ./stubpgx
+===== /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr/stubpgx/pgx.go
+// QA stub: only the identifiers search.go uses.
+package pgx
+
+type TxAccessMode string
+
+const ReadOnly TxAccessMode = "read only"
+
+type TxOptions struct{ AccessMode TxAccessMode }
+===== /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr/internal/db/db.go
+// QA stub: search.go only needs DB.Pool.BeginTx -> tx.{Rollback,Exec,Query} -> rows.
+package db
+
+import (
+	"context"
+	"errors"
+
+	"github.com/jackc/pgx/v5"
+)
+
+type Rows struct{}
+
+func (Rows) Close()               {}
+func (Rows) Next() bool           { return false }
+func (Rows) Scan(...any) error    { return nil }
+func (Rows) Err() error           { return nil }
+
+type Tx struct{}
+
+func (Tx) Rollback(context.Context) error                      { return nil }
+func (Tx) Exec(context.Context, string, ...any) (struct{}, error) { return struct{}{}, nil }
+func (Tx) Query(context.Context, string, ...any) (Rows, error)   { return Rows{}, nil }
+
+type Pool struct{}
+
+func (*Pool) BeginTx(context.Context, pgx.TxOptions) (Tx, error) { return Tx{}, errors.New("stub") }
+
+type DB struct{ Pool *Pool }
+===== /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr/internal/query/stub_trace.go
+// QA stub: copy of rag.go's generateTraceID (rag.go itself not copied: it needs the LLM/verify packages).
+package query
+
+import (
+	"crypto/rand"
+	"fmt"
+)
+
+func generateTraceID() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
+}
+===== /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/mutate_go.py
+"""QA ING-11b mutation run. Each mutant: copy the Go harness + the PR's tests/ and scripts/ to a fresh mktemp dir,
+apply ONE literal edit to search.go (asserting the anchor exists exactly once), then run
+  go test ./internal/query/ (scratch go1.24 harness, real search.go + test files)
+  pytest tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go (parity guard, real search.go path)
+Build/vet failure of the Go package => INVALID (never KILLED)."""
+import os, shutil, subprocess, sys, tempfile
+H, WT = sys.argv[1], sys.argv[2]
+P = '(SELECT cp.page_start FROM paper_chunk_pages cp WHERE cp.chunk_id = c.id) AS page,'
+SCAN = '&h.Version, &h.Page, &h.RRFScore'
+M = [
+ ("M1 drop &h.Page from scan", SCAN, '&h.Version, &h.RRFScore'),
+ ("M2 swap Version/Page in scan", SCAN, '&h.Page, &h.Version, &h.RRFScore'),
+ ("M3 page from c.page_number", P, 'c.page_number AS page,'),
+ ("M4 subquery keyed on paper_id", P, P.replace('c.id)', 'c.paper_id)')),
+ ("M5 drop page column (SQL only)", '\n\t\t       ' + P, ''),
+ ("M6 LEFT JOIN instead of subquery", P + '\n', 'cp.page_start AS page,\n'),
+ ("M7 page_start+1 (off by one)", 'cp.page_start FROM', 'cp.page_start + 1 FROM'),
+ ("M8 json tag without omitempty", '`json:"page,omitempty"`', '`json:"page"`'),
+ ("M9 rerank fallback clears Page", None, None),
+ ("M10 NaN guard disabled", None, None),
+]
+def apply(src, a, b):
+    assert src.count(a) == 1, (a, src.count(a))
+    return src.replace(a, b, 1)
+res = []
+for name, a, b in M:
+    d = tempfile.mkdtemp(prefix='mut-', dir=os.path.dirname(H))
+    shutil.copytree(H, d, dirs_exist_ok=True)
+    for sub in ('tests', 'scripts', 'evals', 'services'):
+        shutil.copytree(os.path.join(WT, sub), os.path.join(d, sub))
+    f = os.path.join(d, 'internal/query/search.go')
+    src = open(f).read()
+    if name.startswith('M6'):
+        src = apply(src, P + '\n', 'cp.page_start AS page,\n')
+        src = apply(src, 'JOIN papers p ON p.id = c.paper_id\n', 'JOIN papers p ON p.id = c.paper_id\n\t\tLEFT JOIN paper_chunk_pages cp ON cp.chunk_id = c.id\n')
+    elif name.startswith('M9'):
+        # only the fallback return (inside `if reason != ""`): nil every Page first
+        i = src.index('if reason != "" {')
+        k = src.index('return hits[:min(limit, len(hits))]', i)
+        src = src[:k] + 'for i := range hits { hits[i].Page = nil }\n\t\t' + src[k:]
+    elif name.startswith('M10'):
+        src = apply(src, 'if math.IsNaN(float64(sc)) {', 'if false && math.IsNaN(float64(sc)) {')
+    else:
+        src = apply(src, a, b)
+    open(f, 'w').write(src)
+    env = dict(os.environ, GOTOOLCHAIN='local')
+    v = subprocess.run(['go', 'vet', './internal/query/'], cwd=d, env=env, capture_output=True, text=True)
+    if v.returncode:
+        res.append((name, 'INVALID (vet/build)', v.stderr.strip().splitlines()[-1][:120])); continue
+    g = subprocess.run(['go', 'test', '-count=1', './internal/query/'], cwd=d, env=env, capture_output=True, text=True)
+    fails = sorted({l.split()[2] for l in g.stdout.splitlines() if l.startswith('--- FAIL')})
+    p = subprocess.run([sys.executable, '-m', 'pytest', '-q', '-p', 'no:cacheprovider',
+                        'tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go'], cwd=d, capture_output=True, text=True)
+    py = 'parity FAIL' if p.returncode else 'parity pass'
+    killed = bool(g.returncode) or bool(p.returncode)
+    res.append((name, 'KILLED' if killed else 'SURVIVED', f"go: {'FAIL ' + ','.join(fails) if g.returncode else 'ok'}; {py}"))
+print(f"{'mutant':36} {'result':10} detail")
+for r in res: print(f"{r[0]:36} {r[1]:10} {r[2]}")
+print(f"\n{sum(r[1]=='KILLED' for r in res)}/{len(res)} killed, {sum(r[1]=='SURVIVED' for r in res)} survived, {sum(r[1].startswith('INVALID') for r in res)} invalid")
+===== /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/m2probe.JlDY/stub/psycopg.py
+# QA stub: connect() returns a cursor whose fetchall() yields the rows in $QA_ROWS (a Python literal).
+import ast, os
+class _Cur:
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def execute(self, sql, *a): self.sql = sql
+    def fetchall(self): return ast.literal_eval(os.environ["QA_ROWS"])
+class _Conn:
+    def cursor(self): return _Cur()
+    def close(self): pass
+def connect(*a, **k): return _Conn()
+===== /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/m2probe.JlDY/probe.py
+"""Feed test_embedded_chunks_have_recorded_start_pages (the PR's real function, or a single-operand mutant of it)
+fixed row sets via a stub psycopg; report pass/fail per input. Rows: (arxiv_id, version, chunk_index, page_number, page_start)."""
+import os, subprocess, sys, tempfile, shutil
+WT, STUB = sys.argv[1], sys.argv[2]
+SRC = open(os.path.join(WT, 'tests/test_m2_pipeline.py')).read()
+INPUTS = [  # (name, rows, expected: True = test should pass)
+ ("good: 2 papers, pages rise, reset per paper", [("a",1,0,1,1),("a",1,1,1,2),("a",1,2,3,3),("b",1,0,1,1),("b",1,1,1,1)], True),
+ ("empty corpus", [], False),
+ ("missing paper_chunk_pages row", [("a",1,0,1,1),("a",1,1,1,None)], False),
+ ("page_start < page_number", [("a",1,0,2,1)], False),
+ ("NULL page_number with a page row", [("a",1,0,None,3)], False),
+ ("decreasing page_start in a paper", [("a",1,0,1,3),("a",1,1,1,2)], False),
+ ("same arxiv_id, v1 then v2 restart", [("a",1,0,1,5),("a",2,0,1,1)], True),
+ ("missing row then lower page (prev kept)", [("a",1,0,1,4),("a",1,1,1,None),("a",1,2,1,3)], False),
+]
+MUT = [
+ ("PR test (unmutated)", None, None),
+ ("drop `assert rows`", 'assert rows, "no chunks of embedded papers to check"', 'pass'),
+ ("drop missing-row check", 'if page_start is None:\n            problems.append(f"{key}: no paper_chunk_pages row")\n            continue', 'if page_start is None:\n            continue'),
+ ("drop `page_number is None or`", 'if page_number is None or page_start < page_number:', 'if page_number is not None and page_start < page_number:'),
+ ("drop `page_start < page_number`", 'if page_number is None or page_start < page_number:', 'if page_number is None:'),
+ ("drop monotonic check", 'if last is not None and page_start < last:', 'if False:'),
+ ("prev keyed on arxiv_id only", '(arxiv_id, version)', '(arxiv_id,)'),
+ ("<= instead of < (monotonic)", 'page_start < last:', 'page_start <= last:'),
+ # (SQL text mutants are not probed: the stub ignores the query; the SQL runs only in stack.yml)
+]
+def run(src, rows):
+    d = tempfile.mkdtemp(dir=os.path.dirname(STUB))
+    open(os.path.join(d, 'test_x.py'), 'w').write(src)
+    env = dict(os.environ, QA_ROWS=repr(rows), PYTHONPATH=STUB + os.pathsep + WT)
+    r = subprocess.run([sys.executable, '-m', 'pytest', '-q', '-p', 'no:cacheprovider', 'test_x.py::test_embedded_chunks_have_recorded_start_pages'],
+                       cwd=d, env=env, capture_output=True, text=True)
+    return r.returncode == 0
+for mname, a, b in MUT:
+    src = SRC
+    if a is not None:
+        assert src.count(a) in (1, 2), (mname, src.count(a)); src = src.replace(a, b)
+    out = [(n, run(src, rows), exp) for n, rows, exp in INPUTS]
+    wrong = [n for n, got, exp in out if got != exp]
+    tag = ("all inputs as expected" if not wrong else "differs on: " + "; ".join(wrong))
+    if a is None: print(f"{mname:36} {tag}")
+    else: print(f"{mname:36} {'KILLED' if wrong else 'SURVIVED':9} {tag}")
+
+[exit code 0]

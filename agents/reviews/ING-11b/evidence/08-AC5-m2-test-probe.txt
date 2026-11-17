@@ -1,0 +1,11 @@
+$ bash -c cd /tmp && python3 /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/m2probe.JlDY/probe.py /root/wt/qa-ING-11b /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/m2probe.JlDY/stub
+PR test (unmutated)                  all inputs as expected
+drop `assert rows`                   KILLED    differs on: empty corpus
+drop missing-row check               KILLED    differs on: missing paper_chunk_pages row
+drop `page_number is None or`        KILLED    differs on: NULL page_number with a page row
+drop `page_start < page_number`      KILLED    differs on: page_start < page_number
+drop monotonic check                 KILLED    differs on: decreasing page_start in a paper
+prev keyed on arxiv_id only          KILLED    differs on: same arxiv_id, v1 then v2 restart
+<= instead of < (monotonic)          KILLED    differs on: good: 2 papers, pages rise, reset per paper
+
+[exit code 0]
