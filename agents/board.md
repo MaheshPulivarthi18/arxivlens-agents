@@ -28,7 +28,6 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 | [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to start-time high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | **OPS-H7f merged** (#32 is Ready to merge, not merged) + **#26 merged** (README; sequence with RET-2) |
 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: Postgres checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a merged |
 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs for raw payloads, stack replay run (OPS-H7 part 4; closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged, #26 merged (`stack.yml`) |
-| [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` | backend-engineer | P1 | OPS-H1 (merged) |
 | [ING-6](tasks/ING-6.md) | Scheduled crawler with per-category `since` watermark | backend-engineer | P1 | OPS-H3 (Done) |
 | [FE-2](tasks/FE-2.md) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 |
 
@@ -47,6 +46,7 @@ Wave 1 = independent now. Wave 2/3 = start after the named dependency is **merge
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
+| [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` (+ `requirements-dev.txt`; `requirements-m0.txt` shim) | backend-engineer | ArxivLens [#53](https://github.com/MaheshPulivarthi18/ArxivLens/pull/53) (KAN-14) @ `95ea3bb` | QA PASS r1 · PM APPROVE ([report](reviews/OPS-H2/report.md)); after merge: pm-lead `rules/` PR for `area-notes/services.md:9` + `docs/` PR for the PRD §11 row |
 | [OPS-H8](tasks/OPS-H8.md) | Python producer confirms delivery; `publish`/`publish_dlq` raise `DeliveryError` (part a; interim crash-restart until OPS-H8b) | backend-engineer | ArxivLens [#30](https://github.com/MaheshPulivarthi18/ArxivLens/pull/30) (KAN-34) @ `0d70fab` · AC7 mutations (b) `68f775f`, (a') `455ec67` red, reverted | QA PASS r1 · PM APPROVE ([report](reviews/OPS-H8/report.md)); OPS-H8b (KAN-53) starts after merge |
 | [ING-10](tasks/ING-10.md) | Stored version matches the PDF: on-demand ingest parses `entry.ID` version; versioned PDF URLs | backend-engineer | ArxivLens [#31](https://github.com/MaheshPulivarthi18/ArxivLens/pull/31) (KAN-54) @ `c940779` · stack.yml dispatched on branch (run 42411848508) · no file overlap with open PRs | QA FAIL r1 (AC5 no stack run) → PASS r2 · PM APPROVE, AC4 wording amended ([report](reviews/ING-10/report.md)) |
 | [LLM-1b](tasks/LLM-1b.md) | `internal/llm`: OpenAI-compatible client + `FromEnv` (transport errors carry no server bytes; no redirects) | backend-engineer | ArxivLens [#27](https://github.com/MaheshPulivarthi18/ArxivLens/pull/27) (KAN-47) · no file overlap with open PRs | QA FAIL r1 → PASS r2 · PM APPROVE ([report](reviews/LLM-1b/report.md)) |

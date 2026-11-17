@@ -6,9 +6,9 @@
 | **Priority** | P1 |
 | **PRD ref** | Technical PRD §11 "Unify Python deps" |
 | **Depends on** | OPS-H1 (merged `71cb609`). No open PR on `requirements*.txt`, `Makefile`, `ci.yml` or the two Dockerfiles (none in cycle 2026-11-17) |
-| **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H2`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-14 (epic KAN-3) |
 | **Design required** | no: P1 build plumbing, no contract change |
-| **Status** | In QA (built 2026-11-17, branch `agent/backend/OPS-H2` head `95ea3bb`; PR to be opened by orchestrator) |
+| **Status** | Ready to merge (PR #53 raised 2026-11-17 at head `95ea3bb`; QA PASS r1, PM APPROVE r1) |
 
 ## Goal
 Setup currently needs `pip install -r requirements-m0.txt minio ulid-py fastapi uvicorn` (plus `opentelemetry-sdk` in `make setup-py`),
@@ -55,3 +55,6 @@ grep -rnE "minio ulid-py|ulid-py fastapi" . --exclude-dir=.git --exclude-dir=nod
   - `Makefile:18` and `ci.yml:49` install `-r requirements-dev.txt` (CI keeps the CPU torch `--extra-index-url`). Both Dockerfiles `COPY requirements.txt .` and install `-r requirements.txt`, so the processor image gains fastapi/uvicorn (a few MB). The CI Python job now also installs `opentelemetry-sdk`, which `make test-py` doesn't need, but it's harmless.
   - Verified locally: AC2 grep is empty (exit 1). `requirements-m0` is no longer referenced anywhere except the shim. A static flatten script (packaging.Requirement) showed requirements-dev.txt == the old `make setup-py` set, requirements.txt == dev minus pytest/otel, every old pin identical, no duplicates. `pip install --dry-run --no-index -r requirements-dev.txt` parsed every file and failed only at resolution (no index). The compose build context is the repo root with no `.dockerignore`, so `COPY requirements.txt` resolves.
   - Not run locally: AC1 (PyPI unreachable: `NameResolutionError pypi.org`), AC3 (no Docker daemon: `/var/run/docker.sock` missing), `make test-unit`/`make lint` (Go 1.25 download blocked; the change has no Go code). CI is the source of truth: `ci.yml` Python job (AC1) and `stack.yml` (AC3, triggered by requirements*/Dockerfiles/Makefile).
+- 2026-11-17 (pm-lead, final review): **APPROVE** → PR #53 raised (ready for review), see `agents/reviews/OPS-H2/report.md`. QA finding 1 (shim omits pytest)
+  accepted as specced: the old public instruction was runtime-only (run workers and API) and still works. Follow-up after merge (pm-lead):
+  a `rules/` PR to update `agents/area-notes/services.md:9` to `make setup-py`, plus a `docs/` PR to mark the Technical PRD §11 "Unify Python deps" row done.
