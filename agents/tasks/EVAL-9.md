@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-3 merged (ArxivLens #22). No other open PR may touch `eval.yml` or the CONTRIBUTING commands table rows for `eval-seed`/`eval.yml`. |
 | **Jira** | not created yet (orchestrator: story under epic "Retrieval & answer quality gates", labels `task-EVAL-9`, `agent-backend`, `arxivlens`) |
 | **Design required** | no (P1, no new command/table/service, no shared contract; timeouts are not quality gates) |
-| **Status** | In QA (draft PR [#37](https://github.com/MaheshPulivarthi18/ArxivLens/pull/37), head `ec60ab7`; Eval run 42478602587 in progress) |
+| **Status** | **Done**: PR [#37](https://github.com/MaheshPulivarthi18/ArxivLens/pull/37) merged by Mahesh 2026-11-14 13:23Z as `c0376ab` on ArxivLens `main`. Merged while QA r1 was PENDING (Eval run evidence); QA r2 and PM final review never happened |
 
 ## Goal
 On EVAL-3's two runs, `make eval-seed` took 30 m 24 s (cold) and 37 m 48 s (warm), which is 68% and 84% of the seed step's
@@ -79,3 +79,7 @@ git diff --stat origin/main...agent/backend/EVAL-9
   - CI on `ec60ab7`: CI success, DB success. Eval run [42478602587](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/42478602587): "Lint the harness" (actionlint) success,
     self-test success, seed step started 12:11:46Z, still running at hand-off. AC2 (eval exit 0/1, seed line in the summary) and the PR-run part of AC4 are still to verify from this run's summary. Don't re-run it (62 arXiv requests).
   - Not run locally: `make test-unit`/`make lint` (sandbox Go 1.24.7) and actionlint/shellcheck (no docker daemon or binaries); CI covers all of them.
+- 2026-11-17 (pm-lead, grooming): #37 merged as `c0376ab` (2026-11-14). Status → Done. QA r1 was PENDING on run 42478602587 and no PM
+  review was done; recorded, not back-filled. Mahesh's #44/#45 later changed `eval.yml` again (NLI prefetch, arXiv replay from the Actions
+  cache, which removes the 62 live arXiv requests per run once the cache is warm). The nightly run on `main` `40dec5a`
+  (43902662193, 2026-11-16) is green.

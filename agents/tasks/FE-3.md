@@ -5,10 +5,10 @@
 | **Owner** | frontend-engineer |
 | **Priority** | P0 (ADR-0003 consequence: unsupported citations must stay visibly flagged; Product PRD §7 principles 1–2) |
 | **PRD ref** | Product PRD UI-1, QA-4, QA-5, §7; ADR-0003 (Accepted) |
-| **Depends on** | **FE-1 merged** (Vitest harness). **AI-7 merged** (so QA can check the UI against the real `refusal_reason` JSON). |
+| **Depends on** | **FE-1 merged** (Vitest harness; env-blocked, see FE-1). AI-7 merged (`8406b18`). #46 merged (`cc57474`: new props and `insufficient_evidence`) |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-3"`) |
 | **Design required** | **yes** (short, `docs/design/FE-3.md`: states, copy and component changes; P0) |
-| **Status** | Ready (Wave 2: starts when FE-1 and AI-7 are merged) |
+| **Status** | Ready once FE-1 merges (FE-1 is env-blocked on npm). Design `docs/design/FE-3.md` not written yet |
 
 ## Goal
 After AI-7, `/v1/ask` can return no answer plus evidence passages and a `refusal_reason`. The UI must show that as a
@@ -52,3 +52,11 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   the best checked citation for that passage, and **0 when the passage was not cited or couldn't be checked**, not a retrieval score (AI-7, PR #21;
   Mahesh may change this, it's Decision 4 in #21). So don't render a refusal card's score as relevance, and don't show `0` as "0%": show
   "not checked" for 0 in refusal mode. Put the exact copy in the design.
+- 2026-11-17 (pm-lead, grooming, after Mahesh's #46): part of this ticket's problem is now handled and part isn't.
+  **Done by #46:** `SynthesisView` gets `refusalReason` and shows the subtitle "No verified answer — the passages are shown as evidence".
+  Quoted/written answers have their own subtitles. **Still open (checked at `40dec5a`):** "PostgreSQL pgvector Verified" (`SynthesisView.jsx:115`),
+  the export heading "References & Verified Citations" (`:50`), and `{score}% Verified` on every citation (`ReferencesStack.jsx:72`).
+  There is no reason-specific copy or `role="status"` panel, and nothing hides "copy" for refusals. Scope additions: copy for the third reason
+  **`insufficient_evidence`** ("the passages found don't answer this question"), and the design must cover the two-stage states (quoted
+  answer shown while `writing`, then swapped). A written answer that falls back to quotes stays quoted (`App.jsx:109-110`). Extend AC1/AC2
+  with an `insufficient_evidence` fixture.

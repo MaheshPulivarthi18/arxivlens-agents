@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1, OPS-H5, EVAL-5 (merged). **EVAL-3 merged** (it may touch `docker-compose.yml` and `CONTRIBUTING.md`). Start when no open PR changes `README.md`. |
 | **Jira** | new story under epic KAN-3 "Dev harness & infrastructure" (`labels = "task-OPS-H9"`) |
 | **Design required** | no: P2 CI changes, no contract change |
-| **Status** | Ready (EVAL-3 merged `122eee3`). Not in cycle 11:00Z: shares `README.md`/`CONTRIBUTING.md` with OPS-H10 |
+| **Status** | Ready (EVAL-3 merged `122eee3`; OPS-H10 merged). Must not run alongside ING-11b or OPS-H7a (all three edit `.github/workflows/db.yml`). Not picked in cycle 2026-11-17 (P2) |
 
 ## Goal
 Three 2026-11-07 merge-review follow-ups that each could make CI pass or fail for the wrong reason:
@@ -52,3 +52,5 @@ gh workflow run <digest-check workflow> --ref agent/backend/OPS-H9
 - 2026-11-07 (pm-lead): dropped the optional `stack.yml` extension check so this ticket shares no workflow file with OPS-H10
   (`stack.yml` logs + path filter). Both edit `CONTRIBUTING.md` (different rows): whichever starts second waits for the other's merge.
 - 2026-11-07 11:00Z (pm-lead, grooming): EVAL-3 merged. Not picked in cycle 11:00Z (P2, no backend slot; README + CONTRIBUTING overlap with OPS-H10).
+- 2026-11-17 (pm-lead, grooming): the OPS-H10 overlap is gone (merged). #45 changed `stack.yml`/`eval.yml` (replay cache), not `db.yml` or
+  `docker-compose.yml`, so the Scope still holds. The pgvector image is still the floating `pgvector/pgvector:pg16`; check before building.

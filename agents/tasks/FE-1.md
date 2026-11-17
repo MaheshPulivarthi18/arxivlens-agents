@@ -6,7 +6,7 @@
 | **Priority** | P1 (frontend agent has no way to verify its work beyond `build`) |
 | **PRD ref** | UI-1, QA-3, QA-4, QA-5; Product PRD §7 principles |
 | **Depends on** | — |
-| **Status** | Ready (Wave 1), but **environment-blocked**: registry.npmjs.org doesn't resolve in agent sandboxes, so the new devDependencies can't be added to `package-lock.json` |
+| **Status** | Ready (Wave 1), but **environment-blocked**: registry.npmjs.org still unreachable from agent sandboxes (re-checked 2026-11-17: `curl` → `000`), so the new devDependencies can't be added to `package-lock.json`. Needs Mahesh (allow the host, or push the lockfile change; see Notes) |
 
 ## Goal
 Give the frontend agent a fast feedback loop and lock down the states that carry the product's trust promise.
@@ -37,3 +37,7 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   `cd frontend && npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom` locally and push the
   `package.json` + `package-lock.json` change to a branch `agent/frontend/FE-1`. The agent then writes the tests on top. Don't regenerate
   the lockfile any other way (e.g. from a CI artifact): that routes around the egress block.
+- 2026-11-17 (pm-lead, grooming): still env-blocked (npm registry unreachable). #46 (`cc57474`) changed the components under test:
+  `SynthesisView` now takes `answerKind`, `refusalReason` and `writing`, with subtitles for quoted/synthesized answers and a refusal subtitle.
+  `App.jsx` runs the two-stage `quick` → full flow. Fixtures must include `answer_kind`, `synthesis_available` and a `refusal_reason`
+  response. The AC3 case still applies: `ReferencesStack.jsx:72` still renders `{score}% Verified` for every citation, including unsupported ones.

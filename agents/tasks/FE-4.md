@@ -4,11 +4,11 @@
 |---|---|
 | **Owner** | frontend-engineer |
 | **Priority** | P0 (Phase 1 item 8; Product PRD §7 principle 3 "one click to the source") |
-| **PRD ref** | Product PRD UI-1, QA-3, QA-4, §7 principles 1–3; ADR-0014 (Proposed) |
-| **Depends on** | **AI-8 merged** (claims + provenance JSON), **FE-3 merged** (same components), **ADR-0014 Accepted** |
+| **PRD ref** | Product PRD UI-1, QA-3, QA-4, §7 principles 1–3; ADR-0014 (Accepted 2026-11-07); ADR-0018 (Proposed: `answer_kind`) |
+| **Depends on** | **AI-8 merged** (claims + provenance JSON; design stage now), **FE-3 merged** (same components), FE-1 (harness, env-blocked). ADR-0014 Accepted. ING-11b for real `page` values (fixtures suffice for tests) |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-4"`) |
 | **Design required** | **yes** (`docs/design/FE-4.md`: layout, states, interaction; P0) |
-| **Status** | Blocked (needs ADR-0014). Wave 3 once AI-8 and FE-3 are merged |
+| **Status** | Waiting on dependencies (AI-8, FE-3; FE-1 env-blocked). Not ADR-blocked any more: ADR-0014 was Accepted 2026-11-07 |
 
 ## Goal
 Let a researcher check any statement in an answer in one or two clicks: see whether it was supported, unsupported or
@@ -40,3 +40,7 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
 ## Notes
 - 2026-11-07 (pm-lead): from the 2026-11-07 plan (Phase 1 item 8, claim-evidence half). Wave 3.
 - 2026-11-07 (pm-lead, RET-2 design review): at FE-4's design approval, check that **ING-10 has merged** before cards show "vN". Until then, on-demand ingests can label v3 content as v1. `page` is absent from every citation until **ING-11** lands, so the `#page=N` path is only reachable with fixtures. Today's fallback URLs (`ReferencesStack.jsx:45`, `SynthesisView.jsx:47`) are unversioned.
+- 2026-11-17 (pm-lead, grooming): Status said "Blocked (needs ADR-0014)", which has been stale since 2026-11-07. Corrected. ING-10 merged (`4c15275`),
+  so "vN" labels are trustworthy for new ingests. Status chips should use AI-8's `status` (which separates `unverified` from `unsupported`), not
+  the `supported` bool. For NLI-verified LLM claims AI-8 gives no `quote` (the prompt doesn't ask for one), so the "quote not located"
+  fallback is the common case for written answers. Say so in the design.

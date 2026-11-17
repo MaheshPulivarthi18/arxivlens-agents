@@ -5,10 +5,10 @@
 | **Owner** | backend-engineer |
 | **Priority** | P1 |
 | **PRD ref** | Product PRD OPS-2, §5.3; Technical PRD §5 (DLQ manager) |
-| **Depends on** | OPS-H7f **merged** (same package). ArxivLens #26 (OPS-H10) **merged** (README). Sequence the README edit with RET-2 (whichever builds second rebases) |
+| **Depends on** | OPS-H7f **merged** (`5e557bc`). OPS-H10 #26 **merged** (`54cad79`). RET-2 merged (`6cfd836`), so the README sequencing is moot. Must not run alongside another task that edits `.github/workflows/db.yml` (ING-11b, OPS-H9) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7a`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07) |
-| **Status** | Ready after OPS-H7f and #26 merge |
+| **Status** | Ready (all dependencies merged; re-checked 2026-11-17). Not picked in cycle 2026-11-17 08:00Z: shares `db.yml` with ING-11b. Next backend slot after ING-11b merges |
 
 ## Goal
 An operator can list every record in a DLQ up to the end of the topic, page by page, and see each record's `partition/offset` so they can resume.
@@ -48,3 +48,6 @@ KAFKA_BROKERS=localhost:9092 go test -tags integration -count=1 -v ./internal/dl
 
 ## Notes
 - 2026-11-07 (pm-lead): part a of the OPS-H7 split (design PM decision). OPS-H7b builds on the `Reader`/`Record` types defined here.
+- 2026-11-17 (pm-lead, grooming): dependencies merged. Line refs moved: `inspect` reads the first 100 at `cmd/arxivlens/main.go:322`
+  (was 309; #46 added the LLM wiring to the `query` command), and the README CLI rows are still `README.md:183-185`. `kmsg` is still `// indirect`
+  in `go.mod`. #45 (`393bcf3`) didn't touch `internal/dlq` or `db.yml`.

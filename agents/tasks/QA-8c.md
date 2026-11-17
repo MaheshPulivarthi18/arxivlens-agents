@@ -8,7 +8,7 @@
 | **Depends on** | **QA-8 merged** (the `askLLM` path, `provider`/`llmTimeout` fields, tests), **RET-2 (#35) merged** (same `README.md`) |
 | **Jira** | none yet: created under epic KAN-1 "Grounded LLM answers" only when activated (`labels = "task-QA-8c"`) |
 | **Design required** | no new design: covered by `docs/design/QA-8.md` § "QA-8 addendum" Q2, Q7, Q9 and its PM decision (2026-11-08) |
-| **Status** | **Not active.** Becomes Ready only if QA-8's early size check trips and its PR says the split seam was taken (design Q9, PM decision condition 5). If QA-8 ships unsplit, this ticket is closed as "not needed" |
+| **Status** | **Closed: not needed.** QA-8 was delivered unsplit by Mahesh's own PR #46 (`cc57474`), outside the agent workflow; provider wiring (`llm.FromEnv` in `cmd/arxivlens/main.go`), the startup line and the README `LLM_*` row all shipped there |
 
 ## Goal
 QA-8 (split) builds and tests the LLM answer path but leaves `provider` nil in production. This task turns it on: `NewRAGService`
@@ -48,3 +48,6 @@ make eval   # template path, on the EVAL-3 workflow
 ## Notes
 - 2026-11-08 (pm-lead): written ahead of need at the QA-8 design gate (Q13 answer 4), so a split doesn't cost a cycle. Branch `agent/ai/QA-8c`.
   The exact `query` sub-command in the README example is checked against `cmd/arxivlens` at build time.
+- 2026-11-17 (pm-lead, grooming): closed as "not needed" per this ticket's own rule (QA-8 shipped unsplit). #46 wired the provider in
+  `cmd/` (`llm.FromEnv`, a bad value fails startup) instead of `newRAGServiceFromEnv` in `rag.go`, and logs
+  `LLM synthesis enabled (<name>, model <m>)` / `LLM synthesis off (LLM_MODEL unset): extractive answers`. No Jira story was ever created.

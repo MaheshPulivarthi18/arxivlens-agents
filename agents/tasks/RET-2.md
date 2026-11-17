@@ -8,7 +8,7 @@
 | **Depends on** | **ADR-0014 Accepted** (adds `version`/`page` to `/v1/search` hits: HTTP API contract). **AI-7 merged** (both edit the README API table). **EVAL-6 merged** (both may edit `tests/test_evals_data.py`, which holds the ADR-0010 SQL parity guard). |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-RET-2"`) |
 | **Design required** | **yes** (short, `docs/design/RET-2.md`): it touches a shared contract (HTTP API) and the SQL the parity guard mirrors. |
-| **Status** | **Ready to merge**: PR [#35](https://github.com/MaheshPulivarthi18/ArxivLens/pull/35) raised for Mahesh, head `3bf5dab`, all 6 CI checks green. QA PASS r1 · PM APPROVE 2026-11-08 ([report](../reviews/RET-2/report.md)). Design conditions 1–7 met. Followed by **ING-11b** (search returns `page`) and **AI-8** (maps `version`/`page` into citations) |
+| **Status** | **Done**: PR [#35](https://github.com/MaheshPulivarthi18/ArxivLens/pull/35) merged by Mahesh 2026-11-14 11:38Z as `6cfd836` on ArxivLens `main` (QA PASS r1 · PM APPROVE 2026-11-08). Followed by **ING-11b** (search returns `page`) and **AI-8** (maps `version`/`page` into citations) |
 
 ## Goal
 A citation should say which version of a paper it came from, and the page when the system knows it, so one click reaches
@@ -85,3 +85,6 @@ python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_
   - Nit 2 (PR body PRD ref): fixed by pm-lead in the rewritten PR description (QA-3, ING-7, §7 principle 3; Technical §5, §7.1; ADR-0014).
   - Nit 3 (no NaN / `context.Canceled` rows in `TestSearchHitProvenanceTravelsWithHit`): all fallbacks share one return path and QA mutant M16
     (fallback drops `Page`) is killed by the existing rows. Follow-up: add the two rows in ING-11b, which edits `search_provenance_test.go` anyway (Notes line added there).
+- 2026-11-17 (pm-lead, grooming): #35 merged as `6cfd836` (2026-11-14). Status → Done. ING-11b and AI-8 are no longer waiting on it.
+  Later Mahesh PRs #49 (`538b2ea`, ADR-0016) and #50 (`40dec5a`, ADR-0017) changed `search.go`'s rerank ordering and
+  `search_provenance_test.go` expectations, not the outer SELECT this ticket added.

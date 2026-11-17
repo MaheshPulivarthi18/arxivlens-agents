@@ -5,10 +5,10 @@
 | **Owner** | backend-engineer |
 | **Priority** | P1 (Product PRD §7 principle 3 "one click to the source": AI-8 maps it into `citations[].page`, FE-4 links `#page=N`) |
 | **PRD ref** | Product PRD QA-3, §7 principle 3; Technical PRD §5, §7.1; ADR-0014 (Accepted: `page` "(int, omitted when unknown)") |
-| **Depends on** | **AI-11 merged** (and so ING-11), **RET-2 merged** (adds `SearchHit.Page`, the `p.version` outer SELECT, `TestSearchProvenance`, `TestSearchSQLOuterSelectOnly` and the README `/v1/search` row, all edited again here). Independence check at start: no open PR touches `internal/query/search*.go`, `.github/workflows/db.yml`, `tests/test_evals_data.py`, `tests/test_m2_pipeline.py` or `README.md` |
+| **Depends on** | **AI-11 merged** (`68a57a9`, and ING-11 `d3f9408`), **RET-2 merged** (`6cfd836`). Independence check at start: no open PR touches `internal/query/search*.go`, `.github/workflows/db.yml`, `tests/test_evals_data.py`, `tests/test_m2_pipeline.py`, the README API table's `/v1/search` row or `CONTRIBUTING.md:23` (cycle 2026-11-17: no open PRs; OPS-H7a and OPS-H9 also edit `db.yml`, so neither runs alongside this) |
 | **Jira** | not yet created (orchestrator: story under epic KAN-1, labels `task-ING-11b`, `agent-backend`, `arxivlens`; link KAN-55) |
 | **Design required** | yes, **covered by the approved `docs/design/ING-11.md`** (decision 6, part b; PM conditions 4, 5, 6, 9). No new design round |
-| **Status** | Ready (once AI-11 and RET-2 merge) |
+| **Status** | **Ready** (all dependencies merged 2026-11-14; re-checked 2026-11-17 against `main` `40dec5a`). Branch `agent/backend/ING-11b` |
 
 ## Goal
 After ING-11 and AI-11, the processor stores each chunk's real start page in `paper_chunk_pages`. This part returns it from
@@ -62,3 +62,14 @@ python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_
 - 2026-11-07 (pm-lead): split from ING-11 at its design approval (Q2, producer/consumer seam). Carries the original ING-11 AC3, AC4
   and the README half of AC6, plus the new real-pipeline write check (design condition 4).
 - 2026-11-08 (pm-lead, RET-2 final review): RET-2 (#35) put its unit tests in a new `search_provenance_test.go`, not `search_test.go`, so Scope now names that file. Two RET-2 QA nits land here: the `Page` comment in `search.go` still says "ING-11 fills Page" (Scope already rewrites it), and the NaN / `context.Canceled` fallback rows (added to Scope).
+- 2026-11-17 (pm-lead, grooming): unblocked (AI-11 #38 and RET-2 #35 merged 2026-11-14). Re-checked against Mahesh's later PRs:
+  - #49 (`538b2ea`, ADR-0016 `diversify`) and #50 (`40dec5a`, ADR-0017 rank fusion) changed `rerankAndSort` and the ordering tests in
+    `search_test.go`/`search_provenance_test.go`, **not** `hybridSearchSQL` or the scan. The outer-SELECT edit in Scope still applies as written.
+    AC4's "the `search_test.go` ordering tests pass unmodified" now means the fused-order expectations from #50. The `TestSearchHitProvenanceTravelsWithHit`
+    rows you add (NaN, `context.Canceled`) go through the ADR-0017 fallback (RRF order, `RerankScore` 0), so assert `Page` survives that path.
+  - #48/#49/#50 added parity fragments and shared cases to `tests/test_evals_data.py`. Still exactly **one** `_GO_TO_EVAL_SQL` fragment changes here.
+  - `CONTRIBUTING.md:23` backstop: the `make test-unit` row now misses **three** files that `make test-py` runs (`Makefile:49`):
+    `tests/test_processor_pages.py`, `tests/test_verify.py` (#44) and `tests/test_arxiv_replay.py` (#45). List all of them, in `Makefile` order.
+  - AC5's `stack.yml` run now serves arXiv from the replay cache (#45), so the crawl step is deterministic. Re-ingest: #40/#42 change
+    chunk text, but `stack.yml` starts from a fresh DB, so every chunk in the run gets a `paper_chunk_pages` row from AI-11's chunker.
+  - README: edit only the API table's `/v1/search` row (`README.md:162`). EVAL-4 edits the Testing block (`:215-222`) in this cycle; AI-8 later edits the `/v1/ask` row.

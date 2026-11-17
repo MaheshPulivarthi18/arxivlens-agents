@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged `71cb609`: `stack.yml` runs the stack and the "Known failure F1" step). **OPS-H10 merged** (stack keeps embedder logs on green runs; needed for AC1). #21 merged (README, AC5). |
 | **Jira** | new story under epic KAN-2 "Retrieval & answer quality gates" (`labels = "task-AI-9"`) |
 | **Design required** | no: P1, one file, no contract change. The ranking-neutral constraint (AC2) is what keeps it small. |
-| **Status** | **Blocked (needs AC1 timing lines from the `stack-logs` artifact of run 42461656086, or OPS-H10b merged)**. QA r2 FAIL on `c32ec23` ([report](../reviews/AI-9/report.md)) = second FAIL; missing evidence, not a code defect. PR #24 stays **draft**. F1 itself moved to AI-10 (needs ADR-0015) |
+| **Status** | **Done**: PR [#24](https://github.com/MaheshPulivarthi18/ArxivLens/pull/24) merged by Mahesh 2026-11-14 13:22Z as `d4b1cf3` on ArxivLens `main`. Merged while this ticket was Blocked after QA r2 FAIL (AC1 timing evidence missing, not a code defect): QA re-review of AC1 and PM final review never happened |
 
 ## Goal
 On GitHub's CPU runners, `/internal/rerank` scoring the ADR-0010 pool of 20 passages takes about 10 s, so three M3 tests
@@ -163,3 +163,8 @@ python3 -m pytest -q tests/test_m0.py -k rerank
   - **AC1 sample count (QA r2 finding 2 [spec], decided):** AC1 is met with p50/max over whatever `passages=20` lines the run produced, **minimum 2**, plus `threads=`, padded vs single-batch and the warm-up line. ADR-0015 needs the order of magnitude: the runner-host numbers already show ≈ 6.8 s forward per 20 pairs against a ≤ 1 s search+rerank budget, a gap far larger than run-to-run spread. If fewer than 2 lines exist, say so and pm-lead specs repeated `/internal/rerank` calls separately (not in OPS-H10b).
   - **#24 stays draft** until QA PASS + PM APPROVE; it is not raised with AC1 marked unverified. It counts toward ai-engineer's WIP (2 active PRs), which is why route (a) is worth Mahesh's minute.
   - QA r2 nit 3 (stale PR body below the top block): pm-lead rewrites the body at raise time. Nit 4 (invalid `EMBEDDER_TORCH_THREADS` asserts only `>= 1`): optional, not required for merge.
+- 2026-11-17 (pm-lead, grooming): Mahesh merged #24 at `d4b1cf3` (2026-11-14), 16 min after OPS-H10b #39 (`5099130`), which tees the
+  timing block to the job log, so the AC1 numbers are now reachable from a `stack.yml` job log on `main`. Status → Done. Workflow stages 3–4 were
+  skipped (no QA PASS, no PM APPROVE); recorded here, not back-filled. Mahesh's #43 (`ea646ad`, reranker on the embedder's device) touched the
+  same function before this merged; scores unchanged in both. F1 itself is unchanged: `stack.yml` run 43721247034 (#50 branch, 2026-11-15)
+  still shows `3 failed in 30.57s` (`ReadTimeout` at 10 s) in the non-blocking "Known failure F1" step. That question is ADR-0015 / AI-10.

@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | KAN-32 (`labels = "task-ING-8"`) |
 | **Design required** | no: measurement only. It adds a script and a dataset, with no CLI command, table, service, contract or gate. |
-| **Status** | Blocked (needs arxiv.org access to annotate `evals/extraction.jsonl`: AC1 + AC5). Scorer, tests and docs are built on `agent/ai/ING-8` (`d2ad9c5`) |
+| **Status** | Blocked (needs hand labels for `evals/extraction.jsonl`, AC1 + AC5: someone with arxiv.org access reads the PDFs; agents can't and must not label from memory). Scorer, tests and docs are on `agent/ai/ING-8` (`d2ad9c5`), now behind `main` by #40/#42 (parser changes) |
 
 > **ID note:** Mahesh's plan called this ING-7. Product PRD §6.1 already has a row **ING-7** ("Handle new arXiv versions",
 > ✅), and task IDs in the ING series match PRD row IDs (ING-6), so this task is **ING-8** to avoid a clash.
@@ -98,3 +98,11 @@ git status --porcelain | grep -i '\.pdf' && echo "PDF LEAK" || echo "no pdf"
   - Design choices to review: (1) `Abstract` is dropped from **both** lists wherever it appears, not only the implicit leading one. That keeps the two lists symmetric, because an explicit detected "Abstract" heading would otherwise always count as an FP. (2) A paper that fails to fetch or parse fails closed: it counts with 0 predictions (lowering micro recall), the run is marked `complete: false`, and the exit code is 2. (3) "Predicted" means the sections the detector *emits*. `_parse_doc_sections` drops sections with empty text, so a parent heading directly followed by its first subsection counts as missed. This is probably the first failure pattern to look at once there's a baseline.
   - **To unblock (needs a human or an agent with arxiv.org access):** pick ≥ 10 CC BY / CC BY-SA / CC0 papers across ≥ 3 layouts (single-column, two-column, ACL, IEEE; numbered, Roman-numeral and appendix headings), check each licence on its abs page, annotate headings from the pinned-version PDF, then run the commands in `evals/EXTRACTION_BASELINE.md`.
   - **Follow-up requests (backend):** (a) add `tests/test_evaluate_extraction.py` to `make test-py` (together with the #12-review `test-m0`/`test-evals-data` split), since CI doesn't run it today. (b) Expose a pure `parse_doc_sections(doc)` in `services/processor/` so the scorer stops calling a method with `self=None`. The scorer has a TODO at `load_production_detector`. (c) Once a baseline exists, pm-lead attaches the run to EVAL-3's nightly workflow (AC5).
+- 2026-11-17 (pm-lead, grooming): still blocked; two things changed. (1) Mahesh's #40 (`2b97e3c`: `PDF_TEXT_FLAGS`, spaces kept, original
+  text) and #42 (`8724064`: `line_text_from_spans`, small-caps headings like `R EFERENCES` fixed) changed the parser this scorer calls
+  (`ProcessorWorker._parse_doc_sections`). When unblocked, rebase `agent/ai/ING-8` onto `main` first; the baseline then measures the fixed
+  parser, and AC3's "calls the production function" test must still pass. #42's finding (reference lists were chunked and indexed) is
+  exactly what this measurement should catch next time, which strengthens the case for doing it. (2) #45's arXiv replay cache already
+  holds the 31 corpus PDFs on CI, so AC5's run could happen in CI once labels exist (a backend follow-up, as AC5 already says).
+  **Question for Mahesh:** will you (or someone you name) hand-label the headings of ~10 corpus papers? Otherwise close ING-8 as
+  "not now". You already inspected all 77 local PDFs by hand for #42.

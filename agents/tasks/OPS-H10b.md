@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H10 (merged `54cad79`). No open PR changes `stack.yml` (checked 2026-11-08: #24, #35, #37, #38 don't) |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H10b`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P1 CI-only, a few lines, no command/table/service/contract change |
-| **Status** | In QA (draft PR [#39](https://github.com/MaheshPulivarthi18/ArxivLens/pull/39)) |
+| **Status** | **Done**: PR [#39](https://github.com/MaheshPulivarthi18/ArxivLens/pull/39) merged by Mahesh 2026-11-14 13:06Z as `5099130` on ArxivLens `main`. Merged before QA; no QA report or PM review exists |
 
 ## Goal
 OPS-H10 writes `stack-logs/embedder-timing.log` to the step summary and the artifact only. Neither is reachable from agent
@@ -44,3 +44,5 @@ git diff --stat origin/main
   `actions/jobs/<id>/logs`: L4700 `### Embedder rerank timing`, L4701 fence, L4702 `no embedder rerank timing lines (embedder predates AI-9)`,
   L4703 fence (AC1); L4704-4709 `ls -l stack-logs` lists `embedder-timing.log` (57 B); L4747 artifact `stack-logs` 13617694192 uploaded (AC2).
   Step summary content not readable from the sandbox (REST `output.summary` null); `tee -a` keeps the append.
+- 2026-11-17 (pm-lead, grooming): #39 merged as `5099130` (2026-11-14), before any QA round. Status → Done; workflow stages 3–4 skipped,
+  recorded here. It makes the AI-9 AC1 timing block readable from the `stack.yml` job log.

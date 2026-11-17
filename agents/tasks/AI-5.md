@@ -8,7 +8,7 @@
 | **Depends on** | AI-1 (PR #10, test harness in `rag_test.go`), **ADR-0011 (Proposed, human decision)**; soft: RET-1 (#9) for the ADR-0010 fallback |
 | **Jira** | `KAN-n` (find with JQL `labels = "task-AI-5"`) |
 | **Design required** | no (small change in one file; the decision itself lives in ADR-0011) |
-| **Status** | Blocked (needs ADR-0011) |
+| **Status** | Blocked (needs ADR-0011, still Proposed). Premise re-checked 2026-11-17 against `40dec5a`: unchanged |
 
 ## Goal
 During a reranker outage, every hit has `RerankScore == 0`, so it skips the 0.45 relevance cutoff and `/v1/ask` answers
@@ -68,3 +68,9 @@ make eval   # when infra is available
 - 2026-11-03 (pm-lead) Specced from AI-1 QA finding 4 [spec] and the ticket's AC4 item 3. Blocked because the behaviour
   (refuse vs RRF fallback vs fail open) is a product trade-off and changes user-visible text, so it's ADR-0011, not a bug fix.
   `rag.go` is also touched by AI-2 and AI-3. Whichever starts second rebases; keep one open PR per agent.
+- 2026-11-17 (pm-lead, grooming): re-checked after #44/#46/#49/#50. The bug is still there: `filterRelevantHits` (`rag.go:707`) keeps a hit
+  with `RerankScore == 0`, and on a rerank failure `rerankAndSort` (ADR-0017) still keeps RRF order with `RerankScore` 0, so an outage still
+  answers from unchecked passages. Spec changes for when ADR-0011 is decided: "makes no embedder call" now means no `VerifyClaims`, no
+  `Rerank` (the extractive answer's `extractor`) and no LLM call. `TestAskResponseShapeAndConstructor` now also covers `answer_kind`/
+  `synthesis_available`. `EarlyRefusalThreshold` still exists (`rag.go:21`). This ticket and AI-8 both edit `rag.go` and its tests, so they can't
+  run in parallel. Whichever starts second rebases. No question beyond ADR-0011 itself.

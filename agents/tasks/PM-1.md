@@ -6,7 +6,7 @@
 | **Priority** | P1 |
 | **PRD ref** | Product PRD §6, §8, §11; Technical PRD §9, §11, §12 |
 | **Depends on** | — |
-| **Status** | In review |
+| **Status** | Done (content landed in arxivlens-agents' first commit at the repo split, approved by Mahesh 2026-11-02; QA PASS r2 · PM APPROVE) |
 
 ## Goal
 The PRDs are the source of truth agents plan from, so they must match the code and be specific enough to test.
@@ -46,3 +46,4 @@ git diff --stat origin/main   # only docs/ and agents/
   4. OPS-H5 has a soft dependency on OPS-H1 for AC5, or the workers can be started by hand (AGENTS.md §5).
   The PR #2 follow-up note (remove the AGENTS.md §5 gotcha, the ai-engineer lesson, and the "pending EVAL-1" notes) was already recorded above.
 - Round 1 QA FAIL → fixed QA-4 status, AI-3 AC4, AI-2 Notes
+- 2026-11-17 (pm-lead, grooming): Status line was stale (said In review); corrected to match the board.

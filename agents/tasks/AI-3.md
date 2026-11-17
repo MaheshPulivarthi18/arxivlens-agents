@@ -8,7 +8,7 @@
 | **Depends on** | AI-1 (tests lock behaviour), AI-2 (same code block; avoids merge conflicts) |
 | **Jira** | find with JQL `labels = "task-AI-3"` |
 | **Design required** | no (P1, internal to `rag.go`, response shape unchanged) |
-| **Status** | Ready (AI-1 merged `4702daa`, AI-2 merged `9c1229a`) |
+| **Status** | Done (PR [#13](https://github.com/MaheshPulivarthi18/ArxivLens/pull/13) merged as `8b0a2d2`; board Done since 2026-11-07) |
 
 ## Goal
 `Ask` in `internal/query/rag.go` calls `EmbedTexts` once per hit (chunk) and once per cited sentence, which makes K + S
@@ -48,3 +48,4 @@ make eval   # when infra is available
   - AC5 pre-check: the new tests run against the pre-AI-3 `rag.go` (9c1229a) fail (`EmbedTexts called 5 times, want <= 2`).
   - Verification: sandbox Go 1.24.7 can't build (go.mod 1.25, proxy unreachable) -> stdlib-only scratch module: vet clean, all rag tests PASS with -race; coverage validateCitations 98.0%, embedBatch 90.0%, Ask 100%. `gofmt -l` on repo: clean. `make test-unit`/`make lint`: fail only on Go toolchain download; CI is the source of truth. `pytest tests/test_evals_data.py`: 47 passed.
   - AC3: `make eval` not run: infra unavailable (no Postgres/psycopg, no embedder API). Command: `make eval` (scripts/eval_gate.py) with the stack up, before on `9c1229a`, after on `ff9e7c1`; compare supported-citation rate (±0.01) and `/v1/ask` p50/p95.
+- 2026-11-17 (pm-lead, grooming): Status line was stale (said Ready); corrected to match the board. Its cosine embedding path was replaced by Mahesh's #44 (`6251d1a`, quote match + NLI `/internal/verify`).

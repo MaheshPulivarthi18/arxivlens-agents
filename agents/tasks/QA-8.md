@@ -8,7 +8,7 @@
 | **Depends on** | **LLM-1 merged** (`internal/llm` types + `llmtest` fake), **LLM-1b merged** (OpenAI-compatible client + `FromEnv`; split from LLM-1 on 2026-11-07), **AI-6 merged** (context selection + prompt, same file), **AI-6b merged** (`parseSynthesis` parser, same file; split from AI-6 on 2026-11-07 under design condition 1 seam c), AI-7 merged (refusal safety net; it comes before AI-6 in the `rag.go` order). EVAL-1, AI-1 (Done). |
 | **Jira** | KAN-7 (existing; re-scoped 2026-11-07, `labels = "task-QA-8"`) |
 | **Design required** | **yes**: an addendum to `docs/design/QA-8.md` (written in AI-6) covering the provider call, timeout and fallback. pm-lead approves before code. |
-| **Status** | Ready (design addendum **APPROVED with conditions**, pm-lead 2026-11-08, `docs/design/QA-8.md` § "PM decision (QA-8 addendum)"). All dependencies merged (LLM-1 `43713ce`, LLM-1b `70b0afe`, AI-6 `537c6c5`, AI-6b `e7ab58d`, AI-7 `8406b18`). **Build starts after PR #35 (RET-2) merges** (both edit app `README.md`) and when ai-engineer is under 2 active PRs. Pre-approved split: [QA-8c](QA-8c.md) |
+| **Status** | **Done**: implemented by Mahesh in ArxivLens [#46](https://github.com/MaheshPulivarthi18/ArxivLens/pull/46) (`cc57474`, merged 2026-11-15 10:57Z), outside the agent workflow (no agent branch, QA or PM review). Built on his #44 (`6251d1a`, quote match + NLI verification). [QA-8c](QA-8c.md) closed as not needed. Jira KAN-7 → Done (orchestrator) |
 
 ## Goal
 Replace the templated answer with an LLM-written synthesis over the selected passages whenever a provider is configured,
@@ -78,3 +78,21 @@ make eval   # template path, on the EVAL-3 workflow
 - 2026-11-07 11:00Z (pm-lead, grooming): LLM-1 merged (`43713ce`) and AI-7 merged (`8406b18`). Still waits on LLM-1b and AI-6 (both started in cycle 11:00Z; AI-6 writes `docs/design/QA-8.md`, which this task extends with an addendum).
 - 2026-11-08 (ai-engineer): design addendum written in `docs/design/QA-8.md` § "QA-8 addendum" (Q1–Q13) against app `origin/main` `9651294`: provider wiring via `ConfigFromEnv` + `llm.New` with a `newRAGServiceFromEnv` seam, the `askLLM` flow (select → prompt → `Complete` under its own `LLM_TIMEOUT` → parse → `renderClaims` → existing `finalize` over `passageHits`), error classes → template (caller cancel returns the error), one `ask llm` usage/fallback line per Ask (counts only), and the test plan for AC1–AC10. Estimate ≈ 373 changed lines, so the split seam QA-8 / QA-8c is named up front. 5 open questions. **Waiting for pm-lead approval; no code yet.** The build starts after PR #35 (RET-2, also edits README.md) merges.
 - 2026-11-08 (pm-lead, design gate): addendum Q1–Q13 **APPROVED with conditions** (8 binding conditions in `docs/design/QA-8.md`). Q13 answers: (1) `ConfigFromEnv` + `llm.New` approved (Scope line reworded); (2) caller cancel returns `ask canceled: context canceled`, no template, provider error text never wrapped; (3) 500-estimated-token question cap → template, no HTTP 400 (that would be an API change needing an ADR), and the README says so; (4) QA-8/QA-8c split pre-approved, triggered by the early check (`rag.go` > 150 changed lines or projected total ≥ 400), spec written now as `agents/tasks/QA-8c.md` (Not active); (5) sanitized `&lt;passage` in LLM-path citation `content` accepted until AI-8 (noted in `AI-8.md`). Build starts on `agent/ai/QA-8` after #35 merges.
+- 2026-11-17 (pm-lead, grooming): **#46 delivers QA-8.** With `LLM_MODEL` set, `/v1/ask` runs `selectContext` → `buildSynthesisPrompt`
+  (`synthesis-v1`, JSON mode, temperature 0) → `parseSynthesis` → per-claim verification, and keeps only claims with ≥ 1 verified citation.
+  Without `LLM_MODEL` it answers extractively (quoted sentences, #44). Every LLM failure falls back to the quoted answer with one counts-only
+  log line. `synthesis_test.go` (241 lines, `llmtest` fake) covers the branches. AC-by-AC, read from the diff and the PR body (not re-run):
+  - AC1 met (extractive path unchanged without `LLM_MODEL`; PR says the existing ADR-0003 tests pass unchanged after the `scorePairs`/`refusal()` refactor). AC2, AC5 met (fake-provider tests). AC6 met in substance (counts, model, tokens, latency, prompt version; no text). Whether a sentinel-key test exists was not checked.
+  - AC3 **changed by Mahesh's product decision 2** (commit 5a198fd): when no written claim verifies, or every citation is fabricated, the
+    answer falls back to the quoted answer, which refuses on its own terms if nothing is supported. Not an `all_citations_unsupported` refusal.
+  - AC4 **changed**: `insufficient_evidence` is a new `refusal_reason` with the passages as evidence, not the QA-5 refusal with `citations: []`.
+  - Response shape **changed** (this ticket said "no response-shape change" until AI-8): request field `quick`, response fields
+    `answer_kind` (`quoted`/`synthesized`) and `synthesis_available`, and the new refusal reason. `LLM_TIMEOUT` default 2 s → 30 s.
+    These are HTTP API contract changes made by the owner without an ADR; recorded for him in Proposed ADR-0018.
+  - AC7 (`rag.go` coverage ≥ 90%) and AC10 (diff < 400: #46 is 634 lines) not measured / not met; they were agent-workflow gates, and
+    Mahesh merged his own PR. AC8: the nightly `eval.yml` on `main` `40dec5a` (run 43902662193, CPU, no LLM) is `GATE: PASS`
+    (supported 100%, correct refusals 100%, ask p95 13.3 s INFO cpu-only).
+  - AC9: README `LLM_*` row and Known limitations updated. **Gap:** the README API table's `/v1/ask` row still lists the request as
+    `{question, categories?, max_citations?}` and the response without `answer_kind`/`synthesis_available`. Folded into AI-8 AC8.
+    Product PRD QA-8 row → owed pm-lead docs PR.
+  - Real-LLM numbers (qwen2.5:3b on Ollama, Apple M4, in the #46 body) are recorded on EVAL-8.
