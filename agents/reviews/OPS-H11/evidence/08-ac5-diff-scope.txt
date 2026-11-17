@@ -1,0 +1,12 @@
+$ bash -c git diff --stat origin/main...HEAD; git diff --numstat origin/main...HEAD | awk '{a+=$1; d+=$2} END {print "total changed lines:", a+d, "(+" a "/-" d "), limit 250"}'; echo; echo 'gofmt -l on changed Go files (local go1.24.7):'; GOTOOLCHAIN=local gofmt -l internal/db/db.go internal/downloader/ ; echo '(empty = formatted)'
+ internal/db/db.go                      | 16 ++++++
+ internal/downloader/downloader.go      | 14 ++++++
+ internal/downloader/downloader_test.go | 92 +++++++++++++++++++++++++++++++++-
+ tests/test_m4_chaos.py                 | 90 ++++++++++++++++++++++++++++++++-
+ 4 files changed, 209 insertions(+), 3 deletions(-)
+total changed lines: 212 (+209/-3), limit 250
+
+gofmt -l on changed Go files (local go1.24.7):
+(empty = formatted)
+
+[exit code 0]

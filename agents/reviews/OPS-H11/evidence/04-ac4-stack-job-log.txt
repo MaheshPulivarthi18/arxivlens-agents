@@ -1,0 +1,32 @@
+$ grep HEAD/status/DLQ/pytest/summary/UserWarning lines of gh api .../actions/jobs/134069235738/logs
+2026-11-17T13:22:05.4564651Z HEAD is now at 851607b Merge 2039650814ad3724953d58496cfb52cafebfd38c into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T13:22:19.7022223Z Status: Downloaded newer image for rhysd/actionlint:1.7.7
+2026-11-17T13:30:02.4137362Z Paper ID:       2611.21602 (v1)
+2026-11-17T13:30:02.4139939Z Status:         embedded
+2026-11-17T13:30:02.4141076Z PDF Storage Key:raw/2611.21602_v1.pdf
+2026-11-17T13:30:02.4141805Z SHA256:         cf1615370ea4fd2d4dcd3c47894b1514237869934e828c2d3e002daafb1cc3c1
+2026-11-17T13:30:02.4142546Z Updated At:     2026-11-17T13:28:32Z
+2026-11-17T13:30:02.4262616Z Paper ID:       2611.21608 (v1)
+2026-11-17T13:30:02.4269853Z Status:         embedded
+2026-11-17T13:30:02.4273813Z PDF Storage Key:raw/2611.21608_v1.pdf
+2026-11-17T13:30:02.4277364Z SHA256:         a23d2413843e7d8ccd07f1569e61d415c4ffed130d2ee28e82f0d90a55bd5a86
+2026-11-17T13:30:02.4280710Z Updated At:     2026-11-17T13:28:04Z
+2026-11-17T13:30:03.4361032Z === DLQ Topic: papers.discovered.dlq (Total: 0) ===
+2026-11-17T13:30:05.8400548Z === DLQ Topic: papers.downloaded.dlq (Total: 0) ===
+2026-11-17T13:30:08.2385952Z === DLQ Topic: papers.chunked.dlq (Total: 0) ===
+2026-11-17T13:31:17.2581980Z Paper ID:       2608.20331 (v1)
+2026-11-17T13:31:17.2583720Z Status:         embedded
+2026-11-17T13:31:17.2584693Z PDF Storage Key:raw/2608.20331_v1.pdf
+2026-11-17T13:31:17.2585498Z SHA256:         a91e11c0df97c24fe5a7553cc993cc463a958862bc3fbf8b864a7ef9ae352075
+2026-11-17T13:31:17.2586183Z Updated At:     2026-11-17T13:30:16Z
+2026-11-17T13:31:17.2914486Z python3 -m pytest -q tests/ --deselect tests/test_m3_query.py::test_rag_ask_with_groundedness_support
+2026-11-17T13:31:23.4442736Z ........................................................................ [ 30%]
+2026-11-17T13:31:23.5205649Z ............s........................................................... [ 61%]
+2026-11-17T13:32:10.7626513Z ........................................................................ [ 91%]
+2026-11-17T13:32:12.1005621Z ...................                                                      [100%]
+2026-11-17T13:32:12.1040022Z 234 passed, 1 skipped, 3 deselected, 5 warnings in 54.21s
+-- UserWarning lines in the warnings summary (the new test's skip path would add one):
+2026-11-17T13:32:12.1022743Z   /home/runner/work/ArxivLens/ArxivLens/tests/test_m0.py:376: UserWarning: AI-9 parity query=0 max_abs_diff=2.1
+2026-11-17T13:32:12.1029036Z   /home/runner/work/ArxivLens/ArxivLens/tests/test_m0.py:376: UserWarning: AI-9 parity query=1 max_abs_diff=2.9
+2026-11-17T13:32:12.1035382Z   /home/runner/work/ArxivLens/ArxivLens/tests/test_m0.py:376: UserWarning: AI-9 parity query=2 max_abs_diff=6.4
+

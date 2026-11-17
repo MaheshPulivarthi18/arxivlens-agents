@@ -1,0 +1,30 @@
+$ grep HEAD/make/ok/passed/Ownership lines of gh api .../actions/jobs/{134069236011,134069236552,134069236545}/logs
+== Go (vet, gofmt, test, build) job 134069236011
+2026-11-17T13:22:05.4790282Z HEAD is now at 851607b Merge 2039650814ad3724953d58496cfb52cafebfd38c into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T13:22:19.6597906Z ##[group]Run make lint-go
+2026-11-17T13:22:19.6900516Z go vet ./...
+2026-11-17T13:22:20.8480089Z ##[group]Run make test-go
+2026-11-17T13:22:26.4609019Z ok  	arxivlens/internal/arxiv	1.549s
+2026-11-17T13:22:26.4617210Z ok  	arxivlens/internal/config	0.005s
+2026-11-17T13:22:26.4618192Z ok  	arxivlens/internal/crawler	0.008s
+2026-11-17T13:22:26.4618746Z ok  	arxivlens/internal/db	0.005s
+2026-11-17T13:22:26.4619152Z ok  	arxivlens/internal/dlq	0.004s
+2026-11-17T13:22:26.4619517Z ok  	arxivlens/internal/downloader	0.106s
+2026-11-17T13:22:26.4619899Z ok  	arxivlens/internal/kafka	0.031s
+2026-11-17T13:22:26.4620129Z ok  	arxivlens/internal/llm	0.745s
+2026-11-17T13:22:26.4620367Z ok  	arxivlens/internal/llm/llmtest	0.106s
+2026-11-17T13:22:26.6320322Z ok  	arxivlens/internal/query	0.319s
+2026-11-17T13:22:45.7806030Z ok  	arxivlens/internal/kafka	1.046s	coverage: 62.9% of statements
+2026-11-17T13:22:51.2682296Z ok  	arxivlens/internal/llm	1.882s	coverage: 96.6% of statements
+2026-11-17T13:22:51.2688463Z ok  	arxivlens/internal/llm/llmtest	1.116s	coverage: 100.0% of statements
+2026-11-17T13:22:51.4056939Z ##[group]Run make build-go
+
+== Python M0 unit tests job 134069236552 (make test-py)
+2026-11-17T13:22:04.7377039Z HEAD is now at 851607b Merge 2039650814ad3724953d58496cfb52cafebfd38c into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T13:23:05.5507097Z 182 passed, 3 skipped, 3 warnings in 10.34s
+2026-11-17T13:23:06.9975442Z ============================== 37 passed in 0.22s ==============================
+
+== Agent ownership check job 134069236545
+2026-11-17T13:22:04.4976441Z HEAD is now at 851607b Merge 2039650814ad3724953d58496cfb52cafebfd38c into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T13:22:04.5774017Z Ownership OK for role=backend (212 changed lines)
+

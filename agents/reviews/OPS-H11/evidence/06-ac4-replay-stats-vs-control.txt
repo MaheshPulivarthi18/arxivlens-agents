@@ -1,0 +1,15 @@
+$ grep HEAD/summary/'arXiv replay' in job logs 134069235738 (PR) and 134070279424 (control); git grep -c test defs
+== PR #55 stack job 134069235738
+2026-11-17T13:22:05.4564651Z HEAD is now at 851607b Merge 2039650814ad3724953d58496cfb52cafebfd38c into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T13:32:12.1040022Z 234 passed, 1 skipped, 3 deselected, 5 warnings in 54.21s
+2026-11-17T13:32:34.5915825Z arXiv replay: {"hits": 5, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+
+== control: PR #54 stack job 134070279424 (same base main 40dec5a, without the OPS-H11 test)
+2026-11-17T13:23:54.6915562Z HEAD is now at 6023475 Merge a0a2ced62c406059b7287ef9d03ce6e27f43a288 into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T13:35:31.5662376Z 233 passed, 1 skipped, 3 deselected, 5 warnings in 74.71s (0:01:14)
+2026-11-17T13:36:01.6018810Z arXiv replay: {"hits": 5, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+
+== test_m4_chaos.py ids present in each tree
+PR head: 2039650:tests/test_m4_chaos.py:3
+main:    origin/main:tests/test_m4_chaos.py:2
+

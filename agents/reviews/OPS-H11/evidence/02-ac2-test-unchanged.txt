@@ -1,0 +1,41 @@
+$ bash -c f() { sed -n '/^func TestHandleRecordFetchesTheEnvelopesVersion/,/^}/p'; }; git show origin/main:internal/downloader/downloader_test.go | f > /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/a.go; git show HEAD:internal/downloader/downloader_test.go | f > /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/b.go; wc -l < /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/a.go | sed 's/^/lines in function at main: /'; diff /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/a.go /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/b.go && echo 'IDENTICAL: function body unchanged'; echo; echo 'Fake changes (zero values keep the old behaviour):'; git diff origin/main...HEAD -- internal/downloader/downloader_test.go | sed -n '/^@@ -70/,/^@@ -119/p'
+lines in function at main: 24
+IDENTICAL: function body unchanged
+
+Fake changes (zero values keep the old behaviour):
+@@ -70,15 +76,30 @@ type downloadFakes struct {
+ 	urls, puts, dbKeys []string
+ 	dbVersions         []int
+ 	published          []events.EventEnvelope
++	// stored is the object already in MinIO (nil: none); status/sha/statusErr answer PaperVersionStatus,
++	// whose requested versions land in lookups.
++	stored      []byte
++	status, sha string
++	statusErr   error
++	lookups     []int
+ }
+ 
+ func (f *downloadFakes) RoundTrip(r *http.Request) (*http.Response, error) {
+ 	f.urls = append(f.urls, r.URL.String())
+ 	return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader("%PDF-1.4")), Request: r}, nil
+ }
+-func (f *downloadFakes) ObjectExists(context.Context, string) (bool, error) { return false, nil }
++func (f *downloadFakes) ObjectExists(context.Context, string) (bool, error) {
++	return f.stored != nil, nil
++}
+ func (f *downloadFakes) DownloadPDF(context.Context, string) (io.ReadCloser, error) {
+-	return nil, io.EOF
++	if f.stored == nil {
++		return nil, io.EOF
++	}
++	return io.NopCloser(bytes.NewReader(f.stored)), nil
++}
++func (f *downloadFakes) PaperVersionStatus(_ context.Context, _ string, version int) (string, string, error) {
++	f.lookups = append(f.lookups, version)
++	return f.status, f.sha, f.statusErr
+ }
+ func (f *downloadFakes) UploadPDF(_ context.Context, key string, _ io.Reader, _ int64) error {
+ 	f.puts = append(f.puts, key)
+@@ -119,3 +140,70 @@ func TestHandleRecordFetchesTheEnvelopesVersion(t *testing.T) {
+
+[exit code 0]

@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/2039650814ad3724953d58496cfb52cafebfd38c/check-runs --jq .check_runs[] | "\(.id) \(.name): \(.status)/\(.conclusion) head=\(.head_sha[0:7])"
+134069236552 Python M0 unit tests: completed/success head=2039650
+134069236545 Agent ownership check: completed/success head=2039650
+134069236412 Frontend (lint, test, build): completed/success head=2039650
+134069236198 DB (migrate twice, HNSW plan + recall): completed/success head=2039650
+134069236011 Go (vet, gofmt, test, build): completed/success head=2039650
+134069235738 Full stack (compose + make test-full): completed/success head=2039650
+
+[exit code 0]

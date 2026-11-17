@@ -1,0 +1,223 @@
+$ bash -c for f in mkscratch.sh db_scratch_test.go mutate.py collect_map.py; do echo "===== $f"; cat /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/tools/$f; done
+===== mkscratch.sh
+#!/usr/bin/env bash
+# mkscratch.sh <app-tree> <out-dir> [downloader.go override]
+# Scratch Go module (local go1.24, no network) with the REAL sources of internal/downloader (+ test),
+# internal/arxiv and shared/events from <app-tree>; the real PaperVersionStatus/UpdatePaperDownloaded
+# bodies extracted verbatim from internal/db/db.go; stubs only for pgx/pgxpool, kgo, ulid, kafka, storage.
+set -euo pipefail
+src=$1; out=$2; dl=${3:-$src/internal/downloader/downloader.go}
+mkdir -p "$out"/{internal/downloader,internal/arxiv,internal/db,internal/kafka,internal/storage,shared/events,stub/pgx/pgxpool,stub/kgo/pkg/kgo,stub/ulid}
+cp "$dl" "$out/internal/downloader/downloader.go"
+cp "$src/internal/downloader/downloader_test.go" "$out/internal/downloader/"
+cp "$src"/internal/arxiv/*.go "$out/internal/arxiv/"
+cp "$src"/shared/events/events.go "$out/shared/events/"
+cat > "$out/go.mod" <<'M'
+module arxivlens
+go 1.24
+require (
+	github.com/jackc/pgx/v5 v5.0.0
+	github.com/twmb/franz-go v1.0.0
+	github.com/oklog/ulid/v2 v2.0.0
+)
+replace github.com/jackc/pgx/v5 => ./stub/pgx
+replace github.com/twmb/franz-go => ./stub/kgo
+replace github.com/oklog/ulid/v2 => ./stub/ulid
+M
+printf 'module github.com/jackc/pgx/v5\ngo 1.24\n' > "$out/stub/pgx/go.mod"
+printf 'module github.com/twmb/franz-go\ngo 1.24\n' > "$out/stub/kgo/go.mod"
+printf 'module github.com/oklog/ulid/v2\ngo 1.24\n' > "$out/stub/ulid/go.mod"
+cat > "$out/stub/pgx/pgx.go" <<'G'
+package pgx
+import "errors"
+var ErrNoRows = errors.New("no rows in result set")
+type Tx interface{}
+G
+cat > "$out/stub/pgx/pgxpool/pool.go" <<'G'
+package pgxpool
+import "context"
+type Row interface{ Scan(dest ...any) error }
+type Tag int64
+func (t Tag) RowsAffected() int64 { return int64(t) }
+// Pool: test hooks. LastSQL/LastArgs record the query.
+type Pool struct {
+	Row      func(dest ...any) error
+	Affected int64
+	LastSQL  string
+	LastArgs []any
+}
+type rowFn func(dest ...any) error
+func (f rowFn) Scan(dest ...any) error { return f(dest...) }
+func (p *Pool) QueryRow(_ context.Context, sql string, args ...any) Row { p.LastSQL, p.LastArgs = sql, args; return rowFn(p.Row) }
+func (p *Pool) Exec(_ context.Context, sql string, args ...any) (Tag, error) { p.LastSQL, p.LastArgs = sql, args; return Tag(p.Affected), nil }
+G
+cat > "$out/stub/kgo/pkg/kgo/kgo.go" <<'G'
+package kgo
+type Record struct{ Key, Value []byte; Topic string; Partition int32; Offset int64 }
+G
+cat > "$out/stub/ulid/ulid.go" <<'G'
+package ulid
+import ("fmt"; "io"; "sync/atomic")
+type ULID struct{ n uint64 }
+var ctr atomic.Uint64
+func Monotonic(io.Reader, uint64) io.Reader { return nil }
+func Timestamp(interface{ UnixMilli() int64 }) uint64 { return 0 }
+func MustNew(uint64, io.Reader) ULID { return ULID{ctr.Add(1)} }
+func (u ULID) String() string { return fmt.Sprintf("01STUB%020d", u.n) }
+G
+cat > "$out/internal/kafka/kafka.go" <<'G'
+package kafka
+import ("context"; "arxivlens/shared/events")
+type Producer struct{}
+func (p *Producer) Publish(context.Context, string, events.EventEnvelope) error { return nil }
+G
+cat > "$out/internal/storage/storage.go" <<'G'
+package storage
+import ("context"; "io")
+type Storage struct{ Bucket string }
+func (s *Storage) UploadPDF(context.Context, string, io.Reader, int64) error { return nil }
+func (s *Storage) DownloadPDF(context.Context, string) (io.ReadCloser, error) { return nil, io.EOF }
+func (s *Storage) ObjectExists(context.Context, string) (bool, error) { return false, nil }
+G
+# db: header + the two real method bodies, extracted verbatim from the PR's db.go
+{
+cat <<'G'
+package db
+import ("context"; "errors"; "fmt"; "github.com/jackc/pgx/v5"; "github.com/jackc/pgx/v5/pgxpool")
+var _ = errors.Is
+type DB struct{ Pool *pgxpool.Pool }
+G
+awk '/^func \(d \*DB\) (UpdatePaperDownloaded|PaperVersionStatus)\(/{p=1} p{print} p&&/^}/{p=0; print ""}' "$src/internal/db/db.go"
+grep -q 'func (d \*DB) PaperVersionStatus' "$src/internal/db/db.go" || echo 'var _ = pgx.ErrNoRows'
+} > "$out/internal/db/db.go"
+===== db_scratch_test.go
+package db
+
+// QA-only scratch test of the real PaperVersionStatus body (pgx pool stubbed): row, NULL->'' via COALESCE text,
+// no row -> ("","",nil), other error -> wrapped error; and the query text/args.
+import (
+	"context"
+	"errors"
+	"strings"
+	"testing"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+func TestPaperVersionStatusQA(t *testing.T) {
+	boom := errors.New("conn reset")
+	cases := []struct {
+		name               string
+		row                func(dest ...any) error
+		wantS, wantH       string
+		wantErr            bool
+	}{
+		{"row", func(d ...any) error { *d[0].(*string), *d[1].(*string) = "embedded", "abc"; return nil }, "embedded", "abc", false},
+		{"no row", func(...any) error { return pgx.ErrNoRows }, "", "", false},
+		{"wrapped no row", func(...any) error { return errors.Join(pgx.ErrNoRows) }, "", "", false},
+		{"other error", func(...any) error { return boom }, "", "", true},
+	}
+	for _, c := range cases {
+		p := &pgxpool.Pool{Row: c.row}
+		s, h, err := (&DB{Pool: p}).PaperVersionStatus(context.Background(), "2307.08691", 2)
+		if s != c.wantS || h != c.wantH || (err != nil) != c.wantErr || (c.wantErr && !errors.Is(err, boom)) {
+			t.Errorf("%s: got (%q,%q,%v)", c.name, s, h, err)
+		}
+		q := strings.Join(strings.Fields(p.LastSQL), " ")
+		if q != "SELECT status, COALESCE(sha256, '') FROM papers WHERE arxiv_id = $1 AND version = $2" || len(p.LastArgs) != 2 || p.LastArgs[0] != "2307.08691" || p.LastArgs[1] != 2 {
+			t.Errorf("%s: query %q args %v", c.name, q, p.LastArgs)
+		}
+	}
+}
+===== mutate.py
+"""Run single-edit mutants of internal/downloader/downloader.go against the PR's tests in the scratch module.
+Each mutant: full package run AND -run '^TestHandleRecordSkipsAlreadyEmbedded$'. Build failure = INVALID (never KILLED)."""
+import subprocess, sys, os, tempfile, re
+S, APP, BASE_DL = sys.argv[1], sys.argv[2], sys.argv[3]
+src = open(os.path.join(APP, "internal/downloader/downloader.go")).read()
+G = 'status == "embedded" && storedSHA != "" && storedSHA == sha256Hex'
+M = [
+ ("AC3-i   drop the sha comparison", G, 'status == "embedded" && (storedSHA != "" && storedSHA == sha256Hex || true)'),
+ ("AC3-ii  drop the embedded check", G, '(status == "embedded" || true) && storedSHA != "" && storedSHA == sha256Hex'),
+ ("AC3-iii return the lookup error", 'log.Printf("[Downloader] Warning reading status of %s v%d: %v; reprocessing", arxivID, version, lerr)', 'return lerr'),
+ ("x1 drop only storedSHA == sha256Hex", G, 'status == "embedded" && storedSHA != "" && (storedSHA == sha256Hex || true)'),
+ ("x2 drop only storedSHA != \"\" (expected equivalent)", G, 'status == "embedded" && (storedSHA != "" || true) && storedSHA == sha256Hex'),
+ ("x3 status != \"\" instead of == embedded", G, 'status != "" && storedSHA != "" && storedSHA == sha256Hex'),
+ ("x4 guard outside the MinIO branch", 'if len(pdfBytes) > 0 {\n\t\tstatus, storedSHA', 'if true {\n\t\tstatus, storedSHA'),
+ ("x5 lookup with raw envelope.Version", 'PaperVersionStatus(ctx, arxivID, version)', 'PaperVersionStatus(ctx, arxivID, envelope.Version)'),
+ ("x6 no return after skip log", 'skipping re-publish (event_id=%s)", arxivID, version, envelope.EventID)\n\t\t\treturn nil', 'skipping re-publish (event_id=%s)", arxivID, version, envelope.EventID)'),
+ ("x7 lookup error not logged", 'log.Printf("[Downloader] Warning reading status of %s v%d: %v; reprocessing", arxivID, version, lerr)', '_ = lerr'),
+ ("x8 skip on lookup error", 'log.Printf("[Downloader] Warning reading status of %s v%d: %v; reprocessing", arxivID, version, lerr)', 'return nil'),
+ ("x9 compare sha case-insensitively", 'storedSHA == sha256Hex', 'strings.EqualFold(storedSHA, sha256Hex)'),
+]
+def run(dl_text, label):
+    d = tempfile.mkdtemp(prefix="mut.", dir=S)
+    p = os.path.join(d, "downloader.go"); open(p, "w").write(dl_text)
+    subprocess.run([os.path.join(S, "tools/mkscratch.sh"), APP, os.path.join(d, "m"), p], check=True)
+    env = dict(os.environ, GOTOOLCHAIN="local", GOFLAGS="-mod=mod", GOPROXY="off", GOSUMDB="off")
+    cwd = os.path.join(d, "m")
+    b = subprocess.run(["go", "vet", "./internal/downloader/"], cwd=cwd, env=env, capture_output=True, text=True)
+    if b.returncode != 0:
+        return "INVALID (does not build: %s)" % b.stderr.strip().splitlines()[-1], ""
+    out = []
+    for args in (["./internal/downloader/"], ["-run", "^TestHandleRecordSkipsAlreadyEmbedded$", "./internal/downloader/"]):
+        r = subprocess.run(["go", "test", "-count=1", *args], cwd=cwd, env=env, capture_output=True, text=True)
+        rows = sorted(set(re.findall(r"--- FAIL: TestHandleRecordSkipsAlreadyEmbedded/(\w)_", r.stdout)))
+        other = sorted(set(re.findall(r"--- FAIL: (Test\w+)", r.stdout)) - {"TestHandleRecordSkipsAlreadyEmbedded"})
+        out.append(("FAIL" if r.returncode else "pass") + (" rows=" + ",".join(rows) if rows else "") + (" also=" + ",".join(other) if other else ""))
+    killed = all(o.startswith("FAIL") for o in out)
+    return ("KILLED" if killed else "SURVIVED"), " | full: %s | -run: %s" % tuple(out)
+res = []
+v, det = run(open(BASE_DL).read(), "control")
+res.append("control: main's downloader.go (pre-fix) + PR tests -> %s%s" % ("FAILS (tests detect the missing guard)" if v == "KILLED" else v, det))
+v, det = run(src, "head")
+res.append("control: PR head unmodified -> %s%s" % ("passes" if v == "SURVIVED" else v, det))
+for name, a, b in M:
+    n = src.count(a)
+    if n != 1:
+        res.append(f"{name}: SETUP ERROR (pattern found {n}x)"); continue
+    if "strings.EqualFold" in b and '"strings"' not in src:
+        mt = src.replace(a, b).replace('import (\n', 'import (\n\t"strings"\n', 1)
+    else:
+        mt = src.replace(a, b)
+    v, det = run(mt, name)
+    res.append(f"{name}: {v}{det}")
+print("\n".join(res))
+===== collect_map.py
+"""Collect the stack.yml pytest ids offline (unimportable third-party modules -> MagicMock modules),
+then map them onto the outcome characters of the CI log's `pytest -q` progress lines."""
+import importlib.abc, importlib.machinery, sys, types, re
+from unittest import mock
+
+SKIP = {"simplejson", "pytest", "_pytest", "py", "pluggy", "iniconfig", "pygments", "colorama", "tomllib", "tomli", "exceptiongroup", "shared", "services", "tests", "conftest", "readline", "_typeshed", "chardet", "brotli", "brotlicffi", "socks", "zstandard", "compression", "h2", "cryptography", "OpenSSL", "certifi", "idna", "urllib3", "charset_normalizer", "jinja2", "markupsafe"}
+class MockLoader(importlib.abc.Loader):
+    def create_module(self, spec):
+        m = mock.MagicMock(name=spec.name); m.__path__ = []; m.__spec__ = spec; m.__name__ = spec.name
+        m.__file__ = "<mock>"; m.__loader__ = self
+        return m
+    def exec_module(self, module): pass
+class MockFinder(importlib.abc.MetaPathFinder):
+    def find_spec(self, name, path, target=None):
+        if name.split(".")[0] in SKIP or name.split(".")[0] in sys.stdlib_module_names: return None
+        return importlib.machinery.ModuleSpec(name, MockLoader(), is_package=True)
+sys.meta_path.append(MockFinder())
+
+import os; sys.path.insert(0, os.getcwd())  # python3 -m pytest puts the repo root on sys.path
+import pytest
+log, args = sys.argv[1], sys.argv[2:]
+class Grab:
+    ids = []
+    def pytest_collection_finish(self, session): self.ids = [i.nodeid for i in session.items]
+g = Grab()
+rc = pytest.main(["--collect-only", "-q", "-p", "no:cacheprovider", *args], plugins=[g])
+chars = ""
+for line in open(log, encoding="utf-8", errors="replace"):
+    m = re.match(r"^\S+Z ([.sFEx]+)\s+\[ *\d+%\]\s*$", line.rstrip("\n"))
+    if m: chars += m.group(1)
+print(f"collect rc={rc}  collected ids={len(g.ids)}  outcome chars in CI log={len(chars)}  counts={ {c: chars.count(c) for c in set(chars)} }")
+for i, (nid, c) in enumerate(zip(g.ids, chars), 1):
+    if c != "." or "test_m4_chaos" in nid:
+        print(f"{i:4d} {c} {nid}")
+
+[exit code 0]

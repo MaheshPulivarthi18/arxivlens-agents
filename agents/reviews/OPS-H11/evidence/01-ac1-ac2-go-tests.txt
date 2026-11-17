@@ -1,0 +1,29 @@
+$ bash -c d=$(mktemp -d /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/ev01.XXXX) && /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/tools/mkscratch.sh /root/wt/qa-OPS-H11 $d && cp /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/tools/db_scratch_test.go $d/internal/db/ && cd $d && export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off GOSUMDB=off && go version && go vet ./... && echo 'go vet: clean' && go test -race -count=1 -v -run 'TestHandleRecord|TestPaperVersionStatus' ./internal/downloader/ ./internal/db/ 2>&1 | grep -E '^(=== RUN|--- |    --- |ok|PASS|FAIL)'
+go version go1.24.7 linux/amd64
+go vet: clean
+=== RUN   TestHandleRecordFetchesTheEnvelopesVersion
+--- PASS: TestHandleRecordFetchesTheEnvelopesVersion (0.00s)
+=== RUN   TestHandleRecordSkipsAlreadyEmbedded
+=== RUN   TestHandleRecordSkipsAlreadyEmbedded/a_embedded_same_sha_(v0_envelope)
+=== RUN   TestHandleRecordSkipsAlreadyEmbedded/b_embedded_other_sha
+=== RUN   TestHandleRecordSkipsAlreadyEmbedded/c_embedded_empty_sha
+=== RUN   TestHandleRecordSkipsAlreadyEmbedded/d_chunked_same_sha
+=== RUN   TestHandleRecordSkipsAlreadyEmbedded/e_no_row
+=== RUN   TestHandleRecordSkipsAlreadyEmbedded/f_lookup_error
+=== RUN   TestHandleRecordSkipsAlreadyEmbedded/g_not_in_storage
+--- PASS: TestHandleRecordSkipsAlreadyEmbedded (0.00s)
+    --- PASS: TestHandleRecordSkipsAlreadyEmbedded/a_embedded_same_sha_(v0_envelope) (0.00s)
+    --- PASS: TestHandleRecordSkipsAlreadyEmbedded/b_embedded_other_sha (0.00s)
+    --- PASS: TestHandleRecordSkipsAlreadyEmbedded/c_embedded_empty_sha (0.00s)
+    --- PASS: TestHandleRecordSkipsAlreadyEmbedded/d_chunked_same_sha (0.00s)
+    --- PASS: TestHandleRecordSkipsAlreadyEmbedded/e_no_row (0.00s)
+    --- PASS: TestHandleRecordSkipsAlreadyEmbedded/f_lookup_error (0.00s)
+    --- PASS: TestHandleRecordSkipsAlreadyEmbedded/g_not_in_storage (0.00s)
+PASS
+ok  	arxivlens/internal/downloader	1.024s
+=== RUN   TestPaperVersionStatusQA
+--- PASS: TestPaperVersionStatusQA (0.00s)
+PASS
+ok  	arxivlens/internal/db	1.013s
+
+[exit code 0]

@@ -1,0 +1,17 @@
+$ bash -c git show origin/main:internal/downloader/downloader.go > /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/base_downloader.go && python3 -I /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/tools/mutate.py /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad /root/wt/qa-OPS-H11 /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/base_downloader.go
+control: main's downloader.go (pre-fix) + PR tests -> FAILS (tests detect the missing guard) | full: FAIL rows=a,b,c,d,e,f | -run: FAIL rows=a,b,c,d,e,f
+control: PR head unmodified -> passes | full: pass | -run: pass
+AC3-i   drop the sha comparison: KILLED | full: FAIL rows=b,c | -run: FAIL rows=b,c
+AC3-ii  drop the embedded check: KILLED | full: FAIL rows=d | -run: FAIL rows=d
+AC3-iii return the lookup error: KILLED | full: FAIL rows=f | -run: FAIL rows=f
+x1 drop only storedSHA == sha256Hex: KILLED | full: FAIL rows=b | -run: FAIL rows=b
+x2 drop only storedSHA != "" (expected equivalent): SURVIVED | full: pass | -run: pass
+x3 status != "" instead of == embedded: KILLED | full: FAIL rows=d | -run: FAIL rows=d
+x4 guard outside the MinIO branch: KILLED | full: FAIL rows=g | -run: FAIL rows=g
+x5 lookup with raw envelope.Version: KILLED | full: FAIL rows=a | -run: FAIL rows=a
+x6 no return after skip log: KILLED | full: FAIL rows=a | -run: FAIL rows=a
+x7 lookup error not logged: KILLED | full: FAIL rows=f | -run: FAIL rows=f
+x8 skip on lookup error: KILLED | full: FAIL rows=f | -run: FAIL rows=f
+x9 compare sha case-insensitively: SURVIVED | full: pass | -run: pass
+
+[exit code 0]

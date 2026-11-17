@@ -1,0 +1,14 @@
+$ bash -c python3 -I /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/tools/collect_map.py /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/progress.log tests/ --deselect tests/test_m3_query.py::test_rag_ask_with_groundedness_support --deselect tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query --deselect tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank 2>&1 | grep -v '^tests/'; echo; echo 'skip marker of id 85:'; grep -n -A1 'skipif(not os.getenv("DATABASE_URL")' tests/test_evals_data.py
+
+235/238 tests collected (3 deselected) in 0.23s
+collect rc=0  collected ids=235  outcome chars in CI log=235  counts={'s': 1, '.': 234}
+  85 s tests/test_evals_data.py::test_chunk_counts_sql_against_real_postgres
+ 198 . tests/test_m4_chaos.py::test_idempotency_duplicate_event_row_invariance
+ 199 . tests/test_m4_chaos.py::test_corrupt_pdf_dlq_routing_and_diagnostic_payload
+ 200 . tests/test_m4_chaos.py::test_redelivered_discovered_keeps_embedded_status
+
+skip marker of id 85:
+778:@pytest.mark.skipif(not os.getenv("DATABASE_URL"), reason="opt-in: needs DATABASE_URL with migrations/ applied")
+779-def test_chunk_counts_sql_against_real_postgres():
+
+[exit code 0]
