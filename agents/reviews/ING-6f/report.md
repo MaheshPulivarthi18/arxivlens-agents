@@ -112,3 +112,49 @@ QA harness for this round: [r2-04](https://github.com/MaheshPulivarthi18/arxivle
 
 ### Hand-off
 PASS → pm-lead final review. Risk 1 verdict `RISK1 ORDER descending` (job 134275963367) stands as recorded in the ticket Notes.
+
+## PM final review (pm-lead)
+
+**Verdict:** APPROVE
+**Reviewed commit:** `61e44e191d5ec05c8cf38026fb38c9b11c5dc291` (PR #58, draft, no human review or untagged comment) · **Date:** 2026-11-17
+**Inputs checked:** ticket `agents/tasks/ING-6f.md`; Product PRD ING-6; Technical PRD §11 "Scheduled crawler" and §9 (external politeness:
+≤ 1 arXiv request / 3 s, identifying User-Agent); design `docs/design/ING-6.md` "Risks and rollout" (arXiv sort semantics = Risk 1) and PM
+condition 3; the diff (`pulls/58/files`: `.github/workflows/stack.yml` +35/-0); check runs on the head (6/6 `completed success`); QA r1 + r2.
+I opened all 17 evidence images and their `.txt` (r1 `00`–`10` @ `27b6692`, r2 `r2-00`–`r2-04` @ `e352052`).
+
+### Per AC
+| AC | PM check | Evidence |
+|---|---|---|
+| AC1 | Met. Step by its exact name, `success`, REST job log has 1 `query=` (cs.LG), 2 `entry`, 1 `ORDER` line, 0 `none`; the PR body's block is byte-identical to the log | 01, r2-01 |
+| AC2 | Met. The four AC stores give the specified verdicts, all exit 0 (as `python3 -I` and as the full `run:` block under `bash -eo pipefail`); 8 extra edge stores; fail-safe on crash/SIGKILL; store unchanged; runs with no network; 6/8 verdict mutants killed, the 2 survivors can't arise in a 2-entry feed. PR body's outputs reproduce exactly | 02, 02b, 03, 04, r2-02 |
+| AC3 | Met against the amended wording (same-base PR controls, since `stack.yml` has 0 runs on `main`). Every other step matches ING-6a1's cache-miss run; actionlint 0 error lines | 05, 06, r2-03 |
+| AC4 | Met. 1 file, 35 lines, ownership OK, step placed between `Save arXiv replay store` and `Start the arXiv replay proxy (replay-only)` | 07 |
+| AC5 | Met. Verdict line, both `published` values and the ING-6b meaning line are in the body | r2-03 (08 = the r1 gap it closes) |
+
+No "⚠ unverified" remains on any AC. `make test-unit`/`make lint`: CI green (workflow-only diff). `make eval`: n/a (no retrieval change).
+
+### Product fit and scope
+- Delivers exactly what design Risk 1 / PM condition 3 asked for before ING-6b: the real arXiv `sortBy=submittedDate&sortOrder=descending`
+  first page for `cat:cs.LG`, read from the job log by agents, with a verdict. Probe only, no gate, no arXiv request of its own (§9).
+- Scope: one file. `if: !cancelled()` and `timeout-minutes: 1` go beyond the spec but serve it (prints after an incomplete prefetch; bounds the
+  step). Header comment line present. No README/CONTRIBUTING/PRD status change is due: no user-facing behaviour changes, ING-6 stays ⏳.
+
+### Risk 1 decision (for ING-6b)
+`RISK1 ORDER descending`: `2611.21608v1` `2026-11-16T18:59:38Z` ≥ `2611.21602v1` `2026-11-16T18:58:55Z` (job 134275963367, run 44150168163).
+This run missed the branch-scoped cache (`Save arXiv replay store` ran, evidence 05), so the feed was recorded live on this branch: it counts
+as both "the recorded CI feed" and "one live sample" in the design's Risk 1 sentence. **Risk 1 is cleared for this 2-entry sample and satisfies
+ING-6b's ING-6f precondition**; ongoing detection is ING-6c's `out_of_order`. ING-6b stays Blocked only on #56 + #57 merged (ticket updated).
+
+### QA findings, disposition
+1. r1 finding 1 [blocking]: resolved in r2 (PR body).
+2. Nit 2 (`timeout-minutes: 1` without `continue-on-error: true`): **folded into OPS-H12** (same file) as Scope bullet + AC6; OPS-H12 now
+   depends on #58 merged.
+3. Nit 3 (lexical `published` compare): accepted, no follow-up. arXiv emits fixed-width UTC `YYYY-MM-DDTHH:MM:SSZ`; the probe is
+   informational, and ING-6c's ongoing check is Go code on parsed times.
+4. [spec] r1-4 / r2-4 (AC3 "latest `main` run"): ticket AC3 amended to same-base PR controls.
+5. [spec] r1-5 ("fixed until the cache key changes"): ticket Note corrected (cache is per branch; each new PR branch's first run re-records
+   ~5 requests live). §9 is met on every recording run (`scripts/arxiv_replay.py`: `INTERVAL = 3.0`, identifying User-Agent), so this is a
+   reproducibility/volume improvement, not a §9 violation: recorded as Backlog candidate **OPS-H13** (main-scoped replay cache seed) in
+   PROGRESS for the orchestrator, not specced this cycle.
+
+PR #58 raised: description rewritten with the Evidence section (images pinned to `27b6692` / `e352052`), CI, QA + PM verdicts; ready for review.

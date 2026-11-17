@@ -548,3 +548,12 @@ Format:
 - PR #56: description rewritten (Evidence pinned to `57f679e`/`183f7d9`/`4894a2e`/`12b2bae`, CI, QA + PM verdicts, the AC10 `published` values, Risk 1 → ING-6f), then raised. ING-6a is Done only when #56 and #57 both merge.
 - Raised: `draft=false` verified, label `ready-to-merge` added. The outbound filter rewrote the PATCHed body again: all 8 image embeds and 16 links lost `!` or were wrapped in backticks, and the 🤖 line was replaced by the footer (lesson OPS-H8, 7×). Not worked around; the pinned evidence pack is the record.
 - Board/Jira not edited (orchestrator): ING-6a2 → Ready to merge.
+
+## 2026-11-17 pm-lead: ING-6f (#58) final review
+- **APPROVE** at `61e44e1` (QA r1 FAIL on the PR body only → r2 PASS, same head; 6/6 CI green). I checked all 17 evidence files. Verdict: [report](reviews/ING-6f/report.md), "PM final review".
+- **Risk 1:** `RISK1 ORDER descending` (`2026-11-16T18:59:38Z` ≥ `2026-11-16T18:58:55Z`, job 134275963367) satisfies ING-6b's ING-6f precondition. ING-6b's blocker text now reads: #56 + #57 merged only.
+- [spec] fixes in `agents/tasks/ING-6f.md`: AC3 now compares against same-base PR controls (`stack.yml` has 0 runs on `main`); the "fixed until the cache key changes" Note is corrected (the replay cache is per branch).
+- QA nit 2 (`continue-on-error: true` on the probe) is folded into **OPS-H12** (Scope + AC6). OPS-H12 is now `Blocked (needs ING-6f #58 merged)`. Nit 3 (lexical compare) is accepted with no follow-up.
+- **Backlog candidate (orchestrator: add a Backlog line, not specced): OPS-H13** (backend, P2, `stack.yml`): seed a main-scoped arXiv replay cache, e.g. `workflow_dispatch` on `main` saving the store under a key PR branches restore. That way every PR replays one fixed recording instead of re-recording about 5 live requests on each new branch's first run. It should also fix the header claim "0 arXiv requests per run once recorded". It isn't a §9 violation (the replay script is ≥ 3 s apart with an identifying User-Agent), so it's P2.
+- PR #58: description rewritten (Evidence pinned to `27b6692`/`e352052`), raised (`draft=false`), label `ready-to-merge`.
+- Board/Jira not edited (orchestrator): ING-6f → Ready to merge; OPS-H12 → Blocked (needs #58 merged); ING-6b blocker text.

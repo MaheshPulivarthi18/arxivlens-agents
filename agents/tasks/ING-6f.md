@@ -8,7 +8,7 @@
 | **Depends on** | none to build. Independence (checked 2026-11-17): no open PR touches `.github/workflows/stack.yml` (#51–#57: docs/evals, `db.yml`, `ci.yml`/Makefile, `rag.go`, `internal/db`/`internal/downloader`, `internal/crawler/loop*.go`, `migrations/000005_*`). **Not in parallel with OPS-H12** (same file): ING-6f goes first (P1); OPS-H12 starts after this PR merges or rebases on it |
 | **Jira** | not created yet (orchestrator: story under KAN-18's epic, `labels = "task-ING-6f"`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: CI-only, ~25 lines, no CLI/table/service/contract change, informational (not a gate) |
-| **Status** | Ready (specced 2026-11-17 by pm-lead) |
+| **Status** | Ready to merge (PR #58 raised 2026-11-17 at `61e44e1`: QA r2 PASS, pm-lead APPROVE). Risk 1 verdict `descending` recorded below |
 
 ## Goal
 Answer ING-6 design Risk 1 from data before ING-6b is built. The only committed feed (`internal/crawler/testdata/arxiv_feed.xml`) is a
@@ -36,19 +36,23 @@ order, with a one-line verdict, into the job log, where QA and pm-lead can read 
   `Makefile` (#53), `eval.yml`, `db.yml`, any Go code, OPS-H12's `-rA` change.
 
 ## Acceptance criteria
-- [ ] AC1 — The PR's own `stack.yml` run (it triggers on `.github/workflows/stack.yml`) contains the step by its exact name, and the job log
+- [x] AC1 — The PR's own `stack.yml` run (it triggers on `.github/workflows/stack.yml`) contains the step by its exact name, and the job log
   has the `RISK1 query=…` line for `cat:cs.LG`, one `RISK1 entry` line per entry, and one `RISK1 ORDER …` line. Evidence: the step's lines
   from `gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/<job id>/logs` (job log, not an artifact or step summary), pasted in the PR
   body and rendered by QA. If the run printed `RISK1 none`, say so and stop (the replay store has no search feed; pm-lead decides).
-- [ ] AC2 — Verdict logic, run locally (no CI needed) on two scratch stores built from `internal/crawler/testdata/arxiv_feed.xml` (body file +
+- [x] AC2 — Verdict logic, run locally (no CI needed) on two scratch stores built from `internal/crawler/testdata/arxiv_feed.xml` (body file +
   `{"query": "search_query=cat%3Acs.LG&sortBy=submittedDate&…"}` meta): the file as committed (ascending, `2023-07-17T17:50:36Z` then
   `2024-01-22T09:00:00Z`) prints `RISK1 ORDER NOT descending (first violation: entry 1 …)`; a copy with the two `<entry>` blocks swapped
   prints `RISK1 ORDER descending`; a store with only a non-`sortBy` meta (`id_list=…`) prints `RISK1 none` and exits 0; a body that isn't
   XML prints a `::warning::` and exits 0. Paste the four outputs and exit codes in the PR (extract the step's script to a scratch file to run it).
-- [ ] AC3 — The job's result isn't changed by the probe: the step exits 0 in the PR run, every other `stack.yml` step's outcome matches the
-  latest `main` run of `stack.yml` (list both runs' step conclusions), and `actionlint` (the existing `Lint the harness` step) passes.
-- [ ] AC4 — `git diff --stat origin/main` lists only `.github/workflows/stack.yml`, < 40 changed lines; `ownership-check.sh` OK for backend.
-- [ ] AC5 — The PR body quotes the verdict line and the `published` values, and says in one line what it means for ING-6b:
+- [x] AC3 — The job's result isn't changed by the probe: the step exits 0 in the PR run, every other `stack.yml` step's outcome matches a
+  same-base control `stack.yml` run of another PR branch (list both runs' step conclusions; a cache-hit control may differ only in
+  `Save arXiv replay store` = skipped), and `actionlint` (the existing `Lint the harness` step) passes.
+  *Amended 2026-11-17 (pm-lead, QA r1 finding 4 / r2 finding 4 [spec]): the original text compared against "the latest `main` run of
+  `stack.yml`", but `stack.yml` triggers only on `pull_request` and `workflow_dispatch`, so it has 0 runs on `main`. QA compared against
+  ING-6a1 run 44143443574 (same cache-miss path) and ING-6a2 run 44144065272 (cache hit).*
+- [x] AC4 — `git diff --stat origin/main` lists only `.github/workflows/stack.yml`, < 40 changed lines; `ownership-check.sh` OK for backend.
+- [x] AC5 — The PR body quotes the verdict line and the `published` values, and says in one line what it means for ING-6b:
   `descending` → Risk 1 cleared for this sample (2 entries; ongoing detection via ING-6c's `out_of_order`); `NOT descending` → "ING-6b stays
   Blocked; pm-lead revisits design §2 rule (a)".
 
@@ -70,9 +74,12 @@ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/<full stack job id>/logs 
   one of 6b's own ACs. It's a different file from 6a/6b (`stack.yml` vs `internal/**`), so it can run now while #56/#57 are in review.
   The answer arrives with the PR's own CI run; **ING-6b needs the result recorded here (verdict `descending`), not this PR merged**, because
   they share no files. pm-lead records the verdict line and run/job IDs in these Notes when QA reports it.
-- The sample is the 2 entries the cache recorded once (fixed until the cache key changes). That's what design Risk 1 asked for; a bigger sample
-  would need new arXiv requests and isn't worth it, because rule (a) already tolerates a few out-of-order entries and ING-6c prints `out_of_order`
-  every pass.
+- ~~The sample is the 2 entries the cache recorded once (fixed until the cache key changes).~~ *Corrected 2026-11-17 (pm-lead, QA r1 finding 5
+  [spec]):* the replay cache is **branch-scoped** and `stack.yml` never runs on `main`, so each new PR branch's first `stack.yml` run misses the
+  cache and records the 2 newest `cat:cs.LG` entries live from arXiv (~5 requests, ≥ 3 s apart, identifying User-Agent). ING-6f's sample is
+  therefore a fresh live response recorded on this branch (its `Save arXiv replay store` step ran, i.e. cache miss; QA evidence 05/09), which is
+  both "the recorded CI feed" and "one live sample" in design Risk 1's sense. A bigger sample would need new arXiv requests and isn't worth it,
+  because rule (a) already tolerates a few out-of-order entries and ING-6c prints `out_of_order` every pass.
 - 2026-11-17 (backend-engineer): built on `agent/backend/ING-6f`, head `61e44e1`; `.github/workflows/stack.yml` only, +35/-0
   (ownership-check: OK, 35 lines). Step `ING-6 Risk 1: published order of recorded search feeds` sits between `Save arXiv replay store`
   and `Start the arXiv replay proxy (replay-only)`, `if: ${{ !cancelled() }}` (prints even after an incomplete prefetch), `timeout-minutes: 1`,
@@ -96,3 +103,9 @@ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/<full stack job id>/logs 
   Nit 2 (`continue-on-error: true`) and nit 3 are listed under "Not verified / risks" as follow-ups. Code was left alone this round to keep the reviewed head.
   Harness quirk: the PR-body PATCH strips the `🤖 Generated with [Claude Code](…)` line and appends `_Generated by [Claude Code](https://claude.ai/code)_`
   (seen on 2 attempts). The session link line survives. That rewrite happens outside the request body we send.
+- 2026-11-17 (pm-lead) final review: **APPROVE** at `61e44e1` (QA r1 FAIL on PR body only → r2 PASS, same head; 6/6 CI green). Verdict in
+  `agents/reviews/ING-6f/report.md` "PM final review". [spec] fixes above (AC3 wording, cache-scope Note). QA nit 2 (`timeout-minutes: 1` without
+  `continue-on-error: true`) folded into **OPS-H12** (same file, starts after #58 merges). Nit 3 (lexical `published` compare): accepted, no
+  follow-up (arXiv always emits fixed-width `YYYY-MM-DDTHH:MM:SSZ`; the probe is informational and ING-6c's Go `out_of_order` uses parsed times).
+  Main-scoped replay cache seed: Backlog candidate **OPS-H13** (PROGRESS 2026-11-17 pm-lead ING-6f entry), not specced now: §9's rate rule is
+  met on every recording run. **Risk 1 verdict `descending` satisfies ING-6b's ING-6f precondition**; ING-6b still waits on #56 + #57 merged.
