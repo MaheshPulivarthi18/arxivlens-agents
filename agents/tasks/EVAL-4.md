@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-3 merged (`122eee3`) **and a completed green run**: nightly `eval.yml` run [43902662193](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/43902662193) on `main` `40dec5a` (2026-11-16, job 133423130747, `GATE: PASS`). EVAL-6 (`1273a3b`) and AI-7 (`8406b18`) are both in that SHA |
 | **Jira** | not created yet (orchestrator: story under epic "Retrieval & answer quality gates", labels `task-EVAL-4`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: docs-only change in `evals/` + one README line |
-| **Status** | **In Progress**: built, branch `agent/ai/EVAL-4` pushed at `d72ed0d`; draft PR to be opened by the orchestrator. **Finding for pm-lead on AC5** (see Notes 2026-11-17 ai-engineer) |
+| **Status** | **Ready to merge**: PR [#51](https://github.com/MaheshPulivarthi18/ArxivLens/pull/51) @ `156c394`, QA PASS r2, PM APPROVE 2026-11-17 ([report](../reviews/EVAL-4/report.md)); raised for Mahesh |
 
 ## Goal
 `evals/BASELINE.md` is the reference every "`make eval` doesn't regress" check compares against, and it still says "not
@@ -32,15 +32,16 @@ sentences that are no longer true.
   reports with no run artifact; at most one sentence linking them, labelled "reported, not re-measured").
 
 ## Acceptance criteria
-- [ ] AC1: Every row of the `BASELINE.md` table has the value from run 43902662193 (run URL + job ID + `main` SHA `40dec5a`). "not run" stays only
+- [x] AC1: Every row of the `BASELINE.md` table has the value from run 43902662193 (run URL + job ID + `main` SHA `40dec5a`). "not run" stays only
   where the gate doesn't measure the metric yet (`/v1/search` p95: EVAL-2, ADR-0012 Proposed), with the reason.
-- [ ] AC2: The numbers match the **job log** of job 133423130747 exactly (the gate table and summary are printed there; agent sandboxes can't
+- [x] AC2: The numbers match the **job log** of job 133423130747 exactly (the gate table and summary are printed there; agent sandboxes can't
   download the artifact, lesson 2026-11-08 AI-9). QA diffs `BASELINE.md` against `gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/133423130747/logs`.
-- [ ] AC3: The profile is recorded with the sentence that it is the **CPU-only** profile, so `/v1/ask` p95 (13330 ms) is informational
+- [x] AC3: The profile is recorded with the sentence that it is the **CPU-only** profile, so `/v1/ask` p95 (13330 ms) is informational
   (PRD-Technical §9, Accepted 2026-11-15; `INFO (cpu-only; not gated)` in the log). No GPU number appears as a baseline value.
-- [ ] AC4: Gate results per metric as the log shows them (all PASS in this run). No case, corpus ID or threshold changed (`git diff --stat` shows only the 3 files in Scope).
-- [ ] AC5 (AI-7's AC9): `answer_refusal_rate`/refusal counts from that run in `BASELINE.md` and the PR: `refusal_reason_counts {}`, correct refusals
-  100% of 22, near-miss 80% of 15 (report-only). **Stop and report:** any answer-set refusal goes to pm-lead as a finding (none in this run).
+- [x] AC4: Gate results per metric as the log shows them (all PASS in this run). No case, corpus ID or threshold changed (`git diff --stat` shows only the 3 files in Scope).
+- [x] AC5 (AI-7's AC9): `answer_refusal_rate`/refusal counts from that run in `BASELINE.md` and the PR: `refusal_reason_counts {}`, correct refusals
+  100% of 22, near-miss 80% of 15 (report-only), in-corpus refused 4.55% (1 of 22, an early refusal). **Stop and report:** any answer-set refusal goes to pm-lead
+  as a finding. *(Corrected 2026-11-17, pm-lead: the original text said "none in this run"; the log shows one. Decided in the PM review: recorded as-is, follow-up EVAL-10.)*
   Note that this run has no LLM, so `insufficient_evidence` can't occur.
 
 ## Verification
@@ -83,3 +84,9 @@ git diff --stat origin/main   # evals/BASELINE.md, evals/README.md, README.md on
     (Product PRD §8 / Technical PRD §9 `< 1.5 s`, ADR-0012 1500). Grepped the file: the other `3000` mentions are `/v1/ask` and correct.
     Head `156c394`. Finding 2 (spec premise) left to pm-lead, recorded as-is; Finding 3 numbers for the PR body: `refusal_reason_counts {}`,
     correct refusals 100% of 22, near-miss 80% of 15, in-corpus refused 4.55% (1 of 22, early refusal).
+- 2026-11-17 (pm-lead, final review): **APPROVE** @ `156c394` ([report](../reviews/EVAL-4/report.md)). AC5 finding decided: my AC5 premise
+  ("none in this run") was wrong. The developer and QA were right, and BASELINE.md records the 1-of-22 early refusal truthfully. In-corpus refusals
+  aren't gated, so the baseline stands. Follow-up **EVAL-10** (ai, P2) prints refused/miss/near-miss-failure case IDs in the eval summary so the job
+  log names the case. Optional human check in the PR: read `answers.cases` in artifact 14247998742 before 2026-12-16. QA nit 3 done (all refusal
+  numbers are in the PR description). PRD §8 drift (Recall@5 "sorts by rerank score", "Technical PRD §9 (Proposed)") goes to the pending pm-lead PRD docs PR.
+  PR description rewritten with Evidence and marked ready for review. **Orchestrator:** board → Ready to merge; add EVAL-10 to the backlog.

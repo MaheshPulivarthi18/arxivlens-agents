@@ -475,3 +475,11 @@ Format:
   `rag.go` 99.0%, 20/20 mutants killed.
 - [spec] `synthesis_test.go` is outside ai's allow-list in `ownership-check.sh`, so its 10 existing tests don't call `checkCitationInvariants` yet (AC1 partial). Follow-up options are in the AI-8a Notes; AI-8b has the same issue.
 - AC7 (`eval.yml` dispatch) not run: the dispatch was denied by this session's permission policy. Jira KAN-60 not updated (no Jira tool in session).
+
+## 2026-11-17 pm-lead: EVAL-4 final review
+- **APPROVE** PR #51 @ `156c394` (QA FAIL r1 → PASS r2). All 18 evidence files checked; every AC proven ([report](reviews/EVAL-4/report.md)).
+- AC5 [spec] finding decided: my premise "(none in this run)" was wrong; BASELINE records the 1/22 early refusal truthfully; not gated, so the baseline stands.
+  Ticket AC5 text corrected. Follow-up **EVAL-10** (ai, P2, Ready; tests overlap #52, or use a new test file) prints refused/miss/near-miss-failure IDs in the eval summary.
+- PR #51 description rewritten with the Evidence section (pinned to `56f275b`/`ae6716a`), CI, and QA + PM verdicts; marked ready for review. Optional human check listed: artifact 14247998742 `answers.cases` (expires 2026-12-16).
+- Pending pm-lead PRD docs PR gains: §8 Recall@5 row ordering (ADR-0017/0016), "Technical PRD §9 (Proposed)" → Accepted in the latency rows.
+- Board not edited (orchestrator): EVAL-4 → Ready to merge; add EVAL-10.
