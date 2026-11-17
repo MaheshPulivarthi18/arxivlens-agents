@@ -41,6 +41,18 @@ kill + restart creates no duplicate or skipped papers. Merging this completes IN
 - [ ] AC5 — SIGTERM: `kill -TERM` of a looping instance → exit 0 within 5 s, log `[CrawlLoop] stopped`.
 - [ ] AC6 — Politeness (PM condition 6): the "arXiv replay stats" step of the same run shows **0 misses**; the summary line includes `out_of_order=`.
 - [ ] AC7 — `db.yml` runs `TestAdvanceWatermarkMonotonic` and `TestCrawlLoopLock` green against Postgres.
+  *Amended 2026-11-17 (pm-lead, ING-6a1 QA r1 finding 4 [spec]):* the `db.yml` integration step runs, next to the existing `./internal/query/` lines
+  (`db.yml` lines 70–71 on main), exactly `go vet -tags integration ./internal/db/` and
+  `go test -tags integration -count=1 -v -run '^(TestAdvanceWatermarkMonotonic|TestCrawlLoopLock)$' ./internal/db/`. Evidence is the job log lines
+  `--- PASS: TestAdvanceWatermarkMonotonic` and `--- PASS: TestCrawlLoopLock` (`-v` prints them; no `SKIP`, so `DATABASE_URL` is set). Until this
+  lands, no CI job compiles `watermarks_integration_test.go`.
+- [ ] AC10 — Watermark store test gaps from ING-6a1 QA r1 (findings 1–3), in `internal/db/watermarks_integration_test.go` (already in Scope), run by AC7:
+  (a) teardown: `defer d.Close()` replaced by `t.Cleanup(d.Close)` registered **before** the `DELETE` cleanup (cleanups run LIFO), so the test row is
+  removed; the same order in `TestCrawlLoopLock`. Evidence: a `SELECT count(*) FROM crawl_watermarks WHERE category LIKE 'it-test.%'` after the
+  test in the `db.yml` log prints `0`. (b) `Watermark` with a cancelled context returns `err != nil` and `ok == false` (the design rule "a read error is
+  never treated as no watermark"; kills QA mutant M6 "any read error → (zero, false, nil)"). (c) `AdvanceWatermark` with a cancelled context returns
+  `err != nil` (kills M8 "Exec error swallowed"). (d) optional: `updated_at` moves forward on a conflicting advance (M7). Mutants M6 and M8 run
+  locally (never pushed), each killed with `-run '^TestAdvanceWatermarkMonotonic$'` (or the named new test), output in the PR.
 - [ ] AC8 — README (PM condition 9): CLI reference row for `crawl-loop`; a "Scheduled crawl" paragraph covering the first-run horizon (newest
   `--limit-per-run` only; older via `arxivlens crawl`), one instance (enforced by the lock), `backlog=` / `out_of_order=`, how to raise
   `--limit-per-run`, resetting a category, and the late-announcement residual risk (ING-6e). PRD status is pm-lead's docs PR after merge.
@@ -53,8 +65,14 @@ make test-unit
 make lint
 go test -count=1 -v -run 'TestCrawlLoopFlags' ./cmd/arxivlens/
 make stack-up && make migrate && ./bin/arxivlens crawl-loop --once --categories cs.LG --limit-per-run 3   # needs Docker; else CI
+go vet -tags integration ./internal/db/
+DATABASE_URL=postgres://... go test -tags integration -count=1 -v -run '^(TestAdvanceWatermarkMonotonic|TestCrawlLoopLock)$' ./internal/db/   # needs Postgres; else CI
 # CI: stack.yml step "ING-6: crawl-loop" + "arXiv replay stats"; db.yml integration step
 ```
 
 ## Notes
 - 2026-11-17 (pm-lead): specced from the approved ING-6 design; the advisory lock moved here from design open question 3 (PM answer 3).
+- 2026-11-17 (pm-lead, ING-6a1 final review of #57): AC7 made exact (vet + `-v` run of both tests in `db.yml`, PASS lines as evidence; QA finding 4
+  [spec]) and AC10 added for QA findings 1–3 (teardown order, read-error and write-error rows). They land here because this task already edits
+  `watermarks_integration_test.go` and `db.yml`, so the new rows are CI-verified the first time they exist. The caller side of the read-error rule
+  (category skipped, never a first run) is ING-6b AC9. Size: about +25 lines on the ~220 estimate.

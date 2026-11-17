@@ -8,7 +8,7 @@
 | **Depends on** | ING-9 (Done `2b71772`), #45 (merged `393bcf3`: `arxiv.GetAPI`, `DefaultRetry`, `ARXIV_API_URL`). Approved design `docs/design/ING-6.md` (PM decision 2026-11-17, conditions 1–10). No open PR touches its files |
 | **Jira** | to create under KAN-18's epic, `labels = "task-ING-6a"` |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | In QA, delivered by **two PRs** (split per PM condition 8; Done rule below): **ING-6a2** = draft [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) (QA r1 FAIL, rework r1 @ `3f8e903`, QA r2 pending); **ING-6a1** = draft [#57](https://github.com/MaheshPulivarthi18/ArxivLens/pull/57) @ `c86bd5a` (QA r1 pending) |
+| **Status** | In QA, delivered by **two PRs** (split per PM condition 8; Done rule below): **ING-6a2** = draft [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) (QA r1 FAIL, rework r1 @ `3f8e903`, QA r2 pending); **ING-6a1** = [#57](https://github.com/MaheshPulivarthi18/ArxivLens/pull/57) @ `c86bd5a`: QA r1 PASS, PM APPROVE 2026-11-17, raised (Ready to merge) |
 
 ## Goal
 Land the pure, unit-testable half of the scheduled crawler: where the watermark lives, how it only moves forward, and how a run decides which
@@ -124,3 +124,7 @@ git diff --stat origin/main   # only the six new files
   shared files). It must not run in parallel with OPS-H12 (same file). ING-6b Depends on updated. (8) Done rule written above: ING-6a is Done when
   #56 **and** #57 merge; 6b needs both. QA scopes each PR to its own ACs. Nit 5 (no counted-skeleton commit) needs no action: condition 8's
   outcome (split at 505 > 480) is recorded in these Notes.
+- 2026-11-17 (pm-lead): **ING-6a1 (#57) final review: APPROVE** at `c86bd5a` (verdict in `agents/reviews/ING-6a/report-6a1.md`). AC6, AC7 and AC9
+  are met for its 4 files. QA findings: nits 1 (teardown order), 2 (M6, read error vs no row) and 3 (M7/M8) go into **ING-6c AC10**, which already edits
+  `watermarks_integration_test.go` and wires it into `db.yml`, so the rows are CI-run when they land. The caller half of nit 2 (category skipped on a read
+  error, never a first run) is **ING-6b AC9**. [spec] 4: ING-6c AC7 now names the exact `go vet` and `-v` test commands and PASS lines.

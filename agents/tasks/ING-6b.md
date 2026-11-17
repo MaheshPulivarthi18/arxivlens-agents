@@ -39,13 +39,18 @@ upserted and acked, so a crash or SIGTERM never skips a paper and a second pass 
 - [ ] AC7 — Mutants (local only): advance to max seen instead of max emitted; advance after a failed publish; drop `WithoutCancel`; skip the
   cross-category set; emit newest-first. Each killed by a named test in the full run and with `-run '^Test…$'`.
 - [ ] AC8 — `make test-unit` and `make lint` green in CI; `stack.yml` green (existing `crawl` path unchanged).
+- [ ] AC9 — *Added 2026-11-17 (pm-lead, ING-6a1 QA r1 finding 2).* `TestRunOnceWatermarkReadError` (fakes): when the fake `watermarkStore.Watermark`
+  returns an error for one category, that category makes **0** feed requests, 0 upserts, 0 publishes and no `AdvanceWatermark` call; `RunOnce`
+  returns an error naming it; the other category in the same pass runs normally. Mutant (local only): treat a read error as "no watermark"
+  (`ok=false, err=nil`, i.e. first-run behaviour that would emit only the newest `limit` papers and then advance `W` past the gap) is killed by
+  this test in the full run and with `-run '^TestRunOnceWatermarkReadError$'`.
 
 ## Verification
 ```bash
 cd app
 make test-unit
 make lint
-go test -count=1 -race -v -run 'TestRunCategory|TestWatermarkAfter|TestRunOnce|TestRunStops|TestDiscoveredPayload' ./internal/crawler/
+go test -count=1 -race -v -run 'TestRunCategory|TestWatermarkAfter|TestRunOnce|TestRunStops|TestDiscoveredPayload' ./internal/crawler/   # includes TestRunOnceWatermarkReadError
 go test -count=1 ./internal/crawler/   # crawler_test.go unchanged and green
 ```
 
@@ -53,3 +58,6 @@ go test -count=1 ./internal/crawler/   # crawler_test.go unchanged and green
 - 2026-11-17 (pm-lead): specced from the approved ING-6 design. Ready once ING-6a merges and no open PR edits `internal/crawler/`.
 - 2026-11-17 (pm-lead): Depends on updated after ING-6a QA r1 [spec] findings 7–8. ING-6a ships as two PRs (#56, #57) and both must merge. Design
   Risk 1 is answered by ING-6f's `stack.yml` probe before 6b's build starts.
+- 2026-11-17 (pm-lead, ING-6a1 final review of #57): AC9 added. QA mutant M6 showed nothing tests the "read error is never a first run" rule; a
+  regression there would permanently skip papers. The store half is ING-6c AC10 (runs in `db.yml`); this is the caller half, which is where the
+  skip actually happens.
