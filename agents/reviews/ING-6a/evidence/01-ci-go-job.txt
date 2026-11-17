@@ -1,0 +1,23 @@
+$ gh api .../actions/jobs/134087571745/logs | grep
+== Go job 134087571745: checkout + make lint-go (go vet + gofmt -l) + make test-go ==
+HEAD is now at 83c762d Merge 3756173f995e385e0e6b5effa8c640d4734203dc into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+##[group]Run make lint-go
+go vet ./...
+##[group]Run make test-go
+go test ./...
+ok  	arxivlens/internal/crawler	0.067s
+
+== Job conclusion ==
+Go (vet, gofmt, test, build): success, head_sha=3756173f995e385e0e6b5effa8c640d4734203dc
+  step 1 Set up job: success
+  step 2 Run actions/checkout@v4: success
+  step 3 Run actions/setup-go@v5: success
+  step 4 Run make lint-go: success
+  step 5 Run make test-go: success
+  step 6 Kafka consumer tests (verbose, race, coverage): success
+  step 7 LLM package tests (verbose, race, per-file coverage): success
+  step 8 Run make build-go: success
+  step 15 Post Run actions/setup-go@v5: success
+  step 16 Post Run actions/checkout@v4: success
+  step 17 Complete job: success
+

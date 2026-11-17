@@ -1,0 +1,9 @@
+$ gh api .../commits/3756173.../check-runs
+Frontend (lint, test, build) | completed success | completed 2026-11-17T13:53:43Z | job 134087571950
+Go (vet, gofmt, test, build) | completed success | completed 2026-11-17T13:54:29Z | job 134087571745
+Agent ownership check | completed success | completed 2026-11-17T13:53:38Z | job 134087571462
+Python M0 unit tests | completed success | completed 2026-11-17T13:54:37Z | job 134087570979
+DB (migrate twice, HNSW plan + recall) | completed success | completed 2026-11-17T13:54:42Z | job 134087570915
+Full stack (compose + make test-full) | completed success | completed 2026-11-17T14:02:49Z | job 134087569607
+PR #56 draft=true merged=false head=3756173f995e385e0e6b5effa8c640d4734203dc base=main
+

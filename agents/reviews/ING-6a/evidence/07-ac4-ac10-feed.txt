@@ -1,0 +1,25 @@
+$ bash -c cat /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa/ac10ci.txt; echo; echo '== internal/crawler/testdata/arxiv_feed.xml: <id>/<published> in file order =='; grep -nE '<published>|<id>http' internal/crawler/testdata/arxiv_feed.xml; echo; echo '== fixture history =='; git log --format='%h %ad %s' --date=short -- internal/crawler/testdata/arxiv_feed.xml; echo; echo '== scripts/arxiv_replay.py api_key (order-independent) =='; sed -n '52,55p' scripts/arxiv_replay.py; echo; echo '== loop_test.go asserted query =='; grep -n 'const want' internal/crawler/loop_test.go
+== stack run 44092000441, job 134069235738 (head_sha 2039650814ad3724953d58496cfb52cafebfd38c) ==
+2026/11/17 13:28:00 [Crawler] Fetching page start=0 size=2 URL=http://127.0.0.1:8099/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+2026/11/17 13:28:01 [Crawler] Discovered & Published: 2611.21608 (v1) — "Latent Lattice Language Models"
+2026/11/17 13:28:01 [Crawler] Discovered & Published: 2611.21602 (v1) — "Quantifying the added value of human forecaster discussions for tropical cyclone intensity prediction"
+
+== internal/crawler/testdata/arxiv_feed.xml: <id>/<published> in file order ==
+5:    <id>http://arxiv.org/abs/2307.08691v2</id>
+6:    <published>2023-07-17T17:50:36Z</published>
+19:    <id>http://arxiv.org/abs/2401.12345</id>
+20:    <published>2024-01-22T09:00:00Z</published>
+
+== fixture history ==
+72c82ac 2026-11-02 OPS-H3: Baseline Go unit tests (arXiv ID, Atom parsing, retry backoff) (#6)
+
+== scripts/arxiv_replay.py api_key (order-independent) ==
+def api_key(query: str) -> str:
+    """Stable file key for an API query string (parameter order does not matter)."""
+    canon = urllib.parse.urlencode(sorted(urllib.parse.parse_qsl(query, keep_blank_values=True)))
+    return hashlib.sha256(canon.encode()).hexdigest()[:32]
+
+== loop_test.go asserted query ==
+173:	const want = "/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0"
+
+[exit code 0]

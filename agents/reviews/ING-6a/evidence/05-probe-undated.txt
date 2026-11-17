@@ -1,0 +1,24 @@
+$ /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa/harness/probe.sh /root/wt/qa-ING-6a2
+===== head =====
+=== RUN   TestQAProbeUndated
+    qa_probe_test.go:15: first run feed(15,undated,14) limit 3 -> candidates "p15 p14"
+    qa_probe_test.go:23: W=10 feed(15,9,undated,8,7,6) page 3 -> requests "0,3" candidates "p15" stats {Pages:1 Scanned:3 OutOfOrder:0}
+    qa_probe_test.go:30: first run feed(15,9,undated,13,...) -> out_of_order=1
+--- PASS: TestQAProbeUndated (0.00s)
+PASS
+ok  	arxivlens/internal/crawler	0.004s
+1
+===== M5 =====
+=== RUN   TestQAProbeUndated
+    qa_probe_test.go:15: first run feed(15,undated,14) limit 3 -> candidates "p15 undated1 p14"
+    qa_probe_test.go:17: undated entry became a first-run candidate: "p15 undated1 p14"
+    qa_probe_test.go:23: W=10 feed(15,9,undated,8,7,6) page 3 -> requests "0,3 3,3" candidates "p15" stats {Pages:2 Scanned:6 OutOfOrder:0}
+    qa_probe_test.go:25: walk did not stop at the page whose last dated entry is <= W: requests "0,3 3,3"
+    qa_probe_test.go:30: first run feed(15,9,undated,13,...) -> out_of_order=0
+    qa_probe_test.go:32: out_of_order = 0 across an undated entry, want 1
+--- FAIL: TestQAProbeUndated (0.00s)
+FAIL
+FAIL	arxivlens/internal/crawler	0.004s
+FAIL
+
+[exit code 0]

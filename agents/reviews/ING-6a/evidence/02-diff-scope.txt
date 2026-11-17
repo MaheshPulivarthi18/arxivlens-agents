@@ -1,0 +1,22 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; git diff --name-status origin/main...HEAD; echo; echo "== 6a1 branch (not in this PR) =="; git fetch -q origin agent/backend/ING-6a1 && git diff --stat origin/main...FETCH_HEAD; git log --oneline -3 FETCH_HEAD; echo; echo "== commits on PR branch =="; git log --oneline origin/main..HEAD
+ internal/crawler/loop.go      | 177 +++++++++++++++++++++++++++++++++
+ internal/crawler/loop_test.go | 221 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 398 insertions(+)
+
+A	internal/crawler/loop.go
+A	internal/crawler/loop_test.go
+
+== 6a1 branch (not in this PR) ==
+ internal/db/watermarks.go                   | 41 +++++++++++++++++++++
+ internal/db/watermarks_integration_test.go  | 56 +++++++++++++++++++++++++++++
+ migrations/000005_crawl_watermarks.down.sql |  1 +
+ migrations/000005_crawl_watermarks.up.sql   |  9 +++++
+ 4 files changed, 107 insertions(+)
+c86bd5a ING-6a1: crawl_watermarks table (000005) and the monotonic watermark store
+40dec5a search: fuse reranker and first-stage ranks (ADR-0017) (#50)
+538b2ea feat(search): at most 2 chunks per paper in the reranked top 5 (ADR-0016) (#49)
+
+== commits on PR branch ==
+3756173 ING-6a2: crawl-loop walk (stop at watermark, out_of_order), batch selection, arXiv feed, ParseCategories
+
+[exit code 0]

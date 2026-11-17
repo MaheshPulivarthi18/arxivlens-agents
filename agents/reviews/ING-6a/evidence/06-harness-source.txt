@@ -1,0 +1,182 @@
+$ bash -c for f in build.sh stubs/db.go stubs/kafka.go stubs/ulid/ulid.go mutants.py mutate.sh probe.sh probe_test.go; do echo "===== $f ====="; cat /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa/harness/$f; done
+===== build.sh =====
+#!/bin/bash
+# build.sh <app tree> <out module dir>: real internal/arxiv, internal/crawler, shared/events from the tree; stubs for db, kafka, ulid.
+set -e
+W=$1; M=$2; H=$(dirname "$0")
+mkdir -p $M/internal/db $M/internal/kafka $M/shared
+cp -r $W/internal/arxiv $W/internal/crawler $M/internal/
+cp -r $W/shared/events $M/shared/
+cp $H/stubs/db.go $M/internal/db/db.go
+cp $H/stubs/kafka.go $M/internal/kafka/producer.go
+printf 'module arxivlens\n\ngo 1.24\n\nrequire github.com/oklog/ulid/v2 v2.1.0\n\nreplace github.com/oklog/ulid/v2 => %s/stubs/ulid\n' "$H" > $M/go.mod
+===== stubs/db.go =====
+// Stub of internal/db for the crawler package: PaperRecord is extracted verbatim from the PR head below.
+package db
+
+import (
+	"context"
+	"time"
+)
+
+type DB struct{}
+
+func (d *DB) UpsertDiscoveredPaper(ctx context.Context, p *PaperRecord) (int64, error) { return 0, nil }
+
+var _ = time.Time{}
+type PaperRecord struct {
+	ID            int64
+	ArxivID       string
+	Version       int
+	Title         string
+	Abstract      string
+	Authors       []string
+	Categories    []string
+	PublishedAt   time.Time
+	SourceURL     string
+	PDFStorageKey string
+	SHA256        string
+	Status        string
+	StatusError   string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+===== stubs/kafka.go =====
+// Stub of internal/kafka: Producer with the real Publish signature (producer.go:36).
+package kafka
+
+import (
+	"context"
+
+	"arxivlens/shared/events"
+)
+
+type Producer struct{}
+
+func (p *Producer) Publish(ctx context.Context, topic string, envelope events.EventEnvelope) error { return nil }
+===== stubs/ulid/ulid.go =====
+// Stub of github.com/oklog/ulid/v2 (signatures used by shared/events only).
+package ulid
+
+import (
+	"fmt"
+	"io"
+	"time"
+)
+
+type ULID [16]byte
+
+func (u ULID) String() string                       { return fmt.Sprintf("%x", u[:]) }
+func Monotonic(r io.Reader, inc uint64) io.Reader   { return r }
+func Timestamp(t time.Time) uint64                  { return uint64(t.UnixMilli()) }
+func MustNew(ms uint64, r io.Reader) ULID {
+	var u ULID
+	for i := 0; i < 6; i++ { u[i] = byte(ms >> (8 * (5 - i))) }
+	_, _ = io.ReadFull(r, u[6:])
+	return u
+}
+===== mutants.py =====
+# Mutant table: id, killing test expected (for -run), old text, new text. Applied one at a time to internal/crawler/loop.go.
+M = [
+ ("M1 AC8 '>' -> '>=' in candidate filter", "TestWalkStopsAtWatermark", "(hasW && !p.PublishedAt.After(w))", "(hasW && p.PublishedAt.Before(w))"),
+ ("M2 AC8 stop on first <= W entry", "TestWalkStopsAtWatermark", "if (hasW && !p.PublishedAt.After(w)) || seen[p.ArxivID] {", "if hasW && !p.PublishedAt.After(w) {\n\t\t\t\treturn out, st, nil\n\t\t\t}\n\t\t\tif seen[p.ArxivID] {"),
+ ("M3 AC8 drop tie extension", "TestSelectBatch", "for n < len(sorted) && sorted[n]", "for false && sorted[n]"),
+ ("M4 AC8 drop dedupe", "TestWalkStopsAtWatermark", "|| seen[p.ArxivID] {", "|| false {"),
+ ("M5 drop undated skip (undated not ignored)", "TestWalkStopsAtWatermark", "if p.PublishedAt.IsZero() {", "if false && p.PublishedAt.IsZero() {"),
+ ("M6 undated page counts as boundary", "TestWalkStopsAtWatermark", "(hasW && !last.IsZero() && !last.After(w))", "(hasW && !last.After(w))"),
+ ("M7 out_of_order not counted", "TestWalkStopsAtWatermark", "st.OutOfOrder++", "_ = 0"),
+ ("M8 no maxScan guard", "TestWalkStopsAtWatermark", "if hasW && st.Scanned >= maxScan {", "if false {"),
+ ("M9 maxScan '>=' -> '>'", "TestWalkStopsAtWatermark", "st.Scanned >= maxScan", "st.Scanned > maxScan"),
+ ("M10 first run: no remainder", "TestWalkStopsAtWatermark", "n = min(pageSize, limit-start)", "n = pageSize"),
+ ("M11 no short-page stop", "TestWalkStopsAtWatermark", "if len(page) < n ||", "if false ||"),
+ ("M12 page size ignores limit", "TestWalkStopsAtWatermark", "pageSize := min(max(limit, 1), maxPageSize)", "pageSize := maxPageSize"),
+ ("M13 no 100 cap on page size", "TestWalkStopsAtWatermark", "pageSize := min(max(limit, 1), maxPageSize)", "pageSize := max(limit, 1)"),
+ ("M14 no arxiv_id tiebreak", "TestSelectBatch", "return strings.Compare(a.ArxivID, b.ArxivID)", "return 0"),
+ ("M15 boundary = page's first dated entry", "TestWalkStopsAtWatermark", "prev, last = p.PublishedAt, p.PublishedAt", "prev = p.PublishedAt\n\t\t\tif last.IsZero() {\n\t\t\t\tlast = p.PublishedAt\n\t\t\t}"),
+ ("M16 ParseCategories no dedupe", "TestParseCategories", "if !slices.Contains(out, c) {", "if true {"),
+ ("M17 ParseCategories no trim", "TestParseCategories", "c := strings.TrimSpace(part)", "c := part"),
+ ("M18 regex unanchored start", "TestParseCategories", "`^[a-z-]+(", "`[a-z-]+("),
+ ("M19 regex unanchored end", "TestParseCategories", ")?$`", ")?`"),
+ ("M20 UA changed", "TestArxivFeedRequest", 'arxiv.UserAgent("Crawl Loop")', 'arxiv.UserAgent("Crawler")'),
+ ("M21 Page ignores f.retry (no retry)", "TestArxivFeedRequest", "params.Encode(), arxiv.UserAgent(\"Crawl Loop\"), f.retry)", "params.Encode(), arxiv.UserAgent(\"Crawl Loop\"), arxiv.Retry{Attempts: 1})"),
+ ("M22 Page bypasses shared limiter", "TestArxivFeedRequest", "f.client, f.lim, arxiv.APIURL()", "f.client, nil, arxiv.APIURL()"),
+ ("M23 NewArxivFeed: DefaultRetry not set", "TestArxivFeedRequest", "retry: arxiv.DefaultRetry}", "retry: arxiv.Retry{Attempts: 1}}"),
+ ("M24 NewArxivFeed(nil lim) stays unthrottled", "TestArxivFeedRequest", "\tif lim == nil {\n\t\tlim = arxiv.NewLimiter(arxiv.DefaultInterval)\n\t}\n", ""),
+ ("M25 Page ignores ARXIV_API_URL", "TestArxivFeedRequest", "arxiv.APIURL()+", "\"http://127.0.0.1:1/api/query\"+"),
+ ("M26 sortOrder ascending", "TestArxivFeedRequest", '"sortOrder", "descending"', '"sortOrder", "ascending"'),
+ ("M27 ctx not checked between requests", "TestWalkStopsAtWatermark", "if err := ctx.Err(); err != nil {", "if err := ctx.Err(); false && err != nil {"),
+]
+===== mutate.sh =====
+#!/bin/bash
+# mutate.sh <app tree> : for each mutant, fresh scratch module, apply, run full crawler pkg and -run '^T$'. Build failure = INVALID.
+W=$1; H=$(cd "$(dirname "$0")" && pwd); S=$(dirname $H)
+export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod
+python3 -I - "$W" "$H" "$S" <<'PY'
+import subprocess, sys, tempfile, os
+W, H, S = sys.argv[1:4]
+exec(open(os.path.join(H, "mutants.py")).read())
+def run(m, args):
+    r = subprocess.run(["go", "test", "-count=1", "-timeout", "30s"] + args + ["./internal/crawler/"], cwd=m, capture_output=True, text=True)
+    out = r.stdout + r.stderr
+    if "[build failed]" in out or "[setup failed]" in out: return "INVALID(build)", ""
+    if r.returncode == 0: return "SURVIVED", ""
+    fails = [l.strip().split()[2] for l in out.splitlines() if l.strip().startswith("--- FAIL")]
+    if "panic: test timed out" in out: fails.append("TIMEOUT")
+    return "KILLED", ",".join(fails[:3])
+print(f"{'mutant':48} | full pkg | -run ^T$ | failing tests (full)")
+for name, test, old, new in M:
+    m = tempfile.mkdtemp(dir=S, prefix="mut.")
+    subprocess.run([os.path.join(H, "build.sh"), W, m], check=True)
+    p = os.path.join(m, "internal/crawler/loop.go"); src = open(p).read()
+    if src.count(old) != 1: print(f"{name:48} | NOT APPLIED (pattern count {src.count(old)})"); continue
+    open(p, "w").write(src.replace(old, new))
+    a, fa = run(m, []); b, _ = run(m, ["-run", f"^{test}$"])
+    print(f"{name:48} | {a:8} | {b:8} | {fa}")
+PY
+===== probe.sh =====
+#!/bin/bash
+# probe.sh <app tree>: run the QA probe on the PR head and on mutant M5 (undated skip removed).
+W=$1; H=$(cd "$(dirname "$0")" && pwd); S=$(dirname $H)
+export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod
+for v in head M5; do
+  m=$(mktemp -d $S/probe.XXXX); $H/build.sh $W $m; cp $H/probe_test.go $m/internal/crawler/qa_probe_test.go
+  if [ $v = M5 ]; then sed -i 's/if p.PublishedAt.IsZero() {/if false \&\& p.PublishedAt.IsZero() {/' $m/internal/crawler/loop.go; grep -c "if false && p.PublishedAt.IsZero" $m/internal/crawler/loop.go; fi
+  echo "===== $v ====="; (cd $m && go test -count=1 -v -run '^TestQAProbeUndated$' ./internal/crawler/ 2>&1 | grep -vE '^\s*$|CrawlLoop')
+done
+===== probe_test.go =====
+package crawler
+
+// QA probe (not in the PR): undated entries on a FIRST run and an undated entry at the end of a page.
+import (
+	"context"
+	"strings"
+	"testing"
+	"time"
+)
+
+func TestQAProbeUndated(t *testing.T) {
+	// first run, limit 3: design §2 says an undated entry is "neither a candidate nor a boundary"
+	f := &fakeFeed{entries: feed(15, -1, 14)}
+	got, _, _ := walk(context.Background(), f, "cs.LG", time.Time{}, false, 3, 100)
+	t.Logf("first run feed(15,undated,14) limit 3 -> candidates %q", ids(got))
+	if strings.Contains(ids(got), "undated") {
+		t.Errorf("undated entry became a first-run candidate: %q", ids(got))
+	}
+	// with W: page [15, 9, undated] crosses W at its last DATED entry -> must stop after 1 request
+	w := t0.Add(10 * time.Minute)
+	f = &fakeFeed{entries: feed(15, 9, -1, 8, 7, 6)}
+	got, st, _ := walk(context.Background(), f, "cs.LG", w, true, 3, 100)
+	t.Logf("W=10 feed(15,9,undated,8,7,6) page 3 -> requests %q candidates %q stats %+v", strings.Join(f.calls, " "), ids(got), st)
+	if len(f.calls) != 1 {
+		t.Errorf("walk did not stop at the page whose last dated entry is <= W: requests %q", strings.Join(f.calls, " "))
+	}
+	// out_of_order across an undated entry: 9 then undated then 13 is out of order
+	f = &fakeFeed{entries: feed(15, 9, -1, 13, 12, 11, 5, 4, 3)}
+	_, st, _ = walk(context.Background(), f, "cs.LG", time.Time{}, false, 9, 100)
+	t.Logf("first run feed(15,9,undated,13,...) -> out_of_order=%d", st.OutOfOrder)
+	if st.OutOfOrder != 1 {
+		t.Errorf("out_of_order = %d across an undated entry, want 1", st.OutOfOrder)
+	}
+}
+
+[exit code 0]

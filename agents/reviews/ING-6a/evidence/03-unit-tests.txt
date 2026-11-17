@@ -1,0 +1,24 @@
+$ bash -c cd /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa/mod.khc7 && GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod go test -count=1 -race -v -run 'TestWalkStopsAtWatermark|TestSelectBatch|TestArxivFeedRequest|TestParseCategories' ./internal/crawler/ > out.txt 2>&1; echo exit=$?; grep -E '^\s*--- |^ok|^FAIL' out.txt; echo; echo '== full package incl. unmodified crawler_test.go =='; GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod go test -count=1 -race ./internal/crawler/ ./internal/arxiv/
+exit=0
+--- PASS: TestWalkStopsAtWatermark (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/5_new_+_5_old,_page_3 (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/nothing_new (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/entry_==_W_is_not_a_candidate (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/old_entry_on_top,_page's_last_>_W:_go_on (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/repeat_across_pages_deduped (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/undated_ignored,_not_a_boundary (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/short_page_stops (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/first_run_limit_4 (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/first_run_limit_103:_n_=_remainder (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/backlog_>_maxScan (0.00s)
+    --- PASS: TestWalkStopsAtWatermark/fetch_error (0.00s)
+--- PASS: TestSelectBatch (0.00s)
+--- PASS: TestArxivFeedRequest (0.06s)
+--- PASS: TestParseCategories (0.00s)
+ok  	arxivlens/internal/crawler	1.082s
+
+== full package incl. unmodified crawler_test.go ==
+ok  	arxivlens/internal/crawler	1.093s
+ok  	arxivlens/internal/arxiv	2.573s
+
+[exit code 0]
