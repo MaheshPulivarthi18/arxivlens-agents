@@ -1,0 +1,19 @@
+$ bash -c echo "== PR #51:"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/51 --jq "\"state=\(.state) merged=\(.merged) draft=\(.draft) head=\(.head.sha) base=\(.base.ref)\""; echo "origin/main: $(git rev-parse origin/main)"; echo; echo "== check-runs for 156c394 (id name status conclusion head_sha completed):"; gh api repos/MaheshPulivarthi18/ArxivLens/commits/156c394/check-runs --jq ".check_runs[] | \"\(.id) \(.name) | \(.status) \(.conclusion) | head=\(.head_sha[0:7]) \(.completed_at)\""; echo; echo "== ownership job log:"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/133921130299/logs | grep -E "Ownership|changed lines" | cut -c30- | head -3; echo "== Python M0 job summary lines:"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/133921130272/logs | grep -E "[0-9]+ passed" | cut -c30- | head -4
+== PR #51:
+state=open merged=false draft=true head=156c394a3d6efddfa89f8cdffa0df9d0a4ed329b base=main
+origin/main: 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+
+== check-runs for 156c394 (id name status conclusion head_sha completed):
+133921130369 Frontend (lint, test, build) | completed success | head=156c394 2026-11-17T08:41:09Z
+133921130299 Agent ownership check | completed success | head=156c394 2026-11-17T08:41:04Z
+133921130272 Python M0 unit tests | completed success | head=156c394 2026-11-17T08:42:18Z
+133921130142 DB (migrate twice, HNSW plan + recall) | completed success | head=156c394 2026-11-17T08:42:18Z
+133921129971 Go (vet, gofmt, test, build) | completed success | head=156c394 2026-11-17T08:41:56Z
+
+== ownership job log:
+Ownership OK for role=ai (121 changed lines)
+== Python M0 job summary lines:
+182 passed, 3 skipped, 3 warnings in 11.98s
+============================== 37 passed in 0.28s ==============================
+
+[exit code 0]

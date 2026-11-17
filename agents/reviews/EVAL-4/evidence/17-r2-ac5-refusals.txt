@@ -1,0 +1,29 @@
+$ bash -c echo "== job log 133423130747 refusal lines:"; grep -E "Answers citing expected|In-corpus refused|Correct refusals|Near-miss refusals|refusal_reason_counts|expected_paper_hit_rate" /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/r2/job-r2.log | cut -c30- | cut -c1-100; echo; echo "== BASELINE.md (156c394) refusal rows + note:"; grep -n -E "refus|expected_paper_hit_rate" evals/BASELINE.md | cut -c1-150; echo; echo "== PR #51 body, refusal mentions (grep -w):"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/51 --jq .body | grep -n -i -E "refus|near-miss|of 22|of 15|reason_counts" | cut -c1-150; echo; echo "== ticket AC5 text on arxivlens-agents main (premise):"; grep -n -A2 "^- \[ \] AC5" /home/claude/arxivlens-agents/agents/tasks/EVAL-4.md | cut -c1-150
+== job log 133423130747 refusal lines:
+Answers citing expected  : 95.45% of 22
+In-corpus refused        : 4.55%
+Correct refusals         : 100.00% of 22
+Near-miss refusals       : 80.00% of 15
+(info) expected_paper_hit_rate                   |    0.9545 |
+(report-only) refusal_reason_counts              | {}
+
+== BASELINE.md (156c394) refusal rows + note:
+38:| correct_refusal_rate | >= 0.95 | 1.0000 (summary: 100.00% of 22) | PASS |
+40:| ask_errors (answer + refusal sets) | == 0 | 0.0000 | PASS |
+43:| (info) expected_paper_hit_rate | — | 0.9545 (summary: answers citing expected 95.45% of 22) | — |
+44:| (info) in-corpus refused (answer set) | — | 4.55% (summary line; 1 of 22) | — |
+47:| (report-only) near_miss_correct_refusal_rate | — | 0.8000 (summary: 80.00% of 15) | — |
+49:| (report-only) refusal_reason_counts | — | `{}` | — |
+51:`refusal_reason_counts {}` means no response carried a `refusal_reason`, so the answer-set refusal above is an early
+52:refusal (no `refusal_reason`, `citations: []`, see `evals/README.md`). "1 of 22" is derived: 4.55% of 22 cases.
+
+== PR #51 body, refusal mentions (grep -w):
+12:- [ ] AC5: refusal numbers recorded; **one in-corpus answer-set refusal (4.55% of 22) contradicts the spec's premise**: flagged in ticket Notes
+21:- Results JSON artifact can't be downloaded from the sandbox, so the refused case ID is unknown
+
+== ticket AC5 text on arxivlens-agents main (premise):
+42:- [ ] AC5 (AI-7's AC9): `answer_refusal_rate`/refusal counts from that run in `BASELINE.md` and the PR: `refusal_reason_counts {}`, correct refusal
+43-  100% of 22, near-miss 80% of 15 (report-only). **Stop and report:** any answer-set refusal goes to pm-lead as a finding (none in this run).
+44-  Note that this run has no LLM, so `insufficient_evidence` can't occur.
+
+[exit code 0]

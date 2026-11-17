@@ -1,0 +1,40 @@
+$ /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/r2/targets.sh
+== BASELINE.md gate table, rows with a target (head 156c394):
+  rerank via production `/internal/rerank`                | == 1.0
+  retrieval_coverage                                      | == 1.0
+  Recall@5, paper-level (ADR-0006), Hybrid RRF + Rerank   | >= 0.8
+  hybrid+rerank beats BM25 & dense (MRR, NDCG@5)          | == 1.0
+  supported_citation_rate (answer set)                    | >= 0.9
+  correct_refusal_rate                                    | >= 0.95
+  `/v1/ask` ask_p95_ms                                    | < 3000
+  ask_errors (answer + refusal sets)                      | == 0
+  `/v1/search` p95                                        | < 1500 (PRD §8)
+                                                          | 
+
+== log gate-table targets (job 133423130747):
+  rerank via production /internal/rerank                  | == 1.0
+  retrieval_coverage                                      | == 1.0
+  recall@5 (Hybrid RRF + Rerank)                          | >= 0.8
+  hybrid+rerank beats BM25 & dense (MRR, NDCG@5)          | == 1.0
+  supported_citation_rate                                 | >= 0.9
+  correct_refusal_rate                                    | >= 0.95
+  ask_p95_ms                                              | < 3000
+  ask_errors (answer + refusal sets)                      | == 0
+
+== evals/thresholds.json:
+  "retrieval_recall_at_5_min": 0.80,
+  "supported_citation_rate_min": 0.90,
+  "correct_refusal_rate_min": 0.95,
+  "ask_p95_latency_ms_max": 3000,
+  "hybrid_rerank_beats_baselines": true
+
+== Product PRD §8 latency rows; ADR-0012 search key:
+160:| **Latency** | `/v1/search` p95 | < 1.5 s | `evals/retrieval.json
+161:| | `/v1/ask` p95 | < 3 s | `evals/answer.jsonl` + `evals/refusal.
+21:search_p95_latency_ms_max: 1500
+
+== remaining '3000' in BASELINE.md (must all be /v1/ask):
+18:`< 3000 ms` latency gate applies only on the GPU reference profile (`mps`/`cuda`), and this file has no GPU baseline.
+39:| `/v1/ask` ask_p95_ms | < 3000 | 13330.2916 (summary: 13330) | INFO (cpu-only; not gated) |
+
+[exit code 0]
