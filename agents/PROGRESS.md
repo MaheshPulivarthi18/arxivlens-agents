@@ -495,3 +495,9 @@ Format:
 - Started 4: EVAL-4 #51 (QA FAIL r1 → rework 156c394 → QA PASS r2), ING-11b #52 (QA PASS r1, PM APPROVE, raised), OPS-H2 #53 (QA PASS r1, PM APPROVE, raised), AI-8 design (approved with conditions 1–8, split AI-8a KAN-60 / AI-8b KAN-61).
 - AI-8a built (12e70b4, 387 lines) → draft #54. Its QA r1 subagent was cut off by an API rate limit (no comment, no evidence committed), so #54 has **no QA verdict**. AC7 (`eval.yml` dispatch on the branch) was denied by the sandbox permission policy.
 - The rate limit stalled this session ~4 h, past the 100-min lock; the 13:00Z cycle took the lock over and finished EVAL-4's PM review. This cycle stops without touching that lock, the board or Jira beyond what is recorded above.
+
+## 2026-11-17 pm-lead: AI-8a QA r1 finding 4 [spec] decision
+- **Option (a)**: the AI-8a AC1 and Scope are amended to cover `rag_test.go` only, with dated amendment notes. The 11 `checkCitationInvariants` sites in `synthesis_test.go` (backend-owned per `ownership-check.sh` and AGENTS.md §2) become new task **AI-8c** (backend, P0, test-only, ~11 added lines, Blocked until AI-8a merged). QA evidence 06 shows all 8 tests pass with those calls.
+- Not (b): a rules PR (AGENTS.md) plus a backend `ownership-check.sh` change would leave the AI-8a rework blocked on Mahesh this cycle. (a) weakens no test.
+- AI-8b amended: it edits only `rag_test.go` and extends `checkCitationInvariants` in place, so the AI-8c sites get the claims checks with no second backend task. It now also depends on AI-8c merged. AI-8a findings 1–3 and nits 5–7 stay with ai-engineer for round 2.
+- Board not edited (orchestrator): add AI-8c (backend, Blocked: AI-8a merged); AI-8b's blocker now includes AI-8c. Jira: create the AI-8c story under KAN-1, `labels = "task-AI-8c"`.

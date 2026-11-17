@@ -5,10 +5,10 @@
 | **Owner** | ai-engineer |
 | **Priority** | P0 (Phase 1 item 4: each claim maps to inspectable passages; part 2 of 2 of umbrella AI-8) |
 | **PRD ref** | Product PRD QA-3, QA-4, §7 principles 1–3; Technical PRD §7.2; ADR-0014 (Accepted); ADR-0018 (Proposed, documented as such) |
-| **Depends on** | **AI-8a merged** (same `rag.go`/test files, builds on its statuses). **ING-11b merged** (it edits `tests/test_evals_data.py` and the README API table). Design approved with conditions: `docs/design/AI-8.md`. Independence at start: no open PR touches `internal/query/rag.go`, `rag_test.go`, `synthesis_test.go`, `tests/test_evals_data.py` or `README.md` |
+| **Depends on** | **AI-8a merged** (same `rag.go`/test files, builds on its statuses). **AI-8c merged** (puts `checkCitationInvariants` at the `synthesis_test.go` sites, so the extended helper covers them). **ING-11b merged** (it edits `tests/test_evals_data.py` and the README API table). Design approved with conditions: `docs/design/AI-8.md`. Independence at start: no open PR touches `internal/query/rag.go`, `rag_test.go`, `synthesis_test.go`, `tests/test_evals_data.py` or `README.md` |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8b"`), linked to the AI-8 story |
 | **Design required** | yes, done: `docs/design/AI-8.md` (approved, conditions 1–8). No further design. |
-| **Status** | Blocked (needs AI-8a merged + ING-11b merged) |
+| **Status** | Blocked (needs AI-8a merged + AI-8c merged + ING-11b merged) |
 
 ## Goal
 A non-refused answer lists its claims in order, each with a status and the markers of its evidence, and a written answer says
@@ -24,8 +24,10 @@ which prompt made it. The README documents the whole `/v1/ask` shape so FE-3/FE-
   - Ordering invariant: claim *i*'s citations are `citations[o_i : o_i + len(markers_i)]`.
   - `claims` is absent on every refusal (including the early one). `prompt_version = synthesisPromptVersion` only on
     `synthesized` answers.
-- `internal/query/rag_test.go`, `synthesis_test.go`: `checkAskInvariants` (extends AI-8a's helper with claims and ordering),
-  called from every existing test that gets an `AskResponse`, plus the tests below.
+- `internal/query/rag_test.go` only: extend AI-8a's `checkCitationInvariants(t, resp)` **in place** (same name and signature; or
+  have it delegate to a new `checkAskInvariants`) with the claims and ordering checks, so every existing call site in `rag_test.go`
+  *and* the backend-owned `synthesis_test.go` (via AI-8c) gets them without editing that file. Plus the tests below.
+  `synthesis_test.go` is **not** in scope (backend-owned; amended 2026-11-17).
 - `tests/test_evals_data.py`: one test (AC6).
 - App `README.md`, **`/v1/ask` row only**, with everything in design condition 4.
 - If AI-8a used the fallback seam (design condition 5): the model-quote check (design 3b) and AI-8a's AC3 b–e also land here.
@@ -36,7 +38,11 @@ which prompt made it. The README documents the whole `/v1/ask` shape so FE-3/FE-
 ## Acceptance criteria
 - [ ] AC1: Every non-refused response (`answer_kind != ""`) has non-empty `claims`. Each claim has `text`, `status` ∈ enum and
   non-nil `markers`. The ordering invariant holds, and each claim's status equals `claimStatus` of its citation slice. Refusals
-  have no `claims` key. Checked by `checkAskInvariants` at every existing `AskResponse` test site.
+  have no `claims` key. Checked by the extended `checkCitationInvariants` helper at every `AskResponse` test site. The `rag_test.go`
+  sites are edited here. The `synthesis_test.go` sites already call the helper (AI-8c), so they are covered without editing that
+  file. The PR shows `go test -run 'Synth|QuickAnswer|WithLLMNil' -v ./internal/query/` passing with the extended helper.
+  *Amended 2026-11-17 (pm-lead, AI-8a QA r1 finding 4 [spec]).* Sites that call `finalize` directly with a hand-set
+  `answer_kind` (see the AI-8a Notes) must build a response that really satisfies the claims invariant. Don't skip the check there.
 - [ ] AC2: `TestAskClaims`: extractive → one claim per quoted sentence, markers `[i]`, `answer_kind == "quoted"`, no
   `prompt_version` key; LLM (two claims, one dropped) → the kept claims in order with their markers,
   `answer_kind == "synthesized"`, `prompt_version == "synthesis-v1"`, dropped claim absent; quick stage → no `prompt_version`;
@@ -69,7 +75,8 @@ which prompt made it. The README documents the whole `/v1/ask` shape so FE-3/FE-
 ```bash
 make lint
 make test-unit
-go test -race -run 'Ask|Synth|Citation|Claim' -v ./internal/query/
+go test -race -run 'Ask|Synth|Citation|Claim|QuickAnswer|WithLLMNil' -v ./internal/query/
+grep -c 'checkCitationInvariants' internal/query/synthesis_test.go   # 11 from AI-8c, unchanged by this PR
 go test -coverprofile=c.out ./internal/query/ && go tool cover -func=c.out | grep rag.go
 python3 -m pytest -q tests/test_evals_data.py
 git diff --stat origin/main
@@ -83,4 +90,5 @@ gh workflow run eval.yml --ref agent/ai/AI-8b   # AC9, then read the job log's g
 - 2026-11-17 (ai-engineer, from AI-8a build): design condition 5 was **not** taken (AI-8a is 387 lines), so 3b stays in AI-8a. **[spec]**
   AC1's "every existing `AskResponse` test site" includes `internal/query/synthesis_test.go`, which `ownership-check.sh` doesn't allow for
   `ai`. See AI-8a Notes (2026-11-17 ai-engineer) for the follow-up options. Resolve before AI-8b starts.
-
+- 2026-11-17 (pm-lead): ownership issue resolved with option (a); see AI-8a Notes. AC1 and Scope amended: this ticket edits only
+  `rag_test.go` and extends the shared helper in place, so no second backend follow-up is needed for claims. New dependency: AI-8c merged.

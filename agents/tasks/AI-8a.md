@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0014 Accepted ✅, QA-8 delivered (#46 `cc57474`) ✅, RET-2 merged (`6cfd836`) ✅. **Design approved with conditions**: `docs/design/AI-8.md`, PM decision 2026-11-17. Not a dependency: ADR-0018 (Proposed), ING-11b (`page` is tested with hand-built hits). Independence at start: no open PR touches `internal/query/rag.go`, `rag_test.go` or `synthesis_test.go` (cycle 2026-11-17: ING-11b, EVAL-4 and OPS-H2 don't) |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8a"`), linked to the AI-8 story |
 | **Design required** | yes, done: `docs/design/AI-8.md` (approved, conditions 1–8). No further design. |
-| **Status** | In Progress: built and pushed, `agent/ai/AI-8a` @ `12e70b4` (PR to be opened by the orchestrator). AC1 partly blocked on file ownership (see Notes 2026-11-17 ai-engineer) |
+| **Status** | In Progress: built and pushed, `agent/ai/AI-8a` @ `12e70b4` (PR to be opened by the orchestrator). QA r1 FAIL (rework for findings 1–3, 5–7). AC1 amended 2026-11-17 (pm-lead): `synthesis_test.go` call sites moved to backend follow-up AI-8c |
 
 ## Goal
 Every `/v1/ask` citation, in both answers and refusal evidence, says whether it was checked and passed, checked and failed,
@@ -30,8 +30,9 @@ verbatim quote only when the quote is really in the passage.
     verbatim → that citation is `unsupported`, no quote, score kept. Invariant: `quote` present ⇒ `supported`.
   - LLM path: `finalizeClaims` takes `[]contextPassage`. It scores on `p.Text` and builds citations and checks quotes from
     `p.Hit` (raw `Content`). The `insufficient_evidence` evidence uses `p.Hit`. Delete `passageHits` and `TestPassageHits`.
-- `internal/query/rag_test.go`, `internal/query/synthesis_test.go`: tests below, plus a `checkCitationInvariants` helper called
-  from existing tests that get an `AskResponse`.
+- `internal/query/rag_test.go`: tests below, plus a `checkCitationInvariants` helper called from existing tests that get an
+  `AskResponse`. (Amended 2026-11-17: `internal/query/synthesis_test.go` is **not** in scope; it is backend-owned per
+  `ownership-check.sh`. Its 11 call sites are backend follow-up **AI-8c**.)
 - Out of scope (AI-8b): `claims[]`, `prompt_version`, the README `/v1/ask` row, the AC6 Python test. Also out (design condition 8):
   `answer_source`, `partially_supported`/`contradicted`, quote offsets, prompt changes, `search.go`, frontend, `README.md`,
   `tests/test_evals_data.py`.
@@ -40,8 +41,10 @@ verbatim quote only when the quote is really in the passage.
 - [ ] AC1: Every citation (answers and refusal evidence, both paths) has `paper_version` and `status` ∈ {supported, unsupported,
   unverified}, and `supported == (status == "supported")`. `quote` present ⇒ `status == "supported"` and
   `inPassage(quote, content)`. Checked by `checkCitationInvariants(t, resp)`, which is called from every existing test in
-  `rag_test.go` and `synthesis_test.go` that gets an `AskResponse`. A response without `answer_kind` counts as a refusal
-  (design condition 3).
+  `rag_test.go` that gets an `AskResponse`, and from every new test (both paths). A response without `answer_kind` counts as a
+  refusal (design condition 3). *Amended 2026-11-17 (pm-lead, QA r1 finding 4 [spec]):* the `synthesis_test.go` call sites are
+  out of this ticket (ai can't edit that file) and land in backend follow-up **AI-8c** (Depends on AI-8a merged). The helper
+  must stay callable from another `_test.go` file in package `query` (same signature `checkCitationInvariants(t, resp)`).
 - [ ] AC2: `TestCitationStatusRule`, a table over both `checkCitations` and `finalizeClaims`: 0.9 / 0.50 → supported; 0.49 and a
   checked 0 → unsupported; verifier error, wrong score count, nil verifier, NaN, -0.1 and 1.1 → `unverified`, `supported == false`,
   score 0. Mutations (local, not pushed): removing any one `labelScore`/`scorePairs` failure branch, or setting `Supported`
@@ -122,4 +125,9 @@ gh workflow run eval.yml --ref agent/ai/AI-8a   # AC7, then read the job log's g
   - **AC7 not run:** `gh workflow run eval.yml --ref agent/ai/AI-8a` was denied by this session's permission policy. Needs the orchestrator
     or pm-lead to dispatch it and compare with nightly 43902662193. No push-triggered runs exist on the branch (CI runs on the PR).
   - Jira KAN-60: this session has no Jira tool, so the In Progress/In QA moves and links are left to the orchestrator.
-
+- 2026-11-17 (pm-lead): **decision on QA r1 finding 4 [spec] (AC1 vs file ownership): option (a).** AC1 amended to `rag_test.go` only
+  (see AC1 text). The 11 `synthesis_test.go` call sites (QA evidence 05; QA's local probe, evidence 06, shows all 8 tests pass with them)
+  become backend task **AI-8c** (`agents/tasks/AI-8c.md`, Depends on AI-8a merged). Why not (b): widening ai's allow-list needs a
+  `rules/` PR here (AGENTS.md) *and* a backend change to `app/.github/scripts/ownership-check.sh`. Neither lands this cycle, and the
+  rework would sit blocked on Mahesh. Option (a) weakens no test: the same checks run at the same sites, one PR later. Finding 4 is
+  closed for AC1. QA round 2 checks AC1 against the amended text. Findings 1–3 and nits 5–7 stay with ai-engineer.
