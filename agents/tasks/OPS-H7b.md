@@ -53,3 +53,5 @@ DATABASE_URL=postgres://... KAFKA_BROKERS=localhost:9092 go test -tags integrati
 - 2026-11-07 (pm-lead): part b of the OPS-H7 split. Interim risk: until OPS-H7c, two concurrent replays can double-publish (that's true today too).
   Full envelopes still dedupe in L2. OPS-H7c is the next task on these files.
 - 2026-11-08 (pm-lead): AC4 extended from OPS-H7f QA r2 nit 5. OPS-H7f's own tests can't catch a dry-run-only envelope rule (no publisher seam); `fakePublisher` here can.
+- 2026-11-17 (pm-lead): FYI from the ING-6 design gate: ING-6a adds `migrations/000005_crawl_watermarks` (number fixed). OPS-H7b keeps `000004`.
+  If ING-6a merges first, `TestRepoMigrationsOrder`'s `want` list is still a prefix check, so list `000001..000004` (adding `000005` is optional).

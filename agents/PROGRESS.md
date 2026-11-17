@@ -501,3 +501,10 @@ Format:
 - Not (b): a rules PR (AGENTS.md) plus a backend `ownership-check.sh` change would leave the AI-8a rework blocked on Mahesh this cycle. (a) weakens no test.
 - AI-8b amended: it edits only `rag_test.go` and extends `checkCitationInvariants` in place, so the AI-8c sites get the claims checks with no second backend task. It now also depends on AI-8c merged. AI-8a findings 1–3 and nits 5–7 stay with ai-engineer for round 2.
 - Board not edited (orchestrator): add AI-8c (backend, Blocked: AI-8a merged); AI-8b's blocker now includes AI-8c. Jira: create the AI-8c story under KAN-1, `labels = "task-AI-8c"`.
+
+## 2026-11-17 pm-lead: ING-6 design gate
+- **Approved with conditions 1–10** `docs/design/ING-6.md` (@ `dbeec46`). Walk newest-first / emit oldest-first / advance to the last fully-emitted group accepted; it closes the truncation and mid-run-crash skips the ticket's one-liner left open.
+- Open questions answered: (1) max emitted = AC1's "max seen" (ticket AC1 amended); (2) late announcements: documented residual risk, **ING-6e** Backlog (FYI to Mahesh on KAN-18, non-blocking); (3) global `pg_try_advisory_lock` guard required, in ING-6c (two processes = 2 req/3 s breaks §9); (4) profile `crawler`, compose deferred to **ING-6d**; (5) defaults 6h/100/2000/`cs.AI,cs.LG` accepted (categories stay ADR-0005); (6) `crawl --rate-limit` → **ING-9b** (P3).
+- Migration number fixed: `000005_crawl_watermarks` (OPS-H7b keeps `000004`; `migrate` applies all sorted files idempotently, so no renumbering race). Note added to OPS-H7b.
+- New specs: **ING-6a** (Ready, buildable now: 6 new files, no overlap with #51–#55), ING-6b (Blocked: 6a merged), ING-6c (Blocked: 6b, #51, #52 merged), ING-6d / ING-6e / ING-9b (Backlog). ING-6 is now the umbrella.
+- Board and Jira not edited (orchestrator): add ING-6a Ready (backend), ING-6b/6c Blocked, ING-6d/6e/9b Backlog; Jira stories under KAN-18's epic with `task-<ID>` labels.

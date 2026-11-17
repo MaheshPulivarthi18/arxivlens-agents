@@ -1,6 +1,6 @@
 # Tech design — ING-6: Scheduled crawler with per-category `since` watermark
 
-**Author:** backend-engineer · **Ticket:** `agents/tasks/ING-6.md` · **PRD:** Product ING-6 (goal 3); Technical §11 "Scheduled crawler", §8.1 (L1), §9 (arXiv politeness) · **Status:** Draft
+**Author:** backend-engineer · **Ticket:** `agents/tasks/ING-6.md` · **PRD:** Product ING-6 (goal 3); Technical §11 "Scheduled crawler", §8.1 (L1), §9 (arXiv politeness) · **Status:** Approved with conditions (pm-lead, 2026-11-17)
 
 Code refs are to ArxivLens `origin/main` `40dec5a`. Relevant today: `internal/crawler/crawler.go` (`Crawl` `:72-170`: pages of
 `min(20, limit)`, `arxiv.GetAPI(..., lim=nil, ...)` + `arxiv.DefaultRetry`, its own `time.After(rateLimit)` sleep `:160-166`, upsert error
@@ -212,4 +212,71 @@ AC1 is proven across 6a (stop) + 6b (advance); AC2/AC3 real-stack evidence lands
    ING-9 limiter. A one-line clamp or switching `Crawl` to the shared limiter would be a separate P3 politeness follow-up (board Backlog), not part of ING-6.
 
 ## PM decision
-_(pm-lead fills)_
+**Approved with conditions** — pm-lead, 2026-11-17, reviewed at `dbeec46` against `agents/tasks/ING-6.md`, Product PRD ING-6, Technical PRD
+§11 "Scheduled crawler" / §8.1 / §9, `docs/design/README.md` and AGENTS.md §2 shared contracts.
+
+Why approved: the "walk newest-first, emit oldest-first, advance to the last fully-emitted `published` group" rule is the right fix for the two
+holes in my ticket's one-liner (truncation at `--limit-per-run` and a crash between publishes), and both would have broken the PRD row's
+"no duplicate or skipped papers". Contracts: one new table in a new numbered migration (additive, no ADR), `papers.discovered` envelope and
+payload unchanged (one shared helper), no HTTP or embedding change. ING-9's limiter and #45's `GetAPI`/`DefaultRetry`/`ARXIV_API_URL` are
+reused, not rewritten. The test plan maps every AC to a named test plus real-stack evidence in `stack.yml` with no new arXiv recording. The split
+keeps each PR under 400 lines and ING-6a touches no file of an open PR.
+
+### Answers to the open questions
+1. **Max emitted vs max seen — accepted.** "Max emitted" is what AC1 meant: it equals max seen whenever the run isn't truncated or stopped, and
+   it's the only rule that keeps "no skipped papers". This is a wording fix in my ticket, not a product change: ING-6 AC1 is amended (dated note).
+   No escalation.
+2. **Late-announced papers — documented residual risk, follow-up ING-6e (P2, Backlog, not Ready).** The PRD row's "no skipped papers" is
+   stated for kill + restart, which this design meets. A paper held in moderation and announced with `published < W` is a different source of
+   misses, and we don't know how often it happens. So: ING-6a counts out-of-order entries per walk (condition 3), 6c prints that count in
+   the summary line and documents the risk in the README, and ING-6e (`--lookback`) is specced but stays Backlog until that data shows misses.
+   **FYI to Mahesh (non-blocking):** if you want moderation-delayed papers covered by "no skipped papers" from day one, say so on KAN-18 and
+   ING-6e becomes P1 and Ready after 6c.
+3. **Second instance — require the guard, in ING-6c.** Monotonic `W` keeps the data correct, but two processes mean two limiters, i.e. 2 req / 3 s
+   to arXiv, which breaks Technical PRD §9. That's an existing principle, not a new requirement, and the guard is small. One **global**
+   session-level `pg_try_advisory_lock` (not per category: the limiter is per process, so any two processes double the rate), held on a
+   dedicated pool connection for the process lifetime; if the lock is taken, `crawl-loop` exits non-zero before its first arXiv request with
+   `another crawl-loop is running`. It lives in 6c (the CLI owns the process lifetime), not 6b. README still says "run one instance".
+4. **Compose profile `crawler`, not `workers` — accepted** (your reasons: under `workers`, `make stack-up` in CI would call live arXiv and break
+   `stack.yml`'s `count(*) = 2`). **ING-6d is deferred** (P2, Backlog): the ticket called it optional, and nothing about the PRD row needs it.
+   ING-6 is Done when 6c merges. No escalation.
+5. **Defaults — accepted as proposed:** `--interval 6h`, `--limit-per-run 100`, `--max-scan 2000` (must be ≥ `--limit-per-run`),
+   `--categories cs.AI,cs.LG` (today's `crawl` default). Note that 100 per 6 h = 400/day per category is close to cs.LG's arrival rate on
+   announcement days; the `backlog=` field in the summary line is how an operator sees it, and the README must say how to raise it. The
+   *default categories* stay Mahesh's ADR-0005 decision; the flag keeps ING-6 independent of it.
+6. **`crawl --rate-limit` politeness — follow-up ING-9b (backend, P3, Backlog).** Out of scope here (the ticket says `crawl` behaviour doesn't
+   change). It edits `cmd/arxivlens/main.go` and `internal/crawler/crawler.go`, same as 6b/6c, so it depends on ING-6c merged.
+
+**Migration number (decided, not "whoever merges second"):** ING-6 takes **`000005_crawl_watermarks`**; OPS-H7b keeps `000004_dlq_replay` as its
+spec already fixes. `arxivlens migrate` applies every `*.up.sql` in sorted order on every run (no version table; files are `IF NOT EXISTS`), so a gap
+until OPS-H7b merges is harmless, the two tables are independent, and `TestRepoMigrationsOrder` is a prefix check. No renumbering at merge time.
+
+### Conditions (numbered; QA checks each against the PR)
+1. **Split as designed**: ING-6a (decide), ING-6b (act), ING-6c (CLI + advisory lock + `stack.yml` evidence + README + `db.yml` wiring). One PR
+   each, branch `agent/backend-engineer/ING-6x`. ING-6a may **not** be merged with 6b into one PR.
+2. **Migration** is `migrations/000005_crawl_watermarks.{up,down}.sql`, `CREATE TABLE IF NOT EXISTS` / `DROP TABLE IF EXISTS`, exactly the
+   three columns in §5. 6a does not edit `internal/db/db.go` (OPS-H11, #55) or `internal/db/db_test.go` (OPS-H7b).
+3. **Feed order is checked, not assumed** (your Risk 1). `walk` stats include `out_of_order` (entries whose `published` is later than the
+   previous entry's in the same walk) and a unit row proves it is counted. 6c prints it in the summary line. 6a's PR description quotes the
+   recorded CI feed's two `published` values in order.
+4. **Every test-plan row is a named test** in the part that owns it (6a: `TestWalkStopsAtWatermark`, `TestSelectBatch`, `TestArxivFeedRequest`,
+   `TestParseCategories`, `TestAdvanceWatermarkMonotonic`; 6b: `TestRunCategoryAdvancesWatermark`, `TestWatermarkAfter`,
+   `TestRunOnceTwiceEmitsNothingSecondTime`, `TestRunCategoryCrashAtK`, `TestRunStopsOnCancel`; 6c: `TestCrawlLoopFlags` + the
+   lock test + the `stack.yml` step). The listed mutants are run locally and each one's killing test is named in the PR (full package run and
+   `-run '^T$'`, per the AI-8a lesson). Mutants are never pushed.
+5. **No contract drift.** No edits to `shared/events/*`, `internal/query/server.go`, or existing migrations. 6b's `discoveredPayload` extraction
+   leaves `Crawl` byte-for-byte equivalent: `crawler_test.go` passes unmodified and a test asserts the loop's payload keys and values equal
+   `Crawl`'s for the same `PaperRecord`.
+6. **arXiv politeness.** Exactly one `*arxiv.Limiter` per process, shared by all categories and retries; `arxiv.DefaultRetry`; UA from
+   `arxiv.UserAgent("Crawl Loop")`; no flag can lower the interval; `ARXIV_API_URL` honoured. In CI the "arXiv replay stats" step shows
+   **0 misses** on the 6c run (no live arXiv request from CI).
+7. **SIGTERM / cancel.** `ctx` is checked between requests and between papers; the finished prefix's watermark is written on
+   `context.WithoutCancel` with a 10 s timeout; `Run` returns nil on signal and the process exits 0.
+8. **Size gate.** Each part commits a counted skeleton first. If a part projects > 480 changed lines (tests included), stop and split it at a
+   named seam before pushing (6a: migration + `watermarks.go` + its integration test as **ING-6a1**, walk/feed as **ING-6a2**).
+9. **README (6c)** documents: the `crawl-loop` CLI row, the first-run horizon (only the newest `--limit-per-run` papers; older ones via
+   `arxivlens crawl`), "run one instance" (enforced by the lock), the `backlog=` and `out_of_order=` fields, resetting a category
+   (`DELETE FROM crawl_watermarks WHERE category = …`), and the late-announcement residual risk. Product PRD ING-6 status moves only via
+   pm-lead's docs PR after 6c merges.
+10. **Design stays current.** Any deviation found during the build (e.g. arXiv's ordering, page size) is written back into this file in the same
+    cycle, and the PR says so.
