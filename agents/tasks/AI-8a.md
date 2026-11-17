@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0014 Accepted ✅, QA-8 delivered (#46 `cc57474`) ✅, RET-2 merged (`6cfd836`) ✅. **Design approved with conditions**: `docs/design/AI-8.md`, PM decision 2026-11-17. Not a dependency: ADR-0018 (Proposed), ING-11b (`page` is tested with hand-built hits). Independence at start: no open PR touches `internal/query/rag.go`, `rag_test.go` or `synthesis_test.go` (cycle 2026-11-17: ING-11b, EVAL-4 and OPS-H2 don't) |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8a"`), linked to the AI-8 story |
 | **Design required** | yes, done: `docs/design/AI-8.md` (approved, conditions 1–8). No further design. |
-| **Status** | In Progress: built and pushed, `agent/ai/AI-8a` @ `12e70b4` (PR to be opened by the orchestrator). QA r1 FAIL (rework for findings 1–3, 5–7). AC1 amended 2026-11-17 (pm-lead): `synthesis_test.go` call sites moved to backend follow-up AI-8c |
+| **Status** | In Progress (rework r1 done, awaiting QA round 2): `agent/ai/AI-8a` @ `a0a2ced`, PR #54 (draft). AC1 partly blocked on file ownership (QA finding 4, pm-lead) |
 
 ## Goal
 Every `/v1/ask` citation, in both answers and refusal evidence, says whether it was checked and passed, checked and failed,
@@ -131,3 +131,12 @@ gh workflow run eval.yml --ref agent/ai/AI-8a   # AC7, then read the job log's g
   `rules/` PR here (AGENTS.md) *and* a backend change to `app/.github/scripts/ownership-check.sh`. Neither lands this cycle, and the
   rework would sit blocked on Mahesh. Option (a) weakens no test: the same checks run at the same sites, one PR later. Finding 4 is
   closed for AC1. QA round 2 checks AC1 against the amended text. Findings 1–3 and nits 5–7 stay with ai-engineer.
+- 2026-11-17 (ai-engineer): **Rework r1** (QA round 1 FAIL, `agents/reviews/AI-8a/report.md`). New head `a0a2ced` (one commit on `12e70b4`, `rag_test.go` only, +16/-4; `rag.go` unchanged). Branch total **399 changed lines** (334+65), `ownership-check.sh`: `Ownership OK for role=ai (399 changed lines)`, so design condition 5 is not taken.
+  - [x] 1 [blocking] AC5 grep: `git grep -n -E 'pdf_url|\.content|supported' origin/main -- frontend/src scripts/` (33 lines) pasted in the PR #54 body, with a line per consumer (including `answer_review.py:56,151`).
+  - [x] 2 [blocking] AC2 list: the PR body now has a table of 10 mutations (A1–A10), each with the full-suite failing tests and the table-only failing rows. Corrected the claim: in the full suite, A5 (nil verifier) and A6 (wrong count) are killed first by `TestValidateCitationsFailClosedWhenUnverifiable` (panic). All 10 are killed in both kinds of run (local, scratch module).
+  - [x] 3 [blocking] case-sensitive match: `TestCitationQuote` rows `(c) case-changed quote drops the only claim (ADR-0014)` (expects `quoted`) and `(d) quote differing only in case is unsupported` (expects `[S+quote, U no quote]`). M33 (case-insensitive `inPassage`) is killed by both.
+  - [ ] 4 [spec] `synthesis_test.go` ownership: pm-lead's call; file not touched.
+  - [x] 5 [nit] `TestCitationStatusRule` row `fabricated quote at 0.9` (LLM path expects unsupported, score 0.9). M09/A9 (`Supported = score >= 0.50`) now fails it in the table-only run.
+  - [x] 6 [nit] AC7 line in the PR body has `gh workflow run eval.yml --ref agent/ai/AI-8a` and the reason (dispatch denied by the ai sandbox; `pull_request` filter excludes `internal/**`). **Still needs a dispatch by pm-lead or the orchestrator.**
+  - [x] 7 [nit] `TestCitationQuote` row `(b) quote across newline, double space and inline refs in the chunk kept` plus an extractive check on the same chunk (`[12]`, `[3, 4]`), which expects the marker-free quote and runs `checkCitationInvariants`. M34 is killed by both.
+  - Local runs (Go 1.24.7 scratch module, only `internal/db`/`pgx` stubbed): `gofmt -l` empty, `go vet` ok, `go test -race` on query/llm/arxiv ok, ticket targeted run 118 PASS / 0 FAIL, `rag.go` 99.0% (399/403). `make test-unit`/`make lint` are left to CI.
