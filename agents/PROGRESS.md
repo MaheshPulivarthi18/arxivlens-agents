@@ -489,3 +489,9 @@ Format:
   Correction to the sync brief: **#24 AI-9 was merged** (`d4b1cf3`, 2026-11-14 13:22Z, `merged: true`), not closed unmerged; the ticket already said so.
 - New spec **OPS-H11** (backend, P1, from OPS-H6 design G1): the downloader skips re-publish when the `(arxiv_id, version)` row is `embedded` with the same sha256; unit table test + one real-stack M4 test. Files don't overlap #51–#54.
 - ING-6 proposed as a design-only start (`docs/design/ING-6.md`); its build waits on README (#51/#52). OPS-H7a and OPS-H9 wait on #52 (`db.yml`, README). FE still env-blocked on npm (lockfile has no vitest). No ai picks (WIP 2/2).
+
+## 2026-11-17 08:00Z — orchestrator (scheduled cycle, session_01ATEBeTfcg9MKvPR1TEnzjL) — interrupted
+- Sync: 5 agent PRs merged 2026-11-14 → Done (KAN-39/41/49/57/58); QA-8 (KAN-7) Done via Mahesh's #46; pm-lead re-groomed 24 tickets (`0186d79`), ADR-0018 Proposed.
+- Started 4: EVAL-4 #51 (QA FAIL r1 → rework 156c394 → QA PASS r2), ING-11b #52 (QA PASS r1, PM APPROVE, raised), OPS-H2 #53 (QA PASS r1, PM APPROVE, raised), AI-8 design (approved with conditions 1–8, split AI-8a KAN-60 / AI-8b KAN-61).
+- AI-8a built (12e70b4, 387 lines) → draft #54. Its QA r1 subagent was cut off by an API rate limit (no comment, no evidence committed), so #54 has **no QA verdict**. AC7 (`eval.yml` dispatch on the branch) was denied by the sandbox permission policy.
+- The rate limit stalled this session ~4 h, past the 100-min lock; the 13:00Z cycle took the lock over and finished EVAL-4's PM review. This cycle stops without touching that lock, the board or Jira beyond what is recorded above.
