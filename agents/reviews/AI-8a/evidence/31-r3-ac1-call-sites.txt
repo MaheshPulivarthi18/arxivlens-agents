@@ -1,0 +1,29 @@
+$ bash /tmp/claude-0/-home-claude/11829192-f338-5aee-a970-65f6c6a154c0/scratchpad/qa-AI-8a/ac1_sites.sh
+=== rag_test.go @ 990aa5a
+TestAskAnswersWithExtractedCitations             resp calls=3 invariant calls=2
+TestAskEarlyRefusalHasNoRefusalReason            resp calls=1 invariant calls=1
+TestAskExtractiveAnswerVerifiedByQuote           resp calls=1 invariant calls=1
+TestAskKeepsAnswerWithOneSupportedCitation       resp calls=1 invariant calls=1
+TestAskRefusesAllUnsupported                     resp calls=1 invariant calls=1
+TestAskRefusesNoInRangeMarker                    resp calls=2 invariant calls=2
+TestAskRefusesVerificationUnavailable            resp calls=2 invariant calls=2
+TestAskRefusesWhenNothingPasses                  resp calls=1 invariant calls=1
+TestAskRerankFallbackLogsResponseTraceID         resp calls=1 invariant calls=1
+TestCitationProvenance                           resp calls=2 invariant calls=1
+TestCitationQuote                                resp calls=3 invariant calls=3
+TestCitationStatusRule                           resp calls=1 invariant calls=1
+TestFinalizeEvidenceKeepsBestComputedScore       resp calls=1 invariant calls=1
+TestRefusalEvidenceStatus                        resp calls=3 invariant calls=3
+=== synthesis_test.go @ 990aa5a
+TestQuickAnswerSkipsSynthesis                    resp calls=3 invariant calls=0
+TestSynthesisAnswersWithVerifiedClaims           resp calls=1 invariant calls=0
+TestSynthesisClaimsUnsupportedFallBackToQuotes   resp calls=2 invariant calls=0
+TestSynthesisDropsUnsupportedClaims              resp calls=1 invariant calls=0
+TestSynthesisFallsBackToExtractive               resp calls=1 invariant calls=0
+TestSynthesisMarkersFollowPromptOrder            resp calls=1 invariant calls=0
+TestSynthesisRefusals                            resp calls=1 invariant calls=0
+TestWithLLMNilKeepsExtractive                    resp calls=1 invariant calls=0
+## total checkCitationInvariants call sites: rag_test.go 22, synthesis_test.go 0
+## note: TestAskAnswersWithExtractedCitations 3rd call is the retrieval-error case (resp == nil)
+
+[exit code 0]

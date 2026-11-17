@@ -1,0 +1,83 @@
+$ bash -c echo "## PR #54: head / draft / labels"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/54 --jq ".head.sha, .draft, ([.labels[].name]|join(\",\"))"; echo "## PR body lines matching AC1|AC6|8 [blocking]|9 [nit]|Finding 10|No assertion"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/54 --jq .body | grep -nE "AC1 |AC6|^- \[.\] 8 |^- \[.\] 9 |Finding 10|No assertion"; echo "## Go job 134082779463 log excerpt"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/134082779463/logs | grep -E "HEAD is now|go version go|make (lint|test)-go$|internal/query|FAIL|Error" | cut -c30-; echo "## eval.yml runs on branch agent/ai/AI-8a"; gh api "repos/MaheshPulivarthi18/ArxivLens/actions/workflows/eval.yml/runs?branch=agent/ai/AI-8a" --jq "\"total_count \(.total_count)\""
+## PR #54: head / draft / labels
+990aa5a75c288ac82f912690c51e41c81c18066d
+true
+qa-fail
+## PR body lines matching AC1|AC6|8 [blocking]|9 [nit]|Finding 10|No assertion
+22:- [x] 8 [blocking] (AC1): `TestCitationProvenance` now calls `checkCitationInvariants(t, resp)` inside the `for _, resp := range []*AskResponse{quoted, synth}` loop, before `c := resp.Citations[0]`, so both paths are checked for all three versions. It is written as the `if` init statement (`if checkCitationInvariants(t, resp); len(resp.Citations) != 1 {`) on a line this branch already adds, so the diff stays at 399 lines. Design condition 5 is not taken.
+23:- [x] 9 [nit]: the same pattern, at no line cost, checks `TestCitationQuote`'s first extractive `quoted` response and `TestRefusalEvidenceStatus`'s `early` refusal.
+24:- No assertion, row or check was removed or changed. The commit changes 3 lines in `rag_test.go`, and `rag.go` is untouched.
+25:- Finding 10 (AC7 numbers): needs a dispatch that this sandbox can't do. Left for pm-lead or the orchestrator (see AC7).
+37:- [ ] AC1 (as amended by pm-lead, `rag_test.go` only): `checkCitationInvariants` is called from every existing `rag_test.go` test that gets an `AskResponse`, and from all four new tests (`TestCitationStatusRule`, `TestRefusalEvidenceStatus`, `TestCitationQuote`, `TestCitationProvenance`) on both paths. It has signature `checkCitationInvariants(t *testing.T, resp *AskResponse)` in package `query`, so another `_test.go` file can call it. `synthesis_test.go` is not touched here: its call sites moved to AI-8c (pm-lead, QA finding 4).
+42:- [ ] AC6: coverage (`rag.go` 99.0%, 399/403 statements) and size (**399** changed lines, < 400: `ownership-check.sh` prints `Ownership OK for role=ai (399 changed lines)`). Design condition 5 is not taken.
+## Go job 134082779463 log excerpt
+HEAD is now at b7d882c Merge 990aa5a75c288ac82f912690c51e41c81c18066d into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+go version go1.25.0 linux/amd64
+##[group]Run make lint-go
+##[group]Run make test-go
+ok  	arxivlens/internal/query	0.351s
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026/11/17 13:46:06 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+=== RUN   TestConsumerPollErrorStillProcessesRecords
+=== RUN   TestConsumerPollErrorStillProcessesRecords/partition_error,_other_partition_handled
+=== RUN   TestConsumerPollErrorStillProcessesRecords/client_closed_returns_the_error
+--- PASS: TestConsumerPollErrorStillProcessesRecords (0.00s)
+    --- PASS: TestConsumerPollErrorStillProcessesRecords/partition_error,_other_partition_handled (0.00s)
+    --- PASS: TestConsumerPollErrorStillProcessesRecords/client_closed_returns_the_error (0.00s)
+=== RUN   TestErrorShape
+=== RUN   TestErrorShape/kind_and_detail
+=== RUN   TestErrorShape/kind_and_cause
+=== RUN   TestErrorShape/cancel_has_nil_kind
+=== RUN   TestErrorShape/zero_value
+=== RUN   TestErrorShape/key_redacted_from_detail
+--- PASS: TestErrorShape (0.00s)
+    --- PASS: TestErrorShape/kind_and_detail (0.00s)
+    --- PASS: TestErrorShape/kind_and_cause (0.00s)
+    --- PASS: TestErrorShape/cancel_has_nil_kind (0.00s)
+    --- PASS: TestErrorShape/zero_value (0.00s)
+    --- PASS: TestErrorShape/key_redacted_from_detail (0.00s)
+=== RUN   TestErrorsIsAs
+=== RUN   TestErrorsIsAs/timeout
+=== RUN   TestErrorsIsAs/rate_limited
+=== RUN   TestErrorsIsAs/provider
+=== RUN   TestErrorsIsAs/bad_response
+=== RUN   TestErrorsIsAs/invalid_request
+=== RUN   TestErrorsIsAs/cancel
+--- PASS: TestErrorsIsAs (0.00s)
+    --- PASS: TestErrorsIsAs/timeout (0.00s)
+    --- PASS: TestErrorsIsAs/rate_limited (0.00s)
+    --- PASS: TestErrorsIsAs/provider (0.00s)
+    --- PASS: TestErrorsIsAs/bad_response (0.00s)
+    --- PASS: TestErrorsIsAs/invalid_request (0.00s)
+    --- PASS: TestErrorsIsAs/cancel (0.00s)
+=== RUN   TestTransportError
+--- PASS: TestTransportError (0.00s)
+arxivlens/internal/llm/llm.go:107:		Error		100.0%
+arxivlens/internal/llm/llm.go:133:		newError	100.0%
+arxivlens/internal/llm/openai.go:260:		ctxError	100.0%
+## eval.yml runs on branch agent/ai/AI-8a
+total_count 0
+
+[exit code 0]
