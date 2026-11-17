@@ -1,0 +1,109 @@
+$ bash -c for f in stubs/ulid/go.mod control.sh control-verdicts.sh local-tests.sh mutants-r2.py mutate2.sh ac4-ac10.sh; do echo "===== $f ====="; cat /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa/harness/$f; done
+===== stubs/ulid/go.mod =====
+module github.com/oklog/ulid/v2
+
+go 1.24
+===== control.sh =====
+#!/bin/bash
+# control.sh: rebuilt r1 harness on the r1 head (3756173); diff its mutant table with r1 evidence 04 (mutate.sh section).
+H=$(cd "$(dirname "$0")" && pwd)
+R1=/home/claude/arxivlens-agents/agents/reviews/ING-6a/evidence/04-mutants.txt
+echo "tree: $(git -C /root/wt/qa-ING-6a2-r1ctl rev-parse HEAD)"
+$H/mutate.sh /root/wt/qa-ING-6a2-r1ctl > $H/../control.out 2>&1
+sed -n '2,/^\[exit code/p' $R1 | sed '$d' | sed '/^$/d' > $H/../r1-04.table
+sed '/^$/d' $H/../control.out > $H/../control.table
+echo "r1 evidence 04 table rows: $(wc -l < $H/../r1-04.table)   control rows: $(wc -l < $H/../control.table)"
+if diff $H/../r1-04.table $H/../control.table; then echo "CONTROL: byte-identical to round-1 evidence 04 (rebuild is faithful)"; else echo "CONTROL: DIFFERS"; fi
+echo; cat $H/../control.out
+===== control-verdicts.sh =====
+#!/bin/bash
+# Compare only the verdict columns (mutant | full pkg | -run) of r1 evidence 04 vs the r2 control run; then rerun M11 alone 3x.
+Q=$(cd "$(dirname "$0")/.." && pwd)
+cut -d'|' -f1-3 $Q/r1-04.table > $Q/r1.v; cut -d'|' -f1-3 $Q/control.table > $Q/ctl.v
+if diff $Q/r1.v $Q/ctl.v; then echo "VERDICTS: all $(($(wc -l < $Q/r1.v)-1)) mutants x 2 runs identical to round 1"; else echo "VERDICTS DIFFER"; fi
+echo "M11 (short-page stop removed => infinite walk) rerun 3x, full package, mutant applied to r1 head:"
+export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod
+m=$(mktemp -d $Q/m11c.XXXX); $Q/harness/build.sh /root/wt/qa-ING-6a2-r1ctl $m
+sed -i 's/if len(page) < n ||/if false ||/' $m/internal/crawler/loop.go; grep -c 'if false ||' $m/internal/crawler/loop.go
+for i in 1 2 3; do (cd $m && go test -count=1 -timeout 30s ./internal/crawler/ > $m/r$i.log 2>&1); echo "  run $i rc=$? 'panic: test timed out'=$(grep -c 'panic: test timed out' $m/r$i.log) '--- FAIL'=$(grep -c -- '--- FAIL' $m/r$i.log)"; done
+===== local-tests.sh =====
+#!/bin/bash
+# local-tests.sh <tree>: scope + vet/gofmt + ticket -run set (-race -v) in a scratch module (Go 1.24.7, real arxiv/crawler/events, stubs db/kafka/ulid).
+W=$1; H=$(cd "$(dirname "$0")" && pwd); Q=$(dirname $H)
+export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod
+echo "== scope: git diff --stat origin/main...HEAD (main=$(git -C $W rev-parse --short origin/main))"; git -C $W diff --stat origin/main...HEAD
+echo "== gofmt -l on the 2 files:"; gofmt -l $W/internal/crawler/loop.go $W/internal/crawler/loop_test.go; echo "(end gofmt)"
+m=$(mktemp -d $Q/lt.XXXX); $H/build.sh $W $m; cd $m
+echo "== go vet ./internal/crawler/ ./internal/arxiv/"; go vet ./internal/crawler/ ./internal/arxiv/ && echo "vet ok"
+go test -race -count=1 -v -run 'TestWalkStopsAtWatermark|TestSelectBatch|TestArxivFeedRequest|TestNewArxivFeedDefaults|TestParseCategories' ./internal/crawler/ > $m/v.log 2>&1; rc=$?
+echo "== ticket -run set + TestNewArxivFeedDefaults, -race: rc=$rc  PASS=$(grep -c -- '--- PASS' $m/v.log) FAIL=$(grep -c -- '--- FAIL' $m/v.log)"
+grep -E -- '--- (PASS|FAIL)|^(ok|FAIL)\s' $m/v.log | sed 's/ ([0-9.]*s)//'
+echo "== full packages -race:"; go test -race -count=1 ./internal/crawler/ ./internal/arxiv/ 2>&1 | sed 's/\t[0-9.]*s$//'
+===== mutants-r2.py =====
+# Round-2 table: the r1 mutants tied to findings 1-4 with the round-2 killing test for -run, plus extras M28-M34.
+exec(open(MUTDIR + "/mutants.py").read())
+R1 = {m[0].split()[0]: m for m in M}
+def re_target(mid, test):
+    n, _, o, w = R1[mid]; return (n, test, o, w)
+UNDATED = "\t\t\tif p.PublishedAt.IsZero() {\n"
+M = [
+ re_target("M5", "TestWalkStopsAtWatermark"),
+ re_target("M23", "TestNewArxivFeedDefaults"),
+ re_target("M24", "TestNewArxivFeedDefaults"),
+ re_target("M27", "TestWalkStopsAtWatermark"),
+ ("M28 nil lim -> NewLimiter(0) (unthrottled)", "TestNewArxivFeedDefaults", "lim = arxiv.NewLimiter(arxiv.DefaultInterval)", "lim = arxiv.NewLimiter(0)"),
+ ("M29 given lim ignored (always a new one)", "TestNewArxivFeedDefaults", "\tif lim == nil {", "\tif true {"),
+ ("M30 retry Max dropped", "TestNewArxivFeedDefaults", "retry: arxiv.DefaultRetry}", "retry: arxiv.Retry{Attempts: arxiv.DefaultRetry.Attempts, Base: arxiv.DefaultRetry.Base}}"),
+ ("M31 ctx cancel returns partial candidates", "TestWalkStopsAtWatermark", "if err := ctx.Err(); err != nil {\n\t\t\treturn nil, st, err", "if err := ctx.Err(); err != nil {\n\t\t\treturn out, st, err"),
+ ("M32 undated resets prev and boundary", "TestWalkStopsAtWatermark", UNDATED, UNDATED + "\t\t\t\tprev, last = p.PublishedAt, p.PublishedAt\n"),
+ ("M33 undated resets boundary only", "TestWalkStopsAtWatermark", UNDATED, UNDATED + "\t\t\t\tlast = p.PublishedAt\n"),
+ ("M34 undated resets prev only", "TestWalkStopsAtWatermark", UNDATED, UNDATED + "\t\t\t\tprev = p.PublishedAt\n"),
+]
+===== mutate2.sh =====
+#!/bin/bash
+# mutate2.sh <app tree> <mutants file>: like mutate.sh, but prints EVERY failing (sub)test of the full run. Build failure = INVALID.
+W=$1; MF=$2; H=$(cd "$(dirname "$0")" && pwd); S=$(dirname $H)
+export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod
+python3 -I - "$W" "$H" "$S" "$MF" <<'PY'
+import subprocess, sys, tempfile, os
+W, H, S, MF = sys.argv[1:5]
+MUTDIR = H
+exec(open(MF).read())
+def run(m, args):
+    r = subprocess.run(["go", "test", "-count=1", "-timeout", "30s"] + args + ["./internal/crawler/"], cwd=m, capture_output=True, text=True)
+    out = r.stdout + r.stderr
+    if "[build failed]" in out or "[setup failed]" in out: return "INVALID(build)", ""
+    if r.returncode == 0: return "SURVIVED", ""
+    fails = [l.strip().split()[2] for l in out.splitlines() if l.strip().startswith("--- FAIL") and "/" in l]
+    fails = fails or [l.strip().split()[2] for l in out.splitlines() if l.strip().startswith("--- FAIL")]
+    if "panic: test timed out" in out: fails.append("TIMEOUT")
+    return "KILLED", " ; ".join(f.split("/",1)[-1] for f in fails)
+rows = []
+for name, test, old, new in M:
+    m = tempfile.mkdtemp(dir=S, prefix="mut2.")
+    subprocess.run([os.path.join(H, "build.sh"), W, m], check=True)
+    p = os.path.join(m, "internal/crawler/loop.go"); src = open(p).read()
+    if src.count(old) != 1: rows.append((name, "NOT APPLIED", f"pattern count {src.count(old)}", "", "")); continue
+    open(p, "w").write(src.replace(old, new))
+    a, fa = run(m, []); b, _ = run(m, ["-run", f"^{test}$"])
+    rows.append((name, a, b, test, fa))
+k = sum(1 for r in rows if r[1] == "KILLED" and r[2] == "KILLED")
+print(f"SUMMARY: {k}/{len(rows)} killed in BOTH the full package and -run '^T$'")
+print(f"{'mutant':44} | full pkg | -run ^T$ | T")
+for r in rows: print(f"{r[0]:44} | {r[1]:8} | {r[2]:8} | {r[3]}")
+print("\nfailing (sub)tests, full package run:")
+for r in rows: print(f"  {r[0].split()[0]}: {r[4]}")
+PY
+===== ac4-ac10.sh =====
+#!/bin/bash
+# AC4 amended bytes vs the test's literal; AC10 fixture published values; PR body staleness markers.
+cd /root/wt/qa-ING-6a2
+A='max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0'
+echo "AC4 amended string (ticket): $A"
+echo "occurrences in loop_test.go: $(grep -cF "$A" internal/crawler/loop_test.go)"; grep -nF "$A" internal/crawler/loop_test.go
+echo "AC10 fixture internal/crawler/testdata/arxiv_feed.xml <published> (file order):"; grep -n '<published>\|<id>' internal/crawler/testdata/arxiv_feed.xml
+echo "fixture changed by PR? $(git diff --name-only origin/main...HEAD -- internal/crawler/testdata | wc -l) files"
+echo "PR #56 body lines quoting the fixture values:"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/56 --jq .body | grep -nE '2023-07-17T17:50:36Z|ascending, not descending'
+echo "PR #56 body stale markers (pre-rework):"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/56 --jq .body | grep -nE '398|No PR yet|11 walk rows'
+
+[exit code 0]
