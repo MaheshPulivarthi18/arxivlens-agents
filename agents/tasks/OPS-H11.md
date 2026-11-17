@@ -83,3 +83,7 @@ make lint
   AC4: `test_redelivered_discovered_keeps_embedded_status` checked locally only against stubbed confluent_kafka/psycopg: passes on the no-op path, fails on a
   re-published `papers.downloaded` and on a changed `updated_at`, skips with a `warnings.warn` reason when no embedded paper exists. Real result: PR's `stack.yml`.
   Not run locally: `make test-unit`, `make lint` (repo needs Go 1.25), real stack. Jira not updated from this session (no Jira tool available to me).
+- 2026-11-17 (backend-engineer): CI on `2039650` all green: Go (vet, gofmt, test, build) job 134069236011 (`ok arxivlens/internal/downloader 0.106s`),
+  Python M0, DB, Frontend, ownership, Full stack job 134069235738 (`make test-full`: `234 passed, 1 skipped, 3 deselected, 5 warnings in 54.21s`).
+  AC4 has no named log line because `make test-full` runs `pytest -q` (stack.yml out of scope here); the new test did not skip (its skip path
+  `warnings.warn`s and the warnings summary holds only 5 `tests/test_m0.py` entries) and no `F` appears. QA: map the dot positions if a named line is required.
