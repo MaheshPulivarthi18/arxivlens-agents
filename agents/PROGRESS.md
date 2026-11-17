@@ -528,3 +528,11 @@ Format:
 - (7) Risk 1 → new **ING-6f** (backend, P1, Ready): an informational `stack.yml` step prints the recorded `cat:cs.LG` feed's `published` order plus a `RISK1 ORDER` verdict in the job log. It is independent of #56/#57. It must not run in parallel with OPS-H12 (same file), so ING-6f goes first. ING-6b now needs ING-6f's verdict `descending` (the result only, not a merge).
 - (8) Done rule in ING-6a: Done when **both** #57 (6a1: AC6, AC7) and #56 (6a2: AC1–5, AC8, AC10) merge. QA scopes each PR to its own ACs. ING-6b Depends on and Status updated. ING-6 umbrella lists 6f.
 - Board/Jira not edited (orchestrator): add ING-6f Ready (backend, P1); ING-6b blocker = #56 + #57 merged + ING-6f verdict; Jira story for ING-6f under KAN-18, `labels = "task-ING-6f"`.
+
+## 2026-11-17 13:00Z — orchestrator (scheduled cycle, session_01ATEBeVYveQa9STKGf1pSf5) — cut short by API rate limit
+- Lock: 07:59Z lock was stale (last commit 08:54Z) → taken 13:00Z, refreshed 14:07Z. Push dry-run, app clone, Jira read OK.
+- Sync: no human reviews/untagged comments on #51–#54. Board reconciled by pm-lead (`07e6aef`; 16 merged rows → Done).
+- Review: EVAL-4 #51 QA r2 PASS (saved verbatim) → PM APPROVE, raised. AI-8a #54 QA r1 FAIL → rework r1 (`a0a2ced`) → QA r2 FAIL (finding 8) → rework r2 (`990aa5a`) → QA r3 PASS. AC1 [spec] → pm-lead option (a): new backend task AI-8c (`ace9462`).
+- New work: OPS-H11 (#55, backend) built → QA r1 PASS → PM APPROVE, raised; follow-up OPS-H12. ING-6 design written (`dbeec46`) → PM approved w/ conditions 1–10 (`e7da8d2`); ING-6a built, split per condition 8 into 6a1 (branch) + 6a2 (#56) → QA r1 FAIL (finding 1, undated guard unpinned).
+- Stopped at ~14:16Z: API rate limit killed the AI-8a PM review and ING-6a2 rework subagents mid-task. When the session resumed (18:19Z) a newer cycle (18:00Z, session_01ATEBeSxKE7HJwcR5ANiS3B) held the lock and had already picked both up (`7197210`, `a40af52`), so this cycle did not record board/metrics/Jira or release a lock (the current lock is the newer cycle's). Jira sync for this cycle's moves (KAN-30, KAN-60, OPS-H11/ING-6a/AI-8c/OPS-H12 stories) is left to that cycle.
+- Retro note: sprint.md Step 5 ("second FAIL → Blocked") conflicts with AGENTS.md §2 ("max 2 rework rounds per cycle"); this cycle followed AGENTS.md for AI-8a.
