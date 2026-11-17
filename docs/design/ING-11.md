@@ -288,3 +288,7 @@ without touching it. This is ADR-0014's rule ("only returned when the chunker re
 - [ING-11](../../agents/tasks/ING-11.md) (backend, P1, Ready; KAN-55): producer part a. No build dependency.
 - [AI-11](../../agents/tasks/AI-11.md) (ai, P1): `TokenChunker` emits `page_start`. Depends on ING-11 merged.
 - [ING-11b](../../agents/tasks/ING-11b.md) (backend, P1): consumer. Depends on AI-11 and RET-2 merged.
+
+**Amendment 2026-11-17 (pm-lead, ING-11b final review, QA finding 2 [spec]):** the test-plan row "AC4 … `TestHNSW` recall lines unchanged"
+means: every RESULT line whose config is not an iterative-scan mode is identical to main's, and iterative-scan custom-plan lines stay within
+main-to-main run variance. Those lines drift between two `db.yml` runs of unchanged main, so "unchanged" can't be required of them.

@@ -6,9 +6,9 @@
 | **Priority** | P1 (Product PRD §7 principle 3 "one click to the source": AI-8 maps it into `citations[].page`, FE-4 links `#page=N`) |
 | **PRD ref** | Product PRD QA-3, §7 principle 3; Technical PRD §5, §7.1; ADR-0014 (Accepted: `page` "(int, omitted when unknown)") |
 | **Depends on** | **AI-11 merged** (`68a57a9`, and ING-11 `d3f9408`), **RET-2 merged** (`6cfd836`). Independence check at start: no open PR touches `internal/query/search*.go`, `.github/workflows/db.yml`, `tests/test_evals_data.py`, `tests/test_m2_pipeline.py`, the README API table's `/v1/search` row or `CONTRIBUTING.md:23` (cycle 2026-11-17: no open PRs; OPS-H7a and OPS-H9 also edit `db.yml`, so neither runs alongside this) |
-| **Jira** | not yet created (orchestrator: story under epic KAN-1, labels `task-ING-11b`, `agent-backend`, `arxivlens`; link KAN-55) |
+| **Jira** | KAN-59 (story under epic KAN-1, labels `task-ING-11b`, `agent-backend`, `arxivlens`; linked KAN-55) |
 | **Design required** | yes, **covered by the approved `docs/design/ING-11.md`** (decision 6, part b; PM conditions 4, 5, 6, 9). No new design round |
-| **Status** | **In Progress** (built 2026-11-17, head `706e43e` pushed; draft PR to be opened by the orchestrator). Branch `agent/backend/ING-11b` |
+| **Status** | **Ready to merge** (2026-11-17): ArxivLens [#52](https://github.com/MaheshPulivarthi18/ArxivLens/pull/52) @ `706e43e` (KAN-59), QA PASS r1, PM APPROVE; raised for Mahesh. Branch `agent/backend/ING-11b` |
 
 ## Goal
 After ING-11 and AI-11, the processor stores each chunk's real start page in `paper_chunk_pages`. This part returns it from
@@ -32,19 +32,20 @@ chunk the chunker couldn't place). Ranking doesn't change.
 - Out of scope: reprocessing the corpus, page ranges, `citations[].page` (AI-8), the frontend (FE-4). Technical PRD §5/§6.2 is a pm-lead docs PR after merge.
 
 ## Acceptance criteria
-- [ ] AC3: On real pgvector in `db.yml`, extending RET-2's `TestSearchProvenance` through the production `HybridSearch`: the v2 chunk
+- [x] AC3: On real pgvector in `db.yml`, extending RET-2's `TestSearchProvenance` through the production `HybridSearch`: the v2 chunk
   with `page_number` 7 and a `paper_chunk_pages` row of 6 returns `Page == 6` and `"page":6` in its JSON (the differing values prove
   the new table is the source); the chunk with `page_number` 4 and no row, and the v1 chunk with NULL `page_number` and no row,
   return `Page == nil` and no `"page"` key. `t.Logf` lines are linked from the `db.yml` log (condition 6).
-- [ ] AC4: ADR-0010 parity guard passes: whole `tests/test_evals_data.py`, plus by node ID `test_rrf_pool_sql_mirrors_search_go`,
+- [x] AC4: ADR-0010 parity guard passes: whole `tests/test_evals_data.py`, plus by node ID `test_rrf_pool_sql_mirrors_search_go`,
   `test_adr0010_parity_pool_one_call_stable_ties_top5`, `test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets`.
   Exactly one `_GO_TO_EVAL_SQL` fragment changes; `git diff --stat` shows no `scripts/` path; `TestSearchSQLOuterSelectOnly`
-  (both added columns stripped → golden) and the `search_test.go` ordering tests pass unmodified; `TestHNSW` recall lines unchanged (condition 5).
-- [ ] AC5: `stack.yml` passes on the PR (triggered by `internal/**`/`tests/**` once OPS-H10 #26 is merged; otherwise dispatched on the
+  (both added columns stripped → golden) and the `search_test.go` ordering tests pass unmodified; `TestHNSW`: every RESULT line whose config is not an iterative-scan mode is identical to main's; iterative-scan custom-plan lines
+  stay within main-to-main run variance (compare two `db.yml` runs on unchanged main; amended 2026-11-17, QA finding 2 [spec]) (condition 5).
+- [x] AC5: `stack.yml` passes on the PR (triggered by `internal/**`/`tests/**` once OPS-H10 #26 is merged; otherwise dispatched on the
   branch and the run ID named). Its `make test-full` includes the new `tests/test_m2_pipeline.py` test: for every `embedded` paper,
   every `paper_chunks` row has a `paper_chunk_pages` row, `page_start >= page_number`, and `page_start` doesn't decrease with
   `chunk_index` within a paper. The PR names the test and how its result shows in the log (the run uses `pytest -q`, so give the dot position or a failure-free summary line).
-- [ ] AC6: README `/v1/search` row updated (wording in Scope). The PR is < 400 changed lines (estimate ~85).
+- [x] AC6: README `/v1/search` row updated (wording in Scope). The PR is < 400 changed lines (estimate ~85).
 
 ## Verification
 ```bash
@@ -95,4 +96,16 @@ python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_
     stub psycopg on 6 inputs (good, missing row, below page_number, decreasing, per-paper reset, empty) — all as expected.
   - Not verified locally: `db.yml` (AC3), `stack.yml` (AC5; triggered by `internal/**` on the PR), CI `make test-unit`/`make lint`.
     `make eval` not run: ranking SQL unchanged (AC4). No workflow runs on a branch push, so CI starts when the PR opens.
-
+- 2026-11-17 (pm-lead, final review): **APPROVE** on `706e43e` after QA PASS r1 (`agents/reviews/ING-11b/report.md`). PR #52 description
+  rewritten with the Evidence section and marked ready for review. QA findings:
+  1. [nit] AC5's PR-text clause: carried into the PR body (`tests/test_m2_pipeline.py::test_embedded_chunks_have_recorded_start_pages`,
+     dot 196 = row 3, col 52 of the `pytest -q` progress lines; summary `234 passed, 1 skipped, 3 deselected`; PR #50 baseline 233 passed).
+  2. [spec] AC4 "TestHNSW recall lines unchanged" was wrong: iterative-scan custom-plan lines drift between two runs of unchanged main
+     (3 lines between `538b2ea` and `40dec5a`). AC4 reworded above. It is still met: 0 non-iterative lines differ, `vectorHitsSQL` is golden.
+     The design's test-plan row has a matching amendment note.
+  3. [nit] evidence 06 `[exit code 1]` is `grep -c` printing the expected 0. No action.
+  4. [nit] the M2 test reports a NULL `page_number` with a page row as "page_start N < page_number None". Follow-up on the board Backlog
+     (backend, P3, fold into the next `tests/test_m2_pipeline.py` change): give that case its own message. It doesn't block: the case is still flagged.
+  - Missing-tests note (`-rA` for test-full): already on the board Backlog (OPS-H8 follow-up), not duplicated.
+  - Added `evidence/pm-02b-AC3-page-values.png`, rendered from QA's committed `02-…txt`, because the `02` PNG cuts the PROVENANCE lines before `page=`.
+  - After merge (pm-lead): Technical PRD §5/§6.2 docs PR (the `page` source). Board Backlog line for the `CONTRIBUTING.md:23` fix: done by this PR.

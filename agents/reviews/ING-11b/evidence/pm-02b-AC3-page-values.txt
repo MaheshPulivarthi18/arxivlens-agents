@@ -1,0 +1,11 @@
+$ bash -c f=agents/reviews/ING-11b/evidence/02-AC3-db-provenance.txt; grep -m1 -E '^706e43e.* success' $f; grep -E 'HEAD is now at' $f | cut -c1-110; grep 'PROVENANCE chunk_id' $f | sed -E 's/^([0-9]+):[^ ]+ +search_provenance_integration_test.go:[0-9]+: PROVENANCE (chunk_id=[0-9]+) arxiv_id=[^ ]+ (version=[0-9]+) (page=[^ ]+) rrf_score=[^ ]+ json=.*("content":"[^"]+").*("version":.*)$/\1: \2 \3 \4 | json ...\5 ... \6/'; grep -E 'PASS: TestSearchProvenance|Z ok ' $f | cut -c1-110
+706e43e0ca87b8d3cc593c11fd653b636e0017c7 success
+$ bash -c L=/tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/ci/job-133911818026.log
+214:2026-11-17T08:21:46.3977166Z HEAD is now at 2ab3fa8 Merge 706e43e0ca87b8d3cc593c11fd653b636e0017c7 into 40
+1490: chunk_id=10001 version=1 page=nil | json ..."content":"zyxprov alpha one" ... "version":1}
+1491: chunk_id=10002 version=2 page=nil | json ..."content":"zyxprov alpha two" ... "version":2}
+1492: chunk_id=10003 version=2 page=6 | json ..."content":"zyxprov beta two" ... "version":2,"page":6}
+1493:2026-11-17T08:22:23.1737452Z --- PASS: TestSearchProvenance (0.02s)
+1495:2026-11-17T08:22:23.1739324Z ok  	arxivlens/internal/query	21.737s
+
+[exit code 0]

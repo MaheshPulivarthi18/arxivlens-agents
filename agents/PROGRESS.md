@@ -463,3 +463,8 @@ Format:
 - AI-11 **APPROVE** on `0085fee` after QA PASS r1; verdict in `agents/reviews/AI-11/report.md`. All 10 evidence files opened; the production diff matches ING-11 design decision 1 + PM condition 1.
 - QA finding 1 [nit] (AC3(d) double-`lead` mutant M03): follow-up AI-11f (ai, P3, one test row), not blocking: `lead == 0` in production (worker strips every line, skips empty ones) and QA's 400-doc probe kills M03. Finding 2 [spec] (`make lint` has no Python linter): follow-ups for a backend ruff target and a *Proposed* task-template note; pm-lead lesson added. Board backlog entries left to the orchestrator (told not to edit the board).
 - PR #38 description rewritten with the Evidence section (images pinned to `f7ba64a`) and marked ready for review. Merge is Mahesh's.
+
+## 2026-11-17 pm-lead: ING-11b final review
+- ING-11b **APPROVE** on `706e43e` (PR #52, KAN-59) after QA PASS r1; verdict in `agents/reviews/ING-11b/report.md`. Opened all 14 evidence files. Evidence 02's PNG cuts the AC3 `page=` values, so I added `evidence/pm-02b-AC3-page-values.png`, rendered from QA's committed `.txt`.
+- QA finding 2 [spec]: ticket AC4 "TestHNSW recall lines unchanged" reworded (non-iterative identical; iterative within main-to-main variance), with an amendment note in `docs/design/ING-11.md`. Finding 1: the test name, dot 196 and the summary line are in the PR body. Finding 4: board Backlog follow-up (backend, P3). pm-lead lesson added.
+- Board: ING-11b → Ready to merge; the `CONTRIBUTING.md:23` backlog line is marked done in #52. After merge: Technical PRD §5/§6.2 docs PR (pm-lead).
