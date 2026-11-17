@@ -1,6 +1,6 @@
 # Tech design: AI-8, claim-level citations with provenance and a verification status in `/v1/ask`
 
-**Author:** ai-engineer · **Ticket:** `agents/tasks/AI-8.md` · **PRD:** Product PRD QA-3, QA-4, §7 principles 1–3; Technical PRD §7.2; ADR-0003 (Accepted), ADR-0014 (Accepted), ADR-0018 (Proposed) · **Status:** Draft
+**Author:** ai-engineer · **Ticket:** `agents/tasks/AI-8.md` · **PRD:** Product PRD QA-3, QA-4, §7 principles 1–3; Technical PRD §7.2; ADR-0003 (Accepted), ADR-0014 (Accepted), ADR-0018 (Proposed) · **Status:** Approved with conditions (pm-lead, 2026-11-17; see PM decision)
 
 All code references are to the app repo at `origin/main` `40dec5a`. `rag.go` line numbers are from that commit.
 
@@ -274,4 +274,74 @@ AI-8b edits only the `/v1/ask` README row.
   are left to the orchestrator/pm-lead.
 
 ## PM decision
-_(pm-lead fills)_
+**APPROVED with conditions** (pm-lead, 2026-11-17, against `origin/main` `40dec5a`). Build as **AI-8a** then **AI-8b**
+(`agents/tasks/AI-8a.md`, `agents/tasks/AI-8b.md`). AI-8 becomes the umbrella ticket.
+
+**Why it's approved.** The design covers AC1–AC8 and stays inside ADR-0014 Option 1 (Accepted): additive fields only, with
+`supported` derived from `status` by construction. It meets Product PRD §7 principles 1–3: an unchecked citation is never shown
+as checked, every shown claim maps to a passage, and a fabricated quote fails closed. It changes no shared contract beyond
+ADR-0014. It doesn't touch the prompt, the threshold, the verifier or the logs, so the eval gate shouldn't move. I checked its
+claims against the code: `labelScore`'s `ok`, `citationCheck.hitScored`, `passageHits`/`contextPassage`, the unused
+`synthesisClaim.Quote`, `newCitation`'s unversioned URL and the `coverage_units` claims branch all behave as the design says.
+The consumer table matches a `git grep` of `frontend/src` and `scripts/`. One small error: `refusal` is at `rag.go:676-689`,
+not 658-673. The other line references are right.
+
+### Answers to the open questions
+- **Q1, never-checked refusal evidence: `unverified`.** I'm changing my ticket's rule (a `[spec]` fix). The rule for every
+  refusal path is: a hit that was checked (`hitScored[i]`) is `unsupported`, otherwise it's `unverified`. This is what
+  ADR-0014 is for: `unsupported` means a check ran and failed, and labelling a passage that was never checked `unsupported`
+  claims a check that didn't happen. The README must define `unverified` as **"not checked: the verifier was unavailable, or no
+  statement cited this passage"**, so FE-3/FE-4 can show it as "not checked". This reads ADR-0014's "the check couldn't run" as
+  "the check didn't run", so the AI-8a PR body must say so in one line for Mahesh. It's a one-line revert if he disagrees.
+- **Q2, model quote: per citation (as designed).** That is ADR-0014's literal wording, and it fails closed. Today the path is
+  inert because `synthesis-v1` asks for no quotes. Choosing per claim (alternative 4) would change how an Accepted ADR is read,
+  so it's Mahesh's call. It is **not** part of AI-8. It goes into the spec of the future quote-asking prompt task, which will
+  have EVAL-8 numbers to decide with.
+- **Q3, positional claim-to-citation mapping: enough for AI-8, and FE-4's design decides whether it's enough for FE-4.** It
+  fits the accepted shape (`claims: [{text, status, markers}]`). FE-4's own AC2 (marker focuses its citation card) can be met
+  by position. The invariant is contract-relevant, so it must be (a) tested (`checkAskInvariants`) and (b) written in the README
+  `/v1/ask` row. If FE-4 needs explicit per-claim citation indices, that's an additive field and needs a new Proposed ADR
+  (Mahesh). It is not built here.
+- **Q4, `normQuote`-normalised match: acceptable.** ADR-0014 says "whitespace-normalised, case-sensitive". `normQuote` also
+  drops bracketed numeric references and the space before punctuation. That's a formatting-only superset, and it's the same
+  check that already certifies support, so the quote and the score can't disagree. FE-4 already has a "quote not located"
+  fallback (FE-4 AC3). The README must say "`quote` occurs in `content` after whitespace/inline-reference normalisation". Byte
+  offsets for an exact highlight would be a new additive field and need a Proposed ADR (Mahesh, if FE-4 wants it). Not built here.
+
+### Conditions (the build tickets carry each one as an AC or a Notes item)
+1. **An empty model quote is no quote.** If `normQuote(claim.Quote) == ""` (missing, `""`, whitespace only, or only `[n]`),
+   treat it as absent: it doesn't change the status and isn't a fabrication. This needs a test row. Without it,
+   `inPassage`'s empty-quote `false` would mark every citation of a claim with `"quote": ""` as `unsupported`.
+2. **The quote rule runs before `keep`.** In `finalizeClaims`, the 3b downgrade is applied before a claim's `keep` is computed.
+   Tests: (i) a single-citation claim with a fabricated quote and fake NLI 0.9 is dropped; (ii) when that was the only claim,
+   the response is the quoted fallback (`answer_kind == "quoted"`, no LLM citation in it); (iii) a two-citation claim whose
+   quote is verbatim in passage 1 only keeps citation 1 `supported` with its quote and marks citation 2 `unsupported`
+   (this pins Q2).
+3. **"Refusal" in the invariant helper means `answer_kind == ""`.** The early refusal ("No indexed papers…") has no
+   `refusal_reason`. `checkAskInvariants` / `checkCitationInvariants` must treat every response without `answer_kind` as a refusal.
+   AC5's test pins the early refusal: `citations == []`, no `claims` key, no `refusal_reason` key (unchanged).
+4. **README.** All `/v1/ask` README changes land in **AI-8b** (`README.md` is held by ING-11b and EVAL-4 this cycle: AGENTS.md
+   §3 independence). This differs from ADR-0014's "README updated in the PRs that add the fields", so the AI-8a PR body lists
+   every new citation field with its meaning and says "README row in AI-8b". The row must document: the request field `quick`;
+   `answer_kind`, `synthesis_available` and `insufficient_evidence` (marked ADR-0018 Proposed); `prompt_version`; `claims[]` with
+   the status enum and claim-status rule; the citation fields `paper_version`, `page`, `quote` and `status`; the versioned
+   `pdf_url`; the `unverified` definition (Q1); the quote normalisation (Q4); and the ordering invariant (Q3).
+5. **Pre-approved fallback seam.** If AI-8a measures ≥ 400 changed lines, move decision 3b (model-supplied quote) and its tests
+   (AC3 b/c, condition 1, condition 2) to AI-8b. No new approval is needed. Record it in both tickets' Notes, with
+   `git diff --stat`, in the PR that moves it.
+6. **The eval comparison is numbers, not only `GATE: PASS`.** Each PR's `eval.yml` run pastes `supported_citation_rate`,
+   correct-refusal rate and the answer coverage metric next to nightly 43902662193. AI-8b is the PR where `claims` starts feeding
+   `coverage_units`, so a coverage change there is a finding, not noise.
+7. **Extractive claim split is pinned, not fixed.** AI-8b adds one test where the quoted sentence contains an abbreviation
+   (`e.g.`) and a decimal (`0.5`). Assert one claim per quoted sentence. If `splitIntoSentences` splits it (a markerless fragment
+   becomes an `unverified` claim), don't fix the splitter in AI-8b. Pin the behaviour and request a follow-up in Notes.
+8. **No new statuses or fields.** Nothing beyond the response shape above: no `answer_source`, no `partially_supported` or
+   `contradicted`, no offsets, no explicit per-claim citation indices, no prompt change. These are Mahesh/ADR decisions (ADR-0018,
+   ADR-0014 reserved statuses, Q3/Q4 follow-ups).
+
+### Kept out of the buildable part (Mahesh decides)
+- ADR-0018 Option 1 vs 2 (`answer_source`). Neither PR waits on it, and Option 2 would be an additive follow-up.
+- Reading ADR-0014's model-quote rule per claim instead of per citation (Q2). Decided with the quote-prompt task.
+- Explicit claim→citation indices or quote byte offsets (Q3/Q4). Each needs a Proposed ADR, raised by FE-4's design if needed.
+- The README timing difference from ADR-0014 (condition 4) and the Q1 reading of `unverified`. Both are flagged in the PR bodies
+  so Mahesh can overrule them.

@@ -8,7 +8,7 @@
 | **Depends on** | **ADR-0014 Accepted** (2026-11-07). **QA-8 delivered** by Mahesh's #46 (`cc57474`) on top of #44 (`6251d1a`): claims come from `parseSynthesis` and are verified per claim. **RET-2 merged** (`6cfd836`: `SearchHit.Version`/`Page`). Not a dependency: ING-11b (fills `SearchHit.Page`; AI-8 tests `page` with hand-built hits). Soft: Proposed ADR-0018 (whether `answer_kind` replaces ADR-0014's `answer_source`; see Scope) |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8"`) |
 | **Design required** | **yes**: P0 and an HTTP API contract change. New `docs/design/AI-8.md` (none exists yet). pm-lead approves before code. |
-| **Status** | **Ready: design stage** (re-scoped 2026-11-17 after #44/#46). First output is `docs/design/AI-8.md`; no app code before PM approval. Branch for the build: `agent/ai/AI-8` |
+| **Status** | **Umbrella** (design approved with conditions 2026-11-17). Built as [AI-8a](AI-8a.md) (citation status/provenance/quote/`pdf_url`/raw `content`, Ready) then [AI-8b](AI-8b.md) (`claims[]`, `prompt_version`, README `/v1/ask` row, AC6 Python; Blocked until AI-8a and ING-11b are merged). No branch or PR for AI-8 itself. Done when both are merged. |
 
 ## Goal
 Each factual statement in an answer becomes a claim with its own status and its own evidence. The evidence is the paper
@@ -33,8 +33,8 @@ supported claim from an unsupported one, and both from one that couldn't be chec
   - `Citation` gains `paper_version` (int, = `SearchHit.Version`), `page` (from `SearchHit.Page`, omitted when nil), `quote` (omitted when none)
     and `status` (`supported | unsupported | unverified`). `supported` stays, defined as `status == "supported"`.
   - `status` comes from the existing scoring: verified score ≥ 0.50 → `supported`; < 0.50 → `unsupported`; `labelScore` not ok (verifier
-    error, count mismatch, NaN/out of range, no verifier) → `unverified`, never `supported`. Refusal evidence: `unverified` if the refusal is
-    `verification_unavailable` and the hit's check didn't run, else `unsupported`. `insufficient_evidence` evidence: `unverified` (nothing was checked). The design states the rule for every refusal path.
+    error, count mismatch, NaN/out of range, no verifier) → `unverified`, never `supported`. Refusal evidence (amended 2026-11-17, design Q1): `unsupported` if the hit
+    was checked (`hitScored`), else `unverified`, on every refusal path. `insufficient_evidence` evidence: `unverified` (nothing was checked). The design states the rule for every refusal path.
   - `quote` (ADR-0014 Decision: "drop any quote that is not verbatim in the cited passage"): (a) when a claim is supported by exact
     match, `quote` = the matched sentence; (b) when the LLM supplies a `quote`, keep it only if it's verbatim (same normalisation as
     `isVerbatimQuote`) in the **raw** chunk text, else drop it and set that citation `unsupported` even if NLI ≥ 0.50.
@@ -94,3 +94,9 @@ gh workflow run eval.yml --ref agent/ai/AI-8   # AC8, then read the job log's ga
   `prompt_version` + README `/v1/ask` row + AC6 Python test (~180 lines; depends on AI-8a merged and ING-11b merged). Fallback seam if AI-8a
   runs over 400 lines: the model-supplied quote check moves to AI-8b. Nothing depends on ADR-0018 being Accepted. Open questions Q1–Q4 are in the design,
   Q1 refines the refusal-evidence rule: hits never checked are `unverified`, not `unsupported`. Jira not updated (no Jira tool in this session).
+- 2026-11-17 (pm-lead, design gate): `docs/design/AI-8.md` **approved with conditions 1–8** (PM decision section). Q1
+  `[spec]` fix: never-checked refusal evidence is `unverified` (Scope amended above). Q2: model quote checked per citation (the
+  per-claim reading is Mahesh's call, deferred to the quote-prompt task). Q3: the positional claim→citation mapping is enough
+  here, and explicit indices would need a Proposed ADR via FE-4's design. Q4: the `normQuote` match is accepted and FE-4 keeps its
+  not-located fallback. AC1–AC8 are split across [AI-8a](AI-8a.md) and [AI-8b](AI-8b.md). AI-8's ACs are met when both tickets'
+  ACs are met. Jira: the AI-8a/AI-8b stories under KAN-1 still need creating (no Jira tool in this session).
