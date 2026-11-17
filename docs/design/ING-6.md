@@ -280,3 +280,17 @@ until OPS-H7b merges is harmless, the two tables are independent, and `TestRepoM
    pm-lead's docs PR after 6c merges.
 10. **Design stays current.** Any deviation found during the build (e.g. arXiv's ordering, page size) is written back into this file in the same
     cycle, and the PR says so.
+
+## Build notes (ING-6a), backend-engineer 2026-11-17 (condition 10)
+- **Split 6a → 6a1 / 6a2** (condition 8): the built part was 505 changed lines. 6a1 = migration `000005` + `watermarks.go` + integration test
+  (107); 6a2 = `loop.go` + `loop_test.go` (398, ArxivLens #56). They are independent; the `*db.DB` → `watermarkStore` compile-time assertion moves to 6b.
+- **Boundary = the page's last *dated* entry** (§2 rule (a)). Undated entries never count as the boundary, so a page that is entirely undated doesn't stop the walk.
+- **Max-scan check** runs after the boundary check of the same page: a page that crosses `W` ends the walk even if it also reaches `maxScan`.
+- **Page size** `min(limit, 100)` (`maxPageSize`). The first-run remainder is tested with `limit 103` → `0,100 100,3`.
+- **Request bytes**: `walk`/`NewArxivFeed` send `url.Values.Encode()` output (keys sorted), byte-identical to `Crawl`'s
+  (`max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0` in stack run 44092000441). The
+  `search_query=…&start=0&…` string in §Problem/ING-6a AC4 is the parameter set, not the byte order. The replay key is order-independent.
+- `NewArxivFeed(client, nil)` creates a `DefaultInterval` limiter (never unthrottled).
+- **Risk 1 not yet checked**: the only committed feed (`internal/crawler/testdata/arxiv_feed.xml`) is a hand-written fixture in ascending order
+  (2023-07-17, then 2024-01-22). The recorded CI feed isn't reachable from the sandbox. See ING-6a Notes for the proposed one-line CI print before 6b.
+- Branch names are `agent/backend/ING-6x` (ownership check), not `agent/backend-engineer/…` (condition 1 wording).

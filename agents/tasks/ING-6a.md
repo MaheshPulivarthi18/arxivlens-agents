@@ -8,7 +8,7 @@
 | **Depends on** | ING-9 (Done `2b71772`), #45 (merged `393bcf3`: `arxiv.GetAPI`, `DefaultRetry`, `ARXIV_API_URL`). Approved design `docs/design/ING-6.md` (PM decision 2026-11-17, conditions 1–10). No open PR touches its files |
 | **Jira** | to create under KAN-18's epic, `labels = "task-ING-6a"` |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | Ready |
+| **Status** | In QA: split per PM condition 8. **ING-6a2** = draft [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) @ `3756173`; **ING-6a1** = branch `agent/backend/ING-6a1` @ `c86bd5a`, PR not opened (backend WIP 2/2 with #55) |
 
 ## Goal
 Land the pure, unit-testable half of the scheduled crawler: where the watermark lives, how it only moves forward, and how a run decides which
@@ -68,3 +68,19 @@ git diff --stat origin/main   # only the six new files
 ## Notes
 - 2026-11-17 (pm-lead): specced from the approved ING-6 design. Buildable now: all files are new, no overlap with #51–#55 (#55 edits
   `internal/db/db.go` in the same package, different file; no textual conflict). Backend WIP: only #55 is active.
+- 2026-11-17 (backend-engineer): built. **Split per PM condition 8**: the full part was 505 changed lines (> 480 gate), so it is split at the named seam.
+  - **ING-6a1** (107 lines): migration `000005` + `internal/db/watermarks.go` + `watermarks_integration_test.go`, branch
+    `agent/backend/ING-6a1` @ `c86bd5a` (pushed, **no PR**: backend WIP would be 3 with #55 and #56). Covers AC6, AC7, AC9 for its files.
+    Open its PR when a backend slot frees; it must merge before ING-6b.
+  - **ING-6a2** (398 lines): `internal/crawler/loop.go` + `loop_test.go`, draft [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) @ `3756173`.
+    Covers AC1–AC5, AC8, AC9 for its files, AC10. It doesn't depend on 6a1 (the `*db.DB`→`watermarkStore` compile-time check moves to 6b).
+  - Local checks: scratch module, Go 1.24.7 with pgx/ulid/kgo stubs. `go vet ./internal/...` and `go vet -tags integration ./internal/db/` exit 0,
+    and `go test -race` on crawler/arxiv/db is ok. Each part was also vetted and tested alone. Go 1.25 `make test-unit`/`make lint` run in CI only.
+  - AC8: the 4 listed mutants plus 4 extra are all killed in the full package run and with `-run '^T$'` (table in the #56 description). The undated-boundary
+    mutant survived the first table, so the undated row gained an all-undated page.
+  - **AC10, needs pm-lead before ING-6b**: `testdata/arxiv_feed.xml` is ascending (`2023-07-17T17:50:36Z`, then `2024-01-22T09:00:00Z`). It is a
+    hand-written OPS-H3 fixture, though, not an arXiv recording. The real recording is only in the Actions cache (not downloadable here), CI logs don't print
+    `published`, and live arXiv is blocked (403). The only CI datum is crawl order `2611.21608` → `2611.21602` (run 44092000441), descending IDs.
+    Proposal: one `psql` line in `stack.yml` printing `arxiv_id, published_at` (outside 6a; place it in 6c or a small harness task before 6b).
+  - Deviations written back into `docs/design/ING-6.md` §"Build notes (ING-6a)".
+  - Jira: no `task-ING-6a` story exists yet, so nothing to move.
