@@ -1,0 +1,9 @@
+$ bash -c python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py tests/test_arxiv_replay.py 2>&1 | tail -4; echo; echo '== go toolchain:'; go version 2>&1 | tail -1
+........................................................................ [ 55%]
+...s.....................................................                [100%]
+128 passed, 1 skipped in 4.16s
+
+== go toolchain:
+go: download go1.25.0: golang.org/toolchain@v0.0.1-go1.25.0.linux-amd64: Get "https://proxy.golang.org/golang.org/toolchain/@v/v0.0.1-go1.25.0.linux-amd64.zip": dial tcp: lookup proxy.golang.org on 8.8.8.8:53: no such host
+
+[exit code 0]

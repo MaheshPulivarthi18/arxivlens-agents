@@ -1,0 +1,19 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/d72ed0d/check-runs + actions/jobs/<id>/logs
+PR #51 state/merged/draft/head:
+open merged=false draft=true head=d72ed0d1f03b5ccf3fff285e7265172f534d659c
+origin/main: 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+
+check-runs for d72ed0d (id name status conclusion head_sha):
+133911807593 Frontend (lint, test, build) | completed success | head=d72ed0d completed=2026-11-17T08:21:38Z
+133911807564 Python M0 unit tests | completed success | head=d72ed0d completed=2026-11-17T08:22:41Z
+133911807544 Agent ownership check | completed success | head=d72ed0d completed=2026-11-17T08:21:41Z
+133911807286 Go (vet, gofmt, test, build) | completed success | head=d72ed0d completed=2026-11-17T08:22:15Z
+133911807095 DB (migrate twice, HNSW plan + recall) | completed success | head=d72ed0d completed=2026-11-17T08:22:30Z
+
+--- Python M0 unit tests (job 133911807564) summary lines:
+2026-11-17T08:22:37.5640630Z 182 passed, 3 skipped, 3 warnings in 10.59s
+2026-11-17T08:22:38.8957725Z ============================== 37 passed in 0.23s ==============================
+--- Go job (133911807286): FAIL lines = 0, ok packages = 13
+--- Ownership (133911807544):
+2026-11-17T08:21:38.2899984Z Ownership OK for role=ai (121 changed lines)
+

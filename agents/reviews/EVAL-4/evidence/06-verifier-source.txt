@@ -1,0 +1,120 @@
+$ cat /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/qa_tools/verify_baseline.py
+"""QA EVAL-4: compare evals/BASELINE.md against the eval section of job 133423130747's log.
+usage: python3 -I verify_baseline.py <job.log> <BASELINE.md>
+Prints the RESULT summary first, then details."""
+import re, sys
+
+log_path, base_path = sys.argv[1], sys.argv[2]
+raw = open(log_path, encoding="utf-8", errors="replace").read().splitlines()
+lines = [re.sub(r"^\d{4}-\d\d-\d\dT[\d:.]+Z ", "", l) for l in raw]
+start = next(i for i, l in enumerate(lines) if l.startswith("hardware: embedder device="))
+end = next(i for i, l in enumerate(lines) if l.startswith("GATE:"))
+sec = lines[start:end + 1]
+base = open(base_path, encoding="utf-8").read()
+base_lines = base.splitlines()
+
+NUM = re.compile(r"(?<![\w.])\d+(?:\.\d+)?%?")
+fails, details = [], []
+
+# 1. Retrieval summary rows: exact cell-by-cell match.
+def log_rows(prefixes):
+    out = {}
+    for l in sec:
+        for p in prefixes:
+            if l.startswith(p):
+                out[p] = [c.strip() for c in l.split("|")[1:] if c.strip()] if "|" in l else []
+    return out
+
+def base_row(name):
+    for l in base_lines:
+        cells = [c.strip() for c in l.strip().strip("|").split("|")]
+        if cells and cells[0] == name:
+            return cells[1:]
+    return None
+
+modes = ["BM25 Keyword", "Dense Vector", "Hybrid RRF + Rerank", "Hybrid RRF "]
+kinds = ["abstract-paraphrase", "body-detail", "own-words", "siblings", "multi "]
+for l in sec:
+    cells = [c.strip() for c in l.split("|")]
+    name = cells[0]
+    if name in [m.strip() for m in modes] or name in [k.strip() for k in kinds]:
+        b = base_row(name)
+        ok = b == cells[1:]
+        details.append(f"{'MATCH' if ok else 'DIFF '} row {name!r}: log={cells[1:]} baseline={b}")
+        if not ok:
+            fails.append(name)
+
+# 2. Gate-table values: every value cell of the log gate table appears in BASELINE.md's row for it.
+gate = {}
+in_gate = False
+for l in sec:
+    if l.startswith("Metric ") and "Value" in l:
+        in_gate = True; continue
+    if in_gate and "|" in l:
+        cells = [c.strip() for c in l.split("|")]
+        gate[cells[0]] = cells[1:]
+# Log metric name -> the BASELINE.md row whose first cell names it (matched per row, not by value).
+NAME = {
+    "rerank via production /internal/rerank": "rerank via production `/internal/rerank`",
+    "retrieval_coverage": "retrieval_coverage",
+    "recall@5 (Hybrid RRF + Rerank)": "Recall@5, paper-level (ADR-0006), Hybrid RRF + Rerank",
+    "hybrid+rerank beats BM25 & dense (MRR, NDCG@5)": "hybrid+rerank beats BM25 & dense (MRR, NDCG@5)",
+    "supported_citation_rate": "supported_citation_rate (answer set)",
+    "correct_refusal_rate": "correct_refusal_rate",
+    "ask_p95_ms": "`/v1/ask` ask_p95_ms",
+    "ask_errors (answer + refusal sets)": "ask_errors (answer + refusal sets)",
+    "(info, not gated) chunk_precision@5 (Hybrid RRF + Rerank)": "(info, not gated) chunk_precision@5, Hybrid RRF + Rerank",
+    "(info) expected_paper_hit_rate": "(info) expected_paper_hit_rate",
+    "(info) ask_p50_ms": "(info) ask_p50_ms",
+    "(report-only) citation_coverage": "(report-only) citation_coverage",
+    "(report-only) near_miss_correct_refusal_rate": "(report-only) near_miss_correct_refusal_rate",
+    "(report-only) verification_unavailable_count": "(report-only) verification_unavailable_count",
+    "(report-only) refusal_reason_counts": "(report-only) refusal_reason_counts",
+}
+for k, v in gate.items():
+    val = v[0]
+    tgt = v[1] if len(v) > 1 else ""
+    res = v[2] if len(v) > 2 else ""
+    b = base_row(NAME.get(k, k))
+    ok = (b is not None and b[1].split(" ")[0].strip("`") == val
+          and (not tgt or b[0] == tgt) and (not res or b[2] == res))
+    found = [" | ".join(b)] if b else []
+    details.append(f"{'MATCH' if ok else 'DIFF '} gate {k!r} value={val!r} target={tgt!r} result={res!r} -> baseline: {found[0][:80] if found else None}")
+    if not ok:
+        fails.append(k)
+
+# 3. Summary lines: every number in the /v1/ask summary block is present in BASELINE.md.
+ask0 = next(i for i, l in enumerate(sec) if l.startswith("Supported citations"))
+for l in sec[ask0:ask0 + 9]:
+    for n in NUM.findall(l):
+        ok = n in base
+        details.append(f"{'MATCH' if ok else 'DIFF '} summary {l.split(':')[0].strip()!r} number {n!r} in baseline")
+        if not ok:
+            fails.append(l)
+cov = [l for l in sec if l.startswith("Cases evaluated")]
+details.append(f"{'MATCH' if '78/78' in base else 'DIFF '} {cov[0]!r} vs baseline '78/78'")
+gl = sec[-1]
+details.append(f"{'MATCH' if '`'+gl+'`' in base else 'DIFF '} {gl!r} in baseline")
+if gl not in base:
+    fails.append(gl)
+
+# 4. Reverse check: every decimal number in BASELINE.md's tables occurs in the log eval section
+#    (targets and derived values excepted and listed).
+sec_text = "\n".join(sec)
+orphans = []
+for bl in base_lines:
+    if not bl.startswith("|"):
+        continue
+    for n in NUM.findall(bl):
+        if n not in sec_text:
+            orphans.append((n, bl[:100]))
+
+print("RESULT:", "ALL MATCH" if not fails else f"{len(fails)} MISMATCH(ES): {fails}")
+print(f"checked: {sum(1 for d in details)} items; log eval section = log lines {start + 1}-{end + 1}")
+print("BASELINE table numbers NOT in the log eval section (must be targets/IDs/derived):")
+for n, bl in orphans:
+    print(f"  {n!r:12} in: {bl}")
+print("-" * 78)
+print("\n".join(details))
+
+[exit code 0]

@@ -1,0 +1,18 @@
+$ bash -c echo '== PR head evals/BASELINE.md:'; grep -n 'v1/search' evals/BASELINE.md; echo; echo '== docs/PRD-Product.md §8 (arxivlens-agents main):'; grep -n -E '^\| \*\*Latency\*\* \| .?/v1/search' /home/claude/arxivlens-agents/docs/PRD-Product.md | cut -c1-120; echo; echo '== docs/PRD-Technical.md §9:'; grep -n -o -E '/v1/search. p95 < [0-9.]+ s' /home/claude/arxivlens-agents/docs/PRD-Technical.md; echo; echo '== docs/adr/0012-search-p95-gate.md:'; grep -n -o -E 'sets .?/v1/search.? p95 < [0-9.]+ s|search_p95_latency_ms_max: [0-9]+' /home/claude/arxivlens-agents/docs/adr/0012-search-p95-gate.md; echo; echo '== evals/thresholds.json (3000 is the /v1/ask key):'; grep -n 3000 evals/thresholds.json
+== PR head evals/BASELINE.md:
+41:| `/v1/search` p95 | < 3000 (PRD §8) | not run: the gate doesn't measure it yet (EVAL-2, ADR-0012 Proposed) | — |
+
+== docs/PRD-Product.md §8 (arxivlens-agents main):
+160:| **Latency** | `/v1/search` p95 | < 1.5 s | `evals/retrieval.jsonl` queries | Not gated yet — [EVAL-2](../agents/
+
+== docs/PRD-Technical.md §9:
+338:/v1/search` p95 < 1.5 s
+
+== docs/adr/0012-search-p95-gate.md:
+9:sets `/v1/search` p95 < 1.5 s
+21:search_p95_latency_ms_max: 1500
+
+== evals/thresholds.json (3000 is the /v1/ask key):
+6:  "ask_p95_latency_ms_max": 3000,
+
+[exit code 0]

@@ -1,0 +1,19 @@
+$ bash -c diff evals/BASELINE.md /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/mut/BASELINE.md; python3 -I /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/qa_tools/verify_baseline.py /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/job.log /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/mut/BASELINE.md | grep -E 'RESULT|DIFF'
+38c38
+< | correct_refusal_rate | >= 0.95 | 1.0000 (summary: 100.00% of 22) | PASS |
+---
+> | correct_refusal_rate | >= 0.95 | 1.0000 (summary: 100.00% of 22) | FAIL |
+47c47
+< | (report-only) near_miss_correct_refusal_rate | — | 0.8000 (summary: 80.00% of 15) | — |
+---
+> | (report-only) near_miss_correct_refusal_rate | — | 0.8000 (summary: 80.01% of 15) | — |
+60c60
+< | Hybrid RRF + Rerank | 0.9850 | 0.9765 | 0.9707 | 0.6333 | 10264.58 |
+---
+> | Hybrid RRF + Rerank | 0.9850 | 0.9765 | 0.9708 | 0.6333 | 10264.58 |
+RESULT: 3 MISMATCH(ES): ['Hybrid RRF + Rerank', 'correct_refusal_rate', 'Near-miss refusals       : 80.00% of 15']
+DIFF  row 'Hybrid RRF + Rerank': log=['0.9850', '0.9765', '0.9707', '0.6333', '10264.58'] baseline=['0.9850', '0.9765', '0.9708', '0.6333', '10264.58']
+DIFF  gate 'correct_refusal_rate' value='1.0000' target='>= 0.95' result='PASS' -> baseline: >= 0.95 | 1.0000 (summary: 100.00% of 22) | FAIL
+DIFF  summary 'Near-miss refusals' number '80.00%' in baseline
+
+[exit code 0]

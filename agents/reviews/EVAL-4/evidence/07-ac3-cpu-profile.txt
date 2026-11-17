@@ -1,0 +1,24 @@
+$ bash -c echo '== BASELINE.md: CPU-only / INFO / GPU / mps / cuda lines'; grep -n -iE 'cpu-only|INFO \(|gpu|mps|cuda|device' evals/BASELINE.md; echo; echo '== job log: hardware + healthz + torch wheel'; grep -E 'hardware: embedder|embedder /healthz|INFO \(cpu-only|Image: |Version: 2026|CPU\(s\)|Mem: ' /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/job.log | cut -c30-; grep -o 'torch-2.15.0+cpu' /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/job.log | sort -u
+== BASELINE.md: CPU-only / INFO / GPU / mps / cuda lines
+15:## Profile: CPU-only
+16:This is the **CPU-only** profile, so `/v1/ask` p95 is informational here: the gate prints it as
+17:`INFO (cpu-only; not gated)` and it can neither pass nor fail the run (Technical PRD §9, Accepted 2026-11-15). The
+18:`< 3000 ms` latency gate applies only on the GPU reference profile (`mps`/`cuda`), and this file has no GPU baseline.
+21:- PyTorch `2.15.0+cpu`. Embedder `/healthz`: `{"status":"ok","device":"cpu","reranker":true,"verifier":true}`; the gate logged
+22:  `hardware: embedder device=cpu profile=cpu-only`.
+39:| `/v1/ask` ask_p95_ms | < 3000 | 13330.2916 (summary: 13330) | INFO (cpu-only; not gated) |
+71:GPU-profile latency on Mahesh's reference Mac is in the PR descriptions of #46–#50 (reported, not re-measured; no
+
+== job log: hardware + healthz + torch wheel
+Version: 20261103.629
+Image: ubuntu-26.04
+Version: 20261111.196.1
+[36;1m  lscpu | grep -E '^(Model name|CPU\(s\))'; free -g; echo "embedder /healthz: $(curl -fsS localhost:8081/healthz)"[0m
+CPU(s):                                  4
+Mem:              15           4           1           0          10          11
+embedder /healthz: {"status":"ok","device":"cpu","reranker":true,"verifier":true}
+hardware: embedder device=cpu profile=cpu-only
+ask_p95_ms                                       | 13330.2916 |     < 3000 | INFO (cpu-only; not gated)
+torch-2.15.0+cpu
+
+[exit code 0]

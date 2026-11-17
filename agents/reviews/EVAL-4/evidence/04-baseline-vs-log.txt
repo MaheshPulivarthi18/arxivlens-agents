@@ -1,0 +1,54 @@
+$ python3 -I /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/qa_tools/verify_baseline.py /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/job.log evals/BASELINE.md
+RESULT: ALL MATCH
+checked: 38 items; log eval section = log lines 3076-3136
+BASELINE table numbers NOT in the log eval section (must be targets/IDs/derived):
+  '43902662193' in: | Run | [`eval.yml` run 43902662193](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/43
+  '43902662193' in: | Run | [`eval.yml` run 43902662193](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/43
+  '133423130747' in: | Run | [`eval.yml` run 43902662193](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/43
+  '40'         in: | `main` SHA | `40dec5a` (`40dec5a41ddeab7b029d5a03d5b6d66fbde1f411`) |
+  '40'         in: | `main` SHA | `40dec5a` (`40dec5a41ddeab7b029d5a03d5b6d66fbde1f411`) |
+  '43902662193' in: | Results JSON | `evals/results/20261116T170152Z.json` in artifact `eval-results-43902662193` (ID 14
+  '14247998742' in: | Results JSON | `evals/results/20261116T170152Z.json` in artifact `eval-results-43902662193` (ID 14
+  '0006'       in: | Recall@5, paper-level (ADR-0006), Hybrid RRF + Rerank | >= 0.8 | 0.9850 | PASS |
+  '0012'       in: | `/v1/search` p95 | < 3000 (PRD §8) | not run: the gate doesn't measure it yet (EVAL-2, ADR-0012 Pr
+------------------------------------------------------------------------------
+MATCH row 'BM25 Keyword': log=['0.4573', '0.4615', '0.4520', '0.3051', '1.22'] baseline=['0.4573', '0.4615', '0.4520', '0.3051', '1.22']
+MATCH row 'Dense Vector': log=['0.9060', '0.9391', '0.9080', '0.8410', '0.98'] baseline=['0.9060', '0.9391', '0.9080', '0.8410', '0.98']
+MATCH row 'Hybrid RRF': log=['0.9231', '0.9615', '0.9319', '0.8513', '3.81'] baseline=['0.9231', '0.9615', '0.9319', '0.8513', '3.81']
+MATCH row 'Hybrid RRF + Rerank': log=['0.9850', '0.9765', '0.9707', '0.6333', '10264.58'] baseline=['0.9850', '0.9765', '0.9707', '0.6333', '10264.58']
+MATCH row 'abstract-paraphrase': log=['34', '0.8382', '1.0000', '1.0000', '1.0000'] baseline=['34', '0.8382', '1.0000', '1.0000', '1.0000']
+MATCH row 'body-detail': log=['24', '0.1250', '0.8750', '0.9167', '0.9514'] baseline=['24', '0.1250', '0.8750', '0.9167', '0.9514']
+MATCH row 'own-words': log=['6', '0.0000', '0.8333', '0.8333', '0.8889'] baseline=['6', '0.0000', '0.8333', '0.8333', '0.8889']
+MATCH row 'siblings': log=['8', '0.1875', '0.9062', '1.0000', '1.0000'] baseline=['8', '0.1875', '0.9062', '1.0000', '1.0000']
+MATCH row 'multi': log=['6', '0.5000', '1.0000', '1.0000', '1.0000'] baseline=['6', '0.5000', '1.0000', '1.0000', '1.0000']
+MATCH gate 'rerank via production /internal/rerank' value='1.0000' target='== 1.0' result='PASS' -> baseline: == 1.0 | 1.0000 | PASS
+MATCH gate 'retrieval_coverage' value='1.0000' target='== 1.0' result='PASS' -> baseline: == 1.0 | 1.0000 (78/78 cases) | PASS
+MATCH gate 'recall@5 (Hybrid RRF + Rerank)' value='0.9850' target='>= 0.8' result='PASS' -> baseline: >= 0.8 | 0.9850 | PASS
+MATCH gate 'hybrid+rerank beats BM25 & dense (MRR, NDCG@5)' value='1.0000' target='== 1.0' result='PASS' -> baseline: == 1.0 | 1.0000 | PASS
+MATCH gate 'supported_citation_rate' value='1.0000' target='>= 0.9' result='PASS' -> baseline: >= 0.9 | 1.0000 (summary: 100.00%, 60 citations) | PASS
+MATCH gate 'correct_refusal_rate' value='1.0000' target='>= 0.95' result='PASS' -> baseline: >= 0.95 | 1.0000 (summary: 100.00% of 22) | PASS
+MATCH gate 'ask_p95_ms' value='13330.2916' target='< 3000' result='INFO (cpu-only; not gated)' -> baseline: < 3000 | 13330.2916 (summary: 13330) | INFO (cpu-only; not gated)
+MATCH gate 'ask_errors (answer + refusal sets)' value='0.0000' target='== 0' result='PASS' -> baseline: == 0 | 0.0000 | PASS
+MATCH gate '(info, not gated) chunk_precision@5 (Hybrid RRF + Rerank)' value='0.6333' target='' result='' -> baseline: — | 0.6333 | —
+MATCH gate '(info) expected_paper_hit_rate' value='0.9545' target='' result='' -> baseline: — | 0.9545 (summary: answers citing expected 95.45% of 22) | —
+MATCH gate '(info) ask_p50_ms' value='10932.2' target='' result='' -> baseline: — | 10932.2 (summary: 10932) | —
+MATCH gate '(report-only) citation_coverage' value='1.0000' target='' result='' -> baseline: — | 1.0000 (summary: 100.00%) | —
+MATCH gate '(report-only) near_miss_correct_refusal_rate' value='0.8000' target='' result='' -> baseline: — | 0.8000 (summary: 80.00% of 15) | —
+MATCH gate '(report-only) verification_unavailable_count' value='0' target='' result='' -> baseline: — | 0 | —
+MATCH gate '(report-only) refusal_reason_counts' value='{}' target='' result='' -> baseline: — | `{}` | —
+MATCH summary 'Supported citations' number '100.00%' in baseline
+MATCH summary 'Supported citations' number '60' in baseline
+MATCH summary 'Answers citing expected' number '95.45%' in baseline
+MATCH summary 'Answers citing expected' number '22' in baseline
+MATCH summary 'In-corpus refused' number '4.55%' in baseline
+MATCH summary 'Correct refusals' number '100.00%' in baseline
+MATCH summary 'Correct refusals' number '22' in baseline
+MATCH summary 'Latency p50 / p95 (ms)' number '10932' in baseline
+MATCH summary 'Latency p50 / p95 (ms)' number '13330' in baseline
+MATCH summary 'Citation coverage' number '100.00%' in baseline
+MATCH summary 'Near-miss refusals' number '80.00%' in baseline
+MATCH summary 'Near-miss refusals' number '15' in baseline
+MATCH 'Cases evaluated: 78/78' vs baseline '78/78'
+MATCH 'GATE: PASS' in baseline
+
+[exit code 0]

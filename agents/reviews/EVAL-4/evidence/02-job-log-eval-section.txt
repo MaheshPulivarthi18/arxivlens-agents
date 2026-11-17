@@ -1,0 +1,40 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/133423130747/logs | sed -n '3099,3136p'
+2026-11-16T16:50:52.6675629Z ================================================================================
+2026-11-16T16:50:52.6676188Z Cases evaluated: 78/78
+2026-11-16T17:01:52.4547918Z ============================================================
+2026-11-16T17:01:52.4548525Z ArxivLens — /v1/ask answer + refusal eval
+2026-11-16T17:01:52.4548743Z ============================================================
+2026-11-16T17:01:52.4548994Z Supported citations      : 100.00% (60 citations)
+2026-11-16T17:01:52.4549300Z Answers citing expected  : 95.45% of 22
+2026-11-16T17:01:52.4549588Z In-corpus refused        : 4.55%
+2026-11-16T17:01:52.4549875Z Correct refusals         : 100.00% of 22
+2026-11-16T17:01:52.4550204Z Latency p50 / p95 (ms)   : 10932 / 13330
+2026-11-16T17:01:52.4550536Z -- report-only (not gated) --
+2026-11-16T17:01:52.4550907Z Citation coverage        : 100.00%
+2026-11-16T17:01:52.4551223Z Near-miss refusals       : 80.00% of 15
+2026-11-16T17:01:52.4551540Z refusal_reason counts    : {}
+2026-11-16T17:01:52.4551739Z 
+2026-11-16T17:01:52.4551926Z ==============================================================================
+2026-11-16T17:01:52.4552410Z Metric                                           |     Value |     Target | Result
+2026-11-16T17:01:52.4552845Z ------------------------------------------------------------------------------
+2026-11-16T17:01:52.4553757Z rerank via production /internal/rerank           |    1.0000 |     == 1.0 | PASS
+2026-11-16T17:01:52.4554348Z retrieval_coverage                               |    1.0000 |     == 1.0 | PASS
+2026-11-16T17:01:52.4554872Z recall@5 (Hybrid RRF + Rerank)                   |    0.9850 |     >= 0.8 | PASS
+2026-11-16T17:01:52.4555418Z hybrid+rerank beats BM25 & dense (MRR, NDCG@5)   |    1.0000 |     == 1.0 | PASS
+2026-11-16T17:01:52.4556000Z supported_citation_rate                          |    1.0000 |     >= 0.9 | PASS
+2026-11-16T17:01:52.4556875Z correct_refusal_rate                             |    1.0000 |    >= 0.95 | PASS
+2026-11-16T17:01:52.4557438Z ask_p95_ms                                       | 13330.2916 |     < 3000 | INFO (cpu-only; not gated)
+2026-11-16T17:01:52.4558011Z ask_errors (answer + refusal sets)               |    0.0000 |       == 0 | PASS
+2026-11-16T17:01:52.4558547Z (info, not gated) chunk_precision@5 (Hybrid RRF + Rerank) |    0.6333 |
+2026-11-16T17:01:52.4559036Z (info) expected_paper_hit_rate                   |    0.9545 |
+2026-11-16T17:01:52.4559470Z (info) ask_p50_ms                                |   10932.2 |
+2026-11-16T17:01:52.4559949Z ------------------------------------------------------------------------------
+2026-11-16T17:01:52.4560478Z report-only (EVAL-6; not gated, promoting one to a gate needs an ADR)
+2026-11-16T17:01:52.4561003Z (report-only) citation_coverage                  |    1.0000 |
+2026-11-16T17:01:52.4561479Z (report-only) near_miss_correct_refusal_rate     |    0.8000 |
+2026-11-16T17:01:52.4561945Z (report-only) verification_unavailable_count     |         0 |
+2026-11-16T17:01:52.4562391Z (report-only) refusal_reason_counts              | {}
+2026-11-16T17:01:52.4562801Z ==============================================================================
+2026-11-16T17:01:52.4565274Z results written to /home/runner/work/ArxivLens/ArxivLens/evals/results/20261116T170152Z.json
+2026-11-16T17:01:52.4565768Z GATE: PASS
+

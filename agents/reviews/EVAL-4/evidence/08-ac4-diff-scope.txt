@@ -1,0 +1,23 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; echo '== files outside {evals/BASELINE.md, evals/README.md, README.md}:'; git diff --name-only origin/main...HEAD | grep -vxE 'evals/BASELINE.md|evals/README.md|README.md' || echo '(none)'; echo; echo '== diff of thresholds.json, *.jsonl, corpus.txt, scripts/, .github/ (empty = unchanged):'; git diff origin/main...HEAD -- evals/thresholds.json 'evals/*.jsonl' evals/corpus.txt scripts/ .github/ | wc -l; echo; echo '== gate results in BASELINE.md (Result column):'; grep -E '\| (PASS|FAIL|INFO[^|]*) \|$' evals/BASELINE.md | awk -F'|' '{print $2 "->" $5}'
+ README.md         |   1 +
+ evals/BASELINE.md | 100 ++++++++++++++++++++++++++++++++++++++++++------------
+ evals/README.md   |  20 +++++++----
+ 3 files changed, 92 insertions(+), 29 deletions(-)
+
+== files outside {evals/BASELINE.md, evals/README.md, README.md}:
+(none)
+
+== diff of thresholds.json, *.jsonl, corpus.txt, scripts/, .github/ (empty = unchanged):
+0
+
+== gate results in BASELINE.md (Result column):
+ rerank via production `/internal/rerank` -> PASS 
+ retrieval_coverage -> PASS 
+ Recall@5, paper-level (ADR-0006), Hybrid RRF + Rerank -> PASS 
+ hybrid+rerank beats BM25 & dense (MRR, NDCG@5) -> PASS 
+ supported_citation_rate (answer set) -> PASS 
+ correct_refusal_rate -> PASS 
+ `/v1/ask` ask_p95_ms -> INFO (cpu-only; not gated) 
+ ask_errors (answer + refusal sets) -> PASS 
+
+[exit code 0]

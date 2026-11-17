@@ -1,0 +1,8 @@
+$ gh api .../actions/jobs/133423130747 ; .../actions/runs/43902662193 ; .../runs/43902662193/artifacts
+job 133423130747:
+name=eval run_id=43902662193 head_sha=40dec5a41ddeab7b029d5a03d5b6d66fbde1f411 head_branch=main conclusion=success started=2026-11-16T16:00:34Z completed=2026-11-16T17:02:03Z
+run 43902662193:
+workflow=Eval event=schedule branch=main head_sha=40dec5a41ddeab7b029d5a03d5b6d66fbde1f411 conclusion=success url=https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/43902662193
+artifacts:
+id=14247998742 name=eval-results-43902662193 size=8511 expires=2026-12-16T17:01:53Z
+

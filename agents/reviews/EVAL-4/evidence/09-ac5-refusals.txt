@@ -1,0 +1,38 @@
+$ bash -c echo '== job log:'; grep -E 'In-corpus refused|Answers citing expected|Correct refusals|Near-miss refusals|refusal_reason|near_miss_correct|verification_unavailable_count|ask_errors' /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/job.log | cut -c30-; echo; echo '== BASELINE.md:'; grep -n -E 'refus|expected_paper_hit' evals/BASELINE.md | cut -c1-150; echo; echo '== scripts/evaluate_answers.py (how a refusal with no refusal_reason is classified/counted):'; grep -n -E 'no citations = early refusal|reason_counts\[reason\]|refused_answers \+= |answer_refusal_rate|"expected_paper_hit_rate"' scripts/evaluate_answers.py; echo; python3 -c 'print("1/22 =", round(100/22,2), "%  21/22 =", round(21/22,4))'; echo; echo '== PR #51 body lines naming refusals:'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/51 --jq .body | grep -n -iE 'refus'
+== job log:
+Answers citing expected  : 95.45% of 22
+In-corpus refused        : 4.55%
+Correct refusals         : 100.00% of 22
+Near-miss refusals       : 80.00% of 15
+refusal_reason counts    : {}
+ask_errors (answer + refusal sets)               |    0.0000 |       == 0 | PASS
+(report-only) near_miss_correct_refusal_rate     |    0.8000 |
+(report-only) verification_unavailable_count     |         0 |
+(report-only) refusal_reason_counts              | {}
+
+== BASELINE.md:
+38:| correct_refusal_rate | >= 0.95 | 1.0000 (summary: 100.00% of 22) | PASS |
+40:| ask_errors (answer + refusal sets) | == 0 | 0.0000 | PASS |
+43:| (info) expected_paper_hit_rate | — | 0.9545 (summary: answers citing expected 95.45% of 22) | — |
+44:| (info) in-corpus refused (answer set) | — | 4.55% (summary line; 1 of 22) | — |
+47:| (report-only) near_miss_correct_refusal_rate | — | 0.8000 (summary: 80.00% of 15) | — |
+49:| (report-only) refusal_reason_counts | — | `{}` | — |
+51:`refusal_reason_counts {}` means no response carried a `refusal_reason`, so the answer-set refusal above is an early
+52:refusal (no `refusal_reason`, `citations: []`, see `evals/README.md`). "1 of 22" is derived: 4.55% of 22 cases.
+
+== scripts/evaluate_answers.py (how a refusal with no refusal_reason is classified/counted):
+10:  - answer_refusal_rate      : in-corpus questions that were refused (informational)
+82:    return "answered" if resp.get("citations") else "refusal"  # no citations = early refusal (QA-5)
+187:            reason_counts[reason] = reason_counts.get(reason, 0) + 1
+206:            refused_answers += outcome == "refusal"
+248:        "expected_paper_hit_rate": hits / n_ans if n_ans else 0.0,
+249:        "answer_refusal_rate": refused_answers / n_ans if n_ans else 0.0,
+279:    print(f"In-corpus refused        : {m['answer_refusal_rate']:.2%}")
+
+1/22 = 4.55 %  21/22 = 0.9545
+
+== PR #51 body lines naming refusals:
+12:- [ ] AC5: refusal numbers recorded; **one in-corpus answer-set refusal (4.55% of 22) contradicts the spec's premise**: flagged in ticket Notes
+21:- Results JSON artifact can't be downloaded from the sandbox, so the refused case ID is unknown
+
+[exit code 0]
