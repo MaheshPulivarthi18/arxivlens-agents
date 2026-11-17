@@ -1,0 +1,16 @@
+$ bash -c python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py 2>&1 | tail -2; echo; python3 -m pytest -q -p no:cacheprovider -rA tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go tests/test_evals_data.py::test_adr0010_parity_pool_one_call_stable_ties_top5 tests/test_evals_data.py::test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets 2>&1 | tail -5; echo; echo '--- _GO_TO_EVAL_SQL fragments changed (diff hunks in tests/test_evals_data.py):'; git diff origin/main...706e43e -- tests/test_evals_data.py | grep -c '^@@'; echo '--- scripts/ paths in diff (expect none):'; git diff --name-only origin/main...706e43e -- scripts/ | wc -l
+...s............................................                         [100%]
+119 passed, 1 skipped in 0.26s
+
+=========================== short test summary info ============================
+PASSED tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_go
+PASSED tests/test_evals_data.py::test_adr0010_parity_pool_one_call_stable_ties_top5
+PASSED tests/test_evals_data.py::test_rrf_pool_query_runs_with_production_hnsw_settings_then_resets
+3 passed in 0.06s
+
+--- _GO_TO_EVAL_SQL fragments changed (diff hunks in tests/test_evals_data.py):
+1
+--- scripts/ paths in diff (expect none):
+0
+
+[exit code 0]

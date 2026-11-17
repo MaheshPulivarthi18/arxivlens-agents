@@ -1,0 +1,15 @@
+$ bash -c L=/tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/ci/job-133911818026.log; echo '# job 133911818026 (DB), head_sha:'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/133911818026 --jq '.head_sha + " " + .conclusion'; grep -n -E 'HEAD is now at|^.{29}column\|paper_chunk_pages|000003_paper_chunk_pages|=== RUN   TestSearchProvenance|PROVENANCE|--- (PASS|FAIL): TestSearch|^.{29}ok ' $L | cut -c1-330
+# job 133911818026 (DB), head_sha:
+706e43e0ca87b8d3cc593c11fd653b636e0017c7 success
+214:2026-11-17T08:21:46.3977166Z HEAD is now at 2ab3fa8 Merge 706e43e0ca87b8d3cc593c11fd653b636e0017c7 into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+347:2026-11-17T08:21:56.0265668Z 2026/11/17 08:21:56 [Migration] Running migration file: migrations/000003_paper_chunk_pages.up.sql
+370:2026-11-17T08:21:56.2167600Z column|paper_chunk_pages.page_start|integer
+383:2026-11-17T08:21:56.2415676Z 2026/11/17 08:21:56 [Migration] Running migration file: migrations/000003_paper_chunk_pages.up.sql
+1489:2026-11-17T08:22:23.1623446Z === RUN   TestSearchProvenance
+1490:2026-11-17T08:22:23.1714860Z     search_provenance_integration_test.go:113: PROVENANCE chunk_id=10001 arxiv_id=prov.00001 version=1 page=nil rrf_score=0.032787 json={"chunk_id":10001,"arxiv_id":"prov.00001","title":"Provenance v1","section":"","content":"zyxprov alpha one","rrf_score":0.03278688524590164,"version":1}
+1491:2026-11-17T08:22:23.1716875Z     search_provenance_integration_test.go:113: PROVENANCE chunk_id=10002 arxiv_id=prov.00001 version=2 page=nil rrf_score=0.032258 json={"chunk_id":10002,"arxiv_id":"prov.00001","title":"Provenance v2","section":"","content":"zyxprov alpha two","rrf_score":0.03225806451612903,"version":2}
+1492:2026-11-17T08:22:23.1718671Z     search_provenance_integration_test.go:113: PROVENANCE chunk_id=10003 arxiv_id=prov.00001 version=2 page=6 rrf_score=0.031746 json={"chunk_id":10003,"arxiv_id":"prov.00001","title":"Provenance v2","section":"","content":"zyxprov beta two","rrf_score":0.031746031746031744,"version":2,"page":6}
+1493:2026-11-17T08:22:23.1737452Z --- PASS: TestSearchProvenance (0.02s)
+1495:2026-11-17T08:22:23.1739324Z ok  	arxivlens/internal/query	21.737s
+
+[exit code 0]

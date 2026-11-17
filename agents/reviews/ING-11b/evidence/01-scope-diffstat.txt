@@ -1,0 +1,18 @@
+$ bash -c git diff --stat origin/main...706e43e; echo; echo '--- paths outside backend ownership / scripts/ (expect only README.md):'; git diff --name-only origin/main...706e43e | grep -v -E '^(cmd/|internal/|services/processor/|services/common/|shared/|migrations/|tests/|docker-compose.yml|Makefile|\.github/|requirements|go.mod|CONTRIBUTING.md)'; echo; echo '--- CI Agent ownership check (job 133911818626):'; grep -o 'Ownership OK.*' /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/ci/job-133911818626.log
+ .github/workflows/db.yml                           |  1 +
+ CONTRIBUTING.md                                    |  2 +-
+ README.md                                          |  2 +-
+ internal/query/search.go                           | 10 ++---
+ .../query/search_provenance_integration_test.go    | 37 +++++++++++++-----
+ internal/query/search_provenance_test.go           | 45 ++++++++++++++++++----
+ tests/test_evals_data.py                           |  6 ++-
+ tests/test_m2_pipeline.py                          | 36 +++++++++++++++++
+ 8 files changed, 114 insertions(+), 25 deletions(-)
+
+--- paths outside backend ownership / scripts/ (expect only README.md):
+README.md
+
+--- CI Agent ownership check (job 133911818626):
+Ownership OK for role=backend (139 changed lines)
+
+[exit code 0]
