@@ -1,0 +1,21 @@
+$ gh api .../actions/jobs/{134252075045,132852479013}/logs (excerpt)
+# DB job 134252075045 on PR #57 (merge of c86bd5a into main 40dec5a): migrate twice
+2026-11-17T18:02:27.0193402Z HEAD is now at 1c7ea61 Merge c86bd5a5da3b44e4ad60691cae74394672938ddb into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T18:02:40.1384056Z 2026/11/17 18:02:40 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026-11-17T18:02:40.3296916Z 2026/11/17 18:02:40 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+2026-11-17T18:02:40.3308534Z 2026/11/17 18:02:40 [Migration] Running migration file: migrations/000003_paper_chunk_pages.up.sql
+2026-11-17T18:02:40.3324917Z 2026/11/17 18:02:40 [Migration] Running migration file: migrations/000005_crawl_watermarks.up.sql
+2026-11-17T18:02:40.3372046Z 2026/11/17 18:02:40 [Migration] Database schema migrated successfully (4 file(s))
+2026-11-17T18:02:40.6350167Z 2026/11/17 18:02:40 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026-11-17T18:02:40.6368308Z 2026/11/17 18:02:40 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+2026-11-17T18:02:40.6380114Z 2026/11/17 18:02:40 [Migration] Running migration file: migrations/000003_paper_chunk_pages.up.sql
+2026-11-17T18:02:40.6382229Z 2026/11/17 18:02:40 [Migration] Running migration file: migrations/000005_crawl_watermarks.up.sql
+2026-11-17T18:02:40.6383363Z 2026/11/17 18:02:40 [Migration] Database schema migrated successfully (4 file(s))
+2026-11-17T18:02:40.6075585Z [36;1mecho "Schema identical after run 2: $(wc -l < /tmp/run2.txt) objects (extensions, columns, indexes)"[0m
+2026-11-17T18:02:40.7642547Z Schema identical after run 2: 76 objects (extensions, columns, indexes)
+
+# Baseline: DB job 132852479013 on main 40dec5a (head_sha 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411)
+2026-11-15T15:01:28.7037600Z [36;1mecho "Schema identical after run 2: $(wc -l < /tmp/run2.txt) objects (extensions, columns, indexes)"[0m
+2026-11-15T15:01:28.8300272Z Schema identical after run 2: 71 objects (extensions, columns, indexes)
+
+

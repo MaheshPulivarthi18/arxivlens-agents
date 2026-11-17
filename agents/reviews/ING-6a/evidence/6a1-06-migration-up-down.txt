@@ -1,0 +1,23 @@
+$ env QA_PSQL_HOST=/tmp/qa6a1pg.XWAn QA_PSQL_PORT=55432 /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/h/migration_probe.sh
+== public relations before: []
+== up #1: exit 0
+== up #2: exit 0
+== public relations after up: [i crawl_watermarks_pkey r crawl_watermarks ]
+                        Table "public.crawl_watermarks"
+      Column       |           Type           | Collation | Nullable | Default 
+-------------------+--------------------------+-----------+----------+---------
+ category          | text                     |           | not null | 
+ last_published_at | timestamp with time zone |           | not null | 
+ updated_at        | timestamp with time zone |           | not null | now()
+Indexes:
+    "crawl_watermarks_pkey" PRIMARY KEY, btree (category)
+
+== ON CONFLICT (category) target exists: crawl_watermarks_pkey PRIMARY KEY (category)
+== down #1: exit 0
+== down #2: exit 0
+== public relations after down: []
+== up after down: exit 0; relations [i crawl_watermarks_pkey r crawl_watermarks ]
+psql:migrations/000005_crawl_watermarks.up.sql:9: NOTICE:  relation "crawl_watermarks" already exists, skipping
+psql:migrations/000005_crawl_watermarks.down.sql:1: NOTICE:  table "crawl_watermarks" does not exist, skipping
+
+[exit code 0]

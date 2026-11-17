@@ -1,0 +1,310 @@
+$ bash -c cd /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad && for f in h/setup.sh h/mutants.sh h/migration_probe.sh h/probe_survivors.sh h/qa_probe_test.go ev_ac6.sh ev_teardown.sh order/order_test.go h/stubs/pgx/go.mod h/stubs/pgx/pgx.go h/stubs/pgx/pgconn/pgconn.go h/stubs/pgx/pgxpool/pool.go; do echo "===== $f"; cat $f; done
+===== h/setup.sh
+#!/bin/bash
+# Builds scratch module $2 from the app tree $1 (real internal/db/*.go + migrations/ at that tree; pgx replaced by the QA psql stub).
+set -e
+APP=$1; M=$2; STUBS=$(dirname "$0")/stubs/pgx
+mkdir -p $M/internal/db $M/migrations
+cp $APP/internal/db/*.go $M/internal/db/; cp $APP/migrations/*.sql $M/migrations/
+cat > $M/go.mod <<EOM
+module arxivlens
+
+go 1.24
+
+require github.com/jackc/pgx/v5 v5.0.0
+
+replace github.com/jackc/pgx/v5 => $STUBS
+EOM
+===== h/mutants.sh
+#!/bin/bash
+# QA local mutants for ING-6a1 (never pushed). $1 = app tree at PR head. Each mutant: fresh scratch module copy, one edit,
+# fresh crawl_watermarks (DROP TABLE), then `go test -tags integration -run '^TestAdvanceWatermarkMonotonic$'` against local PostgreSQL 16
+# through the psql-backed pgx stub. Build failure => INVALID (never KILLED). Unchanged copy => must PASS (control).
+APP=$1; H=$(dirname "$0"); PSQL="psql -h $QA_PSQL_HOST -p $QA_PSQL_PORT -U postgres -d qa -X -q -v ON_ERROR_STOP=1"
+export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off DATABASE_URL=stub
+F=internal/db/watermarks.go
+run() { # name, perl expression on $F
+  M=$(mktemp -d /tmp/qa6a1mut.XXXX); $H/setup.sh $APP $M
+  [ -n "$2" ] && perl -0pi -e "$2" $M/$F
+  if [ -n "$2" ] && cmp -s $APP/$F $M/$F; then echo "NOOP     $1 (edit did not apply)"; return; fi
+  $PSQL -c 'DROP TABLE IF EXISTS crawl_watermarks' 2>/dev/null
+  if ! (cd $M && go vet -tags integration ./internal/db/ >/dev/null 2>&1); then echo "INVALID  $1 (does not build)"; return; fi
+  out=$(cd $M && go test -count=1 -tags integration -run '^TestAdvanceWatermarkMonotonic$' ./internal/db/ 2>&1)
+  if echo "$out" | grep -q "^ok"; then [ -z "$2" ] && echo "PASS     $1" || echo "SURVIVED $1"; else echo "KILLED   $1 :: $(echo "$out" | grep -m1 -o 'watermarks_integration_test.go:[0-9]*: .*' | cut -c1-150)"; fi
+}
+run "control (unmodified, must PASS)" ""
+run "M1 GREATEST -> plain overwrite (EXCLUDED value)" 's/GREATEST\(crawl_watermarks\.last_published_at, EXCLUDED\.last_published_at\)/EXCLUDED.last_published_at/'
+run "M2 GREATEST -> LEAST" 's/GREATEST\(/LEAST(/'
+run "M3 ON CONFLICT DO UPDATE -> DO NOTHING" 's/ON CONFLICT \(category\) DO UPDATE SET.*?updated_at = now\(\)`/ON CONFLICT (category) DO NOTHING`/s'
+run "M4 ErrNoRows -> ok=true" 's/return time.Time\{\}, false, nil/return time.Time{}, true, nil/'
+run "M5 drop ErrNoRows branch (no row -> error)" 's/if errors.Is\(err, pgx.ErrNoRows\) \{/if false \&\& errors.Is(err, pgx.ErrNoRows) {/'
+run "M6 any read error -> (zero,false,nil) [design: never treat read error as no watermark]" 's/return time.Time\{\}, false, fmt.Errorf\("failed to read crawl watermark for %s: %w", category, err\)/return time.Time{}, false, nil/'
+run "M7 drop updated_at = now() on conflict" 's/\),\n\t\tupdated_at = now\(\)`/)`/'
+run "M8 AdvanceWatermark swallows Exec error" 's/return fmt.Errorf\("failed to advance crawl watermark for %s: %w", category, err\)/return nil/'
+run "M9 Watermark reads wrong column (updated_at)" 's/SELECT last_published_at FROM/SELECT updated_at FROM/'
+===== h/migration_probe.sh
+#!/bin/bash
+# QA probe: apply migrations/000005_crawl_watermarks.{up,down}.sql (files from the app tree, cwd) with psql on a fresh local PostgreSQL 16 DB.
+P="psql -h $QA_PSQL_HOST -p $QA_PSQL_PORT -U postgres -X -q -v ON_ERROR_STOP=1"
+$P -c 'DROP DATABASE IF EXISTS qa_mig' -c 'CREATE DATABASE qa_mig'; P="$P -d qa_mig"
+snap="SELECT c.relkind::text||' '||c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' ORDER BY 1"
+echo "== public relations before: [$($P -At -c "$snap" | tr '\n' ' ')]"
+for i in 1 2; do $P -f migrations/000005_crawl_watermarks.up.sql && echo "== up #$i: exit 0"; done
+echo "== public relations after up: [$($P -At -c "$snap" | tr '\n' ' ')]"
+$P -c '\d crawl_watermarks'
+echo "== ON CONFLICT (category) target exists: $($P -At -c "SELECT conname||' '||pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='crawl_watermarks'::regclass")"
+for i in 1 2; do $P -f migrations/000005_crawl_watermarks.down.sql && echo "== down #$i: exit 0"; done
+echo "== public relations after down: [$($P -At -c "$snap" | tr '\n' ' ')]"
+$P -f migrations/000005_crawl_watermarks.up.sql && echo "== up after down: exit 0; relations [$($P -At -c "$snap" | tr '\n' ' ')]"
+===== h/probe_survivors.sh
+#!/bin/bash
+# Runs qa_probe_test.go on the PR head and on each surviving mutant (same perl edits as mutants.sh).
+APP=$1; H=$(dirname "$0"); export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off DATABASE_URL=stub
+P="psql -h $QA_PSQL_HOST -p $QA_PSQL_PORT -U postgres -d qa -X -q"
+for m in "head|" \
+ "M6|s/return time.Time\{\}, false, fmt.Errorf\(\"failed to read crawl watermark for %s: %w\", category, err\)/return time.Time{}, false, nil/" \
+ "M7|s/\),\n\t\tupdated_at = now\(\)\`/)\`/" \
+ "M8|s/return fmt.Errorf\(\"failed to advance crawl watermark for %s: %w\", category, err\)/return nil/"; do
+  n=${m%%|*}; e=${m#*|}; M=$(mktemp -d /tmp/qa6a1prb.XXXX); $H/setup.sh $APP $M; cp $H/qa_probe_test.go $M/internal/db/
+  [ -n "$e" ] && perl -0pi -e "$e" $M/internal/db/watermarks.go
+  $P -c 'DROP TABLE IF EXISTS crawl_watermarks'
+  echo "== $n (watermarks.go differs from head: $(cmp -s $APP/internal/db/watermarks.go $M/internal/db/watermarks.go && echo no || echo yes))"
+  (cd $M && go test -count=1 -tags integration -v -run '^TestQAProbeSurvivors$' ./internal/db/ 2>&1 | grep -o 'M[678] probe: .*')
+done
+===== h/qa_probe_test.go
+//go:build integration
+
+// QA-only probe (not in the PR): does each surviving mutant really change behaviour?
+package db
+
+import (
+	"context"
+	"testing"
+	"time"
+)
+
+func TestQAProbeSurvivors(t *testing.T) {
+	ctx := context.Background()
+	d, err := Connect(ctx, "stub")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := d.RunMigrations(ctx, "../../migrations/000005_crawl_watermarks.up.sql"); err != nil {
+		t.Fatal(err)
+	}
+	cancelled, cancel := context.WithCancel(ctx)
+	cancel()
+	_, ok, err := d.Watermark(cancelled, "qa.probe")
+	t.Logf("M6 probe: Watermark(cancelled ctx) -> ok=%v err=%v  (want err != nil)", ok, err)
+	err = d.AdvanceWatermark(cancelled, "qa.probe", time.Now())
+	t.Logf("M8 probe: AdvanceWatermark(cancelled ctx) -> err=%v  (want err != nil)", err)
+	t0 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	_ = d.AdvanceWatermark(ctx, "qa.probe", t0)
+	var u1, u2 time.Time
+	_ = d.Pool.QueryRow(ctx, `SELECT updated_at FROM crawl_watermarks WHERE category = $1`, "qa.probe").Scan(&u1)
+	time.Sleep(50 * time.Millisecond)
+	_ = d.AdvanceWatermark(ctx, "qa.probe", t0.Add(time.Hour))
+	_ = d.Pool.QueryRow(ctx, `SELECT updated_at FROM crawl_watermarks WHERE category = $1`, "qa.probe").Scan(&u2)
+	t.Logf("M7 probe: updated_at bumped on conflict update: %v  (want true)", u2.After(u1))
+}
+===== ev_ac6.sh
+#!/bin/bash
+# AC6 (scratch module, Go 1.24.7 local toolchain; real internal/db/*.go + migrations from the PR head; pgx = QA psql-backed stub -> local PostgreSQL 16.15)
+export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off QA_PSQL_HOST=/tmp/qa6a1pg.XWAn QA_PSQL_PORT=55432 DATABASE_URL=stub
+M=$(mktemp -d /tmp/qa6a1ac6.XXXX); /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/h/setup.sh $PWD $M; cd $M
+psql -h /tmp/qa6a1pg.XWAn -p 55432 -U postgres -d qa -X -q -c 'DROP TABLE IF EXISTS crawl_watermarks'
+go version
+echo '$ go vet -tags integration ./internal/db/'; go vet -tags integration ./internal/db/; echo "exit $?"
+echo '$ go vet ./internal/db/'; go vet ./internal/db/; echo "exit $?"
+echo '$ go test -count=1 -tags integration -v -run ^TestAdvanceWatermarkMonotonic$ ./internal/db/'
+go test -count=1 -tags integration -v -run '^TestAdvanceWatermarkMonotonic$' ./internal/db/; echo "exit $?"
+echo '$ go test -count=1 -tags integration ./internal/db/   (whole package)'; go test -count=1 -tags integration ./internal/db/; echo "exit $?"
+===== ev_teardown.sh
+#!/bin/bash
+export GOTOOLCHAIN=local
+P="psql -h /tmp/qa6a1pg.XWAn -p 55432 -U postgres -d qa -X -q -At"
+echo '== source at PR head (internal/db/watermarks_integration_test.go):'; grep -n 'defer d.Close\|t.Cleanup' internal/db/watermarks_integration_test.go
+echo; echo '== Go 1.24.7 order of deferred calls vs t.Cleanup (stand-alone test, same shape):'
+(cd /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/order && go test -count=1 -v ./... 2>&1 | grep -E 'runs|PASS|ok')
+echo; echo '== crawl_watermarks it-test.* rows before / after one PASSING run of the PR test (scratch module, psql-backed pgx stub):'
+echo "before: $($P -c "SELECT count(*) FROM crawl_watermarks WHERE category LIKE 'it-test.%'")"
+M=$(mktemp -d /tmp/qa6a1td.XXXX); /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/h/setup.sh $PWD $M
+(cd $M && GOFLAGS=-mod=mod GOPROXY=off QA_PSQL_HOST=/tmp/qa6a1pg.XWAn QA_PSQL_PORT=55432 DATABASE_URL=stub go test -count=1 -tags integration -run '^TestAdvanceWatermarkMonotonic$' ./internal/db/)
+echo "after:  $($P -c "SELECT count(*) FROM crawl_watermarks WHERE category LIKE 'it-test.%'")"
+$P -c "SELECT category, last_published_at FROM crawl_watermarks WHERE category LIKE 'it-test.%' ORDER BY updated_at DESC LIMIT 1"
+===== order/order_test.go
+package order
+
+import "testing"
+
+// Same shape as TestAdvanceWatermarkMonotonic: `defer d.Close()` registered, then t.Cleanup(DELETE ...).
+func TestOrder(t *testing.T) {
+	closed := false
+	defer func() { closed = true; t.Log("1. deferred d.Close() runs") }()
+	t.Cleanup(func() { t.Logf("2. t.Cleanup(DELETE) runs; pool closed already = %v", closed) })
+}
+===== h/stubs/pgx/go.mod
+module github.com/jackc/pgx/v5
+
+go 1.24
+===== h/stubs/pgx/pgx.go
+// QA STUB (not real pgx): signatures used by internal/db; the pool in ./pgxpool runs SQL through psql on a real PostgreSQL 16.
+package pgx
+
+import (
+	"context"
+	"errors"
+
+	"github.com/jackc/pgx/v5/pgconn"
+)
+
+var ErrNoRows = errors.New("no rows in result set")
+
+type Row interface{ Scan(dest ...any) error }
+
+type Rows interface {
+	Next() bool
+	Scan(dest ...any) error
+	Err() error
+	Close()
+}
+
+type Tx interface {
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+}
+===== h/stubs/pgx/pgconn/pgconn.go
+// QA STUB (not real pgx): command tag type only.
+package pgconn
+
+type CommandTag struct{ N int64 }
+
+func (c CommandTag) RowsAffected() int64 { return c.N }
+===== h/stubs/pgx/pgxpool/pool.go
+// QA STUB (not real pgxpool): executes each statement with `psql -At -v ON_ERROR_STOP=1` against $QA_PSQL_HOST:$QA_PSQL_PORT,
+// substituting $N placeholders with SQL literals. After Close every call returns "closed pool" (as pgxpool does).
+package pgxpool
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+)
+
+type Config struct {
+	MaxConns, MinConns int32
+	MaxConnLifetime    time.Duration
+	dsn                string
+}
+
+func ParseConfig(s string) (*Config, error) { return &Config{dsn: s}, nil }
+
+type Pool struct{ closed bool }
+
+func NewWithConfig(ctx context.Context, c *Config) (*Pool, error) { return &Pool{}, nil }
+
+var errClosed = errors.New("closed pool")
+
+func (p *Pool) Close() { p.closed = true }
+
+func (p *Pool) Ping(ctx context.Context) error { _, err := p.run(ctx, "SELECT 1"); return err }
+
+var ph = regexp.MustCompile(`\$([0-9]+)`)
+
+func lit(a any) string {
+	switch v := a.(type) {
+	case string:
+		return "'" + strings.ReplaceAll(v, "'", "''") + "'"
+	case time.Time:
+		return "'" + v.UTC().Format(time.RFC3339Nano) + "'::timestamptz"
+	case int, int32, int64:
+		return fmt.Sprint(v)
+	case nil:
+		return "NULL"
+	}
+	panic(fmt.Sprintf("stub: unsupported arg %T", a))
+}
+
+func (p *Pool) run(ctx context.Context, sql string, args ...any) (string, error) {
+	if p.closed {
+		return "", errClosed
+	}
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+	sql = ph.ReplaceAllStringFunc(sql, func(m string) string { n, _ := strconv.Atoi(m[1:]); return lit(args[n-1]) })
+	cmd := exec.Command("psql", "-h", os.Getenv("QA_PSQL_HOST"), "-p", os.Getenv("QA_PSQL_PORT"), "-U", "postgres", "-d", "qa",
+		"-X", "-q", "-At", "-v", "ON_ERROR_STOP=1", "-c", "SET TIME ZONE 'UTC'", "-c", sql)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("psql: %v: %s", err, strings.TrimSpace(string(out)))
+	}
+	return strings.TrimRight(string(out), "\n"), nil
+}
+
+func (p *Pool) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
+	_, err := p.run(ctx, sql, args...)
+	return pgconn.CommandTag{}, err
+}
+
+type row struct {
+	out string
+	err error
+}
+
+func (r row) Scan(dest ...any) error {
+	if r.err != nil {
+		return r.err
+	}
+	if r.out == "" {
+		return pgx.ErrNoRows
+	}
+	f := strings.Split(strings.SplitN(r.out, "\n", 2)[0], "|")
+	for i, d := range dest {
+		switch v := d.(type) {
+		case *time.Time:
+			t, err := time.Parse("2006-01-02 15:04:05.999999-07", f[i])
+			if err != nil {
+				return err
+			}
+			*v = t
+		case *int64:
+			n, err := strconv.ParseInt(f[i], 10, 64)
+			if err != nil {
+				return err
+			}
+			*v = n
+		case *string:
+			*v = f[i]
+		default:
+			return fmt.Errorf("stub: unsupported scan dest %T", d)
+		}
+	}
+	return nil
+}
+
+func (p *Pool) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+	out, err := p.run(ctx, sql, args...)
+	return row{out, err}
+}
+
+type rows struct{}
+
+func (rows) Next() bool          { return false }
+func (rows) Scan(...any) error   { return errors.New("stub: Query unsupported") }
+func (rows) Err() error          { return nil }
+func (rows) Close()              {}
+
+func (p *Pool) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	return rows{}, errors.New("stub: Query unsupported")
+}
+
+[exit code 0]

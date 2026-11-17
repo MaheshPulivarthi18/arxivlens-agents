@@ -1,0 +1,18 @@
+$ bash -c git log --oneline -1; echo; git diff --name-status origin/main...HEAD; echo; git diff --stat origin/main...HEAD; echo; echo "files modified/deleted vs main:"; git diff --name-status --diff-filter=MDR origin/main...HEAD | wc -l
+c86bd5a ING-6a1: crawl_watermarks table (000005) and the monotonic watermark store
+
+A	internal/db/watermarks.go
+A	internal/db/watermarks_integration_test.go
+A	migrations/000005_crawl_watermarks.down.sql
+A	migrations/000005_crawl_watermarks.up.sql
+
+ internal/db/watermarks.go                   | 41 +++++++++++++++++++++
+ internal/db/watermarks_integration_test.go  | 56 +++++++++++++++++++++++++++++
+ migrations/000005_crawl_watermarks.down.sql |  1 +
+ migrations/000005_crawl_watermarks.up.sql   |  9 +++++
+ 4 files changed, 107 insertions(+)
+
+files modified/deleted vs main:
+0
+
+[exit code 0]

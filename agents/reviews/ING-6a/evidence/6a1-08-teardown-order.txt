@@ -1,0 +1,19 @@
+$ /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/ev_teardown.sh
+== source at PR head (internal/db/watermarks_integration_test.go):
+27:	defer d.Close()
+32:	t.Cleanup(func() { _, _ = d.Pool.Exec(ctx, `DELETE FROM crawl_watermarks WHERE category = $1`, cat) })
+
+== Go 1.24.7 order of deferred calls vs t.Cleanup (stand-alone test, same shape):
+    order_test.go:8: 1. deferred d.Close() runs
+    order_test.go:9: 2. t.Cleanup(DELETE) runs; pool closed already = true
+--- PASS: TestOrder (0.00s)
+PASS
+ok  	order	0.002s
+
+== crawl_watermarks it-test.* rows before / after one PASSING run of the PR test (scratch module, psql-backed pgx stub):
+before: 0
+ok  	arxivlens/internal/db	0.432s
+after:  1
+it-test.W1794939446443974228|2026-11-16 11:00:00+00
+
+[exit code 0]

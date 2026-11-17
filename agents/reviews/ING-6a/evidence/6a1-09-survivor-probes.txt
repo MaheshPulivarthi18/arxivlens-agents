@@ -1,0 +1,19 @@
+$ env QA_PSQL_HOST=/tmp/qa6a1pg.XWAn QA_PSQL_PORT=55432 /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/h/probe_survivors.sh /root/wt/qa-ING-6a1
+== head (watermarks.go differs from head: no)
+M6 probe: Watermark(cancelled ctx) -> ok=false err=failed to read crawl watermark for qa.probe: context canceled  (want err != nil)
+M8 probe: AdvanceWatermark(cancelled ctx) -> err=failed to advance crawl watermark for qa.probe: context canceled  (want err != nil)
+M7 probe: updated_at bumped on conflict update: true  (want true)
+== M6 (watermarks.go differs from head: yes)
+M6 probe: Watermark(cancelled ctx) -> ok=false err=<nil>  (want err != nil)
+M8 probe: AdvanceWatermark(cancelled ctx) -> err=failed to advance crawl watermark for qa.probe: context canceled  (want err != nil)
+M7 probe: updated_at bumped on conflict update: true  (want true)
+== M7 (watermarks.go differs from head: yes)
+M6 probe: Watermark(cancelled ctx) -> ok=false err=failed to read crawl watermark for qa.probe: context canceled  (want err != nil)
+M8 probe: AdvanceWatermark(cancelled ctx) -> err=failed to advance crawl watermark for qa.probe: context canceled  (want err != nil)
+M7 probe: updated_at bumped on conflict update: false  (want true)
+== M8 (watermarks.go differs from head: yes)
+M6 probe: Watermark(cancelled ctx) -> ok=false err=failed to read crawl watermark for qa.probe: context canceled  (want err != nil)
+M8 probe: AdvanceWatermark(cancelled ctx) -> err=<nil>  (want err != nil)
+M7 probe: updated_at bumped on conflict update: true  (want true)
+
+[exit code 0]

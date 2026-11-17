@@ -1,0 +1,27 @@
+$ gh api .../actions/jobs/134252075840/logs (Migrate step)
+# Full stack job 134252075840 (head_sha c86bd5a5da3b44e4ad60691cae74394672938ddb), step 17 'Migrate': success
+2026-11-17T18:02:10.1628364Z HEAD is now at 1c7ea61 Merge c86bd5a5da3b44e4ad60691cae74394672938ddb into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T18:08:43.9179051Z ##[group]Run make migrate
+2026-11-17T18:08:43.9179451Z [36;1mmake migrate[0m
+2026-11-17T18:08:43.9242373Z shell: /usr/bin/bash -e {0}
+2026-11-17T18:08:43.9242763Z env:
+2026-11-17T18:08:43.9243133Z   ARXIVLENS_HF_CACHE: /home/runner/.cache/huggingface
+2026-11-17T18:08:43.9244305Z   F1_TESTS: tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank
+2026-11-17T18:08:43.9245449Z   PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
+2026-11-17T18:08:43.9245961Z   ARXIV_API_URL: http://127.0.0.1:8099/api/query
+2026-11-17T18:08:43.9246388Z   ARXIV_PDF_BASE: http://127.0.0.1:8099/pdf
+2026-11-17T18:08:43.9246867Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-17T18:08:43.9247397Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-17T18:08:43.9248022Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-17T18:08:43.9248519Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-17T18:08:43.9248860Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-17T18:08:43.9249219Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-17T18:08:43.9249593Z ##[endgroup]
+2026-11-17T18:08:43.9370916Z go build -o bin/arxivlens ./cmd/arxivlens
+2026-11-17T18:08:45.4000583Z ./bin/arxivlens migrate
+2026-11-17T18:08:45.4226150Z 2026/11/17 18:08:45 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026-11-17T18:08:45.4789095Z 2026/11/17 18:08:45 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+2026-11-17T18:08:45.4829598Z 2026/11/17 18:08:45 [Migration] Running migration file: migrations/000003_paper_chunk_pages.up.sql
+2026-11-17T18:08:45.4851896Z 2026/11/17 18:08:45 [Migration] Running migration file: migrations/000005_crawl_watermarks.up.sql
+2026-11-17T18:08:45.4874599Z 2026/11/17 18:08:45 [Migration] Database schema migrated successfully (4 file(s))
+

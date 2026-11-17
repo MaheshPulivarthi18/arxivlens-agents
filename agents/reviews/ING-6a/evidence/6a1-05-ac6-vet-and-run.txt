@@ -1,0 +1,17 @@
+$ /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/ev_ac6.sh
+go version go1.24.7 linux/amd64
+$ go vet -tags integration ./internal/db/
+exit 0
+$ go vet ./internal/db/
+exit 0
+$ go test -count=1 -tags integration -v -run ^TestAdvanceWatermarkMonotonic$ ./internal/db/
+=== RUN   TestAdvanceWatermarkMonotonic
+--- PASS: TestAdvanceWatermarkMonotonic (0.43s)
+PASS
+ok  	arxivlens/internal/db	0.429s
+exit 0
+$ go test -count=1 -tags integration ./internal/db/   (whole package)
+ok  	arxivlens/internal/db	0.376s
+exit 0
+
+[exit code 0]

@@ -1,0 +1,13 @@
+$ env QA_PSQL_HOST=/tmp/qa6a1pg.XWAn QA_PSQL_PORT=55432 /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/h/mutants.sh /root/wt/qa-ING-6a1
+PASS     control (unmodified, must PASS)
+KILLED   M1 GREATEST -> plain overwrite (EXCLUDED value) :: watermarks_integration_test.go:53: t1 < t2 does not move it back: Watermark = (2026-11-16 09:00:00 +0000 UTC, true, <nil>), want (2026-11-16 10:00:00 
+KILLED   M2 GREATEST -> LEAST :: watermarks_integration_test.go:53: t1 < t2 does not move it back: Watermark = (2026-11-16 09:00:00 +0000 UTC, true, <nil>), want (2026-11-16 10:00:00 
+KILLED   M3 ON CONFLICT DO UPDATE -> DO NOTHING :: watermarks_integration_test.go:53: advance to t3 > t2: Watermark = (2026-11-16 10:00:00 +0000 UTC, true, <nil>), want (2026-11-16 11:00:00 +0000 UTC, 
+KILLED   M4 ErrNoRows -> ok=true :: watermarks_integration_test.go:53: no row: ok=false: Watermark = (0001-01-01 00:00:00 +0000 UTC, true, <nil>), want (0001-01-01 00:00:00 +0000 UTC, fa
+KILLED   M5 drop ErrNoRows branch (no row -> error) :: watermarks_integration_test.go:53: no row: ok=false: Watermark = (0001-01-01 00:00:00 +0000 UTC, false, failed to read crawl watermark for it-test.W17
+SURVIVED M6 any read error -> (zero,false,nil) [design: never treat read error as no watermark]
+SURVIVED M7 drop updated_at = now() on conflict
+SURVIVED M8 AdvanceWatermark swallows Exec error
+KILLED   M9 Watermark reads wrong column (updated_at) :: watermarks_integration_test.go:53: advance to t2: Watermark = (2026-11-17 18:16:53.518996 +0000 UTC, true, <nil>), want (2026-11-16 10:00:00 +0000 UTC
+
+[exit code 0]

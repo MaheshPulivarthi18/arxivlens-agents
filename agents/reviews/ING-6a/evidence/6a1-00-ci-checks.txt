@@ -1,0 +1,13 @@
+$ /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/ev_ci.sh
+check-runs for c86bd5a5da3b44e4ad60691cae74394672938ddb (PR #57 head):
+134252075938  Frontend (lint, test, build)  completed/success
+134252075840  Full stack (compose + make test-full)  completed/success
+134252075832  Agent ownership check  completed/success
+134252075826  Python M0 unit tests  completed/success
+134252075323  Go (vet, gofmt, test, build)  completed/success
+134252075045  DB (migrate twice, HNSW plan + recall)  completed/success
+
+Full stack job: head_sha=c86bd5a5da3b44e4ad60691cae74394672938ddb
+PR #57: state=open merged=false draft=true head=c86bd5a5da3b44e4ad60691cae74394672938ddb
+
+[exit code 0]
