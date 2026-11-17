@@ -1,0 +1,43 @@
+$ bash -c for f in search.go client.go search_test.go search_provenance_test.go; do cmp -s /root/wt/qa-ING-11b/internal/query/$f /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr/internal/query/$f && echo "identical to PR head: $f"; done; cd /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr && GOTOOLCHAIN=local go vet ./internal/query/ && echo 'go vet OK'; GOTOOLCHAIN=local go test -race -count=1 -v ./internal/query/ 2>&1 | grep -E '^(--- |ok|FAIL)|TestSearchHitProvenance|TestSearchSQL'
+identical to PR head: search.go
+identical to PR head: client.go
+identical to PR head: search_test.go
+identical to PR head: search_provenance_test.go
+go vet OK
+--- PASS: TestSearchHitJSON (0.00s)
+=== RUN   TestSearchHitProvenanceTravelsWithHit
+=== RUN   TestSearchHitProvenanceTravelsWithHit/no_rerank
+=== RUN   TestSearchHitProvenanceTravelsWithHit/rerank_reversed
+=== RUN   TestSearchHitProvenanceTravelsWithHit/rerank_rank_8_top_score
+=== RUN   TestSearchHitProvenanceTravelsWithHit/fallback_rerank_error
+=== RUN   TestSearchHitProvenanceTravelsWithHit/fallback_timeout
+=== RUN   TestSearchHitProvenanceTravelsWithHit/fallback_count_mismatch
+=== RUN   TestSearchHitProvenanceTravelsWithHit/fallback_NaN_score
+=== RUN   TestSearchHitProvenanceTravelsWithHit/fallback_canceled
+--- PASS: TestSearchHitProvenanceTravelsWithHit (0.00s)
+    --- PASS: TestSearchHitProvenanceTravelsWithHit/no_rerank (0.00s)
+    --- PASS: TestSearchHitProvenanceTravelsWithHit/rerank_reversed (0.00s)
+    --- PASS: TestSearchHitProvenanceTravelsWithHit/rerank_rank_8_top_score (0.00s)
+    --- PASS: TestSearchHitProvenanceTravelsWithHit/fallback_rerank_error (0.00s)
+    --- PASS: TestSearchHitProvenanceTravelsWithHit/fallback_timeout (0.00s)
+    --- PASS: TestSearchHitProvenanceTravelsWithHit/fallback_count_mismatch (0.00s)
+    --- PASS: TestSearchHitProvenanceTravelsWithHit/fallback_NaN_score (0.00s)
+    --- PASS: TestSearchHitProvenanceTravelsWithHit/fallback_canceled (0.00s)
+=== RUN   TestSearchSQLColumnsMatchScan
+--- PASS: TestSearchSQLColumnsMatchScan (0.00s)
+=== RUN   TestSearchSQLOuterSelectOnly
+--- PASS: TestSearchSQLOuterSelectOnly (0.00s)
+--- PASS: TestHybridSearchRerankOrdersByFusedRank (0.00s)
+--- PASS: TestFuseRanksKeepsRerankScores (0.00s)
+--- PASS: TestHybridSearchRerankTiesKeepRRFOrder (0.00s)
+--- PASS: TestHybridSearchRerankPoolSize (0.00s)
+--- PASS: TestHybridSearchRerankFallback (0.00s)
+--- PASS: TestTraceIDFrom (0.00s)
+--- PASS: TestHybridSearchNoRerankUnchanged (0.00s)
+--- PASS: TestHybridSearchFetchError (0.00s)
+--- PASS: TestNewSearchEngineWiresSeams (0.00s)
+--- PASS: TestDiversify (0.00s)
+--- PASS: TestHybridSearchRerankDiversifiesTop5 (0.00s)
+ok  	arxivlens/internal/query	1.034s
+
+[exit code 0]

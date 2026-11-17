@@ -1,0 +1,16 @@
+$ bash -c cd /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad && python3 mutate_go.py /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/goharness.cplr /root/wt/qa-ING-11b
+mutant                               result     detail
+M1 drop &h.Page from scan            KILLED     go: FAIL TestSearchSQLColumnsMatchScan; parity pass
+M2 swap Version/Page in scan         KILLED     go: FAIL TestSearchSQLColumnsMatchScan; parity pass
+M3 page from c.page_number           KILLED     go: FAIL TestSearchSQLOuterSelectOnly; parity FAIL
+M4 subquery keyed on paper_id        KILLED     go: FAIL TestSearchSQLOuterSelectOnly; parity FAIL
+M5 drop page column (SQL only)       KILLED     go: FAIL TestSearchSQLColumnsMatchScan,TestSearchSQLOuterSelectOnly; parity FAIL
+M6 LEFT JOIN instead of subquery     KILLED     go: FAIL TestSearchSQLOuterSelectOnly; parity FAIL
+M7 page_start+1 (off by one)         KILLED     go: FAIL TestSearchSQLOuterSelectOnly; parity FAIL
+M8 json tag without omitempty        KILLED     go: FAIL TestSearchHitJSON; parity pass
+M9 rerank fallback clears Page       KILLED     go: FAIL TestSearchHitProvenanceTravelsWithHit; parity pass
+M10 NaN guard disabled               KILLED     go: FAIL TestHybridSearchRerankFallback,TestSearchHitProvenanceTravelsWithHit; parity pass
+
+10/10 killed, 0 survived, 0 invalid
+
+[exit code 0]

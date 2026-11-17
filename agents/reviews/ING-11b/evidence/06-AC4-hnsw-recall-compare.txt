@@ -1,0 +1,28 @@
+$ bash -c cd /tmp/claude-0/-home-claude/59d2cf4c-eb32-5507-9042-30257a183d35/scratchpad/ci; echo '# base1 = 538b2ea DB job 132833017691, base = 40dec5a DB job 132852479013, head = PR 706e43e DB job 133911818026'; wc -l base2-results.txt base-results.txt head-results.txt; echo '--- lines differing base1 vs base (two main runs, vectorHitsSQL identical):'; diff base2-results.txt base-results.txt | grep '^[<>]' | cut -c1-200; echo '--- lines differing base vs head:'; diff base-results.txt head-results.txt | grep '^[<>]' | cut -c1-200; echo '--- differing lines whose config is NOT an iterative-scan mode (expect 0):'; diff base-results.txt head-results.txt | grep '^[<>]' | grep -vc 'iterative\|hnswSearchSettings'
+# base1 = 538b2ea DB job 132833017691, base = 40dec5a DB job 132852479013, head = PR 706e43e DB job 133911818026
+   57 base2-results.txt
+   57 base-results.txt
+   57 head-results.txt
+  171 total
+--- lines differing base1 vs base (two main runs, vectorHitsSQL identical):
+< RESULT filter="no category filter" config="ef_search=40 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 recall@50=0.987 plans(generic=0
+> RESULT filter="no category filter" config="ef_search=40 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 recall@50=0.986 plans(generic=0
+< RESULT filter="cs.CL (~25% of papers)" config="ef_search=40 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.740 recall@50=0.769 plans(gener
+> RESULT filter="cs.CL (~25% of papers)" config="ef_search=40 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.740 recall@50=0.768 plans(gener
+< RESULT filter="cs.CL (~25% of papers)" config="ef_search=200 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.830 recall@50=0.819 plans(gene
+> RESULT filter="cs.CL (~25% of papers)" config="ef_search=200 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.830 recall@50=0.820 plans(gene
+--- lines differing base vs head:
+< RESULT filter="no category filter" config="ef_search=40 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 recall@50=0.986 plans(generic=0
+> RESULT filter="no category filter" config="ef_search=40 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=1.000 recall@50=0.987 plans(generic=0
+< RESULT filter="cs.CL (~25% of papers)" config="ef_search=40 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.740 recall@50=0.768 plans(gener
+> RESULT filter="cs.CL (~25% of papers)" config="ef_search=40 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.750 recall@50=0.771 plans(gener
+< RESULT filter="cs.CL (~25% of papers)" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.760 recall@50=0.789 plans(generic=0 c
+> RESULT filter="cs.CL (~25% of papers)" config="query path (hnswSearchSettings)" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.770 recall@50=0.790 plans(generic=0 c
+< RESULT filter="cs.CL (~25% of papers)" config="ef_search=200 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.830 recall@50=0.820 plans(gene
+> RESULT filter="cs.CL (~25% of papers)" config="ef_search=200 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.840 recall@50=0.821 plans(gene
+< RESULT filter="cs.CL (~25% of papers)" config="ef_search=400 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.880 recall@50=0.864 plans(gene
+> RESULT filter="cs.CL (~25% of papers)" config="ef_search=400 + iterative strict_order" plan_mode="custom plan" mean_rows=50.0 min_rows=50 short_queries=0/20 recall@5=0.890 recall@50=0.865 plans(gene
+--- differing lines whose config is NOT an iterative-scan mode (expect 0):
+0
+
+[exit code 1]
