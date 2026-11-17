@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, #15), ING-10 (Done, #31: the downloader uses the envelope's version), OPS-H10 (Done, #26: `stack.yml` runs on Go/`tests/` PRs). No ADR: no schema, event or HTTP contract change |
 | **Jira** | new story under epic KAN-3 "Dev harness & infrastructure" (`labels = "task-OPS-H11"`), like OPS-H6 (KAN-28) |
 | **Design required** | no: P1, two Go packages + one test file, no new CLI/table/service, no shared-contract change |
-| **Status** | Ready (specced 2026-11-17 13:00Z by pm-lead from the board Backlog line "OPS-H6 design G1") |
+| **Status** | In QA (draft PR [#55](https://github.com/MaheshPulivarthi18/ArxivLens/pull/55), head `2039650`; specced 2026-11-17 13:00Z by pm-lead) |
 
 ## Goal
 Today `Downloader.HandleRecord` always runs `UpdatePaperDownloaded`, which sets `status = 'downloaded'`, and then re-publishes
@@ -69,3 +69,17 @@ make lint
 - 2026-11-17 (pm-lead): independence at spec time: no open PR touches these four files (#51 docs/evals, #52 `internal/query/search*`,
   `tests/test_m2_pipeline.py`, `tests/test_evals_data.py`, `db.yml`, README, CONTRIBUTING; #53 CI/Makefile/requirements/Dockerfiles; #54 `rag.go`).
   Don't touch `db.yml`, README or CONTRIBUTING (held by #52/#53).
+- 2026-11-17 (backend-engineer): built on `agent/backend/OPS-H11` from `40dec5a`, draft PR #55, head `2039650814ad`. 4 files,
+  212 changed lines (+209/-3); `ownership-check.sh origin/main agent/backend/OPS-H11` → `Ownership OK for role=backend (212 changed lines)`.
+  Guard: only in the L1 `exists` branch after the stored object's sha256 is computed; skip iff status `embedded` && stored sha non-empty && equal.
+  Local runs (scratch module, Go 1.24.7 `GOTOOLCHAIN=local`, real `internal/downloader`, `internal/arxiv`, `shared/events` sources; stubs only for
+  pgx/kgo/ulid/kafka/storage; `db` stub holds the real `UpdatePaperDownloaded` + `PaperVersionStatus` bodies): `go vet` clean,
+  `go test -race -run 'TestHandleRecord|TestPaperVersionStatus'` PASS (AC1 rows a–g, AC2 unchanged test, a scratch-only `PaperVersionStatus` test for row/no-row/error).
+  AC3 mutants (local only, never pushed), each run on the full package and with `-run '^TestHandleRecordSkipsAlreadyEmbedded$'`, same result both ways:
+  (i) sha comparison dropped (`(… || true)`) → KILLED by rows b, c; (ii) `embedded` check dropped → KILLED by row d; (iii) `return lerr` → KILLED by row f
+  (`HandleRecord = db down, want nil`). Extras: drop only `storedSHA == sha256Hex` → KILLED (b); guard moved outside the exists branch → KILLED (g);
+  lookup with raw `envelope.Version` → KILLED (a, `lookups [0]`); drop only `storedSHA != ""` → SURVIVED (equivalent: the computed sha is never empty
+  in that branch). Plain deletions of (i)/(ii) don't compile (unused var), so they were written as `|| true` to be valid mutants.
+  AC4: `test_redelivered_discovered_keeps_embedded_status` checked locally only against stubbed confluent_kafka/psycopg: passes on the no-op path, fails on a
+  re-published `papers.downloaded` and on a changed `updated_at`, skips with a `warnings.warn` reason when no embedded paper exists. Real result: PR's `stack.yml`.
+  Not run locally: `make test-unit`, `make lint` (repo needs Go 1.25), real stack. Jira not updated from this session (no Jira tool available to me).
