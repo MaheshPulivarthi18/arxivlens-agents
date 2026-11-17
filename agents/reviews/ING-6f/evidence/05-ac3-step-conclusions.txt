@@ -1,0 +1,46 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/steps_compare.sh
+stack.yml runs on branch main: 0, event=push: 0
+job 134275963367 run 44150168163 head 61e44e1 agent/backend/ING-6f => success
+job 134252075840 run 44143443574 head c86bd5a agent/backend/ING-6a1 => success
+job 134254278257 run 44144065272 head 3f8e903 agent/backend/ING-6a2 => success
+
+STEP                                                           PR(#58)    ctl ING-6a1  ctl ING-6a2 
+Set up job                                                     success    success      success     
+Run actions/checkout@v4                                        success    success      success     
+Run actions/setup-go@v5                                        success    success      success     
+Run actions/setup-python@v5                                    success    success      success     
+Lint the harness (actionlint, compose config)                  success    success      success     
+Cache Hugging Face models                                      success    success      success     
+Host Python deps (make setup-py, CPU torch)                    success    success      success     
+Pre-fetch models into the shared HF cache                      success    success      success     
+Build Go CLI                                                   success    success      success     
+Restore arXiv replay store                                     success    success      success     
+Prefetch arXiv responses into the replay store                 success    success      success     
+Save arXiv replay store                                        success    success      skipped     
+ING-6 Risk 1: published order of recorded search feeds         success    (absent)     (absent)      (new step)
+Start the arXiv replay proxy (replay-only)                     success    success      success     
+AC1: plain docker compose up -d starts infra only              success    success      success     
+AC2: make stack-up                                             success    success      success     
+Worker health follows this container, not the group            success    success      success     
+Migrate                                                        success    success      success     
+AC3: crawl 2 papers (before the downloader starts)             success    success      success     
+Start Go downloader and query service on the host              success    success      success     
+AC3: wait until both crawled papers are embedded               success    success      success     
+Seed the M3/M4 fixture (on-demand ingest of 2608.20331)        success    success      success     
+AC4: make test-full                                            success    success      success     
+Known failure F1 (CPU rerank latency, tracked)                 success    success      success     
+Collect service logs                                           success    success      success     
+arXiv replay stats                                             success    success      success     
+Diagnostics                                                    skipped    skipped      skipped     
+Upload logs                                                    success    success      success     
+Teardown                                                       success    success      success     
+Post Cache Hugging Face models                                 success    success      success     
+Post Run actions/setup-python@v5                               success    success      success     
+Post Run actions/setup-go@v5                                   success    success      success     
+Post Run actions/checkout@v4                                   success    success      success     
+Complete job                                                   success    success      success     
+
+steps other than the new one whose conclusion differs from same-cache-path control ING-6a1: 0
+steps in controls missing from PR: none
+
+[exit code 0]

@@ -1,0 +1,12 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/ac1_log.sh
+job 134275963367 head_sha 61e44e191d5ec05c8cf38026fb38c9b11c5dc291 conclusion success
+step 13 "ING-6 Risk 1: published order of recorded search feeds" => success
+2026-11-17T18:39:19.7117735Z HEAD is now at efdb1cb Merge 61e44e191d5ec05c8cf38026fb38c9b11c5dc291 into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+--- step output (script echo lines with ANSI [36;1m excluded):
+2026-11-17T18:41:12.1099818Z RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+2026-11-17T18:41:12.1101038Z RISK1 entry 1 2611.21608v1 published=2026-11-16T18:59:38Z
+2026-11-17T18:41:12.1101572Z RISK1 entry 2 2611.21602v1 published=2026-11-16T18:58:55Z
+2026-11-17T18:41:12.1102014Z RISK1 ORDER descending
+--- counts: query=1 entry=2 order=1 none=0 risk1-warnings(excl. ##[group] echo)=0
+
+[exit code 0]

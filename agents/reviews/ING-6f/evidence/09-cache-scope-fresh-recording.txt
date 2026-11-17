@@ -1,0 +1,14 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/cache_scope.sh
+== job 134275963367 run 44150168163 agent/backend/ING-6f
+== job 134252075840 run 44143443574 agent/backend/ING-6a1
+2026-11-17T18:02:10.1628364Z HEAD is now at 1c7ea61 Merge c86bd5a5da3b44e4ad60691cae74394672938ddb into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T18:04:04.5514320Z Cache not found for input keys: arxiv-replay-Linux-stack-v1-44143443574, arxiv-replay-Linux-stack-v1-
+2026-11-17T18:04:16.9699173Z [replay] prefetch: 2 queries, stats={"hits": 0, "misses": 5, "upstream_fetches": 5, "upstream_failures": 0, "saved": 5}
+2026-11-17T18:04:17.9308329Z Cache saved with key: arxiv-replay-Linux-stack-v1-44143443574
+== job 134254278257 run 44144065272 agent/backend/ING-6a2
+2026-11-17T18:05:38.8755000Z HEAD is now at bf3b33c Merge 3f8e903457da2ae023babcb5c16488b23ff05da7 into 40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+2026-11-17T18:07:07.6792436Z Cache restored from key: arxiv-replay-Linux-stack-v1-44097260069
+2026-11-17T18:07:07.8795559Z [replay] prefetch: 2 queries, stats={"hits": 5, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+gh: HTTP 503
+
+[exit code 0]

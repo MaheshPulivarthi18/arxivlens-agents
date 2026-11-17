@@ -1,0 +1,23 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/ac5_body.sh
+PR #58 body: 28 lines, updated_at 2026-11-17T18:39:09Z
+RISK1 query=             matches=1
+      9:- [ ] AC1: this PR's Full stack log has the `RISK1 query=` / `RISK1 entry` / `RISK1 ORDER` lines (CI)
+RISK1 entry              matches=1
+      9:- [ ] AC1: this PR's Full stack log has the `RISK1 query=` / `RISK1 entry` / `RISK1 ORDER` lines (CI)
+RISK1 ORDER descending   matches=1
+      6:- `.github/workflows/stack.yml` only (+35): one informational step `ING-6 Risk 1: published order of recorded search feeds`, after `Save arXiv replay store`. Stdlib Pyt
+published=               matches=0
+2611\.                   matches=0
+exit=                    matches=0
+exit code                matches=0
+ING-6b                   matches=0
+Risk 1 cleared           matches=0
+out_of_order             matches=0
+--- AC lines in the body:
+9:- [ ] AC1: this PR's Full stack log has the `RISK1 query=` / `RISK1 entry` / `RISK1 ORDER` lines (CI)
+10:- [x] AC2: local runs on synthetic stores: ascending → `NOT descending`, swapped → `descending`, no search feed → `RISK1 none`, bad XML → `::warning::`; all exit 0
+11:- [ ] AC3: step success; other steps' conclusions unchanged vs latest `main` run (CI)
+12:- [x] AC4: 1 file, 35 lines; ownership OK
+13:- [ ] AC5: verdict + `published` values quoted here once CI runs
+
+[exit code 0]

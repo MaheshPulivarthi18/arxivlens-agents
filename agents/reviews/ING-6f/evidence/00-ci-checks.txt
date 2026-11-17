@@ -1,0 +1,9 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/ci_checks.sh
+134275966107  Frontend (lint, test, build)  completed  success
+134275965642  Agent ownership check  completed  success
+134275964899  Go (vet, gofmt, test, build)  completed  success
+134275964520  Python M0 unit tests  completed  success
+134275964270  DB (migrate twice, HNSW plan + recall)  completed  success
+134275963367  Full stack (compose + make test-full)  completed  success
+
+[exit code 0]

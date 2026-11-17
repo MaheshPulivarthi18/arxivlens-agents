@@ -1,0 +1,55 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/run_all.sh (0[5-9]|1[0-2])-[^/]*
+=== 05-missing-body
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+::warning::RISK1 .arxiv-replay/api/k1.json: FileNotFoundError: [Errno 2] No such file or directory: '.arxiv-replay/api/k1'
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+=== 06-bad-meta-json
+::warning::RISK1 .arxiv-replay/api/k1.json: JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api
+::warning::RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+=== 07-tie
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+RISK1 entry 1 2307.08691v2 published=2023-07-17T17:50:36Z
+RISK1 entry 2 2307.08691v2 published=2023-07-17T17:50:36Z
+RISK1 ORDER descending
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+=== 08-one-entry
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+RISK1 entry 1 2307.08691v2 published=2023-07-17T17:50:36Z
+RISK1 ORDER n/a (1 entries)
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+=== 09-undated-middle
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+RISK1 entry 1 2401.12345 published=2024-01-22T09:00:00Z
+RISK1 entry 2 2307.08691v2 published=
+RISK1 entry 3 2307.08691v2 published=2023-07-17T17:50:36Z
+RISK1 ORDER descending
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+=== 10-two-feeds-one-bad
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+::warning::RISK1 .arxiv-replay/api/a.json: ParseError: syntax error: line 1, column 0
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+RISK1 entry 1 2401.12345 published=2024-01-22T09:00:00Z
+RISK1 entry 2 2307.08691v2 published=2023-07-17T17:50:36Z
+RISK1 ORDER descending
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+=== 11-meta-not-dict
+::warning::RISK1 .arxiv-replay/api/k1.json: AttributeError: 'list' object has no attribute 'get'
+RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api
+::warning::RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+=== 12-no-store-dir
+RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api
+::warning::RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+
+[exit code 0]

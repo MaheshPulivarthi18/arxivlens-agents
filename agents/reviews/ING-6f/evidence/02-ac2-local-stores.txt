@@ -1,0 +1,27 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/run_all.sh 0[1-4]-[^/]*
+=== 01-asc
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+RISK1 entry 1 2307.08691v2 published=2023-07-17T17:50:36Z
+RISK1 entry 2 2401.12345 published=2024-01-22T09:00:00Z
+RISK1 ORDER NOT descending (first violation: entry 1 2023-07-17T17:50:36Z < entry 2 2024-01-22T09:00:00Z)
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+=== 02-desc
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+RISK1 entry 1 2401.12345 published=2024-01-22T09:00:00Z
+RISK1 entry 2 2307.08691v2 published=2023-07-17T17:50:36Z
+RISK1 ORDER descending
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+=== 03-idlist-only
+RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api
+::warning::RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+=== 04-not-xml
+RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+::warning::RISK1 .arxiv-replay/api/k1.json: ParseError: syntax error: line 1, column 0
+  risk1.py exit=0
+  full run: block (bash -eo pipefail) exit=0
+
+[exit code 0]

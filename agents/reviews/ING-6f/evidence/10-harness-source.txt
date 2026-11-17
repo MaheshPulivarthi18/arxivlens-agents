@@ -1,0 +1,250 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/harness_src.sh
+=================== ./ac1_log.sh
+#!/bin/bash
+# AC1: the new step in the PR's Full stack job (job 134275963367, run 44150168163) and its output lines from the REST job log.
+R=MaheshPulivarthi18/ArxivLens; J=134275963367
+gh api repos/$R/actions/jobs/$J --jq '"job \(.id) head_sha \(.head_sha) conclusion \(.conclusion)", (.steps[] | select(.name|startswith("ING-6 Risk 1")) | "step \(.number) \"\(.name)\" => \(.conclusion)")'
+L=$(mktemp); gh api repos/$R/actions/jobs/$J/logs > "$L"
+grep -m1 'HEAD is now at' "$L"
+echo "--- step output (script echo lines with ANSI [36;1m excluded):"
+grep -E 'RISK1|::warning::' "$L" | grep -v '36;1m' | grep -v '##\[group\]'
+echo "--- counts: query=$(grep -v '36;1m' "$L" | grep -c 'RISK1 query=') entry=$(grep -v '36;1m' "$L" | grep -c 'RISK1 entry ') order=$(grep -v '36;1m' "$L" | grep -c 'RISK1 ORDER') none=$(grep -v '36;1m' "$L" | grep -c 'RISK1 none') risk1-warnings(excl. ##[group] echo)=$(grep -v '36;1m' "$L" | grep -v '##\[group\]' | grep -c '::warning::RISK1\|##\[warning\]RISK1')"
+=================== ./ac3_lint.sh
+#!/bin/bash
+# AC3: actionlint (Lint the harness) in the PR's Full stack job: step conclusion and its log section.
+R=MaheshPulivarthi18/ArxivLens; J=134275963367
+gh api repos/$R/actions/jobs/$J --jq '.steps[] | select(.name|startswith("Lint the harness")) | "step \(.number) \"\(.name)\" => \(.conclusion)"'
+L=$(mktemp); gh api repos/$R/actions/jobs/$J/logs > "$L"
+awk '/##\[group\]Run docker run --rm -v/{p=1} /##\[group\]Run actions\/cache@v4/{p=0} p' "$L" | grep -v '36;1m' | grep -v '^.\{28\}Z   [A-Z_a-z0-9]*:' | cut -c1-160 | grep -iv 'Pulling\|Pull complete\|Digest\|Status: Downloaded\|Waiting\|Download complete\|Verifying\|Already exists' | head -30
+echo "--- actionlint error lines in job log: $(grep -cE 'stack\.yml:[0-9]+:[0-9]+:' "$L")"
+=================== ./ac4.sh
+#!/bin/bash
+git diff --stat origin/main...HEAD; git diff --numstat origin/main...HEAD
+bash .github/scripts/ownership-check.sh origin/main agent/backend/ING-6f; echo "ownership-check exit=$?"
+echo "--- new step position:"; grep -n '      - name:' .github/workflows/stack.yml | grep -B1 -A1 'ING-6 Risk 1'
+=================== ./ac5_body.sh
+#!/bin/bash
+# AC1/AC2/AC5: does the PR body (as of QA) quote the CI RISK1 lines, the four AC2 outputs+exit codes, and the ING-6b meaning?
+B=$(mktemp); gh api repos/MaheshPulivarthi18/ArxivLens/pulls/58 --jq '.body' > "$B"
+echo "PR #58 body: $(wc -l < "$B") lines, updated_at $(gh api repos/MaheshPulivarthi18/ArxivLens/pulls/58 --jq .updated_at)"
+for pat in 'RISK1 query=' 'RISK1 entry' 'RISK1 ORDER descending' 'published=' '2611\.' 'exit=' 'exit code' 'ING-6b' 'Risk 1 cleared' 'out_of_order'; do
+  printf "%-24s matches=%s\n" "$pat" "$(grep -c -- "$pat" "$B")"; grep -n -- "$pat" "$B" | cut -c1-170 | sed "s/^/      /"
+done
+echo "--- AC lines in the body:"; grep -n '^- \[' "$B"
+=================== ./build_stores.py
+# Builds QA scratch replay stores from the committed fixture. Usage: build_stores.py <fixture> <outdir>
+import json, os, sys, re
+fx = open(sys.argv[1]).read(); out = sys.argv[2]
+Q = "max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0"
+ents = re.findall(r"  <entry>.*?</entry>\n", fx, re.S)
+head, tail = fx.split(ents[0])[0], fx.split(ents[-1])[1]
+def store(name, files):
+    d = os.path.join(out, name, ".arxiv-replay", "api"); os.makedirs(d)
+    os.makedirs(os.path.join(out, name, ".arxiv-replay", "pdf"))
+    for key, (body, meta) in files.items():
+        if body is not None: open(os.path.join(d, key), "w").write(body)
+        if meta is not None: open(os.path.join(d, key + ".json"), "w").write(meta)
+m = json.dumps({"query": Q})
+store("01-asc", {"k1": (fx, m)})
+store("02-desc", {"k1": (head + ents[1] + ents[0] + tail, m)})
+store("03-idlist-only", {"k1": (fx, json.dumps({"query": "id_list=2608.20331"}))})
+store("04-not-xml", {"k1": ("this is not xml <<<", m)})
+# extra QA probes
+store("05-missing-body", {"k1": (None, m)})
+store("06-bad-meta-json", {"k1": (fx, "{not json")})
+store("07-tie", {"k1": (head + ents[0] + ents[0] + tail, m)})
+store("08-one-entry", {"k1": (head + ents[0] + tail, m)})
+store("09-undated-middle", {"k1": (head + ents[1] + re.sub(r"<published>.*?</published>", "", ents[0]) + ents[0] + tail, m)})
+store("10-two-feeds-one-bad", {"a": ("garbage", m), "b": (head + ents[1] + ents[0] + tail, m)})
+store("11-meta-not-dict", {"k1": (fx, "[1,2]")})
+os.makedirs(os.path.join(out, "12-no-store-dir"))
+=================== ./cache_scope.sh
+#!/bin/bash
+# The replay store in the PR run was freshly recorded (cache miss), same as the first run of ING-6a1's branch: pre-existing branch-scoped cache.
+R=MaheshPulivarthi18/ArxivLens
+for J in 134275963367 134252075840 134254278257; do
+  gh api repos/$R/actions/jobs/$J --jq '"== job \(.id) run \(.run_id) \(.head_branch)"'
+  L=$(mktemp); gh api repos/$R/actions/jobs/$J/logs > "$L"
+  grep -h 'HEAD is now at\|Cache not found for input keys: arxiv\|Cache restored from key: arxiv\|Cache saved with key: arxiv\|\[replay\] prefetch:' "$L" | cut -c1-190 | grep -v '36;1m'
+done
+=================== ./ci_checks.sh
+#!/bin/bash
+gh api repos/MaheshPulivarthi18/ArxivLens/commits/61e44e191d5ec05c8cf38026fb38c9b11c5dc291/check-runs --jq '.check_runs[] | "\(.id)  \(.name)  \(.status)  \(.conclusion)"'
+=================== ./extract.py
+import sys, yaml
+wf = yaml.safe_load(open(sys.argv[1]))
+steps = wf["jobs"][next(iter(wf["jobs"]))]["steps"]
+names = [s.get("name") for s in steps]
+i = names.index("ING-6 Risk 1: published order of recorded search feeds")
+print("prev:", names[i-1], "| next:", names[i+1], file=sys.stderr)
+run = steps[i]["run"]
+open(sys.argv[2] + "/step_run.sh", "w").write(run)
+body = run.split("<<'PY'", 1)[1].split("\n", 1)[1].rsplit("PY", 1)[0]
+open(sys.argv[2] + "/risk1.py", "w").write(body)
+=================== ./harness_src.sh
+#!/bin/bash
+H=$(cd "$(dirname "$0")" && pwd); cd "$H"
+for f in $(find . -maxdepth 1 -type f | sort); do echo "=================== $f"; cat "$f"; done
+echo "=================== store tree"; find stores -type f | sort
+=================== ./mutants.py
+# Single-edit mutants of the step's script; each is run on every store and compared to the original's output.
+import subprocess, sys, os, glob
+H = os.path.dirname(os.path.abspath(__file__)); src = open(f"{H}/risk1.py").read()
+M = {
+ "M1 compare a<b -> a>b": ("if a[1] < b[1]]", "if a[1] > b[1]]"),
+ "M2 compare a<b -> a<=b (ties = violation)": ("if a[1] < b[1]]", "if a[1] <= b[1]]"),
+ "M3 drop undated filter": ("dated += [(n, p)] if p else []", "dated += [(n, p)]"),
+ "M4 n/a threshold <2 -> <1": ("if len(dated) < 2:", "if len(dated) < 1:"),
+ "M5 sortBy filter inverted": ('if "sortBy=submittedDate" not in q:', 'if "sortBy=submittedDate" in q:'),
+ "M6 report last violation": ("bad[0]", "bad[-1]"),
+ "M7 drop .strip() on published": ('.findtext(A + "published") or "").strip()', '.findtext(A + "published") or "")'),
+ "M8 no namespace": ('A = "{http://www.w3.org/2005/Atom}"', 'A = ""'),
+}
+def run(code, d):
+    r = subprocess.run([sys.executable, "-I", "-c", code], cwd=d, capture_output=True, text=True)
+    return r.stdout + r.stderr + f"exit={r.returncode}"
+stores = sorted(glob.glob(f"{H}/stores/*/"))
+base = {d: run(src, d) for d in stores}
+for name, (a, b) in M.items():
+    assert src.count(a) == 1, name
+    mut = src.replace(a, b)
+    diff = [os.path.basename(d.rstrip("/")) for d in stores if run(mut, d) != base[d]]
+    ac2 = [s for s in diff if s[:2] in ("01", "02", "03", "04")]
+    print(f"{name:45s} {'KILLED' if diff else 'SURVIVED'}  by AC2 stores: {ac2 or '-'}  all: {diff or '-'}")
+=================== ./probe_failsafe.sh
+#!/bin/bash
+# (a) python3 that crashes / is killed -> the step's `|| echo` must keep the step at exit 0 under bash -eo pipefail (GitHub's default shell).
+# (b) read-only: sha256 of every store file before == after; (c) no network: run inside an unshare'd netns if available.
+H=$(cd "$(dirname "$0")" && pwd)
+F=$(mktemp -d); mkdir -p "$F/bin"
+printf '#!/bin/sh\necho "fake python3: simulated crash" >&2\nexit 1\n' > "$F/bin/python3"; chmod +x "$F/bin/python3"
+(cd "$H/stores/01-asc" && PATH="$F/bin:$PATH" bash --noprofile --norc -eo pipefail "$H/step_run.sh"); echo "(a1) python3 exits 1 -> step exit=$?"
+printf '#!/bin/sh\nkill -9 $$\n' > "$F/bin/python3"
+(cd "$H/stores/01-asc" && PATH="$F/bin:$PATH" bash --noprofile --norc -eo pipefail "$H/step_run.sh"); echo "(a2) python3 SIGKILL -> step exit=$?"
+before=$(cd "$H/stores" && find . -type f | sort | xargs sha256sum | sha256sum)
+for d in "$H"/stores/*/; do (cd "$d" && bash --noprofile --norc -eo pipefail "$H/step_run.sh" >/dev/null 2>&1); done
+after=$(cd "$H/stores" && find . -type f | sort | xargs sha256sum | sha256sum)
+[ "$before" = "$after" ] && echo "(b) stores unchanged after 12 runs: $before" || echo "(b) STORES CHANGED"
+echo "(c) network-capable imports in the script: $(grep -Ec 'urllib|socket|http|requests' "$H/risk1.py")"
+if unshare -rn true 2>/dev/null; then (cd "$H/stores/02-desc" && unshare -rn python3 -I "$H/risk1.py" | tail -1); echo "(c) in empty netns exit=$?"; else echo "(c) unshare unavailable"; fi
+=================== ./risk1.py
+import glob, json, xml.etree.ElementTree as ET
+A = "{http://www.w3.org/2005/Atom}"
+found = 0
+for meta in sorted(glob.glob(".arxiv-replay/api/*.json")):
+    try:
+        q = json.load(open(meta)).get("query", "")
+        if "sortBy=submittedDate" not in q:
+            continue
+        found += 1
+        print(f"RISK1 query={q}")
+        dated = []
+        for n, e in enumerate(ET.parse(meta[:-5]).getroot().iter(A + "entry"), 1):
+            i, p = (e.findtext(A + "id") or "").split("/abs/", 1)[-1], (e.findtext(A + "published") or "").strip()
+            print(f"RISK1 entry {n} {i} published={p}")
+            dated += [(n, p)] if p else []
+        bad = [(a, b) for a, b in zip(dated, dated[1:]) if a[1] < b[1]]
+        if len(dated) < 2:
+            print(f"RISK1 ORDER n/a ({len(dated)} entries)")
+        elif bad:
+            (i, p), (j, r) = bad[0]
+            print(f"RISK1 ORDER NOT descending (first violation: entry {i} {p} < entry {j} {r})")
+        else:
+            print("RISK1 ORDER descending")
+    except Exception as err:
+        print(f"::warning::RISK1 {meta}: {type(err).__name__}: {err}")
+if not found:
+    print("RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api")
+    print("::warning::RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api")
+=================== ./run_all.sh
+#!/bin/bash
+# Runs the step's extracted Python (risk1.py) and the step's full run: block (bash -e, as GitHub runs it) in each store.
+H=$(cd "$(dirname "$0")" && pwd)
+for d in $(ls -d "$H"/stores/*/ | grep -E "/stores/${1:-.*}/$"); do
+  n=$(basename "$d")
+  echo "=== $n"
+  (cd "$d" && python3 -I "$H/risk1.py"); echo "  risk1.py exit=$?"
+  (cd "$d" && bash --noprofile --norc -eo pipefail "$H/step_run.sh" >/dev/null 2>&1); echo "  full run: block (bash -eo pipefail) exit=$?"
+done
+=================== ./step_run.sh
+python3 -I - <<'PY' || echo "::warning::RISK1 probe exited non-zero"
+import glob, json, xml.etree.ElementTree as ET
+A = "{http://www.w3.org/2005/Atom}"
+found = 0
+for meta in sorted(glob.glob(".arxiv-replay/api/*.json")):
+    try:
+        q = json.load(open(meta)).get("query", "")
+        if "sortBy=submittedDate" not in q:
+            continue
+        found += 1
+        print(f"RISK1 query={q}")
+        dated = []
+        for n, e in enumerate(ET.parse(meta[:-5]).getroot().iter(A + "entry"), 1):
+            i, p = (e.findtext(A + "id") or "").split("/abs/", 1)[-1], (e.findtext(A + "published") or "").strip()
+            print(f"RISK1 entry {n} {i} published={p}")
+            dated += [(n, p)] if p else []
+        bad = [(a, b) for a, b in zip(dated, dated[1:]) if a[1] < b[1]]
+        if len(dated) < 2:
+            print(f"RISK1 ORDER n/a ({len(dated)} entries)")
+        elif bad:
+            (i, p), (j, r) = bad[0]
+            print(f"RISK1 ORDER NOT descending (first violation: entry {i} {p} < entry {j} {r})")
+        else:
+            print("RISK1 ORDER descending")
+    except Exception as err:
+        print(f"::warning::RISK1 {meta}: {type(err).__name__}: {err}")
+if not found:
+    print("RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api")
+    print("::warning::RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api")
+PY
+=================== ./steps_compare.sh
+#!/bin/bash
+# Step conclusions: PR run vs two control stack.yml runs on the same base main 40dec5a (no stack.yml run on main exists).
+R=MaheshPulivarthi18/ArxivLens
+echo "stack.yml runs on branch main: $(gh api "repos/$R/actions/workflows/stack.yml/runs?branch=main" --jq .total_count), event=push: $(gh api "repos/$R/actions/workflows/stack.yml/runs?event=push" --jq .total_count)"
+for j in 134275963367 134252075840 134254278257; do
+  gh api repos/$R/actions/jobs/$j --jq '"job \(.id) run \(.run_id) head \(.head_sha[0:7]) \(.head_branch) => \(.conclusion)"'
+  gh api repos/$R/actions/jobs/$j --jq '.steps[] | "\(.name)\t\(.conclusion)"' > /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/ci/steps-$j.tsv
+done
+cd /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/ci
+echo; printf '%-62s %-10s %-12s %-12s\n' STEP "PR(#58)" "ctl ING-6a1" "ctl ING-6a2"
+python3 - <<'PY'
+import csv
+def load(j): return dict(l.rstrip("\n").split("\t") for l in open(f"steps-{j}.tsv"))
+pr, a, b = load(134275963367), load(134252075840), load(134254278257)
+diff = 0
+for name, c in pr.items():
+    ca, cb = a.get(name, "(absent)"), b.get(name, "(absent)")
+    mark = "" if c == ca else "  <-- differs from ING-6a1"
+    if name.startswith("ING-6 Risk 1"): mark = "  (new step)"
+    elif c != ca: diff += 1
+    print(f"{name[:62]:62s} {c:10s} {ca:12s} {cb:12s}{mark}")
+print(f"\nsteps other than the new one whose conclusion differs from same-cache-path control ING-6a1: {diff}")
+print("steps in controls missing from PR:", [n for n in a if n not in pr] or "none")
+PY
+=================== store tree
+stores/01-asc/.arxiv-replay/api/k1
+stores/01-asc/.arxiv-replay/api/k1.json
+stores/02-desc/.arxiv-replay/api/k1
+stores/02-desc/.arxiv-replay/api/k1.json
+stores/03-idlist-only/.arxiv-replay/api/k1
+stores/03-idlist-only/.arxiv-replay/api/k1.json
+stores/04-not-xml/.arxiv-replay/api/k1
+stores/04-not-xml/.arxiv-replay/api/k1.json
+stores/05-missing-body/.arxiv-replay/api/k1.json
+stores/06-bad-meta-json/.arxiv-replay/api/k1
+stores/06-bad-meta-json/.arxiv-replay/api/k1.json
+stores/07-tie/.arxiv-replay/api/k1
+stores/07-tie/.arxiv-replay/api/k1.json
+stores/08-one-entry/.arxiv-replay/api/k1
+stores/08-one-entry/.arxiv-replay/api/k1.json
+stores/09-undated-middle/.arxiv-replay/api/k1
+stores/09-undated-middle/.arxiv-replay/api/k1.json
+stores/10-two-feeds-one-bad/.arxiv-replay/api/a
+stores/10-two-feeds-one-bad/.arxiv-replay/api/a.json
+stores/10-two-feeds-one-bad/.arxiv-replay/api/b
+stores/10-two-feeds-one-bad/.arxiv-replay/api/b.json
+stores/11-meta-not-dict/.arxiv-replay/api/k1
+stores/11-meta-not-dict/.arxiv-replay/api/k1.json
+
+[exit code 0]

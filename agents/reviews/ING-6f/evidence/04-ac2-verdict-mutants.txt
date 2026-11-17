@@ -1,0 +1,11 @@
+$ python3 /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/mutants.py
+M1 compare a<b -> a>b                         KILLED  by AC2 stores: ['01-asc', '02-desc']  all: ['01-asc', '02-desc', '09-undated-middle', '10-two-feeds-one-bad']
+M2 compare a<b -> a<=b (ties = violation)     KILLED  by AC2 stores: -  all: ['07-tie']
+M3 drop undated filter                        KILLED  by AC2 stores: -  all: ['09-undated-middle']
+M4 n/a threshold <2 -> <1                     KILLED  by AC2 stores: -  all: ['08-one-entry']
+M5 sortBy filter inverted                     KILLED  by AC2 stores: ['01-asc', '02-desc', '03-idlist-only', '04-not-xml']  all: ['01-asc', '02-desc', '03-idlist-only', '04-not-xml', '05-missing-body', '07-tie', '08-one-entry', '09-undated-middle', '10-two-feeds-one-bad']
+M6 report last violation                      SURVIVED  by AC2 stores: -  all: -
+M7 drop .strip() on published                 SURVIVED  by AC2 stores: -  all: -
+M8 no namespace                               KILLED  by AC2 stores: ['01-asc', '02-desc']  all: ['01-asc', '02-desc', '07-tie', '08-one-entry', '09-undated-middle', '10-two-feeds-one-bad']
+
+[exit code 0]

@@ -1,0 +1,12 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/ac4.sh
+ .github/workflows/stack.yml | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+35	0	.github/workflows/stack.yml
+Ownership OK for role=backend (35 changed lines)
+ownership-check exit=0
+--- new step position:
+112:      - name: Save arXiv replay store
+119:      - name: "ING-6 Risk 1: published order of recorded search feeds"
+153:      - name: Start the arXiv replay proxy (replay-only)
+
+[exit code 0]

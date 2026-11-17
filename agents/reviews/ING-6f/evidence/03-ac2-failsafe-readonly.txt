@@ -1,0 +1,43 @@
+$ bash /tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/probe_failsafe.sh
+::warning::RISK1 probe exited non-zero
+(a1) python3 exits 1 -> step exit=0
+::warning::RISK1 probe exited non-zero
+(a2) python3 SIGKILL -> step exit=0
+(b) stores unchanged after 12 runs: 339627f94c8cc4b175edc3ea81c7beb7b1d02225c9a291591c93d46acf6adbb5  -
+(c) network-capable imports in the script: 1
+RISK1 ORDER descending
+(c) in empty netns exit=0
+fake python3: simulated crash
+/tmp/claude-0/-home-claude/e3f3d4f0-189a-5d47-9702-c6a281c3d8b1/scratchpad/qa-BgPo/step_run.sh: line 30: 26963 Killed                  python3 -I - <<'PY'
+import glob, json, xml.etree.ElementTree as ET
+A = "{http://www.w3.org/2005/Atom}"
+found = 0
+for meta in sorted(glob.glob(".arxiv-replay/api/*.json")):
+    try:
+        q = json.load(open(meta)).get("query", "")
+        if "sortBy=submittedDate" not in q:
+            continue
+        found += 1
+        print(f"RISK1 query={q}")
+        dated = []
+        for n, e in enumerate(ET.parse(meta[:-5]).getroot().iter(A + "entry"), 1):
+            i, p = (e.findtext(A + "id") or "").split("/abs/", 1)[-1], (e.findtext(A + "published") or "").strip()
+            print(f"RISK1 entry {n} {i} published={p}")
+            dated += [(n, p)] if p else []
+        bad = [(a, b) for a, b in zip(dated, dated[1:]) if a[1] < b[1]]
+        if len(dated) < 2:
+            print(f"RISK1 ORDER n/a ({len(dated)} entries)")
+        elif bad:
+            (i, p), (j, r) = bad[0]
+            print(f"RISK1 ORDER NOT descending (first violation: entry {i} {p} < entry {j} {r})")
+        else:
+            print("RISK1 ORDER descending")
+    except Exception as err:
+        print(f"::warning::RISK1 {meta}: {type(err).__name__}: {err}")
+if not found:
+    print("RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api")
+    print("::warning::RISK1 none: no recorded sortBy=submittedDate feed in .arxiv-replay/api")
+PY
+
+
+[exit code 0]
