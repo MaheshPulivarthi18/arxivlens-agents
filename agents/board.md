@@ -1,11 +1,13 @@
 # Board
 
-Last updated: 2026-11-17 13:00Z by pm-lead (cycle 13:00Z planning: reconciled 18 merges since 2026-11-08; ArxivLens `main` = `40dec5a`)
+Last updated: 2026-11-17 19:10Z by orchestrator (cycle 18:00Z: ING-6a1 #57, ING-6a2 #56, ING-6f #58 and AI-8a #54 raised; ArxivLens `main` = `40dec5a`, no merges since 2026-11-15)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). Open PRs and their files: #51 EVAL-4 (`README.md`,
 `evals/BASELINE.md`, `evals/README.md`), #52 ING-11b (`db.yml`, `CONTRIBUTING.md`, `README.md`, `internal/query/search*.go`, `tests/test_evals_data.py`,
-`tests/test_m2_pipeline.py`), #53 OPS-H2 (`ci.yml`, `Makefile`, `requirements*.txt`, both Dockerfiles), #54 AI-8a (`rag.go`, `rag_test.go`).
+`tests/test_m2_pipeline.py`), #53 OPS-H2 (`ci.yml`, `Makefile`, `requirements*.txt`, both Dockerfiles), #54 AI-8a (`rag.go`, `rag_test.go`),
+#55 OPS-H11 (`internal/db/db.go`, `internal/downloader/*`, `tests/test_m4_chaos.py`), #56 ING-6a2 (`internal/crawler/loop*.go`),
+#57 ING-6a1 (`migrations/000005_*`, `internal/db/watermarks*.go`), #58 ING-6f (`.github/workflows/stack.yml`). **All eight are Ready to merge.**
 `rag.go` order (one file, one owner): AI-8a → AI-8b → AI-5 (if ADR-0011 is Accepted).
 Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; what they changed for the tickets is recorded in the
 2026-11-17 grooming notes (QA-8 delivered by #46; AI-10/ADR-0015 premise changed by #43/#47; EVAL-8 question; ADR-0018 Proposed for #44/#46).
@@ -13,15 +15,14 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 1 | [OPS-H11](tasks/OPS-H11.md) | Redelivered `papers.discovered` doesn't move an `embedded` paper back to `downloaded` (OPS-H6 G1) | backend-engineer | P1 | OPS-H6, ING-10, OPS-H10 (all merged) | **Independent now** (`internal/db/db.go`, `internal/downloader/*`, `tests/test_m4_chaos.py`); specced 2026-11-17 |
-| 2 | [ING-6](tasks/ING-6.md) (KAN-18) | Scheduled crawler with per-category `since` watermark (design-required) | backend-engineer | P1 | merged deps; **design first** | Design can start now (agents repo only). Build after #51/#52 merge (README) and needs a free backend slot |
-| 3 | [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to the high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | all deps merged; **after #52** (`db.yml`, README) | Next backend build once ING-11b merges |
-| 4 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | **after #52** (`db.yml`, README, CONTRIBUTING) **and** not alongside OPS-H7a (`db.yml`) | |
-| 5 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | **Env-blocked:** registry.npmjs.org unreachable (re-checked 2026-11-17 13:00Z); `frontend/package-lock.json` still has no vitest. Needs Mahesh (allow the host, or push the lockfile) |
-| 6 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 merged | |
-| 7 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 merged | |
-| 8 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (new migration), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a merged | |
-| 9 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs for raw payloads, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
+| 1 | [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to the high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | all deps merged; **after #52** (`db.yml`, README) | Next backend build once ING-11b merges |
+| 2 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | **after #52** **and** not alongside OPS-H7a (`db.yml`) | |
+| 3 | [EVAL-10](tasks/EVAL-10.md) (KAN-69) | Name refused/missed/near-miss-failed case IDs in the `/v1/ask` eval summary | ai-engineer | P2 | **after #51** (`evals/README.md`; tests can go in a new file) | |
+| 4 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | **Env-blocked:** registry.npmjs.org still doesn't resolve (re-checked 2026-11-17 18:00Z). Needs Mahesh (allow the host, or push the lockfile) |
+| 5 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 merged | |
+| 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 merged | |
+| 7 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a merged | |
+| 8 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -30,23 +31,31 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
-| [AI-8a](tasks/AI-8a.md) (KAN-60) | Citation `status`/`paper_version`/`page`/`quote`, versioned `pdf_url`, raw `content` on the LLM path | ai-engineer | ArxivLens [#54](https://github.com/MaheshPulivarthi18/ArxivLens/pull/54) (draft) @ `12e70b4` |
 
 ## PM review
 | ID | Title | Owner | PR |
 |---|---|---|---|
-| [EVAL-4](tasks/EVAL-4.md) | Record EVAL-3's first numbers in `evals/BASELINE.md` (+ README Testing line) | ai-engineer | ArxivLens [#51](https://github.com/MaheshPulivarthi18/ArxivLens/pull/51) @ `156c394` · QA PASS r2 |
 
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
-| [ING-11b](tasks/ING-11b.md) | Part b (consumer): `/v1/search` returns `page` from `paper_chunk_pages`; parity fragment; README; real-stack write check | backend-engineer | ArxivLens [#52](https://github.com/MaheshPulivarthi18/ArxivLens/pull/52) (KAN-59) @ `706e43e` | QA PASS r1 · PM APPROVE 2026-11-17 (AC4 wording amended, finding 2 [spec]); merging it unblocks AI-8b, OPS-H7a, OPS-H9 |
-| [OPS-H2](tasks/OPS-H2.md) | Unify Python dependencies into one `requirements.txt` (+ `requirements-dev.txt`; `requirements-m0.txt` shim) | backend-engineer | ArxivLens [#53](https://github.com/MaheshPulivarthi18/ArxivLens/pull/53) (KAN-14) @ `95ea3bb` | QA PASS r1 · PM APPROVE ([report](reviews/OPS-H2/report.md)); after merge: pm-lead `rules/` PR for `area-notes/services.md:9` + `docs/` PR for the PRD §11 row |
+| [AI-8a](tasks/AI-8a.md) | Citation `status`/`paper_version`/`page`/`quote`, versioned `pdf_url`, raw `content` on the LLM path | ai-engineer | ArxivLens [#54](https://github.com/MaheshPulivarthi18/ArxivLens/pull/54) (KAN-60) @ `990aa5a` | QA FAIL r1, r2 → PASS r3 · PM APPROVE 2026-11-17 (AC7 eval "not run", measured in AI-8b AC9) |
+| [ING-6a](tasks/ING-6a.md) part 6a1 | `crawl_watermarks` (migration 000005) + monotonic watermark store | backend-engineer | ArxivLens [#57](https://github.com/MaheshPulivarthi18/ArxivLens/pull/57) (KAN-63) @ `c86bd5a` | QA PASS r1 · PM APPROVE (nits → ING-6b AC9 / ING-6c AC7, AC10) |
+| [ING-6a](tasks/ING-6a.md) part 6a2 | Crawl-loop walk, batch selection, arXiv feed, `ParseCategories` | backend-engineer | ArxivLens [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) (KAN-63) @ `3f8e903` | QA FAIL r1 → PASS r2 · PM APPROVE. ING-6a Done when #56 **and** #57 merge |
+| [ING-6f](tasks/ING-6f.md) | `stack.yml` prints the recorded feed's `published` order (Risk 1) | backend-engineer | ArxivLens [#58](https://github.com/MaheshPulivarthi18/ArxivLens/pull/58) (KAN-64) @ `61e44e1` | QA FAIL r1 (PR body) → PASS r2 · PM APPROVE. Verdict `RISK1 ORDER descending` (ING-6b precondition met) |
+| [OPS-H11](tasks/OPS-H11.md) | Redelivered `papers.discovered` keeps an `embedded` paper `embedded` | backend-engineer | ArxivLens [#55](https://github.com/MaheshPulivarthi18/ArxivLens/pull/55) (KAN-62) @ `2039650` | QA PASS r1 · PM APPROVE |
+| [EVAL-4](tasks/EVAL-4.md) | Record EVAL-3's first numbers in `evals/BASELINE.md` (+ README Testing line) | ai-engineer | ArxivLens [#51](https://github.com/MaheshPulivarthi18/ArxivLens/pull/51) (KAN-30) @ `156c394` | QA FAIL r1 → PASS r2 · PM APPROVE |
+| [ING-11b](tasks/ING-11b.md) | `/v1/search` returns `page` from `paper_chunk_pages`; parity; README; real-stack write check | backend-engineer | ArxivLens [#52](https://github.com/MaheshPulivarthi18/ArxivLens/pull/52) (KAN-59) @ `706e43e` | QA PASS r1 · PM APPROVE; merging it unblocks AI-8b, OPS-H7a, OPS-H9 |
+| [OPS-H2](tasks/OPS-H2.md) | One `requirements.txt` (+ `requirements-dev.txt`; `requirements-m0.txt` shim) | backend-engineer | ArxivLens [#53](https://github.com/MaheshPulivarthi18/ArxivLens/pull/53) (KAN-14) @ `95ea3bb` | QA PASS r1 · PM APPROVE ([report](reviews/OPS-H2/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
-| [AI-8b](tasks/AI-8b.md) (KAN-61) | `claims[]`, `prompt_version`, README `/v1/ask` row, AC6 Python | ai-engineer | AI-8a (#54) merged + ING-11b (#52) merged; ai WIP slot |
+| [ING-6b](tasks/ING-6b.md) (KAN-65) | Crawl-loop emit/advance, `RunOnce` | backend-engineer | #56 + #57 merged (ING-6f Risk 1 precondition met: `descending`) |
+| [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | ING-6b, #51, #52 merged |
+| [OPS-H12](tasks/OPS-H12.md) (KAN-68) | `stack.yml` `-rA` PASSED lines (+ ING-6f probe `continue-on-error`) | backend-engineer | #58 merged (same file) |
+| [AI-8c](tasks/AI-8c.md) (KAN-67) | `checkCitationInvariants` calls in `synthesis_test.go` | backend-engineer | AI-8a (#54) merged |
+| [AI-8b](tasks/AI-8b.md) (KAN-61) | `claims[]`, `prompt_version`, README `/v1/ask` row, AC6 Python | ai-engineer | AI-8a (#54), AI-8c and ING-11b (#52) merged; AC9: compare first nightly eval after #54 merges |
 | [FE-4](tasks/FE-4.md) (KAN-44) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | AI-8a/AI-8b merged, FE-3 merged (FE-1 env-blocked) |
 | [AI-10](tasks/AI-10.md) (KAN-51) | Configurable int8/`max_length` reranker (design-required) | ai-engineer | Mahesh's answer on ADR-0015 (premise changed: GPU is the reference hardware since #43/#47). AI-9 is merged (`d4b1cf3`) |
 | [EVAL-8](tasks/EVAL-8.md) (KAN-46) | First answer eval with a real LLM | backend + ai | Mahesh: is his local qwen2.5:3b run in #46 "option 3" (EVAL-8 done, commit the results JSON), or does he want CI/hosted runs (option 1/2)? |
@@ -59,6 +68,8 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the ING-6f PM review: **OPS-H13** (backend, P2, `stack.yml`): seed a main-scoped arXiv replay cache so PR branches replay one fixed recording instead of re-recording ~5 live requests on each new branch's first run; fix the header claim "0 arXiv requests per run once recorded"
+- ING-6d (compose `crawler` profile), ING-6e (late announcements), ING-9b (`crawl --rate-limit`): specced in the ING-6 split, Backlog
 - pm-lead docs PR (OPS-H7 design condition 7): Product PRD OPS-2 ✅ → ◐ (`dlq list` doesn't reach the end; replay repeats the head) until OPS-H7c merges. Still owed; OPS-H7f doesn't change it.
 - ~~From ING-11 QA finding 3 (backend, P3, one line, after #26 merges; fold into the first backend PR that starts then, ING-11b is the backstop): `CONTRIBUTING.md:23` `make test-unit` row lists the `test-py` pytest files and misses `tests/test_processor_pages.py` (#33)~~ **Done in ING-11b #52** (all six `test-py` files; remove when #52 merges)
 - From ING-11b QA finding 4 (backend, P3, fold into the next `tests/test_m2_pipeline.py` change): `test_embedded_chunks_have_recorded_start_pages` reports a NULL `page_number` with a page row as "page_start N < page_number None"; give it its own message ("page row but NULL page_number")
