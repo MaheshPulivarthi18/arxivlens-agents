@@ -79,3 +79,7 @@ git diff --stat origin/main   # evals/BASELINE.md, evals/README.md, README.md on
     `make test-go`/`make lint` (Go 1.24.7 local, go.mod needs 1.25). Docs-only change; CI is the source of truth. `make eval` not re-run (no infra;
     this task records the existing run).
   - Worktree note: the orchestrator's path `/home/claude/wt/EVAL-4` did not exist; the worktree is `/root/wt/EVAL-4` (same branch/SHA).
+  - **Rework r1 (QA FAIL, Finding 1):** `evals/BASELINE.md` `/v1/search` p95 target changed `< 3000 (PRD §8)` -> `< 1500 (PRD §8)`
+    (Product PRD §8 / Technical PRD §9 `< 1.5 s`, ADR-0012 1500). Grepped the file: the other `3000` mentions are `/v1/ask` and correct.
+    Head `156c394`. Finding 2 (spec premise) left to pm-lead, recorded as-is; Finding 3 numbers for the PR body: `refusal_reason_counts {}`,
+    correct refusals 100% of 22, near-miss 80% of 15, in-corpus refused 4.55% (1 of 22, early refusal).
