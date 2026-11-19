@@ -1,0 +1,33 @@
+$ bash -c echo '# A: PR head tailwind.config.js (= origin/main, unchanged by the PR)'; node /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/probe.mjs frontend/tailwind.config.js frontend/src/components/ui; echo; echo '# B: FE-0 PR #69 head ca76bea tailwind.config.js (git show origin/agent/frontend/FE-0:frontend/tailwind.config.js)'; git show ca76bea2c641f852c56c3cab47c081a5c99815eb:frontend/tailwind.config.js > /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/fe0.cfg.js; grep -c popover /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/fe0.cfg.js; node /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/probe.mjs /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/fe0.cfg.js frontend/src/components/ui; echo; echo '# C: control = A plus one popover colour entry (sed-generated):'; grep -n popover /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/control-with-popover.tailwind.config.js; node /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/probe.mjs /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/control-with-popover.tailwind.config.js frontend/src/components/ui | head -3
+# A: PR head tailwind.config.js (= origin/main, unchanged by the PR)
+config: frontend/tailwind.config.js
+classes found in the six files: 43; generated: 41; NOT generated: 2
+  NOT GENERATED: bg-popover
+  NOT GENERATED: text-popover-foreground
+  bg-popover                 -> (no CSS)
+  text-popover-foreground    -> (no CSS)
+  bg-border                  -> background-color: hsl(var(--border));
+  border-border              -> border-color: hsl(var(--border));
+  ring-ring                  -> --tw-ring-color: hsl(var(--ring));
+  bg-muted-foreground/50     -> background-color: hsl(var(--muted-foreground)); @supports (color: color-mix(in lab, red, red)) { background-color: color-mix(in oklab, hsl(var(--muted-foreground)) 50%, transparent);
+
+# B: FE-0 PR #69 head ca76bea tailwind.config.js (git show origin/agent/frontend/FE-0:frontend/tailwind.config.js)
+0
+config: /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/fe0.cfg.js
+classes found in the six files: 43; generated: 41; NOT generated: 2
+  NOT GENERATED: bg-popover
+  NOT GENERATED: text-popover-foreground
+  bg-popover                 -> (no CSS)
+  text-popover-foreground    -> (no CSS)
+  bg-border                  -> background-color: hsl(var(--border));
+  border-border              -> border-color: hsl(var(--border));
+  ring-ring                  -> --tw-ring-color: hsl(var(--ring));
+  bg-muted-foreground/50     -> background-color: hsl(var(--muted-foreground)); @supports (color: color-mix(in lab, red, red)) { background-color: color-mix(in oklab, hsl(var(--muted-foreground)) 50%, transparent);
+
+# C: control = A plus one popover colour entry (sed-generated):
+49:        popover: { DEFAULT: "hsl(var(--popover))", foreground: "hsl(var(--popover-foreground))" },
+config: /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/control-with-popover.tailwind.config.js
+classes found in the six files: 43; generated: 43; NOT generated: 0
+  bg-popover                 -> background-color: hsl(var(--popover));
+
+[exit code 0]

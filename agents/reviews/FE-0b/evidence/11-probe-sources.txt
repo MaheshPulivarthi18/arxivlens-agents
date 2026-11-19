@@ -1,0 +1,83 @@
+$ bash -c for f in $(find /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe -maxdepth 1 -type f -name '*.mjs' | sort); do echo "===== $(basename $f)"; cat $f; done
+===== cssprobe.mjs
+// QA CSS probe (NOT a component render: radix/sonner are not installable here). It compiles Tailwind CSS from a
+// tailwind.config.js for the exact class strings in the PR's tooltip/popover/scroll-area files, applies them to plain
+// elements in headless Chromium, and reports computed styles. Engine: Tailwind 4.3.3 compile() with @config (v3 JS-config compat).
+// usage: node cssprobe.mjs <tailwind.config.js> <frontend dir> <out.png>
+import { compile } from "/opt/npm-tools/node_modules/tailwindcss/dist/lib.mjs";
+import { chromium } from "/opt/npm-tools/node_modules/playwright/index.mjs";
+import fs from "node:fs"; import path from "node:path"; import os from "node:os"; import { pathToFileURL } from "node:url";
+const [cfgPath, fe, png] = process.argv.slice(2);
+const ui = f => fs.readFileSync(path.join(fe, "src/components/ui", f), "utf8");
+// exact class strings, read from the PR files (not retyped)
+const tooltipCls = ui("tooltip.jsx").match(/"(z-50 [^"]*)"/)[1];
+const popoverCls = ui("popover.jsx").match(/"(z-50 [^"]*)"/)[1];
+const rootCls = ui("scroll-area.jsx").match(/cn\("(relative overflow-hidden)"/)[1];
+const viewportCls = ui("scroll-area.jsx").match(/Viewport className="([^"]*)"/)[1];
+const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tw-")), "cfg.mjs");
+fs.writeFileSync(tmp, fs.readFileSync(cfgPath, "utf8").replace(/import typography from "@tailwindcss\/typography"/, "const typography = () => {}"));
+const c = await compile(`@import "tailwindcss/theme.css" layer(theme);\n@config "./cfg.mjs";\n@tailwind utilities;`, {
+  base: path.dirname(tmp),
+  loadModule: async (id, base) => ({ module: (await import(pathToFileURL(path.resolve(base, id)).href)).default, base, path: id }),
+  loadStylesheet: async (id) => { const f = "/opt/npm-tools/node_modules/tailwindcss/theme.css"; if (id !== "tailwindcss/theme.css") throw new Error(id); return { content: fs.readFileSync(f, "utf8"), base: path.dirname(f), path: f }; },
+});
+const control = viewportCls.replace("focus-visible:ring-offset-2", "focus-visible:ring-inset");
+const css = c.build([tooltipCls, popoverCls, rootCls, viewportCls, control, "h-24", "w-64", "p-2", "m-6", "text-foreground", "bg-background"].join(" ").split(/\s+/));
+const rootVars = fs.readFileSync(path.join(fe, "src/index.css"), "utf8").match(/:root\s*\{[^}]*\}/)[0]; // the app's real token block
+const html = `<!doctype html><html><head><style>${rootVars}\n${css}\nbody{margin:0;font:14px sans-serif}</style></head>
+<body class="bg-background text-foreground p-2">
+<div style="position:relative;height:70px">Reading text under the floating content. Reading text under the floating content.
+<div id="tip" class="${tooltipCls}" style="position:absolute;top:0;left:20px">TooltipContent classes</div>
+<div id="pop" class="${popoverCls}" style="position:absolute;top:0;left:260px">PopoverContent classes</div></div>
+<div class="m-6 h-24 w-64 ${rootCls}" id="r1"><div id="vp" tabindex="0" class="${viewportCls}" style="overflow-y:scroll">PR viewport (Tab-focused)<br>1<br>2<br>3<br>4<br>5<br>6</div></div>
+<div class="m-6 h-24 w-64 ${rootCls}" id="r2"><div id="vp2" tabindex="0" class="${control}" style="overflow-y:scroll">control: ring-inset<br>1<br>2<br>3<br>4<br>5<br>6</div></div>
+</body></html>`;
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 640, height: 400 } });
+await p.setContent(html);
+const st = await p.evaluate(() => { const g = (id, k) => getComputedStyle(document.getElementById(id))[k];
+  return { tipBg: g("tip","backgroundColor"), tipColor: g("tip","color"), popBg: g("pop","backgroundColor"), popColor: g("pop","color"), bodyColor: getComputedStyle(document.body).color }; });
+await p.keyboard.press("Tab"); const f1 = await p.evaluate(() => [document.activeElement.id, getComputedStyle(document.activeElement).boxShadow]);
+await p.screenshot({ path: png }); await p.keyboard.press("Tab");
+await p.screenshot({ path: png.replace(/\.png$/, "-control-focused.png") });
+const f2 = await p.evaluate(() => [document.activeElement.id, getComputedStyle(document.activeElement).boxShadow]);
+await b.close();
+console.log(`config: ${cfgPath}`);
+console.log(`TooltipContent  background-color = ${st.tipBg}   color = ${st.tipColor}  (body color ${st.bodyColor})`);
+console.log(`PopoverContent  background-color = ${st.popBg}   color = ${st.popColor}`);
+console.log(`viewport focus (PR classes)       : active=${f1[0]} box-shadow=${f1[1]}`);
+console.log(`viewport focus (control ring-inset): active=${f2[0]} box-shadow=${f2[1]}`);
+console.log(`screenshot: ${png}`);
+===== probe.mjs
+// QA probe: which classes used by the six FE-0b files does Tailwind generate under a given tailwind.config.js?
+// usage: node probe.mjs <tailwind.config.js> <ui dir>   (Tailwind 4.3.3 compile() with @config = v3 JS-config compat)
+import { compile } from "/opt/npm-tools/node_modules/tailwindcss/dist/lib.mjs";
+import fs from "node:fs"; import path from "node:path"; import os from "node:os"; import { pathToFileURL } from "node:url";
+const [cfgPath, uiDir] = process.argv.slice(2);
+// configs that import @tailwindcss/typography (not installed here): replace with an empty plugin
+let src = fs.readFileSync(cfgPath, "utf8").replace(/import typography from "@tailwindcss\/typography"/, "const typography = () => {}");
+const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tw-")), "cfg.mjs"); fs.writeFileSync(tmp, src);
+const files = ["tooltip","popover","collapsible","scroll-area","separator","sonner"].map(f => path.join(uiDir, f + ".jsx"));
+const classes = new Set();
+for (const f of files) for (const m of fs.readFileSync(f, "utf8").matchAll(/"([^"]*)"/g))
+  for (const t of m[1].split(/\s+/)) if (/^[a-z!-][\w\-\[\]\/:.()%]*$/.test(t) && /-|^(flex|relative|absolute|shrink-0|outline-none|select-none|touch-none)$/.test(t)) classes.add(t);
+const ignore = new Set(["bottom-right","--normal-bg","--normal-text","--normal-border","--border-radius","react-tooltip","react-popover","react-collapsible","react-scroll-area","react-separator"]);
+const list = [...classes].filter(c => !ignore.has(c) && !c.startsWith("@") && !c.startsWith("../") && !c.startsWith("hsl(") && !c.startsWith("var("));
+const mk = () => compile(`@import "tailwindcss/theme.css" layer(theme);\n@config "./cfg.mjs";\n@tailwind utilities;`, {
+  base: path.dirname(tmp),
+  loadModule: async (id, base) => ({ module: (await import(pathToFileURL(path.resolve(base, id)).href)).default, base, path: id }),
+  // default theme (spacing, text sizes, shadows) so v3 core utilities resolve as they do in v3
+  loadStylesheet: async (id) => { const f = "/opt/npm-tools/node_modules/tailwindcss/theme.css"; if (id !== "tailwindcss/theme.css") throw new Error(id); return { content: fs.readFileSync(f, "utf8"), base: path.dirname(f), path: f }; },
+});
+const esc = k => "." + k.replace(/[^a-zA-Z0-9_-]/g, ch => "\\" + ch);
+const gen = async k => { const css = (await mk()).build([k]); return css.includes(esc(k)) ? css : null; };
+const missing = [];
+for (const k of list.sort()) if (!(await gen(k))) missing.push(k);
+console.log(`config: ${cfgPath}`);
+console.log(`classes found in the six files: ${list.length}; generated: ${list.length - missing.length}; NOT generated: ${missing.length}`);
+for (const k of missing) console.log(`  NOT GENERATED: ${k}`);
+for (const k of ["bg-popover","text-popover-foreground","bg-border","border-border","ring-ring","bg-muted-foreground/50"]) {
+  const out = await gen(k); const css = (out || "").split("\n").filter(l => l.includes("background-color") || l.includes("color:") || l.includes("--tw-ring-color") || l.includes("border-color")).map(s=>s.trim()).join(" ");
+  console.log(`  ${k.padEnd(26)} -> ${css || "(no CSS)"}`);
+}
+
+[exit code 0]

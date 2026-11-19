@@ -1,0 +1,19 @@
+$ bash -c echo "HEAD: $(git rev-parse HEAD)  merge-base: $(git merge-base HEAD origin/main)  origin/main: $(git rev-parse origin/main)"; git diff --name-status origin/main...HEAD; git diff --shortstat origin/main...HEAD; echo "--- existing files modified/deleted/renamed (expect 0):"; git diff --diff-filter=MDR --name-only origin/main...HEAD | wc -l; echo "--- package.json/lock/vite/tailwind/index.css touched (expect 0):"; git diff --name-only origin/main...HEAD -- frontend/package.json frontend/package-lock.json frontend/vite.config.js frontend/tailwind.config.js frontend/src/index.css | wc -l; echo "--- files outside frontend/src/components/ui (expect 0):"; git diff --name-only origin/main...HEAD | grep -vc "^frontend/src/components/ui/"; echo "--- importers of the new files in src (expect none; nothing uses them yet):"; grep -rnE "ui/(tooltip|popover|collapsible|scroll-area|separator|sonner)" frontend/src || echo "(none)"
+HEAD: 705b707063e8249b3f57e1c80b6bb2a2c60caee8  merge-base: 4c7d3274a07137dd80808a2391c419b46ce09ae6  origin/main: 4c7d3274a07137dd80808a2391c419b46ce09ae6
+A	frontend/src/components/ui/collapsible.jsx
+A	frontend/src/components/ui/popover.jsx
+A	frontend/src/components/ui/scroll-area.jsx
+A	frontend/src/components/ui/separator.jsx
+A	frontend/src/components/ui/sonner.jsx
+A	frontend/src/components/ui/tooltip.jsx
+ 6 files changed, 159 insertions(+)
+--- existing files modified/deleted/renamed (expect 0):
+0
+--- package.json/lock/vite/tailwind/index.css touched (expect 0):
+0
+--- files outside frontend/src/components/ui (expect 0):
+0
+--- importers of the new files in src (expect none; nothing uses them yet):
+(none)
+
+[exit code 0]

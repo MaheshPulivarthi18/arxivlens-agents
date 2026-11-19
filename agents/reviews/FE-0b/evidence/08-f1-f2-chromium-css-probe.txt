@@ -1,0 +1,19 @@
+$ bash -c echo "popover keys in PR-head tailwind.config.js: $(grep -c popover frontend/tailwind.config.js)"; echo '# A: PR head config'; node /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/cssprobe.mjs frontend/tailwind.config.js frontend /root/mem/qa-70/agents/reviews/FE-0b/evidence/09-f1-f2-chromium-pr-viewport-focused.png; echo; echo '# C: control config (A + popover colour entry)'; node /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/cssprobe.mjs /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/control-with-popover.tailwind.config.js frontend /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/ctl.png
+popover keys in PR-head tailwind.config.js: 0
+# A: PR head config
+config: frontend/tailwind.config.js
+TooltipContent  background-color = rgba(0, 0, 0, 0)   color = rgb(248, 250, 252)  (body color rgb(248, 250, 252))
+PopoverContent  background-color = rgba(0, 0, 0, 0)   color = rgb(248, 250, 252)
+viewport focus (PR classes)       : active=vp box-shadow=rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(9, 14, 26) 0px 0px 0px 2px, rgb(41, 188, 134) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px
+viewport focus (control ring-inset): active=vp2 box-shadow=rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(41, 188, 134) 0px 0px 0px 2px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px
+screenshot: /root/mem/qa-70/agents/reviews/FE-0b/evidence/09-f1-f2-chromium-pr-viewport-focused.png
+
+# C: control config (A + popover colour entry)
+config: /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/control-with-popover.tailwind.config.js
+TooltipContent  background-color = rgb(12, 19, 34)   color = rgb(248, 250, 252)  (body color rgb(248, 250, 252))
+PopoverContent  background-color = rgb(12, 19, 34)   color = rgb(248, 250, 252)
+viewport focus (PR classes)       : active=vp box-shadow=rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(9, 14, 26) 0px 0px 0px 2px, rgb(41, 188, 134) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px
+viewport focus (control ring-inset): active=vp2 box-shadow=rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(41, 188, 134) 0px 0px 0px 2px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px
+screenshot: /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/twprobe/ctl.png
+
+[exit code 0]

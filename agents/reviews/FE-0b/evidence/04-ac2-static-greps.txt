@@ -1,0 +1,15 @@
+$ bash -c cd frontend; F="src/components/ui/tooltip.jsx src/components/ui/popover.jsx src/components/ui/collapsible.jsx src/components/ui/scroll-area.jsx src/components/ui/separator.jsx src/components/ui/sonner.jsx"; echo "--- package imports:"; grep -nE "from \"(@radix-ui/react-(tooltip|popover|collapsible|scroll-area|separator)|sonner)\"" $F; echo "--- colour/motion grep (ticket regex + transition|duration-):"; grep -nE "(slate|emerald|teal|zinc|gray|amber|clinical)-|animate-|fade-|zoom-|transition|duration-" $F; echo "grep exit=$? (1 = nothing found)"; echo "--- theme prop on Toaster (expect none):"; grep -n "theme" src/components/ui/sonner.jsx | grep -v "//" || echo "(none outside comments)"
+--- package imports:
+src/components/ui/tooltip.jsx:2:import * as TooltipPrimitive from "@radix-ui/react-tooltip"
+src/components/ui/popover.jsx:2:import * as PopoverPrimitive from "@radix-ui/react-popover"
+src/components/ui/collapsible.jsx:1:import * as CollapsiblePrimitive from "@radix-ui/react-collapsible"
+src/components/ui/scroll-area.jsx:2:import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
+src/components/ui/separator.jsx:2:import * as SeparatorPrimitive from "@radix-ui/react-separator"
+src/components/ui/sonner.jsx:2:import { Toaster as Sonner } from "sonner"
+src/components/ui/sonner.jsx:6:// follow the theme with no `theme` prop. Callers use `import { toast } from "sonner"`.
+--- colour/motion grep (ticket regex + transition|duration-):
+grep exit=1 (1 = nothing found)
+--- theme prop on Toaster (expect none):
+(none outside comments)
+
+[exit code 0]

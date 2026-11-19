@@ -1,0 +1,44 @@
+$ bash -c cd frontend/src/components/ui; grep -nE "^export|forwardRef|displayName|Portal>|sideOffset =|align =|orientation =|decorative =|delayDuration|font-sans|cn\(|focus-visible" tooltip.jsx popover.jsx collapsible.jsx scroll-area.jsx separator.jsx sonner.jsx | sed -E "s/(focus-visible:ring-offset-background)\".*/\1\"/"
+tooltip.jsx:6:const TooltipProvider = ({ delayDuration = 300, ...props }) => (
+tooltip.jsx:7:  <TooltipPrimitive.Provider delayDuration={delayDuration} {...props} />
+tooltip.jsx:9:TooltipProvider.displayName = "TooltipProvider"
+tooltip.jsx:12:const Tooltip = ({ delayDuration = 300, ...props }) => (
+tooltip.jsx:13:  <TooltipPrimitive.Provider delayDuration={delayDuration}>
+tooltip.jsx:17:Tooltip.displayName = TooltipPrimitive.Root.displayName
+tooltip.jsx:22:const TooltipContent = React.forwardRef(({ className, sideOffset = 4, ...props }, ref) => (
+tooltip.jsx:23:  <TooltipPrimitive.Portal>
+tooltip.jsx:27:      className={cn(
+tooltip.jsx:28:        "z-50 max-w-xs rounded-md border border-border bg-popover px-2.5 py-1.5 font-sans text-xs text-popover-foreground shadow-sm",
+tooltip.jsx:33:  </TooltipPrimitive.Portal>
+tooltip.jsx:35:TooltipContent.displayName = TooltipPrimitive.Content.displayName
+tooltip.jsx:37:export { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent }
+popover.jsx:12:const PopoverContent = React.forwardRef(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+popover.jsx:13:  <PopoverPrimitive.Portal>
+popover.jsx:18:      className={cn(
+popover.jsx:19:        "z-50 w-80 rounded-md border border-border bg-popover p-4 font-sans text-popover-foreground shadow-md outline-none",
+popover.jsx:24:  </PopoverPrimitive.Portal>
+popover.jsx:26:PopoverContent.displayName = PopoverPrimitive.Content.displayName
+popover.jsx:28:export { Popover, PopoverTrigger, PopoverAnchor, PopoverContent }
+collapsible.jsx:10:export { Collapsible, CollapsibleTrigger, CollapsibleContent }
+scroll-area.jsx:5:const ScrollBar = React.forwardRef(({ className, orientation = "vertical", ...props }, ref) => (
+scroll-area.jsx:9:    className={cn(
+scroll-area.jsx:11:      orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent",
+scroll-area.jsx:12:      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent",
+scroll-area.jsx:20:ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
+scroll-area.jsx:22:const ScrollArea = React.forwardRef(({ className, children, ...props }, ref) => (
+scroll-area.jsx:25:    className={cn("relative overflow-hidden", className)}
+scroll-area.jsx:29:    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+scroll-area.jsx:36:ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
+scroll-area.jsx:38:export { ScrollArea, ScrollBar }
+separator.jsx:5:const Separator = React.forwardRef(
+separator.jsx:6:  ({ className, orientation = "horizontal", decorative = true, ...props }, ref) => (
+separator.jsx:11:      className={cn(
+separator.jsx:13:        orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
+separator.jsx:20:Separator.displayName = SeparatorPrimitive.Root.displayName
+separator.jsx:22:export { Separator }
+sonner.jsx:7:const Toaster = React.forwardRef(({ className, style, ...props }, ref) => (
+sonner.jsx:10:    className={cn("toaster", className)}
+sonner.jsx:22:Toaster.displayName = "Toaster"
+sonner.jsx:24:export { Toaster }
+
+[exit code 0]

@@ -1,0 +1,14 @@
+$ bash -c cd /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/ac6 && echo '--- npm ci --offline:'; timeout 120 npm ci --offline --ignore-scripts 2>&1 | head -2; echo '--- online (npm view sonner@2.0.8, fetch-retries=0):'; timeout 150 npm view sonner@2.0.8 version --fetch-retries=0 > o.txt 2>&1; echo "exit=$?"; grep -m3 'npm error' o.txt; echo '--- globally installed radix/sonner:'; ls /opt/npm-tools/node_modules/@radix-ui /opt/npm-tools/node_modules/sonner 2>&1
+--- npm ci --offline:
+npm error code ENOTCACHED
+npm error request to https://registry.npmjs.org/xmlchars/-/xmlchars-2.2.0.tgz failed: cache mode is 'only-if-cached' but no cached response is available.
+--- online (npm view sonner@2.0.8, fetch-retries=0):
+exit=1
+npm error code ENOTFOUND
+npm error syscall getaddrinfo
+npm error errno ENOTFOUND
+--- globally installed radix/sonner:
+ls: cannot access '/opt/npm-tools/node_modules/@radix-ui': No such file or directory
+ls: cannot access '/opt/npm-tools/node_modules/sonner': No such file or directory
+
+[exit code 2]
