@@ -6,7 +6,7 @@
 | **Priority** | P2 |
 | **PRD ref** | Product PRD OPS-1 (retry + DLQ with full diagnostics: diagnostics must not cry wolf); follow-up from the OPS-H6 PM review |
 | **Depends on** | OPS-H6 (#15) merged. No open PR touches `internal/kafka/` |
-| **Jira** | to create (orchestrator: story in the same epic as OPS-H6 / KAN-28, labels `arxivlens`, `agent-backend`, `task-OPS-H6b`, status To Do) |
+| **Jira** | [KAN-75](https://maheshsworkspace-42184075.atlassian.net/browse/KAN-75) |
 | **Design required** | no: one guard in a log statement, no contract/CLI/table/service change |
 | **Status** | Ready |
 

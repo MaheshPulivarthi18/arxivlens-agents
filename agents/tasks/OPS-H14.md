@@ -6,7 +6,7 @@
 | **Priority** | P3 (harness: gives frontend QA `dist/` evidence for FE-0/FE-3 without a local npm build) |
 | **PRD ref** | Technical PRD §11 (dev harness); FE-0 design Q3 (`docs/design/FE-0.md` §405); FE-1 QA/PM review (spurious `npm error`) |
 | **Depends on** | none. Merged prerequisites only (`ci.yml` frontend job exists on `main` 4c7d327). Works before and after FE-0 #69 / FE-1 #68 merge |
-| **Jira** | to create (orchestrator: story under epic "Dev harness & infrastructure" KAN-3, labels `arxivlens`, `agent-backend`, `task-OPS-H14`, status To Do) |
+| **Jira** | [KAN-74](https://maheshsworkspace-42184075.atlassian.net/browse/KAN-74) |
 | **Design required** | no: CI-only, report-only step, no contract, gate, CLI, table or service |
 | **Status** | Ready |
 
