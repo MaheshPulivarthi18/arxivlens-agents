@@ -34,8 +34,8 @@ Three 2026-11-07 merge-review follow-ups that each could make CI pass or fail fo
 
 ## Acceptance criteria
 - [ ] AC1 — `db.yml` on the PR runs the `real_postgres` tests and they pass (job link); the step fails if they fail (no `continue-on-error`).
-- [ ] AC2 — Both files use the same pinned pgvector tag; the extension-version check passes on the PR and is shown failing against a fake lower version (a dry run of the comparison).
-- [ ] AC3 — The digest check passes for the current pins on a manual run (link), and a deliberately wrong digest makes it fail with the image name in the message (scratch run or step-level dry run).
+- [ ] AC2 — Both files use the same pinned pgvector image (tag, or tag + `@sha256` digest, which is stronger; the CI log shows the extension version it ships); the extension-version check passes on the PR and is shown failing against a fake lower version (a dry run of the comparison). *Amended 2026-11-19 (pm-lead, QA [spec] 6).*
+- [ ] AC3 — The digest check passes for the current pins on a run of the workflow (link): a PR-triggered run is enough before merge, because `workflow_dispatch` only works once the workflow is on main. After merge, a manual or scheduled run is a post-merge check, not an AC. And a deliberately wrong digest makes it fail with the image name in the message (scratch run or step-level dry run).
 - [ ] AC4 — `actionlint` clean for changed workflows; `stack.yml` still green on the PR.
 - [ ] AC5 — CONTRIBUTING runbook updated (re-pin + verify steps, pgvector ≥ 0.8.0 minimum). `README.md` is not in the diff
   (`git diff --stat origin/main` lists only `.github/workflows/*.yml`, `docker-compose.yml`, `CONTRIBUTING.md`). Diff < 400 lines.
@@ -46,7 +46,7 @@ Three 2026-11-07 merge-review follow-ups that each could make CI pass or fail fo
 make lint
 actionlint .github/workflows/*.yml
 gh run list --workflow db.yml --limit 3
-gh workflow run <digest-check workflow> --ref agent/backend/OPS-H9
+gh run list --workflow <digest-check workflow> --branch agent/backend/OPS-H9 --limit 3   # PR-triggered run (dispatch needs the workflow on main)
 ```
 
 ## Notes
@@ -66,3 +66,4 @@ gh workflow run <digest-check workflow> --ref agent/backend/OPS-H9
   are unreachable from the sandbox, so a tag couldn't be checked; `image-pins.yml` covers the pin weekly and on PRs touching the pins (a new workflow
   can't be dispatched before it's on main). The real_postgres step fails on a skip as well as a failure. Attempt 1 (`3c1dadb`): Image pins run
   44584826905 failed on shellcheck SC2001 (bundled in the actionlint docker image, absent from the local build); attempt 2 `e875fa8` fixes it.
+- 2026-11-19 (pm-lead, QA [spec] finding 6): AC2 accepts tag + digest (stronger than a tag; CI shows 0.8.7). AC3 accepts a PR-triggered run, since `workflow_dispatch` can't run before merge. Verification line updated to match. No change to what CI checks.
