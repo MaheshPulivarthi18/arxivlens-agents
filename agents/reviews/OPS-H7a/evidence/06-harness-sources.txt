@@ -1,0 +1,136 @@
+$ bash -c H=/root/qa-mod/harness; for d in franz-go kmsg-src compress lz4 crypto sys text ulid; do echo "dep $d: $(git -C /root/qa-mod/$d remote get-url origin) @ $(git -C /root/qa-mod/$d describe --tags 2>/dev/null)"; done; echo; echo "== find harness -type f (non-PR files shown in full; internal/ and shared/ are cp -r of the PR head)"; (cd $H && find . -type f | sort); for f in $(cd $H && find . -type f -not -path "./internal/*" -not -path "./shared/*" | sort) ; do echo; echo "----- $f"; cat $H/$f; done; echo; echo "----- /root/qa-mod/tools/mutate.py"; cat /root/qa-mod/tools/mutate.py
+dep franz-go: https://github.com/twmb/franz-go @ v1.16.1
+dep kmsg-src: https://github.com/twmb/franz-go @ pkg/kmsg/v1.7.0
+dep compress: https://github.com/klauspost/compress @ v1.17.6
+dep lz4: https://github.com/pierrec/lz4 @ v4.1.19
+dep crypto: https://github.com/golang/crypto @ v0.21.0
+dep sys: https://github.com/golang/sys @ v0.18.0
+dep text: https://github.com/golang/text @ v0.14.0
+dep ulid: https://github.com/oklog/ulid @ v2.1.0
+
+== find harness -type f (non-PR files shown in full; internal/ and shared/ are cp -r of the PR head)
+./go.mod
+./internal/dlq/envelope.go
+./internal/dlq/envelope_test.go
+./internal/dlq/kafka.go
+./internal/dlq/kafka_integration_test.go
+./internal/dlq/kafka_test.go
+./internal/dlq/manager.go
+./internal/kafka/consumer.go
+./internal/kafka/consumer_test.go
+./internal/kafka/producer.go
+./shared/events/events.go
+./stubs/getopt/go.mod
+./stubs/net/go.mod
+./stubs/term/go.mod
+
+----- ./go.mod
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/twmb/franz-go v1.16.1
+	github.com/twmb/franz-go/pkg/kmsg v1.7.0
+)
+
+require (
+	github.com/klauspost/compress v1.17.4 // indirect
+	github.com/pierrec/lz4/v4 v4.1.19 // indirect
+)
+
+replace (
+	github.com/klauspost/compress => ../compress
+	github.com/oklog/ulid/v2 => ../ulid
+	github.com/pborman/getopt => ./stubs/getopt
+	github.com/pierrec/lz4/v4 => ../lz4
+	github.com/twmb/franz-go => ../franz-go
+	github.com/twmb/franz-go/pkg/kmsg => ../kmsg-src/pkg/kmsg
+	golang.org/x/crypto => ../crypto
+	golang.org/x/net => ./stubs/net
+	golang.org/x/sys => ../sys
+	golang.org/x/term => ./stubs/term
+	golang.org/x/text => ../text
+)
+
+----- ./stubs/getopt/go.mod
+module github.com/pborman/getopt
+go 1.15
+
+----- ./stubs/net/go.mod
+module golang.org/x/net
+go 1.18
+
+----- ./stubs/term/go.mod
+module golang.org/x/term
+go 1.18
+
+----- /root/qa-mod/tools/mutate.py
+#!/usr/bin/env python3
+"""Single-edit mutants of internal/dlq/kafka.go against the real franz-go v1.16.1 harness.
+Each mutant: fresh copy of the harness (mktemp), one str.replace (must match exactly once), go test.
+Build failure -> INVALID (never KILLED)."""
+import os, shutil, subprocess, sys, tempfile
+H = "/root/qa-mod/harness"
+F = "internal/dlq/kafka.go"
+M = [
+ ("M01 loop to until-1", "for next < until {", "for next < until-1 {"),
+ ("M02 drop at/after-until filter", " || rec.Offset >= until {", " {"),
+ ("M03 drop below-position filter", " || rec.Offset < next ||", " ||"),
+ ("M04 drop other-partition filter", "if stop || rec.Partition != p ||", "if stop ||"),
+ ("M05 poll error -> end (nil)", 'return fmt.Errorf("dlq: poll %s/%d at offset %d: %w", topic, p, next, fe.Err)', "return nil"),
+ ("M06 ignore every fetch error", "for _, fe := range fs.Errors() {", "for _, fe := range fs.Errors()[:0] {"),
+ ("M07 stall -> end (nil)", 'return fmt.Errorf("%w: %s/%d at offset %d below the start-time high watermark %d (no record for %s)",\n\t\t\t\tErrPartitionStalled, topic, p, next, until, r.StallTimeout)', "return nil"),
+ ("M08 count empty polls too", "if fs.NumRecords() > 0 {", "if true {"),
+ ("M09 drop caller ctx check", "if err := ctx.Err(); err != nil {\n\t\t\treturn err\n\t\t}", "_ = ctx.Err()"),
+ ("M10 fn false not honoured", "stop = !fn(decodeRecord(rec))", "fn(decodeRecord(rec))"),
+ ("M11 stop does not return", "if stop {\n\t\t\treturn nil\n\t\t}", "if stop {\n\t\t\tstop = false\n\t\t}"),
+ ("M12 deadline error treated as poll error", "!errors.Is(fe.Err, context.DeadlineExceeded) && ", ""),
+ ("M13 progressAt not refreshed", "next, progressAt = rec.Offset+1, time.Now()", "next = rec.Offset+1"),
+ ("M14 decode || -> &&", 'pl.OriginalTopic != "" || pl.ErrorType != ""', 'pl.OriginalTopic != "" && pl.ErrorType != ""'),
+ ("M15 decode drop original_topic operand", 'pl.OriginalTopic != "" || pl.ErrorType != ""', 'pl.ErrorType != ""'),
+ ("M16 decode drop error_type operand", 'pl.OriginalTopic != "" || pl.ErrorType != ""', 'pl.OriginalTopic != ""'),
+ ("M17 decode keeps any JSON", 'json.Unmarshal(rec.Value, &pl) == nil && (pl.OriginalTopic != "" || pl.ErrorType != "")', 'json.Unmarshal(rec.Value, &pl) == nil'),
+ ("M18 decode drops raw Value", "Timestamp: rec.Timestamp, Value: rec.Value}", "Timestamp: rec.Timestamp}"),
+ ("M19 merge drop l>h", "if !okL || !okH || l > h {", "if !okL || !okH {"),
+ ("M20 merge drop !okL", "if !okL || !okH || l > h {", "if !okH || l > h {"),
+ ("M21 merge drop !okH", "if !okL || !okH || l > h {", "if !okL || l > h {"),
+ ("M22 merge swap Low/High", "out[p] = Watermark{Low: l, High: h}", "out[p] = Watermark{Low: h, High: l}"),
+ ("M23 metadata ignore topic error", "if err := kerr.ErrorForCode(t.ErrorCode); err != nil {", "if err := kerr.ErrorForCode(t.ErrorCode); false && err != nil {"),
+ ("M24 metadata accept != 1 topics", "if len(resp.Topics) != 1 {", "if len(resp.Topics) == 0 {"),
+ ("M25 offsets ignore partition error", "if err := kerr.ErrorForCode(p.ErrorCode); err != nil {", "if err := kerr.ErrorForCode(p.ErrorCode); false && err != nil {"),
+ ("M26 Watermarks swap -2/-1 (integration-only)", "for i, ts := range []int64{-2, -1} {", "for i, ts := range []int64{-1, -2} {"),
+ ("M27 FetchMaxBytes not applied (integration-only)", "if r.FetchMaxBytes > 0 {", "if r.FetchMaxBytes < 0 {"),
+ ("M28 Read from>=until guard dropped (integration-only)", "if from >= until {\n\t\treturn nil\n\t}", ""),
+]
+only = sys.argv[1:]  # optional: extra go test args
+print(f"{'mutant':55} verdict   detail")
+res = []
+for name, old, new in M:
+    src = open(os.path.join(H, F)).read()
+    n = src.count(old)
+    if n != 1:
+        res.append((name, "NOMATCH", f"count={n}")); continue
+    d = tempfile.mkdtemp(prefix="mut-", dir="/root/qa-mod")
+    w = os.path.join(d, "h"); shutil.copytree(H, w, symlinks=True)
+    # replace paths in go.mod are relative to ../ : point them at absolute dirs
+    gm = open(os.path.join(w, "go.mod")).read().replace("=> ../", "=> /root/qa-mod/").replace("=> ./stubs", "=> " + H + "/stubs")
+    open(os.path.join(w, "go.mod"), "w").write(gm)
+    open(os.path.join(w, F), "w").write(src.replace(old, new))
+    env = dict(os.environ, GOTOOLCHAIN="local", GOPROXY="off", GOFLAGS="-mod=mod", GOSUMDB="off")
+    b = subprocess.run(["go", "vet", "./internal/dlq/"], cwd=w, env=env, capture_output=True, text=True)
+    if b.returncode != 0:
+        res.append((name, "INVALID", b.stderr.strip().splitlines()[-1][:60])); continue
+    t = subprocess.run(["go", "test", "-race", "-count=1", "-timeout", "60s", "./internal/dlq/"] + only, cwd=w, env=env, capture_output=True, text=True)
+    fails = [l.strip() for l in t.stdout.splitlines() if l.strip().startswith("--- FAIL")]
+    if t.returncode == 0:
+        res.append((name, "SURVIVED", "all tests pass"))
+    else:
+        det = "panic/timeout" if ("panic:" in t.stdout and not fails) else ", ".join(fails[:3])
+        res.append((name, "KILLED", det[:90]))
+k = sum(r[1] == "KILLED" for r in res); s = sum(r[1] == "SURVIVED" for r in res)
+print(f"SUMMARY: {len(res)} mutants, {k} killed, {s} survived, {len(res)-k-s} invalid/nomatch")
+for r in res: print(f"{r[0]:55} {r[1]:9} {r[2]}")
+
+[exit code 0]

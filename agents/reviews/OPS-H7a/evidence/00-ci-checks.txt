@@ -1,0 +1,23 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/d42046392c7d3aacba5bc2abedb256f10c7e5552/check-runs --jq ".total_count as \$n | \"total_count=\(\$n)\", (.check_runs[] | \"\(.id)  \(.name)  \(.status)  \(.conclusion)\")"; echo; echo "ownership-check job annotation:"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135705487961/logs | grep -E "changed lines" | cut -c30-; echo; echo "open PRs touching .github/workflows/db.yml (ticket: must not run alongside ING-11b / OPS-H9):"; for n in $(gh api "repos/MaheshPulivarthi18/ArxivLens/pulls?state=open&per_page=50" --jq ".[].number"); do f=$(gh api repos/MaheshPulivarthi18/ArxivLens/pulls/$n/files --jq "[.[].filename] | join(\" \")"); echo "#$n: $(echo $f | grep -q "workflows/db.yml" && echo TOUCHES-db.yml || echo no) ($f)" | cut -c1-150; done; echo; echo "PR #62 merged=$(gh api repos/MaheshPulivarthi18/ArxivLens/pulls/62 --jq .merged) draft=$(gh api repos/MaheshPulivarthi18/ArxivLens/pulls/62 --jq .draft)"
+total_count=6
+135705491247  Full stack (compose + make test-full)  completed  success
+135705487963  Python M0 unit tests  completed  success
+135705487961  Agent ownership check  completed  success
+135705487891  Go (vet, gofmt, test, build)  completed  success
+135705487518  DB (migrate twice, HNSW plan + recall)  completed  success
+135705487198  Frontend (lint, test, build)  completed  success
+
+ownership-check job annotation:
+##[warning]480 changed lines (> 400). Consider splitting the change.
+Ownership OK for role=backend (480 changed lines)
+
+open PRs touching .github/workflows/db.yml (ticket: must not run alongside ING-11b / OPS-H9):
+#63: no (.github/workflows/stack.yml)
+#62: TOUCHES-db.yml (.github/workflows/db.yml go.mod internal/dlq/kafka.go internal/dlq/kafka_integration_test.go internal/dlq/kafka_test.go)
+#61: no (evals/README.md scripts/evaluate_answers.py tests/test_evals_data.py)
+#60: no (internal/crawler/crawler.go internal/crawler/loop.go internal/crawler/loop_test.go)
+#59: no (internal/query/synthesis_test.go)
+
+PR #62 merged=false draft=true
+
+[exit code 0]

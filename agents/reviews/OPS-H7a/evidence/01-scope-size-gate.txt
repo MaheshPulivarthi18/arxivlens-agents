@@ -1,0 +1,29 @@
+$ bash -c echo "PR head: $(git rev-parse HEAD)  merge-base: $(git merge-base HEAD origin/main)  origin/main: $(git rev-parse origin/main)"; echo; echo "== numstat (added deleted file)"; git diff --numstat origin/main...HEAD; git diff --numstat origin/main...HEAD | awk "{t+=\$1+\$2} \$3 !~ /_test\.go\$/ {n+=\$1+\$2} END {print \"TOTAL changed=\" t \"  NON-TEST changed=\" n}"; echo; echo "== files outside the ticket a1 seam (kafka.go, kafka_integration_test.go, db.yml, go.mod)"; git diff --name-only origin/main...HEAD | grep -vxE "internal/dlq/kafka\.go|internal/dlq/kafka_integration_test\.go|\.github/workflows/db\.yml|go\.mod" || echo "(none)"; echo; echo "== ticket/review/doc files leaked (agents/, docs/, *.md)"; git diff --name-only origin/main...HEAD | grep -E "^(agents|docs)/|\.md$" || echo "(none)"; echo; echo "== commits"; git log --oneline origin/main..HEAD; echo; echo "== a2 files (manager.go, cmd/arxivlens/main.go, README.md) at head vs main"; git diff --quiet origin/main...HEAD -- internal/dlq/manager.go cmd/arxivlens/main.go README.md && echo "unchanged"; echo; echo "== go.mod diff"; git diff origin/main...HEAD -- go.mod | grep "^[-+][^-+]"
+PR head: d42046392c7d3aacba5bc2abedb256f10c7e5552  merge-base: 8b55af22dfff6e97f6541d1fc61f4717238ed7f0  origin/main: 8b55af22dfff6e97f6541d1fc61f4717238ed7f0
+
+== numstat (added deleted file)
+16	0	.github/workflows/db.yml
+1	1	go.mod
+212	0	internal/dlq/kafka.go
+110	0	internal/dlq/kafka_integration_test.go
+140	0	internal/dlq/kafka_test.go
+TOTAL changed=480  NON-TEST changed=230
+
+== files outside the ticket a1 seam (kafka.go, kafka_integration_test.go, db.yml, go.mod)
+internal/dlq/kafka_test.go
+
+== ticket/review/doc files leaked (agents/, docs/, *.md)
+(none)
+
+== commits
+d420463 OPS-H7a: kgo DLQ Reader to the start-time high watermark + real-Kafka CI test (OPS-H7a1 slice)
+39274c6 OPS-H7a: counted skeleton for the size gate (stubs only)
+
+== a2 files (manager.go, cmd/arxivlens/main.go, README.md) at head vs main
+unchanged
+
+== go.mod diff
++	github.com/twmb/franz-go/pkg/kmsg v1.7.0
+-	github.com/twmb/franz-go/pkg/kmsg v1.7.0 // indirect
+
+[exit code 0]

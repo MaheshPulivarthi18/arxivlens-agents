@@ -1,0 +1,33 @@
+$ python3 /root/qa-mod/tools/mutate.py
+mutant                                                  verdict   detail
+SUMMARY: 28 mutants, 25 killed, 3 survived, 0 invalid/nomatch
+M01 loop to until-1                                     KILLED    --- FAIL: TestReadLoop (0.23s), --- FAIL: TestReadLoop/below_from,_re-delivered_and_other_
+M02 drop at/after-until filter                          KILLED    --- FAIL: TestReadLoop (0.27s), --- FAIL: TestReadLoop/chunks_of_3_up_to_the_snapshot,_lat
+M03 drop below-position filter                          KILLED    --- FAIL: TestReadLoop (0.27s), --- FAIL: TestReadLoop/below_from,_re-delivered_and_other_
+M04 drop other-partition filter                         KILLED    --- FAIL: TestReadLoop (0.27s), --- FAIL: TestReadLoop/below_from,_re-delivered_and_other_
+M05 poll error -> end (nil)                             KILLED    --- FAIL: TestReadLoop (0.27s), --- FAIL: TestReadLoop/poll_error_is_an_error,_not_end (0.
+M06 ignore every fetch error                            KILLED    --- FAIL: TestReadLoop (0.37s), --- FAIL: TestReadLoop/poll_error_is_an_error,_not_end (0.
+M07 stall -> end (nil)                                  KILLED    --- FAIL: TestReadLoop (0.27s), --- FAIL: TestReadLoop/idle_polls_then_stall (0.10s)
+M08 count empty polls too                               KILLED    --- FAIL: TestReadLoop (0.27s), --- FAIL: TestReadLoop/idle_polls_then_stall (0.10s)
+M09 drop caller ctx check                               KILLED    --- FAIL: TestReadLoop (0.37s), --- FAIL: TestReadLoop/caller_context_cancelled (0.10s)
+M10 fn false not honoured                               KILLED    --- FAIL: TestReadLoop (0.37s), --- FAIL: TestReadLoop/fn_false_stops (0.10s)
+M11 stop does not return                                KILLED    --- FAIL: TestReadLoop (0.37s), --- FAIL: TestReadLoop/fn_false_stops (0.10s)
+M12 deadline error treated as poll error                KILLED    --- FAIL: TestReadLoop (0.17s), --- FAIL: TestReadLoop/idle_polls_then_stall (0.01s)
+M13 progressAt not refreshed                            KILLED    --- FAIL: TestReadLoop (0.23s), --- FAIL: TestReadLoop/slow_but_steady_progress_is_not_a_s
+M14 decode || -> &&                                     KILLED    --- FAIL: TestDecodeRecord (0.00s)
+M15 decode drop original_topic operand                  KILLED    --- FAIL: TestDecodeRecord (0.00s)
+M16 decode drop error_type operand                      KILLED    --- FAIL: TestDecodeRecord (0.00s)
+M17 decode keeps any JSON                               KILLED    --- FAIL: TestDecodeRecord (0.00s)
+M18 decode drops raw Value                              KILLED    --- FAIL: TestDecodeRecord (0.00s)
+M19 merge drop l>h                                      KILLED    --- FAIL: TestWatermarkResponses (0.00s)
+M20 merge drop !okL                                     KILLED    --- FAIL: TestWatermarkResponses (0.00s)
+M21 merge drop !okH                                     KILLED    --- FAIL: TestWatermarkResponses (0.00s)
+M22 merge swap Low/High                                 KILLED    --- FAIL: TestWatermarkResponses (0.00s)
+M23 metadata ignore topic error                         KILLED    --- FAIL: TestWatermarkResponses (0.00s)
+M24 metadata accept != 1 topics                         KILLED    --- FAIL: TestWatermarkResponses (0.00s)
+M25 offsets ignore partition error                      KILLED    --- FAIL: TestWatermarkResponses (0.00s)
+M26 Watermarks swap -2/-1 (integration-only)            SURVIVED  all tests pass
+M27 FetchMaxBytes not applied (integration-only)        SURVIVED  all tests pass
+M28 Read from>=until guard dropped (integration-only)   SURVIVED  all tests pass
+
+[exit code 0]

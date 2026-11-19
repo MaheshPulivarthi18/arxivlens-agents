@@ -1,0 +1,20 @@
+$ gh api .../actions/jobs/{135705487518,135705487891}/logs | grep (excerpt)
+== CI: DB job 135705487518 (head d420463), go test -tags integration -race -v ./internal/dlq/ -- reader unit rows
+--- PASS: TestReadLoop (0.27s)
+    --- PASS: TestReadLoop/chunks_of_3_up_to_the_snapshot,_later_records_ignored (0.00s)
+    --- PASS: TestReadLoop/below_from,_re-delivered_and_other_partitions_skipped (0.00s)
+    --- PASS: TestReadLoop/offset_gap_still_ends_at_until (0.00s)
+    --- PASS: TestReadLoop/fn_false_stops (0.00s)
+    --- PASS: TestReadLoop/poll_error_is_an_error,_not_end (0.00s)
+    --- PASS: TestReadLoop/slow_but_steady_progress_is_not_a_stall (0.16s)
+    --- PASS: TestReadLoop/idle_polls_then_stall (0.10s)
+    --- PASS: TestReadLoop/caller_context_cancelled (0.00s)
+--- PASS: TestWatermarkResponses (0.00s)
+--- PASS: TestDecodeRecord (0.00s)
+
+== CI: Go job 135705487891 (head d420463): make lint-go (go vet + gofmt check) and make test-go
+go vet ./...
+go test ./...
+ok  	arxivlens/internal/dlq	0.270s
+job conclusion: success (lint-go would exit 1 on gofmt output)
+

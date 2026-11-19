@@ -1,0 +1,28 @@
+$ bash -c H=/root/qa-mod/harness; export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod GOSUMDB=off; echo "== PR files are byte-identical to the harness copies:"; for f in internal/dlq/kafka.go internal/dlq/kafka_test.go internal/dlq/kafka_integration_test.go internal/dlq/manager.go internal/dlq/envelope.go; do cmp -s $f $H/$f && echo "same $f" || echo "DIFF $f"; done; echo "== franz-go source tags:"; git -C /root/qa-mod/franz-go describe --tags; git -C /root/qa-mod/kmsg-src describe --tags; echo "== gofmt -l internal/dlq/ (empty = clean):"; gofmt -l internal/dlq/; cd $H; echo "== go vet ./internal/dlq/ && go vet -tags integration ./internal/dlq/"; go vet ./internal/dlq/ && go vet -tags integration ./internal/dlq/ && echo vet ok; echo "== go test -race -count=3 -v ./internal/dlq/ (reader tests)"; go test -race -count=3 -v ./internal/dlq/ 2>&1 | grep -E "^(--- |    --- |ok|FAIL)" | grep -E "TestReadLoop|TestWatermark|TestDecode|^ok|FAIL" | sort | uniq -c
+== PR files are byte-identical to the harness copies:
+same internal/dlq/kafka.go
+same internal/dlq/kafka_test.go
+same internal/dlq/kafka_integration_test.go
+same internal/dlq/manager.go
+same internal/dlq/envelope.go
+== franz-go source tags:
+v1.16.1
+pkg/kmsg/v1.7.0
+== gofmt -l internal/dlq/ (empty = clean):
+== go vet ./internal/dlq/ && go vet -tags integration ./internal/dlq/
+vet ok
+== go test -race -count=3 -v ./internal/dlq/ (reader tests)
+      3     --- PASS: TestReadLoop/below_from,_re-delivered_and_other_partitions_skipped (0.00s)
+      3     --- PASS: TestReadLoop/caller_context_cancelled (0.00s)
+      3     --- PASS: TestReadLoop/chunks_of_3_up_to_the_snapshot,_later_records_ignored (0.00s)
+      3     --- PASS: TestReadLoop/fn_false_stops (0.00s)
+      3     --- PASS: TestReadLoop/idle_polls_then_stall (0.10s)
+      3     --- PASS: TestReadLoop/offset_gap_still_ends_at_until (0.00s)
+      3     --- PASS: TestReadLoop/poll_error_is_an_error,_not_end (0.00s)
+      3     --- PASS: TestReadLoop/slow_but_steady_progress_is_not_a_stall (0.16s)
+      3 --- PASS: TestDecodeRecord (0.00s)
+      3 --- PASS: TestReadLoop (0.27s)
+      3 --- PASS: TestWatermarkResponses (0.00s)
+      1 ok  	arxivlens/internal/dlq	1.827s
+
+[exit code 0]

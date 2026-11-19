@@ -1,0 +1,21 @@
+$ gh api .../actions/jobs/135705487518/logs | grep (excerpt, ANSI stripped, wrapped at 140)
+job 135705487518 'DB (migrate twice, HNSW plan + recall)' head_sha=d42046392c7d3aacba5bc2abedb256f10c7e5552 conclusion=success
+
+== AC2 result line + verdict
+=== RUN   TestReadStopsAtSnapshot_Integration
+    kafka_integration_test.go:99: TestReadStopsAtSnapshot: read 1500 records (1 undecodable) from 3 partitions, watermarks map[0:{0 1000} 
+1:{0 500} 2:{0 0}], in 123 polls (FetchMaxBytes=4096); 15 records written after the snapshot were not returned
+--- PASS: TestReadStopsAtSnapshot_Integration (3.72s)
+ok    arxivlens/internal/dlq  5.005s
+
+== checkout: merge of PR head into current main
+HEAD is now at 3ed4bc2 Merge d42046392c7d3aacba5bc2abedb256f10c7e5552 into 8b55af22dfff6e97f6541d1fc61f4717238ed7f0
+
+== kafka service + step that ran it
+kafka service is healthy.
+##[group]Run go vet -tags integration ./internal/dlq/
+KAFKA_BROKERS=localhost:9092 go test -tags integration -race -count=1 -v -timeout 10m ./internal/dlq/
+
+== all --- PASS/FAIL lines in the job (count)
+PASS: 34  FAIL: 0
+

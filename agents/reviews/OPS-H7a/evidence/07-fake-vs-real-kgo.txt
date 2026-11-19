@@ -1,0 +1,46 @@
+$ bash -c echo "== PR fake (internal/dlq/kafka_test.go)"; grep -n -A10 "^func (f \*fakePoller) PollFetches" internal/dlq/kafka_test.go; echo; echo "== franz-go v1.16.1 pkg/kgo/consumer.go"; K=/root/qa-mod/franz-go/pkg/kgo/consumer.go; grep -n -A11 "^func NewErrFetch" $K; echo ...; sed -n 515,530p $K
+== PR fake (internal/dlq/kafka_test.go)
+23:func (f *fakePoller) PollFetches(ctx context.Context) kgo.Fetches {
+24-	if fs := f.script; len(fs) > 0 {
+25-		time.Sleep(f.delay)
+26-		f.script = fs[1:]
+27-		return fs[0]
+28-	}
+29-	<-ctx.Done()
+30-	return part(-1, ctx.Err())
+31-}
+32-
+33-func part(p int32, err error, offs ...int64) kgo.Fetches {
+
+== franz-go v1.16.1 pkg/kgo/consumer.go
+352:func NewErrFetch(err error) Fetches {
+353-	return []Fetch{{
+354-		Topics: []FetchTopic{{
+355-			Topic: "",
+356-			Partitions: []FetchPartition{{
+357-				Partition: -1,
+358-				Err:       err,
+359-			}},
+360-		}},
+361-	}}
+362-}
+363-
+...
+	exit := func() {
+		c.sourcesReadyMu.Lock()
+		quit = true
+		c.sourcesReadyMu.Unlock()
+		c.sourcesReadyCond.Broadcast()
+	}
+
+	select {
+	case <-cl.ctx.Done():
+		exit()
+		return NewErrFetch(ErrClientClosed)
+	case <-ctx.Done():
+		exit()
+		return NewErrFetch(ctx.Err())
+	case <-done:
+	}
+
+[exit code 0]
