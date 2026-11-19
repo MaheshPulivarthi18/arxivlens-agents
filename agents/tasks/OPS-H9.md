@@ -67,3 +67,12 @@ gh run list --workflow <digest-check workflow> --branch agent/backend/OPS-H9 --l
   can't be dispatched before it's on main). The real_postgres step fails on a skip as well as a failure. Attempt 1 (`3c1dadb`): Image pins run
   44584826905 failed on shellcheck SC2001 (bundled in the actionlint docker image, absent from the local build); attempt 2 `e875fa8` fixes it.
 - 2026-11-19 (pm-lead, QA [spec] finding 6): AC2 accepts tag + digest (stronger than a tag; CI shows 0.8.7). AC3 accepts a PR-triggered run, since `workflow_dispatch` can't run before merge. Verification line updated to match. No change to what CI checks.
+- 2026-11-19 (backend-engineer, Rework r1 for QA FAIL r1, findings 1-3 + nit 4): head `16dacb9` (one push). `image-pins.yml` now resolves each pin as
+  `<name>@<digest>` (tag dropped) with `docker buildx imagetools inspect` and requires the reported `Digest:` to equal the pin. `docker manifest inspect`
+  rejected valid cgr.dev digests with "manifest verification failed". The step checks the real pins first. The self-test then runs only on images whose
+  real pin resolved (positive control): the all-zero digest of each must fail with a `not found|manifest unknown|404` error, and the message must name the
+  image. actionlint is pinned to `1.7.7@sha256:887a259a…47e9` (the digest from the r1 pull log). The CONTRIBUTING tool row and verify step 4 use the same
+  command. The PR diff is 4 files, 151+/2-, ownership OK. CI on `16dacb9`, all success: Pinned digests resolve 135888300539 (`ok` for minio-client,
+  minio and pgvector; the zero-digest self-test got `not found` for all three; actionlint printed no findings), DB 135888302417, Full stack 135888299617,
+  Go 135888301278, Python M0 135888301352, Frontend 135888300318, ownership 135888300961. Not covered in r1: QA nit 5 (`version_ge` on non-numeric input)
+  and [spec] 6 (pm-lead answered it in the note above).
