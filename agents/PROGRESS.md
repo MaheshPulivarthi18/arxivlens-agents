@@ -623,3 +623,14 @@ Format:
 - EVAL-10 / PR #61 (`164305b`): **APPROVE** after QA PASS r1. I opened every evidence file in `9d8ab39`. The verdict is in `agents/reviews/EVAL-10/report.md`.
 - Follow-up EVAL-10a specced (ai, P3, error-outcome tests; starts after #61 merges). The `make lint` Python target (AI-11 follow-up (a)) still needs grooming: 63 pre-existing ruff findings at line length 130.
 - PR #61: description rewritten with the evidence, marked ready for review. Board and Jira are left to the orchestrator.
+
+## 2026-11-19 14:53Z — orchestrator (manual cycle at Mahesh's request: "review and merge the PRs and pick up next tasks", session_01ATEBeSGqS7NnAXfmeu62dA)
+- Lock taken (`agents/RUN_LOCK`), released in this commit.
+- **Merged #51–#58 on Mahesh's explicit instruction** (agents never merge on their own; this was his call, made live in the session). Before merging, every PR was checked: head unchanged since QA PASS + PM APPROVE, `mergeable_state: clean`, all CI check runs green, and all eight test-merged together locally on `origin/main` with no conflicts. Squash-merged in dependency order #52, #51, #53, #54, #55, #57, #56, #58 → ArxivLens `main` = `8b55af2`; main CI (Go, Python M0, Frontend, DB) green after the merges. Jira KAN-59, KAN-30, KAN-14, KAN-60, KAN-62, KAN-63, KAN-64 → Done.
+- New tasks (3, all independent: disjoint files, deps merged): **AI-8c** (backend, P0, `synthesis_test.go`; unblocks AI-8b), **ING-6b** (backend, P1, `internal/crawler/loop*.go`, `crawler.go`; unblocks ING-6c), **EVAL-10** (ai, P2, `scripts/evaluate_answers.py`, `tests/test_evals_data.py`, `evals/README.md`). Backend capped at 2, so OPS-H7a / OPS-H12 / OPS-H9 wait; FE-1 still env-blocked (npm).
+  - AI-8c → PR [#59](https://github.com/MaheshPulivarthi18/ArxivLens/pull/59) @ `dd5dac5`: 1 attempt, QA PASS r1, PM APPROVE r1 → Ready to merge (KAN-67).
+  - ING-6b → PR [#60](https://github.com/MaheshPulivarthi18/ArxivLens/pull/60) @ `ea3bf32` (443 lines): 1 attempt, QA PASS r1 (nits: cross-listed publish-fail test gap, doubled `cat:` prefix → ING-6c AC11; design build note written by pm-lead), PM APPROVE r1 → Ready to merge (KAN-65).
+  - EVAL-10 → PR [#61](https://github.com/MaheshPulivarthi18/ArxivLens/pull/61) @ `164305b`: 1 attempt, QA PASS r1, PM APPROVE r1 → Ready to merge (KAN-69). Follow-up EVAL-10a specced.
+- QA harnesses couldn't write `report.md`; the orchestrator saved each QA PR comment verbatim with a provenance line (`d73e36a`).
+- Friction: the three PM agents shared one checkout of this repo, and one `git pull --rebase` retry failed on another agent's unstaged changes (its push had already landed). Next time give parallel memory-writing agents their own worktree.
+- **Waiting on Mahesh: 3 PRs ready for review (#59–#61)**; ADRs and FE-1 npm egress / EVAL-8 question unchanged.

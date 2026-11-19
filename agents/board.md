@@ -1,28 +1,26 @@
 # Board
 
-Last updated: 2026-11-18 03:05Z by orchestrator (cycle 03:00Z: idle, no merges or human feedback; ArxivLens `main` = `40dec5a`, no merges since 2026-11-15)
+Last updated: 2026-11-19 15:30Z by orchestrator (manual cycle at Mahesh's request: he asked the team to review and merge #51–#58; all 8 merged, ArxivLens `main` = `8b55af2`, main CI green; 3 new tasks built, QA PASS, PM APPROVE, raised as #59–#61)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
-"After #N" = start only once that PR is **merged** (file overlap or dependency). Open PRs and their files: #51 EVAL-4 (`README.md`,
-`evals/BASELINE.md`, `evals/README.md`), #52 ING-11b (`db.yml`, `CONTRIBUTING.md`, `README.md`, `internal/query/search*.go`, `tests/test_evals_data.py`,
-`tests/test_m2_pipeline.py`), #53 OPS-H2 (`ci.yml`, `Makefile`, `requirements*.txt`, both Dockerfiles), #54 AI-8a (`rag.go`, `rag_test.go`),
-#55 OPS-H11 (`internal/db/db.go`, `internal/downloader/*`, `tests/test_m4_chaos.py`), #56 ING-6a2 (`internal/crawler/loop*.go`),
-#57 ING-6a1 (`migrations/000005_*`, `internal/db/watermarks*.go`), #58 ING-6f (`.github/workflows/stack.yml`). **All eight are Ready to merge.**
-`rag.go` order (one file, one owner): AI-8a → AI-8b → AI-5 (if ADR-0011 is Accepted).
+"After #N" = start only once that PR is **merged** (file overlap or dependency). Open PRs and their files: #59 AI-8c (`internal/query/synthesis_test.go`),
+#60 ING-6b (`internal/crawler/loop.go`, `loop_test.go`, `crawler.go`), #61 EVAL-10 (`scripts/evaluate_answers.py`, `tests/test_evals_data.py`, `evals/README.md`).
+**All three are Ready to merge.** `rag.go` order (one file, one owner): AI-8b (after #59) → AI-5 (if ADR-0011 is Accepted).
 Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; what they changed for the tickets is recorded in the
 2026-11-17 grooming notes (QA-8 delivered by #46; AI-10/ADR-0015 premise changed by #43/#47; EVAL-8 question; ADR-0018 Proposed for #44/#46).
 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 1 | [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to the high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | all deps merged; **after #52** (`db.yml`, README) | Next backend build once ING-11b merges |
-| 2 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | **after #52** **and** not alongside OPS-H7a (`db.yml`) | |
-| 3 | [EVAL-10](tasks/EVAL-10.md) (KAN-69) | Name refused/missed/near-miss-failed case IDs in the `/v1/ask` eval summary | ai-engineer | P2 | **after #51** (`evals/README.md`; tests can go in a new file) | |
-| 4 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | **Env-blocked:** registry.npmjs.org still doesn't resolve (re-checked 2026-11-17 18:00Z). Needs Mahesh (allow the host, or push the lockfile) |
+| 1 | [OPS-H7a](tasks/OPS-H7a.md) | `dlq list`/`inspect` to the high watermark, `P/O` paging, Kafka in `db.yml` (OPS-H7 part 2) | backend-engineer | P1 | all deps merged (#52 merged 2026-11-19) | Next backend build; not alongside OPS-H9 (`db.yml`) |
+| 2 | [OPS-H12](tasks/OPS-H12.md) (KAN-68) | `stack.yml` `-rA` PASSED lines (+ ING-6f probe `continue-on-error`) | backend-engineer | P2 | #58 merged 2026-11-19 | Independent of OPS-H7a (`stack.yml` only; don't touch Makefile) |
+| 3 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | not alongside OPS-H7a (`db.yml`) | |
+| 4 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | **Env-blocked:** registry.npmjs.org still doesn't resolve (re-checked 2026-11-19 14:00Z). Needs Mahesh (allow the host, or push the lockfile) |
 | 5 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 merged | |
 | 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 merged | |
 | 7 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a merged | |
 | 8 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
+| 9 | [EVAL-10a](tasks/EVAL-10a.md) | Pin errored cases in the `/v1/ask` summary ID lines (test-only) | ai-engineer | P3 | #61 merged | Jira story not created yet |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -39,23 +37,15 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
-| [AI-8a](tasks/AI-8a.md) | Citation `status`/`paper_version`/`page`/`quote`, versioned `pdf_url`, raw `content` on the LLM path | ai-engineer | ArxivLens [#54](https://github.com/MaheshPulivarthi18/ArxivLens/pull/54) (KAN-60) @ `990aa5a` | QA FAIL r1, r2 → PASS r3 · PM APPROVE 2026-11-17 (AC7 eval "not run", measured in AI-8b AC9) |
-| [ING-6a](tasks/ING-6a.md) part 6a1 | `crawl_watermarks` (migration 000005) + monotonic watermark store | backend-engineer | ArxivLens [#57](https://github.com/MaheshPulivarthi18/ArxivLens/pull/57) (KAN-63) @ `c86bd5a` | QA PASS r1 · PM APPROVE (nits → ING-6b AC9 / ING-6c AC7, AC10) |
-| [ING-6a](tasks/ING-6a.md) part 6a2 | Crawl-loop walk, batch selection, arXiv feed, `ParseCategories` | backend-engineer | ArxivLens [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) (KAN-63) @ `3f8e903` | QA FAIL r1 → PASS r2 · PM APPROVE. ING-6a Done when #56 **and** #57 merge |
-| [ING-6f](tasks/ING-6f.md) | `stack.yml` prints the recorded feed's `published` order (Risk 1) | backend-engineer | ArxivLens [#58](https://github.com/MaheshPulivarthi18/ArxivLens/pull/58) (KAN-64) @ `61e44e1` | QA FAIL r1 (PR body) → PASS r2 · PM APPROVE. Verdict `RISK1 ORDER descending` (ING-6b precondition met) |
-| [OPS-H11](tasks/OPS-H11.md) | Redelivered `papers.discovered` keeps an `embedded` paper `embedded` | backend-engineer | ArxivLens [#55](https://github.com/MaheshPulivarthi18/ArxivLens/pull/55) (KAN-62) @ `2039650` | QA PASS r1 · PM APPROVE |
-| [EVAL-4](tasks/EVAL-4.md) | Record EVAL-3's first numbers in `evals/BASELINE.md` (+ README Testing line) | ai-engineer | ArxivLens [#51](https://github.com/MaheshPulivarthi18/ArxivLens/pull/51) (KAN-30) @ `156c394` | QA FAIL r1 → PASS r2 · PM APPROVE |
-| [ING-11b](tasks/ING-11b.md) | `/v1/search` returns `page` from `paper_chunk_pages`; parity; README; real-stack write check | backend-engineer | ArxivLens [#52](https://github.com/MaheshPulivarthi18/ArxivLens/pull/52) (KAN-59) @ `706e43e` | QA PASS r1 · PM APPROVE; merging it unblocks AI-8b, OPS-H7a, OPS-H9 |
-| [OPS-H2](tasks/OPS-H2.md) | One `requirements.txt` (+ `requirements-dev.txt`; `requirements-m0.txt` shim) | backend-engineer | ArxivLens [#53](https://github.com/MaheshPulivarthi18/ArxivLens/pull/53) (KAN-14) @ `95ea3bb` | QA PASS r1 · PM APPROVE ([report](reviews/OPS-H2/report.md)) |
+| [AI-8c](tasks/AI-8c.md) | `checkCitationInvariants` at the 11 `AskResponse` sites in `synthesis_test.go` | backend-engineer | ArxivLens [#59](https://github.com/MaheshPulivarthi18/ArxivLens/pull/59) (KAN-67) @ `dd5dac5` | QA PASS r1 · PM APPROVE ([report](reviews/AI-8c/report.md)); merging it unblocks AI-8b |
+| [ING-6b](tasks/ING-6b.md) | Crawl-loop emit oldest-first, crash-safe watermark advance, `RunOnce`/`Run` | backend-engineer | ArxivLens [#60](https://github.com/MaheshPulivarthi18/ArxivLens/pull/60) (KAN-65) @ `ea3bf32` | QA PASS r1 · PM APPROVE ([report](reviews/ING-6b/report.md)); nits → ING-6c AC11; merging it unblocks ING-6c |
+| [EVAL-10](tasks/EVAL-10.md) | Refused/missed/near-miss case IDs in the `/v1/ask` eval summary | ai-engineer | ArxivLens [#61](https://github.com/MaheshPulivarthi18/ArxivLens/pull/61) (KAN-69) @ `164305b` | QA PASS r1 · PM APPROVE ([report](reviews/EVAL-10/report.md)); follow-up EVAL-10a |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
-| [ING-6b](tasks/ING-6b.md) (KAN-65) | Crawl-loop emit/advance, `RunOnce` | backend-engineer | #56 + #57 merged (ING-6f Risk 1 precondition met: `descending`) |
-| [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | ING-6b, #51, #52 merged |
-| [OPS-H12](tasks/OPS-H12.md) (KAN-68) | `stack.yml` `-rA` PASSED lines (+ ING-6f probe `continue-on-error`) | backend-engineer | #58 merged (same file) |
-| [AI-8c](tasks/AI-8c.md) (KAN-67) | `checkCitationInvariants` calls in `synthesis_test.go` | backend-engineer | AI-8a (#54) merged |
-| [AI-8b](tasks/AI-8b.md) (KAN-61) | `claims[]`, `prompt_version`, README `/v1/ask` row, AC6 Python | ai-engineer | AI-8a (#54), AI-8c and ING-11b (#52) merged; AC9: compare first nightly eval after #54 merges |
+| [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | ING-6b (#60) merged (#51, #52 merged 2026-11-19); AC11 = ING-6b QA nits |
+| [AI-8b](tasks/AI-8b.md) (KAN-61) | `claims[]`, `prompt_version`, README `/v1/ask` row, AC6 Python | ai-engineer | AI-8c (#59) merged (AI-8a #54 and ING-11b #52 merged 2026-11-19); AC9: compare first nightly eval after #54 |
 | [FE-4](tasks/FE-4.md) (KAN-44) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | AI-8a/AI-8b merged, FE-3 merged (FE-1 env-blocked) |
 | [AI-10](tasks/AI-10.md) (KAN-51) | Configurable int8/`max_length` reranker (design-required) | ai-engineer | Mahesh's answer on ADR-0015 (premise changed: GPU is the reference hardware since #43/#47). AI-9 is merged (`d4b1cf3`) |
 | [EVAL-8](tasks/EVAL-8.md) (KAN-46) | First answer eval with a real LLM | backend + ai | Mahesh: is his local qwen2.5:3b run in #46 "option 3" (EVAL-8 done, commit the results JSON), or does he want CI/hosted runs (option 1/2)? |
@@ -71,7 +61,6 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 - From the ING-6f PM review: **OPS-H13** (backend, P2, `stack.yml`): seed a main-scoped arXiv replay cache so PR branches replay one fixed recording instead of re-recording ~5 live requests on each new branch's first run; fix the header claim "0 arXiv requests per run once recorded"
 - ING-6d (compose `crawler` profile), ING-6e (late announcements), ING-9b (`crawl --rate-limit`): specced in the ING-6 split, Backlog
 - pm-lead docs PR (OPS-H7 design condition 7): Product PRD OPS-2 ✅ → ◐ (`dlq list` doesn't reach the end; replay repeats the head) until OPS-H7c merges. Still owed; OPS-H7f doesn't change it.
-- ~~From ING-11 QA finding 3 (backend, P3, one line, after #26 merges; fold into the first backend PR that starts then, ING-11b is the backstop): `CONTRIBUTING.md:23` `make test-unit` row lists the `test-py` pytest files and misses `tests/test_processor_pages.py` (#33)~~ **Done in ING-11b #52** (all six `test-py` files; remove when #52 merges)
 - From ING-11b QA finding 4 (backend, P3, fold into the next `tests/test_m2_pipeline.py` change): `test_embedded_chunks_have_recorded_start_pages` reports a NULL `page_number` with a page row as "page_start N < page_number None"; give it its own message ("page row but NULL page_number")
 - From the OPS-H8 QA/PM review (backend, P3, after #26 merges): `stack.yml` passes `PYTEST_ARGS=-rA` to `make test-full` so the log names each test (AC evidence today needs a dot-position map)
 - PR-body image embeds: an outbound filter in the agent environment rewrites `![](…)` into backticked links and swaps the footer, so evidence images don't render inline in PR descriptions (#26–#31). Pinned URLs still work. Mahesh: check whether this is expected
@@ -156,6 +145,13 @@ Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and 
 ## Done
 | ID | Title | PR |
 |---|---|---|
+| [AI-8a](tasks/AI-8a.md) (KAN-60) | Citation status/version/page/quote, versioned `pdf_url` | ArxivLens [#54](https://github.com/MaheshPulivarthi18/ArxivLens/pull/54) → 12e9c82, merged 2026-11-19 |
+| [ING-6a](tasks/ING-6a.md) (KAN-63) | `crawl_watermarks` store (6a1) + crawl-loop walk (6a2) | ArxivLens [#57](https://github.com/MaheshPulivarthi18/ArxivLens/pull/57) → 6586cc6, [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) → 437466f, merged 2026-11-19 |
+| [ING-6f](tasks/ING-6f.md) (KAN-64) | `stack.yml` prints the recorded feed order (Risk 1) | ArxivLens [#58](https://github.com/MaheshPulivarthi18/ArxivLens/pull/58) → 8b55af2, merged 2026-11-19 |
+| [OPS-H11](tasks/OPS-H11.md) (KAN-62) | Redelivered `papers.discovered` keeps an `embedded` paper `embedded` | ArxivLens [#55](https://github.com/MaheshPulivarthi18/ArxivLens/pull/55) → 52e473c, merged 2026-11-19 |
+| [OPS-H2](tasks/OPS-H2.md) (KAN-14) | One `requirements.txt` (+ dev) | ArxivLens [#53](https://github.com/MaheshPulivarthi18/ArxivLens/pull/53) → a5be0e1, merged 2026-11-19 |
+| [EVAL-4](tasks/EVAL-4.md) (KAN-30) | First eval numbers in `evals/BASELINE.md` | ArxivLens [#51](https://github.com/MaheshPulivarthi18/ArxivLens/pull/51) → 31e2fad, merged 2026-11-19 |
+| [ING-11b](tasks/ING-11b.md) (KAN-59) | `/v1/search` returns `page` from `paper_chunk_pages` | ArxivLens [#52](https://github.com/MaheshPulivarthi18/ArxivLens/pull/52) → 343a1c3, merged 2026-11-19 |
 | [AI-9](tasks/AI-9.md) | CPU rerank: length-sorted batches under `inference_mode` (scores unchanged) | ArxivLens [#24](https://github.com/MaheshPulivarthi18/ArxivLens/pull/24) → d4b1cf3 (KAN-39), merged by Mahesh 2026-11-14 while QA r2 FAIL (AC1 evidence) was open |
 | [EVAL-9](tasks/EVAL-9.md) | `eval.yml` seed budget 70 / job 120, seed-time summary | ArxivLens [#37](https://github.com/MaheshPulivarthi18/ArxivLens/pull/37) → c0376ab, merged before QA r2/PM review |
 | [OPS-H10b](tasks/OPS-H10b.md) | Embedder rerank timing block teed to the job log | ArxivLens [#39](https://github.com/MaheshPulivarthi18/ArxivLens/pull/39) → 5099130, merged before QA |
