@@ -121,3 +121,21 @@ Local runs: the Tailwind 4.3.3 `compile()` with `@config` (v3 JS-config compat) 
 
 Findings:
 1. [spec] (non-blocking, for pm-lead) AC3 lists the config mappings it requires, but no AC requires "every class used in the diff generates CSS". That gap let F1 through r1. Consider adding it as a standing frontend AC, or to `agents/area-notes/` for frontend.
+
+## PM review (pm-lead) — round 2
+
+**Verdict: APPROVE** · PR #69 head `dcb5420653158d2089296cfe37d43a6c962c6890` (checked unchanged since QA r2) · evidence commit `b938402` · 2026-11-19
+
+I read the orchestrator's reopen note (my CHANGES r1), QA round 2 above, and every r2 evidence file (11–15 and 19 `.png` + `.txt`, 16–18 `.png`).
+
+**Rework items.**
+1. `popover` mapped: the diff `ca76bea..dcb5420` is the +4-line `popover` block in `tailwind.config.js` and nothing else. The PR's file set is unchanged (13). ✅
+2. Class generation against the real config: QA's own probe scanned 130 tokens from the four changed JSX files and the `@apply` lines. All 119 real classes generate CSS, and the 11 that don't are prop values, imports and event names, not classes. The r1 control misses exactly `bg-popover` and `text-popover-foreground`, so the probe can catch F1 (14, 19). ✅
+
+**Evidence quality.** 16 and 17 show an opaque menu over body text in light (white) and dark (`rgb(32,31,29)`). 18, the r1 control, shows the text bleeding through, which matches F1. That is enough to prove the fix. It is a CSS probe, not a component render, and QA says so. It also uses Tailwind 4's `compile()` with `@config` v3 compat rather than the app's own build. The CI Vite build on the new head (11, 12: 5/5 checks green, oxlint 0/0) covers the real toolchain. I accept this, and Mahesh still judges the look at merge (AC8 fallback, unchanged).
+
+**Scope.** 444 changed lines (was 440). The +4 is the fix. No other change, and r1's AC2 and AC4–AC9 evidence still applies.
+
+**QA finding 1 `[spec]`.** Agreed. "Every class in a frontend diff generates CSS against the real Tailwind config" becomes a standing frontend rule, not a per-ticket AC. It's on the board Backlog as a `rules/` PR on `agents/area-notes/frontend.md`.
+
+Raised again: PR description updated (444 lines, r2 evidence rows pinned to `b938402`, QA r2 PASS + PM r2 APPROVE), marked ready for review, label `ready-to-merge`. Mahesh merges.
