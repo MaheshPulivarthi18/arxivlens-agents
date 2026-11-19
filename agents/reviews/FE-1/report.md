@@ -51,3 +51,41 @@ Not produced: `node_modules` can't be installed in the QA sandbox (npm registry 
 
 ## Hand-off
 PASS → pm-lead final review.
+
+---
+
+# PM review — FE-1 · PR #68 · head `50f1963`
+
+**Verdict:** APPROVE
+**Reviewer:** pm-lead · **Date:** 2026-11-19 · **QA verdict reviewed:** PASS r1 (above), head confirmed unchanged at `50f19631e91a86b3934f4ad7e88c48238b64ceac`
+
+## What I checked
+- Ticket `agents/tasks/FE-1.md` (5 ACs, scope, out-of-scope list), Product PRD UI-1, QA-3, QA-4, QA-5 and §7.
+- PR diff (`pulls/68/files`): 10 files, all under `frontend/`, +322/−17. I read the three test files and `fixtures.js` in full.
+- All 11 evidence pairs (`00`–`10`, PNG and `.txt`); each PNG matches its `.txt` and is pinned to commit `50f1963`.
+
+## Evidence vs ACs
+| AC | Evidence | PM view |
+|---|---|---|
+| AC1 | 00 (5/5 checks green on the head), 01 (CI job log: `vitest run`, 19/19, 2.72 s; merge base `4c7d327` = current main), 02 (no network APIs; jsdom; data via props) | Proven. 2.72 s ≪ 30 s. Local "not run" is backed by 09 and allowed by AGENTS.md §4 |
+| AC2 | 03 (19 `it(` cases, 6/8/5) matching CI's "19 passed" | Proven. Refusal and both unsupported/unverified cases are present and assert the right things (I read them) |
+| AC3 | 04 (diff), 05 + 06 (mutation probe on the real function and fixtures) | Proven. Reverting to main's "x% Verified" fails 3 tests. The two surviving mutants only matter for input the backend doesn't send (`status: supported` with `supported: false`). This closes the "0.0% Verified" case from the AI-2 review |
+| AC4 | 01 (oxlint 0/0, vite build ok), 07 (README line 14) | Proven |
+| AC5 | 08 (package.json: only `"test"`; lockfile diff 0 lines; no FE-0 files; nothing outside `frontend/`) | Proven |
+
+No AC depends on a "⚠ unverified" item. There are no UI screenshots because the dev server can't run in the sandbox (09). For FE-1 that's acceptable: it's a test harness plus one badge-label change, and the rendered badge text is asserted by tests that ran in CI. FE-3 is the user-visible refusal UI, so it will need real screenshots.
+
+## Product fit
+- **§7 "Evidence first" / QA-4:** an unsupported or unchecked citation no longer says "Verified". The card is still listed, with its score and PDF link, so the user sees the evidence and how weak it is.
+- **§7 "One click to the source" / UI-1, QA-3:** the per-citation PDF link (and its arXiv fallback) is now covered by tests, and so are the `[n]` marker buttons.
+- **§7 "Say I don't know" / QA-5:** a refusal renders as a normal state with no `role=alert`. The App-level "no toast" path isn't tested (QA finding 4); it goes to FE-3.
+- **Scope:** right-sized. The a11y labels (`role="article"`, per-citation `aria-label`s, the input label) exist so tests can query by role, as my grooming note asked, and they help screen-reader users. No dependency changes, and FE-0's files are untouched.
+- **Docs:** `frontend/README.md` updated. PRD status columns don't change: UI-1/QA-3/QA-5 are already ✅. QA-4 stays ◐ because its remaining gap is the backend fail-closed path (AI-2), not the UI label.
+
+## QA findings: disposition
+1. [nit] M1/M2 survivors → added to FE-3's notes as an extra test row (`status: supported` + `supported: false` → not Verified; reserved ADR-0014 statuses → not Verified).
+2. [nit] "PostgreSQL pgvector Verified" footer and the "Verified Citations" export heading → already FE-3 AC5. No new ticket; I added a pointer to FE-3's notes.
+3. [nit] ci.yml `npm run | grep -q` EPIPE noise → Backlog line (backend, P3).
+4. [spec] Refusal-not-a-toast lives in `App.jsx` → FE-3 AC2 now says explicitly that it's an App-level test with `fetch` mocked (FE-3 note). I'm not counting it against FE-1: the ticket asked for `SynthesisView` tests, and those are done.
+
+**Hand-off:** APPROVE → PR #68 raised for Mahesh (description rewritten with evidence, marked ready for review). Jira KAN-19 → Ready to merge (orchestrator).

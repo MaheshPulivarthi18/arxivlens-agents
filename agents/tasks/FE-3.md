@@ -69,3 +69,10 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   tokens (add the badge variants here), and a `ui/tooltip` on each status chip explaining what it means (e.g. "Supported: the passage
   entails this sentence (score x%)"). The tooltip is extra help only: the chip text must carry the meaning without it (AC3 unchanged).
   Restyling `SynthesisView`/`ReferencesStack` to the tokens is in scope here. The design must not start before FE-0's design is approved.
+- 2026-11-19 (pm-lead, from the FE-1 QA/PM review, PR #68): FE-1 adds `verification()` to `ReferencesStack.jsx`. Only `status: supported` (with
+  `supported !== false`) renders "x% Verified". Otherwise the badge is an amber "Unsupported · x%" or "Unverified · x%". Citation cards are `role="article"`
+  with an aria-label. Fixtures are in `src/test/fixtures.js`. Build AC3 on top of that: rename "Verified" to "Supported" there. Three additions from FE-1 QA:
+  (a) **AC2 "no toast" must be an App-level test** (`App.jsx` with `fetch` mocked: a `refusal_reason` response shows no toast and keeps
+  ReferencesStack visible). Toasts live in `App.jsx`, so a component test can't prove it. (b) Add test rows for `status: "supported"` + `supported: false`
+  and for the reserved ADR-0014 statuses (`partially_supported`, `contradicted`): neither may read Supported/Verified. FE-1's tests leave both mutants alive.
+  (c) QA re-confirmed the "PostgreSQL pgvector Verified" footer (`SynthesisView.jsx:115`) and the export heading (`:50`) are still on main (AC5).
