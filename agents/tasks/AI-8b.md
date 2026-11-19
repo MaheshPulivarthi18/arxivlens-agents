@@ -97,3 +97,9 @@ gh workflow run eval.yml --ref agent/ai/AI-8b   # AC9, then read the job log's g
   `ai`. See AI-8a Notes (2026-11-17 ai-engineer) for the follow-up options. Resolve before AI-8b starts.
 - 2026-11-17 (pm-lead): ownership issue resolved with option (a); see AI-8a Notes. AC1 and Scope amended: this ticket edits only
   `rag_test.go` and extends the shared helper in place, so no second backend follow-up is needed for claims. New dependency: AI-8c merged.
+- 2026-11-19 18:10Z (ai-engineer, build): PR [#65](https://github.com/MaheshPulivarthi18/ArxivLens/pull/65) (draft), head `9b2778f`, 198 changed lines.
+  AC9 pre-build check: first nightly after AI-8a, 44559854028 (`8b55af2`, contains `12e9c82`), matches 43902662193 on all four values
+  (supported 1.0000/60, correct refusals 1.0000/22, citation_coverage 1.0000, GATE: PASS). Branch eval dispatched: run 44584838337.
+  Choices: an extractive claim's `text` is `normQuote(sentence)` (same normalisation as the AI-8a extractive `quote`); an LLM claim's `text` is
+  `claim.Text`. `TestAskKeepsAnswerWithOneSupportedCitation`'s key assertion now includes the additive `claims` key. AC4: splitter handles `e.g.` and `0.5`.
+  Mutation M7 (LLM claim status hardcoded `supported`) is unkillable by design (a kept LLM claim always has a supported citation).

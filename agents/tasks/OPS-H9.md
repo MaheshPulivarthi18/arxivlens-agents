@@ -61,3 +61,8 @@ gh workflow run <digest-check workflow> --ref agent/backend/OPS-H9
   README prerequisite "pgvector ≥ 0.8.0" moves to ING-6c AC8: ING-6c edits README and `db.yml`, so it can only start after this PR merges,
   and the pin is on main by then. Compose users get the pinned image without reading README; the minimum is also in CONTRIBUTING and in the
   `db.yml` check's failure message. AC5 amended. No change to what CI checks.
+- 2026-11-19 18:11Z (backend-engineer, build): PR [#66](https://github.com/MaheshPulivarthi18/ArxivLens/pull/66) (draft). pgvector pinned by digest
+  (`pg16@sha256:484e8380…`, ships 0.8.7 per main `db.yml` job 135749886659), not by a version tag: Docker Hub, cgr.dev and the pgvector GitHub repo
+  are unreachable from the sandbox, so a tag couldn't be checked; `image-pins.yml` covers the pin weekly and on PRs touching the pins (a new workflow
+  can't be dispatched before it's on main). The real_postgres step fails on a skip as well as a failure. Attempt 1 (`3c1dadb`): Image pins run
+  44584826905 failed on shellcheck SC2001 (bundled in the actionlint docker image, absent from the local build); attempt 2 `e875fa8` fixes it.
