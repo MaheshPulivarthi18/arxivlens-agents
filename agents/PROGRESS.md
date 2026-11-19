@@ -654,3 +654,11 @@ Format:
 ## 2026-11-19 17:32Z — orchestrator (Mahesh: "i merged prs update status on jira", session_01ATEBeSVMkYAKhRYdxuTFXH)
 - Mahesh merged #59 (AI-8c), #61 (EVAL-10), #63 (OPS-H12), #60 (ING-6b), #62 (OPS-H7a1) at 17:27–17:29Z. Jira KAN-67, KAN-69, KAN-68, KAN-65, KAN-70 → Done.
 - Unblocked (`blocked` label removed, orchestrator comment): AI-8b (KAN-61), ING-6c (KAN-66), OPS-H7a2 (KAN-71). OPS-H9 and EVAL-10a deps now merged too. Board moved them to Ready. No open agent PRs.
+
+## 2026-11-19 — pm-lead (FE-0 design review; OPS-H9 [spec] finding)
+- **FE-0 design approved with conditions** (`docs/design/FE-0.md` "PM decision"). Interim default theme dark until FE-3 (AC5 amended; FE-3 AC8 flips to `system`).
+  `--input` ≥ 3:1 for control outlines while `--border` stays decorative (AC4). `dist/` greps are replaced by the CI Vite asset list + source checks;
+  the `.prose` built-CSS check moves to FE-3 because Tailwind doesn't emit unused classes (AC2/AC3). The "Clinical Research AI" badge is dropped (reversible, flagged for Mahesh).
+- **Split:** FE-0 now covers the design's "FE-0a" (~400 lines, branch `agent/frontend/FE-0`). New spec `agents/tasks/FE-0b.md` has the six other primitives
+  (new files only) and waits for a frontend WIP slot. FE-3 and FE-4 now also depend on FE-0b. FE-2 doesn't. Backlog: OPS-H14 (CI `dist/` greps), plus a `theme.test.js` follow-up.
+- **OPS-H9:** AC2 accepts tag + digest, and AC3 accepts a PR-triggered run (`workflow_dispatch` can't run before merge). QA finding 6 [spec] is closed.

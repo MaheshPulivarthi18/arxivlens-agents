@@ -5,10 +5,10 @@
 | **Owner** | frontend-engineer |
 | **Priority** | P0 (Phase 1 item 8; Product PRD §7 principle 3 "one click to the source") |
 | **PRD ref** | Product PRD UI-1, QA-3, QA-4, §7 principles 1–3; ADR-0014 (Accepted 2026-11-07); ADR-0018 (Proposed: `answer_kind`) |
-| **Depends on** | **AI-8 merged** (claims + provenance JSON; design stage now), **FE-3 merged** (same components), **FE-1 merged** (harness), **FE-0 merged** (theme, `ui/popover`, `ui/collapsible`). ADR-0014 Accepted. ING-11b for real `page` values (fixtures suffice for tests) |
+| **Depends on** | **AI-8 merged** (claims + provenance JSON; design stage now), **FE-3 merged** (same components), **FE-1 merged** (harness), **FE-0 merged** (theme) and **FE-0b merged** (`ui/popover`, `ui/collapsible`; split 2026-11-19). ADR-0014 Accepted. ING-11b for real `page` values (fixtures suffice for tests) |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-4"`) |
 | **Design required** | **yes** (`docs/design/FE-4.md`: layout, states, interaction; P0) |
-| **Status** | Waiting on dependencies (AI-8, FE-3, FE-1, FE-0). Not ADR-blocked: ADR-0014 was Accepted 2026-11-07 |
+| **Status** | Waiting on dependencies (AI-8, FE-3, FE-1, FE-0, FE-0b). Not ADR-blocked: ADR-0014 was Accepted 2026-11-07 |
 
 ## Goal
 Let a researcher check any statement in an answer in one or two clicks: see whether it was supported, unsupported or

@@ -1,6 +1,6 @@
 # Tech design — FE-0: Classic research theme: fonts, tokens, dark mode, ui primitives
 
-**Author:** frontend-engineer · **Ticket:** `agents/tasks/FE-0.md` · **PRD:** Product PRD UI-1, UI-2; §7 principles 1 "Evidence first" and 3 "One click to the source" · **Status:** Draft
+**Author:** frontend-engineer · **Ticket:** `agents/tasks/FE-0.md` · **PRD:** Product PRD UI-1, UI-2; §7 principles 1 "Evidence first" and 3 "One click to the source" · **Status:** Approved with conditions (pm-lead, 2026-11-19; see PM decision)
 
 All code references are to the app repo at `origin/main` `4c7d327` (`frontend/`).
 
@@ -374,4 +374,50 @@ def ratio(a, b):
 ```
 
 ## PM decision
-_(pm-lead fills)_
+**Approved with conditions** (pm-lead, 2026-11-19). The conditions are already written into the amended ACs in
+`agents/tasks/FE-0.md` and the new `agents/tasks/FE-0b.md`. Code may start on the FE-0a part now.
+
+Why it's approved: the design does what UI-1/UI-2 need without changing any feature screen, and it reads principles 1 and 3
+correctly. Using ink blue for links and keeping red for *unsupported* and *destructive* is the right call, so "click here"
+never looks like "this claim failed". The status tokens differ in hue, lightness and (in FE-3) text and icon. The contrast
+table is computed, covers every AC4 pair in both themes, and comes with a script QA can rerun against `src/index.css`. The
+theme logic is a small pure module, so it can be tested without a browser, and the design has no unused provider. Contracts
+and dependencies are unchanged.
+
+Answers to the open questions:
+1. **Interim default: dark. Approved.** Showing 1.16:1 answer prose to every OS-light first-time visitor would break
+   principle 1 on the main screen, which is worse than defaulting to dark for a while. `DEFAULT_THEME = "dark"` goes in
+   `theme.js` **and** the pre-paint script (one constant each, with comments pointing at each other). Light, Dark and System
+   all ship and work. A stored `system` follows `prefers-color-scheme`, live. I amended AC5. FE-3 gets an AC to flip the
+   default to `"system"` once the ask flow uses tokens (added to `agents/tasks/FE-3.md`). This is a reversible UI choice and
+   it's flagged for Mahesh in the ticket Notes.
+2. **AC4 border clause: yes.** WCAG 1.4.11 covers the parts needed to identify a control, not decorative hairlines. If
+   `--border` were ≥ 3:1, every card and divider would get a heavy grey box, which works against the journal look Mahesh
+   asked for. The rule "every form control or control-identifying outline uses `border-input`, never `border-border`" is
+   now part of the contract. Put it as a comment next to `--input` in `src/index.css` so the FE-3/FE-4/FE-2 designs see it.
+   QA checks that every control outline styled in this PR (dropdown trigger, if outlined) uses `border-input`. AC4 amended.
+3. **`dist/` greps: (c) now, with (a) when QA can build and (b) as a backend follow-up.** One correction to the plan:
+   Tailwind only generates classes it finds in `content`, and nothing uses `prose` until FE-3. So "built CSS contains
+   `.prose`" can't pass in FE-0 whatever the CI setup. Instead, AC3 checks the plugin registration and the token-mapped
+   `DEFAULT` theme in source, plus `.font-serif` in the built CSS when a `dist/` is available (Navbar uses it). The `.prose`
+   built-CSS check moves to FE-3. AC2 accepts the Vite asset list in the CI build log (Inter normal and Source Serif 4
+   normal + italic `woff2`) plus the source checks (the fontsource imports in `main.jsx`, no Google hosts in `index.html`
+   or `src/`). The CI `dist/` grep step is backlog item **OPS-H14** (backend, `.github/workflows/ci.yml`).
+4. **Drop the "Clinical Research AI" badge: approved** as a reversible UI choice. It contradicts the direction Mahesh set
+   ("classic UI, think like a pro"), and ArxivLens isn't clinical-specific. The tagline copy stays. The PR description must
+   show it as a visible copy change (before/after) so Mahesh can veto it at merge. New brand copy, if he wants any, is his decision.
+5. **Split: yes.** FE-0 (= the design's "FE-0a", ~400 lines) is built now on branch `agent/frontend/FE-0`. The ticket ID and
+   Jira label stay `FE-0`, so the CI ownership check and Jira links keep working. The six other primitives go to
+   **`agents/tasks/FE-0b.md`** (new files only, branch `agent/frontend/FE-0b`). FE-0b may not change Navbar (the divider
+   stays a `div`; moving it to `Separator` belongs in the token-migration follow-up). FE-0b shares no file with FE-0 or FE-1,
+   but frontend WIP is full (FE-1 #68 + FE-0), so it starts when a slot frees. If FE-0 is still well under 400 lines once
+   built, that doesn't reopen the split.
+
+Further conditions (no answer needed, just do them):
+- a. **Tests:** the uncommitted Node checks for AC5 (the pre-paint snippet matrix and `theme.js` functions) are the
+  developer's self-check. QA re-runs them independently, and their output is AC5's evidence. Committing them as
+  `src/lib/theme.test.js` is a follow-up for after FE-1 merges, recorded in the ticket Notes. It is not a reason to touch FE-1's files now.
+- b. **Bundle impact:** the PR description lists the font `woff2` count and total size from the CI build log (risk "font weight in dist").
+- c. **Keyboard:** the Navbar brand `<button>`, the tabs and the theme menu must be reachable and operable with the keyboard
+  alone, with a visible focus ring in both themes. This is AC5/AC8 evidence (a screenshot of the focus ring if a browser is
+  available, otherwise a code reference).

@@ -17,6 +17,8 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | 0b | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | #60 merged 2026-11-19 | AC11 = ING-6b QA nits; `db.yml`: not alongside OPS-H9 |
 | 1 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | #62 merged 2026-11-19 | |
 | 4 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | **Env-blocked:** registry.npmjs.org still doesn't resolve (re-checked 2026-11-19 14:00Z). Needs Mahesh (allow the host, or push the lockfile) |
+| 4a | [FE-0](tasks/FE-0.md) | Classic research theme: tokens, fonts, dark mode, toggle, Navbar, `dropdown-menu` (design-required) | frontend-engineer | P1 | — | Design approved with conditions 2026-11-19 (pm-lead); build now, branch `agent/frontend/FE-0` |
+| 4b | [FE-0b](tasks/FE-0b.md) | Remaining ui primitives: tooltip, popover, collapsible, scroll-area, separator, sonner | frontend-engineer | P1 | — (new files only) | Split from FE-0 2026-11-19; waits for a frontend WIP slot (FE-1 #68 + FE-0) |
 | 5 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 merged | |
 | 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 merged | |
 | 6a | [OPS-H7a2](tasks/OPS-H7a2.md) (KAN-71) | `dlq list`/`inspect` CLI on the Reader: `List`, `P/O` footer, README (rest of OPS-H7a) | backend-engineer | P1 | #62 merged 2026-11-19 | Specced 2026-11-19 by pm-lead; not alongside OPS-H7b |
@@ -55,6 +57,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the FE-0 design review: **OPS-H14** (backend, P3, `.github/workflows/ci.yml` `frontend` job): after `npm run build`, print `ls dist/assets | grep woff2` and grep `dist/assets/*.css` for `@font-face`, `.font-serif`, `.prose` and for no `fonts.googleapis|gstatic` hosts, so frontend QA has `dist/` evidence without a local build. Also: commit FE-0's AC5 Node checks as `src/lib/theme.test.js` after FE-1 merges (frontend)
 - From the ING-6f PM review: **OPS-H13** (backend, P2, `stack.yml`): seed a main-scoped arXiv replay cache so PR branches replay one fixed recording instead of re-recording ~5 live requests on each new branch's first run; fix the header claim "0 arXiv requests per run once recorded"
 - ING-6d (compose `crawler` profile), ING-6e (late announcements), ING-9b (`crawl --rate-limit`): specced in the ING-6 split, Backlog
 - pm-lead docs PR (OPS-H7 design condition 7): Product PRD OPS-2 ✅ → ◐ until OPS-H7c merges. **Raised 2026-11-19 17:00Z as arxivlens-agents [#12](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/12)** (Mahesh to merge); flip back to ✅ when OPS-H7c merges.

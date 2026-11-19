@@ -5,10 +5,10 @@
 | **Owner** | frontend-engineer |
 | **Priority** | P0 (ADR-0003 consequence: unsupported citations must stay visibly flagged; Product PRD §7 principles 1–2) |
 | **PRD ref** | Product PRD UI-1, QA-4, QA-5, §7; ADR-0003 (Accepted) |
-| **Depends on** | **FE-1 merged** (Vitest harness) and **FE-0 merged** (theme tokens, fonts, `ui/tooltip`). AI-7 merged (`8406b18`). #46 merged (`cc57474`: new props and `insufficient_evidence`) |
+| **Depends on** | **FE-1 merged** (Vitest harness) and **FE-0 merged** (theme tokens, fonts) and **FE-0b merged** (`ui/tooltip`; split from FE-0 2026-11-19). AI-7 merged (`8406b18`). #46 merged (`cc57474`: new props and `insufficient_evidence`) |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-3"`) |
 | **Design required** | **yes** (short, `docs/design/FE-3.md`: states, copy and component changes; P0) |
-| **Status** | Waiting on dependencies (FE-1, FE-0). Design `docs/design/FE-3.md` not written yet: it can start once FE-0's design is approved |
+| **Status** | Waiting on dependencies (FE-1, FE-0, FE-0b). Design `docs/design/FE-3.md` can start now: FE-0's design was approved 2026-11-19 (use its tokens, type scale and §6 primitives API) |
 
 ## Goal
 After AI-7, `/v1/ask` can return no answer plus evidence passages and a `refusal_reason`. The UI must show that as a
@@ -38,6 +38,10 @@ still shows trust labels that claim more than the system checked.
 - [ ] AC5 — "PostgreSQL pgvector Verified" is gone; the Markdown export has no "Verified" heading and marks unsupported entries (test on the export string).
 - [ ] AC6 — Refusal panel has `role="status"` and is reachable by keyboard focus order (test).
 - [ ] AC7 — `npm run lint`, `npm test`, `npm run build` pass in CI.
+- [ ] AC8 — **Flip the interim theme default** (from FE-0's design review, 2026-11-19): `DEFAULT_THEME` becomes `"system"` in both
+  `src/lib/theme.js` and the `index.html` pre-paint script, once `SynthesisView`, `ReferencesStack` and App's refusal banner use tokens. Evidence:
+  WCAG contrast ≥ 4.5:1 on the light theme for the answer prose, refusal text, passage text and `[n]` markers (no hard-coded `slate-`/`emerald-`/`amber-`
+  text classes left in those three files), and the built CSS contains `.prose` (moved here from FE-0 AC3).
 
 ## Verification
 ```bash
