@@ -1,29 +1,26 @@
 # Board
 
-Last updated: 2026-11-19 17:32Z by orchestrator (Mahesh merged #59–#63 at 17:27–17:29Z; Jira KAN-65/67/68/69/70 → Done; ING-6c, AI-8b, OPS-H7a2, OPS-H9, EVAL-10a unblocked)
+Last updated: 2026-11-19 22:20Z by orchestrator (cycle 21:00Z: AI-8b #65, OPS-H9 #66, FE-1 #68, FE-0 #69 raised for Mahesh; FE-0b #70 in QA)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
-"After #N" = start only once that PR is **merged** (file overlap or dependency). Open PRs and their files: none (all merged 2026-11-19 17:29Z). Previously: #59 AI-8c (`internal/query/synthesis_test.go`),
-#60 ING-6b (`internal/crawler/loop.go`, `loop_test.go`, `crawler.go`), #61 EVAL-10 (`scripts/evaluate_answers.py`, `tests/test_evals_data.py`, `evals/README.md`),
-#62 OPS-H7a1 (`internal/dlq/kafka*.go`, `.github/workflows/db.yml`, `go.mod`), #63 OPS-H12 (`.github/workflows/stack.yml`).
-**All five merged 2026-11-19.** `rag.go` order (one file, one owner): AI-8b (#59 merged; Ready) → AI-5 (if ADR-0011 is Accepted).
-Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; what they changed for the tickets is recorded in the
-2026-11-17 grooming notes (QA-8 delivered by #46; AI-10/ADR-0015 premise changed by #43/#47; EVAL-8 question; ADR-0018 Proposed for #44/#46).
+"After #N" = start only once that PR is **merged** (file overlap or dependency). **Open PRs and their files:**
+#65 AI-8b (`internal/query/rag.go`, `rag_test.go`, `tests/test_evals_data.py`, `README.md`) · #66 OPS-H9 (`.github/workflows/db.yml`, `image-pins.yml`, `CONTRIBUTING.md`, `docker-compose.yml`) ·
+#68 FE-1 (`frontend/package.json`, `vite.config.js`, `src/test/*`, `*.test.jsx`, `ReferencesStack.jsx`, `HeroSearch.jsx`, `frontend/README.md`) ·
+#69 FE-0 (`frontend/index.html`, `index.css`, `tailwind.config.js`, `main.jsx`, `Navbar.jsx`, `ThemeToggle.jsx`, `lib/theme.js`, `ui/button.jsx`, `ui/dropdown-menu.jsx`, root `README.md`) ·
+#70 FE-0b (six new `frontend/src/components/ui/*.jsx`).
+`rag.go` order (one file, one owner): AI-8b (#65) → AI-5 (if ADR-0011 is Accepted). Root `README.md` is touched by #65 and #69.
+Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; see the 2026-11-17 grooming notes.
 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 0a | [AI-8b](tasks/AI-8b.md) (KAN-61) | `claims[]`, `prompt_version`, README `/v1/ask` row, AC6 Python | ai-engineer | P0 | #59 merged 2026-11-19 | AC9: compare first nightly eval after #54; README row follows ADR-0018 (Proposed) |
-| 0b | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | #60 merged 2026-11-19 | AC11 = ING-6b QA nits; `db.yml`: not alongside OPS-H9 |
-| 1 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | #62 merged 2026-11-19 | |
-| 4 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | **Env-blocked:** registry.npmjs.org still doesn't resolve (re-checked 2026-11-19 14:00Z). Needs Mahesh (allow the host, or push the lockfile) |
-| 4b | [FE-0b](tasks/FE-0b.md) | Remaining ui primitives: tooltip, popover, collapsible, scroll-area, separator, sonner | frontend-engineer | P1 | — (new files only) | Split from FE-0 2026-11-19; WIP slot free (#68 and #69 both Ready to merge). Reuse a focus-ring constant (FE-0 QA nit 2, see Notes) |
-| 5 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 merged | |
-| 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 merged | |
-| 6a | [OPS-H7a2](tasks/OPS-H7a2.md) (KAN-71) | `dlq list`/`inspect` CLI on the Reader: `List`, `P/O` footer, README (rest of OPS-H7a) | backend-engineer | P1 | #62 merged 2026-11-19 | Specced 2026-11-19 by pm-lead; not alongside OPS-H7b |
+| 0b | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | **after #66 (OPS-H9) merges**; README also after #65/#69 | AC11 = ING-6b QA nits |
+| 5 | [FE-3](tasks/FE-3.md) (KAN-40) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 #68, FE-0 #69, FE-0b #70 merged | AC8: flip theme default to `system`; QA follow-ups folded in |
+| 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 #68 + FE-0 #69 merged | |
+| 6a | [OPS-H7a2](tasks/OPS-H7a2.md) (KAN-71) | `dlq list`/`inspect` CLI on the Reader: `List`, `P/O` footer, README (rest of OPS-H7a) | backend-engineer | P1 | **after #65 and #69 merge** (both touch root `README.md`) | not alongside OPS-H7b |
 | 7 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a1 #62 + OPS-H7a2 merged | |
 | 8 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
-| 9 | [EVAL-10a](tasks/EVAL-10a.md) | Pin errored cases in the `/v1/ask` summary ID lines (test-only) | ai-engineer | P3 | #61 merged 2026-11-19 | Jira story not created yet |
+| 9 | [EVAL-10a](tasks/EVAL-10a.md) | Pin errored cases in the `/v1/ask` summary ID lines (test-only) | ai-engineer | P3 | **after #65 merges** (`tests/test_evals_data.py`) | Jira story not created yet |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -32,6 +29,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
+| [FE-0b](tasks/FE-0b.md) (KAN-73) | Six themed ui primitives | frontend-engineer | [#70](https://github.com/MaheshPulivarthi18/ArxivLens/pull/70) `25ee640` — QA FAIL r1 (F1 popover unmapped → fixed in #69; F2 fixed); **QA r2 after #69 merges** |
 
 ## PM review
 | ID | Title | Owner | PR |
@@ -40,12 +38,15 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
-| [FE-0](tasks/FE-0.md) | Classic research theme: tokens, fonts, dark mode, toggle | frontend-engineer | [#69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69) `ca76bea` | QA PASS r1 · PM APPROVE 2026-11-19 · veto notes for Mahesh in the PR |
+| [AI-8b](tasks/AI-8b.md) (KAN-61) | `/v1/ask` `claims[]`, `prompt_version`, README row | ai-engineer | [#65](https://github.com/MaheshPulivarthi18/ArxivLens/pull/65) `956db78` | QA FAIL r1 → PASS r2 · PM APPROVE · eval unchanged (GATE PASS) |
+| [OPS-H9](tasks/OPS-H9.md) (KAN-45) | CI: real-Postgres step, pgvector ≥ 0.8 pin, digest-pin check | backend-engineer | [#66](https://github.com/MaheshPulivarthi18/ArxivLens/pull/66) `16dacb9` | QA FAIL r1 → PASS r2 · PM APPROVE · after merge run `image-pins.yml` once |
+| [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + 19 answer/citation tests; no "Verified" on unsupported | frontend-engineer | [#68](https://github.com/MaheshPulivarthi18/ArxivLens/pull/68) `50f1963` | QA PASS r1 · PM APPROVE |
+| [FE-0](tasks/FE-0.md) (KAN-72) | Classic research theme: tokens, fonts, dark mode, toggle | frontend-engineer | [#69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69) `dcb5420` | QA PASS r1 · PM APPROVE r1 → reopened (popover unmapped) → QA PASS r2 · PM APPROVE r2 · veto notes in PR |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
-| [FE-4](tasks/FE-4.md) (KAN-44) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | AI-8a/AI-8b merged, FE-3 merged (FE-1 env-blocked) |
+| [FE-4](tasks/FE-4.md) (KAN-44) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | AI-8b #65 merged, FE-3 merged, FE-0b merged |
 | [AI-10](tasks/AI-10.md) (KAN-51) | Configurable int8/`max_length` reranker (design-required) | ai-engineer | Mahesh's answer on ADR-0015 (premise changed: GPU is the reference hardware since #43/#47). AI-9 is merged (`d4b1cf3`) |
 | [EVAL-8](tasks/EVAL-8.md) (KAN-46) | First answer eval with a real LLM | backend + ai | Mahesh: is his local qwen2.5:3b run in #46 "option 3" (EVAL-8 done, commit the results JSON), or does he want CI/hosted runs (option 1/2)? |
 | [ING-8](tasks/ING-8.md) (KAN-32) | Measure PDF section-extraction quality (scorer on `agent/ai/ING-8` `d2ad9c5`, no PR) | ai-engineer | hand labels for `evals/extraction.jsonl` from someone with arxiv.org access (AC1, AC5) |
