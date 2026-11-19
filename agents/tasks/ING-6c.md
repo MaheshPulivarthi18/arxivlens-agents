@@ -21,7 +21,8 @@ kill + restart creates no duplicate or skipped papers. Merging this completes IN
   `cmd/arxivlens/main_test.go` (flags); `internal/db/watermarks.go` (+ `TryCrawlLoopLock(ctx) (release func(), ok bool, err error)`: one global
   session-level `pg_try_advisory_lock` on a dedicated pool connection held for the process lifetime); `internal/db/watermarks_integration_test.go`
   (lock test); `.github/workflows/db.yml` (run `-tags integration ./internal/db/` for `TestAdvanceWatermarkMonotonic|TestCrawlLoopLock`);
-  `.github/workflows/stack.yml` (step "ING-6: crawl-loop", design test plan AC2/AC3/SIGTERM rows); app `README.md`.
+  `.github/workflows/stack.yml` (step "ING-6: crawl-loop", design test plan AC2/AC3/SIGTERM rows); app `README.md`;
+  `internal/crawler/loop.go` + `internal/crawler/loop_test.go` (AC11 only: one test row, one assertion, error-prefix tidy).
 - Out of scope: compose service (ING-6d), lookback (ING-6e), `crawl --rate-limit` (ING-9b), any `Crawl` change.
 - Size: design estimate ~160 + ~60 for the lock ≈ 220 changed lines.
 
@@ -57,6 +58,13 @@ kill + restart creates no duplicate or skipped papers. Merging this completes IN
   `--limit-per-run` only; older via `arxivlens crawl`), one instance (enforced by the lock), `backlog=` / `out_of_order=`, how to raise
   `--limit-per-run`, resetting a category, and the late-announcement residual risk (ING-6e). PRD status is pm-lead's docs PR after merge.
 - [ ] AC9 — `make test-unit` and `make lint` green in CI; `stack.yml` and `db.yml` green.
+- [ ] AC11 — *Added 2026-11-19 (pm-lead, ING-6b final review; QA r1 findings 1 and 3 + missing test).* In `internal/crawler/loop_test.go`:
+  (a) a `TestRunOnceCrossListed` row where the **first** category's publish of the cross-listed paper fails. Assert that the second category
+  doesn't treat it as acked: it publishes it (or stops before it), and its W stays below that paper's `published`. QA mutant M9 ("mark acked before
+  publish", i.e. move `acked[key] = true` above `Publish`) is run locally, never pushed, and is killed in the full run and with
+  `-run '^TestRunOnceCrossListed$'`. (b) `RunOnce` with `ctx` cancelled after the first category: the second category makes 0 feed requests and
+  the returned error wraps `context.Canceled`. (c) In `loop.go`, the `cat:<c>` prefix appears once in `RunOnce` errors (no `cat:cs.AI: cat:cs.AI`),
+  with an assertion on the error string in an existing test. Size: about +40 lines.
 
 ## Verification
 ```bash
@@ -64,6 +72,7 @@ cd app
 make test-unit
 make lint
 go test -count=1 -v -run 'TestCrawlLoopFlags' ./cmd/arxivlens/
+go test -count=1 -race -v -run 'TestRunOnce' ./internal/crawler/   # AC11
 make stack-up && make migrate && ./bin/arxivlens crawl-loop --once --categories cs.LG --limit-per-run 3   # needs Docker; else CI
 go vet -tags integration ./internal/db/
 DATABASE_URL=postgres://... go test -tags integration -count=1 -v -run '^(TestAdvanceWatermarkMonotonic|TestCrawlLoopLock)$' ./internal/db/   # needs Postgres; else CI
@@ -76,3 +85,6 @@ DATABASE_URL=postgres://... go test -tags integration -count=1 -v -run '^(TestAd
   [spec]) and AC10 added for QA findings 1–3 (teardown order, read-error and write-error rows). They land here because this task already edits
   `watermarks_integration_test.go` and `db.yml`, so the new rows are CI-verified the first time they exist. The caller side of the read-error rule
   (category skipped, never a first run) is ING-6b AC9. Size: about +25 lines on the ~220 estimate.
+- 2026-11-19 (pm-lead, ING-6b final review of #60): AC11 added from ING-6b QA r1 (M9 test row, cancel-before-second-category assertion, single
+  `cat:` prefix). It goes here because this task starts only after 6b merges and is owned by the same engineer. QA finding 4 (summary line
+  untested) is already covered by AC3's `stack.yml` log lines. Scope gains `internal/crawler/loop.go` + `loop_test.go`. Size about 220 + 25 + 40 ≈ 285.

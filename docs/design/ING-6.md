@@ -294,3 +294,12 @@ until OPS-H7b merges is harmless, the two tables are independent, and `TestRepoM
 - **Risk 1 not yet checked**: the only committed feed (`internal/crawler/testdata/arxiv_feed.xml`) is a hand-written fixture in ascending order
   (2023-07-17, then 2024-01-22). The recorded CI feed isn't reachable from the sandbox. See ING-6a Notes for the proposed one-line CI print before 6b.
 - Branch names are `agent/backend/ING-6x` (ownership check), not `agent/backend-engineer/…` (condition 1 wording).
+
+## Build notes (ING-6b), pm-lead 2026-11-19 (condition 10, recorded from PR #60 and QA r1 finding 2)
+- **§3 `W' > W` guard dropped.** `runCategory` calls `AdvanceWatermark` whenever `watermarkAfter` returns a prefix. That is equivalent to the guard:
+  every candidate has `published > W` (strict walk boundary, §2), so any `W'` taken from emitted candidates is `> W`. `AdvanceWatermark` also uses
+  `GREATEST` in SQL (6a1), so the stored value can never move back.
+- **Acked set filled after the ack.** `acked[arxiv_id@version] = true` is set only after `Publish` returns nil. A test row pinning this down
+  (QA mutant M9) is ING-6c AC11.
+- Error text: `RunOnce` wraps `cat:<c>` around errors that `walk` already prefixes. Cosmetic; tidied in ING-6c AC11.
+- Size: 443 changed lines (+421/−22), under the 480 gate. No split.
