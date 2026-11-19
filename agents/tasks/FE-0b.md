@@ -64,3 +64,9 @@ grep -nE '^export ' src/components/ui/{tooltip,popover,collapsible,scroll-area,s
 - 2026-11-19 (pm-lead): split out of FE-0 at the design review (design Q5: ~570 lines in one PR is over the 400-line target). It is new files
   only, so it can run alongside FE-0 and FE-1 file-wise. The limit is frontend WIP (max 2 active PRs: FE-1 #68 + FE-0), so start it when one of
   those leaves active (Ready to merge counts as free). FE-3 depends on this (tooltip), and so does FE-4 (popover, collapsible). FE-2 doesn't.
+- 2026-11-19 (pm-lead, from FE-0 QA nit 2, PR #69): FE-0's `Navbar.jsx` defines a local `focusRing` class string, and `ThemeToggle.jsx:55`
+  re-declares part of it. If a primitive here (tooltip/popover trigger) needs a focus ring, don't add a third copy: reuse the Button
+  base `focus-visible:ring-*` classes, or propose one shared constant (e.g. in `src/lib/utils.js`) in a follow-up. FE-0b may not edit
+  `Navbar.jsx` or `ThemeToggle.jsx` (FE-0's files), so moving those two to a shared constant goes with the token-migration follow-up.
+- 2026-11-19 (pm-lead): FE-0 #69 is now Ready to merge, so it no longer counts against frontend WIP. FE-1 #68 is also Ready to merge, so
+  FE-0b can start next cycle (new files only, no overlap with #69).

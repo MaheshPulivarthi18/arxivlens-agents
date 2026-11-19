@@ -8,7 +8,7 @@
 | **Depends on** | none. ArxivLens #64 (`085183e`) and #67 (`4c7d327`), which added the Radix, sonner, fontsource and typography packages, are merged. Independent of FE-1 (disjoint files, see Scope) |
 | **Jira** | story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-0"`) |
 | **Design required** | **yes**: `docs/design/FE-0.md` (palette with HSL values and contrast ratios, type scale, primitives API, theme toggle behaviour). pm-lead approves before any code |
-| **Status** | In QA: draft [ArxivLens #69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69), head `ca76bea`, CI green (2026-11-19). Split: the six other primitives are [FE-0b](FE-0b.md) |
+| **Status** | Ready to merge: [ArxivLens #69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69), head `ca76bea`, QA PASS r1 + PM APPROVE (2026-11-19), raised for Mahesh. Split: the six other primitives are [FE-0b](FE-0b.md) |
 
 ## Goal
 Mahesh asked for a "classic UI, think like a pro". Give ArxivLens the look of a research tool (arXiv, Semantic Scholar,
@@ -174,3 +174,6 @@ npm run build && npx vite preview --port 4173 &   # then playwright: light + dar
   badge before/after, font count and size, and the veto note for Mahesh's three choices in the PR body.
   Self-check scripts (uncommitted, for QA to rerun or rebuild): `/tmp/fe0/theme-checks.mjs` and `/tmp/fe0/token-checks.mjs` (sandbox-local).
   Follow-up unchanged: commit them as `src/lib/theme.test.js` after #68 merges.
+- 2026-11-19 (pm-lead, **final review**): APPROVE on `ca76bea` (see `agents/reviews/FE-0/report.md`). All design conditions met. AC8 used the
+  fallback (no rendered screenshots), which the PR states so Mahesh judges the look at merge. QA nit 1 (440 lines) fixed in the PR body; nit 2
+  (shared focus-ring constant) → FE-0b Notes; `theme.test.js` + ThemeToggle component test → Backlog line with OPS-H14.
