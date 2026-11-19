@@ -8,7 +8,7 @@
 | **Depends on** | none. ArxivLens #64 (`085183e`) and #67 (`4c7d327`), which added the Radix, sonner, fontsource and typography packages, are merged. Independent of FE-1 (disjoint files, see Scope) |
 | **Jira** | story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-0"`) |
 | **Design required** | **yes**: `docs/design/FE-0.md` (palette with HSL values and contrast ratios, type scale, primitives API, theme toggle behaviour). pm-lead approves before any code |
-| **Status** | Ready to merge: [ArxivLens #69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69), head `ca76bea`, QA PASS r1 + PM APPROVE (2026-11-19), raised for Mahesh. Split: the six other primitives are [FE-0b](FE-0b.md) |
+| **Status** | Rework r1 (PM CHANGES, reopened after QA F1 on #70): [ArxivLens #69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69) draft, head `dcb5420`, awaiting QA r2. Split: the six other primitives are [FE-0b](FE-0b.md) |
 
 ## Goal
 Mahesh asked for a "classic UI, think like a pro". Give ArxivLens the look of a research tool (arXiv, Semantic Scholar,
@@ -177,3 +177,8 @@ npm run build && npx vite preview --port 4173 &   # then playwright: light + dar
 - 2026-11-19 (pm-lead, **final review**): APPROVE on `ca76bea` (see `agents/reviews/FE-0/report.md`). All design conditions met. AC8 used the
   fallback (no rendered screenshots), which the PR states so Mahesh judges the look at merge. QA nit 1 (440 lines) fixed in the PR body; nit 2
   (shared focus-ring constant) → FE-0b Notes; `theme.test.js` + ThemeToggle component test → Backlog line with OPS-H14.
+- 2026-11-19 (frontend-engineer, **Rework r1**): `dcb5420` adds `popover: { DEFAULT, foreground }` to `theme.extend.colors` in
+  `frontend/tailwind.config.js` (+4 lines; PR now 10 files, +386/−58 = 444 changed lines, body updated). Token audit: grepped every
+  `bg|text|border|ring|ring-offset|divide|accent-*` token class in `frontend/src` against the config keys and every `--var` in `index.css`;
+  `popover` was the only unmapped one (border, input, ring, background, foreground, primary, secondary, destructive, muted, accent, card,
+  supported, unsupported, unchecked were all mapped). Checklist: [x] 1 map popover + audit. [ ] 2 QA r2 runs the classes through Tailwind.
