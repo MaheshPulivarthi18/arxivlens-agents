@@ -1,0 +1,47 @@
+$ bash -c bash /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/probe/version_probe.sh; echo; echo '--- probe source ---'; cat /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/probe/version_probe.sh
+extracted: version_ge() { [ -n "$1" ] && [ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]; }
+== extra inputs (real function) ==
+  0.7.4      -> fail
+  0.8.0      -> pass
+  0.8.7      -> pass
+  0.9.1      -> pass
+  0.10.0     -> pass
+  0.8        -> fail
+  0.08.0     -> fail
+  0.7.4\     -> fail
+  missing    -> pass
+== mutants (killed = PR self-test exits 1) ==
+  KILLED   always_true
+  KILLED   compare_to_1
+  SURVIVED drop_-n_guard
+  KILLED   sort_lexical
+  KILLED   string_ge
+  KILLED   tail_not_head
+
+--- probe source ---
+#!/usr/bin/env bash
+# QA probe: extract the PR's real version_ge() from .github/workflows/db.yml (cwd = PR head), run it on extra inputs,
+# then run single-edit mutants of it through the PR's own self-test loop to see whether the dry run catches them.
+set -u
+fn="$(grep -E '^\s+version_ge\(\)' .github/workflows/db.yml | sed -E 's/^\s+//')"
+echo "extracted: $fn"
+eval "$fn"
+MIN=0.8.0
+echo "== extra inputs (real function) =="
+for v in 0.7.4 0.8.0 0.8.7 0.9.1 0.10.0 0.8 0.08.0 "0.7.4 " missing; do
+  if version_ge "$v" "$MIN"; then r=pass; else r=fail; fi; printf '  %-10q -> %s\n' "$v" "$r"; done
+selftest() { # the PR's own dry-run loop
+  for v in 0.5.1 0.7.4 0.7.99 ""; do version_ge "$v" "$MIN" && return 1; done
+  for v in 0.8.0 0.8.7 0.10.0 1.0.0; do version_ge "$v" "$MIN" || return 1; done; return 0; }
+echo "== mutants (killed = PR self-test exits 1) =="
+declare -A M=(
+ [drop_-n_guard]='version_ge() { [ "$(printf "%s\n%s\n" "$2" "$1" | sort -V | head -n1)" = "$2" ]; }'
+ [sort_lexical]='version_ge() { [ -n "$1" ] && [ "$(printf "%s\n%s\n" "$2" "$1" | sort | head -n1)" = "$2" ]; }'
+ [tail_not_head]='version_ge() { [ -n "$1" ] && [ "$(printf "%s\n%s\n" "$2" "$1" | sort -V | tail -n1)" = "$2" ]; }'
+ [compare_to_1]='version_ge() { [ -n "$1" ] && [ "$(printf "%s\n%s\n" "$2" "$1" | sort -V | head -n1)" = "$1" ]; }'
+ [always_true]='version_ge() { true; }'
+ [string_ge]='version_ge() { [ -n "$1" ] && [[ ! "$1" < "$2" ]]; }'
+)
+for k in $(printf '%s\n' "${!M[@]}" | sort); do eval "${M[$k]}"; if selftest; then echo "  SURVIVED $k"; else echo "  KILLED   $k"; fi; done
+
+[exit code 0]

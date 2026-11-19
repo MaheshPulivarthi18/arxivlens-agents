@@ -1,0 +1,15 @@
+$ bash -c grep -nE 'chainguard.*(Pulling|Pulled)|^arxivlens-minio' /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/ci/stack.clean | head -20
+773: Image cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597 Pulling 
+777: Image cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805 Pulling 
+1208: Image cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805 Pulled 
+1254: Image cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597 Pulled 
+1390:arxivlens-minio        cgr.dev/chainguard/minio          <none>              linux/amd64         3c60a2a8c4d3        64MB                2 weeks ago
+1391:arxivlens-minio-init   cgr.dev/chainguard/minio-client   <none>              linux/amd64         39768db4c3fa        41.4MB              2 weeks ago
+1392:arxivlens-minio: cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597 ["cgr.dev/chainguard/minio@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597"]
+1393:arxivlens-minio-init: cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805 ["cgr.dev/chainguard/minio-client@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805"]
+2344:arxivlens-minio             cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597   "/usr/bin/minio serv…"   minio             3 minutes ago    Up 3 minutes (healthy)    0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
+2353:arxivlens-minio             cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597              "/usr/bin/minio serv…"    minio             3 minutes ago    Up 3 minutes (healthy)      0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
+2354:arxivlens-minio-data-init   busybox:1.37                                                                                                         "sh -c 'chown -R 655…"    minio-data-init   3 minutes ago    Exited (0) 44 seconds ago   
+2355:arxivlens-minio-init        cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805   "/bin/sh -ec 'mc ali…"    minio-init        3 minutes ago    Exited (0) 43 seconds ago   
+
+[exit code 0]

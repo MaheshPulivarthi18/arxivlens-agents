@@ -1,0 +1,17 @@
+$ bash -c grep -n 'pgvector/pgvector' docker-compose.yml .github/workflows/db.yml; echo; sed -n '466,476p' /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/ci/db.clean
+docker-compose.yml:38:    image: pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+.github/workflows/db.yml:22:        image: pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+
+Dry run of the comparison against MIN=0.8.0:
+  '0.5.1' -> fail (expected)
+  '0.7.4' -> fail (expected)
+  '0.7.99' -> fail (expected)
+  '' -> fail (expected)
+  '0.8.0' -> pass (expected)
+  '0.8.7' -> pass (expected)
+  '0.10.0' -> pass (expected)
+  '1.0.0' -> pass (expected)
+pg_extension vector extversion: '0.8.7'
+pgvector 0.8.7 >= 0.8.0: ok
+
+[exit code 0]

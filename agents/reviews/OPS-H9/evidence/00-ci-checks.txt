@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/e875fa8.../check-runs
+success	DB (migrate twice, HNSW plan + recall)	job 135776199582	https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44585169219/job/135776199582
+success	Full stack (compose + make test-full)	job 135776193851	https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44585169035/job/135776193851
+success	Python M0 unit tests	job 135776033848	https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44585169046/job/135776033848
+success	Agent ownership check	job 135776033506	https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44585169046/job/135776033506
+success	Frontend (lint, test, build)	job 135776033385	https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44585169046/job/135776033385
+success	Go (vet, gofmt, test, build)	job 135776032908	https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44585169046/job/135776032908
+failure	Pinned digests resolve	job 135776032179	https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44585169029/job/135776032179
+

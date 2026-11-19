@@ -1,0 +1,19 @@
+$ bash -c sed -n '176,191p' /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/ci/pins.clean
+[36;1m[0m
+[36;1mfailed=0[0m
+[36;1mfor p in "${pins[@]}"; do check_pin "$p" || failed=1; done[0m
+[36;1mexit "$failed"[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+3 pinned images:
+  cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805
+  cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597
+  pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+Self-test: a wrong digest must fail and name the image
+  (expected) Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:0000000000000000000000000000000000000000000000000000000000000000 (manifest verification failed for digest sha256:0000000000000000000000000000000000000000000000000000000000000000). Re-pin it: CONTRIBUTING.md "Pinned images".
+##[error]Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805 (manifest verification failed for digest sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805). Re-pin it: CONTRIBUTING.md "Pinned images".
+##[error]Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597 (manifest verification failed for digest sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597). Re-pin it: CONTRIBUTING.md "Pinned images".
+ok      pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+##[error]Process completed with exit code 1.
+
+[exit code 0]

@@ -1,0 +1,28 @@
+$ bash -c sed -n '122,143p' /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/ci/pins.clean; echo; echo '--- local ---'; command -v actionlint || echo 'actionlint: not installed in QA sandbox'
+##[group]Run docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color .github/workflows/db.yml .github/workflows/image-pins.yml
+[36;1mdocker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color .github/workflows/db.yml .github/workflows/image-pins.yml[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+Unable to find image 'rhysd/actionlint:1.7.7' locally
+1.7.7: Pulling from rhysd/actionlint
+4e6599d62119: Pulling fs layer
+46b6d0e9fe9d: Pulling fs layer
+f23002ece875: Pulling fs layer
+1f3e46996e29: Pulling fs layer
+1e9d239422cf: Download complete
+4e6599d62119: Download complete
+46b6d0e9fe9d: Download complete
+1f3e46996e29: Download complete
+1f3e46996e29: Pull complete
+f23002ece875: Download complete
+4e6599d62119: Pull complete
+46b6d0e9fe9d: Pull complete
+f23002ece875: Pull complete
+Digest: sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9
+Status: Downloaded newer image for rhysd/actionlint:1.7.7
+##[group]Run compose="$(grep -oE 'pgvector/pgvector:[^[:space:]"]+' docker-compose.yml | sort -u)"
+
+--- local ---
+actionlint: not installed in QA sandbox
+
+[exit code 0]

@@ -1,0 +1,38 @@
+$ sed -n 494,528p /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/ci/db.clean
+##[group]Run set -o pipefail
+[36;1mset -o pipefail[0m
+[36;1mpython -m pip install --quiet "psycopg[binary]>=3.1.0" "pytest>=8.0.0"[0m
+[36;1mpython -m pytest -v -rA tests/test_evals_data.py -k real_postgres | tee /tmp/real_postgres.txt[0m
+[36;1m# A skip (no DATABASE_URL, psycopg missing) must not pass as green.[0m
+[36;1mif grep -Eq '[0-9]+ skipped' /tmp/real_postgres.txt || ! grep -Eq '[1-9][0-9]* passed' /tmp/real_postgres.txt; then[0m
+[36;1m  echo "::error::real_postgres tests did not all run and pass (skipped or none collected)"; exit 1[0m
+[36;1mfi[0m
+shell: /usr/bin/bash -e {0}
+env:
+  DATABASE_URL: ***localhost:5432/arxivlens?sslmode=disable
+  PSQL: docker exec -i 25e0524b3eca85b22d980eea4aa980ec37bc302da0f4fa7bdd99a46683bfd021 psql -U postgres -d arxivlens -v ON_ERROR_STOP=1
+  pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+  PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+  Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+  Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+  Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+  LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+  PYTHONPATH: /home/runner/work/ArxivLens/ArxivLens
+##[endgroup]
+============================= test session starts ==============================
+platform linux -- Python 3.11.18, pytest-9.2.0, pluggy-1.7.0 -- /opt/hostedtoolcache/Python/3.11.18/x64/bin/python
+cachedir: .pytest_cache
+rootdir: /home/runner/work/ArxivLens/ArxivLens
+collecting ... collected 122 items / 121 deselected / 1 selected
+
+tests/test_evals_data.py::test_chunk_counts_sql_against_real_postgres PASSED [100%]
+
+==================================== PASSES ====================================
+_________________ test_chunk_counts_sql_against_real_postgres __________________
+----------------------------- Captured stdout call -----------------------------
+{'eval5.zero': {'embedded_chunks': 0, 'total_chunks': 2}, 'eval5.part': {'embedded_chunks': 1, 'total_chunks': 2}, 'eval5.none': {'embedded_chunks': 0, 'total_chunks': 0}}
+=========================== short test summary info ============================
+PASSED tests/test_evals_data.py::test_chunk_counts_sql_against_real_postgres
+====================== 1 passed, 121 deselected in 0.32s =======================
+
+[exit code 0]

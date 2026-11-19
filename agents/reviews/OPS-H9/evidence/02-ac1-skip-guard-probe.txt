@@ -1,0 +1,25 @@
+$ bash -c bash /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/probe/skip_guard_probe.sh; echo; echo '--- probe source ---'; cat /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/probe/skip_guard_probe.sh
+extracted condition: grep -Eq '[0-9]+ skipped' $f || ! grep -Eq '[1-9][0-9]* passed' $f
+  1 passed, 121 deselected in 0.32s        -> step passes
+  1 skipped, 121 deselected in 0.01s       -> step FAILS (guard trips)
+  121 deselected in 0.01s                  -> step FAILS (guard trips)
+  1 passed, 1 skipped, 120 deselected      -> step FAILS (guard trips)
+  no tests ran in 0.01s                    -> step FAILS (guard trips)
+  10 passed in 1s                          -> step passes
+
+--- probe source ---
+#!/usr/bin/env bash
+# QA probe: run the PR's real skip/none-collected guard (extracted from db.yml) on pytest summary lines.
+set -u
+cond="$(grep -E "^\s+if grep -Eq '\[0-9\]\+ skipped'" .github/workflows/db.yml | sed -E 's/^\s+if //; s/; then$//')"
+cond="${cond//\/tmp\/real_postgres.txt/\$f}"   # point the PR's condition at the probe file
+echo "extracted condition: $cond"
+f=$(mktemp)
+for s in "1 passed, 121 deselected in 0.32s" "1 skipped, 121 deselected in 0.01s" "121 deselected in 0.01s" \
+         "1 passed, 1 skipped, 120 deselected" "no tests ran in 0.01s" "10 passed in 1s"; do
+  printf '==== %s ====\n' "$s" > "$f"
+  if eval "$cond" < /dev/null; then r="step FAILS (guard trips)"; else r="step passes"; fi
+  printf '  %-40s -> %s\n' "$s" "$r"
+done
+
+[exit code 0]
