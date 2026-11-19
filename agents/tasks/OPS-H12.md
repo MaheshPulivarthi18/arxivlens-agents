@@ -8,7 +8,7 @@
 | **Depends on** | **ING-6f #58 merged** (same file; AC6 edits its step). Otherwise none to build. Independence: no open PR touches `.github/workflows/stack.yml` (checked 2026-11-17: #51 docs/evals, #52 `db.yml`/README/CONTRIBUTING/`internal/query/search*`/2 tests, #53 `ci.yml`/Makefile/requirements/Dockerfiles, #54 `rag.go`, #55 `internal/db`, `internal/downloader`, `tests/test_m4_chaos.py`). Don't touch `Makefile` (held by #53) |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H12`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P2, CI-only, a few lines, no CLI/table/service/contract change |
-| **Status** | In Progress: built, branch `agent/backend/OPS-H12` pushed at `89fd583`; draft PR to be opened by the orchestrator, then AC1/AC2/AC3 (green part)/AC6 need its `stack.yml` run. Specced 2026-11-17 by pm-lead |
+| **Status** | Ready to merge: QA PASS r1 + PM APPROVE 2026-11-19 on `89fd583`; PR #63 raised (ready for review), waiting on Mahesh. Specced 2026-11-17 by pm-lead |
 
 ## Goal
 On a green run, `make test-full` in `stack.yml` runs `pytest -q`, which prints only dots, so no log line names a test. ACs like
@@ -29,17 +29,17 @@ job log has a `PASSED tests/…::<name>` line for every passing test, so ACs can
   follow-up only if asked), trigger paths, any test file.
 
 ## Acceptance criteria
-- [ ] AC1: on this PR's `stack.yml` run, the "AC4: make test-full" job log has a `short test summary info` section with one
+- [x] AC1: on this PR's `stack.yml` run, the "AC4: make test-full" job log has a `short test summary info` section with one
   `PASSED tests/<file>::<test>` line per passing test. Quote these log lines in the PR: `PASSED tests/test_m4_chaos.py::test_redelivered_discovered_keeps_embedded_status`
   (if OPS-H11 #55 is merged first) or `PASSED tests/test_m4_chaos.py::test_corrupt_pdf_dlq_routing_and_diagnostic_payload` (otherwise),
   plus the final `N passed, …` line.
-- [ ] AC2: the number of `PASSED ` lines in that log equals the `N passed` count, and the `[n]` counts on the `SKIPPED [n] …` lines sum to the skipped count (pytest groups skips that share a reason). Paste the `grep` output.
-- [ ] AC3: the step's exit status still propagates. The job is green on this PR, and the step still ends with `exit "$rc"` with `rc=${PIPESTATUS[0]}` unchanged (show the diff).
-- [ ] AC4: the step summary block has no `PASSED ` lines. Show the `run:` diff of the filter. Agents can't read step summaries through REST, so the rendered summary is a named human check in the PR, not an agent AC.
-- [ ] AC5: actionlint and shellcheck pass (the workflow's own actionlint step is green). Diff < 30 changed lines. The ownership check passes.
-- [ ] AC6: the `ING-6 Risk 1: …` step has `continue-on-error: true` (show the diff line) and still prints its `RISK1 ORDER …` (or `RISK1 none`)
+- [x] AC2: the number of `PASSED ` lines in that log equals the `N passed` count, and the `[n]` counts on the `SKIPPED [n] …` lines sum to the skipped count (pytest groups skips that share a reason). Paste the `grep` output.
+- [x] AC3: the step's exit status still propagates. The job is green on this PR, and the step still ends with `exit "$rc"` with `rc=${PIPESTATUS[0]}` unchanged (show the diff).
+- [x] AC4: the step summary block has no `PASSED ` lines. Show the `run:` diff of the filter. Agents can't read step summaries through REST, so the rendered summary is a named human check in the PR, not an agent AC.
+- [x] AC5: actionlint and shellcheck pass (the workflow's own actionlint step is green). Diff < 30 changed lines. The ownership check passes.
+- [x] AC6: the `ING-6 Risk 1: …` step has `continue-on-error: true` (show the diff line) and still prints its `RISK1 ORDER …` (or `RISK1 none`)
   line in this PR's Full stack job log with conclusion `success` (paste the line and the step conclusion from `actions/jobs/<id>`).
-- [ ] Docs: none (CI output only). If CONTRIBUTING describes how to read `stack.yml` output, leave it alone (#52 holds it) and note the follow-up.
+- [x] Docs: none (CI output only). If CONTRIBUTING describes how to read `stack.yml` output, leave it alone (#52 holds it) and note the follow-up.
 
 ## Verification
 ```bash
@@ -69,3 +69,4 @@ grep -E 'PASSED tests/test_m4_chaos.py::' stack.log
     It is job log only (the summary copies from `short test summary info` on), so grep with `^…Z PASSED tests/` as the Verification block does.
   - Not verifiable locally: AC1, AC2, AC3 (green job), AC6 (RISK1 line + step conclusion) need this PR's `stack.yml` run.
   - Docs: CONTRIBUTING's `stack.yml` row describes triggers and artifacts, not how to read test output, so no follow-up is needed.
+- 2026-11-19 (pm-lead, final review): **APPROVE** on `89fd583` after QA PASS r1 (`agents/reviews/OPS-H12/report.md`, evidence at `547fa15`). All ACs proven by job 135705503227. AC6: the step `conclusion` proves nothing under `continue-on-error` (QA [spec] finding 1). The proof is the `RISK1 ORDER descending` line plus 0 non-zero annotations, which is how the AC should have been worded; lesson recorded. Human check left for Mahesh: the rendered AC4 step summary has no `PASSED` lines.
