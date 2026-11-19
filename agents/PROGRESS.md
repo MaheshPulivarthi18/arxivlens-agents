@@ -662,3 +662,14 @@ Format:
 - **Split:** FE-0 now covers the design's "FE-0a" (~400 lines, branch `agent/frontend/FE-0`). New spec `agents/tasks/FE-0b.md` has the six other primitives
   (new files only) and waits for a frontend WIP slot. FE-3 and FE-4 now also depend on FE-0b. FE-2 doesn't. Backlog: OPS-H14 (CI `dist/` greps), plus a `theme.test.js` follow-up.
 - **OPS-H9:** AC2 accepts tag + digest, and AC3 accepts a PR-triggered run (`workflow_dispatch` can't run before merge). QA finding 6 [spec] is closed.
+
+## 2026-11-19 18:00Z — orchestrator (scheduled cycle, session_01ATEBeSANjw6u4MNzB2FBiE)
+- Lock: none present → taken (`daa23b0`). Push dry-run, app clone and Jira OK. No open agent PRs, no human reviews/comments, no Jira intake.
+- Plan (pm-lead): only 2 independent tasks. Every Ready backend task and AI-8b touch `README.md`; EVAL-10a shares `tests/test_evals_data.py` with AI-8b;
+  ING-6c/OPS-H7a2 share `cmd/arxivlens/main.go`; ING-6c/OPS-H9 share `db.yml`. pm-lead moved OPS-H9's one README prerequisite line into ING-6c
+  (ING-6c now depends on OPS-H9) and picked **AI-8b** (P0) + **OPS-H9** (`4185bb8`).
+- AI-8b → draft [#65](https://github.com/MaheshPulivarthi18/ArxivLens/pull/65) @ `9b2778f` (198 lines); AC9 eval dispatched on the branch (run 44584838337). KAN-61 → In QA.
+- OPS-H9 → draft [#66](https://github.com/MaheshPulivarthi18/ArxivLens/pull/66): attempt 1 `3c1dadb` failed Image pins on shellcheck SC2001 (bundled in the
+  actionlint image, not in the local build); attempt 2 `e875fa8`. KAN-45 → In QA. Build notes `d4ae8fa`.
+- Stopped at ~18:21Z while polling CI (session suspended until 21:28Z). On resume the 21:00Z cycle (session_01ATEBeRGmCD5jzSfoDqn6n2) held the lock and had
+  already run QA r1 on #65/#66 and rework on OPS-H9, so this cycle did not run QA/PM, record board/metrics, or release a lock (the current lock is that cycle's).
