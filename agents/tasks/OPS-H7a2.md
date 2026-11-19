@@ -1,0 +1,66 @@
+# OPS-H7a2: `dlq list` / `inspect` page to the start-time high watermark with `P/O` cursors (Manager.List + CLI)
+
+| | |
+|---|---|
+| **Owner** | backend-engineer |
+| **Priority** | P1 |
+| **PRD ref** | Product PRD OPS-2, §5.3; Technical PRD §5 (DLQ manager) |
+| **Depends on** | OPS-H7a1 = ArxivLens PR #62 **merged** (provides `Reader`, `Record`, `Watermark`, `KafkaReader`, `ErrPartitionStalled` in `internal/dlq/kafka.go`). Must not run alongside OPS-H7b (same files: `manager.go`, `main.go`) |
+| **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7a2`, `agent-backend`, `arxivlens`); parent work KAN-31, sibling KAN-70 |
+| **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07) and its "Build notes (a1)" |
+| **Status** | Ready once #62 merges |
+
+## Goal
+An operator can list every record in a DLQ up to the end of the topic, page by page, see each record's `partition/offset` so they can resume, and
+find any key with `inspect`, however deep in the topic it sits. This is the operator half of OPS-H7a. The reader half (a1) is in PR #62.
+
+## Scope
+- Files: `internal/dlq/manager.go` (`List`, `ListOptions{Partition *int32; From Cursor; PageSize int}`, `Cursor`/`Page`, `ParseCursor("P/O")`,
+  `Manager` takes a `Reader`), new `internal/dlq/manager_test.go` (`fakeReader`), `internal/dlq/kafka.go` (only `var _ Reader = (*KafkaReader)(nil)`
+  and the `Polls` doc comment), `internal/dlq/kafka_integration_test.go` (log wording only: "non-empty polls"), `cmd/arxivlens/main.go` (`dlq list` / `inspect`),
+  new `cmd/arxivlens/dlq_test.go` (`TestDLQFlags`), app `README.md` CLI rows (`README.md:183-185`).
+- Out of scope: `Replay` and `ListEvents` (stay as they are; `Replay` still calls `ListEvents`, which OPS-H7b rewrites), the lock (OPS-H7c), `db.yml`, `stack.yml`,
+  and any other change to `kafka.go`'s reader logic.
+- **Size gate** (the same rule as OPS-H7a): commit a counted skeleton first and put its `git diff --stat` in Notes. a1 projected this half at ~430 changed lines
+  (manager ~105, main ~80, README ~8, manager_test ~170, dlq_test ~70). If it projects > 480 changed or > 250 non-test lines, split at
+  **OPS-H7a2a** = `Manager.List` + cursor + `manager_test.go` (AC1, AC3 `List` half, AC6 `List` half, AC7) / **OPS-H7a2b** = CLI + `TestDLQFlags` + README (the rest).
+
+## Acceptance criteria
+- [ ] AC1 (OPS-H7 AC1): `TestListPagesToHighWatermark`. The `fakeReader` delivers records in chunks of 3, so one page needs several reads.
+  With 1 partition of 25 records and page size 10, there are 3 pages and the last one reports end of topic. With 3 partitions (one empty), the union of the pages is every record, with the right `P/O`.
+  Records the fake appends after `Watermarks` was taken (offset ≥ start-time `High`) are not returned. `Partition` restricts the listing. A `From` cursor below `Low`
+  prints `WARNING partition P: offsets a..b expired` to stderr and starts at `Low`. `ParseCursor` rejects `3`, `3/`, `/5`, `a/b` and `-1/0`.
+- [ ] AC3 (CLI half): errors are not "end". `fakeReader` returning `ErrPartitionStalled` (wrapped), or a poll error, makes `List` return an error that satisfies `errors.Is`.
+  `dlq list` run through cobra with that reader exits non-zero and prints the error (unit test, no Kafka).
+- [ ] AC4 (print half): nothing is hidden. A record with `Payload == nil` prints `P/O  UNDECODABLE (n bytes)`, where `n = len(Value)`, in `dlq list` and in `inspect` without `--key`. Unit test.
+- [ ] AC5 (OPS-H7 AC7, list/inspect half): `--topic` and `inspect --key` behave as before. `inspect` scans the whole topic to the start-time watermarks with the same `Reader`
+  (no more first-100 cap, `main.go:322`), stops at the first match when `--key` is set, and prints `P/O`. `--partition`, `--from P/O`, `--page-size` (default 50) and `--all` exist on `list`.
+  `--limit` is a hidden alias of `--page-size`. `TestDLQFlags` (cobra) checks that each flag reaches `ListOptions`. The footer is `next page: arxivlens dlq list --topic T --from P/O`
+  or `end of topic (high watermarks at start: 0=H0 1=H1 ...; N records)`. `--all` prints every page in one run.
+- [ ] AC6 (missing topic; **PM decision, settled here**): `dlq list` / `inspect` on a topic that doesn't exist exit **non-zero** with
+  `dlq: topic <T> does not exist (check --topic; compose's kafka-init creates the three DLQs)`. The error wraps `kerr.UnknownTopicOrPartition`, which `Watermarks` already returns.
+  No auto-create, and no "0 records". (Reason: "errors are not end". The stack creates all three DLQs in `kafka-init`, so `stack.yml:259-260`, which runs without `|| true`, is unaffected,
+  and `:249` already sits on a failure path that exits 1.) Unit test via `fakeReader`.
+- [ ] AC7: compile-time `var _ Reader = (*KafkaReader)(nil)` (cut from a1 for size). `Manager.List` takes the `Reader` interface, and the CLI wires a `*KafkaReader` and `Close`s it.
+- [ ] AC8: the real-Kafka step in `db.yml` and the Full-stack job stay green on the PR (`stack.yml` calls `dlq list` for all three DLQs).
+- [ ] Docs: the README CLI table (`README.md:183-185`) lists `--partition`, `--from P/O`, `--page-size`, `--all`, the `P/O` output and the end-of-topic footer.
+
+## Verification
+```bash
+make test-unit
+make lint
+go test -race -count=1 -v ./internal/dlq/ ./cmd/arxivlens/
+KAFKA_BROKERS=localhost:9092 go test -tags integration -count=1 -v ./internal/dlq/   # runs in db.yml on the PR
+./bin/arxivlens dlq list --topic papers.downloaded.dlq --page-size 10
+./bin/arxivlens dlq list --topic papers.downloaded.dlq --all
+./bin/arxivlens dlq list --topic no.such.dlq; echo "exit=$?"                        # AC6: non-zero
+./bin/arxivlens dlq inspect --topic papers.downloaded.dlq --key <arxiv_id>
+```
+
+## Notes
+- 2026-11-19 (pm-lead): carved out of OPS-H7a after the size gate fired (QA report `agents/reviews/OPS-H7a/report.md`, findings 2-5).
+  - a1 (#62) added `internal/dlq/kafka_test.go`, which wasn't in OPS-H7a's Scope list. It is correct: the role rules require infra-free unit tests for new Go code (QA finding 3). Keep it as is.
+  - Types live in `kafka.go`, not `manager.go` (design "Build notes (a1)"). `Record.Value` holds the raw bytes for `UNDECODABLE (n bytes)`.
+  - `KafkaReader.Polls()` counts only polls that returned records. Fix the integration log line to say "non-empty polls" (QA finding 2).
+  - Optional, not required: a unit row that pins the −2/−1 `ListOffsets` order (mutant M26). Today only the real-Kafka test catches it. Skip it if it pushes the size gate.
+  - OPS-H7b depends on this ticket and on #62 being merged.

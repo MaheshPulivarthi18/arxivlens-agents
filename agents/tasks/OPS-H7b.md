@@ -5,10 +5,10 @@
 | **Owner** | backend-engineer |
 | **Priority** | P1 |
 | **PRD ref** | Product PRD OPS-2, OPS-3, §5.3; Technical PRD §5 (DLQ manager), §8.2 |
-| **Depends on** | OPS-H7a **merged** (same files, `Reader`) |
+| **Depends on** | OPS-H7a1 (ArxivLens #62) **and** OPS-H7a2 **merged** (same files `manager.go`/`main.go`; `Reader`) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7b`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Q1, Q5, Q6, Q7 + PM decision (approved 2026-11-07) |
-| **Status** | Ready after OPS-H7a merges |
+| **Status** | Ready after OPS-H7a1 (#62) and OPS-H7a2 merge |
 
 ## Goal
 Repeated `dlq replay --limit N` runs work through a DLQ of any size, each DLQ record resolved once, and records skipped by a filter stay eligible.

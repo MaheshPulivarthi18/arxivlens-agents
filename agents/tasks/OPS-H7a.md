@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H7f **merged** (`5e557bc`). OPS-H10 #26 **merged** (`54cad79`). RET-2 merged (`6cfd836`), so the README sequencing is moot. Must not run alongside another task that edits `.github/workflows/db.yml` (ING-11b, OPS-H9) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7a`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07) |
-| **Status** | In QA: size gate fired (projected ~890 lines); this branch ships the **OPS-H7a1** slice only (`kafka.go`, tests, `db.yml`, `go.mod`) @ `d420463`. OPS-H7a2 (List/CLI/fakes/README) to be specced by pm-lead after a1 merges |
+| **Status** | Ready to merge (OPS-H7a1 slice, PR #62 @ `d420463`): QA PASS + PM APPROVE 2026-11-19. AC1, AC3/AC4 CLI halves, AC5 and Docs moved to [OPS-H7a2](OPS-H7a2.md) |
 
 ## Goal
 An operator can list every record in a DLQ up to the end of the topic, page by page, and see each record's `partition/offset` so they can resume.
@@ -27,7 +27,7 @@ An operator can list every record in a DLQ up to the end of the topic, page by p
 - [ ] AC1 (OPS-H7 AC1): `TestListPagesToHighWatermark` (fakeReader delivers records in chunks of 3, so one page needs several polls). With 1 partition of 25 records and
   `--page-size 10`, there are 3 pages and the last footer says end of topic. With 3 partitions, one empty, the union of pages = every record with the right `P/O`.
   Records past the start-time `High` are not returned. `--partition` restricts the listing. A checkpoint/cursor below `Low` warns and starts at `Low`.
-- [ ] AC2: `TestReadStopsAtSnapshot_Integration` on real Kafka in `db.yml`: 3 partitions (one empty), 1,500 records, `FetchMaxBytes` small enough to force ≥ 5 polls.
+- [x] AC2 (a1, #62): `TestReadStopsAtSnapshot_Integration` on real Kafka in `db.yml`: 3 partitions (one empty), 1,500 records, `FetchMaxBytes` small enough to force ≥ 5 polls.
   Every record is returned once, and the job log prints the count and number of polls.
 - [ ] AC3: Errors are not "end". A stalled partition (`ErrPartitionStalled`) and a poll error make `List` return an error, and `dlq list` exits non-zero (unit test).
 - [ ] AC4: Nothing is hidden. A record that isn't a valid `DLQPayload` prints `P/O  UNDECODABLE (n bytes)`.
@@ -71,3 +71,7 @@ KAFKA_BROKERS=localhost:9092 go test -tags integration -count=1 -v ./internal/dl
     by the integration test (`Low > High` → `mergeWatermarks` error). The real-Kafka test runs only in `db.yml` on the PR (it has no branch-push trigger).
   - **Next: OPS-H7a2** (pm-lead to spec): `Manager.List` + cursor/page on `Reader`, `manager_test.go` with `fakeReader` (AC1, AC3), `dlq list`/`inspect` CLI +
     `TestDLQFlags` (AC4, AC5), README CLI table. AC2 is covered by this slice.
+- 2026-11-19 (pm-lead, final review): **APPROVE** for the a1 slice (`agents/reviews/OPS-H7a/report.md`). AC2 is met in full, and the reader halves of AC3/AC4 are met (`TestReadLoop`, `TestDecodeRecord`).
+  AC1, the `List`/exit-code half of AC3, the print half of AC4, AC5, Docs, `var _ Reader` and the missing-topic CLI decision go to **OPS-H7a2** (`agents/tasks/OPS-H7a2.md`).
+  `internal/dlq/kafka_test.go` is accepted in scope (QA finding 3). The design deviations are recorded in `docs/design/OPS-H7.md` "Build notes (a1)". This ticket
+  closes when #62 merges. The OPS-2 operator outcome lands with OPS-H7a2.

@@ -193,6 +193,14 @@ The parts run in order: b depends on a, and c depends on b. They touch the same 
 **Risk if c ships later than b:** B1/B2 stay live on a replay that now drains the whole topic. Mitigation: b keeps today's envelope code, and c follows right after.
 The alternative is to move the ~40-line envelope rule and its tests into b, which puts b at ~510.
 
+### Build notes (a1, PR #62 @ `d420463`, 2026-11-19)
+- The size gate fired, so OPS-H7a was split into a1 (kgo `Reader` + real-Kafka test) and a2 (`List` + CLI). See `agents/tasks/OPS-H7a2.md`.
+- `Watermark`, `Record`, `Reader` and `ErrPartitionStalled` live in `internal/dlq/kafka.go`, not `manager.go`, so a1 doesn't touch `manager.go`.
+- `Record` has an extra `Value []byte` field (raw bytes), so `UNDECODABLE (n bytes)` can print `n`. `ErrPartitionStalled` is a wrapped sentinel
+  (`errors.Is`), not the `ErrPartitionStalled{p, lastOffset, until}` struct from Q2. Its message names the topic/partition, offset, snapshot high and timeout.
+- `Watermarks` on a missing topic returns an error wrapping `kerr.UnknownTopicOrPartition` (no auto-create). The CLI behaviour is decided in OPS-H7a2 AC6: non-zero exit.
+- `KafkaReader.Polls()` counts only polls that returned records.
+
 ## Alternatives considered
 1. **Kafka consumer group `arxivlens-dlq-replay` with committed offsets.** It can't express filter holes, and a stray member causes a rebalance. Visibility and reset go through Kafka
    admin tools, and the lock would need a separate store anyway. Rejected (Q1).
