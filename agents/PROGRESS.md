@@ -644,7 +644,7 @@ Format:
 - QA harnesses again refused to write `report.md`; orchestrator saved both PR comments verbatim (`ec6f82a`). Parallel memory writers each had their own arxivlens-agents worktree this time: no rebase collisions.
 - **Waiting on Mahesh: 5 PRs ready for review (#59–#63)**; ADRs, FE-1 npm egress and the EVAL-8 question unchanged. pm-lead docs PR owed: Product PRD OPS-2 ✅ → ◐ (design condition 7).
 
-## 2026-11-19 17:00Z — orchestrator (scheduled cycle, session_01ATEBeSGqS7NnAXfmeu62dA → session_01ATEBeUfitpLCLt6QS9wDoW)
+## 2026-11-19 17:00Z — orchestrator (scheduled cycle, session_01ATEBeUfitpLCLt6QS9wDoW)
 - Lock: none present → taken (`d12cc0f`), released in this commit. Push dry-run, app clone and Jira OK. (The sandbox's local `main` held stale idle-cycle commits not on origin; left untouched, worked on a fresh branch from `origin/main`.)
 - Sync: ArxivLens main still `8b55af2`. #59–#63 open, heads unchanged since QA PASS + PM APPROVE; no human reviews, inline or untagged comments; no Jira intake or human comments. No ADR changes. FE-1 still env-blocked (registry.npmjs.org doesn't resolve, 17:00Z).
 - New code tasks: **0**. Every Ready/Backlog task waits on an unmerged PR (OPS-H9/OPS-H7a2 → #62; EVAL-10a → #61; ING-6c/6d/6e/9b → #60; AI-8b → #59; OPS-H13 shares `stack.yml` with #63) or on FE-1.
