@@ -1,0 +1,24 @@
+$ bash -c echo "== network APIs referenced by tests/setup/fixtures (expect none) =="; grep -rnE "fetch|axios|XMLHttpRequest|WebSocket|msw|http\.request" frontend/src/test frontend/src/components/*.test.jsx || echo "(none)"; echo; echo "== components under test: network calls (expect none) =="; grep -nE "fetch\(|axios" frontend/src/components/SynthesisView.jsx frontend/src/components/ReferencesStack.jsx frontend/src/components/HeroSearch.jsx || echo "(none)"; echo; echo "== vitest config (vite.config.js test block) =="; sed -n "/test: {/,/},/p" frontend/vite.config.js; echo; cat frontend/src/test/setup.js
+== network APIs referenced by tests/setup/fixtures (expect none) ==
+(none)
+
+== components under test: network calls (expect none) ==
+(none)
+
+== vitest config (vite.config.js test block) ==
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.js'],
+    include: ['src/**/*.test.{js,jsx}'],
+  },
+
+import '@testing-library/jest-dom/vitest';
+import { afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
+
+// globals are off, so Testing Library can't register its own cleanup.
+afterEach(() => {
+  cleanup();
+});
+
+[exit code 0]

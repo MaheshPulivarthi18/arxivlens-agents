@@ -1,0 +1,56 @@
+$ node /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe1/probe/ac3-probe.mjs
+RESULT SUMMARY (badge-text assertions of ReferencesStack.test.jsx)
+HEAD (no mutation): all rows pass
+M0 revert AC3: every badge "x% Verified" (origin/main behaviour): KILLED by 3 row(s)
+M1 drop `&& cit.supported !== false`: SURVIVED
+M2 fallback always "supported": SURVIVED
+M3 drop unverified branch: KILLED by 1 row(s)
+M4 ignore status, use supported only: KILLED by 1 row(s)
+M5 unknown status -> Verified: KILLED by 2 row(s)
+
+DETAIL
+- HEAD (no mutation)
+    extra: status:supported + supported:false => "Unsupported · 87.3%"
+    extra: status:unverified + supported:true => "Unverified · 87.3%"
+    extra: status:"weird" + supported:true => "Unsupported · 87.3%"
+- M0 revert AC3: every badge "x% Verified" (origin/main behaviour)
+    fails: supported:false -> Unsupported · 12.0%, no Verified
+    fails: supported:false, no status -> Unsupported, no Verified
+    fails: unverified -> Unverified · 0.0%, no Verified
+    extra: status:supported + supported:false => "87.3% Verified"
+    extra: status:unverified + supported:true => "87.3% Verified"
+    extra: status:"weird" + supported:true => "87.3% Verified"
+- M1 drop `&& cit.supported !== false`
+    extra: status:supported + supported:false => "87.3% Verified"
+    extra: status:unverified + supported:true => "Unverified · 87.3%"
+    extra: status:"weird" + supported:true => "Unsupported · 87.3%"
+- M2 fallback always "supported"
+    extra: status:supported + supported:false => "Unsupported · 87.3%"
+    extra: status:unverified + supported:true => "Unverified · 87.3%"
+    extra: status:"weird" + supported:true => "Unsupported · 87.3%"
+- M3 drop unverified branch
+    fails: unverified -> Unverified · 0.0%, no Verified
+    extra: status:supported + supported:false => "Unsupported · 87.3%"
+    extra: status:unverified + supported:true => "Unsupported · 87.3%"
+    extra: status:"weird" + supported:true => "Unsupported · 87.3%"
+- M4 ignore status, use supported only
+    fails: unverified -> Unverified · 0.0%, no Verified
+    extra: status:supported + supported:false => "Unsupported · 87.3%"
+    extra: status:unverified + supported:true => "87.3% Verified"
+    extra: status:"weird" + supported:true => "87.3% Verified"
+- M5 unknown status -> Verified
+    fails: supported:false -> Unsupported · 12.0%, no Verified
+    fails: supported:false, no status -> Unsupported, no Verified
+    extra: status:supported + supported:false => "87.3% Verified"
+    extra: status:unverified + supported:true => "Unverified · 87.3%"
+    extra: status:"weird" + supported:true => "87.3% Verified"
+
+verification() source at HEAD:
+function verification(cit) {
+  const status = cit.status || (cit.supported ? 'supported' : 'unsupported');
+  if (status === 'supported' && cit.supported !== false) return { ok: true, label: 'Verified' };
+  if (status === 'unverified') return { ok: false, label: 'Unverified' };
+  return { ok: false, label: 'Unsupported' };
+}
+
+[exit code 0]

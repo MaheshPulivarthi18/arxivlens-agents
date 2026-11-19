@@ -1,0 +1,27 @@
+$ bash -c for f in frontend/src/components/*.test.jsx; do echo "== $f: $(grep -cE "^\s*it\(" $f) cases"; grep -nE "^\s*it\(" $f; done; echo; echo "total: $(cat frontend/src/components/*.test.jsx | grep -cE "^\s*it\(")"
+== frontend/src/components/HeroSearch.test.jsx: 5 cases
+16:  it('submits the trimmed question', async () => {
+25:  it('submits with the Enter key', async () => {
+32:  it('does not submit an empty question', async () => {
+39:  it('does not submit a whitespace-only question', async () => {
+46:  it('disables the submit button while loading', () => {
+== frontend/src/components/ReferencesStack.test.jsx: 8 cases
+21:  it('shows title, section and a one-click link to pdf_url for each citation', () => {
+31:  it('falls back to the arXiv PDF URL when pdf_url is empty', () => {
+39:  it('labels a supported citation as Verified with its score', () => {
+44:  it('flags supported: false visibly and never calls it Verified', () => {
+53:  it('flags supported: false even without a status field (older responses)', () => {
+59:  it('shows an unchecked citation (verifier outage, score 0) as Unverified, not "0.0% Verified"', () => {
+65:  it('Copy BibTeX passes an @article{arxiv_... entry to onCopy', async () => {
+76:  it('shows an empty state when there are no citations', () => {
+== frontend/src/components/SynthesisView.test.jsx: 6 cases
+24:  it('renders the answer text with each [n] marker as a button', () => {
+31:  it('clicking a marker reports its citation number', async () => {
+38:  it('labels a quoted answer as quoted from the papers', () => {
+44:  it('labels a synthesized answer as a checked written answer', () => {
+49:  it('renders a refusal as a normal state with its reason, not an error', () => {
+58:  it('announces when the synthesized answer is still being written', () => {
+
+total: 19
+
+[exit code 0]

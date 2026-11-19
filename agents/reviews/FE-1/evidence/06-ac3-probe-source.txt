@@ -1,0 +1,54 @@
+$ cat /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe1/probe/ac3-probe.mjs
+// QA probe (FE-1 AC3): runs the REAL verification() from ReferencesStack.jsx at the PR head on the
+// REAL fixtures, then applies single-edit mutants and checks them against the badge-text assertions
+// that ReferencesStack.test.jsx makes (regexes copied from the test file). Run with cwd = app checkout.
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+const src = fs.readFileSync('frontend/src/components/ReferencesStack.jsx', 'utf8');
+const fn = src.match(/function verification\(cit\) \{[\s\S]*?\n\}/)[0];
+const fx = await import(pathToFileURL(path.resolve('frontend/src/test/fixtures.js')));
+const badge = (v, cit) => { const p = (cit.score * 100).toFixed(1); return v.ok ? `${p}% Verified` : `${v.label} · ${p}%`; };
+const VERIFIED = /\bVerified\b/;
+// [test name, citation, assertion on rendered badge text] -- mirrors ReferencesStack.test.jsx
+const rows = [
+  ['supported -> 87.3% Verified', fx.supportedCitation, t => /87\.3% Verified/.test(t)],
+  ['supported:false -> Unsupported · 12.0%, no Verified', fx.unsupportedCitation, t => /Unsupported · 12\.0%/.test(t) && !VERIFIED.test(t)],
+  ['supported:false, no status -> Unsupported, no Verified', { ...fx.unsupportedCitation, status: undefined }, t => /Unsupported/.test(t) && !VERIFIED.test(t)],
+  ['unverified -> Unverified · 0.0%, no Verified', fx.unverifiedCitation, t => /Unverified · 0\.0%/.test(t) && !VERIFIED.test(t)],
+];
+const mutants = [
+  ['HEAD (no mutation)', s => s],
+  ['M0 revert AC3: every badge "x% Verified" (origin/main behaviour)', () => 'function verification(cit){ return { ok: true, label: "Verified" }; }'],
+  ['M1 drop `&& cit.supported !== false`', s => s.replace(" && cit.supported !== false", '')],
+  ['M2 fallback always "supported"', s => s.replace("(cit.supported ? 'supported' : 'unsupported')", "'supported'")],
+  ['M3 drop unverified branch', s => s.replace("if (status === 'unverified') return { ok: false, label: 'Unverified' };", '')],
+  ['M4 ignore status, use supported only', s => s.replace('cit.status ||', '')],
+  ['M5 unknown status -> Verified', s => s.replace("return { ok: false, label: 'Unsupported' };", "return { ok: true, label: 'Verified' };")],
+];
+// Extra inputs the tests do not use (inconsistent / unknown status), to show behaviour, not assertions.
+const extra = [
+  ['status:supported + supported:false', { ...fx.supportedCitation, supported: false }],
+  ['status:unverified + supported:true', { ...fx.supportedCitation, status: 'unverified' }],
+  ['status:"weird" + supported:true', { ...fx.supportedCitation, status: 'weird' }],
+];
+console.log('RESULT SUMMARY (badge-text assertions of ReferencesStack.test.jsx)');
+const out = [];
+for (const [name, mut] of mutants) {
+  const code = mut(fn);
+  if (name !== 'HEAD (no mutation)' && name[1] !== '0' && code === fn) { console.log(`${name}: INVALID (edit did not apply)`); continue; }
+  const v = new Function(`${code}; return verification;`)();
+  const fails = rows.filter(([, c, ok]) => !ok(badge(v(c), c))).map(r => r[0]);
+  const ex = extra.map(([n, c]) => `${n} => "${badge(v(c), c)}"`);
+  console.log(`${name}: ${fails.length ? 'KILLED by ' + fails.length + ' row(s)' : (name.startsWith('HEAD') ? 'all rows pass' : 'SURVIVED')}`);
+  out.push([name, fails, ex]);
+}
+console.log('\nDETAIL');
+for (const [name, fails, ex] of out) {
+  console.log(`- ${name}`);
+  for (const f of fails) console.log(`    fails: ${f}`);
+  for (const e of ex) console.log(`    extra: ${e}`);
+}
+console.log('\nverification() source at HEAD:\n' + fn);
+
+[exit code 0]

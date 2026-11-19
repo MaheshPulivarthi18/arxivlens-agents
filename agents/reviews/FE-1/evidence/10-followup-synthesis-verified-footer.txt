@@ -1,0 +1,11 @@
+$ bash -c grep -nE "Verified|refusalReason" frontend/src/components/SynthesisView.jsx; echo; echo "== same lines on origin/main (pre-existing?) =="; git show origin/main:frontend/src/components/SynthesisView.jsx | grep -nE "Verified"
+12:export default function SynthesisView({ answer, traceId, citations, onCitationClick, onCopy, answerKind, refusalReason, writing }) {
+50:    let md = `# Clinical & Academic Research Note\n\n${answer}\n\n## References & Verified Citations\n`;
+73:              {refusalReason ? 'No verified answer — the passages are shown as evidence' : (SUBTITLES[answerKind] || 'Grounded answer')}
+115:          <span>PostgreSQL pgvector Verified</span>
+
+== same lines on origin/main (pre-existing?) ==
+50:    let md = `# Clinical & Academic Research Note\n\n${answer}\n\n## References & Verified Citations\n`;
+115:          <span>PostgreSQL pgvector Verified</span>
+
+[exit code 0]

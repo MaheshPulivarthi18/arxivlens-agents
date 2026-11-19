@@ -1,0 +1,8 @@
+$ bash -c curl -sS -m 15 -o /dev/null -w "registry.npmjs.org HTTP %{http_code}\n" https://registry.npmjs.org/vitest; D=$(mktemp -d); cp -r frontend $D/; cd $D/frontend && timeout 120 npm ci --offline --no-audit --no-fund 2>&1 | grep -E "npm error (code|request)"; ls node_modules 2>&1 | head -1
+registry.npmjs.org HTTP 000
+npm error code ENOTCACHED
+npm error request to https://registry.npmjs.org/xmlchars/-/xmlchars-2.2.0.tgz failed: cache mode is 'only-if-cached' but no cached response is available.
+ls: cannot access 'node_modules': No such file or directory
+curl: (6) Could not resolve host: registry.npmjs.org
+
+[exit code 0]

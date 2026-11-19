@@ -1,0 +1,40 @@
+$ bash -c echo "== git diff origin/main...HEAD --stat =="; git diff origin/main...HEAD --stat; echo; echo "== package.json diff =="; git diff origin/main...HEAD -- frontend/package.json; echo; echo "== package-lock.json diff --stat (expect empty) =="; git diff origin/main...HEAD --stat -- frontend/package-lock.json; echo "[end, lines: $(git diff origin/main...HEAD -- frontend/package-lock.json | wc -l)]"; echo; echo "== FE-0-owned files touched (expect none) =="; git diff origin/main...HEAD --name-only | grep -E "index\.css|tailwind\.config|main\.jsx|index\.html|components/ui/|Navbar\.jsx" || echo "(none)"; echo; echo "== files outside frontend/ (expect none) =="; git diff origin/main...HEAD --name-only | grep -v "^frontend/" || echo "(none)"
+== git diff origin/main...HEAD --stat ==
+ frontend/README.md                               | 25 +++++---
+ frontend/package.json                            |  3 +-
+ frontend/src/components/HeroSearch.jsx           |  1 +
+ frontend/src/components/HeroSearch.test.jsx      | 50 +++++++++++++++
+ frontend/src/components/ReferencesStack.jsx      | 32 ++++++++--
+ frontend/src/components/ReferencesStack.test.jsx | 80 ++++++++++++++++++++++++
+ frontend/src/components/SynthesisView.test.jsx   | 62 ++++++++++++++++++
+ frontend/src/test/fixtures.js                    | 70 +++++++++++++++++++++
+ frontend/src/test/setup.js                       |  8 +++
+ frontend/vite.config.js                          |  8 ++-
+ 10 files changed, 322 insertions(+), 17 deletions(-)
+
+== package.json diff ==
+diff --git a/frontend/package.json b/frontend/package.json
+index 7975578..ecdec43 100644
+--- a/frontend/package.json
++++ b/frontend/package.json
+@@ -7,7 +7,8 @@
+     "dev": "vite",
+     "build": "vite build",
+     "lint": "oxlint",
+-    "preview": "vite preview"
++    "preview": "vite preview",
++    "test": "vitest run"
+   },
+   "dependencies": {
+     "@fontsource-variable/inter": "^5.3.0",
+
+== package-lock.json diff --stat (expect empty) ==
+[end, lines: 0]
+
+== FE-0-owned files touched (expect none) ==
+(none)
+
+== files outside frontend/ (expect none) ==
+(none)
+
+[exit code 0]
