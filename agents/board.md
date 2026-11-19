@@ -1,26 +1,28 @@
 # Board
 
-Last updated: 2026-11-19 17:10Z by orchestrator (scheduled cycle: no human reviews, no merges, nothing independent Ready; pm-lead raised the owed PRD OPS-2 docs PR arxivlens-agents #12; 5 PRs still Ready to merge)
+Last updated: 2026-11-19 17:32Z by orchestrator (Mahesh merged #59–#63 at 17:27–17:29Z; Jira KAN-65/67/68/69/70 → Done; ING-6c, AI-8b, OPS-H7a2, OPS-H9, EVAL-10a unblocked)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
-"After #N" = start only once that PR is **merged** (file overlap or dependency). Open PRs and their files: #59 AI-8c (`internal/query/synthesis_test.go`),
+"After #N" = start only once that PR is **merged** (file overlap or dependency). Open PRs and their files: none (all merged 2026-11-19 17:29Z). Previously: #59 AI-8c (`internal/query/synthesis_test.go`),
 #60 ING-6b (`internal/crawler/loop.go`, `loop_test.go`, `crawler.go`), #61 EVAL-10 (`scripts/evaluate_answers.py`, `tests/test_evals_data.py`, `evals/README.md`),
 #62 OPS-H7a1 (`internal/dlq/kafka*.go`, `.github/workflows/db.yml`, `go.mod`), #63 OPS-H12 (`.github/workflows/stack.yml`).
-**All five are Ready to merge.** `rag.go` order (one file, one owner): AI-8b (after #59) → AI-5 (if ADR-0011 is Accepted).
+**All five merged 2026-11-19.** `rag.go` order (one file, one owner): AI-8b (#59 merged; Ready) → AI-5 (if ADR-0011 is Accepted).
 Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; what they changed for the tickets is recorded in the
 2026-11-17 grooming notes (QA-8 delivered by #46; AI-10/ADR-0015 premise changed by #43/#47; EVAL-8 question; ADR-0018 Proposed for #44/#46).
 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 1 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | after #62 merges (`db.yml`) | |
+| 0a | [AI-8b](tasks/AI-8b.md) (KAN-61) | `claims[]`, `prompt_version`, README `/v1/ask` row, AC6 Python | ai-engineer | P0 | #59 merged 2026-11-19 | AC9: compare first nightly eval after #54; README row follows ADR-0018 (Proposed) |
+| 0b | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | #60 merged 2026-11-19 | AC11 = ING-6b QA nits; `db.yml`: not alongside OPS-H9 |
+| 1 | [OPS-H9](tasks/OPS-H9.md) | CI trust: `real_postgres` step, pgvector ≥ 0.8 pin, MinIO digest check | backend-engineer | P2 | #62 merged 2026-11-19 | |
 | 4 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + answer/citation state tests | frontend-engineer | P1 | — | **Env-blocked:** registry.npmjs.org still doesn't resolve (re-checked 2026-11-19 14:00Z). Needs Mahesh (allow the host, or push the lockfile) |
 | 5 | [FE-3](tasks/FE-3.md) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 merged | |
 | 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 merged | |
-| 6a | [OPS-H7a2](tasks/OPS-H7a2.md) (KAN-71) | `dlq list`/`inspect` CLI on the Reader: `List`, `P/O` footer, README (rest of OPS-H7a) | backend-engineer | P1 | #62 merged | Specced 2026-11-19 by pm-lead |
+| 6a | [OPS-H7a2](tasks/OPS-H7a2.md) (KAN-71) | `dlq list`/`inspect` CLI on the Reader: `List`, `P/O` footer, README (rest of OPS-H7a) | backend-engineer | P1 | #62 merged 2026-11-19 | Specced 2026-11-19 by pm-lead; not alongside OPS-H7b |
 | 7 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | OPS-H7a1 #62 + OPS-H7a2 merged | |
 | 8 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
-| 9 | [EVAL-10a](tasks/EVAL-10a.md) | Pin errored cases in the `/v1/ask` summary ID lines (test-only) | ai-engineer | P3 | #61 merged | Jira story not created yet |
+| 9 | [EVAL-10a](tasks/EVAL-10a.md) | Pin errored cases in the `/v1/ask` summary ID lines (test-only) | ai-engineer | P3 | #61 merged 2026-11-19 | Jira story not created yet |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -37,17 +39,10 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
-| [AI-8c](tasks/AI-8c.md) | `checkCitationInvariants` at the 11 `AskResponse` sites in `synthesis_test.go` | backend-engineer | ArxivLens [#59](https://github.com/MaheshPulivarthi18/ArxivLens/pull/59) (KAN-67) @ `dd5dac5` | QA PASS r1 · PM APPROVE ([report](reviews/AI-8c/report.md)); merging it unblocks AI-8b |
-| [ING-6b](tasks/ING-6b.md) | Crawl-loop emit oldest-first, crash-safe watermark advance, `RunOnce`/`Run` | backend-engineer | ArxivLens [#60](https://github.com/MaheshPulivarthi18/ArxivLens/pull/60) (KAN-65) @ `ea3bf32` | QA PASS r1 · PM APPROVE ([report](reviews/ING-6b/report.md)); nits → ING-6c AC11; merging it unblocks ING-6c |
-| [EVAL-10](tasks/EVAL-10.md) | Refused/missed/near-miss case IDs in the `/v1/ask` eval summary | ai-engineer | ArxivLens [#61](https://github.com/MaheshPulivarthi18/ArxivLens/pull/61) (KAN-69) @ `164305b` | QA PASS r1 · PM APPROVE ([report](reviews/EVAL-10/report.md)); follow-up EVAL-10a |
-| [OPS-H7a](tasks/OPS-H7a.md) (a1 slice) | kgo DLQ Reader to the start-time high watermark + real-Kafka `db.yml` test | backend-engineer | ArxivLens [#62](https://github.com/MaheshPulivarthi18/ArxivLens/pull/62) (KAN-70) @ `d420463` | QA PASS r1 · PM APPROVE ([report](reviews/OPS-H7a/report.md)); size gate split, rest = OPS-H7a2 |
-| [OPS-H12](tasks/OPS-H12.md) | `stack.yml` `-rA` PASSED lines + Risk 1 probe `continue-on-error` | backend-engineer | ArxivLens [#63](https://github.com/MaheshPulivarthi18/ArxivLens/pull/63) (KAN-68) @ `89fd583` | QA PASS r1 · PM APPROVE ([report](reviews/OPS-H12/report.md)); human check: AC4 step summary |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
-| [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | ING-6b (#60) merged (#51, #52 merged 2026-11-19); AC11 = ING-6b QA nits |
-| [AI-8b](tasks/AI-8b.md) (KAN-61) | `claims[]`, `prompt_version`, README `/v1/ask` row, AC6 Python | ai-engineer | AI-8c (#59) merged (AI-8a #54 and ING-11b #52 merged 2026-11-19); AC9: compare first nightly eval after #54 |
 | [FE-4](tasks/FE-4.md) (KAN-44) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | AI-8a/AI-8b merged, FE-3 merged (FE-1 env-blocked) |
 | [AI-10](tasks/AI-10.md) (KAN-51) | Configurable int8/`max_length` reranker (design-required) | ai-engineer | Mahesh's answer on ADR-0015 (premise changed: GPU is the reference hardware since #43/#47). AI-9 is merged (`d4b1cf3`) |
 | [EVAL-8](tasks/EVAL-8.md) (KAN-46) | First answer eval with a real LLM | backend + ai | Mahesh: is his local qwen2.5:3b run in #46 "option 3" (EVAL-8 done, commit the results JSON), or does he want CI/hosted runs (option 1/2)? |

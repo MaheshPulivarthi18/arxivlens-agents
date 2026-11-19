@@ -650,3 +650,7 @@ Format:
 - New code tasks: **0**. Every Ready/Backlog task waits on an unmerged PR (OPS-H9/OPS-H7a2 → #62; EVAL-10a → #61; ING-6c/6d/6e/9b → #60; AI-8b → #59; OPS-H13 shares `stack.yml` with #63) or on FE-1.
 - pm-lead raised the owed docs PR: Product PRD OPS-2 ✅ → ◐ partial (OPS-H7 design condition 7) → arxivlens-agents [#12](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/12), 1-line diff.
 - **Waiting on Mahesh: 5 ArxivLens PRs ready for review (#59–#63) + arxivlens-agents #12**; ADRs, FE-1 npm egress and the EVAL-8 question unchanged.
+
+## 2026-11-19 17:32Z — orchestrator (Mahesh: "i merged prs update status on jira", session_01ATEBeSVMkYAKhRYdxuTFXH)
+- Mahesh merged #59 (AI-8c), #61 (EVAL-10), #63 (OPS-H12), #60 (ING-6b), #62 (OPS-H7a1) at 17:27–17:29Z. Jira KAN-67, KAN-69, KAN-68, KAN-65, KAN-70 → Done.
+- Unblocked (`blocked` label removed, orchestrator comment): AI-8b (KAN-61), ING-6c (KAN-66), OPS-H7a2 (KAN-71). OPS-H9 and EVAL-10a deps now merged too. Board moved them to Ready. No open agent PRs.
