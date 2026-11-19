@@ -8,7 +8,7 @@
 | **Depends on** | FE-0's design approved (2026-11-19, `docs/design/FE-0.md` §6 is this ticket's API). No merge dependency: the files use existing shadcn token names (`bg-popover`, `border-border`, `ring-ring`, `bg-accent`), which `tailwind.config.js` already maps on `origin/main`. They pick up FE-0's new values when it merges |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-0b"`) |
 | **Design required** | no: covered by `docs/design/FE-0.md` §6 (approved). Any deviation from that table is written in this ticket's Notes before code |
-| **Status** | Ready, but **waits for a frontend WIP slot** (FE-1 #68 + FE-0 = 2 active PRs). Shares no file with FE-0 or FE-1 (new files only) |
+| **Status** | In QA: draft #70 |
 
 ## Goal
 Ship the six remaining shadcn-style Radix/sonner wrappers that the FE-0 design specifies, so FE-3 (status-chip tooltips) and FE-4
@@ -70,3 +70,14 @@ grep -nE '^export ' src/components/ui/{tooltip,popover,collapsible,scroll-area,s
   `Navbar.jsx` or `ThemeToggle.jsx` (FE-0's files), so moving those two to a shared constant goes with the token-migration follow-up.
 - 2026-11-19 (pm-lead): FE-0 #69 is now Ready to merge, so it no longer counts against frontend WIP. FE-1 #68 is also Ready to merge, so
   FE-0b can start next cycle (new files only, no overlap with #69).
+- 2026-11-19 (frontend-engineer, build): draft PR [#70](https://github.com/MaheshPulivarthi18/ArxivLens/pull/70), branch `agent/frontend/FE-0b`,
+  head `705b707063e8249b3f57e1c80b6bb2a2c60caee8`. Diff: 6 new files, 159 insertions (tooltip 37, popover 28, collapsible 10, scroll-area 38,
+  separator 22, sonner 24). No existing file or dependency changed. `ownership-check.sh`: `Ownership OK for role=frontend (159 changed lines)`.
+  No deviation from design §6. Two choices the design leaves open: `TooltipProvider` defaults `delayDuration=300` (same as `Tooltip`), and `Toaster` is
+  forwardRef + `cn("toaster", className)`, with caller `style` spread after the token variables. Triggers are unstyled (no third `focusRing` copy).
+  - AC1: CI on the head is all green (Frontend job 135909339973, `pull_request`). oxlint printed `Found 0 warnings and 0 errors.` on 26 files (main: 0),
+    `vite build` printed `✓ built in 743ms`. Caveat: nothing imports the new files yet, so the build doesn't bundle them. Lint and the JSX parse cover them, and the build doesn't.
+  - AC2/AC3/AC4: the static greps are clean (6 package imports; the colour/motion grep exits 1; only PascalCase exports per the TS AST; forwardRef + displayName
+    on TooltipContent, PopoverContent, ScrollArea, ScrollBar, Separator and Toaster). All six files parse (TypeScript `transpileModule`, JSX).
+  - AC5: met (see diff above). AC6: not run by the developer (no `node_modules`, npm registry unreachable). Left to QA.
+
