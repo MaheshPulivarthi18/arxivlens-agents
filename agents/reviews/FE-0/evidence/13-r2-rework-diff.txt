@@ -1,0 +1,33 @@
+$ bash -c git diff --stat ca76bea..dcb5420; git diff ca76bea..dcb5420; echo; echo '# full PR diff vs main (unchanged file set)'; git diff --stat origin/main...dcb5420
+ frontend/tailwind.config.js | 4 ++++
+ 1 file changed, 4 insertions(+)
+diff --git a/frontend/tailwind.config.js b/frontend/tailwind.config.js
+index d09b72a..5219e9a 100644
+--- a/frontend/tailwind.config.js
++++ b/frontend/tailwind.config.js
+@@ -65,6 +65,10 @@ export default {
+           DEFAULT: "hsl(var(--card))",
+           foreground: "hsl(var(--card-foreground))",
+         },
++        popover: {
++          DEFAULT: "hsl(var(--popover))",
++          foreground: "hsl(var(--popover-foreground))",
++        },
+       },
+       borderRadius: {
+         lg: "var(--radius)",
+
+# full PR diff vs main (unchanged file set)
+ README.md                                    |  3 +
+ frontend/index.html                          | 18 +++++-
+ frontend/src/components/Navbar.jsx           | 62 ++++++++++---------
+ frontend/src/components/ThemeToggle.jsx      | 76 +++++++++++++++++++++++
+ frontend/src/components/ui/button.jsx        |  2 +-
+ frontend/src/components/ui/dropdown-menu.jsx | 71 ++++++++++++++++++++++
+ frontend/src/index.css                       | 90 +++++++++++++++++++++-------
+ frontend/src/lib/theme.js                    | 64 ++++++++++++++++++++
+ frontend/src/main.jsx                        |  3 +
+ frontend/tailwind.config.js                  | 55 +++++++++++++++--
+ 10 files changed, 386 insertions(+), 58 deletions(-)
+
+[exit code 0]

@@ -102,3 +102,22 @@ QA of FE-0b (PR #70, [report](../FE-0b/report.md), finding F1) found a defect in
 Treated as PM CHANGES (round 1): PR #69 back to draft, Jira → In Progress, `ready-to-merge` label removed.
 - [ ] 1. Map `popover: { DEFAULT: "hsl(var(--popover))", foreground: "hsl(var(--popover-foreground))" }` in `tailwind.config.js` (and check every other token class the diff uses is mapped).
 - [ ] 2. QA round 2 runs the diff's classes through Tailwind against the real config (QA lesson `dbc8444`).
+
+## Round 2 — qa-reviewer (2026-11-19), head `dcb5420653158d2089296cfe37d43a6c962c6890` (r1 head `ca76bea`)
+
+**Verdict: PASS** — the rework adds only the `popover` colour mapping; every class in the PR's changed files now generates CSS, the dropdown menu has an opaque background in both themes, and CI is green with oxlint 0 warnings.
+
+Re-checks the items in "Orchestrator — reopened" above (both done) and the r1 ACs.
+
+| # | Check | Result | Evidence |
+|---|---|---|---|
+| 1 | Rework diff `ca76bea..dcb5420` is only the `popover` mapping | ✅ one file, `frontend/tailwind.config.js`, +4 lines: `popover: { DEFAULT: "hsl(var(--popover))", foreground: "hsl(var(--popover-foreground))" }`. PR file set vs `origin/main` unchanged (10 files, same as r1) | [13](evidence/13-r2-rework-diff.png) |
+| 2 | Every class in the changed files generates CSS with the real config | ✅ 130 string tokens from `Navbar.jsx`, `ThemeToggle.jsx`, `ui/button.jsx`, `ui/dropdown-menu.jsx` + the `index.css` `@apply` lines: 119 generate CSS. The 11 that don't are not classes (`button`, `class-variance-authority`, `default`, `end`, `ghost`, `icon`, `sm`, `storage`, `system`, `tab`, `true`, which are prop values, imports and event names). `bg-popover` → `background-color: hsl(var(--popover))`, `text-popover-foreground` → `color: hsl(var(--popover-foreground))`. Control: the r1 `ca76bea` config misses exactly those two | [14](evidence/14-r2-tailwind-class-generation.png), [19 sources](evidence/19-r2-probe-sources.png) |
+| 3 | Chromium CSS probe: dropdown content is opaque in both themes | ✅ the exact `DropdownMenuContent`/item class strings from `dropdown-menu.jsx`, the real `:root`/`.dark` tokens and CSS compiled from the head config give a light `rgb(255,255,255)` background (`--popover 0 0% 100%`) and a dark `rgb(32,31,29)` one (`--popover 30 6% 12%`). Control with the r1 config: `rgba(0,0,0,0)` in both themes, which reproduces F1. This is a CSS probe, not a component render (radix is not installable here) | [15](evidence/15-r2-chromium-dropdown-css-probe.png), [16 light](evidence/16-r2-chromium-dropdown-light.png), [17 dark](evidence/17-r2-chromium-dropdown-dark.png), [18 r1 control](evidence/18-r2-control-r1-dropdown-dark-transparent.png) |
+| 4 | CI green on the new head, lint 0 warnings | ✅ all 5 check runs `success`. Frontend job 135919290197: `oxlint` → `Found 0 warnings and 0 errors.`, Vite build `✓ built in 1.02s` | [11](evidence/11-r2-ci-checks.png), [12](evidence/12-r2-frontend-job-lint-build.png) |
+| 5 | r1 ACs unaffected | ✅ the rework touches no file that the r1 evidence depends on (`index.css`, `theme.js`, `index.html`, components, README): see the diff in 13. AC3 still holds and is improved, since the config now also exposes `popover`. AC1 is re-proven on the new head (11, 12). AC2, AC4–AC9 evidence from round 1 still applies unchanged | [13](evidence/13-r2-rework-diff.png) |
+
+Local runs: the Tailwind 4.3.3 `compile()` with `@config` (v3 JS-config compat) and the Playwright Chromium probes ran in this sandbox at `dcb5420`. `@tailwindcss/typography` was stubbed because it is not installed, and no FE-0 class uses `prose`. `npm run lint`/`build` were not run locally (no `node_modules`), so CI is the source.
+
+Findings:
+1. [spec] (non-blocking, for pm-lead) AC3 lists the config mappings it requires, but no AC requires "every class used in the diff generates CSS". That gap let F1 through r1. Consider adding it as a standing frontend AC, or to `agents/area-notes/` for frontend.

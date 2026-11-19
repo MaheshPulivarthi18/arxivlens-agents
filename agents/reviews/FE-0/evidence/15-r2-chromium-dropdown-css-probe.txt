@@ -1,0 +1,16 @@
+$ bash -c echo '# A: head dcb5420 config'; node /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/cssprobe.mjs frontend/tailwind.config.js frontend /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/head; echo; echo '# B: control - r1 ca76bea config'; node /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/cssprobe.mjs /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/ca76bea.tailwind.config.js frontend /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/r1
+# A: head dcb5420 config
+[light] --popover=0 0% 100% --popover-foreground=222 22% 13%
+[light] menu background-color=rgb(255, 255, 255) (opaque)  menu color=rgb(26, 30, 40)  body background=rgb(249, 248, 246)
+[dark] --popover=30 6% 12% --popover-foreground=40 20% 90%
+[dark] menu background-color=rgb(32, 31, 29) (opaque)  menu color=rgb(235, 231, 224)  body background=rgb(22, 20, 19)
+config: frontend/tailwind.config.js
+
+# B: control - r1 ca76bea config
+[light] --popover=0 0% 100% --popover-foreground=222 22% 13%
+[light] menu background-color=rgba(0, 0, 0, 0) (NOT opaque)  menu color=rgb(26, 30, 40)  body background=rgb(249, 248, 246)
+[dark] --popover=30 6% 12% --popover-foreground=40 20% 90%
+[dark] menu background-color=rgba(0, 0, 0, 0) (NOT opaque)  menu color=rgb(235, 231, 224)  body background=rgb(22, 20, 19)
+config: /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/ca76bea.tailwind.config.js
+
+[exit code 0]

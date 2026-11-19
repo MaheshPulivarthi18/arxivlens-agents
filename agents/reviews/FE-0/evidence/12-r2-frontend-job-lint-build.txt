@@ -1,0 +1,14 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135919290197/logs | grep -nE 'Run npm|oxlint|Found [0-9]+ warnings|...'
+34:2026-11-19T22:09:21.0804265Z Complete job name: Frontend (lint, test, build)
+150:2026-11-19T22:09:24.4351620Z ##[group]Run npm ci
+169:2026-11-19T22:09:29.3834358Z ##[group]Run npm run lint
+175:2026-11-19T22:09:29.4953498Z > oxlint
+177:2026-11-19T22:09:29.5725517Z Found 0 warnings and 0 errors.
+179:2026-11-19T22:09:29.6153245Z ##[group]Run if npm run | grep -q " test"; then npm test; else echo "no frontend tests yet"; fi
+180:2026-11-19T22:09:29.6154061Z [36;1mif npm run | grep -q " test"; then npm test; else echo "no frontend tests yet"; fi[0m
+183:2026-11-19T22:09:29.7316219Z no frontend tests yet
+184:2026-11-19T22:09:29.7570419Z ##[group]Run npm run build
+192:2026-11-19T22:09:30.1057249Z [36mvite v8.2.2 [32mbuilding client environment for production...[36m[39m
+194:2026-11-19T22:09:31.0095360Z ✓ 1923 modules transformed.
+220:2026-11-19T22:09:31.1255039Z [32m✓ built in 1.02s[39m
+

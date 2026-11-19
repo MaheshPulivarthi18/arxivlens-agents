@@ -1,0 +1,78 @@
+$ bash -c for f in /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/probe.mjs /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/cssprobe.mjs; do echo "===== $(basename $f)"; cat $f; done
+===== probe.mjs
+// QA FE-0 r2 probe: does Tailwind generate CSS for every class token in the FE-0 PR's changed frontend files?
+// usage: node probe.mjs <tailwind.config.js> <frontend dir>   (Tailwind 4.3.3 compile() with @config = v3 JS-config compat;
+// @tailwindcss/typography is not installed here, so it is replaced by an empty plugin - no FE-0 class uses `prose`).
+import { compile } from "/opt/npm-tools/node_modules/tailwindcss/dist/lib.mjs";
+import fs from "node:fs"; import path from "node:path"; import os from "node:os"; import { pathToFileURL } from "node:url";
+const [cfgPath, fe] = process.argv.slice(2);
+const src = fs.readFileSync(cfgPath, "utf8").replace(/import typography from "@tailwindcss\/typography"/, "const typography = () => {}");
+const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tw-")), "cfg.mjs"); fs.writeFileSync(tmp, src);
+const files = ["src/components/Navbar.jsx","src/components/ThemeToggle.jsx","src/components/ui/button.jsx","src/components/ui/dropdown-menu.jsx"];
+const tokens = new Map(); // token -> files
+const add = (t, f) => { if (!tokens.has(t)) tokens.set(t, new Set()); tokens.get(t).add(f); };
+for (const f of files) {
+  const s = fs.readFileSync(path.join(fe, f), "utf8");
+  for (const m of s.matchAll(/"([^"\n]*)"|`([^`]*)`/g)) for (const t of (m[1] ?? m[2]).split(/\s+/))
+    if (t && /^[!a-z-][\w\-\[\]\/:.()%=&>*#,]*$/.test(t) && !/^(\.|@|react|lucide|use client)/.test(t)) add(t, path.basename(f));
+}
+for (const m of fs.readFileSync(path.join(fe, "src/index.css"), "utf8").matchAll(/@apply\s+([^;]+);/g))
+  for (const t of m[1].trim().split(/\s+/)) add(t, "index.css@apply");
+const mk = () => compile(`@import "tailwindcss/theme.css" layer(theme);\n@config "./cfg.mjs";\n@tailwind utilities;`, {
+  base: path.dirname(tmp),
+  loadModule: async (id, base) => ({ module: (await import(pathToFileURL(path.resolve(base, id)).href)).default, base, path: id }),
+  loadStylesheet: async (id) => { const f = "/opt/npm-tools/node_modules/tailwindcss/theme.css"; if (id !== "tailwindcss/theme.css") throw new Error(id); return { content: fs.readFileSync(f, "utf8"), base: path.dirname(f), path: f }; },
+});
+const esc = k => "." + k.replace(/[^a-zA-Z0-9_-]/g, ch => "\\" + ch);
+const gen = async k => { const css = (await mk()).build([k]); return css.includes(esc(k)) ? css : null; };
+const missing = [];
+for (const k of [...tokens.keys()].sort()) if (!(await gen(k))) missing.push(k);
+console.log(`config: ${cfgPath}`);
+console.log(`string tokens scanned in ${files.length} jsx files + index.css @apply: ${tokens.size}; generated CSS: ${tokens.size - missing.length}; no CSS: ${missing.length}`);
+for (const k of missing) console.log(`  no CSS: ${k.padEnd(28)} [${[...tokens.get(k)].join(", ")}]`);
+for (const k of ["bg-popover","text-popover-foreground"]) {
+  const out = await gen(k); const css = (out || "").split("\n").filter(l => /(^|\s)(background-)?color:/.test(l)).map(s=>s.trim()).join(" ");
+  console.log(`  ${k.padEnd(26)} -> ${css || "(no CSS)"}`);
+}
+===== cssprobe.mjs
+// QA FE-0 r2 CSS probe (NOT a component render: radix is not installable here). Compiles Tailwind CSS from the given
+// tailwind.config.js for the exact DropdownMenuContent / item class strings read from dropdown-menu.jsx, applies them to
+// plain elements over body text in headless Chromium with the app's real :root and .dark token blocks from index.css,
+// and reports computed colours in both themes. usage: node cssprobe.mjs <tailwind.config.js> <frontend dir> <out-prefix>
+import { compile } from "/opt/npm-tools/node_modules/tailwindcss/dist/lib.mjs";
+import { chromium } from "/opt/npm-tools/node_modules/playwright/index.mjs";
+import fs from "node:fs"; import path from "node:path"; import os from "node:os"; import { pathToFileURL } from "node:url";
+const [cfgPath, fe, prefix] = process.argv.slice(2);
+const dd = fs.readFileSync(path.join(fe, "src/components/ui/dropdown-menu.jsx"), "utf8");
+const contentCls = dd.match(/"(z-50 [^"]*)"/)[1];
+const itemCls = dd.match(/const itemClasses =\s*"([^"]*)"/)[1];
+const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tw-")), "cfg.mjs");
+fs.writeFileSync(tmp, fs.readFileSync(cfgPath, "utf8").replace(/import typography from "@tailwindcss\/typography"/, "const typography = () => {}"));
+const c = await compile(`@import "tailwindcss/theme.css" layer(theme);\n@config "./cfg.mjs";\n@tailwind utilities;`, {
+  base: path.dirname(tmp),
+  loadModule: async (id, base) => ({ module: (await import(pathToFileURL(path.resolve(base, id)).href)).default, base, path: id }),
+  loadStylesheet: async (id) => { const f = "/opt/npm-tools/node_modules/tailwindcss/theme.css"; if (id !== "tailwindcss/theme.css") throw new Error(id); return { content: fs.readFileSync(f, "utf8"), base: path.dirname(f), path: f }; },
+});
+const css = c.build([contentCls, itemCls, "bg-background", "text-foreground", "p-4"].join(" ").split(/\s+/));
+const idx = fs.readFileSync(path.join(fe, "src/index.css"), "utf8");
+const tokens = idx.match(/:root\s*\{[^}]*\}/)[0] + "\n" + idx.match(/\.dark\s*\{[^}]*\}/)[0];
+const html = `<!doctype html><html><head><style>${tokens}\n${css}\nbody{margin:0;font:14px sans-serif}</style></head>
+<body class="bg-background text-foreground p-4"><div style="position:relative;height:150px">
+${"Body text that the open menu sits on top of. ".repeat(12)}
+<div id="menu" class="${contentCls}" style="position:absolute;top:10px;left:40px;width:180px">
+<div class="${itemCls}">Light</div><div class="${itemCls}" data-highlighted="">Dark (highlighted)</div><div class="${itemCls}">System</div></div></div></body></html>`;
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 520, height: 190 } });
+await p.setContent(html);
+for (const theme of ["light", "dark"]) {
+  await p.evaluate(t => document.documentElement.classList.toggle("dark", t === "dark"), theme);
+  const s = await p.evaluate(() => { const m = document.getElementById("menu"), cs = getComputedStyle(m), r = getComputedStyle(document.documentElement);
+    return { bg: cs.backgroundColor, color: cs.color, body: getComputedStyle(document.body).backgroundColor, pop: r.getPropertyValue("--popover").trim(), popFg: r.getPropertyValue("--popover-foreground").trim() }; });
+  const opaque = /^rgb\(/.test(s.bg) || /^rgba\(.*,\s*1\)$/.test(s.bg);
+  console.log(`[${theme}] --popover=${s.pop} --popover-foreground=${s.popFg}`);
+  console.log(`[${theme}] menu background-color=${s.bg} (${opaque ? "opaque" : "NOT opaque"})  menu color=${s.color}  body background=${s.body}`);
+  await p.screenshot({ path: `${prefix}-${theme}.png` });
+}
+await b.close();
+console.log(`config: ${cfgPath}`);
+
+[exit code 0]

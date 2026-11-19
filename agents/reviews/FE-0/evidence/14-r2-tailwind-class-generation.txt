@@ -1,0 +1,38 @@
+$ bash -c echo '# A: head dcb5420 frontend/tailwind.config.js'; node /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/probe.mjs frontend/tailwind.config.js frontend; echo; echo '# B: control - r1 head ca76bea config (git show ca76bea:frontend/tailwind.config.js)'; node /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/probe.mjs /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/ca76bea.tailwind.config.js frontend
+# A: head dcb5420 frontend/tailwind.config.js
+config: frontend/tailwind.config.js
+string tokens scanned in 4 jsx files + index.css @apply: 130; generated CSS: 119; no CSS: 11
+  no CSS: button                       [Navbar.jsx, button.jsx]
+  no CSS: class-variance-authority     [button.jsx]
+  no CSS: default                      [Navbar.jsx, button.jsx]
+  no CSS: end                          [ThemeToggle.jsx]
+  no CSS: ghost                        [ThemeToggle.jsx]
+  no CSS: icon                         [ThemeToggle.jsx]
+  no CSS: sm                           [Navbar.jsx]
+  no CSS: storage                      [ThemeToggle.jsx]
+  no CSS: system                       [ThemeToggle.jsx]
+  no CSS: tab                          [Navbar.jsx]
+  no CSS: true                         [Navbar.jsx, ThemeToggle.jsx, dropdown-menu.jsx]
+  bg-popover                 -> background-color: hsl(var(--popover));
+  text-popover-foreground    -> color: hsl(var(--popover-foreground));
+
+# B: control - r1 head ca76bea config (git show ca76bea:frontend/tailwind.config.js)
+config: /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/fe0r2/ca76bea.tailwind.config.js
+string tokens scanned in 4 jsx files + index.css @apply: 130; generated CSS: 117; no CSS: 13
+  no CSS: bg-popover                   [dropdown-menu.jsx]
+  no CSS: button                       [Navbar.jsx, button.jsx]
+  no CSS: class-variance-authority     [button.jsx]
+  no CSS: default                      [Navbar.jsx, button.jsx]
+  no CSS: end                          [ThemeToggle.jsx]
+  no CSS: ghost                        [ThemeToggle.jsx]
+  no CSS: icon                         [ThemeToggle.jsx]
+  no CSS: sm                           [Navbar.jsx]
+  no CSS: storage                      [ThemeToggle.jsx]
+  no CSS: system                       [ThemeToggle.jsx]
+  no CSS: tab                          [Navbar.jsx]
+  no CSS: text-popover-foreground      [dropdown-menu.jsx]
+  no CSS: true                         [Navbar.jsx, ThemeToggle.jsx, dropdown-menu.jsx]
+  bg-popover                 -> (no CSS)
+  text-popover-foreground    -> (no CSS)
+
+[exit code 0]
