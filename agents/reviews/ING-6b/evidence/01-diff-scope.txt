@@ -1,0 +1,15 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; git diff --shortstat origin/main...HEAD; echo; echo "crawler_test.go / shared/ diff lines:"; git diff origin/main...HEAD -- internal/crawler/crawler_test.go shared/ | wc -l; echo "merge-base = origin/main:"; git merge-base origin/main HEAD; git rev-parse origin/main
+ internal/crawler/crawler.go   |  32 +++---
+ internal/crawler/loop.go      | 150 +++++++++++++++++++++++-
+ internal/crawler/loop_test.go | 261 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 421 insertions(+), 22 deletions(-)
+
+ 3 files changed, 421 insertions(+), 22 deletions(-)
+
+crawler_test.go / shared/ diff lines:
+0
+merge-base = origin/main:
+8b55af22dfff6e97f6541d1fc61f4717238ed7f0
+8b55af22dfff6e97f6541d1fc61f4717238ed7f0
+
+[exit code 0]

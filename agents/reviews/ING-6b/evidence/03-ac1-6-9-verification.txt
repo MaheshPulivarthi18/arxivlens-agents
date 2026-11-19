@@ -1,0 +1,52 @@
+$ bash -c export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off PATH=/usr/local/go1.25.1/bin:$PATH; /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/harness/build.sh /root/qa/ING-6b /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/mod && cd /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/mod && go version && go vet ./internal/crawler/ && go test -count=1 -race -v -run 'TestRunCategory|TestWatermarkAfter|TestRunOnce|TestRunStops|TestDiscoveredPayload' ./internal/crawler/ 2>&1 | grep -E '^(=== RUN|--- |    --- |PASS|FAIL|ok)'
+go version go1.25.1 linux/amd64
+=== RUN   TestWatermarkAfter
+--- PASS: TestWatermarkAfter (0.00s)
+=== RUN   TestRunCategoryAdvancesWatermark
+=== RUN   TestRunCategoryAdvancesWatermark/untruncated:_W_=_max_seen
+=== RUN   TestRunCategoryAdvancesWatermark/truncated:_oldest_limit,_then_the_rest
+=== RUN   TestRunCategoryAdvancesWatermark/first_run:_newest_limit,_ascending
+=== RUN   TestRunCategoryAdvancesWatermark/tie_group_straddling_limit_emitted_whole
+--- PASS: TestRunCategoryAdvancesWatermark (0.00s)
+    --- PASS: TestRunCategoryAdvancesWatermark/untruncated:_W_=_max_seen (0.00s)
+    --- PASS: TestRunCategoryAdvancesWatermark/truncated:_oldest_limit,_then_the_rest (0.00s)
+    --- PASS: TestRunCategoryAdvancesWatermark/first_run:_newest_limit,_ascending (0.00s)
+    --- PASS: TestRunCategoryAdvancesWatermark/tie_group_straddling_limit_emitted_whole (0.00s)
+=== RUN   TestRunOnceTwiceEmitsNothingSecondTime
+--- PASS: TestRunOnceTwiceEmitsNothingSecondTime (0.00s)
+=== RUN   TestRunCategoryCrashAtK
+=== RUN   TestRunCategoryCrashAtK/upsert_k=0
+=== RUN   TestRunCategoryCrashAtK/publish_k=0
+=== RUN   TestRunCategoryCrashAtK/upsert_k=1
+=== RUN   TestRunCategoryCrashAtK/publish_k=1
+=== RUN   TestRunCategoryCrashAtK/upsert_k=2
+=== RUN   TestRunCategoryCrashAtK/publish_k=2
+=== RUN   TestRunCategoryCrashAtK/upsert_k=3
+=== RUN   TestRunCategoryCrashAtK/publish_k=3
+=== RUN   TestRunCategoryCrashAtK/k=n:_watermark_write_fails
+--- PASS: TestRunCategoryCrashAtK (0.00s)
+    --- PASS: TestRunCategoryCrashAtK/upsert_k=0 (0.00s)
+    --- PASS: TestRunCategoryCrashAtK/publish_k=0 (0.00s)
+    --- PASS: TestRunCategoryCrashAtK/upsert_k=1 (0.00s)
+    --- PASS: TestRunCategoryCrashAtK/publish_k=1 (0.00s)
+    --- PASS: TestRunCategoryCrashAtK/upsert_k=2 (0.00s)
+    --- PASS: TestRunCategoryCrashAtK/publish_k=2 (0.00s)
+    --- PASS: TestRunCategoryCrashAtK/upsert_k=3 (0.00s)
+    --- PASS: TestRunCategoryCrashAtK/publish_k=3 (0.00s)
+    --- PASS: TestRunCategoryCrashAtK/k=n:_watermark_write_fails (0.00s)
+=== RUN   TestRunStopsOnCancel
+=== RUN   TestRunStopsOnCancel/waits_Interval_between_passes,_nil_on_cancel
+=== RUN   TestRunStopsOnCancel/Once_returns_the_pass_error
+--- PASS: TestRunStopsOnCancel (0.03s)
+    --- PASS: TestRunStopsOnCancel/waits_Interval_between_passes,_nil_on_cancel (0.03s)
+    --- PASS: TestRunStopsOnCancel/Once_returns_the_pass_error (0.00s)
+=== RUN   TestRunOnceCrossListed
+--- PASS: TestRunOnceCrossListed (0.00s)
+=== RUN   TestRunOnceWatermarkReadError
+--- PASS: TestRunOnceWatermarkReadError (0.00s)
+=== RUN   TestDiscoveredPayload
+--- PASS: TestDiscoveredPayload (0.00s)
+PASS
+ok  	arxivlens/internal/crawler	1.059s
+
+[exit code 0]

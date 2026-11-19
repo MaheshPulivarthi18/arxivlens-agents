@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/ea3bf32.../check-runs
+head_sha=ea3bf324b3a8abe6622aae509c009f911d5e4660
+135653680807	Frontend (lint, test, build)	completed	success	2026-11-19T15:05:27Z
+135653680733	Python M0 unit tests	completed	success	2026-11-19T15:06:18Z
+135653680672	Go (vet, gofmt, test, build)	completed	success	2026-11-19T15:06:14Z
+135653680484	Full stack (compose + make test-full)	completed	success	2026-11-19T15:13:19Z
+135653680311	Agent ownership check	completed	success	2026-11-19T15:05:20Z
+135653679291	DB (migrate twice, HNSW plan + recall)	completed	success	2026-11-19T15:06:18Z
+

@@ -1,0 +1,19 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135653680484/logs (excerpt)
+2026-11-19T15:10:13.0461398Z 2026/11/19 15:10:13 [Migration] Running migration file: migrations/000005_crawl_watermarks.up.sql
+2026-11-19T15:10:13.0473607Z 2026/11/19 15:10:13 [Migration] Database schema migrated successfully (4 file(s))
+2026-11-19T15:10:13.0507286Z ##[group]Run ./bin/arxivlens crawl --query "cat:cs.LG" --limit 2
+2026-11-19T15:10:13.0643221Z 2026/11/19 15:10:13 [Crawler] Starting crawl query="cat:cs.LG" limit=2 (rate-limit=3s)
+2026-11-19T15:10:13.0644281Z 2026/11/19 15:10:13 [Crawler] Fetching page start=0 size=2 URL=http://127.0.0.1:8099/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+2026-11-19T15:10:13.3447350Z 2026/11/19 15:10:13 [Crawler] Discovered & Published: 2611.24932 (v1) — "Knowing What You Know: A Trait Theory of Reviewer Value in Human-AI Cognitive Systems"
+2026-11-19T15:10:13.3465978Z 2026/11/19 15:10:13 [Crawler] Discovered & Published: 2611.24908 (v1) — "Decomposing SGD Dynamics in Neural Networks: Teacher-Induced Spikes and Variance Inflation"
+2026-11-19T15:10:13.3466925Z 2026/11/19 15:10:13 [Crawler] Rate limit sleep (3s)...
+2026-11-19T15:10:16.3480670Z 2026/11/19 15:10:16 [Crawler] Crawl finished. Total discovered: 2
+2026-11-19T15:10:16.3481193Z 2026/11/19 15:10:16 [Crawl] Successfully discovered and published 2 papers
+2026-11-19T15:10:16.3535176Z ##[group]Run nohup ./bin/arxivlens download > downloader.log 2>&1 &
+...
+2026-11-19T15:11:09.2971571Z === DLQ Topic: papers.discovered.dlq (Total: 0) ===
+2026-11-19T15:12:55.7604794Z 235 passed, 1 skipped, 3 deselected, 5 warnings in 45.09s
+2026-11-19T15:13:12.5115846Z 3 passed in 15.94s
+2026-11-19T15:13:12.6682047Z arXiv replay: {"hits": 5, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+36:2026-11-19T15:05:17.6900245Z Complete job name: Full stack (compose + make test-full)
+

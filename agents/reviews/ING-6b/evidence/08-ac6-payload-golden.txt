@@ -1,0 +1,46 @@
+$ bash -c echo "== origin/main:internal/crawler/crawler.go (before extraction) =="; git show origin/main:internal/crawler/crawler.go | grep -n -A10 "payload := map"; echo; echo "== PR head: discoveredPayload =="; grep -n -A11 "^func discoveredPayload" internal/crawler/crawler.go; echo; echo "== PR head: TestDiscoveredPayload golden =="; grep -n -A14 "^func TestDiscoveredPayload" internal/crawler/loop_test.go; echo; echo "== shared/events diff lines =="; git diff origin/main...HEAD -- shared/ | wc -l
+== origin/main:internal/crawler/crawler.go (before extraction) ==
+139:			payload := map[string]interface{}{
+140-				"arxiv_id":     arxivID,
+141-				"version":      version,
+142-				"title":        title,
+143-				"abstract":     abstract,
+144-				"authors":      authors,
+145-				"categories":   categories,
+146-				"published_at": pubTime.Format(time.RFC3339),
+147-				"source_url":   pdfURL,
+148-			}
+149-
+
+== PR head: discoveredPayload ==
+158:func discoveredPayload(p *db.PaperRecord) map[string]interface{} {
+159-	return map[string]interface{}{
+160-		"arxiv_id":     p.ArxivID,
+161-		"version":      p.Version,
+162-		"title":        p.Title,
+163-		"abstract":     p.Abstract,
+164-		"authors":      p.Authors,
+165-		"categories":   p.Categories,
+166-		"published_at": p.PublishedAt.Format(time.RFC3339),
+167-		"source_url":   p.SourceURL,
+168-	}
+169-}
+
+== PR head: TestDiscoveredPayload golden ==
+499:func TestDiscoveredPayload(t *testing.T) {
+500-	// Golden: the map Crawl built inline before the extraction, for the same record.
+501-	p := db.PaperRecord{ArxivID: "2611.21608", Version: 2, Title: "T", Abstract: "A", Authors: []string{"Ada", "Alan"},
+502-		Categories: []string{"cs.LG", "cs.AI"}, PublishedAt: time.Date(2026, 11, 16, 18, 59, 38, 5, time.UTC), SourceURL: "https://arxiv.org/pdf/2611.21608v2.pdf"}
+503-	want := map[string]interface{}{
+504-		"arxiv_id": "2611.21608", "version": 2, "title": "T", "abstract": "A", "authors": []string{"Ada", "Alan"},
+505-		"categories": []string{"cs.LG", "cs.AI"}, "published_at": "2026-11-16T18:59:38Z", "source_url": "https://arxiv.org/pdf/2611.21608v2.pdf",
+506-	}
+507-	if got := discoveredPayload(&p); !reflect.DeepEqual(got, want) {
+508-		t.Errorf("discoveredPayload = %#v, want %#v", got, want)
+509-	}
+510-}
+
+== shared/events diff lines ==
+0
+
+[exit code 0]

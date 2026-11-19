@@ -1,0 +1,28 @@
+$ bash -c export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off PATH=/usr/local/go1.25.1/bin:$PATH; /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/harness/build.sh /root/qa/ING-6b /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/mod && cd /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/mod && go version && go test -count=1 -v ./internal/crawler/ 2>&1 | grep -E '^(--- |ok|FAIL|PASS)'; echo; echo 'gofmt -l internal/crawler (PR files):'; gofmt -l internal/crawler; echo "gofmt rc=$?"; cd /root/qa/ING-6b && echo && echo 'git diff origin/main...HEAD -- internal/crawler/crawler_test.go shared/events/ | wc -l:' && git diff origin/main...HEAD -- internal/crawler/crawler_test.go shared/events/ | wc -l
+go version go1.25.1 linux/amd64
+--- PASS: TestParseAtomFeed (0.00s)
+--- PASS: TestParseAtomFeedEdgeCases (0.00s)
+--- PASS: TestCrawlRetriesRateLimit (0.00s)
+--- PASS: TestWalkStopsAtWatermark (0.00s)
+--- PASS: TestSelectBatch (0.00s)
+--- PASS: TestArxivFeedRequest (0.06s)
+--- PASS: TestNewArxivFeedDefaults (0.00s)
+--- PASS: TestParseCategories (0.00s)
+--- PASS: TestWatermarkAfter (0.00s)
+--- PASS: TestRunCategoryAdvancesWatermark (0.00s)
+--- PASS: TestRunOnceTwiceEmitsNothingSecondTime (0.00s)
+--- PASS: TestRunCategoryCrashAtK (0.00s)
+--- PASS: TestRunStopsOnCancel (0.03s)
+--- PASS: TestRunOnceCrossListed (0.00s)
+--- PASS: TestRunOnceWatermarkReadError (0.00s)
+--- PASS: TestDiscoveredPayload (0.00s)
+PASS
+ok  	arxivlens/internal/crawler	0.100s
+
+gofmt -l internal/crawler (PR files):
+gofmt rc=0
+
+git diff origin/main...HEAD -- internal/crawler/crawler_test.go shared/events/ | wc -l:
+0
+
+[exit code 0]

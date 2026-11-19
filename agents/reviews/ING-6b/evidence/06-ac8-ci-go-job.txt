@@ -1,0 +1,32 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135653680672/logs (lines 208-231, 677-681)
+2026-11-19T15:05:30.1033120Z ##[group]Run make lint-go
+2026-11-19T15:05:30.1033496Z [36;1mmake lint-go[0m
+2026-11-19T15:05:30.1095462Z shell: /usr/bin/bash -e {0}
+2026-11-19T15:05:30.1095779Z ##[endgroup]
+2026-11-19T15:05:30.1225049Z go vet ./...
+2026-11-19T15:05:31.7694841Z ##[group]Run make test-go
+2026-11-19T15:05:31.7695170Z [36;1mmake test-go[0m
+2026-11-19T15:05:31.7749433Z shell: /usr/bin/bash -e {0}
+2026-11-19T15:05:31.7749738Z ##[endgroup]
+2026-11-19T15:05:31.7848929Z go test ./...
+2026-11-19T15:05:36.6641427Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-19T15:05:39.0829522Z ok  	arxivlens/internal/arxiv	1.550s
+2026-11-19T15:05:39.0830488Z ok  	arxivlens/internal/config	0.003s
+2026-11-19T15:05:39.0831424Z ok  	arxivlens/internal/crawler	0.103s
+2026-11-19T15:05:39.0859716Z ok  	arxivlens/internal/db	0.006s
+2026-11-19T15:05:39.0872244Z ok  	arxivlens/internal/dlq	0.005s
+2026-11-19T15:05:39.0895569Z ok  	arxivlens/internal/downloader	0.108s
+2026-11-19T15:05:39.0902151Z ok  	arxivlens/internal/kafka	0.033s
+2026-11-19T15:05:39.0957438Z ok  	arxivlens/internal/llm	0.807s
+2026-11-19T15:05:39.0958399Z ok  	arxivlens/internal/llm/llmtest	0.105s
+2026-11-19T15:05:39.7324587Z ok  	arxivlens/internal/query	0.330s
+2026-11-19T15:05:39.7325297Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-19T15:05:39.7325910Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-19T15:05:39.7326462Z ?   	arxivlens/shared/events	[no test files]
+...
+2026-11-19T15:06:10.3382536Z ##[group]Run make build-go
+2026-11-19T15:06:10.3382828Z [36;1mmake build-go[0m
+2026-11-19T15:06:10.3431573Z shell: /usr/bin/bash -e {0}
+2026-11-19T15:06:10.3431845Z ##[endgroup]
+2026-11-19T15:06:10.3513266Z go build -o bin/arxivlens ./cmd/arxivlens
+

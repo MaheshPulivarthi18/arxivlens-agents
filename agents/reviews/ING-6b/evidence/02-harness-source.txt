@@ -1,0 +1,133 @@
+$ bash -c for f in build.sh stubs/db_head.go stubs/kafka.go stubs/ulid/ulid.go mutants.py mutate.sh; do echo "===== $f ====="; cat /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/harness/$f; done
+===== build.sh =====
+#!/bin/bash
+# build.sh <app tree> <out module dir>: real internal/arxiv, internal/crawler, shared/events from the PR tree;
+# stubs for internal/db (PaperRecord copied verbatim from the tree), internal/kafka, oklog/ulid (no module download possible).
+set -e
+W=$1; M=$2; H=$(cd "$(dirname "$0")" && pwd)
+rm -rf $M; mkdir -p $M/internal/db $M/internal/kafka $M/shared
+cp -r $W/internal/arxiv $W/internal/crawler $M/internal/
+cp -r $W/shared/events $M/shared/
+rm -f $M/shared/events/*.py
+{ cat $H/stubs/db_head.go; sed -n '/^type PaperRecord struct/,/^}/p' $W/internal/db/db.go; } > $M/internal/db/db.go
+cp $H/stubs/kafka.go $M/internal/kafka/producer.go
+mkdir -p $M/third_party/ulid; cp $H/stubs/ulid/* $M/third_party/ulid/
+printf 'module arxivlens\n\ngo 1.25\n\nrequire github.com/oklog/ulid/v2 v2.1.0\n\nreplace github.com/oklog/ulid/v2 => ./third_party/ulid\n' > $M/go.mod
+===== stubs/db_head.go =====
+// Stub of internal/db for the crawler package (method signatures as in db.go / watermarks.go at the PR head).
+package db
+
+import (
+	"context"
+	"time"
+)
+
+type DB struct{}
+
+func (d *DB) UpsertDiscoveredPaper(ctx context.Context, p *PaperRecord) (int64, error) { return 0, nil }
+func (d *DB) Watermark(ctx context.Context, category string) (time.Time, bool, error) { return time.Time{}, false, nil }
+func (d *DB) AdvanceWatermark(ctx context.Context, category string, t time.Time) error { return nil }
+
+===== stubs/kafka.go =====
+// Stub of internal/kafka: Producer with the real Publish signature.
+package kafka
+
+import (
+	"context"
+
+	"arxivlens/shared/events"
+)
+
+type Producer struct{}
+
+func (p *Producer) Publish(ctx context.Context, topic string, envelope events.EventEnvelope) error { return nil }
+===== stubs/ulid/ulid.go =====
+// Stub of github.com/oklog/ulid/v2 (signatures used by shared/events only).
+package ulid
+
+import (
+	"fmt"
+	"io"
+	"time"
+)
+
+type ULID [16]byte
+
+func (u ULID) String() string                     { return fmt.Sprintf("%x", u[:]) }
+func Monotonic(r io.Reader, inc uint64) io.Reader { return r }
+func Timestamp(t time.Time) uint64                { return uint64(t.UnixMilli()) }
+func MustNew(ms uint64, r io.Reader) ULID {
+	var u ULID
+	for i := 0; i < 6; i++ {
+		u[i] = byte(ms >> (8 * (5 - i)))
+	}
+	_, _ = io.ReadFull(r, u[6:])
+	return u
+}
+===== mutants.py =====
+# Mutants applied one at a time to internal/crawler/loop.go (or the 5th field's file) in the harness module. id | expected killer | old | new
+M = [
+ ("M1 advance to max seen (not max emitted)", "TestRunCategoryAdvancesWatermark",
+  "if next, ok := watermarkAfter(batch, emitted); ok {",
+  "if next, ok := watermarkAfter(all, len(all)); ok && len(slices.SortedFunc(slices.Values(all), func(a, b db.PaperRecord) int { return a.PublishedAt.Compare(b.PublishedAt) })) > 0 {\n\t\tnext = slices.MaxFunc(all, func(a, b db.PaperRecord) int { return a.PublishedAt.Compare(b.PublishedAt) }).PublishedAt"),
+ ("M2 advance after a failed publish", "TestRunCategoryCrashAtK",
+  "\t\tif emitErr = l.emit(ctx, &batch[emitted], acked); emitErr != nil {\n\t\t\tbreak\n\t\t}",
+  "\t\tif emitErr = l.emit(ctx, &batch[emitted], acked); emitErr != nil {\n\t\t\temitted++\n\t\t\tbreak\n\t\t}"),
+ ("M3 drop WithoutCancel", "TestRunStopsOnCancel",
+  "context.WithTimeout(context.WithoutCancel(ctx), watermarkWriteTimeout)",
+  "context.WithTimeout(ctx, watermarkWriteTimeout)"),
+ ("M4 skip the cross-category set", "TestRunOnceCrossListed",
+  "\tif acked[key] {\n\t\treturn nil\n\t}",
+  "\tif false && acked[key] {\n\t\treturn nil\n\t}"),
+ ("M5 emit newest-first", "TestRunCategoryAdvancesWatermark",
+  "\tbatch := selectBatch(all, l.cfg.LimitPerRun)\n",
+  "\tbatch := selectBatch(all, l.cfg.LimitPerRun)\n\tslices.Reverse(batch)\n"),
+ ("M6 (AC9) read error treated as no watermark", "TestRunOnceWatermarkReadError",
+  "\treadErr := err != nil\n",
+  "\treadErr := false\n\tif err != nil {\n\t\tw, hasW, err = time.Time{}, false, nil\n\t}\n"),
+ ("M7 (extra) watermarkAfter ignores groups", "TestWatermarkAfter",
+  "if k == len(batch) || batch[k].PublishedAt.After(batch[k-1].PublishedAt) {",
+  "if true {"),
+ ("M8 (extra) Run returns ctx error on cancel", "TestRunStopsOnCancel",
+  "\t\t\tlog.Printf(\"[CrawlLoop] stopped\")\n\t\t\treturn nil",
+  "\t\t\tlog.Printf(\"[CrawlLoop] stopped\")\n\t\t\treturn ctx.Err()"),
+ ("M9 (extra) mark acked before publish", "TestRunCategoryCrashAtK",
+  "\te := events.NewEventEnvelope(",
+  "\tacked[key] = true\n\te := events.NewEventEnvelope("),
+ ("M10 (extra) no interval wait between passes", "TestRunStopsOnCancel",
+  "\t\tcase <-time.After(l.cfg.Interval):",
+  "\t\tdefault:"),
+ ("M11 (extra) Once ignores the pass error", "TestRunStopsOnCancel",
+  "\t\tcase l.cfg.Once:\n\t\t\treturn err",
+  "\t\tcase l.cfg.Once:\n\t\t\treturn nil"),
+ ("M12 (extra) payload drops source_url", "TestDiscoveredPayload",
+  "\t\t\"source_url\":   p.SourceURL,\n", "", "crawler.go"),
+ ("M13 (extra) watermark write error swallowed", "TestRunCategoryCrashAtK",
+  "\t\t\treturn errors.Join(emitErr, werr)", "\t\t\treturn emitErr"),
+]
+===== mutate.sh =====
+#!/bin/bash
+# mutate.sh <app tree>: for each mutant, fresh harness module, apply, run full crawler package and -run '^Killer$'.
+H=$(cd "$(dirname "$0")" && pwd); W=$1; M=$H/../mutmod
+export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off PATH=/usr/local/go1.25.1/bin:$PATH
+n=$(python3 -c "exec(open('$H/mutants.py').read()); print(len(M))")
+for i in $(seq 0 $((n-1))); do
+  $H/build.sh $W $M
+  info=$(python3 - "$H/mutants.py" "$M/internal/crawler" $i <<'PY'
+import sys
+exec(open(sys.argv[1]).read()); m = M[int(sys.argv[3])]; name, killer, old, new = m[:4]
+p = sys.argv[2] + "/" + (m[4] if len(m) > 4 else "loop.go"); s = open(p).read()
+assert s.count(old) == 1, "old text not unique/absent: " + name
+open(p, "w").write(s.replace(old, new)); print(name + "|" + killer)
+PY
+) || { echo "APPLY FAILED $i"; continue; }
+  name=${info%|*}; killer=${info#*|}
+  (cd $M && go vet ./internal/crawler/ >/dev/null 2>&1) || { echo "$name: DOES NOT COMPILE"; continue; }
+  full=$(cd $M && go test -count=1 ./internal/crawler/ 2>&1 | grep -- '^--- FAIL' | sed 's/--- FAIL: //; s/ (.*//' | tr '\n' ' ')
+  one=$(cd $M && go test -count=1 -run "^${killer}\$" ./internal/crawler/ >/dev/null 2>&1 && echo SURVIVED || echo KILLED)
+  echo "$name"
+  echo "    full run failing tests: ${full:-NONE (SURVIVED)}"
+  echo "    -run '^${killer}\$': $one"
+done
+
+[exit code 0]

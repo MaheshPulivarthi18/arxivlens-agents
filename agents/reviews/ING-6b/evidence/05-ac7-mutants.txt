@@ -1,0 +1,42 @@
+$ bash -c /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/harness/mutate.sh /root/qa/ING-6b 2>&1
+M1 advance to max seen (not max emitted)
+    full run failing tests: TestRunCategoryAdvancesWatermark TestRunCategoryCrashAtK TestRunStopsOnCancel 
+    -run '^TestRunCategoryAdvancesWatermark$': KILLED
+M2 advance after a failed publish
+    full run failing tests: TestRunCategoryCrashAtK 
+    -run '^TestRunCategoryCrashAtK$': KILLED
+M3 drop WithoutCancel
+    full run failing tests: TestRunStopsOnCancel 
+    -run '^TestRunStopsOnCancel$': KILLED
+M4 skip the cross-category set
+    full run failing tests: TestRunOnceCrossListed 
+    -run '^TestRunOnceCrossListed$': KILLED
+M5 emit newest-first
+    full run failing tests: TestRunCategoryAdvancesWatermark TestRunOnceTwiceEmitsNothingSecondTime TestRunCategoryCrashAtK TestRunStopsOnCancel TestRunOnceCrossListed TestRunOnceWatermarkReadError 
+    -run '^TestRunCategoryAdvancesWatermark$': KILLED
+M6 (AC9) read error treated as no watermark
+    full run failing tests: TestRunOnceWatermarkReadError 
+    -run '^TestRunOnceWatermarkReadError$': KILLED
+M7 (extra) watermarkAfter ignores groups
+    full run failing tests: TestWatermarkAfter TestRunCategoryCrashAtK TestRunStopsOnCancel 
+    -run '^TestWatermarkAfter$': KILLED
+M8 (extra) Run returns ctx error on cancel
+    full run failing tests: TestRunStopsOnCancel 
+    -run '^TestRunStopsOnCancel$': KILLED
+M9 (extra) mark acked before publish
+    full run failing tests: NONE (SURVIVED)
+    -run '^TestRunCategoryCrashAtK$': SURVIVED
+M10 (extra) no interval wait between passes
+    full run failing tests: TestRunStopsOnCancel 
+    -run '^TestRunStopsOnCancel$': KILLED
+M11 (extra) Once ignores the pass error
+    full run failing tests: TestRunStopsOnCancel 
+    -run '^TestRunStopsOnCancel$': KILLED
+M12 (extra) payload drops source_url
+    full run failing tests: TestDiscoveredPayload 
+    -run '^TestDiscoveredPayload$': KILLED
+M13 (extra) watermark write error swallowed
+    full run failing tests: TestRunCategoryCrashAtK 
+    -run '^TestRunCategoryCrashAtK$': KILLED
+
+[exit code 0]
