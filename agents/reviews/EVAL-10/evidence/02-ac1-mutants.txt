@@ -1,0 +1,47 @@
+$ bash -c cat /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/mutants.sh; echo; echo '----- run -----'; /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/mutants.sh
+#!/usr/bin/env bash
+# Run the EVAL-10 test file against 4 mutants of scripts/evaluate_answers.py (each in a throwaway copy of the worktree).
+set -u
+SRC="$PWD"
+run() { name="$1"; pyexpr="$2"
+  d=$(mktemp -d); (cd "$SRC" && git ls-files -z | xargs -0 cp --parents -t "$d")
+  python3 - "$d/scripts/evaluate_answers.py" "$pyexpr" <<'PY'
+import sys; p, e = sys.argv[1], sys.argv[2]; s = open(p).read(); old, new = e.replace("\\n", "\n").split("|||")
+assert s.count(old) == 1, ("pattern not found once", old); open(p, "w").write(s.replace(old, new))
+PY
+  [ $? -eq 0 ] || { echo "== mutant: $name: NOT APPLIED"; rm -rf "$d"; return; }
+  o=$(cd "$d" && python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py 2>&1); r=$(echo "$o" | tail -1); fails=$(echo "$o" | grep -E '^FAILED' | sed 's/ - .*//')
+  echo "== mutant: $name"; (cd "$d" && git diff --no-index --stat "$SRC/scripts/evaluate_answers.py" scripts/evaluate_answers.py >/dev/null; diff -u "$SRC/scripts/evaluate_answers.py" scripts/evaluate_answers.py | grep -E "^[-+] " | sed "s/^/   /"); echo "   result: $r"; echo "$fails" | sed 's/^/   /'; rm -rf "$d"; }
+run "M1 drop 'refused IDs' print" "        print(f\"  refused IDs            : {', '.join(m['answer_refused_ids'])}\")|||        pass"
+run "M2 drop 'miss IDs' print" "        print(f\"  miss IDs               : {', '.join(m['expected_paper_miss_ids'])}\")|||        pass"
+run "M3 drop 'near-miss answered IDs' print" "        print(f\"  near-miss answered IDs : {', '.join(m['near_miss_failure_ids'])}\")|||        pass"
+run "M4 wrong-paper ID also goes into answer_refused_ids" "        else:\n            misses.append(case[\"id\"])|||        else:\n            misses.append(case[\"id\"])\n            refused_ids.append(case[\"id\"])"
+run "M5 print ID lines unconditionally" "    if m.get(\"answer_refused_ids\"):|||    if True:"
+
+----- run -----
+== mutant: M1 drop 'refused IDs' print
+   -        print(f"  refused IDs            : {', '.join(m['answer_refused_ids'])}")
+   +        pass
+   result: 1 failed, 120 passed, 1 skipped in 0.63s
+   FAILED tests/test_evals_data.py::test_report_names_refused_missed_and_near_miss_ids
+== mutant: M2 drop 'miss IDs' print
+   -        print(f"  miss IDs               : {', '.join(m['expected_paper_miss_ids'])}")
+   +        pass
+   result: 1 failed, 120 passed, 1 skipped in 1.08s
+   FAILED tests/test_evals_data.py::test_report_names_refused_missed_and_near_miss_ids
+== mutant: M3 drop 'near-miss answered IDs' print
+   -        print(f"  near-miss answered IDs : {', '.join(m['near_miss_failure_ids'])}")
+   +        pass
+   result: 1 failed, 120 passed, 1 skipped in 0.48s
+   FAILED tests/test_evals_data.py::test_report_names_refused_missed_and_near_miss_ids
+== mutant: M4 wrong-paper ID also goes into answer_refused_ids
+   +            refused_ids.append(case["id"])
+   result: 1 failed, 120 passed, 1 skipped in 0.59s
+   FAILED tests/test_evals_data.py::test_report_names_refused_missed_and_near_miss_ids
+== mutant: M5 print ID lines unconditionally
+   -    if m.get("answer_refused_ids"):
+   +    if True:
+   result: 1 failed, 120 passed, 1 skipped in 0.39s
+   FAILED tests/test_evals_data.py::test_report_prints_no_id_lines_without_failures
+
+[exit code 0]

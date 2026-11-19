@@ -1,0 +1,11 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135653698948/logs | grep -n -E 'python3? -m pytest|passed|failed|error'
+144:2026-11-19T15:05:18.7100419Z (node:2189) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issu
+171:2026-11-19T15:05:22.5864829Z (node:2225) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issu
+435:2026-11-19T15:06:10.7475593Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py tests/test_verify.py tests/test_arxiv_replay.py
+463:2026-11-19T15:06:21.9196846Z 184 passed, 3 skipped, 3 warnings in 10.44s
+464:2026-11-19T15:06:22.9402415Z ##[group]Run python -m pytest -v tests/test_kafka_client.py
+465:2026-11-19T15:06:22.9402816Z [36;1mpython -m pytest -v tests/test_kafka_client.py[0m
+493:2026-11-19T15:06:23.2385542Z tests/test_kafka_client.py::test_dlq_stack_trace_is_the_errors_own PASSED [ 32%]
+498:2026-11-19T15:06:23.2415434Z tests/test_kafka_client.py::test_commit_error_is_logged_and_loop_continues PASSED [ 45%]
+520:2026-11-19T15:06:23.3791032Z ============================== 37 passed in 0.23s ==============================
+

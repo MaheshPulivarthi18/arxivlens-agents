@@ -1,0 +1,61 @@
+$ bash -c cat /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/ac1_report.py; echo '----- run -----'; python3 /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/ac1_report.py
+# EVAL-10 QA: print_report() for the PR's AC1 fixture and AC2 clean run, plus a text-leak check on stdout and JSON.
+import contextlib, io, json, sys
+sys.path[:0] = ["tests", "scripts", "."]
+import test_evals_data as t, evaluate_answers as ea
+m = t._eval10_run()
+for k in ("answer_refused_ids", "expected_paper_miss_ids", "near_miss_failure_ids"):
+    print(f"{k:24}= {m[k]}")
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    ea.print_report(m)
+out = buf.getvalue()
+print("--- AC1 fixture print_report() ---"); print(out, end="")
+dumped = json.dumps(m)
+print("--- AC3 text leak check (question/answer/passage strings) ---")
+for x in t.EVAL10_TEXT:
+    print(f"  in stdout={x in out!s:5}  in json={x in dumped!s:5}  {x!r}")
+print("--- AC2 clean run print_report() ---")
+ea.print_report(t._run(t.ANSWERED, t.EARLY, near_miss=True, nm_resp=t.EARLY))
+----- run -----
+answer_refused_ids      = ['a7']
+expected_paper_miss_ids = ['a7', 'a8']
+near_miss_failure_ids   = ['n4']
+--- AC1 fixture print_report() ---
+============================================================
+ArxivLens — /v1/ask answer + refusal eval
+============================================================
+Supported citations      : 100.00% (1 citations)
+Answers citing expected  : 0.00% of 2
+In-corpus refused        : 50.00%
+  refused IDs            : a7
+  miss IDs               : a7, a8
+Correct refusals         : 0.00% of 0
+Latency p50 / p95 (ms)   : 50 / 50
+-- report-only (not gated) --
+Citation coverage        : 100.00%
+Near-miss refusals       : 0.00% of 1
+  near-miss answered IDs : n4
+refusal_reason counts    : {}
+--- AC3 text leak check (question/answer/passage strings) ---
+  in stdout=False  in json=False  'Q-REFUSED-why'
+  in stdout=False  in json=False  'Q-WRONGPAPER-how'
+  in stdout=False  in json=False  'Q-NEARMISS-what'
+  in stdout=False  in json=False  'Wrong paper says W-ANSWER-TEXT'
+  in stdout=False  in json=False  'Near miss says N-ANSWER-TEXT'
+  in stdout=False  in json=False  'passage text'
+--- AC2 clean run print_report() ---
+============================================================
+ArxivLens — /v1/ask answer + refusal eval
+============================================================
+Supported citations      : 100.00% (2 citations)
+Answers citing expected  : 100.00% of 1
+In-corpus refused        : 0.00%
+Correct refusals         : 100.00% of 1
+Latency p50 / p95 (ms)   : 100 / 100
+-- report-only (not gated) --
+Citation coverage        : 100.00%
+Near-miss refusals       : 100.00% of 1
+refusal_reason counts    : {}
+
+[exit code 0]

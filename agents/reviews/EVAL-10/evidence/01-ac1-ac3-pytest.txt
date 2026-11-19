@@ -1,0 +1,30 @@
+$ bash -c python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py; echo; python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k 'report_names_refused or no_id_lines or report_only or no_text or text' 2>&1 | grep -E 'PASSED|FAILED|SKIPPED|passed|failed'
+........................................................................ [ 59%]
+...s..............................................                       [100%]
+121 passed, 1 skipped in 0.22s
+
+tests/test_evals_data.py::test_near_miss_rate_is_report_only PASSED      [  4%]
+tests/test_evals_data.py::test_check_thresholds_names_unchanged_and_ignore_report_only PASSED [  9%]
+tests/test_evals_data.py::test_print_table_shows_report_only_block PASSED [ 13%]
+tests/test_evals_data.py::test_report_names_refused_missed_and_near_miss_ids PASSED [ 18%]
+tests/test_evals_data.py::test_report_prints_no_id_lines_without_failures PASSED [ 22%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change0-False] PASSED [ 27%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change1-False] PASSED [ 31%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change2-False] PASSED [ 36%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change3-False] PASSED [ 40%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change4-False] PASSED [ 45%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change5-False] PASSED [ 50%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change6-True] PASSED [ 54%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change7-False] PASSED [ 59%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change8-False] PASSED [ 63%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change9-False] PASSED [ 68%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change10-False] PASSED [ 72%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change11-False] PASSED [ 77%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change12-True] PASSED [ 81%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change13-True] PASSED [ 86%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change14-True] PASSED [ 90%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change15-True] PASSED [ 95%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change16-True] PASSED [100%]
+====================== 22 passed, 100 deselected in 0.08s ======================
+
+[exit code 0]

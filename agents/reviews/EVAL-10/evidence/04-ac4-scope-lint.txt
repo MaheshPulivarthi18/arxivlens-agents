@@ -1,0 +1,57 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; git diff --numstat origin/main...HEAD; echo; .github/scripts/ownership-check.sh origin/main agent/ai/EVAL-10; echo ownership_exit=$?; echo; cat /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/ruff_added.sh; echo; LL=130 /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/ruff_added.sh; echo; LL=88 /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/ruff_added.sh
+ evals/README.md             |  3 +++
+ scripts/evaluate_answers.py | 13 +++++++++++-
+ tests/test_evals_data.py    | 49 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 64 insertions(+), 1 deletion(-)
+
+3	0	evals/README.md
+12	1	scripts/evaluate_answers.py
+49	0	tests/test_evals_data.py
+
+Ownership OK for role=ai (65 changed lines)
+ownership_exit=0
+
+#!/usr/bin/env bash
+# ruff E,F,W findings on lines ADDED by the PR (ticket: "no findings on added lines"), plus totals main vs head.
+LL=${LL:-130}; echo "== ruff E,F,W at line-length $LL"
+for f in scripts/evaluate_answers.py tests/test_evals_data.py; do
+  added=$(git diff -U0 origin/main...HEAD -- "$f" | awk '/^@@/{split($3,a,/[+,]/); s=a[2]; n=(a[3]==""?1:a[3]); for(i=s;i<s+n;i++) print i}')
+  head_n=$(ruff check --select E,F,W --line-length $LL --output-format concise "$f" 2>/dev/null | grep -c "^$f:")
+  main_n=$(git show origin/main:"$f" | ruff check --select E,F,W --line-length $LL --output-format concise --stdin-filename "$f" - 2>/dev/null | grep -c "^$f:")
+  echo "$f: findings main=$main_n head=$head_n; added lines: $(echo $added | wc -w)"
+  ruff check --select E,F,W --line-length $LL --output-format concise "$f" 2>/dev/null | grep "^$f:" | while IFS=: read -r p l c rest; do
+    echo "$added" | grep -qx "$l" && echo "  ADDED-LINE FINDING $p:$l:$c:$rest"; done
+  echo "  line-length $LL (no ruff config in repo); findings by code at head:"; ruff check --select E,F,W --line-length $LL --statistics "$f" 2>/dev/null | sed 's/^/    /'
+done
+
+== ruff E,F,W at line-length 130
+scripts/evaluate_answers.py: findings main=0 head=0; added lines: 12
+  line-length 130 (no ruff config in repo); findings by code at head:
+tests/test_evals_data.py: findings main=0 head=0; added lines: 49
+  line-length 130 (no ruff config in repo); findings by code at head:
+
+== ruff E,F,W at line-length 88
+scripts/evaluate_answers.py: findings main=48 head=49; added lines: 12
+  ADDED-LINE FINDING scripts/evaluate_answers.py:180:89: E501 Line too long (98 > 88)
+  line-length 88 (no ruff config in repo); findings by code at head:
+    49	E501	line-too-long
+    Found 49 errors.
+tests/test_evals_data.py: findings main=246 head=259; added lines: 49
+  ADDED-LINE FINDING tests/test_evals_data.py:1057:89: E501 Line too long (99 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1060:89: E501 Line too long (104 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1065:89: E501 Line too long (95 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1066:89: E501 Line too long (98 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1068:89: E501 Line too long (116 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1070:89: E501 Line too long (106 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1075:89: E501 Line too long (102 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1080:89: E501 Line too long (95 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1081:89: E501 Line too long (96 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1089:89: E501 Line too long (100 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1091:89: E501 Line too long (119 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1092:89: E501 Line too long (105 > 88)
+  ADDED-LINE FINDING tests/test_evals_data.py:1100:89: E501 Line too long (116 > 88)
+  line-length 88 (no ruff config in repo); findings by code at head:
+    259	E501	line-too-long
+    Found 259 errors.
+
+[exit code 0]
