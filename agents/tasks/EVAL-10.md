@@ -6,9 +6,9 @@
 | **Priority** | P2 |
 | **PRD ref** | Product PRD §8 (answer metrics: method notes); follow-up from EVAL-4 PM review (AC5 finding, 2026-11-17) |
 | **Depends on** | EVAL-6 merged (report-only metrics, done). Tests go in `tests/test_evals_data.py`, which open PR #52 (ING-11b) also changes, so **start only after #52 merges** (file-overlap rule), or put the new tests in a new file `tests/test_evaluate_answers_ids.py` and start now |
-| **Jira** | not created yet (orchestrator: story under epic "Retrieval & answer quality gates", labels `task-EVAL-10`, `agent-ai`, `arxivlens`) |
+| **Jira** | KAN-69 |
 | **Design required** | no: report-only output, no gate, threshold or contract change |
-| **Status** | Ready (orchestrator: add to board backlog) |
+| **Status** | Ready to merge (PR #61, QA PASS r1, PM APPROVE 2026-11-19) |
 
 ## Goal
 Nightly `eval.yml` run 43902662193 refused 1 of 22 in-corpus answer-set questions (`In-corpus refused : 4.55%`) and answered 3 of 15
@@ -28,16 +28,16 @@ already goes to the job log, so any reviewer can name the case from the log.
   refresh picks up the new lines).
 
 ## Acceptance criteria
-- [ ] AC1: For a fake run with 1 early-refused answer case, 1 wrong-paper answer case and 1 answered near-miss case, the results contain
+- [x] AC1: For a fake run with 1 early-refused answer case, 1 wrong-paper answer case and 1 answered near-miss case, the results contain
   `answer_refused_ids == [<refused id>]`, `expected_paper_miss_ids` holds both answer-set IDs (unchanged behaviour), and
   `print_report()` output contains each of the 3 IDs on the labelled line. Mutation: dropping each of the 3 new print lines in turn
   fails a test (one mutant per line), and so does putting the wrong-paper ID into `answer_refused_ids`.
-- [ ] AC2: With no refusals, misses or near-miss failures, `print_report()` prints none of the 3 new lines (existing output unchanged:
+- [x] AC2: With no refusals, misses or near-miss failures, `print_report()` prints none of the 3 new lines (existing output unchanged:
   the existing `test_print_table_shows_report_only_block` and every other test in the file pass unmodified).
-- [ ] AC3: No text leaks: in the AC1 fixture, the question and answer strings don't appear in the `print_report()` output or in
+- [x] AC3: No text leaks: in the AC1 fixture, the question and answer strings don't appear in the `print_report()` output or in
   `json.dumps(results)` beyond what the existing EVAL-6 no-text test already allows.
-- [ ] AC4: `git diff --stat origin/main` shows only `scripts/evaluate_answers.py` and the one test file; ownership check OK for role=ai.
-- [ ] Docs: `evals/README.md` gets one sentence where it describes the `/v1/ask` summary (IDs printed, no text). No PRD status change.
+- [x] AC4: `git diff --stat origin/main` shows only `scripts/evaluate_answers.py` and the one test file; ownership check OK for role=ai.
+- [x] Docs: `evals/README.md` gets one sentence where it describes the `/v1/ask` summary (IDs printed, no text). No PRD status change.
 
 ## Verification
 ```bash
@@ -53,3 +53,8 @@ once the PR merges, but this isn't a PR AC.
 ## Notes
 - 2026-11-17 (pm-lead): created from the EVAL-4 final review (D2 in `agents/reviews/EVAL-4/report.md`). Until this merges, the only source
   for run 43902662193's refused case is `answers.cases` in artifact 14247998742 (expires 2026-12-16), which only Mahesh can read.
+- 2026-11-19 (pm-lead): final review **APPROVE** on `164305b` (QA PASS r1, evidence `9d8ab39`). Verdict and rulings are in
+  `agents/reviews/EVAL-10/report.md`. [spec] AC4 named 2 files but the Docs criterion needs a third (`evals/README.md`); README accepted.
+  [spec] The ruff command had no line length; repo convention is `--isolated --line-length 130`. Follow-up **EVAL-10a**
+  (error-outcome tests, P3). The `make lint` Python target (AI-11 follow-up (a)) is still unspecced; there are 63 pre-existing findings
+  at 130, so it needs grooming. PR #61 raised (description has evidence, ready for review); waiting on Mahesh.
