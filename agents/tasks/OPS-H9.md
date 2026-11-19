@@ -5,10 +5,10 @@
 | **Owner** | backend-engineer |
 | **Priority** | P2 (harness: every QA evidence pack depends on these workflows staying green for the right reasons) |
 | **PRD ref** | Technical PRD §5 (HNSW, `hnsw.iterative_scan`), §10 (testing); Product PRD §8 (Recall@5 gate on real pgvector) |
-| **Depends on** | OPS-H1, OPS-H5, EVAL-5 (merged). **EVAL-3 merged** (it may touch `docker-compose.yml` and `CONTRIBUTING.md`). Start when no open PR changes `README.md`. |
+| **Depends on** | OPS-H1, OPS-H5, EVAL-5 (merged). **EVAL-3 merged** (it may touch `docker-compose.yml` and `CONTRIBUTING.md`). Start when no open PR changes `.github/workflows/db.yml`, `docker-compose.yml` or `CONTRIBUTING.md` (README is out of scope since 2026-11-19). |
 | **Jira** | new story under epic KAN-3 "Dev harness & infrastructure" (`labels = "task-OPS-H9"`) |
 | **Design required** | no: P2 CI changes, no contract change |
-| **Status** | Ready (EVAL-3 merged `122eee3`; OPS-H10 merged). Must not run alongside ING-11b or OPS-H7a (all three edit `.github/workflows/db.yml`). Not picked in cycle 2026-11-17 (P2) |
+| **Status** | Ready (EVAL-3 merged `122eee3`; OPS-H10 merged; OPS-H7a1 #62 merged). Must not run alongside ING-6c (both edit `.github/workflows/db.yml`). Picked for cycle 2026-11-19 18:00Z alongside AI-8b |
 
 ## Goal
 Three 2026-11-07 merge-review follow-ups that each could make CI pass or fail for the wrong reason:
@@ -27,7 +27,8 @@ Three 2026-11-07 merge-review follow-ups that each could make CI pass or fail fo
 - MinIO digests: a scheduled (weekly) + `workflow_dispatch` job, or a step in an existing scheduled workflow, that resolves
   each pinned digest (`docker manifest inspect`) and fails with a "re-pin" message naming the image. Add a `CONTRIBUTING.md`
   runbook entry: how to re-pin and verify. No new registry, no secrets, no `packages: write`.
-- App `README.md` prerequisites: "pgvector ≥ 0.8.0".
+- App `README.md`: **out of scope** (re-scoped 2026-11-19, see Notes). The "pgvector ≥ 0.8.0" prerequisite line moves to ING-6c AC8.
+  The `CONTRIBUTING.md` runbook entry states the minimum (pgvector ≥ 0.8.0, why: `hnsw.iterative_scan`) next to the re-pin steps.
 - Out of scope: mirroring images to GHCR (needs secrets and a decision), removing the F1 step (follows AI-9), the migration
   version ledger (Backlog, needs an ADR), any test change beyond running existing tests.
 
@@ -36,7 +37,9 @@ Three 2026-11-07 merge-review follow-ups that each could make CI pass or fail fo
 - [ ] AC2 — Both files use the same pinned pgvector tag; the extension-version check passes on the PR and is shown failing against a fake lower version (a dry run of the comparison).
 - [ ] AC3 — The digest check passes for the current pins on a manual run (link), and a deliberately wrong digest makes it fail with the image name in the message (scratch run or step-level dry run).
 - [ ] AC4 — `actionlint` clean for changed workflows; `stack.yml` still green on the PR.
-- [ ] AC5 — README prerequisite and CONTRIBUTING runbook updated. Diff < 400 lines.
+- [ ] AC5 — CONTRIBUTING runbook updated (re-pin + verify steps, pgvector ≥ 0.8.0 minimum). `README.md` is not in the diff
+  (`git diff --stat origin/main` lists only `.github/workflows/*.yml`, `docker-compose.yml`, `CONTRIBUTING.md`). Diff < 400 lines.
+  *Amended 2026-11-19 (pm-lead): README line moved to ING-6c AC8.*
 
 ## Verification
 ```bash
@@ -54,3 +57,7 @@ gh workflow run <digest-check workflow> --ref agent/backend/OPS-H9
 - 2026-11-07 11:00Z (pm-lead, grooming): EVAL-3 merged. Not picked in cycle 11:00Z (P2, no backend slot; README + CONTRIBUTING overlap with OPS-H10).
 - 2026-11-17 (pm-lead, grooming): the OPS-H10 overlap is gone (merged). #45 changed `stack.yml`/`eval.yml` (replay cache), not `db.yml` or
   `docker-compose.yml`, so the Scope still holds. The pgvector image is still the floating `pgvector/pgvector:pg16`; check before building.
+- 2026-11-19 18:00Z (pm-lead, plan): re-scoped so this task shares no file with AI-8b (P0, owns the README `/v1/ask` row this cycle). The one-line
+  README prerequisite "pgvector ≥ 0.8.0" moves to ING-6c AC8: ING-6c edits README and `db.yml`, so it can only start after this PR merges,
+  and the pin is on main by then. Compose users get the pinned image without reading README; the minimum is also in CONTRIBUTING and in the
+  `db.yml` check's failure message. AC5 amended. No change to what CI checks.

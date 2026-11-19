@@ -8,7 +8,7 @@
 | **Depends on** | **AI-8a merged** (same `rag.go`/test files, builds on its statuses). **AI-8c merged** (puts `checkCitationInvariants` at the `synthesis_test.go` sites, so the extended helper covers them). **ING-11b merged** (it edits `tests/test_evals_data.py` and the README API table). Design approved with conditions: `docs/design/AI-8.md`. Independence at start: no open PR touches `internal/query/rag.go`, `rag_test.go`, `synthesis_test.go`, `tests/test_evals_data.py` or `README.md` |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8b"`), linked to the AI-8 story |
 | **Design required** | yes, done: `docs/design/AI-8.md` (approved, conditions 1–8). No further design. |
-| **Status** | Blocked (needs AI-8a merged + AI-8c merged + ING-11b merged) |
+| **Status** | Ready (AI-8a #54, AI-8c #59, ING-11b #52 merged). Picked for cycle 2026-11-19 18:00Z |
 
 ## Goal
 A non-refused answer lists its claims in order, each with a status and the markers of its evidence, and a written answer says

@@ -5,7 +5,7 @@
 | **Owner** | backend-engineer |
 | **Priority** | P1 |
 | **PRD ref** | Product ING-6; Technical PRD §11 "Scheduled crawler", §9 (politeness). Umbrella: [ING-6](ING-6.md) |
-| **Depends on** | ING-6b **merged**; #51 and #52 **merged** (README, `db.yml`); no open PR on `cmd/arxivlens/main.go` (OPS-H7b also edits it), `.github/workflows/stack.yml`, `.github/workflows/db.yml` or `README.md` when the build starts. Approved design `docs/design/ING-6.md`, PM conditions 3, 6, 7, 9 and answer 3 |
+| **Depends on** | ING-6b **merged**; #51 and #52 **merged** (README, `db.yml`); **OPS-H9 merged** (`db.yml`; AC8 documents its pgvector pin); no open PR on `cmd/arxivlens/main.go` (OPS-H7b also edits it), `.github/workflows/stack.yml`, `.github/workflows/db.yml` or `README.md` when the build starts. Approved design `docs/design/ING-6.md`, PM conditions 3, 6, 7, 9 and answer 3 |
 | **Jira** | to create under KAN-18's epic, `labels = "task-ING-6c"` |
 | **Design required** | no (covered by the approved ING-6 design) |
 | **Status** | Blocked (ING-6b, #51, #52 not merged) |
@@ -21,7 +21,8 @@ kill + restart creates no duplicate or skipped papers. Merging this completes IN
   `cmd/arxivlens/main_test.go` (flags); `internal/db/watermarks.go` (+ `TryCrawlLoopLock(ctx) (release func(), ok bool, err error)`: one global
   session-level `pg_try_advisory_lock` on a dedicated pool connection held for the process lifetime); `internal/db/watermarks_integration_test.go`
   (lock test); `.github/workflows/db.yml` (run `-tags integration ./internal/db/` for `TestAdvanceWatermarkMonotonic|TestCrawlLoopLock`);
-  `.github/workflows/stack.yml` (step "ING-6: crawl-loop", design test plan AC2/AC3/SIGTERM rows); app `README.md`;
+  `.github/workflows/stack.yml` (step "ING-6: crawl-loop", design test plan AC2/AC3/SIGTERM rows); app `README.md` (incl. the
+  OPS-H9 prerequisite line, AC8);
   `internal/crawler/loop.go` + `internal/crawler/loop_test.go` (AC11 only: one test row, one assertion, error-prefix tidy).
 - Out of scope: compose service (ING-6d), lookback (ING-6e), `crawl --rate-limit` (ING-9b), any `Crawl` change.
 - Size: design estimate ~160 + ~60 for the lock ≈ 220 changed lines.
@@ -57,6 +58,8 @@ kill + restart creates no duplicate or skipped papers. Merging this completes IN
 - [ ] AC8 — README (PM condition 9): CLI reference row for `crawl-loop`; a "Scheduled crawl" paragraph covering the first-run horizon (newest
   `--limit-per-run` only; older via `arxivlens crawl`), one instance (enforced by the lock), `backlog=` / `out_of_order=`, how to raise
   `--limit-per-run`, resetting a category, and the late-announcement residual risk (ING-6e). PRD status is pm-lead's docs PR after merge.
+  *Added 2026-11-19 (pm-lead, moved from OPS-H9):* README "Prerequisites" says PostgreSQL 16 + **pgvector ≥ 0.8.0** (needed by
+  `hnsw.iterative_scan`), matching the tag OPS-H9 pinned in `docker-compose.yml`. If OPS-H9 isn't merged when this starts, this task waits (shared `db.yml`).
 - [ ] AC9 — `make test-unit` and `make lint` green in CI; `stack.yml` and `db.yml` green.
 - [ ] AC11 — *Added 2026-11-19 (pm-lead, ING-6b final review; QA r1 findings 1 and 3 + missing test).* In `internal/crawler/loop_test.go`:
   (a) a `TestRunOnceCrossListed` row where the **first** category's publish of the cross-listed paper fails. Assert that the second category
@@ -88,3 +91,5 @@ DATABASE_URL=postgres://... go test -tags integration -count=1 -v -run '^(TestAd
 - 2026-11-19 (pm-lead, ING-6b final review of #60): AC11 added from ING-6b QA r1 (M9 test row, cancel-before-second-category assertion, single
   `cat:` prefix). It goes here because this task starts only after 6b merges and is owned by the same engineer. QA finding 4 (summary line
   untested) is already covered by AC3's `stack.yml` log lines. Scope gains `internal/crawler/loop.go` + `loop_test.go`. Size about 220 + 25 + 40 ≈ 285.
+- 2026-11-19 18:00Z (pm-lead, plan): AC8 gains OPS-H9's one-line README prerequisite (pgvector ≥ 0.8.0), so OPS-H9 can run beside AI-8b
+  without touching README. This task already waits for OPS-H9 to merge (both edit `db.yml`). New dependency: OPS-H9 merged. ~+1 line.
