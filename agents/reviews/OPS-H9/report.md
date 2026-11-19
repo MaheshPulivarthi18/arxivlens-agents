@@ -121,3 +121,36 @@ PASS → pm-lead for final review. Label `qa-fail` → `qa-pass`.
 [12]: https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/c59ecb49df2b7be0e590cd107b78aa120f81e2d3/agents/reviews/OPS-H9/evidence/12-r2-f3-ac5-contributing-diffstat.png?raw=true
 [13]: https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/c59ecb49df2b7be0e590cd107b78aa120f81e2d3/agents/reviews/OPS-H9/evidence/13-r2-ac1-ac2-db-ci.png?raw=true
 [14]: https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/c59ecb49df2b7be0e590cd107b78aa120f81e2d3/agents/reviews/OPS-H9/evidence/14-r2-ac4-stack-pulled-pins.png?raw=true
+
+---
+
+# PM review — OPS-H9 · PR #66
+
+**Verdict:** APPROVE
+**Reviewed commit:** `16dacb97c6c2e026b736dbfadf3b72fa643b787d` (head confirmed unchanged, mergeable `clean`, 7/7 check runs success) · **Date:** 2026-11-19 · **Reviewer:** pm-lead
+**Read:** ticket `agents/tasks/OPS-H9.md` (AC2/AC3 as amended in ee3e0bc), Technical PRD §5 + §10, Product PRD §8, QA r1 (FAIL) + r2 (PASS), the PR diff (4 files, +151/−2), and every evidence file 00–14 (PNG + TXT).
+
+## Evidence check (per AC)
+| AC | Evidence | PM finding |
+|---|---|---|
+| AC1 real_postgres step runs, passes, can fail | 01, 02 (r1 head, `db.yml` unchanged since), 13 (r2 head) | Proven. `1 passed, 121 deselected` on DB job 135888302417; no `continue-on-error`; `pipefail` + the skip/none-collected guard, and QA's probe (02) shows a skip, a deselect-only run and "no tests ran" all fail the step. Stronger than the ticket asked |
+| AC2 same pgvector pin in both files; version check passes; lower version shown failing | 03, 04, 13, 10 | Proven. Both files carry `pg16@sha256:484e8380…579f` (tag + digest, accepted by the amendment); CI prints `extversion '0.8.7'` → `>= 0.8.0: ok`; the dry run fails 0.5.1 / 0.7.4 / 0.7.99 / `''`. image-pins.yml also asserts compose == db.yml. 5/6 mutants killed, survivor equivalent (04) |
+| AC3 digest check green for current pins on a PR run; wrong digest fails naming the image | 05, 06 (r1 failure + why it was false), 10, 11 | Proven. Job 135888300539: `ok` × 3, zero-digest self-test `not found` × 3 naming each image. QA's 8-mode fake-docker run of the real extracted step (11) is the evidence I needed that this check is now trustworthy: only the all-good case passes; a broken tool, an accept-everything tool, a wrong/missing digest, an unexpected error class and missing buildx all fail. This was the r1 blocker and it is fixed for the right reason |
+| AC4 actionlint clean; stack.yml green | 07, 10, 14 | Proven. actionlint (now digest-pinned) printed nothing; Full stack job 135888299617 success and pulled the same three digests, healthy |
+| AC5 runbook; no README; allowed files; < 400 lines | 08, 12 | Proven. 4 allowed files, +151/−2, README count 0. Runbook has re-pin steps 1–4 with the corrected `buildx imagetools` verify command, ≥ 0.8.0 and why (`hnsw.iterative_scan`) |
+
+No AC rests on a "⚠ unverified" item. The only things not run locally (Go/actionlint/cgr.dev access) are covered by CI on the reviewed head.
+
+## PRD fit and scope
+- Technical PRD §5 / Product PRD §8: the Recall@5 / HNSW checks now run on a pgvector proven to be ≥ 0.8.0, and a future re-pin to an older build fails loudly in `db.yml` with the fix in the message. The EVAL-5 SQL test, previously run once in a probe, now runs on every DB job (§10).
+- The MinIO durability check delivers the ticket's goal: weekly warning naming the image to re-pin before `stack.yml` breaks. Deviation from the Scope's literal "`docker manifest inspect`" is justified (QA r1 showed it rejects valid cgr.dev digests) and documented in the workflow and CONTRIBUTING; I accept it.
+- Nothing extra: no secrets, `permissions: contents: read`, no new registry, no `stack.yml` edit, no README. Nothing missing.
+- Docs: CONTRIBUTING updated. No PRD status row tracks OPS-H9, and §10's suite table stays true. The README "pgvector ≥ 0.8.0" line is ING-6c AC8 by design; **ING-6c is unblocked once #66 merges** (it edits `db.yml`).
+
+## Non-blocking follow-ups (Backlog line in `agents/board.md`, backend P3)
+QA nits 5 (`version_ge` passes non-numeric input; also a two-part `0.8` reads as < 0.8.0, which fails closed), 7 (print a "check the tool/registry first" hint instead of "Re-pin" when no pin resolves) and 8 (the self-test's "message names the image" `case` is tautological). Plus, from me: CONTRIBUTING says `image-pins.yml` runs weekly, but GitHub pauses schedules after 60 days without repo activity, as already noted for `eval.yml`; say the same here.
+
+Post-merge check (not an AC): one `gh workflow run image-pins.yml` on main to confirm `workflow_dispatch` works.
+
+## Hand-off
+APPROVE → PR #66 raised (description rewritten with evidence, marked ready for review, label `ready-to-merge`). Mahesh reviews and merges.
