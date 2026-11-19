@@ -1,0 +1,8 @@
+$ bash -c python3 --version; python3 -m pytest -q tests/test_evals_data.py 2>&1 | tail -2; python3 -m pytest -v tests/test_evals_data.py -k claims_and_citation 2>&1 | grep -E 'PASSED|FAILED|passed|failed'
+Python 3.13.18
+...s...............................................                      [100%]
+122 passed, 1 skipped in 0.16s
+tests/test_evals_data.py::test_claims_and_citation_fields_leave_eval_results_unchanged PASSED [100%]
+====================== 1 passed, 122 deselected in 0.04s =======================
+
+[exit code 0]

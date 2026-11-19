@@ -1,0 +1,62 @@
+$ bash -c cd internal/query && python3 /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/bin/callsites.py; echo; echo '## helper (rag_test.go):'; awk '/^func checkCitationInvariants/,/^}/' rag_test.go | head -30
+rag_test.go        TestAskRefusesWhenNothingPasses                  invariant_calls=1 response_sites=1
+rag_test.go        TestAskAnswersWithExtractedCitations             invariant_calls=2 response_sites=3
+rag_test.go        TestValidateCitationsMarkers                     invariant_calls=0 response_sites=1
+rag_test.go        TestValidateCitationsSupportThreshold            invariant_calls=0 response_sites=3
+rag_test.go        TestValidateCitationsFailClosedWhenUnverifiable  invariant_calls=0 response_sites=2
+rag_test.go        TestAskResponseShapeAndConstructor               invariant_calls=0 response_sites=3
+rag_test.go        TestAskRerankFallbackLogsResponseTraceID         invariant_calls=1 response_sites=1
+rag_test.go        TestAskRefusesAllUnsupported                     invariant_calls=1 response_sites=1
+rag_test.go        TestFinalizeEvidenceKeepsBestComputedScore       invariant_calls=1 response_sites=1
+rag_test.go        TestAskRefusesVerificationUnavailable            invariant_calls=2 response_sites=3
+rag_test.go        TestAskRefusesNoInRangeMarker                    invariant_calls=2 response_sites=2
+rag_test.go        TestAskKeepsAnswerWithOneSupportedCitation       invariant_calls=1 response_sites=2
+rag_test.go        TestAskExtractiveAnswerVerifiedByQuote           invariant_calls=1 response_sites=1
+rag_test.go        TestAskEarlyRefusalHasNoRefusalReason            invariant_calls=1 response_sites=1
+rag_test.go        TestCitationStatusRule                           invariant_calls=1 response_sites=2
+rag_test.go        TestRefusalEvidenceStatus                        invariant_calls=3 response_sites=3
+rag_test.go        TestCitationQuote                                invariant_calls=3 response_sites=3
+rag_test.go        TestCitationProvenance                           invariant_calls=1 response_sites=3
+rag_test.go        TestAskClaims                                    invariant_calls=6 response_sites=12
+synthesis_test.go  TestSynthesisAnswersWithVerifiedClaims           invariant_calls=1 response_sites=1
+synthesis_test.go  TestSynthesisDropsUnsupportedClaims              invariant_calls=1 response_sites=1
+synthesis_test.go  TestSynthesisRefusals                            invariant_calls=1 response_sites=1
+synthesis_test.go  TestSynthesisFallsBackToExtractive               invariant_calls=1 response_sites=1
+synthesis_test.go  TestSynthesisClaimsUnsupportedFallBackToQuotes   invariant_calls=2 response_sites=2
+synthesis_test.go  TestQuickAnswerSkipsSynthesis                    invariant_calls=3 response_sites=3
+synthesis_test.go  TestSynthesisMarkersFollowPromptOrder            invariant_calls=1 response_sites=1
+synthesis_test.go  TestWithLLMNilKeepsExtractive                    invariant_calls=1 response_sites=1
+
+## helper (rag_test.go):
+func checkCitationInvariants(t *testing.T, resp *AskResponse) {
+	t.Helper()
+	top, _ := json.Marshal(resp)
+	if resp.AnswerKind == "" && (strings.Contains(string(top), `"claims":`) || strings.Contains(string(top), `"prompt_version":`)) {
+		t.Errorf("refusal has claims or prompt_version: %s", top)
+	}
+	if resp.PromptVersion != map[bool]string{true: synthesisPromptVersion}[resp.AnswerKind == AnswerSynthesized] {
+		t.Errorf("answer_kind %q with prompt_version %q", resp.AnswerKind, resp.PromptVersion)
+	}
+	o := 0
+	for i, cl := range resp.Claims {
+		n := len(cl.Markers)
+		if cl.Text == "" || cl.Markers == nil || o+n > len(resp.Citations) ||
+			cl.Status != claimStatus(resp.Citations[o:o+n]) || !reflect.DeepEqual(markers(resp.Citations[o:o+n]), cl.Markers) {
+			t.Errorf("claim %d %+v breaks the AI-8b AC1 invariants at citation offset %d: %+v", i, cl, o, resp.Citations)
+			return
+		}
+		o += n
+	}
+	if resp.AnswerKind != "" && (len(resp.Claims) == 0 || o != len(resp.Citations)) {
+		t.Errorf("answer_kind %q: claims %+v cover %d of %d citations", resp.AnswerKind, resp.Claims, o, len(resp.Citations))
+	}
+	for i, c := range resp.Citations {
+		raw, _ := json.Marshal(c)
+		if !strings.Contains(string(raw), `"paper_version":`) || (c.Status != StatusSupported && c.Status != StatusUnsupported &&
+			c.Status != StatusUnverified) || c.Supported != (c.Status == StatusSupported) || (resp.AnswerKind == "" && c.Supported) ||
+			(c.Quote != "" && (!c.Supported || !inPassage(c.Quote, c.Content))) {
+			t.Errorf("citation %d breaks the AC1 invariants (answer_kind %q): %s", i, resp.AnswerKind, raw)
+		}
+	}
+
+[exit code 0]

@@ -1,0 +1,52 @@
+$ bash -c echo '## harness internal/ identical to PR head internal/ (empty diff = yes):'; diff -r internal /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/mod/internal && echo IDENTICAL; cd /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/mod && export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off && go version && go test -race -count=1 -run 'Ask|Synth|Citation|Claim|QuickAnswer|WithLLMNil' -v ./internal/query/ 2>&1 | grep -E '^(--- |ok|FAIL|PASS)'; echo; echo '## AC1 command: go test -run Synth|QuickAnswer|WithLLMNil -v'; go test -count=1 -run 'Synth|QuickAnswer|WithLLMNil' -v ./internal/query/ 2>&1 | grep -E '^(--- |ok|FAIL)'
+## harness internal/ identical to PR head internal/ (empty diff = yes):
+IDENTICAL
+go version go1.24.7 linux/amd64
+--- PASS: TestAskRefusesWhenNothingPasses (0.00s)
+--- PASS: TestAskAnswersWithExtractedCitations (0.00s)
+--- PASS: TestValidateCitationsMarkers (0.00s)
+--- PASS: TestValidateCitationsSupportThreshold (0.00s)
+--- PASS: TestValidateCitationsFailClosedWhenUnverifiable (0.00s)
+--- PASS: TestAskResponseShapeAndConstructor (0.00s)
+--- PASS: TestAskRerankFallbackLogsResponseTraceID (0.00s)
+--- PASS: TestAskRefusesAllUnsupported (0.00s)
+--- PASS: TestAskRefusesVerificationUnavailable (0.01s)
+--- PASS: TestAskRefusesNoInRangeMarker (0.00s)
+--- PASS: TestAskKeepsAnswerWithOneSupportedCitation (0.00s)
+--- PASS: TestAskExtractiveAnswerVerifiedByQuote (0.00s)
+--- PASS: TestAskEarlyRefusalHasNoRefusalReason (0.00s)
+--- PASS: TestBuildSynthesisPrompt (0.00s)
+--- PASS: TestBuildSynthesisPromptInjection (0.00s)
+--- PASS: TestParseSynthesis (0.00s)
+--- PASS: TestParseSynthesisErrorHasNoCompletionText (0.00s)
+--- PASS: TestCitationStatusRule (0.02s)
+--- PASS: TestCitationQuote (0.02s)
+--- PASS: TestCitationProvenance (0.00s)
+--- PASS: TestAskClaims (0.01s)
+--- PASS: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+--- PASS: TestSynthesisDropsUnsupportedClaims (0.00s)
+--- PASS: TestSynthesisRefusals (0.00s)
+--- PASS: TestSynthesisFallsBackToExtractive (0.02s)
+--- PASS: TestSynthesisClaimsUnsupportedFallBackToQuotes (0.01s)
+--- PASS: TestQuickAnswerSkipsSynthesis (0.01s)
+--- PASS: TestSynthesisMarkersFollowPromptOrder (0.00s)
+--- PASS: TestWithLLMNilKeepsExtractive (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.163s
+
+## AC1 command: go test -run Synth|QuickAnswer|WithLLMNil -v
+--- PASS: TestBuildSynthesisPrompt (0.00s)
+--- PASS: TestBuildSynthesisPromptInjection (0.00s)
+--- PASS: TestParseSynthesis (0.00s)
+--- PASS: TestParseSynthesisErrorHasNoCompletionText (0.00s)
+--- PASS: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+--- PASS: TestSynthesisDropsUnsupportedClaims (0.00s)
+--- PASS: TestSynthesisRefusals (0.00s)
+--- PASS: TestSynthesisFallsBackToExtractive (0.00s)
+--- PASS: TestSynthesisClaimsUnsupportedFallBackToQuotes (0.00s)
+--- PASS: TestQuickAnswerSkipsSynthesis (0.00s)
+--- PASS: TestSynthesisMarkersFollowPromptOrder (0.00s)
+--- PASS: TestWithLLMNilKeepsExtractive (0.00s)
+ok  	arxivlens/internal/query	0.009s
+
+[exit code 0]

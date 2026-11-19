@@ -1,0 +1,18 @@
+$ bash -c cd /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/mod && export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off && go test -count=1 -coverprofile=/tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/c.out ./internal/query/ && go tool cover -func=/tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/c.out > /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/cov.txt; echo '## rag.go per-file statement coverage (from profile):'; awk -F'[: ,]' 'NR>1 && $1 ~ /rag.go$/ {n=$(NF-1); t+=n; if ($NF>0) c+=n} END {printf "rag.go %d/%d = %.1f%%\n", c, t, 100*c/t}' /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/c.out; echo; echo '## funcs touched by the PR:'; grep -E 'rag.go:.*(claimStatus|finalizeClaims|finalize|checkCitations|validateCitations)\b' /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/cov.txt; echo; echo '## all rag.go funcs < 100%:'; grep rag.go /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/cov.txt | grep -v '100.0%'
+ok  	arxivlens/internal/query	0.332s	coverage: 71.0% of statements
+## rag.go per-file statement coverage (from profile):
+rag.go 416/420 = 99.0%
+
+## funcs touched by the PR:
+arxivlens/internal/query/rag.go:107:		claimStatus		100.0%
+arxivlens/internal/query/rag.go:295:		finalizeClaims		100.0%
+arxivlens/internal/query/rag.go:726:		finalize		100.0%
+arxivlens/internal/query/rag.go:811:		validateCitations	100.0%
+arxivlens/internal/query/rag.go:827:		checkCitations		98.2%
+
+## all rag.go funcs < 100%:
+arxivlens/internal/query/rag.go:235:		synthesize		93.1%
+arxivlens/internal/query/rag.go:827:		checkCitations		98.2%
+arxivlens/internal/query/rag.go:970:		splitIntoSentences	94.7%
+
+[exit code 0]

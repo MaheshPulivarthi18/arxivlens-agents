@@ -1,0 +1,257 @@
+$ bash -c H=/tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h; cd $H && for f in mod/go.mod $(find stubs bin probe -type f | sort); do echo "===== $f"; cat $f; done
+===== mod/go.mod
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/jackc/pgx/v5 v5.6.0
+	github.com/minio/minio-go/v7 v7.0.70
+)
+
+replace github.com/jackc/pgx/v5 => ../stubs/pgx
+replace github.com/minio/minio-go/v7 => ../stubs/minio
+===== bin/callsites.py
+#!/usr/bin/env python3
+"""QA AI-8b AC1: per Test func, count checkCitationInvariants calls vs lines that produce a response
+(Ask/AskWith/finalize/finalizeClaims/checkCitations/validateCitations/AskResponse literal). Run in internal/query."""
+import re
+PAT = r'\.Ask\(|\.AskWith\(|\.finalize\(|finalizeClaims\(|checkCitations\(|validateCitations\(|AskResponse\{'
+for f in ["rag_test.go", "synthesis_test.go"]:
+    for fn in re.split(r'\n(?=func )', open(f).read()):
+        m = re.match(r'func (Test\w+)\(', fn)
+        if not m: continue
+        lines = fn.splitlines()
+        sites = [i for i, l in enumerate(lines) if re.search(PAT, l)]
+        calls = [i for i, l in enumerate(lines) if "checkCitationInvariants(" in l]
+        if sites or calls:
+            print(f"{f:18s} {m.group(1):48s} invariant_calls={len(calls)} response_sites={len(sites)}")
+===== bin/mutate.py
+#!/usr/bin/env python3
+"""QA AI-8b mutation probe. Each single-edit mutant of internal/query/rag.go (PR head) is run three ways:
+ FULL  = go test ./internal/query/ (whole package)
+ CLAIMS= go test -run '^TestAskClaims$'
+ SYNTH = go test -run '^(TestSynthesis.*|TestQuickAnswerSkipsSynthesis|TestWithLLMNilKeepsExtractive)$' (unchanged
+         synthesis_test.go, reached only through the extended checkCitationInvariants helper)
+A mutant that does not compile is INVALID, never KILLED. Usage: mutate.py <harness-module-dir>"""
+import os, re, subprocess, sys
+mod = sys.argv[1]
+rag = os.path.join(mod, "internal/query/rag.go")
+orig = open(rag).read()
+T = "\t"
+M = [
+ ("M0 control (no edit)", None, None),
+ ("M1 claimStatus: drop 'any supported -> supported'", "\t\tif c.Status == StatusSupported {\n\t\t\treturn StatusSupported\n\t\t}\n", ""),
+ ("M2 claimStatus: no citations -> unsupported", "\tunverified := len(cites) == 0\n", "\tunverified := false\n"),
+ ("M3 claimStatus: unverified citation ignored (unsupported wins)", "\t\tunverified = unverified || c.Status == StatusUnverified\n", "\t\tunverified = unverified || false\n"),
+ ("M4 extractive: uncited sentences get no claim", "\t\tclaims = append(claims, Claim{Text: normQuote(sent), Markers: []int{}})\n",
+    "\t\tif markerRegex.MatchString(sent) {\n\t\t\tclaims = append(claims, Claim{Text: normQuote(sent), Markers: []int{}})\n\t\t}\n"),
+ ("M5 extractive: dedupe repeated marker", "\t\t\tclaims[len(claims)-1].Markers = append(claims[len(claims)-1].Markers, markerIdx)\n",
+    "\t\t\tif l := claims[len(claims)-1].Markers; len(l) == 0 || l[len(l)-1] != markerIdx {\n\t\t\t\tclaims[len(claims)-1].Markers = append(l, markerIdx)\n\t\t\t}\n"),
+ ("M6 extractive: uncited claim markers nil (JSON null)", "Claim{Text: normQuote(sent), Markers: []int{}}", "Claim{Text: normQuote(sent)}"),
+ ("M7 extractive: claim text = raw sentence with markers", "Claim{Text: normQuote(sent), Markers: []int{}}", "Claim{Text: sent, Markers: []int{}}"),
+ ("M8 finalize: answered quoted response without claims", "TraceID: traceID, Claims: claims}", "TraceID: traceID, Claims: claims[:0]}"),
+ ("M9 finalize: prompt_version on quoted answers", "TraceID: traceID, Claims: claims}", "TraceID: traceID, Claims: claims, PromptVersion: synthesisPromptVersion}"),
+ ("M10 finalizeClaims: no prompt_version", "\t\t\tClaims: out, PromptVersion: synthesisPromptVersion}", "\t\t\tClaims: out}"),
+ ("M11 finalizeClaims: claims omitted", "\t\t\tClaims: out, PromptVersion: synthesisPromptVersion}", "\t\t\tPromptVersion: synthesisPromptVersion}"),
+ ("M12 finalizeClaims: only first marker per claim", "Markers: c.Citations})", "Markers: c.Citations[:1]})"),
+ ("M13 finalizeClaims: dropped claims listed", "\t\tif !keep[i] {\n\t\t\tcontinue\n\t\t}\n",
+    "\t\tif !keep[i] {\n\t\t\tout = append(out, Claim{Text: c.Text, Status: StatusUnsupported, Markers: []int{}})\n\t\t\tcontinue\n\t\t}\n"),
+ ("M14 finalizeClaims: claim status hardcoded supported (dev: unkillable)", "Status: claimStatus(perClaim[i])", "Status: StatusSupported"),
+ ("M15 refusal(): claims on ADR-0003 refusal", "TraceID: traceID, RefusalReason: reason}", "TraceID: traceID, RefusalReason: reason, Claims: []Claim{{Text: \"x\", Status: StatusUnverified, Markers: []int{}}}}"),
+ ("M16 insufficient_evidence refusal: prompt_version set", "TraceID: traceID, RefusalReason: reasonInsufficientEvidence}", "TraceID: traceID, RefusalReason: reasonInsufficientEvidence, PromptVersion: synthesisPromptVersion}"),
+ ("M17 early refusal: claims: [] present", "\t\t\tCitations: []Citation{},\n\t\t\tTraceID:   traceID,\n", "\t\t\tCitations: []Citation{},\n\t\t\tTraceID:   traceID,\n\t\t\tClaims: []Claim{},\n"),
+ ("M18 early refusal: claims non-empty", "\t\t\tCitations: []Citation{},\n\t\t\tTraceID:   traceID,\n", "\t\t\tCitations: []Citation{},\n\t\t\tTraceID:   traceID,\n\t\t\tClaims: []Claim{{Text: \"x\", Status: StatusUnverified, Markers: []int{}}},\n"),
+ ("M19 quick stage: prompt_version set", "\t\tresp.AnswerKind = AnswerQuoted\n", "\t\tresp.AnswerKind = AnswerQuoted\n\t\tresp.PromptVersion = synthesisPromptVersion\n"),
+ ("M20 extractive: out-of-range markers kept in claim markers", "\t\t\tmarkerIdx, _ := strconv.Atoi(m[1])\n",
+    "\t\t\tmarkerIdx, _ := strconv.Atoi(m[1])\n\t\t\tif markerIdx < 1 || markerIdx > k {\n\t\t\t\tclaims[len(claims)-1].Markers = append(claims[len(claims)-1].Markers, markerIdx)\n\t\t\t}\n"),
+ ("M21 extractive: claim status from all citations (offset ignored)", "\t\tclaims[i].Status = claimStatus(validatedCitations[o : o+n])\n", "\t\tclaims[i].Status = claimStatus(validatedCitations)\n"),
+ ("M22 extractive: claim status from first n citations (o not advanced)", "\t\to += n\n\t}\n\tif unverified > 0 {", "\t\t_ = o\n\t}\n\tif unverified > 0 {"),
+ ("M23 no-marker branch returns claims (expected equivalent: finalize refuses)", "\t\treturn nil, nil, check\n", "\t\treturn nil, claims, check\n"),
+]
+RUNS = [("FULL", None), ("CLAIMS", "^TestAskClaims$"),
+        ("SYNTH", "^(TestSynthesis.*|TestQuickAnswerSkipsSynthesis|TestWithLLMNilKeepsExtractive)$")]
+env = {**os.environ, "GOTOOLCHAIN": "local", "GOFLAGS": "-mod=mod", "GOPROXY": "off"}
+def run(pat):
+    cmd = ["go", "test", "-count=1"] + (["-run", pat] if pat else []) + ["./internal/query/"]
+    p = subprocess.run(cmd, cwd=mod, capture_output=True, text=True, env=env, timeout=300)
+    out = p.stdout + p.stderr
+    if "[build failed]" in out or "[setup failed]" in out: return "INVALID", out
+    if "panic:" in out: tag = " (panic)"
+    else: tag = ""
+    fails = sorted({l.split()[2] for l in out.splitlines() if l.startswith("--- FAIL:")})
+    return (("KILLED " + ",".join(fails) + tag) if p.returncode else "SURVIVED"), out
+rows = []
+try:
+    for name, old, new in M:
+        if old is not None:
+            assert orig.count(old) == 1, ("anchor not unique/absent", name, orig.count(old))
+            open(rag, "w").write(orig.replace(old, new))
+        res = {k: run(pat)[0] for k, pat in RUNS}
+        rows.append((name, res)); open(rag, "w").write(orig)
+finally:
+    open(rag, "w").write(orig)
+print("RESULTS (harness = PR-head internal/ + pgx/minio stubs, go1.24; rag.go restored after each mutant)")
+for name, res in rows:
+    print(f"- {name}")
+    for k, v in res.items(): print(f"    {k:6s} {v[:150]}")
+===== bin/probe.sh
+#!/usr/bin/env bash
+# QA AI-8b: run qa_probe_test.go against a copy of the PR-head harness, unmutated and with mutant M3
+# (claimStatus ignores unverified citations), then run the PR's own suite on M3. Usage: probe.sh <scratch h dir>
+set -u
+H=$1; export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off
+P=$(mktemp -d "$H/probe.XXXX"); cp -r "$H/mod/." "$P/"; cp "$H/probe/qa_probe_test.go" "$P/internal/query/"
+echo "## probe dir $P; internal/ (minus probe file) == PR head:"; diff -r -x qa_probe_test.go "$P/internal" "$OLDPWD/internal" >/dev/null 2>&1; diff -r -x qa_probe_test.go "$P/internal" "$H/mod/internal" && echo yes
+echo "## HEAD (unmutated):"; (cd "$P" && go test -count=1 -run TestQAProbeClaims -v ./internal/query/ 2>&1 | grep -E '^PROBE|^ok|FAIL' | cut -c1-260)
+python3 - "$P/internal/query/rag.go" <<'PY'
+import sys; p=sys.argv[1]; t=open(p).read()
+old="\t\tunverified = unverified || c.Status == StatusUnverified\n"; assert t.count(old)==1
+open(p,"w").write(t.replace(old,"\t\tunverified = unverified || false\n"))
+PY
+echo "## M3 mutant diff:"; diff "$H/mod/internal/query/rag.go" "$P/internal/query/rag.go"
+echo "## M3 (claimStatus ignores unverified citations):"; (cd "$P" && go test -count=1 -run TestQAProbeClaims -v ./internal/query/ 2>&1 | grep -E '^PROBE|^ok|FAIL' | cut -c1-260)
+rm "$P/internal/query/qa_probe_test.go"
+echo "## PR's own full suite on M3:"; (cd "$P" && go test -count=1 ./internal/query/ 2>&1 | tail -3)
+===== probe/qa_probe_test.go
+package query
+
+// QA AI-8b probes (not part of the PR). Prints claims for cases the PR tests don't pin literally.
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"math"
+	"testing"
+)
+
+func TestQAProbeClaims(t *testing.T) {
+	captureLog(t)
+	ctx := context.Background()
+	quote := "The Method section shows that the proposed method improves accuracy on every benchmark [1]."
+	show := func(name string, resp *AskResponse) {
+		var cl []string
+		for _, c := range resp.Claims {
+			m, _ := json.Marshal(c.Markers)
+			cl = append(cl, fmt.Sprintf("%s%s text=%q", c.Status, m, c.Text[:min(len(c.Text), 20)]))
+		}
+		fmt.Printf("PROBE %-50s claims=%v citation_statuses=%v refusal=%q\n", name, cl, statuses(resp.Citations), resp.RefusalReason)
+	}
+	// P1: verbatim quote supported + paraphrase whose verifier call fails -> claim 2 has one unverified citation.
+	r := &RAGService{verifier: &fakeVerifier{err: fmt.Errorf("down")}}
+	show("P1 quote[1] + paraphrase[2], verifier down", r.finalize(ctx, "t", quote+" Training follows the described setup [2].", batchHits()))
+	// P2: claim with citations [unsupported 0.2, unverified NaN] -> claimStatus rule says unverified.
+	r = &RAGService{verifier: byPassage(map[string]float64{"Results": 0.2, "Discussion": math.NaN()})}
+	show("P2 quote[1] + paraphrase[2][3] = [0.2, NaN]", r.finalize(ctx, "t", quote+" Training follows the described setup [2][3].", batchHits()))
+	// P3: claim with citations [unsupported 0.2] only -> unsupported.
+	r = &RAGService{verifier: byPassage(map[string]float64{"Results": 0.2})}
+	show("P3 quote[1] + paraphrase[2] = [0.2]", r.finalize(ctx, "t", quote+" Training follows the described setup [2].", batchHits()))
+	// P4: a fragment that is only a marker -> claim text after normQuote.
+	r = &RAGService{verifier: simVerifier(constSim(0.9))}
+	show("P4 quote[1] + trailing marker-only fragment '[2]'", r.finalize(ctx, "t", quote+" [2]", batchHits()))
+}
+===== stubs/minio/go.mod
+module github.com/minio/minio-go/v7
+
+go 1.24
+===== stubs/minio/minio.go
+// Stub of the minio API surface used by arxivlens (QA harness).
+package minio
+
+import (
+	"context"
+	"io"
+)
+
+type PutObjectOptions struct{ ContentType string }
+type UploadInfo struct{}
+type Client struct{}
+
+func (c *Client) PutObject(context.Context, string, string, io.Reader, int64, PutObjectOptions) (UploadInfo, error) {
+	return UploadInfo{}, nil
+}
+===== stubs/pgx/go.mod
+module github.com/jackc/pgx/v5
+
+go 1.24
+===== stubs/pgx/pgx.go
+// Stub of the pgx API surface used by arxivlens (QA harness, no real DB).
+package pgx
+
+import (
+	"context"
+	"errors"
+)
+
+var ErrNoRows = errors.New("no rows in result set")
+
+type TxAccessMode string
+
+const ReadOnly TxAccessMode = "read only"
+
+type QueryExecMode int
+
+const QueryExecModeSimpleProtocol QueryExecMode = 4
+
+type TxOptions struct{ AccessMode TxAccessMode }
+
+type CommandTag struct{ n int64 }
+
+func (c CommandTag) RowsAffected() int64 { return c.n }
+
+type Row interface{ Scan(dest ...any) error }
+
+type Rows interface {
+	Close()
+	Next() bool
+	Scan(dest ...any) error
+	Err() error
+}
+
+type Tx interface {
+	Exec(ctx context.Context, sql string, args ...any) (CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) Row
+	Rollback(ctx context.Context) error
+	Commit(ctx context.Context) error
+}
+===== stubs/pgx/pgxpool/pgxpool.go
+// Stub of pgxpool (QA harness, no real DB).
+package pgxpool
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+)
+
+var errStub = errors.New("pgxpool stub: no database")
+
+type Config struct {
+	MaxConns, MinConns int32
+	MaxConnLifetime    time.Duration
+}
+
+func ParseConfig(string) (*Config, error)                        { return &Config{}, nil }
+func NewWithConfig(context.Context, *Config) (*Pool, error)     { return nil, errStub }
+
+type Pool struct{}
+type Conn struct{}
+
+func (p *Pool) Ping(context.Context) error { return errStub }
+func (p *Pool) Close()                     {}
+func (p *Pool) Exec(context.Context, string, ...any) (pgx.CommandTag, error) {
+	return pgx.CommandTag{}, errStub
+}
+func (p *Pool) Query(context.Context, string, ...any) (pgx.Rows, error) { return nil, errStub }
+func (p *Pool) QueryRow(context.Context, string, ...any) pgx.Row        { return errRow{} }
+func (p *Pool) BeginTx(context.Context, pgx.TxOptions) (pgx.Tx, error)  { return nil, errStub }
+
+type errRow struct{}
+
+func (errRow) Scan(...any) error { return errStub }
+
+
+[exit code 0]

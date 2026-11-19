@@ -1,0 +1,102 @@
+$ bash -c diff -r internal /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/mod/internal && echo 'harness internal/ == PR head internal/'; python3 /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/bin/mutate.py /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/mod; diff -r internal /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/mod/internal && echo 'harness restored == PR head'
+harness internal/ == PR head internal/
+RESULTS (harness = PR-head internal/ + pgx/minio stubs, go1.24; rag.go restored after each mutant)
+- M0 control (no edit)
+    FULL   SURVIVED
+    CLAIMS SURVIVED
+    SYNTH  SURVIVED
+- M1 claimStatus: drop 'any supported -> supported'
+    FULL   KILLED TestAskClaims
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M2 claimStatus: no citations -> unsupported
+    FULL   KILLED TestAskClaims
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M3 claimStatus: unverified citation ignored (unsupported wins)
+    FULL   SURVIVED
+    CLAIMS SURVIVED
+    SYNTH  SURVIVED
+- M4 extractive: uncited sentences get no claim
+    FULL   KILLED TestAskClaims
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M5 extractive: dedupe repeated marker
+    FULL   KILLED TestAskClaims
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M6 extractive: uncited claim markers nil (JSON null)
+    FULL   KILLED TestAskClaims
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M7 extractive: claim text = raw sentence with markers
+    FULL   KILLED TestAskClaims
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M8 finalize: answered quoted response without claims
+    FULL   KILLED TestAskAnswersWithExtractedCitations,TestAskClaims,TestAskExtractiveAnswerVerifiedByQuote,TestAskKeepsAnswerWithOneSupportedCitation,TestAskRef
+    CLAIMS KILLED TestAskClaims
+    SYNTH  KILLED TestQuickAnswerSkipsSynthesis,TestSynthesisClaimsUnsupportedFallBackToQuotes,TestSynthesisFallsBackToExtractive,TestWithLLMNilKeepsExtractive
+- M9 finalize: prompt_version on quoted answers
+    FULL   KILLED TestAskAnswersWithExtractedCitations,TestAskClaims,TestAskExtractiveAnswerVerifiedByQuote,TestAskKeepsAnswerWithOneSupportedCitation,TestAskRer
+    CLAIMS KILLED TestAskClaims
+    SYNTH  KILLED TestQuickAnswerSkipsSynthesis,TestSynthesisClaimsUnsupportedFallBackToQuotes,TestSynthesisFallsBackToExtractive,TestWithLLMNilKeepsExtractive
+- M10 finalizeClaims: no prompt_version
+    FULL   KILLED TestAskClaims,TestCitationProvenance,TestCitationQuote,TestCitationStatusRule,TestQuickAnswerSkipsSynthesis,TestSynthesisAnswersWithVerifiedCla
+    CLAIMS KILLED TestAskClaims
+    SYNTH  KILLED TestQuickAnswerSkipsSynthesis,TestSynthesisAnswersWithVerifiedClaims,TestSynthesisDropsUnsupportedClaims,TestSynthesisMarkersFollowPromptOrder
+- M11 finalizeClaims: claims omitted
+    FULL   KILLED TestAskClaims,TestCitationProvenance,TestCitationQuote,TestCitationStatusRule,TestQuickAnswerSkipsSynthesis,TestSynthesisAnswersWithVerifiedCla
+    CLAIMS KILLED TestAskClaims
+    SYNTH  KILLED TestQuickAnswerSkipsSynthesis,TestSynthesisAnswersWithVerifiedClaims,TestSynthesisDropsUnsupportedClaims,TestSynthesisMarkersFollowPromptOrder
+- M12 finalizeClaims: only first marker per claim
+    FULL   KILLED TestAskClaims,TestCitationQuote,TestCitationStatusRule,TestQuickAnswerSkipsSynthesis,TestSynthesisAnswersWithVerifiedClaims
+    CLAIMS KILLED TestAskClaims
+    SYNTH  KILLED TestQuickAnswerSkipsSynthesis,TestSynthesisAnswersWithVerifiedClaims
+- M13 finalizeClaims: dropped claims listed
+    FULL   KILLED TestAskClaims,TestCitationQuote,TestSynthesisClaimsUnsupportedFallBackToQuotes,TestSynthesisDropsUnsupportedClaims
+    CLAIMS KILLED TestAskClaims
+    SYNTH  KILLED TestSynthesisClaimsUnsupportedFallBackToQuotes,TestSynthesisDropsUnsupportedClaims
+- M14 finalizeClaims: claim status hardcoded supported (dev: unkillable)
+    FULL   SURVIVED
+    CLAIMS SURVIVED
+    SYNTH  SURVIVED
+- M15 refusal(): claims on ADR-0003 refusal
+    FULL   KILLED TestAskClaims,TestAskRefusesAllUnsupported,TestAskRefusesNoInRangeMarker,TestAskRefusesVerificationUnavailable,TestFinalizeEvidenceKeepsBestCom
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M16 insufficient_evidence refusal: prompt_version set
+    FULL   KILLED TestAskClaims,TestRefusalEvidenceStatus,TestSynthesisRefusals
+    CLAIMS KILLED TestAskClaims
+    SYNTH  KILLED TestSynthesisRefusals
+- M17 early refusal: claims: [] present
+    FULL   KILLED TestAskClaims
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M18 early refusal: claims non-empty
+    FULL   KILLED TestAskClaims,TestAskEarlyRefusalHasNoRefusalReason,TestAskRefusesWhenNothingPasses,TestRefusalEvidenceStatus
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M19 quick stage: prompt_version set
+    FULL   KILLED TestAskAnswersWithExtractedCitations,TestAskClaims,TestAskExtractiveAnswerVerifiedByQuote,TestAskRerankFallbackLogsResponseTraceID,TestCitation
+    CLAIMS KILLED TestAskClaims
+    SYNTH  KILLED TestQuickAnswerSkipsSynthesis,TestSynthesisClaimsUnsupportedFallBackToQuotes,TestSynthesisFallsBackToExtractive,TestWithLLMNilKeepsExtractive
+- M20 extractive: out-of-range markers kept in claim markers
+    FULL   KILLED TestValidateCitationsMarkers (panic)
+    CLAIMS KILLED TestAskClaims (panic)
+    SYNTH  SURVIVED
+- M21 extractive: claim status from all citations (offset ignored)
+    FULL   KILLED TestAskClaims,TestAskKeepsAnswerWithOneSupportedCitation,TestAskRefusesVerificationUnavailable
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M22 extractive: claim status from first n citations (o not advanced)
+    FULL   KILLED TestAskClaims,TestAskKeepsAnswerWithOneSupportedCitation,TestAskRefusesVerificationUnavailable
+    CLAIMS KILLED TestAskClaims
+    SYNTH  SURVIVED
+- M23 no-marker branch returns claims (expected equivalent: finalize refuses)
+    FULL   SURVIVED
+    CLAIMS SURVIVED
+    SYNTH  SURVIVED
+harness restored == PR head
+
+[exit code 0]

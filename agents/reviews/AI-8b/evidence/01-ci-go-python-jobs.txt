@@ -1,0 +1,61 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/{135774827091,135774827184}/logs (excerpt lines)
+### Go job 135774827091 (Go (vet, gofmt, test, build)) - checkout + make lint-go + make test-go
+HEAD is now at 57009fa Merge 9b2778fa7466f49ec0eb278b2eb065dacf054461 into 085183e4fabb5b3ef5bb92581b40848e8e4c7f37
+##[group]Run make lint-go
+[36;1mmake lint-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go vet ./...
+##[group]Run make test-go
+[36;1mmake test-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go test ./...
+?   	arxivlens/cmd/arxivlens	[no test files]
+ok  	arxivlens/internal/arxiv	1.553s
+ok  	arxivlens/internal/config	0.006s
+ok  	arxivlens/internal/crawler	0.093s
+ok  	arxivlens/internal/db	0.003s
+ok  	arxivlens/internal/dlq	0.271s
+ok  	arxivlens/internal/downloader	0.105s
+ok  	arxivlens/internal/kafka	0.030s
+ok  	arxivlens/internal/llm	0.736s
+ok  	arxivlens/internal/llm/llmtest	0.103s
+ok  	arxivlens/internal/query	0.323s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+
+### Python job 135774827184 (Python M0 unit tests) - checkout + make test-py
+HEAD is now at 57009fa Merge 9b2778fa7466f49ec0eb278b2eb065dacf054461 into 085183e4fabb5b3ef5bb92581b40848e8e4c7f37
+##[group]Run make test-py
+python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py tests/test_verify.py tests/test_arxiv_replay.py
+.................s...................................................... [ 38%]
+...........................s............................................ [ 76%]
+.................................s..........                             [100%]
+=============================== warnings summary ===============================
+tests/test_m0.py::test_rerank_score_pairs_keeps_input_order_after_length_sorting
+  /home/runner/work/ArxivLens/ArxivLens/services/embedder/api.py:137: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+tests/test_m0.py::test_rerank_score_pairs_keeps_input_order_after_length_sorting
+  /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/fastapi/applications.py:5039: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)  # ty: ignore[deprecated]
+
+tests/test_m0.py::test_rerank_real_cross_encoder_scores_match_single_batch
+  /home/runner/work/ArxivLens/ArxivLens/tests/test_m0.py:354: UserWarning: AI-9 parity skipped: bge-reranker-base not in local HF cache
+    warnings.warn(f"AI-9 parity skipped: {reason}")  # `make test-py` runs -q without -rs; this shows the reason
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+185 passed, 3 skipped, 3 warnings in 9.48s
+

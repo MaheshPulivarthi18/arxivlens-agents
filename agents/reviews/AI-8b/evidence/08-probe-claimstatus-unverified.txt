@@ -1,0 +1,62 @@
+$ bash -c /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/bin/probe.sh /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h; echo; echo '## probe source:'; cat /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/probe/qa_probe_test.go
+## probe dir /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/probe.ZbsL; internal/ (minus probe file) == PR head:
+yes
+## HEAD (unmutated):
+PROBE P1 quote[1] + paraphrase[2], verifier down         claims=[supported[1] text="The Method section s" unverified[2] text="Training follows the"] citation_statuses=[supported unverified] refusal=""
+PROBE P2 quote[1] + paraphrase[2][3] = [0.2, NaN]        claims=[supported[1] text="The Method section s" unverified[2,3] text="Training follows the"] citation_statuses=[supported unsupported unverified] refusal=""
+PROBE P3 quote[1] + paraphrase[2] = [0.2]                claims=[supported[1] text="The Method section s" unsupported[2] text="Training follows the"] citation_statuses=[supported unsupported] refusal=""
+PROBE P4 quote[1] + trailing marker-only fragment '[2]'  claims=[supported[1] text="The Method section s" supported[2] text=""] citation_statuses=[supported supported] refusal=""
+ok  	arxivlens/internal/query	0.004s
+## M3 mutant diff:
+113c113
+< 		unverified = unverified || c.Status == StatusUnverified
+---
+> 		unverified = unverified || false
+## M3 (claimStatus ignores unverified citations):
+PROBE P1 quote[1] + paraphrase[2], verifier down         claims=[supported[1] text="The Method section s" unsupported[2] text="Training follows the"] citation_statuses=[supported unverified] refusal=""
+PROBE P2 quote[1] + paraphrase[2][3] = [0.2, NaN]        claims=[supported[1] text="The Method section s" unsupported[2,3] text="Training follows the"] citation_statuses=[supported unsupported unverified] refusal=""
+PROBE P3 quote[1] + paraphrase[2] = [0.2]                claims=[supported[1] text="The Method section s" unsupported[2] text="Training follows the"] citation_statuses=[supported unsupported] refusal=""
+PROBE P4 quote[1] + trailing marker-only fragment '[2]'  claims=[supported[1] text="The Method section s" supported[2] text=""] citation_statuses=[supported supported] refusal=""
+ok  	arxivlens/internal/query	0.003s
+## PR's own full suite on M3:
+ok  	arxivlens/internal/query	0.323s
+
+## probe source:
+package query
+
+// QA AI-8b probes (not part of the PR). Prints claims for cases the PR tests don't pin literally.
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"math"
+	"testing"
+)
+
+func TestQAProbeClaims(t *testing.T) {
+	captureLog(t)
+	ctx := context.Background()
+	quote := "The Method section shows that the proposed method improves accuracy on every benchmark [1]."
+	show := func(name string, resp *AskResponse) {
+		var cl []string
+		for _, c := range resp.Claims {
+			m, _ := json.Marshal(c.Markers)
+			cl = append(cl, fmt.Sprintf("%s%s text=%q", c.Status, m, c.Text[:min(len(c.Text), 20)]))
+		}
+		fmt.Printf("PROBE %-50s claims=%v citation_statuses=%v refusal=%q\n", name, cl, statuses(resp.Citations), resp.RefusalReason)
+	}
+	// P1: verbatim quote supported + paraphrase whose verifier call fails -> claim 2 has one unverified citation.
+	r := &RAGService{verifier: &fakeVerifier{err: fmt.Errorf("down")}}
+	show("P1 quote[1] + paraphrase[2], verifier down", r.finalize(ctx, "t", quote+" Training follows the described setup [2].", batchHits()))
+	// P2: claim with citations [unsupported 0.2, unverified NaN] -> claimStatus rule says unverified.
+	r = &RAGService{verifier: byPassage(map[string]float64{"Results": 0.2, "Discussion": math.NaN()})}
+	show("P2 quote[1] + paraphrase[2][3] = [0.2, NaN]", r.finalize(ctx, "t", quote+" Training follows the described setup [2][3].", batchHits()))
+	// P3: claim with citations [unsupported 0.2] only -> unsupported.
+	r = &RAGService{verifier: byPassage(map[string]float64{"Results": 0.2})}
+	show("P3 quote[1] + paraphrase[2] = [0.2]", r.finalize(ctx, "t", quote+" Training follows the described setup [2].", batchHits()))
+	// P4: a fragment that is only a marker -> claim text after normQuote.
+	r = &RAGService{verifier: simVerifier(constSim(0.9))}
+	show("P4 quote[1] + trailing marker-only fragment '[2]'", r.finalize(ctx, "t", quote+" [2]", batchHits()))
+}
+
+[exit code 0]

@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/9b2778fa7466f49ec0eb278b2eb065dacf054461/check-runs
+eval | completed | success | job 135774890363 | 2026-11-19T18:09:51Z -> 2026-11-19T19:13:47Z
+Frontend (lint, test, build) | completed | success | job 135774827704 | 2026-11-19T18:09:45Z -> 2026-11-19T18:10:04Z
+DB (migrate twice, HNSW plan + recall) | completed | success | job 135774827665 | 2026-11-19T18:09:45Z -> 2026-11-19T18:11:48Z
+Python M0 unit tests | completed | success | job 135774827184 | 2026-11-19T18:09:44Z -> 2026-11-19T18:10:48Z
+Go (vet, gofmt, test, build) | completed | success | job 135774827091 | 2026-11-19T18:09:45Z -> 2026-11-19T18:10:28Z
+Full stack (compose + make test-full) | completed | success | job 135774826671 | 2026-11-19T18:09:45Z -> 2026-11-19T18:21:14Z
+Agent ownership check | completed | success | job 135774826510 | 2026-11-19T18:09:45Z -> 2026-11-19T18:09:51Z
+

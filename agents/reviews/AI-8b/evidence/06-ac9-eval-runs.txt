@@ -1,0 +1,51 @@
+$ bash -c for r in 43902662193 44559854028 44584838337; do gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/$r --jq '"## run \(.id) \(.event) \(.head_branch) \(.head_sha[0:7]) \(.conclusion)"'; done; for f in /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/eval-43902662193.log /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/eval-44559854028.log /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/job-135774890363.log; do echo "== $(basename $f) (job log)"; grep -E 'git log -1 --format|^.{29}[0-9a-f]{40}$|Supported citations|Answers citing|Correct refusals|Citation coverage|Near-miss refusals|supported_citation_rate|correct_refusal_rate|recall@5 \(|citation_coverage|refusal_reason_counts|GATE:' $f | grep -v sed | cut -c30-110; done
+## run 43902662193 schedule main 40dec5a success
+## run 44559854028 schedule main 8b55af2 success
+## run 44584838337 workflow_dispatch agent/ai/AI-8b 9b2778f success
+== eval-43902662193.log (job log)
+[command]/usr/bin/git log -1 --format=%H
+40dec5a41ddeab7b029d5a03d5b6d66fbde1f411
+Supported citations      : 100.00% (60 citations)
+Answers citing expected  : 95.45% of 22
+Correct refusals         : 100.00% of 22
+Citation coverage        : 100.00%
+Near-miss refusals       : 80.00% of 15
+recall@5 (Hybrid RRF + Rerank)                   |    0.9850 |     >= 0.8 | PASS
+supported_citation_rate                          |    1.0000 |     >= 0.9 | PASS
+correct_refusal_rate                             |    1.0000 |    >= 0.95 | PASS
+(report-only) citation_coverage                  |    1.0000 |
+(report-only) near_miss_correct_refusal_rate     |    0.8000 |
+(report-only) refusal_reason_counts              | {}
+GATE: PASS
+== eval-44559854028.log (job log)
+[command]/usr/bin/git log -1 --format=%H
+8b55af22dfff6e97f6541d1fc61f4717238ed7f0
+Supported citations      : 100.00% (60 citations)
+Answers citing expected  : 95.45% of 22
+Correct refusals         : 100.00% of 22
+Citation coverage        : 100.00%
+Near-miss refusals       : 80.00% of 15
+recall@5 (Hybrid RRF + Rerank)                   |    0.9850 |     >= 0.8 | PASS
+supported_citation_rate                          |    1.0000 |     >= 0.9 | PASS
+correct_refusal_rate                             |    1.0000 |    >= 0.95 | PASS
+(report-only) citation_coverage                  |    1.0000 |
+(report-only) near_miss_correct_refusal_rate     |    0.8000 |
+(report-only) refusal_reason_counts              | {}
+GATE: PASS
+== job-135774890363.log (job log)
+[command]/usr/bin/git log -1 --format=%H
+9b2778fa7466f49ec0eb278b2eb065dacf054461
+Supported citations      : 100.00% (60 citations)
+Answers citing expected  : 95.45% of 22
+Correct refusals         : 100.00% of 22
+Citation coverage        : 100.00%
+Near-miss refusals       : 80.00% of 15
+recall@5 (Hybrid RRF + Rerank)                   |    0.9850 |     >= 0.8 | PASS
+supported_citation_rate                          |    1.0000 |     >= 0.9 | PASS
+correct_refusal_rate                             |    1.0000 |    >= 0.95 | PASS
+(report-only) citation_coverage                  |    1.0000 |
+(report-only) near_miss_correct_refusal_rate     |    0.8000 |
+(report-only) refusal_reason_counts              | {}
+GATE: PASS
+
+[exit code 0]
