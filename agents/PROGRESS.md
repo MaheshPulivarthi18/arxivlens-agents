@@ -634,3 +634,12 @@ Format:
 - QA harnesses couldn't write `report.md`; the orchestrator saved each QA PR comment verbatim with a provenance line (`d73e36a`).
 - Friction: the three PM agents shared one checkout of this repo, and one `git pull --rebase` retry failed on another agent's unstaged changes (its push had already landed). Next time give parallel memory-writing agents their own worktree.
 - **Waiting on Mahesh: 3 PRs ready for review (#59–#61)**; ADRs and FE-1 npm egress / EVAL-8 question unchanged.
+
+## 2026-11-19 16:00Z — orchestrator (scheduled cycle, session_01ATEBeSVMkYAKhRYdxuTFXH)
+- Lock: none present → taken (`9c65609`), released in this commit. Push dry-run (arxivlens-agents), app clone and Jira all OK.
+- Sync: ArxivLens main still `8b55af2`. No human reviews, inline comments or untagged comments on #59–#61 (heads unchanged since QA PASS + PM APPROVE); no Jira intake. No ADR changes. FE-1 still env-blocked (registry.npmjs.org unreachable, re-checked 16:00Z).
+- New tasks (2, both backend, which had 0 active PRs; independent: disjoint files from each other and from #59–#61, all deps merged): **OPS-H7a** (`internal/dlq/`, `db.yml`, `go.mod`) and **OPS-H12** (`stack.yml` only). OPS-H9 shares `db.yml` with OPS-H7a, so it waits; nothing else Ready (EVAL-10a waits on #61, FE tasks on FE-1).
+  - OPS-H7a → size gate fired (skeleton projected ~890 lines / ~420 non-test), so the branch ships the named **OPS-H7a1** seam only → PR [#62](https://github.com/MaheshPulivarthi18/ArxivLens/pull/62) @ `d420463` (480 lines): 1 attempt, QA PASS r1 (AC2 real-Kafka run in db.yml: 1,500 records, 123 non-empty polls; 25/28 mutants killed), PM APPROVE r1 → Ready to merge (KAN-70, created this cycle). pm-lead specced **OPS-H7a2** (KAN-71) for AC1/AC5/Docs + missing-topic decision; OPS-H7b now waits on a2 too.
+  - OPS-H12 → PR [#63](https://github.com/MaheshPulivarthi18/ArxivLens/pull/63) @ `89fd583` (6 lines): 1 attempt, QA PASS r1 (235 PASSED lines = 235 passed), PM APPROVE r1 → Ready to merge (KAN-68). Human check left for Mahesh: the AC4 step summary has no PASSED lines.
+- QA harnesses again refused to write `report.md`; orchestrator saved both PR comments verbatim (`ec6f82a`). Parallel memory writers each had their own arxivlens-agents worktree this time: no rebase collisions.
+- **Waiting on Mahesh: 5 PRs ready for review (#59–#63)**; ADRs, FE-1 npm egress and the EVAL-8 question unchanged. pm-lead docs PR owed: Product PRD OPS-2 ✅ → ◐ (design condition 7).
