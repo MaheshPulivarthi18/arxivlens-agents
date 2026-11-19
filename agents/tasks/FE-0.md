@@ -8,7 +8,7 @@
 | **Depends on** | none. ArxivLens #64 (`085183e`) and #67 (`4c7d327`), which added the Radix, sonner, fontsource and typography packages, are merged. Independent of FE-1 (disjoint files, see Scope) |
 | **Jira** | story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-0"`) |
 | **Design required** | **yes**: `docs/design/FE-0.md` (palette with HSL values and contrast ratios, type scale, primitives API, theme toggle behaviour). pm-lead approves before any code |
-| **Status** | Ready (design approved with conditions 2026-11-19; build on branch `agent/frontend/FE-0`). Split: the six other primitives are [FE-0b](FE-0b.md) |
+| **Status** | In QA: draft [ArxivLens #69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69), head `ca76bea`, CI green (2026-11-19). Split: the six other primitives are [FE-0b](FE-0b.md) |
 
 ## Goal
 Mahesh asked for a "classic UI, think like a pro". Give ArxivLens the look of a research tool (arXiv, Semantic Scholar,
@@ -158,3 +158,19 @@ npm run build && npx vite preview --port 4173 &   # then playwright: light + dar
   Overrule any of them in a PR review and it goes back to the developer.
 - Follow-ups recorded (not yet specced): commit the AC5 Node checks as `src/lib/theme.test.js` once FE-1 (#68) merges, and
   OPS-H14 (backend: `frontend` CI job greps `dist/` for `@font-face`, `.font-serif`, `.prose`, `woff2`, and no Google font hosts).
+- 2026-11-19 (frontend-engineer, **build**): draft [#69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69), branch `agent/frontend/FE-0`,
+  head `ca76bea` (attempt 1 `dcf93c5`: CI green but oxlint 1 warning, `ThemeToggle.jsx:23` "Calling setState synchronously within an effect",
+  versus 0 on main `4c7d327`. Attempt 2 derives the resolved theme in render; OS state is set only by the media-query listener).
+  Diff +382/−58 = 440 lines, 10 files: `README.md` 3, `frontend/index.html` 18, `Navbar.jsx` 62, `ThemeToggle.jsx` (new) 75,
+  `ui/button.jsx` 2, `ui/dropdown-menu.jsx` (new) 71, `index.css` 90, `lib/theme.js` (new) 64, `main.jsx` 3, `tailwind.config.js` 51.
+  Ownership check OK. No file shared with #68; no dependency, `package.json`, lockfile or `vite.config.js` change.
+  CI on `ca76bea`: Frontend, Go, Python M0, DB and ownership all pass; lint `Found 0 warnings and 0 errors.`; `✓ built in 1.01s`.
+  Fonts: 19 `woff2`, 583.69 kB total (Inter normal 7, Source Serif 4 normal 6 + italic 6); about 99 kB for Latin, 151 kB with italics.
+  AC status (developer self-check; QA verifies): AC1 ✅ CI · AC2 ✅ CI asset list + source greps (the `dist/` greps need a local build, OPS-H14) ·
+  AC3 ✅ Node check (25 colour tokens × 2 themes + radius, config strings) · AC4 ✅ contrast parsed from `index.css`, all pairs pass,
+  and the only outlined control uses `border-input` (`border-border` only on the header hairline, logo tile and menu panel) ·
+  AC5 ✅ pre-paint matrix 12/12 + `theme.js` 31 checks in bare Node · AC6 ✅ static check · AC7 ✅ (440 lines, over the 400 warning) ·
+  AC8 fallback (no `node_modules`: Tailwind 4 / no Vite locally) = CI log + token diff + contrast table in the PR body · AC9 ✅ README line,
+  badge before/after, font count and size, and the veto note for Mahesh's three choices in the PR body.
+  Self-check scripts (uncommitted, for QA to rerun or rebuild): `/tmp/fe0/theme-checks.mjs` and `/tmp/fe0/token-checks.mjs` (sandbox-local).
+  Follow-up unchanged: commit them as `src/lib/theme.test.js` after #68 merges.

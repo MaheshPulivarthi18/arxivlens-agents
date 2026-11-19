@@ -79,6 +79,7 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-17][ING-11b] Adding a scalar subquery to the outer SELECT broke a test helper that found "the outer SELECT" with `strings.LastIndex(sql, "SELECT ")`: the last SELECT was now the subquery. When a source-parsing test locates a clause by keyword, anchor it on something unique to that clause (indentation, the column it starts with) before you add nested SQL. (seen 1×)
 
 ## frontend-engineer
+- [2026-11-19][FE-0] CI's oxlint 1.79 flags `setState` called synchronously inside `useEffect` ("cascading renders"). It isn't in `.oxlintrc.json`, and the sandbox can't run oxlint, so the first push added a warning versus main's 0 → derive values during render. Only set state from subscription callbacks (e.g. the `matchMedia` listener), never in the effect body. Also compare `Found N warnings` with main's latest CI Frontend job before calling AC1 done. (seen 1×)
 
 ## qa-reviewer
 - [2026-11-02][EVAL-1] Round-1 QA passed a gate whose PRD metric definition was pending ADR-0006 (flagged only as [spec]) → a gated metric that doesn't match the PRD definition is [blocking] until the ADR is Accepted. (seen 1×)
