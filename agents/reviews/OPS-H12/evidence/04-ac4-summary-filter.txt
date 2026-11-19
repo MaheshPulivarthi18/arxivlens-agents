@@ -1,0 +1,13 @@
+$ bash -c cd /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/tmp.T4lFsk5E0w && awk 'f{print} /python3 -m pytest -q tests\//{f=1} / [0-9]+ passed, /{if(f)exit}' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log | sed -E 's/^[0-9T:.-]+Z //' > test-full.log && echo "test-full.log rebuilt from job log: $(wc -l < test-full.log) lines, $(grep -c '^PASSED ' test-full.log) '^PASSED ' lines" && line=$(grep -m1 "if grep -q 'short test summary info'" /root/qa-app/OPS-H12/.github/workflows/stack.yml | sed 's/^ *//') && echo "filter line at head: $line" && echo '--- summary block output:' && eval "$line" > summary.out; cat summary.out; echo "--- summary lines: $(wc -l < summary.out); PASSED lines in summary: $(grep -c '^PASSED ' summary.out)"; echo '--- red-path check (synthetic FAILED/ERROR lines appended to a copy):'; { cat test-full.log; echo 'FAILED tests/x.py::t - boom'; echo 'ERROR tests/y.py::u'; } > test-full.log.red; mv test-full.log.red test-full.log; eval "$line" | grep -E '^(FAILED|ERROR) '; true
+test-full.log rebuilt from job log: 585 lines, 235 '^PASSED ' lines
+filter line at head: if grep -q 'short test summary info' test-full.log; then sed -n '/short test summary info/,$p' test-full.log | grep -v '^PASSED '; else tail -n 1 test-full.log; fi
+--- summary block output:
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_evals_data.py:780: opt-in: needs DATABASE_URL with migrations/ applied
+235 passed, 1 skipped, 3 deselected, 5 warnings in 74.56s (0:01:14)
+--- summary lines: 3; PASSED lines in summary: 0
+--- red-path check (synthetic FAILED/ERROR lines appended to a copy):
+FAILED tests/x.py::t - boom
+ERROR tests/y.py::u
+
+[exit code 0]

@@ -1,0 +1,24 @@
+$ bash -c echo '# pytest command line (tail):'; grep -m1 'python3 -m pytest -q tests/' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log | grep -o '.\{110\}$'; echo '# section headers:'; grep -n '=== PASSES ===\|short test summary info' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log | head -2; echo '# first 5 lines of the short summary:'; sed -n '3537,3542p' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log; echo '# PASSED tests/test_m4_chaos.py:: lines:'; grep -n 'Z PASSED tests/test_m4_chaos.py::' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log; echo '# last 3 lines of the summary + count line:'; sed -n '3771,3774p' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log
+# pytest command line (tail):
+early_refusal_on_unrelated_query --deselect tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank -rA
+# section headers:
+3171:2026-11-19T16:31:41.6127370Z [36;1m  if grep -q 'short test summary info' test-full.log; then sed -n '/short test summary info/,$p' test-full.log | grep -v '^PASSED '; else tail -n 1 test-full.log; fi[0m
+3226:2026-11-19T16:32:56.6270532Z ==================================== PASSES ====================================
+# first 5 lines of the short summary:
+2026-11-19T16:32:56.6460956Z =========================== short test summary info ============================
+2026-11-19T16:32:56.6461377Z PASSED tests/test_arxiv_replay.py::test_record_then_replay_without_upstream
+2026-11-19T16:32:56.6461846Z PASSED tests/test_arxiv_replay.py::test_rate_limit_is_retried_and_bad_bodies_never_saved
+2026-11-19T16:32:56.6462310Z PASSED tests/test_arxiv_replay.py::test_upstream_failure_passes_status_through
+2026-11-19T16:32:56.6462720Z PASSED tests/test_arxiv_replay.py::test_rejects_bad_pdf_names
+2026-11-19T16:32:56.6463117Z PASSED tests/test_arxiv_replay.py::test_entry_pdf_names_match_go_fetch_urls
+# PASSED tests/test_m4_chaos.py:: lines:
+3735:2026-11-19T16:32:57.0177889Z PASSED tests/test_m4_chaos.py::test_idempotency_duplicate_event_row_invariance
+3736:2026-11-19T16:32:57.0178512Z PASSED tests/test_m4_chaos.py::test_corrupt_pdf_dlq_routing_and_diagnostic_payload
+3737:2026-11-19T16:32:57.0179146Z PASSED tests/test_m4_chaos.py::test_redelivered_discovered_keeps_embedded_status
+# last 3 lines of the summary + count line:
+2026-11-19T16:32:57.0201772Z PASSED tests/test_worker_heartbeat.py::test_stale_heartbeat_removed_on_start
+2026-11-19T16:32:57.0202214Z PASSED tests/test_worker_heartbeat.py::test_heartbeat_error_does_not_raise
+2026-11-19T16:32:57.0202854Z SKIPPED [1] tests/test_evals_data.py:780: opt-in: needs DATABASE_URL with migrations/ applied
+2026-11-19T16:32:57.0203480Z 235 passed, 1 skipped, 3 deselected, 5 warnings in 74.56s (0:01:14)
+
+[exit code 0]

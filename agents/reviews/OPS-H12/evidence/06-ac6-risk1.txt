@@ -1,0 +1,18 @@
+$ bash -c sed -n '119,122p' .github/workflows/stack.yml; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135705503227 --jq '.steps[] | select(.number==13) | "step \(.number) \(.name): status=\(.status) conclusion=\(.conclusion) \(.started_at) -> \(.completed_at)"'; grep -E 'Z RISK1 ' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log; echo -n 'non-script occurrences of "RISK1 probe exited non-zero": '; grep 'RISK1 probe exited non-zero' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log | grep -vc 'Run python3\|36;1m' || true; echo '# replay store provenance:'; grep -E 'Cache (restored|not found)|upstream_fetches' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log | head -4 | cut -c1-200
+      - name: "ING-6 Risk 1: published order of recorded search feeds"
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        timeout-minutes: 1
+step 13 ING-6 Risk 1: published order of recorded search feeds: status=completed conclusion=success 2026-11-19T16:24:46Z -> 2026-11-19T16:24:46Z
+2026-11-19T16:24:46.4170052Z RISK1 query=max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+2026-11-19T16:24:46.4170958Z RISK1 entry 1 2611.24932v1 published=2026-11-18T18:55:07Z
+2026-11-19T16:24:46.4171314Z RISK1 entry 2 2611.24908v1 published=2026-11-18T18:43:40Z
+2026-11-19T16:24:46.4171592Z RISK1 ORDER descending
+non-script occurrences of "RISK1 probe exited non-zero": 0
+# replay store provenance:
+2026-11-19T16:22:48.4515372Z Cache restored successfully
+2026-11-19T16:22:48.4609723Z Cache restored from key: setup-go-Linux-x64-ubuntu26-go-1.25.0-282abb17dbe996d56a2dfecbce61082860776038189ca3cb06eff71ee8aa2c93
+2026-11-19T16:22:53.3570517Z Cache restored successfully
+2026-11-19T16:22:53.3781545Z Cache restored from key: setup-python-Linux-x64-26.04-Ubuntu-python-3.11.18-pip-7e097827d6f8fcf777683d3d0b07b47773eb1f00ba2f2aa47d81021a258c45cc
+
+[exit code 0]

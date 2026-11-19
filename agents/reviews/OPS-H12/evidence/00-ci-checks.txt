@@ -1,0 +1,11 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/89fd583c2d0a741407d2fdbd01db65283b43970b/check-runs --jq '.check_runs[] | "\(.id) \(.name) \(.status) \(.conclusion)"'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135705503227 --jq '"stack job head_sha=\(.head_sha) conclusion=\(.conclusion)"'; grep -m1 'HEAD is now at' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log
+135705503227 Full stack (compose + make test-full) completed success
+135705503088 Go (vet, gofmt, test, build) completed success
+135705502810 Frontend (lint, test, build) completed success
+135705502808 DB (migrate twice, HNSW plan + recall) completed success
+135705502786 Agent ownership check completed success
+135705502282 Python M0 unit tests completed success
+stack job head_sha=89fd583c2d0a741407d2fdbd01db65283b43970b conclusion=success
+2026-11-19T16:22:38.0095115Z HEAD is now at a6c8909 Merge 89fd583c2d0a741407d2fdbd01db65283b43970b into 8b55af22dfff6e97f6541d1fc61f4717238ed7f0
+
+[exit code 0]

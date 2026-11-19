@@ -1,0 +1,13 @@
+$ bash -c echo -n 'PASSED tests/ lines: '; grep -c 'Z PASSED tests/' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log; echo -n 'distinct PASSED ids: '; grep 'Z PASSED tests/' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log | sed 's/^[^ ]* //' | sort -u | wc -l; echo -n 'count line: '; grep -E 'Z [0-9]+ passed' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log | head -1; echo 'SKIPPED lines:'; grep -E 'Z SKIPPED \[' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log; echo -n 'SKIPPED [n] sum: '; grep -E 'Z SKIPPED \[' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log | sed -E 's/.*SKIPPED \[([0-9]+)\].*/\1/' | paste -sd+ | bc; echo 'summary lines (3538-3773) by kind:'; sed -n '3538,3773p' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log | sed 's/^[^ ]* //' | awk '{print $1}' | sort | uniq -c; echo -n 'FAILED/ERROR lines in AC4 summary: '; sed -n '3538,3774p' /tmp/claude-0/-home-claude/842bb434-ffd0-58f0-a109-2a8b0fcaaa0c/scratchpad/ci/stack.log | grep -cE 'Z (FAILED|ERROR) ' || true
+PASSED tests/ lines: 235
+distinct PASSED ids: 235
+count line: 2026-11-19T16:32:57.0203480Z 235 passed, 1 skipped, 3 deselected, 5 warnings in 74.56s (0:01:14)
+SKIPPED lines:
+2026-11-19T16:32:57.0202854Z SKIPPED [1] tests/test_evals_data.py:780: opt-in: needs DATABASE_URL with migrations/ applied
+SKIPPED [n] sum: 1
+summary lines (3538-3773) by kind:
+    235 PASSED
+      1 SKIPPED
+FAILED/ERROR lines in AC4 summary: 0
+
+[exit code 0]
