@@ -8,7 +8,7 @@
 | **Depends on** | ArxivLens #64 (`085183e`) and #67 (`4c7d327`): test devDependencies + lockfile, merged |
 | **Jira** | story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-1"`) |
 | **Design required** | no |
-| **Status** | Ready (unblocked 2026-11-19: dependencies merged in #64/#67). Local npm still unavailable in agent sandboxes, so CI is the verification |
+| **Status** | In QA: draft PR [#68](https://github.com/MaheshPulivarthi18/ArxivLens/pull/68), head `50f1963`, CI green |
 
 ## Goal
 Give the frontend agent a fast feedback loop and lock down the states that carry the product's trust promise.
@@ -63,3 +63,14 @@ git diff origin/main -- frontend/package.json               # only "scripts" lin
   FE-0 runs in parallel on disjoint files (`index.css`, `tailwind.config.js`, `main.jsx`, `index.html`, `components/ui/`, `Navbar.jsx`):
   keep FE-1 off those. Tests should assert on text and roles, not on class names, so FE-0's restyle doesn't break them.
   The AC3 badge fix (`ReferencesStack.jsx`) stays in FE-1.
+- 2026-11-19 (frontend-engineer, build): draft PR [ArxivLens #68](https://github.com/MaheshPulivarthi18/ArxivLens/pull/68) on `agent/frontend/FE-1`, head `50f19631`.
+  CI is all green on the head commit. Frontend job: oxlint "0 warnings and 0 errors". Vitest: 3 files, 19 tests passed, Duration 2.72s. The build passes.
+  Not run locally because the npm registry is unreachable (`npm view` timed out).
+  - [x] AC1: CI `npm test` passes in 2.72 s; data comes from fixtures through props, so no network.
+  - [x] AC2: 19 cases (SynthesisView 6, ReferencesStack 8, HeroSearch 5), including refusal and unsupported/unverified.
+  - [x] AC3: fixed in `ReferencesStack.jsx`. Only a supported citation says "Verified". `supported: false` shows "Unsupported · x%" and `status: unverified` shows "Unverified · x%", with an amber ShieldAlert badge. The label comes from `status` (ADR-0014), falling back to `supported`.
+  - [x] AC4: lint and build pass in CI. `frontend/README.md` has a Commands table with `npm test`.
+  - [x] AC5: package.json diff touches only `scripts`; package-lock.json is unchanged.
+  - Also added a11y labels: `role="article"` + aria-label on citation cards, per-citation labels on Open PDF and Copy BibTeX, and a "Research question" label on the HeroSearch input.
+  - Follow-up candidates: (1) SynthesisView still shows a static "PostgreSQL pgvector Verified" footer on refusals (§7 honest refusals). (2) CI's `npm run | grep -q " test"` logs a harmless `npm error` (EPIPE) in the test step (backend owns ci.yml).
+  - Jira KAN-19: no Atlassian tools in this session, so I didn't transition the story or comment; pm-lead should move it to In QA and link #68.
