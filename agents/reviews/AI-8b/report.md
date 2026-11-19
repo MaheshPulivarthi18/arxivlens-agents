@@ -118,3 +118,65 @@ No blocking findings. No contract, threshold or eval-gate change.
 
 ## Hand-off
 PASS → pm-lead for final review. Label `qa-fail` → `qa-pass`.
+
+---
+
+# PM review — AI-8b · PR #65
+
+**Verdict:** APPROVE
+**Reviewed head:** `956db7824ec2f706565e02426762a7a5220f2683` (unchanged since QA r2) · **Reviewer:** pm-lead · **Date:** 2026-11-19
+**Read:** ticket `agents/tasks/AI-8b.md` (incl. 2026-11-17 amendments), Product PRD QA-3/QA-4 and §7 principles 1–3, Technical PRD §7.2,
+ADR-0014 (Accepted), ADR-0018 (Proposed), `docs/design/AI-8.md` (PM decision + conditions 1–8), QA r1 (FAIL) and r2 (PASS), the PR diff
+(4 files, +201/−16), and all 17 evidence images 00–16 (00–11 at `1f500dc`, 12–16 at `c666ded`) plus their `.txt` sources.
+
+## PRD fit
+- **Principle 1 (evidence first) / QA-3:** every non-refused answer now carries `claims[]` in answer order, each with the markers of its
+  evidence, and the ordering invariant (`citations[o:o+len(markers)]`) lets FE-4 map a claim to its passages without new fields.
+  That is what Phase 1 item 4 ("each claim maps to inspectable passages") needs.
+- **Principle 2 (say "I don't know") / ADR-0014 honest status:** refusals carry no `claims`/`prompt_version`; a claim whose evidence was
+  never checked is `unverified`, not `unsupported`. QA r1 found that this rule was not pinned by any test (M3 survived). The rework pins it
+  by literal value (verifier-down case + 8-row `claimStatus` table), and evidence 16 shows M3 now fails `TestAskClaims`. This was the
+  right call to block on: a reader-facing "checked and failed" on an unchecked statement would have contradicted the README text this
+  PR adds.
+- **Principle 3 (one click to the source):** the README documents the versioned `pdf_url`, `page` and `quote` together with claims, so API
+  users and FE-3/FE-4 have one contract to build against.
+- `prompt_version` only on `synthesized` answers gives traceability for the LLM path without promising anything for quoted answers.
+
+## Scope
+- Matches the ticket and design §4 exactly: `rag.go` (+50/−10), `rag_test.go`, one Python test, one README row. `synthesis_test.go`
+  untouched (11 helper calls, covered via the extended helper; mutants M8–M13/M16/M19 killed by the synthesis-only scope prove the reach).
+- Design condition 8 held: no `answer_source`, no reserved statuses, no offsets/indices, no prompt or splitter change.
+- 217 changed lines (< 400), ai-owned paths only, ownership check green.
+- Extractive claim `text = normQuote(sentence)` is a developer choice not fixed by the design; it matches the AI-8a `quote` normalisation
+  and is recorded in the ticket Notes. Accepted.
+
+## Evidence vs ACs
+| AC | Evidence that proves it | PM |
+|---|---|---|
+| AC1 helper at every site | 05 (call-site table + helper body), 03/14 (AC1 `-v` run), 07/15 (synthesis-only scope kills helper-reach mutants) | ✅ |
+| AC2 `TestAskClaims` | 03/14 (pass), 07/15 (M4–M7, M12, M13 killed), 13 + 16 (r2 literal unverified case) | ✅ |
+| AC3 refusal paths | 15 (M15–M18 killed), 05 (helper refusal check) | ✅ |
+| AC4 `e.g.`/`0.5` | 03/14 (`TestAskClaims` passes, splitter not changed), 13 (AC4 block context) | ✅ |
+| AC5 shape test | 03/14 (`TestAskResponseShapeAndConstructor` passes); M17 killed (15) | ✅ |
+| AC6 Python eval compatibility | 09 (local, new test PASSED), 01/12 (CI Python M0 185 passed) | ✅ |
+| AC7 README row | 02 (single hunk `@@ -163 +163 @@`), 11 (all 15 required terms present, each once) | ✅ |
+| AC8 coverage / size | 04/14 (rag.go 416/420 = 99.0%), 02/13 (217 lines) | ✅ |
+| AC9 eval | 06: run 44584838337 (`9b2778f`; `rag.go` byte-identical at `956db78` per 13) vs 43902662193 vs 44559854028 — supported_citation_rate 1.0000 (60), correct_refusal_rate 1.0000 (22), citation_coverage 1.0000, recall@5 0.9850, GATE: PASS in all three. No coverage change, so no condition-6 finding | ✅ |
+| Docs: `answer_source` note | PR body | ✅ |
+
+"Not run locally" for `make test-unit`/`make lint` is acceptable: CI on `956db78` (merged into `4c7d327`) is 6/6 green (evidence 12). The
+synthesized-path claims are unit-tested only (no LLM in `eval.yml`); that's a known limit of the eval, not of this PR.
+Red text on some `--- PASS` lines in 03/14 and the helper body in 05 is terminal highlighting of the words "Fail"/"Error", not failures.
+
+## Docs / PRD status
+- App README `/v1/ask` row: done in this PR.
+- Product PRD QA-3/QA-4 and Technical PRD §7.2 are stale (QA-4 still describes cosine + fail-open pre-AI-2/ADR-0014). Per the ticket,
+  pm-lead updates them in a `docs/` PR **after merge**; Backlog line added to `agents/board.md`.
+
+## For Mahesh (flagged per design "Kept out", not blocking)
+1. README timing differs from ADR-0014 ("README updated in the PRs that add the fields"): the AI-8a fields are documented here, in AI-8b (design condition 4).
+2. Q1 reading of `unverified`: a claim with no in-range marker, and a citation that no statement cited, are `unverified` ("not checked").
+3. The README row documents `quick`, `answer_kind`, `synthesis_available` and `insufficient_evidence` and marks them "ADR-0018, Proposed". `answer_source` is not added (Option 1); Option 2 would be additive.
+
+## Hand-off
+APPROVE → PR #65 description rewritten with the Evidence section, marked ready for review, label `ready-to-merge`. Merge: Mahesh.
