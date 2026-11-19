@@ -1,0 +1,10 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135888299617/logs | sed -E 's/^[0-9T:.-]+Z //' | sed -n '2191p;2207p;2283p;3286,3287p;3297p'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135888299617 --jq '"job conclusion: " + .conclusion'
+ Image cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805 Pulled 
+ Image cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597 Pulled 
+ Image pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f Pulled 
+arxivlens-minio             cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597   "/usr/bin/minio serv…"   minio             3 minutes ago    Up 3 minutes (healthy)    0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
+arxivlens-postgres          pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f            "docker-entrypoint.s…"   postgres          3 minutes ago    Up 3 minutes (healthy)    0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+arxivlens-minio-init        cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805   "/bin/sh -ec 'mc ali…"    minio-init        3 minutes ago    Exited (0) 35 seconds ago   
+job conclusion: success
+
+[exit code 0]

@@ -1,0 +1,23 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135888300539/logs | sed -E 's/^[0-9T:.-]+Z //' | sed -n '122p;126,127p;141,143p;155p;200,211p'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135888300539 --jq '"job conclusion: " + .conclusion'
+##[group]Run docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9 -color .github/workflows/db.yml .github/workflows/image-pins.yml
+Unable to find image 'rhysd/actionlint:1.7.7@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9' locally
+docker.io/rhysd/actionlint@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9: Pulling from rhysd/actionlint
+Digest: sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9
+Status: Downloaded newer image for rhysd/actionlint@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9
+##[group]Run compose="$(grep -oE 'pgvector/pgvector:[^[:space:]"]+' docker-compose.yml | sort -u)"
+##[group]Run docker buildx version
+github.com/docker/buildx v0.38.2 3c4cbd35852fc1a476923627a780a7836c28b654
+3 pinned images:
+  cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805
+  cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597
+  pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+ok      cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805
+ok      cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597
+ok      pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+Self-test: the all-zero digest of each resolved image must fail as not found
+  (expected) Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:0000000000000000000000000000000000000000000000000000000000000000 (ERROR: cgr.dev/chainguard/minio-client@sha256:0000000000000000000000000000000000000000000000000000000000000000: not found)
+  (expected) Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:0000000000000000000000000000000000000000000000000000000000000000 (ERROR: cgr.dev/chainguard/minio@sha256:0000000000000000000000000000000000000000000000000000000000000000: not found)
+  (expected) Pinned image pgvector/pgvector:pg16 no longer resolves at sha256:0000000000000000000000000000000000000000000000000000000000000000 (ERROR: docker.io/pgvector/pgvector@sha256:0000000000000000000000000000000000000000000000000000000000000000: not found)
+job conclusion: success
+
+[exit code 0]

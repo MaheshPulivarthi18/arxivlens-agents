@@ -1,0 +1,89 @@
+$ bash -c bash /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/r2probe/probe.sh; echo; echo '--- probe source ---'; cat /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/r2probe/probe.sh; echo '--- fake docker source ---'; cat /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/r2probe/fake_docker.sh
+extracted step: 42 lines, sha256 aae74aebeeb1f83d
+
+===== all_good      exit=0  => job PASSES
+  ok      cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex>
+  ok      cgr.dev/chainguard/minio:latest@sha256:<64hex>
+  ok      pgvector/pgvector:pg16@sha256:<64hex>
+    (expected) Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:<64hex> (ERROR: cgr.dev/chainguard/minio-client@sha256:<64hex>: not found)
+    (expected) Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:<64hex> (ERROR: cgr.dev/chainguard/minio@sha256:<64hex>: not found)
+    (expected) Pinned image pgvector/pgvector:pg16 no longer resolves at sha256:<64hex> (ERROR: pgvector/pgvector@sha256:<64hex>: not found)
+
+===== one_missing   exit=1  => job FAILS
+  ok      cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex>
+  ::error::Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:<64hex> (ERROR: cgr.dev/chainguard/minio@sha256:<64hex>: not found). Re-pin it: CONTRIBUTING.md "Pinned images".
+  ok      pgvector/pgvector:pg16@sha256:<64hex>
+    (expected) Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:<64hex> (ERROR: cgr.dev/chainguard/minio-client@sha256:<64hex>: not found)
+    (expected) Pinned image pgvector/pgvector:pg16 no longer resolves at sha256:<64hex> (ERROR: pgvector/pgvector@sha256:<64hex>: not found)
+
+===== broken_all    exit=1  => job FAILS
+  ::error::Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:<64hex> (ERROR: manifest verification failed for digest sha256:<64hex>). Re-pin it: CONTRIBUTING.md "Pinned images".
+  ::error::Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:<64hex> (ERROR: manifest verification failed for digest sha256:<64hex>). Re-pin it: CONTRIBUTING.md "Pinned images".
+  ::error::Pinned image pgvector/pgvector:pg16 no longer resolves at sha256:<64hex> (ERROR: manifest verification failed for digest sha256:<64hex>). Re-pin it: CONTRIBUTING.md "Pinned images".
+
+===== accepts_all   exit=1  => job FAILS
+  ok      cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex>
+  ok      cgr.dev/chainguard/minio:latest@sha256:<64hex>
+  ok      pgvector/pgvector:pg16@sha256:<64hex>
+  ::error::self-test: cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex> resolved, want not found
+
+===== wrong_digest  exit=1  => job FAILS
+  ::error::Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:<64hex> (registry returned digest 'sha256:<64hex>'). Re-pin it: CONTRIBUTING.md "Pinned images".
+  ::error::Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:<64hex> (registry returned digest 'sha256:<64hex>'). Re-pin it: CONTRIBUTING.md "Pinned images".
+  ::error::Pinned image pgvector/pgvector:pg16 no longer resolves at sha256:<64hex> (registry returned digest 'sha256:<64hex>'). Re-pin it: CONTRIBUTING.md "Pinned images".
+
+===== no_digest     exit=1  => job FAILS
+  ::error::Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:<64hex> (registry returned digest 'none'). Re-pin it: CONTRIBUTING.md "Pinned images".
+  ::error::Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:<64hex> (registry returned digest 'none'). Re-pin it: CONTRIBUTING.md "Pinned images".
+  ::error::Pinned image pgvector/pgvector:pg16 no longer resolves at sha256:<64hex> (registry returned digest 'none'). Re-pin it: CONTRIBUTING.md "Pinned images".
+
+===== zero_unauth   exit=1  => job FAILS
+  ok      cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex>
+  ok      cgr.dev/chainguard/minio:latest@sha256:<64hex>
+  ok      pgvector/pgvector:pg16@sha256:<64hex>
+  ::error::self-test: cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex> failed with an unexpected error, not 'not found': ERROR: cgr.dev/chainguard/minio-client@sha256:<64hex>: 401 Unauthorized
+
+===== no_buildx     exit=1  => job FAILS
+  docker: 'buildx' is not a docker command.
+
+--- probe source ---
+#!/usr/bin/env bash
+# QA probe (OPS-H9 r2): run the PR's real "Every pinned digest resolves" step from image-pins.yml (extracted verbatim
+# with PyYAML) under `bash -e` (GitHub's default run shell) against a fake `docker`, in the PR checkout (real compose pins).
+set -u
+here="$(cd "$(dirname "$0")" && pwd)"
+step="$(mktemp)"; bindir="$(mktemp -d)"
+python3 - "$step" <<'PY'
+import sys, yaml
+wf = yaml.safe_load(open(".github/workflows/image-pins.yml"))
+s = [s for s in wf["jobs"]["pins"]["steps"] if s.get("name", "").startswith("Every pinned digest resolves")]
+assert len(s) == 1, s
+open(sys.argv[1], "w").write(s[0]["run"])
+PY
+echo "extracted step: $(wc -l < "$step") lines, sha256 $(sha256sum < "$step" | cut -c1-16)"
+cp "$here/fake_docker.sh" "$bindir/docker"; chmod +x "$bindir/docker"
+for mode in all_good one_missing broken_all accepts_all wrong_digest no_digest zero_unauth no_buildx; do
+  out="$(FAKE_MODE=$mode PATH="$bindir:$PATH" bash -e "$step" 2>&1)"; rc=$?
+  printf '\n===== %-13s exit=%s  => job %s\n' "$mode" "$rc" "$([ $rc -eq 0 ] && echo PASSES || echo FAILS)"
+  printf '%s\n' "$out" | grep -E '::error::|^ok |expected|not a docker' | sed -E 's/[0-9a-f]{64}/<64hex>/g; s/^/  /'
+done
+--- fake docker source ---
+#!/usr/bin/env bash
+# QA fake `docker`: behaviour chosen by $FAKE_MODE. Only answers `buildx version` and `buildx imagetools inspect <ref>`.
+[ "$1 $2" = "buildx version" ] && { [ "$FAKE_MODE" = no_buildx ] && { echo "docker: 'buildx' is not a docker command." >&2; exit 1; }; echo "github.com/docker/buildx v0.0.0-fake"; exit 0; }
+[ "$1 $2 $3" = "buildx imagetools inspect" ] || { echo "fake docker: unsupported: $*" >&2; exit 2; }
+ref="$4"; dig="${ref#*@}"; zero="sha256:$(printf '0%.0s' {1..64})"
+ok()       { printf 'Name:      %s\nMediaType: application/vnd.oci.image.index.v1+json\nDigest:    %s\n' "$ref" "$1"; exit 0; }
+notfound() { echo "ERROR: $ref: not found" >&2; exit 1; }
+case "$FAKE_MODE" in
+  all_good)      [ "$dig" = "$zero" ] && notfound; ok "$dig" ;;
+  one_missing)   [ "$dig" = "$zero" ] && notfound; case "$ref" in cgr.dev/chainguard/minio@*) notfound;; esac; ok "$dig" ;;
+  broken_all)    echo "ERROR: manifest verification failed for digest $dig" >&2; exit 1 ;;
+  accepts_all)   ok "$dig" ;;                                   # tool says every digest exists, even the all-zero one
+  wrong_digest)  [ "$dig" = "$zero" ] && notfound; ok "sha256:$(printf 'a%.0s' {1..64})" ;;   # exit 0, other digest
+  no_digest)     [ "$dig" = "$zero" ] && notfound; echo "Name: $ref"; exit 0 ;;             # exit 0, no Digest: line
+  zero_unauth)   [ "$dig" = "$zero" ] && { echo "ERROR: $ref: 401 Unauthorized" >&2; exit 1; }; ok "$dig" ;;
+  no_buildx)     ok "$dig" ;;
+esac
+
+[exit code 0]

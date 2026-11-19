@@ -1,0 +1,21 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135888302417/logs | sed -E 's/^[0-9T:.-]+Z //' | sed -n '53p;467,477p;498p;500,501p;521p;529p;545p'
+##[command]/usr/bin/docker pull pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+Dry run of the comparison against MIN=0.8.0:
+  '0.5.1' -> fail (expected)
+  '0.7.4' -> fail (expected)
+  '0.7.99' -> fail (expected)
+  '' -> fail (expected)
+  '0.8.0' -> pass (expected)
+  '0.8.7' -> pass (expected)
+  '0.10.0' -> pass (expected)
+  '1.0.0' -> pass (expected)
+pg_extension vector extversion: '0.8.7'
+pgvector 0.8.7 >= 0.8.0: ok
+[36;1mpython -m pytest -v -rA tests/test_evals_data.py -k real_postgres | tee /tmp/real_postgres.txt[0m
+[36;1mif grep -Eq '[0-9]+ skipped' /tmp/real_postgres.txt || ! grep -Eq '[1-9][0-9]* passed' /tmp/real_postgres.txt; then[0m
+[36;1m  echo "::error::real_postgres tests did not all run and pass (skipped or none collected)"; exit 1[0m
+tests/test_evals_data.py::test_chunk_counts_sql_against_real_postgres PASSED [100%]
+====================== 1 passed, 121 deselected in 0.28s =======================
+    search_integration_test.go:87: pgvector 0.8.7; seeded 13000 embeddings in 27.92s
+
+[exit code 0]
