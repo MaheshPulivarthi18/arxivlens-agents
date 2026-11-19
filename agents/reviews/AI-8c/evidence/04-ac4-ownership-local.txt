@@ -1,0 +1,4 @@
+$ bash .github/scripts/ownership-check.sh origin/main agent/backend/AI-8c
+Ownership OK for role=backend (11 changed lines)
+
+[exit code 0]

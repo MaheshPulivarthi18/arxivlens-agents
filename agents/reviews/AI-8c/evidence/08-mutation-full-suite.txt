@@ -1,0 +1,81 @@
+$ python3 -I /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/h.X8Z8/bin/mutate_full.py /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/h.X8Z8/mod /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/h.X8Z8/synthesis_test.base.go
+RESULTS (go test -run . = FULL internal/query package, PR tests only; ./internal/query/; harness = PR-head internal/ + pgx/minio stubs, go1.24)
+- M0 control (no edit)
+    PR tests (11 calls)    SURVIVED
+- M1 quote on unsupported citation (drop `case !cite.Supported:`)
+    PR tests (11 calls)    KILLED TestCitationQuote,TestCitationStatusRule
+- M2 supported != status (force Supported=true after newCitation)
+    PR tests (11 calls)    KILLED TestCitationQuote,TestCitationStatusRule,TestSynthesisAnswersWithVerifiedClaims,TestSynthesisClaimsUnsupportedFallBackToQuotes,TestSynthesisDropsUnsupportedClaims
+- M3 invalid status on LLM path (status="ok")
+    PR tests (11 calls)    KILLED TestCitationQuote,TestCitationStatusRule,TestQuickAnswerSkipsSynthesis,TestSynthesisAnswersWithVerifiedClaims,TestSynthesisDropsUnsupportedClaims,TestSynthesisMarkersFollowPromptOrder
+- M4 non-verbatim quote (exact-match quote := claim text + " (paraphrased)")
+    PR tests (11 calls)    KILLED TestCitationQuote,TestCitationStatusRule
+- M5 refusal evidence marked supported (refusal(): Supported=true)
+    PR tests (11 calls)    KILLED TestAskRefusesAllUnsupported,TestAskRefusesNoInRangeMarker,TestAskRefusesVerificationUnavailable,TestFinalizeEvidenceKeepsBestComputedScore,TestRefusalEvidenceStatus
+- M6 quoted path: quote on unsupported citation (`exact[pi] && cite.Supported` -> `exact[pi]`)
+    PR tests (11 calls)    SURVIVED
+- M7 quoted path: non-verbatim quote (sentence + " (sic)")
+    PR tests (11 calls)    KILLED TestAskAnswersWithExtractedCitations,TestAskExtractiveAnswerVerifiedByQuote,TestAskRefusesVerificationUnavailable,TestAskRerankFallbackLogsResponseTraceID,TestCitationProvenance,TestCitationQuote,TestQuickAnswerSkipsSynthesis,TestSynthesisClaimsUnsupportedFallBackToQuotes,TestSynthesisFallsBackToExtractive,TestWithLLMNilKeepsExtractive
+- M8 LLM path: invalid status on unsupported citations ("rejected")
+    PR tests (11 calls)    KILLED TestCitationStatusRule,TestSynthesisAnswersWithVerifiedClaims
+- M9 quoted path: Supported=true on every citation
+    PR tests (11 calls)    KILLED TestAskKeepsAnswerWithOneSupportedCitation,TestAskRefusesAllUnsupported,TestAskRefusesVerificationUnavailable,TestCitationStatusRule,TestFinalizeEvidenceKeepsBestComputedScore,TestRefusalEvidenceStatus,TestValidateCitationsFailClosedWhenUnverifiable,TestValidateCitationsSupportThreshold
+
+DETAIL (invariant messages / FAIL lines)
+### M0 control (no edit) | PR tests (11 calls)
+ok  	arxivlens/internal/query	0.331s
+### M1 quote on unsupported citation (drop `case !cite.Supported:`) | PR tests (11 calls)
+--- FAIL: TestCitationStatusRule (0.00s)
+        rag_test.go:1132: citation 0 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":0.9,"supported":false,"paper_version":0,"quote":"The Results section shows","status":"unsupported"}
+--- FAIL: TestCitationQuote (0.00s)
+        rag_test.go:1241: citation 1 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00002.pdf","score":0.9,"supported":false,"paper_version":0,"quote":"THE PROPOSED METHOD IMPROVES ACCURACY","status":"unsupported"}
+        rag_test.go:1241: citation 1 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in so
+### M2 supported != status (force Supported=true after newCitation) | PR tests (11 calls)
+--- FAIL: TestCitationStatusRule (0.00s)
+        rag_test.go:1132: citation 0 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":0.49,"supported":true,"paper_version":0,"status":"unsupported"}
+        rag_test.go:1132: citation 0 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":0,"supported":true,"paper_version":0,"status":"unsupported"}
+        rag_test.go:1132: citation 0 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":0,"supported":true,"paper_version":0,"status":"unverified"}
+  
+### M3 invalid status on LLM path (status="ok") | PR tests (11 calls)
+--- FAIL: TestCitationStatusRule (0.00s)
+--- FAIL: TestCitationQuote (0.00s)
+--- FAIL: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+--- FAIL: TestSynthesisDropsUnsupportedClaims (0.00s)
+--- FAIL: TestQuickAnswerSkipsSynthesis (0.00s)
+--- FAIL: TestSynthesisMarkersFollowPromptOrder (0.00s)
+FAIL
+FAIL	arxivlens/internal/query	0.332s
+FAIL
+### M4 non-verbatim quote (exact-match quote := claim text + " (paraphrased)") | PR tests (11 calls)
+--- FAIL: TestCitationStatusRule (0.00s)
+        rag_test.go:1132: citation 1 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00002.pdf","score":1,"supported":true,"paper_version":0,"quote":"The Results section shows that the proposed method improves accuracy on every benchmark. (paraphrased)","status":"supported"}
+        rag_test.go:1132: citation 1 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00002.pdf","score":1,"supported":true,"paper_version":0,"quote":"The Results section shows that the proposed method improves accuracy on every benchmark. (paraphrased)","status":"supported"}
+        rag_test.go:1132: citation 1 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method i
+### M5 refusal evidence marked supported (refusal(): Supported=true) | PR tests (11 calls)
+--- FAIL: TestAskRefusesAllUnsupported (0.00s)
+    rag_test.go:658: citation 0 breaks the AC1 invariants (answer_kind ""): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":0.3,"supported":true,"paper_version":0,"status":"unsupported"}
+    rag_test.go:658: citation 1 breaks the AC1 invariants (answer_kind ""): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00002.pdf","score":0.3,"supported":true,"paper_version":0,"status":"unsupported"}
+    rag_test.go:658: citation 2 breaks the AC1 invariants (answer_kind ""): {"marker":3,"arxiv_id":"2401.00003","title":"Paper","chunk_id":3,"section":"Discussion","content":"Paper — Discussion\n\nThe Discussion section shows that the proposed method improves accuracy on every benchmark. A second sentence in Discussion describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00003.pdf","score":0.3,"supported":true,"paper_version":0,"status":"unsupported"}
+--- FAIL: TestFinali
+### M6 quoted path: quote on unsupported citation (`exact[pi] && cite.Supported` -> `exact[pi]`) | PR tests (11 calls)
+ok  	arxivlens/internal/query	0.326s
+### M7 quoted path: non-verbatim quote (sentence + " (sic)") | PR tests (11 calls)
+--- FAIL: TestAskAnswersWithExtractedCitations (0.00s)
+    rag_test.go:211: citation 0 breaks the AC1 invariants (answer_kind "quoted"): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":1,"supported":true,"paper_version":0,"quote":"The Method section shows that the proposed method improves accuracy on every benchmark. (sic)","status":"supported"}
+    rag_test.go:211: citation 1 breaks the AC1 invariants (answer_kind "quoted"): {"marker":2,"arxiv_id":"2401.00003","title":"Paper","chunk_id":3,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00003.pdf","score":1,"supported":true,"paper_version":0,"quote":"The Results section shows that the proposed method improves accuracy on every benchmark. (sic)","status":"supported"}
+    rag_test.go:222: citation 0 breaks the AC1 invariants (answer_kind "quoted"): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A s
+### M8 LLM path: invalid status on unsupported citations ("rejected") | PR tests (11 calls)
+--- FAIL: TestCitationStatusRule (0.00s)
+        rag_test.go:1132: citation 0 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":0.49,"supported":false,"paper_version":0,"status":"rejected"}
+        rag_test.go:1132: citation 0 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":0,"supported":false,"paper_version":0,"status":"rejected"}
+--- FAIL: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+    synthesis_test.go:43: citation 1 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00002.pdf","score":0.2,"
+### M9 quoted path: Supported=true on every citation | PR tests (11 calls)
+--- FAIL: TestValidateCitationsSupportThreshold (0.00s)
+--- FAIL: TestValidateCitationsFailClosedWhenUnverifiable (0.00s)
+--- FAIL: TestAskRefusesAllUnsupported (0.00s)
+    rag_test.go:658: citation 0 breaks the AC1 invariants (answer_kind ""): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":0.3,"supported":true,"paper_version":0,"status":"unsupported"}
+    rag_test.go:658: citation 1 breaks the AC1 invariants (answer_kind ""): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00002.pdf","score":0.3,"supported":true,"paper_version":0,"status":"unsupported"}
+    rag_test.go:658: citation 2 breaks the AC1 invariants (answer_kind ""): {"marker":3,"arxiv_id":"2401.00003","title":"Paper","chunk_id":3,"section":"Discussion","content":"Paper — Discussion\n\nThe Discussion section shows that the proposed method improves accuracy on every benchmark. A second sentence in Discussion describes the training setup in some detail.","pdf_url":"https:/
+
+[exit code 0]

@@ -1,0 +1,80 @@
+$ gh api .../actions/jobs/135653652705/logs | grep (excerpt; full log 10-ci-go-job-full.txt)
+HEAD is now at d1f0d81 Merge dd5dac58fc4f47753e899458e15ad150f71babdb into 8b55af22dfff6e97f6541d1fc61f4717238ed7f0
+##[group]Run make lint-go
+go vet ./...
+##[group]Run make test-go
+go test ./...
+?   	arxivlens/cmd/arxivlens	[no test files]
+ok  	arxivlens/internal/arxiv	1.560s
+ok  	arxivlens/internal/config	0.004s
+ok  	arxivlens/internal/crawler	0.066s
+ok  	arxivlens/internal/db	0.007s
+ok  	arxivlens/internal/dlq	0.006s
+ok  	arxivlens/internal/downloader	0.108s
+ok  	arxivlens/internal/kafka	0.033s
+ok  	arxivlens/internal/llm	0.773s
+ok  	arxivlens/internal/llm/llmtest	0.113s
+ok  	arxivlens/internal/query	0.335s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+##[group]Run go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go
+[36;1mgo test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go[0m
+ok  	arxivlens/internal/kafka	1.050s	coverage: 62.9% of statements
+arxivlens/internal/kafka/consumer.go:42:	NewConsumer	28.6%
+arxivlens/internal/kafka/consumer.go:72:	Close		0.0%
+arxivlens/internal/kafka/consumer.go:79:	retryBackoff	100.0%
+arxivlens/internal/kafka/consumer.go:84:	dlqRetryBackoff	100.0%
+arxivlens/internal/kafka/consumer.go:89:	ctxWait		100.0%
+arxivlens/internal/kafka/consumer.go:101:	Start		100.0%
+##[group]Run go test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out
+[36;1mgo test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out[0m
+ok  	arxivlens/internal/llm	1.928s	coverage: 96.6% of statements
+ok  	arxivlens/internal/llm/llmtest	1.119s	coverage: 100.0% of statements
+arxivlens/internal/llm/config.go:37:		NewSecret	100.0%
+arxivlens/internal/llm/config.go:44:		reveal		100.0%
+arxivlens/internal/llm/config.go:51:		String		100.0%
+arxivlens/internal/llm/config.go:58:		GoString	100.0%
+arxivlens/internal/llm/config.go:59:		MarshalJSON	100.0%
+arxivlens/internal/llm/config.go:70:		String		100.0%
+arxivlens/internal/llm/config.go:75:		GoString	100.0%
+arxivlens/internal/llm/config.go:82:		ConfigFromEnv	100.0%
+arxivlens/internal/llm/config.go:117:		FromEnv		85.7%
+arxivlens/internal/llm/config.go:130:		normalize	100.0%
+arxivlens/internal/llm/llm.go:41:		String		100.0%
+arxivlens/internal/llm/llm.go:46:		GoString	100.0%
+arxivlens/internal/llm/llm.go:58:		String		100.0%
+arxivlens/internal/llm/llm.go:64:		GoString	100.0%
+arxivlens/internal/llm/llm.go:77:		String		100.0%
+arxivlens/internal/llm/llm.go:83:		GoString	100.0%
+arxivlens/internal/llm/llm.go:107:		Error		100.0%
+arxivlens/internal/llm/llm.go:119:		GoString	100.0%
+arxivlens/internal/llm/llm.go:122:		Unwrap		100.0%
+arxivlens/internal/llm/llm.go:133:		newError	100.0%
+arxivlens/internal/llm/llm.go:140:		attemptsText	100.0%
+arxivlens/internal/llm/llmtest/fake.go:26:	Reply		100.0%
+arxivlens/internal/llm/llmtest/fake.go:29:	Fail		100.0%
+arxivlens/internal/llm/llmtest/fake.go:32:	Hang		100.0%
+arxivlens/internal/llm/llmtest/fake.go:44:	New		100.0%
+arxivlens/internal/llm/llmtest/fake.go:46:	Name		100.0%
+arxivlens/internal/llm/llmtest/fake.go:49:	Complete	100.0%
+arxivlens/internal/llm/llmtest/fake.go:74:	Requests	100.0%
+arxivlens/internal/llm/llmtest/fake.go:84:	copyRequest	100.0%
+arxivlens/internal/llm/openai.go:43:		New		100.0%
+arxivlens/internal/llm/openai.go:62:		Name		100.0%
+arxivlens/internal/llm/openai.go:65:		String		100.0%
+arxivlens/internal/llm/openai.go:68:		GoString	100.0%
+arxivlens/internal/llm/openai.go:103:		Complete	100.0%
+arxivlens/internal/llm/openai.go:142:		encode		100.0%
+arxivlens/internal/llm/openai.go:174:		attempt		91.1%
+arxivlens/internal/llm/openai.go:243:		transportDetail	75.0%
+arxivlens/internal/llm/openai.go:260:		ctxError	100.0%
+arxivlens/internal/llm/openai.go:267:		retryable	100.0%
+arxivlens/internal/llm/openai.go:276:		parseRetryAfter	100.0%
+arxivlens/internal/llm/config.go 98.2%
+arxivlens/internal/llm/llm.go 100.0%
+arxivlens/internal/llm/llmtest/fake.go 100.0%
+arxivlens/internal/llm/openai.go 95.2%
+go build -o bin/arxivlens ./cmd/arxivlens
+--- FAIL lines in full log: 0
+

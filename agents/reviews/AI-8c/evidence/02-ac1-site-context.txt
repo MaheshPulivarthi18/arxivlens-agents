@@ -1,0 +1,66 @@
+$ bash -c grep -nE -A4 "\.(Ask|AskWith)\(" internal/query/synthesis_test.go | grep -vE "^[0-9]+-\s*$"
+39:	resp, err := r.Ask(context.Background(), "secret question?", nil, 3)
+40-	if err != nil {
+41-		t.Fatal(err)
+42-	}
+43-	checkCitationInvariants(t, resp)
+--
+83:	resp, _ := r.Ask(context.Background(), "q", nil, 3)
+84-	checkCitationInvariants(t, resp)
+85-	if resp.Answer != "Supported claim [1]." || !reflect.DeepEqual(markers(resp.Citations), []int{1}) {
+86-		t.Errorf("answer=%q markers=%v, want only the supported claim", resp.Answer, markers(resp.Citations))
+87-	}
+--
+101:		resp, _ := r.Ask(context.Background(), "secret question", nil, 3)
+102-		checkCitationInvariants(t, resp)
+103-		if resp.RefusalReason != reasonInsufficientEvidence || resp.Answer != refusalInsufficient || len(v.calls) != 0 {
+104-			t.Fatalf("resp = %+v, verify calls %d", resp, len(v.calls))
+105-		}
+--
+132:			resp, err := r.Ask(context.Background(), "secret question", nil, 3)
+133-			if err != nil || resp.Answer != extractive || resp.RefusalReason != "" {
+134-				t.Fatalf("resp=%+v err=%v, want the extractive answer", resp, err)
+135-			}
+136-			checkCitationInvariants(t, resp)
+--
+163:			resp, _ := r.Ask(context.Background(), "secret question", nil, 3)
+164-			checkCitationInvariants(t, resp)
+165-			if resp.Answer != extractive || resp.RefusalReason != "" || resp.AnswerKind != AnswerQuoted {
+166-				t.Fatalf("resp = %+v, want the quoted answer", resp)
+167-			}
+--
+178:		resp, _ := r.Ask(context.Background(), "q", nil, 3)
+179-		checkCitationInvariants(t, resp)
+180-		if resp.Answer != extractive || resp.AnswerKind != AnswerQuoted {
+181-			t.Fatalf("resp = %+v", resp)
+182-		}
+--
+195:	resp, _ := r.AskWith(context.Background(), "q", nil, 3, AskOptions{Quick: true})
+196-	checkCitationInvariants(t, resp)
+197-	if len(f.Requests()) != 0 || resp.AnswerKind != AnswerQuoted || !resp.SynthesisAvailable {
+198-		t.Fatalf("resp = %+v, llm requests %d", resp, len(f.Requests()))
+199-	}
+200:	full, _ := r.AskWith(context.Background(), "q", nil, 3, AskOptions{})
+201-	checkCitationInvariants(t, full)
+202-	if full.AnswerKind != AnswerSynthesized || full.SynthesisAvailable {
+203-		t.Errorf("full = %+v", full)
+204-	}
+205:	plain, _ := newRAG(batchHits(), simVerifier(constSim(1))).AskWith(context.Background(), "q", nil, 3, AskOptions{Quick: true})
+206-	checkCitationInvariants(t, plain)
+207-	if plain.SynthesisAvailable || plain.AnswerKind != AnswerQuoted {
+208-		t.Errorf("no-LLM quick = %+v", plain)
+209-	}
+--
+224:	resp, _ := r.Ask(context.Background(), "q", nil, 3)
+225-	checkCitationInvariants(t, resp)
+226-	if len(resp.Citations) != 1 || resp.Citations[0].ChunkID != 3 || resp.Citations[0].Marker != 2 || !resp.Citations[0].Supported {
+227-		t.Errorf("citations = %+v, want marker 2 -> chunk 3 (a2), supported", resp.Citations)
+228-	}
+--
+247:	resp, _ := r.Ask(context.Background(), "q", nil, 3)
+248-	checkCitationInvariants(t, resp)
+249-	if resp.RefusalReason != "" || !strings.Contains(resp.Answer, "improves accuracy") {
+250-		t.Errorf("resp = %+v", resp)
+251-	}
+
+[exit code 0]

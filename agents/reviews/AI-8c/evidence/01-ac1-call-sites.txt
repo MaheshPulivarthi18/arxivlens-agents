@@ -1,0 +1,28 @@
+$ bash -c echo "grep -c checkCitationInvariants: $(grep -c checkCitationInvariants internal/query/synthesis_test.go)"; echo "Ask/AskWith sites returning AskResponse: $(grep -cE "\.(Ask|AskWith)\(" internal/query/synthesis_test.go)"; echo; awk "/^func Test/{fn=\$2} /\.(Ask|AskWith)\(/{site=NR; sfn=fn; print \"SITE  \" NR \"  \" fn} /checkCitationInvariants/{print \"CHECK \" NR \"  \" fn \"  (+\" NR-site \" lines after site at \" site \")\" ; if (fn!=sfn) print \"  !! different func\"}" internal/query/synthesis_test.go
+grep -c checkCitationInvariants: 11
+Ask/AskWith sites returning AskResponse: 11
+
+SITE  39  TestSynthesisAnswersWithVerifiedClaims(t
+CHECK 43  TestSynthesisAnswersWithVerifiedClaims(t  (+4 lines after site at 39)
+SITE  83  TestSynthesisDropsUnsupportedClaims(t
+CHECK 84  TestSynthesisDropsUnsupportedClaims(t  (+1 lines after site at 83)
+SITE  101  TestSynthesisRefusals(t
+CHECK 102  TestSynthesisRefusals(t  (+1 lines after site at 101)
+SITE  132  TestSynthesisFallsBackToExtractive(t
+CHECK 136  TestSynthesisFallsBackToExtractive(t  (+4 lines after site at 132)
+SITE  163  TestSynthesisClaimsUnsupportedFallBackToQuotes(t
+CHECK 164  TestSynthesisClaimsUnsupportedFallBackToQuotes(t  (+1 lines after site at 163)
+SITE  178  TestSynthesisClaimsUnsupportedFallBackToQuotes(t
+CHECK 179  TestSynthesisClaimsUnsupportedFallBackToQuotes(t  (+1 lines after site at 178)
+SITE  195  TestQuickAnswerSkipsSynthesis(t
+CHECK 196  TestQuickAnswerSkipsSynthesis(t  (+1 lines after site at 195)
+SITE  200  TestQuickAnswerSkipsSynthesis(t
+CHECK 201  TestQuickAnswerSkipsSynthesis(t  (+1 lines after site at 200)
+SITE  205  TestQuickAnswerSkipsSynthesis(t
+CHECK 206  TestQuickAnswerSkipsSynthesis(t  (+1 lines after site at 205)
+SITE  224  TestSynthesisMarkersFollowPromptOrder(t
+CHECK 225  TestSynthesisMarkersFollowPromptOrder(t  (+1 lines after site at 224)
+SITE  247  TestWithLLMNilKeepsExtractive(t
+CHECK 248  TestWithLLMNilKeepsExtractive(t  (+1 lines after site at 247)
+
+[exit code 0]

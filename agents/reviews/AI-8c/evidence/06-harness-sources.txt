@@ -1,0 +1,168 @@
+$ bash -c cd /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/h.X8Z8 && for f in mod/go.mod $(find stubs bin -type f | sort); do echo "===== $f"; cat $f; done
+===== mod/go.mod
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/jackc/pgx/v5 v5.6.0
+	github.com/minio/minio-go/v7 v7.0.70
+)
+
+replace github.com/jackc/pgx/v5 => ../stubs/pgx
+replace github.com/minio/minio-go/v7 => ../stubs/minio
+===== bin/mutate.py
+#!/usr/bin/env python3
+"""QA AI-8c mutation probe. For each single-edit mutant of internal/query/rag.go (LLM synthesis path), run the
+8 Scope tests with synthesis_test.go at (a) origin/main (no invariant calls) and (b) the PR head (11 calls).
+A mutant that does not compile is INVALID, never KILLED. Usage: mutate.py <harness-module-dir> <base synthesis_test.go>"""
+import os, shutil, subprocess, sys
+mod, base_test = sys.argv[1], sys.argv[2]
+rag = os.path.join(mod, "internal/query/rag.go")
+st = os.path.join(mod, "internal/query/synthesis_test.go")
+orig_rag, head_test = open(rag).read(), open(st).read()
+base = open(base_test).read()
+RUN = "^(TestSynthesisAnswersWithVerifiedClaims|TestSynthesisDropsUnsupportedClaims|TestSynthesisRefusals|TestSynthesisFallsBackToExtractive|TestSynthesisClaimsUnsupportedFallBackToQuotes|TestQuickAnswerSkipsSynthesis|TestSynthesisMarkersFollowPromptOrder|TestWithLLMNilKeepsExtractive)$"
+MUTANTS = [
+  ("M0 control (no edit)", None, None),
+  ("M1 quote on unsupported citation (drop `case !cite.Supported:`)", "\t\tcase !cite.Supported:\n", "\t\tcase false:\n"),
+  ("M2 supported != status (force Supported=true after newCitation)", "\t\tcite := newCitation(rf.marker, passages[h].Hit, score, status)\n", "\t\tcite := newCitation(rf.marker, passages[h].Hit, score, status)\n\t\tcite.Supported = true\n"),
+  ("M3 invalid status on LLM path (status=\"ok\")", "\t\tstatus := citationStatus(score, ok)\n", "\t\tstatus := citationStatus(score, ok)\n\t\tif status == StatusSupported {\n\t\t\tstatus = \"ok\"\n\t\t}\n"),
+  ("M4 non-verbatim quote (exact-match quote := claim text + \" (paraphrased)\")", "\t\t\tcite.Quote = normQuote(c.Text)\n", "\t\t\tcite.Quote = normQuote(c.Text) + \" (paraphrased)\"\n"),
+  ("M5 refusal evidence marked supported (refusal(): Supported=true)", "\t\tevidence[i] = newCitation(i+1, h, check.hitScore[i], status) // 0 when no checked citation scored hit i\n", "\t\tevidence[i] = newCitation(i+1, h, check.hitScore[i], status) // 0 when no checked citation scored hit i\n\t\tevidence[i].Supported = true\n"),
+  ("M6 quoted path: quote on unsupported citation (`exact[pi] && cite.Supported` -> `exact[pi]`)", "\t\tif exact[pi] && cite.Supported {\n", "\t\tif exact[pi] {\n"),
+  ("M7 quoted path: non-verbatim quote (sentence + \" (sic)\")", "\t\t\tcite.Quote = normQuote(sentTexts[c.sentIdx])\n", "\t\t\tcite.Quote = normQuote(sentTexts[c.sentIdx]) + \" (sic)\"\n"),
+  ("M8 LLM path: invalid status on unsupported citations (\"rejected\")", "\t\tstatus := citationStatus(score, ok)\n", "\t\tstatus := citationStatus(score, ok)\n\t\tif status == StatusUnsupported {\n\t\t\tstatus = \"rejected\"\n\t\t}\n"),
+  ("M9 quoted path: Supported=true on every citation", "\t\tvalidatedCitations = append(validatedCitations, cite)\n", "\t\tcite.Supported = true\n\t\tvalidatedCitations = append(validatedCitations, cite)\n"),
+]
+def run():
+    p = subprocess.run(["go","test","-count=1","-run",RUN,"./internal/query/"], cwd=mod, capture_output=True, text=True,
+        env={**os.environ,"GOTOOLCHAIN":"local","GOFLAGS":"-mod=mod","GOPROXY":"off"})
+    out = p.stdout + p.stderr
+    if "[build failed]" in out or "[setup failed]" in out: return "INVALID", out
+    fails = sorted({l.split()[2] for l in out.splitlines() if l.strip().startswith("--- FAIL:") and l.startswith("--- FAIL")})
+    return ("KILLED " + ",".join(fails)) if p.returncode else "SURVIVED", out
+rows, logs = [], []
+try:
+    for name, old, new in MUTANTS:
+        if old is not None:
+            assert orig_rag.count(old) == 1, ("anchor not unique/absent", name)
+            open(rag,"w").write(orig_rag.replace(old,new))
+        res = {}
+        for label, body in (("base tests (0 calls)", base), ("PR tests (11 calls)", head_test)):
+            open(st,"w").write(body); res[label], out = run()
+            logs.append(f"### {name} | {label}\n" + "\n".join(l for l in out.splitlines() if "breaks the AC1" in l or l.startswith(("--- FAIL","ok","FAIL")))[:1500])
+        rows.append((name, res))
+        open(rag,"w").write(orig_rag)
+finally:
+    open(rag,"w").write(orig_rag); open(st,"w").write(head_test)
+print("RESULTS (go test -run <8 Scope tests> ./internal/query/; harness = PR-head internal/ + pgx/minio stubs, go1.24)")
+for name, res in rows:
+    print(f"- {name}")
+    for k, v in res.items(): print(f"    {k:22s} {v}")
+print("\nDETAIL (invariant messages / FAIL lines)")
+print("\n".join(logs))
+===== stubs/minio/go.mod
+module github.com/minio/minio-go/v7
+
+go 1.24
+===== stubs/minio/minio.go
+// Stub of the minio API surface used by arxivlens (QA harness).
+package minio
+
+import (
+	"context"
+	"io"
+)
+
+type PutObjectOptions struct{ ContentType string }
+type UploadInfo struct{}
+type Client struct{}
+
+func (c *Client) PutObject(context.Context, string, string, io.Reader, int64, PutObjectOptions) (UploadInfo, error) {
+	return UploadInfo{}, nil
+}
+===== stubs/pgx/go.mod
+module github.com/jackc/pgx/v5
+
+go 1.24
+===== stubs/pgx/pgx.go
+// Stub of the pgx API surface used by arxivlens (QA harness, no real DB).
+package pgx
+
+import (
+	"context"
+	"errors"
+)
+
+var ErrNoRows = errors.New("no rows in result set")
+
+type TxAccessMode string
+
+const ReadOnly TxAccessMode = "read only"
+
+type QueryExecMode int
+
+const QueryExecModeSimpleProtocol QueryExecMode = 4
+
+type TxOptions struct{ AccessMode TxAccessMode }
+
+type CommandTag struct{ n int64 }
+
+func (c CommandTag) RowsAffected() int64 { return c.n }
+
+type Row interface{ Scan(dest ...any) error }
+
+type Rows interface {
+	Close()
+	Next() bool
+	Scan(dest ...any) error
+	Err() error
+}
+
+type Tx interface {
+	Exec(ctx context.Context, sql string, args ...any) (CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) Row
+	Rollback(ctx context.Context) error
+	Commit(ctx context.Context) error
+}
+===== stubs/pgx/pgxpool/pgxpool.go
+// Stub of pgxpool (QA harness, no real DB).
+package pgxpool
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+)
+
+var errStub = errors.New("pgxpool stub: no database")
+
+type Config struct {
+	MaxConns, MinConns int32
+	MaxConnLifetime    time.Duration
+}
+
+func ParseConfig(string) (*Config, error)                        { return &Config{}, nil }
+func NewWithConfig(context.Context, *Config) (*Pool, error)     { return nil, errStub }
+
+type Pool struct{}
+type Conn struct{}
+
+func (p *Pool) Ping(context.Context) error { return errStub }
+func (p *Pool) Close()                     {}
+func (p *Pool) Exec(context.Context, string, ...any) (pgx.CommandTag, error) {
+	return pgx.CommandTag{}, errStub
+}
+func (p *Pool) Query(context.Context, string, ...any) (pgx.Rows, error) { return nil, errStub }
+func (p *Pool) QueryRow(context.Context, string, ...any) pgx.Row        { return errRow{} }
+func (p *Pool) BeginTx(context.Context, pgx.TxOptions) (pgx.Tx, error)  { return nil, errStub }
+
+type errRow struct{}
+
+func (errRow) Scan(...any) error { return errStub }
+
+[exit code 0]

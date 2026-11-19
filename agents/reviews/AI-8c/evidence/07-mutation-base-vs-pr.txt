@@ -1,0 +1,105 @@
+$ python3 -I /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/h.X8Z8/bin/mutate.py /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/h.X8Z8/mod /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/h.X8Z8/synthesis_test.base.go
+RESULTS (go test -run <8 Scope tests> ./internal/query/; harness = PR-head internal/ + pgx/minio stubs, go1.24)
+- M0 control (no edit)
+    base tests (0 calls)   SURVIVED
+    PR tests (11 calls)    SURVIVED
+- M1 quote on unsupported citation (drop `case !cite.Supported:`)
+    base tests (0 calls)   SURVIVED
+    PR tests (11 calls)    SURVIVED
+- M2 supported != status (force Supported=true after newCitation)
+    base tests (0 calls)   KILLED TestSynthesisAnswersWithVerifiedClaims,TestSynthesisClaimsUnsupportedFallBackToQuotes,TestSynthesisDropsUnsupportedClaims
+    PR tests (11 calls)    KILLED TestSynthesisAnswersWithVerifiedClaims,TestSynthesisClaimsUnsupportedFallBackToQuotes,TestSynthesisDropsUnsupportedClaims
+- M3 invalid status on LLM path (status="ok")
+    base tests (0 calls)   KILLED TestQuickAnswerSkipsSynthesis,TestSynthesisAnswersWithVerifiedClaims,TestSynthesisDropsUnsupportedClaims,TestSynthesisMarkersFollowPromptOrder
+    PR tests (11 calls)    KILLED TestQuickAnswerSkipsSynthesis,TestSynthesisAnswersWithVerifiedClaims,TestSynthesisDropsUnsupportedClaims,TestSynthesisMarkersFollowPromptOrder
+- M4 non-verbatim quote (exact-match quote := claim text + " (paraphrased)")
+    base tests (0 calls)   SURVIVED
+    PR tests (11 calls)    SURVIVED
+- M5 refusal evidence marked supported (refusal(): Supported=true)
+    base tests (0 calls)   SURVIVED
+    PR tests (11 calls)    SURVIVED
+- M6 quoted path: quote on unsupported citation (`exact[pi] && cite.Supported` -> `exact[pi]`)
+    base tests (0 calls)   SURVIVED
+    PR tests (11 calls)    SURVIVED
+- M7 quoted path: non-verbatim quote (sentence + " (sic)")
+    base tests (0 calls)   SURVIVED
+    PR tests (11 calls)    KILLED TestQuickAnswerSkipsSynthesis,TestSynthesisClaimsUnsupportedFallBackToQuotes,TestSynthesisFallsBackToExtractive,TestWithLLMNilKeepsExtractive
+- M8 LLM path: invalid status on unsupported citations ("rejected")
+    base tests (0 calls)   SURVIVED
+    PR tests (11 calls)    KILLED TestSynthesisAnswersWithVerifiedClaims
+- M9 quoted path: Supported=true on every citation
+    base tests (0 calls)   SURVIVED
+    PR tests (11 calls)    SURVIVED
+
+DETAIL (invariant messages / FAIL lines)
+### M0 control (no edit) | base tests (0 calls)
+ok  	arxivlens/internal/query	0.016s
+### M0 control (no edit) | PR tests (11 calls)
+ok  	arxivlens/internal/query	0.016s
+### M1 quote on unsupported citation (drop `case !cite.Supported:`) | base tests (0 calls)
+ok  	arxivlens/internal/query	0.009s
+### M1 quote on unsupported citation (drop `case !cite.Supported:`) | PR tests (11 calls)
+ok  	arxivlens/internal/query	0.007s
+### M2 supported != status (force Supported=true after newCitation) | base tests (0 calls)
+--- FAIL: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+--- FAIL: TestSynthesisDropsUnsupportedClaims (0.00s)
+--- FAIL: TestSynthesisClaimsUnsupportedFallBackToQuotes (0.00s)
+FAIL
+FAIL	arxivlens/internal/query	0.008s
+FAIL
+### M2 supported != status (force Supported=true after newCitation) | PR tests (11 calls)
+--- FAIL: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+    synthesis_test.go:43: citation 1 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00002.pdf","score":0.2,"supported":true,"paper_version":0,"status":"unsupported"}
+--- FAIL: TestSynthesisDropsUnsupportedClaims (0.00s)
+    synthesis_test.go:84: citation 1 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00002.pdf","score":0.1,"supported":true,"paper_version":0,"status":"unsupported"}
+--- FAIL: TestSynthesisClaimsUnsupportedFallBackToQuotes (0.00s)
+        synthesis_test.go:164: citation 0 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the tr
+### M3 invalid status on LLM path (status="ok") | base tests (0 calls)
+--- FAIL: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+--- FAIL: TestSynthesisDropsUnsupportedClaims (0.00s)
+--- FAIL: TestQuickAnswerSkipsSynthesis (0.00s)
+--- FAIL: TestSynthesisMarkersFollowPromptOrder (0.00s)
+FAIL
+FAIL	arxivlens/internal/query	0.006s
+FAIL
+### M3 invalid status on LLM path (status="ok") | PR tests (11 calls)
+--- FAIL: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+--- FAIL: TestSynthesisDropsUnsupportedClaims (0.00s)
+--- FAIL: TestQuickAnswerSkipsSynthesis (0.00s)
+--- FAIL: TestSynthesisMarkersFollowPromptOrder (0.00s)
+FAIL
+FAIL	arxivlens/internal/query	0.015s
+FAIL
+### M4 non-verbatim quote (exact-match quote := claim text + " (paraphrased)") | base tests (0 calls)
+ok  	arxivlens/internal/query	0.006s
+### M4 non-verbatim quote (exact-match quote := claim text + " (paraphrased)") | PR tests (11 calls)
+ok  	arxivlens/internal/query	0.008s
+### M5 refusal evidence marked supported (refusal(): Supported=true) | base tests (0 calls)
+ok  	arxivlens/internal/query	0.012s
+### M5 refusal evidence marked supported (refusal(): Supported=true) | PR tests (11 calls)
+ok  	arxivlens/internal/query	0.008s
+### M6 quoted path: quote on unsupported citation (`exact[pi] && cite.Supported` -> `exact[pi]`) | base tests (0 calls)
+ok  	arxivlens/internal/query	0.008s
+### M6 quoted path: quote on unsupported citation (`exact[pi] && cite.Supported` -> `exact[pi]`) | PR tests (11 calls)
+ok  	arxivlens/internal/query	0.011s
+### M7 quoted path: non-verbatim quote (sentence + " (sic)") | base tests (0 calls)
+ok  	arxivlens/internal/query	0.011s
+### M7 quoted path: non-verbatim quote (sentence + " (sic)") | PR tests (11 calls)
+--- FAIL: TestSynthesisFallsBackToExtractive (0.00s)
+        synthesis_test.go:136: citation 0 breaks the AC1 invariants (answer_kind "quoted"): {"marker":1,"arxiv_id":"2401.00001","title":"Paper","chunk_id":1,"section":"Method","content":"Paper — Method\n\nThe Method section shows that the proposed method improves accuracy on every benchmark. A second sentence in Method describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00001.pdf","score":1,"supported":true,"paper_version":0,"quote":"The Method section shows that the proposed method improves accuracy on every benchmark. (sic)","status":"supported"}
+        synthesis_test.go:136: citation 1 breaks the AC1 invariants (answer_kind "quoted"): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00002.pdf","score":1,"supported":true,"paper_version":0,"quote":"The Results section shows that the proposed method improves accuracy on every benchmark. (sic)","status":"supported"}
+        synthesis_test.go:136: citation 2 breaks the AC1 invariants (answer_kind "quoted"): {"marker":3,"arxiv_id":"2401.00003","title":"Paper","chunk_id":3,"section":"Discussion","content":"Paper — Discussion\n\nThe Discussion section shows that the proposed method i
+### M8 LLM path: invalid status on unsupported citations ("rejected") | base tests (0 calls)
+ok  	arxivlens/internal/query	0.006s
+### M8 LLM path: invalid status on unsupported citations ("rejected") | PR tests (11 calls)
+--- FAIL: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+    synthesis_test.go:43: citation 1 breaks the AC1 invariants (answer_kind "synthesized"): {"marker":2,"arxiv_id":"2401.00002","title":"Paper","chunk_id":2,"section":"Results","content":"Paper — Results\n\nThe Results section shows that the proposed method improves accuracy on every benchmark. A second sentence in Results describes the training setup in some detail.","pdf_url":"https://arxiv.org/pdf/2401.00002.pdf","score":0.2,"supported":false,"paper_version":0,"status":"rejected"}
+FAIL
+FAIL	arxivlens/internal/query	0.009s
+FAIL
+### M9 quoted path: Supported=true on every citation | base tests (0 calls)
+ok  	arxivlens/internal/query	0.007s
+### M9 quoted path: Supported=true on every citation | PR tests (11 calls)
+ok  	arxivlens/internal/query	0.007s
+
+[exit code 0]

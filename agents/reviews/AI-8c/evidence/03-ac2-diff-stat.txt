@@ -1,0 +1,15 @@
+$ bash -c echo "merge-base: $(git merge-base origin/main HEAD)  origin/main: $(git rev-parse origin/main)"; git diff --stat origin/main...HEAD; echo; echo "removed lines (excluding --- header): $(git diff origin/main...HEAD | grep -cE "^-[^-]" )"; echo "added lines: $(git diff origin/main...HEAD | grep -cE "^\+[^+]")"; echo "distinct added content:"; git diff origin/main...HEAD | grep -E "^\+[^+]" | sort | uniq -c
+merge-base: 8b55af22dfff6e97f6541d1fc61f4717238ed7f0  origin/main: 8b55af22dfff6e97f6541d1fc61f4717238ed7f0
+ internal/query/synthesis_test.go | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+removed lines (excluding --- header): 0
+added lines: 11
+distinct added content:
+      2 +			checkCitationInvariants(t, resp)
+      2 +		checkCitationInvariants(t, resp)
+      1 +	checkCitationInvariants(t, full)
+      1 +	checkCitationInvariants(t, plain)
+      5 +	checkCitationInvariants(t, resp)
+
+[exit code 0]

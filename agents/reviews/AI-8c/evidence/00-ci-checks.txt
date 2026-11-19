@@ -1,0 +1,8 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/dd5dac5.../check-runs
+Full stack (compose + make test-full) | completed | success | job 135653653435 | head dd5dac58fc4f47753e899458e15ad150f71babdb
+DB (migrate twice, HNSW plan + recall) | completed | success | job 135653652857 | head dd5dac58fc4f47753e899458e15ad150f71babdb
+Frontend (lint, test, build) | completed | success | job 135653652734 | head dd5dac58fc4f47753e899458e15ad150f71babdb
+Python M0 unit tests | completed | success | job 135653652728 | head dd5dac58fc4f47753e899458e15ad150f71babdb
+Go (vet, gofmt, test, build) | completed | success | job 135653652705 | head dd5dac58fc4f47753e899458e15ad150f71babdb
+Agent ownership check | completed | success | job 135653652453 | head dd5dac58fc4f47753e899458e15ad150f71babdb
+

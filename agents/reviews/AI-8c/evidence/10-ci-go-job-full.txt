@@ -1,0 +1,706 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135653652705/logs
+﻿2026-11-19T15:05:12.1931063Z Current runner version: '2.338.2'
+2026-11-19T15:05:12.1967198Z ##[group]Runner Image Provisioner
+2026-11-19T15:05:12.1968655Z Hosted Compute Agent
+2026-11-19T15:05:12.1969716Z Version: 20261103.629
+2026-11-19T15:05:12.1970808Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+2026-11-19T15:05:12.1972362Z Build Date: 2026-11-03T17:26:59Z
+2026-11-19T15:05:12.1973640Z Worker ID: {91ebe549-69e5-4b49-b936-956b09139242}
+2026-11-19T15:05:12.1974955Z Region: eastus
+2026-11-19T15:05:12.1975883Z Cloud: Azure
+2026-11-19T15:05:12.1976812Z ##[endgroup]
+2026-11-19T15:05:12.1979986Z ##[group]Operating System
+2026-11-19T15:05:12.1981143Z Ubuntu
+2026-11-19T15:05:12.1982636Z 26.04.1
+2026-11-19T15:05:12.1983542Z LTS
+2026-11-19T15:05:12.1984502Z ##[endgroup]
+2026-11-19T15:05:12.1985484Z ##[group]Runner Image
+2026-11-19T15:05:12.1986521Z Image: ubuntu-26.04
+2026-11-19T15:05:12.1987679Z Version: 20261111.196.1
+2026-11-19T15:05:12.1989992Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261111.196/images/ubuntu/Ubuntu2604-Readme.md
+2026-11-19T15:05:12.1992955Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261111.196
+2026-11-19T15:05:12.1994834Z ##[endgroup]
+2026-11-19T15:05:12.1996878Z ##[group]GITHUB_TOKEN Permissions
+2026-11-19T15:05:12.1999738Z Contents: read
+2026-11-19T15:05:12.2000694Z Metadata: read
+2026-11-19T15:05:12.2001743Z Packages: read
+2026-11-19T15:05:12.2002993Z ##[endgroup]
+2026-11-19T15:05:12.2006809Z Secret source: Actions
+2026-11-19T15:05:12.2008412Z Cache mode: write
+2026-11-19T15:05:12.2009983Z Prepare workflow directory
+2026-11-19T15:05:12.2561024Z Prepare all required actions
+2026-11-19T15:05:12.2640815Z Getting action download info
+2026-11-19T15:05:12.4474078Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-19T15:05:12.6302575Z Download action repository 'actions/setup-go@v5' (SHA:40f1582b2485089dde7abd97c1529aa768e1baff)
+2026-11-19T15:05:12.8814379Z Complete job name: Go (vet, gofmt, test, build)
+2026-11-19T15:05:12.9755587Z ##[group]Run actions/checkout@v4
+2026-11-19T15:05:12.9756520Z with:
+2026-11-19T15:05:12.9757027Z   repository: MaheshPulivarthi18/ArxivLens
+2026-11-19T15:05:12.9761084Z   token: ***
+2026-11-19T15:05:12.9761540Z   ssh-strict: true
+2026-11-19T15:05:12.9761991Z   ssh-user: git
+2026-11-19T15:05:12.9762626Z   persist-credentials: true
+2026-11-19T15:05:12.9763143Z   clean: true
+2026-11-19T15:05:12.9763606Z   sparse-checkout-cone-mode: true
+2026-11-19T15:05:12.9764143Z   fetch-depth: 1
+2026-11-19T15:05:12.9764592Z   fetch-tags: false
+2026-11-19T15:05:12.9765059Z   show-progress: true
+2026-11-19T15:05:12.9765516Z   lfs: false
+2026-11-19T15:05:12.9765955Z   submodules: false
+2026-11-19T15:05:12.9766430Z   set-safe-directory: true
+2026-11-19T15:05:12.9766978Z   allow-unsafe-pr-checkout: false
+2026-11-19T15:05:12.9767784Z ##[endgroup]
+2026-11-19T15:05:13.5036819Z Syncing repository: MaheshPulivarthi18/ArxivLens
+2026-11-19T15:05:13.5039101Z ##[group]Getting Git version info
+2026-11-19T15:05:13.5040134Z Working directory is '/home/runner/work/ArxivLens/ArxivLens'
+2026-11-19T15:05:13.5041353Z [command]/usr/bin/git version
+2026-11-19T15:05:13.5158676Z git version 2.56.1
+2026-11-19T15:05:13.5184278Z ##[endgroup]
+2026-11-19T15:05:13.5201991Z Temporarily overriding HOME='/home/runner/work/_temp/4b4b56a4-c300-4033-8731-cc75c83c8cfc' before making global git config changes
+2026-11-19T15:05:13.5206143Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-19T15:05:13.5209601Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ArxivLens/ArxivLens
+2026-11-19T15:05:13.5288715Z Deleting the contents of '/home/runner/work/ArxivLens/ArxivLens'
+2026-11-19T15:05:13.5296243Z ##[group]Initializing the repository
+2026-11-19T15:05:13.5300199Z [command]/usr/bin/git init /home/runner/work/ArxivLens/ArxivLens
+2026-11-19T15:05:13.5434530Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-19T15:05:13.5435928Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-19T15:05:13.5437328Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-19T15:05:13.5438189Z hint: call:
+2026-11-19T15:05:13.5438643Z hint:
+2026-11-19T15:05:13.5439223Z hint: 	git config --global init.defaultBranch <name>
+2026-11-19T15:05:13.5440007Z hint:
+2026-11-19T15:05:13.5440669Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-19T15:05:13.5441723Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-19T15:05:13.5443162Z hint:
+2026-11-19T15:05:13.5443969Z hint: 	git branch -m <name>
+2026-11-19T15:05:13.5444543Z hint:
+2026-11-19T15:05:13.5445255Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-19T15:05:13.5464173Z Initialized empty Git repository in /home/runner/work/ArxivLens/ArxivLens/.git/
+2026-11-19T15:05:13.5480950Z [command]/usr/bin/git remote add origin https://github.com/MaheshPulivarthi18/ArxivLens
+2026-11-19T15:05:13.5541480Z ##[endgroup]
+2026-11-19T15:05:13.5547526Z ##[group]Disabling automatic garbage collection
+2026-11-19T15:05:13.5548417Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-19T15:05:13.5584058Z ##[endgroup]
+2026-11-19T15:05:13.5584964Z ##[group]Setting up auth
+2026-11-19T15:05:13.5593411Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-19T15:05:13.5634474Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-19T15:05:13.6295842Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-19T15:05:13.6335480Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-19T15:05:13.6619451Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-19T15:05:13.6659024Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-19T15:05:13.6940960Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-19T15:05:13.7213480Z ##[endgroup]
+2026-11-19T15:05:13.7214603Z ##[group]Fetching the repository
+2026-11-19T15:05:13.7224053Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d1f0d81fa969ef897a0d609cb7b609d5d531eaad:refs/remotes/pull/59/merge
+2026-11-19T15:05:13.9952028Z From https://github.com/MaheshPulivarthi18/ArxivLens
+2026-11-19T15:05:13.9953980Z  * [new ref]         d1f0d81fa969ef897a0d609cb7b609d5d531eaad -> pull/59/merge
+2026-11-19T15:05:13.9958467Z ##[endgroup]
+2026-11-19T15:05:13.9959841Z ##[group]Determining the checkout info
+2026-11-19T15:05:13.9961956Z ##[endgroup]
+2026-11-19T15:05:13.9966999Z [command]/usr/bin/git sparse-checkout disable
+2026-11-19T15:05:14.0216071Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-19T15:05:14.0249755Z ##[group]Checking out the ref
+2026-11-19T15:05:14.0253380Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/59/merge
+2026-11-19T15:05:14.0417332Z Note: switching to 'refs/remotes/pull/59/merge'.
+2026-11-19T15:05:14.0418419Z 
+2026-11-19T15:05:14.0419170Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-19T15:05:14.0421021Z changes and commit them, and you can discard any commits you make in this
+2026-11-19T15:05:14.0423513Z state without impacting any branches by switching back to a branch.
+2026-11-19T15:05:14.0425208Z 
+2026-11-19T15:05:14.0426286Z If you want to create a new branch to retain commits you create, you may
+2026-11-19T15:05:14.0428845Z do so (now or later) by using -c with the switch command. Example:
+2026-11-19T15:05:14.0430731Z 
+2026-11-19T15:05:14.0431374Z   git switch -c <new-branch-name>
+2026-11-19T15:05:14.0432706Z 
+2026-11-19T15:05:14.0433591Z Or undo this operation with:
+2026-11-19T15:05:14.0434836Z 
+2026-11-19T15:05:14.0435606Z   git switch -
+2026-11-19T15:05:14.0436571Z 
+2026-11-19T15:05:14.0437998Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-19T15:05:14.0440009Z 
+2026-11-19T15:05:14.0442640Z HEAD is now at d1f0d81 Merge dd5dac58fc4f47753e899458e15ad150f71babdb into 8b55af22dfff6e97f6541d1fc61f4717238ed7f0
+2026-11-19T15:05:14.0448155Z ##[endgroup]
+2026-11-19T15:05:14.0486429Z [command]/usr/bin/git log -1 --format=%H
+2026-11-19T15:05:14.0514325Z d1f0d81fa969ef897a0d609cb7b609d5d531eaad
+2026-11-19T15:05:14.1051056Z ##[group]Run actions/setup-go@v5
+2026-11-19T15:05:14.1052453Z with:
+2026-11-19T15:05:14.1053410Z   go-version-file: go.mod
+2026-11-19T15:05:14.1054538Z   check-latest: false
+2026-11-19T15:05:14.1065807Z   token: ***
+2026-11-19T15:05:14.1066738Z   cache: true
+2026-11-19T15:05:14.1067713Z ##[endgroup]
+2026-11-19T15:05:14.2813739Z Setup go version spec 1.25.0
+2026-11-19T15:05:14.2826062Z Attempting to download 1.25.0...
+2026-11-19T15:05:14.2998528Z (node:2383) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-19T15:05:14.3001884Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-19T15:05:14.7954748Z matching 1.25.0...
+2026-11-19T15:05:14.8032574Z Acquiring 1.25.0 from https://github.com/actions/go-versions/releases/download/1.25.0-16925932082/go-1.25.0-linux-x64.tar.gz
+2026-11-19T15:05:15.2838303Z Extracting Go...
+2026-11-19T15:05:15.2982939Z [command]/usr/bin/tar xz --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/a51cb7b4-6a91-4cb4-ae2d-e2b91a05b49f -f /home/runner/work/_temp/8f0143c8-23a8-4ed6-8321-065d45dfb0e0
+2026-11-19T15:05:16.3635557Z Successfully extracted go to /home/runner/work/_temp/a51cb7b4-6a91-4cb4-ae2d-e2b91a05b49f
+2026-11-19T15:05:16.3636594Z Adding to the cache ...
+2026-11-19T15:05:21.0803908Z Successfully cached go to /opt/hostedtoolcache/go/1.25.0/x64
+2026-11-19T15:05:21.0805472Z Added go to the path
+2026-11-19T15:05:21.0810482Z Successfully set up Go version 1.25.0
+2026-11-19T15:05:21.1091238Z [command]/opt/hostedtoolcache/go/1.25.0/x64/bin/go env GOMODCACHE
+2026-11-19T15:05:21.1144566Z [command]/opt/hostedtoolcache/go/1.25.0/x64/bin/go env GOCACHE
+2026-11-19T15:05:21.1200096Z /home/runner/go/pkg/mod
+2026-11-19T15:05:21.1229977Z /home/runner/.cache/go-build
+2026-11-19T15:05:21.1953666Z Cache hit for: setup-go-Linux-x64-ubuntu26-go-1.25.0-282abb17dbe996d56a2dfecbce61082860776038189ca3cb06eff71ee8aa2c93
+2026-11-19T15:05:21.2089984Z (node:2383) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-19T15:05:22.3105134Z Received 205520896 of 221324028 (92.9%), 195.0 MBs/sec
+2026-11-19T15:05:22.3540237Z Received 221324028 of 221324028 (100.0%), 201.2 MBs/sec
+2026-11-19T15:05:22.3562888Z Cache Size: ~211 MB (221324028 B)
+2026-11-19T15:05:22.3744454Z [command]/usr/bin/tar -xf /home/runner/work/_temp/c1d9b675-9c5d-4076-842b-c384a86b38d3/cache.tzst -P -C /home/runner/work/ArxivLens/ArxivLens --use-compress-program unzstd
+2026-11-19T15:05:23.5563963Z Cache restored successfully
+2026-11-19T15:05:23.5687495Z Cache restored from key: setup-go-Linux-x64-ubuntu26-go-1.25.0-282abb17dbe996d56a2dfecbce61082860776038189ca3cb06eff71ee8aa2c93
+2026-11-19T15:05:23.5711463Z go version go1.25.0 linux/amd64
+2026-11-19T15:05:23.5711715Z 
+2026-11-19T15:05:23.5712012Z ##[group]go env
+2026-11-19T15:05:23.5875090Z AR='ar'
+2026-11-19T15:05:23.5875511Z CC='gcc'
+2026-11-19T15:05:23.5875909Z CGO_CFLAGS='-O2 -g'
+2026-11-19T15:05:23.5876301Z CGO_CPPFLAGS=''
+2026-11-19T15:05:23.5876689Z CGO_CXXFLAGS='-O2 -g'
+2026-11-19T15:05:23.5877067Z CGO_ENABLED='1'
+2026-11-19T15:05:23.5877488Z CGO_FFLAGS='-O2 -g'
+2026-11-19T15:05:23.5878263Z CGO_LDFLAGS='-O2 -g'
+2026-11-19T15:05:23.5878656Z CXX='g++'
+2026-11-19T15:05:23.5879021Z GCCGO='gccgo'
+2026-11-19T15:05:23.5879365Z GO111MODULE=''
+2026-11-19T15:05:23.5879706Z GOAMD64='v1'
+2026-11-19T15:05:23.5880034Z GOARCH='amd64'
+2026-11-19T15:05:23.5880365Z GOAUTH='netrc'
+2026-11-19T15:05:23.5880695Z GOBIN=''
+2026-11-19T15:05:23.5881074Z GOCACHE='/home/runner/.cache/go-build'
+2026-11-19T15:05:23.5881544Z GOCACHEPROG=''
+2026-11-19T15:05:23.5881881Z GODEBUG=''
+2026-11-19T15:05:23.5882409Z GOENV='/home/runner/.config/go/env'
+2026-11-19T15:05:23.5882861Z GOEXE=''
+2026-11-19T15:05:23.5883242Z GOEXPERIMENT=''
+2026-11-19T15:05:23.5883593Z GOFIPS140='off'
+2026-11-19T15:05:23.5883923Z GOFLAGS=''
+2026-11-19T15:05:23.5885503Z GOGCCFLAGS='-fPIC -m64 -pthread -Wl,--no-gc-sections -fmessage-length=0 -ffile-prefix-map=/tmp/go-build1798024384=/tmp/go-build -gno-record-gcc-switches'
+2026-11-19T15:05:23.5886732Z GOHOSTARCH='amd64'
+2026-11-19T15:05:23.5887105Z GOHOSTOS='linux'
+2026-11-19T15:05:23.5887451Z GOINSECURE=''
+2026-11-19T15:05:23.5887923Z GOMOD='/home/runner/work/ArxivLens/ArxivLens/go.mod'
+2026-11-19T15:05:23.5888513Z GOMODCACHE='/home/runner/go/pkg/mod'
+2026-11-19T15:05:23.5888964Z GONOPROXY=''
+2026-11-19T15:05:23.5889298Z GONOSUMDB=''
+2026-11-19T15:05:23.5889617Z GOOS='linux'
+2026-11-19T15:05:23.5889963Z GOPATH='/home/runner/go'
+2026-11-19T15:05:23.5890369Z GOPRIVATE=''
+2026-11-19T15:05:23.5890929Z GOPROXY='https://proxy.golang.org,direct'
+2026-11-19T15:05:23.5891494Z GOROOT='/opt/hostedtoolcache/go/1.25.0/x64'
+2026-11-19T15:05:23.5892000Z GOSUMDB='sum.golang.org'
+2026-11-19T15:05:23.5892585Z GOTELEMETRY='local'
+2026-11-19T15:05:23.5893108Z GOTELEMETRYDIR='/home/runner/.config/go/telemetry'
+2026-11-19T15:05:23.5893691Z GOTMPDIR=''
+2026-11-19T15:05:23.5894025Z GOTOOLCHAIN='auto'
+2026-11-19T15:05:23.5894575Z GOTOOLDIR='/opt/hostedtoolcache/go/1.25.0/x64/pkg/tool/linux_amd64'
+2026-11-19T15:05:23.5895194Z GOVCS=''
+2026-11-19T15:05:23.5895521Z GOVERSION='go1.25.0'
+2026-11-19T15:05:23.5895949Z GOWORK=''
+2026-11-19T15:05:23.5896309Z PKG_CONFIG='pkg-config'
+2026-11-19T15:05:23.5896558Z 
+2026-11-19T15:05:23.5897008Z ##[endgroup]
+2026-11-19T15:05:23.6146803Z ##[group]Run make lint-go
+2026-11-19T15:05:23.6147157Z [36;1mmake lint-go[0m
+2026-11-19T15:05:23.6201512Z shell: /usr/bin/bash -e {0}
+2026-11-19T15:05:23.6201809Z ##[endgroup]
+2026-11-19T15:05:23.6324176Z go vet ./...
+2026-11-19T15:05:25.3497739Z ##[group]Run make test-go
+2026-11-19T15:05:25.3498048Z [36;1mmake test-go[0m
+2026-11-19T15:05:25.3550140Z shell: /usr/bin/bash -e {0}
+2026-11-19T15:05:25.3550420Z ##[endgroup]
+2026-11-19T15:05:25.3640266Z go test ./...
+2026-11-19T15:05:30.4451747Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-19T15:05:32.4311504Z ok  	arxivlens/internal/arxiv	1.560s
+2026-11-19T15:05:32.4312074Z ok  	arxivlens/internal/config	0.004s
+2026-11-19T15:05:32.4312777Z ok  	arxivlens/internal/crawler	0.066s
+2026-11-19T15:05:32.4313240Z ok  	arxivlens/internal/db	0.007s
+2026-11-19T15:05:32.4313666Z ok  	arxivlens/internal/dlq	0.006s
+2026-11-19T15:05:32.4314139Z ok  	arxivlens/internal/downloader	0.108s
+2026-11-19T15:05:32.4314605Z ok  	arxivlens/internal/kafka	0.033s
+2026-11-19T15:05:32.5607954Z ok  	arxivlens/internal/llm	0.773s
+2026-11-19T15:05:32.5608900Z ok  	arxivlens/internal/llm/llmtest	0.113s
+2026-11-19T15:05:33.1039341Z ok  	arxivlens/internal/query	0.335s
+2026-11-19T15:05:33.1039973Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-19T15:05:33.1040430Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-19T15:05:33.1040828Z ?   	arxivlens/shared/events	[no test files]
+2026-11-19T15:05:33.1352942Z ##[group]Run go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go
+2026-11-19T15:05:33.1353908Z [36;1mgo test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go[0m
+2026-11-19T15:05:33.1403811Z shell: /usr/bin/bash -e {0}
+2026-11-19T15:05:33.1404073Z ##[endgroup]
+2026-11-19T15:05:56.3546277Z === RUN   TestRetryBackoff
+2026-11-19T15:05:56.3547253Z --- PASS: TestRetryBackoff (0.00s)
+2026-11-19T15:05:56.3547822Z === RUN   TestDLQRetryBackoff
+2026-11-19T15:05:56.3548399Z --- PASS: TestDLQRetryBackoff (0.00s)
+2026-11-19T15:05:56.3548997Z === RUN   TestCtxWait
+2026-11-19T15:05:56.3614464Z --- PASS: TestCtxWait (0.01s)
+2026-11-19T15:05:56.3616800Z === RUN   TestRetrySleepSchedule
+2026-11-19T15:05:56.3617993Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3619817Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-19T15:05:56.3623556Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-19T15:05:56.3625108Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-19T15:05:56.3626435Z 2026/11/19 15:05:56 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-19T15:05:56.3627635Z 2026/11/19 15:05:56 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-19T15:05:56.3628717Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3631006Z --- PASS: TestRetrySleepSchedule (0.00s)
+2026-11-19T15:05:56.3631471Z === RUN   TestConsumerSuccessPath
+2026-11-19T15:05:56.3631830Z === RUN   TestConsumerSuccessPath/ok_on_1st
+2026-11-19T15:05:56.3632695Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3633891Z 2026/11/19 15:05:56 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-19T15:05:56.3635100Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3635978Z === RUN   TestConsumerSuccessPath/ok_after_1_failure
+2026-11-19T15:05:56.3636861Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3638164Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-19T15:05:56.3639497Z 2026/11/19 15:05:56 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-19T15:05:56.3640583Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3641499Z === RUN   TestConsumerSuccessPath/ok_after_2_failures
+2026-11-19T15:05:56.3642506Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3643803Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-19T15:05:56.3645379Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-19T15:05:56.3646803Z 2026/11/19 15:05:56 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-19T15:05:56.3647952Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3648928Z === RUN   TestConsumerSuccessPath/commit_error_is_logged,_loop_continues
+2026-11-19T15:05:56.3649888Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3650761Z 2026/11/19 15:05:56 [Kafka Consumer] Offset commit error: boom
+2026-11-19T15:05:56.3651792Z 2026/11/19 15:05:56 [Kafka Consumer] Offset commit error: boom
+2026-11-19T15:05:56.3653795Z 2026/11/19 15:05:56 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-19T15:05:56.3654906Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3655684Z --- PASS: TestConsumerSuccessPath (0.00s)
+2026-11-19T15:05:56.3656406Z     --- PASS: TestConsumerSuccessPath/ok_on_1st (0.00s)
+2026-11-19T15:05:56.3657843Z     --- PASS: TestConsumerSuccessPath/ok_after_1_failure (0.00s)
+2026-11-19T15:05:56.3658732Z     --- PASS: TestConsumerSuccessPath/ok_after_2_failures (0.00s)
+2026-11-19T15:05:56.3659785Z     --- PASS: TestConsumerSuccessPath/commit_error_is_logged,_loop_continues (0.00s)
+2026-11-19T15:05:56.3660587Z === RUN   TestConsumerDLQThenCommit
+2026-11-19T15:05:56.3661431Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3662907Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-19T15:05:56.3664432Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-19T15:05:56.3665734Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-19T15:05:56.3666651Z 2026/11/19 15:05:56 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-19T15:05:56.3667560Z 2026/11/19 15:05:56 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-19T15:05:56.3668312Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3668771Z --- PASS: TestConsumerDLQThenCommit (0.00s)
+2026-11-19T15:05:56.3669118Z === RUN   TestConsumerDLQFailureBlocksPartition
+2026-11-19T15:05:56.3669555Z === RUN   TestConsumerDLQFailureBlocksPartition/failing_record_first
+2026-11-19T15:05:56.3670099Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3670823Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-19T15:05:56.3671643Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-19T15:05:56.3672679Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-19T15:05:56.3673415Z 2026/11/19 15:05:56 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-19T15:05:56.3674393Z 2026/11/19 15:05:56 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=1): boom
+2026-11-19T15:05:56.3675435Z 2026/11/19 15:05:56 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=2): boom
+2026-11-19T15:05:56.3676491Z 2026/11/19 15:05:56 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=3): boom
+2026-11-19T15:05:56.3677290Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3677908Z === RUN   TestConsumerDLQFailureBlocksPartition/earlier_record_in_the_poll_is_committed
+2026-11-19T15:05:56.3678536Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3679272Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-19T15:05:56.3680125Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-19T15:05:56.3681187Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-19T15:05:56.3681963Z 2026/11/19 15:05:56 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-19T15:05:56.3683050Z 2026/11/19 15:05:56 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=1): boom
+2026-11-19T15:05:56.3684102Z 2026/11/19 15:05:56 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=2): boom
+2026-11-19T15:05:56.3685286Z 2026/11/19 15:05:56 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=3): boom
+2026-11-19T15:05:56.3686079Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3686573Z --- PASS: TestConsumerDLQFailureBlocksPartition (0.00s)
+2026-11-19T15:05:56.3687133Z     --- PASS: TestConsumerDLQFailureBlocksPartition/failing_record_first (0.00s)
+2026-11-19T15:05:56.3687861Z     --- PASS: TestConsumerDLQFailureBlocksPartition/earlier_record_in_the_poll_is_committed (0.00s)
+2026-11-19T15:05:56.3688360Z === RUN   TestConsumerDLQRecovers
+2026-11-19T15:05:56.3688793Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3689518Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-19T15:05:56.3690349Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-19T15:05:56.3691165Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-19T15:05:56.3691975Z 2026/11/19 15:05:56 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-19T15:05:56.3693014Z 2026/11/19 15:05:56 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=1): boom
+2026-11-19T15:05:56.3694041Z 2026/11/19 15:05:56 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=2): boom
+2026-11-19T15:05:56.3694872Z 2026/11/19 15:05:56 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-19T15:05:56.3695478Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3695922Z --- PASS: TestConsumerDLQRecovers (0.00s)
+2026-11-19T15:05:56.3696245Z === RUN   TestNewConsumerRejectsNilProducer
+2026-11-19T15:05:56.3696595Z --- PASS: TestNewConsumerRejectsNilProducer (0.00s)
+2026-11-19T15:05:56.3696942Z === RUN   TestConsumerNilDLQIsFailedPublish
+2026-11-19T15:05:56.3697401Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3698124Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-19T15:05:56.3698978Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-19T15:05:56.3699801Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=3/3): boom
+2026-11-19T15:05:56.3700536Z 2026/11/19 15:05:56 [Kafka Consumer] Routing failed record to DLQ topic=papers.discovered.dlq (key=)
+2026-11-19T15:05:56.3701478Z 2026/11/19 15:05:56 [Kafka Consumer] CRITICAL: DLQ write failed (topic=papers.discovered partition=0 offset=5 dlq_topic=papers.discovered.dlq round=1): no DLQ publisher configured
+2026-11-19T15:05:56.3702648Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3703133Z --- PASS: TestConsumerNilDLQIsFailedPublish (0.00s)
+2026-11-19T15:05:56.3703683Z === RUN   TestConsumerCancelDuringBackoffReturnsPromptly
+2026-11-19T15:05:56.3704201Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3704951Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-19T15:05:56.3870355Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3871661Z --- PASS: TestConsumerCancelDuringBackoffReturnsPromptly (0.02s)
+2026-11-19T15:05:56.3872676Z === RUN   TestConsumerCancelInsideHandlerNoDLQ
+2026-11-19T15:05:56.3873622Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3874978Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=1/3): boom
+2026-11-19T15:05:56.3876282Z 2026/11/19 15:05:56 [Kafka Consumer] Error processing record (topic=papers.discovered, partition=0, offset=5, attempt=2/3): boom
+2026-11-19T15:05:56.3877549Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3878431Z --- PASS: TestConsumerCancelInsideHandlerNoDLQ (0.00s)
+2026-11-19T15:05:56.3879009Z === RUN   TestConsumerAllowRebalanceAfterEachPoll
+2026-11-19T15:05:56.3879592Z 2026/11/19 15:05:56 [Kafka Consumer] Starting group=downloader-v1 topics=[papers.discovered]
+2026-11-19T15:05:56.3880229Z 2026/11/19 15:05:56 [Kafka Consumer] Poll error (topic=papers.discovered partition=1): boom
+2026-11-19T15:05:56.3880901Z 2026/11/19 15:05:56 [Kafka Consumer] Poll error (topic=papers.discovered partition=-1): context canceled
+2026-11-19T15:05:56.3881564Z 2026/11/19 15:05:56 [Kafka Consumer] Context cancelled, shutting down group=downloader-v1
+2026-11-19T15:05:56.3882121Z --- PASS: TestConsumerAllowRebalanceAfterEachPoll (0.00s)
+2026-11-19T15:05:56.3882966Z === RUN   TestConsumerDLQFailureLogNoValue
+2026-11-19T15:05:56.3883500Z --- PASS: TestConsumerDLQFailureLogNoValue (0.00s)
+2026-11-19T15:05:56.3884214Z === RUN   TestConsumerPollErrorStillProcessesRecords
+2026-11-19T15:05:56.3884894Z === RUN   TestConsumerPollErrorStillProcessesRecords/partition_error,_other_partition_handled
+2026-11-19T15:05:56.3887627Z === RUN   TestConsumerPollErrorStillProcessesRecords/client_closed_returns_the_error
+2026-11-19T15:05:56.3889635Z --- PASS: TestConsumerPollErrorStillProcessesRecords (0.00s)
+2026-11-19T15:05:56.3890995Z     --- PASS: TestConsumerPollErrorStillProcessesRecords/partition_error,_other_partition_handled (0.00s)
+2026-11-19T15:05:56.3892782Z     --- PASS: TestConsumerPollErrorStillProcessesRecords/client_closed_returns_the_error (0.00s)
+2026-11-19T15:05:56.3893957Z PASS
+2026-11-19T15:05:56.3908009Z coverage: 62.9% of statements
+2026-11-19T15:05:57.3939289Z ok  	arxivlens/internal/kafka	1.050s	coverage: 62.9% of statements
+2026-11-19T15:05:57.5347394Z arxivlens/internal/kafka/consumer.go:42:	NewConsumer	28.6%
+2026-11-19T15:05:57.5348037Z arxivlens/internal/kafka/consumer.go:72:	Close		0.0%
+2026-11-19T15:05:57.5348534Z arxivlens/internal/kafka/consumer.go:79:	retryBackoff	100.0%
+2026-11-19T15:05:57.5348994Z arxivlens/internal/kafka/consumer.go:84:	dlqRetryBackoff	100.0%
+2026-11-19T15:05:57.5349420Z arxivlens/internal/kafka/consumer.go:89:	ctxWait		100.0%
+2026-11-19T15:05:57.5349808Z arxivlens/internal/kafka/consumer.go:101:	Start		100.0%
+2026-11-19T15:05:57.5405804Z ##[group]Run go test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out
+2026-11-19T15:05:57.5406612Z [36;1mgo test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out[0m
+2026-11-19T15:05:57.5407314Z [36;1mawk -F'[: ]' 'NR>1 {t[$1]+=$3; if ($4>0) c[$1]+=$3} END {for (f in t) printf "%s %.1f%%\n", f, 100*c[f]/t[f]}' llm.out | sort[0m
+2026-11-19T15:05:57.5465759Z shell: /usr/bin/bash -e {0}
+2026-11-19T15:05:57.5466031Z ##[endgroup]
+2026-11-19T15:06:03.6542776Z === RUN   TestConfigFromEnv
+2026-11-19T15:06:03.6543398Z === RUN   TestConfigFromEnv/model_unset_disables_the_provider
+2026-11-19T15:06:03.6544078Z === RUN   TestConfigFromEnv/model_only_takes_the_local_defaults
+2026-11-19T15:06:03.6544754Z === RUN   TestConfigFromEnv/every_variable_set
+2026-11-19T15:06:03.6545274Z === RUN   TestConfigFromEnv/blank_model
+2026-11-19T15:06:03.6545833Z === RUN   TestConfigFromEnv/timeout_not_a_duration
+2026-11-19T15:06:03.6546513Z === RUN   TestConfigFromEnv/timeout_bare_number
+2026-11-19T15:06:03.6547407Z === RUN   TestConfigFromEnv/timeout_zero
+2026-11-19T15:06:03.6547954Z === RUN   TestConfigFromEnv/timeout_negative
+2026-11-19T15:06:03.6548537Z === RUN   TestConfigFromEnv/max_tokens_not_an_int
+2026-11-19T15:06:03.6549116Z === RUN   TestConfigFromEnv/max_tokens_zero
+2026-11-19T15:06:03.6549675Z === RUN   TestConfigFromEnv/max_tokens_negative
+2026-11-19T15:06:03.6550238Z === RUN   TestConfigFromEnv/max_tokens_too_big
+2026-11-19T15:06:03.6550751Z === RUN   TestConfigFromEnv/base_url_relative
+2026-11-19T15:06:03.6551069Z === RUN   TestConfigFromEnv/base_url_no_scheme
+2026-11-19T15:06:03.6551501Z === RUN   TestConfigFromEnv/base_url_ftp
+2026-11-19T15:06:03.6551801Z === RUN   TestConfigFromEnv/base_url_no_host
+2026-11-19T15:06:03.6552394Z === RUN   TestConfigFromEnv/base_url_unparseable
+2026-11-19T15:06:03.6552787Z === RUN   TestConfigFromEnv/base_url_userinfo
+2026-11-19T15:06:03.6553303Z === RUN   TestConfigFromEnv/base_url_query_key
+2026-11-19T15:06:03.6553631Z === RUN   TestConfigFromEnv/base_url_empty_query
+2026-11-19T15:06:03.6554223Z === RUN   TestConfigFromEnv/base_url_fragment
+2026-11-19T15:06:03.6554770Z --- PASS: TestConfigFromEnv (0.00s)
+2026-11-19T15:06:03.6555345Z     --- PASS: TestConfigFromEnv/model_unset_disables_the_provider (0.00s)
+2026-11-19T15:06:03.6555916Z     --- PASS: TestConfigFromEnv/model_only_takes_the_local_defaults (0.00s)
+2026-11-19T15:06:03.6556408Z     --- PASS: TestConfigFromEnv/every_variable_set (0.00s)
+2026-11-19T15:06:03.6556807Z     --- PASS: TestConfigFromEnv/blank_model (0.00s)
+2026-11-19T15:06:03.6557235Z     --- PASS: TestConfigFromEnv/timeout_not_a_duration (0.00s)
+2026-11-19T15:06:03.6557674Z     --- PASS: TestConfigFromEnv/timeout_bare_number (0.00s)
+2026-11-19T15:06:03.6558080Z     --- PASS: TestConfigFromEnv/timeout_zero (0.00s)
+2026-11-19T15:06:03.6558489Z     --- PASS: TestConfigFromEnv/timeout_negative (0.00s)
+2026-11-19T15:06:03.6558932Z     --- PASS: TestConfigFromEnv/max_tokens_not_an_int (0.00s)
+2026-11-19T15:06:03.6559350Z     --- PASS: TestConfigFromEnv/max_tokens_zero (0.00s)
+2026-11-19T15:06:03.6559765Z     --- PASS: TestConfigFromEnv/max_tokens_negative (0.00s)
+2026-11-19T15:06:03.6560183Z     --- PASS: TestConfigFromEnv/max_tokens_too_big (0.00s)
+2026-11-19T15:06:03.6560598Z     --- PASS: TestConfigFromEnv/base_url_relative (0.00s)
+2026-11-19T15:06:03.6561010Z     --- PASS: TestConfigFromEnv/base_url_no_scheme (0.00s)
+2026-11-19T15:06:03.6561404Z     --- PASS: TestConfigFromEnv/base_url_ftp (0.00s)
+2026-11-19T15:06:03.6561799Z     --- PASS: TestConfigFromEnv/base_url_no_host (0.00s)
+2026-11-19T15:06:03.6562430Z     --- PASS: TestConfigFromEnv/base_url_unparseable (0.00s)
+2026-11-19T15:06:03.6562860Z     --- PASS: TestConfigFromEnv/base_url_userinfo (0.00s)
+2026-11-19T15:06:03.6563267Z     --- PASS: TestConfigFromEnv/base_url_query_key (0.00s)
+2026-11-19T15:06:03.6563685Z     --- PASS: TestConfigFromEnv/base_url_empty_query (0.00s)
+2026-11-19T15:06:03.6564351Z     --- PASS: TestConfigFromEnv/base_url_fragment (0.00s)
+2026-11-19T15:06:03.6564693Z === RUN   TestConfigRedactsKey
+2026-11-19T15:06:03.6564964Z --- PASS: TestConfigRedactsKey (0.00s)
+2026-11-19T15:06:03.6565250Z === RUN   TestConfigNormalize
+2026-11-19T15:06:03.6565552Z === RUN   TestConfigNormalize/zero_fields_take_defaults
+2026-11-19T15:06:03.6565901Z === RUN   TestConfigNormalize/trailing_slash_trimmed
+2026-11-19T15:06:03.6566214Z === RUN   TestConfigNormalize/no_model
+2026-11-19T15:06:03.6566511Z === RUN   TestConfigNormalize/negative_timeout
+2026-11-19T15:06:03.6566842Z === RUN   TestConfigNormalize/max_tokens_too_big
+2026-11-19T15:06:03.6567171Z === RUN   TestConfigNormalize/negative_max_tokens
+2026-11-19T15:06:03.6567486Z === RUN   TestConfigNormalize/bad_base_url
+2026-11-19T15:06:03.6567781Z --- PASS: TestConfigNormalize (0.00s)
+2026-11-19T15:06:03.6568205Z     --- PASS: TestConfigNormalize/zero_fields_take_defaults (0.00s)
+2026-11-19T15:06:03.6568698Z     --- PASS: TestConfigNormalize/trailing_slash_trimmed (0.00s)
+2026-11-19T15:06:03.6569114Z     --- PASS: TestConfigNormalize/no_model (0.00s)
+2026-11-19T15:06:03.6569676Z     --- PASS: TestConfigNormalize/negative_timeout (0.00s)
+2026-11-19T15:06:03.6570120Z     --- PASS: TestConfigNormalize/max_tokens_too_big (0.00s)
+2026-11-19T15:06:03.6570564Z     --- PASS: TestConfigNormalize/negative_max_tokens (0.00s)
+2026-11-19T15:06:03.6570979Z     --- PASS: TestConfigNormalize/bad_base_url (0.00s)
+2026-11-19T15:06:03.6571305Z === RUN   TestPrintFormsShowSizesOnly
+2026-11-19T15:06:03.6571623Z --- PASS: TestPrintFormsShowSizesOnly (0.00s)
+2026-11-19T15:06:03.6571936Z === RUN   TestErrorShape
+2026-11-19T15:06:03.6572376Z === RUN   TestErrorShape/kind_and_detail
+2026-11-19T15:06:03.6572689Z === RUN   TestErrorShape/kind_and_cause
+2026-11-19T15:06:03.6573000Z === RUN   TestErrorShape/cancel_has_nil_kind
+2026-11-19T15:06:03.6573296Z === RUN   TestErrorShape/zero_value
+2026-11-19T15:06:03.6573590Z === RUN   TestErrorShape/key_redacted_from_detail
+2026-11-19T15:06:03.6573904Z --- PASS: TestErrorShape (0.00s)
+2026-11-19T15:06:03.6574257Z     --- PASS: TestErrorShape/kind_and_detail (0.00s)
+2026-11-19T15:06:03.6574639Z     --- PASS: TestErrorShape/kind_and_cause (0.00s)
+2026-11-19T15:06:03.6575033Z     --- PASS: TestErrorShape/cancel_has_nil_kind (0.00s)
+2026-11-19T15:06:03.6575409Z     --- PASS: TestErrorShape/zero_value (0.00s)
+2026-11-19T15:06:03.6575824Z     --- PASS: TestErrorShape/key_redacted_from_detail (0.00s)
+2026-11-19T15:06:03.6576152Z === RUN   TestErrorsIsAs
+2026-11-19T15:06:03.6576392Z === RUN   TestErrorsIsAs/timeout
+2026-11-19T15:06:03.6576657Z === RUN   TestErrorsIsAs/rate_limited
+2026-11-19T15:06:03.6576936Z === RUN   TestErrorsIsAs/provider
+2026-11-19T15:06:03.6577203Z === RUN   TestErrorsIsAs/bad_response
+2026-11-19T15:06:03.6577483Z === RUN   TestErrorsIsAs/invalid_request
+2026-11-19T15:06:03.6577760Z === RUN   TestErrorsIsAs/cancel
+2026-11-19T15:06:03.6578028Z --- PASS: TestErrorsIsAs (0.00s)
+2026-11-19T15:06:03.6578354Z     --- PASS: TestErrorsIsAs/timeout (0.00s)
+2026-11-19T15:06:03.6578723Z     --- PASS: TestErrorsIsAs/rate_limited (0.00s)
+2026-11-19T15:06:03.6579096Z     --- PASS: TestErrorsIsAs/provider (0.00s)
+2026-11-19T15:06:03.6579465Z     --- PASS: TestErrorsIsAs/bad_response (0.00s)
+2026-11-19T15:06:03.6579857Z     --- PASS: TestErrorsIsAs/invalid_request (0.00s)
+2026-11-19T15:06:03.6580222Z     --- PASS: TestErrorsIsAs/cancel (0.00s)
+2026-11-19T15:06:03.6580495Z === RUN   TestNew
+2026-11-19T15:06:03.6580701Z === RUN   TestNew/defaults
+2026-11-19T15:06:03.6580939Z === RUN   TestNew/trailing_slash
+2026-11-19T15:06:03.6581194Z === RUN   TestNew/no_model
+2026-11-19T15:06:03.6581479Z === RUN   TestNew/hand-built_userinfo_rejected_unprinted
+2026-11-19T15:06:03.6581858Z === RUN   TestNew/hand-built_query_key_rejected_unprinted
+2026-11-19T15:06:03.6582352Z === RUN   TestNew/negative_timeout
+2026-11-19T15:06:03.6582639Z --- PASS: TestNew (0.00s)
+2026-11-19T15:06:03.6582922Z     --- PASS: TestNew/defaults (0.00s)
+2026-11-19T15:06:03.6583391Z     --- PASS: TestNew/trailing_slash (0.00s)
+2026-11-19T15:06:03.6583734Z     --- PASS: TestNew/no_model (0.00s)
+2026-11-19T15:06:03.6584153Z     --- PASS: TestNew/hand-built_userinfo_rejected_unprinted (0.00s)
+2026-11-19T15:06:03.6584647Z     --- PASS: TestNew/hand-built_query_key_rejected_unprinted (0.00s)
+2026-11-19T15:06:03.6585066Z     --- PASS: TestNew/negative_timeout (0.00s)
+2026-11-19T15:06:03.6585361Z === RUN   TestCompleteSuccess
+2026-11-19T15:06:03.6585639Z === RUN   TestCompleteSuccess/full_response
+2026-11-19T15:06:03.6585964Z === RUN   TestCompleteSuccess/missing_usage_is_zero
+2026-11-19T15:06:03.6586383Z === RUN   TestCompleteSuccess/null_usage_is_zero,_model_falls_back_to_config
+2026-11-19T15:06:03.6586806Z === RUN   TestCompleteSuccess/only_the_first_choice
+2026-11-19T15:06:03.6587131Z --- PASS: TestCompleteSuccess (0.01s)
+2026-11-19T15:06:03.6587495Z     --- PASS: TestCompleteSuccess/full_response (0.00s)
+2026-11-19T15:06:03.6587930Z     --- PASS: TestCompleteSuccess/missing_usage_is_zero (0.00s)
+2026-11-19T15:06:03.6588499Z     --- PASS: TestCompleteSuccess/null_usage_is_zero,_model_falls_back_to_config (0.00s)
+2026-11-19T15:06:03.6589183Z     --- PASS: TestCompleteSuccess/only_the_first_choice (0.00s)
+2026-11-19T15:06:03.6589519Z === RUN   TestAuthHeader
+2026-11-19T15:06:03.6589765Z === RUN   TestAuthHeader/key=false
+2026-11-19T15:06:03.6590034Z === RUN   TestAuthHeader/key=true
+2026-11-19T15:06:03.6590305Z --- PASS: TestAuthHeader (0.00s)
+2026-11-19T15:06:03.6590623Z     --- PASS: TestAuthHeader/key=false (0.00s)
+2026-11-19T15:06:03.6590972Z     --- PASS: TestAuthHeader/key=true (0.00s)
+2026-11-19T15:06:03.6591256Z === RUN   TestRequestWire
+2026-11-19T15:06:03.6591546Z === RUN   TestRequestWire/default_max_tokens,_no_system
+2026-11-19T15:06:03.6591947Z === RUN   TestRequestWire/system_first,_turns_in_order,_override,_json
+2026-11-19T15:06:03.6592617Z --- PASS: TestRequestWire (0.00s)
+2026-11-19T15:06:03.6593095Z     --- PASS: TestRequestWire/default_max_tokens,_no_system (0.00s)
+2026-11-19T15:06:03.6593672Z     --- PASS: TestRequestWire/system_first,_turns_in_order,_override,_json (0.00s)
+2026-11-19T15:06:03.6594087Z === RUN   TestInvalidRequest
+2026-11-19T15:06:03.6594352Z === RUN   TestInvalidRequest/no_messages
+2026-11-19T15:06:03.6594659Z === RUN   TestInvalidRequest/negative_max_tokens
+2026-11-19T15:06:03.6595048Z === RUN   TestInvalidRequest/system_role_in_messages
+2026-11-19T15:06:03.6595372Z === RUN   TestInvalidRequest/empty_role
+2026-11-19T15:06:03.6595682Z === RUN   TestInvalidRequest/NaN_temperature
+2026-11-19T15:06:03.6595987Z --- PASS: TestInvalidRequest (0.00s)
+2026-11-19T15:06:03.6596349Z     --- PASS: TestInvalidRequest/no_messages (0.00s)
+2026-11-19T15:06:03.6596768Z     --- PASS: TestInvalidRequest/negative_max_tokens (0.00s)
+2026-11-19T15:06:03.6597232Z     --- PASS: TestInvalidRequest/system_role_in_messages (0.00s)
+2026-11-19T15:06:03.6597651Z     --- PASS: TestInvalidRequest/empty_role (0.00s)
+2026-11-19T15:06:03.6598048Z     --- PASS: TestInvalidRequest/NaN_temperature (0.00s)
+2026-11-19T15:06:03.6598355Z === RUN   TestRetry
+2026-11-19T15:06:03.6598638Z === RUN   TestRetry/429_then_200_retries_once
+2026-11-19T15:06:03.6598922Z === RUN   TestRetry/502_then_200
+2026-11-19T15:06:03.6599166Z === RUN   TestRetry/504_then_200
+2026-11-19T15:06:03.6599433Z === RUN   TestRetry/503_twice_gives_up_after_2
+2026-11-19T15:06:03.6599742Z === RUN   TestRetry/429_twice_is_rate_limited
+2026-11-19T15:06:03.6600030Z === RUN   TestRetry/400_is_not_retried
+2026-11-19T15:06:03.6600301Z === RUN   TestRetry/500_is_not_retried
+2026-11-19T15:06:03.6600564Z === RUN   TestRetry/401_is_not_retried
+2026-11-19T15:06:03.6600864Z === RUN   TestRetry/short_Retry-After_is_honoured
+2026-11-19T15:06:03.6601225Z === RUN   TestRetry/Retry-After_past_the_deadline_fails_now
+2026-11-19T15:06:03.6601602Z === RUN   TestRetry/HTTP-date_Retry-After_past_the_deadline
+2026-11-19T15:06:03.6601922Z --- PASS: TestRetry (0.08s)
+2026-11-19T15:06:03.6602473Z     --- PASS: TestRetry/429_then_200_retries_once (0.01s)
+2026-11-19T15:06:03.6602991Z     --- PASS: TestRetry/502_then_200 (0.01s)
+2026-11-19T15:06:03.6603335Z     --- PASS: TestRetry/504_then_200 (0.01s)
+2026-11-19T15:06:03.6603727Z     --- PASS: TestRetry/503_twice_gives_up_after_2 (0.01s)
+2026-11-19T15:06:03.6604145Z     --- PASS: TestRetry/429_twice_is_rate_limited (0.01s)
+2026-11-19T15:06:03.6604536Z     --- PASS: TestRetry/400_is_not_retried (0.00s)
+2026-11-19T15:06:03.6604901Z     --- PASS: TestRetry/500_is_not_retried (0.00s)
+2026-11-19T15:06:03.6605264Z     --- PASS: TestRetry/401_is_not_retried (0.00s)
+2026-11-19T15:06:03.6605686Z     --- PASS: TestRetry/short_Retry-After_is_honoured (0.01s)
+2026-11-19T15:06:03.6606170Z     --- PASS: TestRetry/Retry-After_past_the_deadline_fails_now (0.00s)
+2026-11-19T15:06:03.6606690Z     --- PASS: TestRetry/HTTP-date_Retry-After_past_the_deadline (0.00s)
+2026-11-19T15:06:03.6607062Z === RUN   TestParseRetryAfter
+2026-11-19T15:06:03.6607336Z --- PASS: TestParseRetryAfter (0.00s)
+2026-11-19T15:06:03.6607606Z === RUN   TestTimeout
+2026-11-19T15:06:03.6607841Z === RUN   TestTimeout/our_timeout
+2026-11-19T15:06:03.6608256Z === RUN   TestTimeout/shorter_caller_deadline_wins
+2026-11-19T15:06:03.6608569Z --- PASS: TestTimeout (0.35s)
+2026-11-19T15:06:03.6608886Z     --- PASS: TestTimeout/our_timeout (0.20s)
+2026-11-19T15:06:03.6609300Z     --- PASS: TestTimeout/shorter_caller_deadline_wins (0.15s)
+2026-11-19T15:06:03.6609619Z === RUN   TestCancel
+2026-11-19T15:06:03.6609884Z === RUN   TestCancel/cancel_during_a_2_s_backoff_wait
+2026-11-19T15:06:03.6610211Z === RUN   TestCancel/cancel_during_the_request
+2026-11-19T15:06:03.6610522Z === RUN   TestCancel/cancelled_before_the_call
+2026-11-19T15:06:03.6610817Z --- PASS: TestCancel (0.10s)
+2026-11-19T15:06:03.6611186Z     --- PASS: TestCancel/cancel_during_a_2_s_backoff_wait (0.05s)
+2026-11-19T15:06:03.6611624Z     --- PASS: TestCancel/cancel_during_the_request (0.05s)
+2026-11-19T15:06:03.6612035Z     --- PASS: TestCancel/cancelled_before_the_call (0.00s)
+2026-11-19T15:06:03.6612563Z === RUN   TestBadResponse
+2026-11-19T15:06:03.6612822Z === RUN   TestBadResponse/not_JSON
+2026-11-19T15:06:03.6613117Z === RUN   TestBadResponse/wrong_JSON_type
+2026-11-19T15:06:03.6613408Z === RUN   TestBadResponse/empty_choices
+2026-11-19T15:06:03.6613706Z === RUN   TestBadResponse/no_choices_field
+2026-11-19T15:06:03.6614000Z === RUN   TestBadResponse/null_content
+2026-11-19T15:06:03.6614297Z === RUN   TestBadResponse/whitespace_content
+2026-11-19T15:06:03.6614599Z === RUN   TestBadResponse/oversized_body
+2026-11-19T15:06:03.6614886Z === RUN   TestBadResponse/empty_body
+2026-11-19T15:06:03.6615161Z --- PASS: TestBadResponse (0.03s)
+2026-11-19T15:06:03.6615490Z     --- PASS: TestBadResponse/not_JSON (0.00s)
+2026-11-19T15:06:03.6615873Z     --- PASS: TestBadResponse/wrong_JSON_type (0.00s)
+2026-11-19T15:06:03.6616260Z     --- PASS: TestBadResponse/empty_choices (0.00s)
+2026-11-19T15:06:03.6616661Z     --- PASS: TestBadResponse/no_choices_field (0.00s)
+2026-11-19T15:06:03.6617046Z     --- PASS: TestBadResponse/null_content (0.00s)
+2026-11-19T15:06:03.6617448Z     --- PASS: TestBadResponse/whitespace_content (0.00s)
+2026-11-19T15:06:03.6617851Z     --- PASS: TestBadResponse/oversized_body (0.02s)
+2026-11-19T15:06:03.6618223Z     --- PASS: TestBadResponse/empty_body (0.00s)
+2026-11-19T15:06:03.6618529Z === RUN   TestBodyCapBoundary
+2026-11-19T15:06:03.6618804Z --- PASS: TestBodyCapBoundary (0.09s)
+2026-11-19T15:06:03.6619081Z === RUN   TestTransportError
+2026-11-19T15:06:03.6619342Z --- PASS: TestTransportError (0.00s)
+2026-11-19T15:06:03.6619616Z === RUN   TestNoRedirect
+2026-11-19T15:06:03.6619847Z === RUN   TestNoRedirect/301
+2026-11-19T15:06:03.6620090Z === RUN   TestNoRedirect/302
+2026-11-19T15:06:03.6620330Z === RUN   TestNoRedirect/307
+2026-11-19T15:06:03.6620574Z === RUN   TestNoRedirect/308
+2026-11-19T15:06:03.6620823Z --- PASS: TestNoRedirect (0.00s)
+2026-11-19T15:06:03.6621127Z     --- PASS: TestNoRedirect/301 (0.00s)
+2026-11-19T15:06:03.6621445Z     --- PASS: TestNoRedirect/302 (0.00s)
+2026-11-19T15:06:03.6621916Z     --- PASS: TestNoRedirect/307 (0.00s)
+2026-11-19T15:06:03.6622508Z     --- PASS: TestNoRedirect/308 (0.00s)
+2026-11-19T15:06:03.6622804Z === RUN   TestConcurrentComplete
+2026-11-19T15:06:03.6623083Z --- PASS: TestConcurrentComplete (0.02s)
+2026-11-19T15:06:03.6623364Z === RUN   TestNoSecretLeaks
+2026-11-19T15:06:03.6623626Z === RUN   TestNoSecretLeaks/429_twice
+2026-11-19T15:06:03.6623901Z === RUN   TestNoSecretLeaks/503_twice
+2026-11-19T15:06:03.6624172Z === RUN   TestNoSecretLeaks/400
+2026-11-19T15:06:03.6624480Z === RUN   TestNoSecretLeaks/Retry-After_past_the_deadline
+2026-11-19T15:06:03.6624821Z === RUN   TestNoSecretLeaks/hang
+2026-11-19T15:06:03.6625081Z === RUN   TestNoSecretLeaks/non-JSON
+2026-11-19T15:06:03.6625358Z === RUN   TestNoSecretLeaks/empty_choices
+2026-11-19T15:06:03.6625646Z === RUN   TestNoSecretLeaks/oversized
+2026-11-19T15:06:03.6625939Z === RUN   TestNoSecretLeaks/connection_refused
+2026-11-19T15:06:03.6626263Z === RUN   TestNoSecretLeaks/cancel_during_backoff
+2026-11-19T15:06:03.6626612Z === RUN   TestNoSecretLeaks/raw:_malformed_status_line
+2026-11-19T15:06:03.6627098Z === RUN   TestNoSecretLeaks/raw:_malformed_header
+2026-11-19T15:06:03.6627428Z === RUN   TestNoSecretLeaks/raw:_garbage_response
+2026-11-19T15:06:03.6627735Z --- PASS: TestNoSecretLeaks (0.21s)
+2026-11-19T15:06:03.6628076Z     --- PASS: TestNoSecretLeaks/429_twice (0.01s)
+2026-11-19T15:06:03.6628435Z     --- PASS: TestNoSecretLeaks/503_twice (0.01s)
+2026-11-19T15:06:03.6628785Z     --- PASS: TestNoSecretLeaks/400 (0.00s)
+2026-11-19T15:06:03.6629215Z     --- PASS: TestNoSecretLeaks/Retry-After_past_the_deadline (0.00s)
+2026-11-19T15:06:03.6629654Z     --- PASS: TestNoSecretLeaks/hang (0.10s)
+2026-11-19T15:06:03.6630026Z     --- PASS: TestNoSecretLeaks/non-JSON (0.00s)
+2026-11-19T15:06:03.6630432Z     --- PASS: TestNoSecretLeaks/empty_choices (0.00s)
+2026-11-19T15:06:03.6630821Z     --- PASS: TestNoSecretLeaks/oversized (0.02s)
+2026-11-19T15:06:03.6631226Z     --- PASS: TestNoSecretLeaks/connection_refused (0.00s)
+2026-11-19T15:06:03.6631672Z     --- PASS: TestNoSecretLeaks/cancel_during_backoff (0.05s)
+2026-11-19T15:06:03.6632362Z     --- PASS: TestNoSecretLeaks/raw:_malformed_status_line (0.00s)
+2026-11-19T15:06:03.6632856Z     --- PASS: TestNoSecretLeaks/raw:_malformed_header (0.00s)
+2026-11-19T15:06:03.6633305Z     --- PASS: TestNoSecretLeaks/raw:_garbage_response (0.00s)
+2026-11-19T15:06:03.6633612Z PASS
+2026-11-19T15:06:03.6633818Z coverage: 96.6% of statements
+2026-11-19T15:06:03.6634145Z ok  	arxivlens/internal/llm	1.928s	coverage: 96.6% of statements
+2026-11-19T15:06:03.6634492Z === RUN   TestFakeScript
+2026-11-19T15:06:03.6634742Z --- PASS: TestFakeScript (0.00s)
+2026-11-19T15:06:03.6635023Z === RUN   TestFakeReturnsCopies
+2026-11-19T15:06:03.6635296Z --- PASS: TestFakeReturnsCopies (0.00s)
+2026-11-19T15:06:03.6635583Z === RUN   TestFakeRequests
+2026-11-19T15:06:03.6635835Z --- PASS: TestFakeRequests (0.00s)
+2026-11-19T15:06:03.6636097Z === RUN   TestFakeHang
+2026-11-19T15:06:03.6636329Z === RUN   TestFakeHang/deadline
+2026-11-19T15:06:03.6636587Z === RUN   TestFakeHang/cancel
+2026-11-19T15:06:03.6636840Z --- PASS: TestFakeHang (0.10s)
+2026-11-19T15:06:03.6637142Z     --- PASS: TestFakeHang/deadline (0.05s)
+2026-11-19T15:06:03.6637483Z     --- PASS: TestFakeHang/cancel (0.05s)
+2026-11-19T15:06:03.6637761Z === RUN   TestFakeConcurrent
+2026-11-19T15:06:03.6638015Z --- PASS: TestFakeConcurrent (0.00s)
+2026-11-19T15:06:03.6638260Z PASS
+2026-11-19T15:06:03.6638454Z coverage: 100.0% of statements
+2026-11-19T15:06:03.6638804Z ok  	arxivlens/internal/llm/llmtest	1.119s	coverage: 100.0% of statements
+2026-11-19T15:06:03.7378639Z arxivlens/internal/llm/config.go:37:		NewSecret	100.0%
+2026-11-19T15:06:03.7379270Z arxivlens/internal/llm/config.go:44:		reveal		100.0%
+2026-11-19T15:06:03.7379684Z arxivlens/internal/llm/config.go:51:		String		100.0%
+2026-11-19T15:06:03.7380172Z arxivlens/internal/llm/config.go:58:		GoString	100.0%
+2026-11-19T15:06:03.7380871Z arxivlens/internal/llm/config.go:59:		MarshalJSON	100.0%
+2026-11-19T15:06:03.7382137Z arxivlens/internal/llm/config.go:70:		String		100.0%
+2026-11-19T15:06:03.7383052Z arxivlens/internal/llm/config.go:75:		GoString	100.0%
+2026-11-19T15:06:03.7383730Z arxivlens/internal/llm/config.go:82:		ConfigFromEnv	100.0%
+2026-11-19T15:06:03.7384540Z arxivlens/internal/llm/config.go:117:		FromEnv		85.7%
+2026-11-19T15:06:03.7385256Z arxivlens/internal/llm/config.go:130:		normalize	100.0%
+2026-11-19T15:06:03.7385953Z arxivlens/internal/llm/llm.go:41:		String		100.0%
+2026-11-19T15:06:03.7386560Z arxivlens/internal/llm/llm.go:46:		GoString	100.0%
+2026-11-19T15:06:03.7387217Z arxivlens/internal/llm/llm.go:58:		String		100.0%
+2026-11-19T15:06:03.7387909Z arxivlens/internal/llm/llm.go:64:		GoString	100.0%
+2026-11-19T15:06:03.7388554Z arxivlens/internal/llm/llm.go:77:		String		100.0%
+2026-11-19T15:06:03.7389215Z arxivlens/internal/llm/llm.go:83:		GoString	100.0%
+2026-11-19T15:06:03.7389895Z arxivlens/internal/llm/llm.go:107:		Error		100.0%
+2026-11-19T15:06:03.7390513Z arxivlens/internal/llm/llm.go:119:		GoString	100.0%
+2026-11-19T15:06:03.7391176Z arxivlens/internal/llm/llm.go:122:		Unwrap		100.0%
+2026-11-19T15:06:03.7392331Z arxivlens/internal/llm/llm.go:133:		newError	100.0%
+2026-11-19T15:06:03.7392948Z arxivlens/internal/llm/llm.go:140:		attemptsText	100.0%
+2026-11-19T15:06:03.7393732Z arxivlens/internal/llm/llmtest/fake.go:26:	Reply		100.0%
+2026-11-19T15:06:03.7394446Z arxivlens/internal/llm/llmtest/fake.go:29:	Fail		100.0%
+2026-11-19T15:06:03.7395139Z arxivlens/internal/llm/llmtest/fake.go:32:	Hang		100.0%
+2026-11-19T15:06:03.7395749Z arxivlens/internal/llm/llmtest/fake.go:44:	New		100.0%
+2026-11-19T15:06:03.7396469Z arxivlens/internal/llm/llmtest/fake.go:46:	Name		100.0%
+2026-11-19T15:06:03.7397168Z arxivlens/internal/llm/llmtest/fake.go:49:	Complete	100.0%
+2026-11-19T15:06:03.7397773Z arxivlens/internal/llm/llmtest/fake.go:74:	Requests	100.0%
+2026-11-19T15:06:03.7398192Z arxivlens/internal/llm/llmtest/fake.go:84:	copyRequest	100.0%
+2026-11-19T15:06:03.7398629Z arxivlens/internal/llm/openai.go:43:		New		100.0%
+2026-11-19T15:06:03.7399011Z arxivlens/internal/llm/openai.go:62:		Name		100.0%
+2026-11-19T15:06:03.7399384Z arxivlens/internal/llm/openai.go:65:		String		100.0%
+2026-11-19T15:06:03.7399760Z arxivlens/internal/llm/openai.go:68:		GoString	100.0%
+2026-11-19T15:06:03.7400142Z arxivlens/internal/llm/openai.go:103:		Complete	100.0%
+2026-11-19T15:06:03.7400503Z arxivlens/internal/llm/openai.go:142:		encode		100.0%
+2026-11-19T15:06:03.7400969Z arxivlens/internal/llm/openai.go:174:		attempt		91.1%
+2026-11-19T15:06:03.7401674Z arxivlens/internal/llm/openai.go:243:		transportDetail	75.0%
+2026-11-19T15:06:03.7402602Z arxivlens/internal/llm/openai.go:260:		ctxError	100.0%
+2026-11-19T15:06:03.7403288Z arxivlens/internal/llm/openai.go:267:		retryable	100.0%
+2026-11-19T15:06:03.7404013Z arxivlens/internal/llm/openai.go:276:		parseRetryAfter	100.0%
+2026-11-19T15:06:03.7404603Z total:						(statements)	97.0%
+2026-11-19T15:06:03.7439855Z arxivlens/internal/llm/config.go 98.2%
+2026-11-19T15:06:03.7440472Z arxivlens/internal/llm/llm.go 100.0%
+2026-11-19T15:06:03.7441022Z arxivlens/internal/llm/llmtest/fake.go 100.0%
+2026-11-19T15:06:03.7441436Z arxivlens/internal/llm/openai.go 95.2%
+2026-11-19T15:06:03.7481681Z ##[group]Run make build-go
+2026-11-19T15:06:03.7481990Z [36;1mmake build-go[0m
+2026-11-19T15:06:03.7530583Z shell: /usr/bin/bash -e {0}
+2026-11-19T15:06:03.7530848Z ##[endgroup]
+2026-11-19T15:06:03.7612357Z go build -o bin/arxivlens ./cmd/arxivlens
+2026-11-19T15:06:04.7271338Z Post job cleanup.
+2026-11-19T15:06:04.8535102Z (node:8276) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-19T15:06:04.8535921Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-19T15:06:04.8604263Z [command]/opt/hostedtoolcache/go/1.25.0/x64/bin/go env GOMODCACHE
+2026-11-19T15:06:04.8655328Z [command]/opt/hostedtoolcache/go/1.25.0/x64/bin/go env GOCACHE
+2026-11-19T15:06:04.8712913Z /home/runner/go/pkg/mod
+2026-11-19T15:06:04.8713370Z /home/runner/.cache/go-build
+2026-11-19T15:06:04.8725227Z Cache hit occurred on the primary key setup-go-Linux-x64-ubuntu26-go-1.25.0-282abb17dbe996d56a2dfecbce61082860776038189ca3cb06eff71ee8aa2c93, not saving cache.
+2026-11-19T15:06:04.8957981Z Post job cleanup.
+2026-11-19T15:06:04.9861662Z [command]/usr/bin/git version
+2026-11-19T15:06:04.9914978Z git version 2.56.1
+2026-11-19T15:06:04.9960987Z Temporarily overriding HOME='/home/runner/work/_temp/3df81390-7bba-4896-8728-27518afff5a4' before making global git config changes
+2026-11-19T15:06:04.9962441Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-19T15:06:04.9967302Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ArxivLens/ArxivLens
+2026-11-19T15:06:05.0011729Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-19T15:06:05.0059479Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-19T15:06:05.0376921Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-19T15:06:05.0411014Z http.https://github.com/.extraheader
+2026-11-19T15:06:05.0425963Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-19T15:06:05.0478125Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-19T15:06:05.0837959Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-19T15:06:05.0881620Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-19T15:06:05.1360216Z Cleaning up orphan processes
+2026-11-19T15:06:05.1880612Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-go@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+

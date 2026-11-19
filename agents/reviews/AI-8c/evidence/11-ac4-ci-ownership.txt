@@ -1,0 +1,6 @@
+$ gh api .../actions/jobs/135653652453/logs | grep
+HEAD is now at d1f0d81 Merge dd5dac58fc4f47753e899458e15ad150f71babdb into 8b55af22dfff6e97f6541d1fc61f4717238ed7f0
+##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+[36;1m.github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"[0m
+Ownership OK for role=backend (11 changed lines)
+

@@ -1,0 +1,18 @@
+$ bash -c diff -r /root/qa/AI-8c/internal /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/h.X8Z8/mod/internal && echo 'harness internal/ == PR-head internal/ (diff -r clean)'; cd /tmp/claude-0/-home-claude/24892ef7-7db6-550a-9951-a22d2d33c3a1/scratchpad/h.X8Z8/mod && GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off go test -race -count=1 -run 'Synth|QuickAnswer|WithLLMNil' -v ./internal/query/ 2>&1 | grep -E '^(--- |ok|FAIL|PASS)'
+harness internal/ == PR-head internal/ (diff -r clean)
+--- PASS: TestBuildSynthesisPrompt (0.00s)
+--- PASS: TestBuildSynthesisPromptInjection (0.00s)
+--- PASS: TestParseSynthesis (0.00s)
+--- PASS: TestParseSynthesisErrorHasNoCompletionText (0.00s)
+--- PASS: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+--- PASS: TestSynthesisDropsUnsupportedClaims (0.00s)
+--- PASS: TestSynthesisRefusals (0.00s)
+--- PASS: TestSynthesisFallsBackToExtractive (0.03s)
+--- PASS: TestSynthesisClaimsUnsupportedFallBackToQuotes (0.01s)
+--- PASS: TestQuickAnswerSkipsSynthesis (0.01s)
+--- PASS: TestSynthesisMarkersFollowPromptOrder (0.00s)
+--- PASS: TestWithLLMNilKeepsExtractive (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.087s
+
+[exit code 0]
