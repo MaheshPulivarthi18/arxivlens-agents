@@ -1,0 +1,90 @@
+$ bash /root/mem/qa-69/agents/reviews/FE-0/checks/static.sh
+== AC2 fonts ==
+3:import '@fontsource-variable/inter'
+4:import '@fontsource-variable/source-serif-4'
+5:import '@fontsource-variable/source-serif-4/wght-italic.css'
+PASS  3 fontsource imports in main.jsx (inter, source-serif-4, wght-italic)
+PASS  font imports precede ./index.css
+PASS  no fonts.googleapis.com / fonts.gstatic.com in index.html or src/
+== AC3 tailwind.config.js ==
+PASS  config has: darkMode: \["class"\]
+PASS  config has: import typography from "@tailwindcss/typography"
+PASS  config has: plugins: \[typography\]
+PASS  config has: serif: \[."Source Serif 4 Variable"
+PASS  config has: sans: \[."Inter Variable"
+PASS  config has: maxWidth: "70ch"
+PASS  config has: "--tw-prose-links": "hsl\(var\(--primary\)\)"
+PASS  config has: supported: \{
+PASS  config has: unsupported: \{
+PASS  config has: unchecked: \{
+PASS  config has: DEFAULT: "hsl\(var\(--unchecked\)\)"
+PASS  config has: title: \[
+PASS  config has: clinical: \{
+27:            <span className="font-serif font-semibold text-xl text-foreground tracking-tight">ArxivLens</span>
+PASS  Navbar uses font-serif (so .font-serif will be emitted)
+PASS  body is font-sans
+PASS  --radius defined
+== AC4 border-input rule ==
+36:       Rule: every form control or control-identifying outline uses border-input, never border-border. */
+PASS  comment next to --input states the rule
+-- every border-* class in files styled by this PR:
+      1 frontend/src/components/Navbar.jsx:15:border-b border-border/80
+      1 frontend/src/components/Navbar.jsx:23:border border-border
+      1 frontend/src/components/Navbar.jsx:66:border
+      1 frontend/src/components/Navbar.jsx:73:border-input
+      1 frontend/src/components/ui/dropdown-menu.jsx:21:border border-border
+      1 frontend/src/components/ui/dropdown-menu.jsx:57:border
+PASS  the one outlined control (Infrastructure, variant=outline) overrides to border-input
+== AC6 ui/dropdown-menu.jsx ==
+PASS  wraps @radix-ui/react-dropdown-menu
+PASS  exports DropdownMenu
+PASS  exports DropdownMenuTrigger
+PASS  exports DropdownMenuContent
+PASS  exports DropdownMenuGroup
+PASS  exports DropdownMenuLabel
+PASS  exports DropdownMenuItem
+PASS  exports DropdownMenuRadioGroup
+PASS  exports DropdownMenuRadioItem
+PASS  exports DropdownMenuSeparator
+PASS  single export list of components only (no constants/default)
+forwardRef count: 5 (Content, Label, Item, RadioItem, Separator)
+PASS  forwardRef on every styled DOM element
+PASS  displayName copied from primitive (5)
+PASS  uses cn()
+PASS  no slate|emerald|teal|zinc|gray- classes in dropdown-menu.jsx / ThemeToggle.jsx
+PASS  data-[highlighted] visible focus
+PASS  font-sans on content
+PASS  ThemeToggle uses ui/dropdown-menu
+PASS  Navbar: no slate/emerald/teal/gradient classes
+== AC5 toggle (static) ==
+53:          aria-label={name}
+PASS  toggle trigger has accessible name
+66:              <DropdownMenuRadioItem key={value} value={value}>
+PASS  light/dark/system as Radix radio items (menuitemradio, keyboard)
+24:  useEffect(() => watchSystemTheme(setOsDark), [])
+PASS  OS change listener subscribed with cleanup
+79:          <ThemeToggle />
+PASS  mounted in Navbar
+== AC7 scope ==
+README.md
+frontend/index.html
+frontend/src/components/Navbar.jsx
+frontend/src/components/ThemeToggle.jsx
+frontend/src/components/ui/button.jsx
+frontend/src/components/ui/dropdown-menu.jsx
+frontend/src/index.css
+frontend/src/lib/theme.js
+frontend/src/main.jsx
+frontend/tailwind.config.js
+ 10 files changed, 382 insertions(+), 58 deletions(-)
+PASS  no change to package.json, package-lock.json, vite.config.js
+PASS  none of the out-of-scope feature components changed
+PASS  none of FE-0b's six primitive files added
+PASS  ui/{badge,card,dialog,progress,tabs}.jsx unchanged
+-          "bg-emerald-600 text-white shadow hover:bg-emerald-500",
++          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+PASS  button.jsx: only the default variant line changes
+
+RESULT: ALL PASS
+
+[exit code 0]

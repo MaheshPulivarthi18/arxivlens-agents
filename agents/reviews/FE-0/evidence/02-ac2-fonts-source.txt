@@ -1,0 +1,13 @@
+$ bash -c grep -n '@fontsource-variable' frontend/src/main.jsx; echo '--- grep google font hosts (exit 1 = none found):'; grep -rEn 'fonts\.(googleapis|gstatic)\.com' frontend/index.html frontend/src/; echo "exit=$?"; echo '--- CI woff2 assets (count, total kB):'; grep -o 'woff2 *[0-9.]* kB' /tmp/claude-0/qa69/fe-pr.log | awk '{n++; s+=$2} END {print n, s" kB"}'; grep -oE '(inter|source-serif-4)-[a-z-]+-wght-(normal|italic)' /tmp/claude-0/qa69/fe-pr.log | sed -E 's/-(latin|latin-ext|cyrillic|cyrillic-ext|greek|greek-ext|vietnamese)-/ /' | sort | uniq -c
+3:import '@fontsource-variable/inter'
+4:import '@fontsource-variable/source-serif-4'
+5:import '@fontsource-variable/source-serif-4/wght-italic.css'
+--- grep google font hosts (exit 1 = none found):
+exit=1
+--- CI woff2 assets (count, total kB):
+19 583.69 kB
+      7 inter wght-normal
+      6 source-serif-4 wght-italic
+      6 source-serif-4 wght-normal
+
+[exit code 0]

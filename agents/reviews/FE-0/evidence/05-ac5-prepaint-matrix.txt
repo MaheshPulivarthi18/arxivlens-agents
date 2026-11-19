@@ -1,0 +1,24 @@
+$ node /root/mem/qa-69/agents/reviews/FE-0/checks/prepaint.mjs
+inline classic scripts in index.html: 1
+pre-paint script in <head> (before </head>): true; before module script: true
+stored     | OS     | class .dark | colorScheme | expected | result
+none       | dark   | true        | dark        | dark     | PASS
+none       | light  | true        | dark        | dark     | PASS
+light      | dark   | false       | light       | light    | PASS
+light      | light  | false       | light       | light    | PASS
+dark       | dark   | true        | dark        | dark     | PASS
+dark       | light  | true        | dark        | dark     | PASS
+system     | dark   | true        | dark        | dark     | PASS
+system     | light  | false       | light       | light    | PASS
+invalid    | dark   | true        | dark        | dark     | PASS
+invalid    | light  | true        | dark        | dark     | PASS
+empty      | dark   | true        | dark        | dark     | PASS
+empty      | light  | true        | dark        | dark     | PASS
+throws     | dark   | true        | dark        | dark     | PASS
+throws     | light  | true        | dark        | dark     | PASS
+system, no matchMedia -> light (expected light, no throw): PASS
+pre-existing .dark + stored light -> .dark removed: PASS
+pre-paint DEFAULT_THEME = dark, key = arxivlens-theme, comment points at src/lib/theme.js: true
+RESULT: ALL PASS
+
+[exit code 0]

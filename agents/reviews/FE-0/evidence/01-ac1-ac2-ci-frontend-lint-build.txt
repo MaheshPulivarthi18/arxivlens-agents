@@ -1,0 +1,54 @@
+$ gh api .../actions/jobs/135901760356/logs (lint..build excerpt)
+2026-11-19T21:38:59.0211430Z ##[group]Run npm run lint
+2026-11-19T21:38:59.0211802Z [36;1mnpm run lint[0m
+2026-11-19T21:38:59.0253190Z shell: /usr/bin/bash -e {0}
+2026-11-19T21:38:59.0253546Z ##[endgroup]
+2026-11-19T21:38:59.1148516Z 
+2026-11-19T21:38:59.1149208Z > frontend@0.0.0 lint
+2026-11-19T21:38:59.1150111Z > oxlint
+2026-11-19T21:38:59.1150269Z 
+2026-11-19T21:38:59.1805855Z Found 0 warnings and 0 errors.
+2026-11-19T21:38:59.1806602Z Finished in 28ms on 23 files with 104 rules using 4 threads.
+2026-11-19T21:38:59.1988709Z ##[group]Run if npm run | grep -q " test"; then npm test; else echo "no frontend tests yet"; fi
+2026-11-19T21:38:59.1989575Z [36;1mif npm run | grep -q " test"; then npm test; else echo "no frontend tests yet"; fi[0m
+2026-11-19T21:38:59.2034991Z shell: /usr/bin/bash -e {0}
+2026-11-19T21:38:59.2035348Z ##[endgroup]
+2026-11-19T21:38:59.3122214Z no frontend tests yet
+2026-11-19T21:38:59.3162303Z ##[group]Run npm run build
+2026-11-19T21:38:59.3162642Z [36;1mnpm run build[0m
+2026-11-19T21:38:59.3200779Z shell: /usr/bin/bash -e {0}
+2026-11-19T21:38:59.3201107Z ##[endgroup]
+2026-11-19T21:38:59.4033917Z 
+2026-11-19T21:38:59.4034537Z > frontend@0.0.0 build
+2026-11-19T21:38:59.4034914Z > vite build
+2026-11-19T21:38:59.4035087Z 
+2026-11-19T21:38:59.6145080Z [36mvite v8.2.2 [32mbuilding client environment for production...[36m[39m
+2026-11-19T21:38:59.6294509Z transforming...
+2026-11-19T21:39:00.5214373Z ✓ 1923 modules transformed.
+2026-11-19T21:39:00.5607408Z rendering chunks...
+2026-11-19T21:39:00.6139203Z computing gzip size...
+2026-11-19T21:39:00.6197742Z dist/index.html                                                       1.54 kB │ gzip:   0.81 kB
+2026-11-19T21:39:00.6198757Z dist/assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2              10.25 kB
+2026-11-19T21:39:00.6200271Z dist/assets/inter-greek-ext-wght-normal-DlzME5K_.woff2               11.23 kB
+2026-11-19T21:39:00.6201495Z dist/assets/source-serif-4-vietnamese-wght-normal-BsaNuasd.woff2     13.50 kB
+2026-11-19T21:39:00.6202573Z dist/assets/source-serif-4-vietnamese-wght-italic-D3EGHrWW.woff2     13.92 kB
+2026-11-19T21:39:00.6203870Z dist/assets/source-serif-4-cyrillic-ext-wght-normal-DHTKMUil.woff2   18.11 kB
+2026-11-19T21:39:00.6204896Z dist/assets/source-serif-4-cyrillic-ext-wght-italic-y6hTrs-Y.woff2   18.35 kB
+2026-11-19T21:39:00.6206131Z dist/assets/inter-cyrillic-wght-normal-DqGufNeO.woff2                18.74 kB
+2026-11-19T21:39:00.6207171Z dist/assets/inter-greek-wght-normal-CkhJZR-_.woff2                   18.99 kB
+2026-11-19T21:39:00.6208191Z dist/assets/source-serif-4-greek-wght-normal-BpXpdlRW.woff2          20.18 kB
+2026-11-19T21:39:00.6209158Z dist/assets/source-serif-4-greek-wght-italic-CUp-f2uw.woff2          20.55 kB
+2026-11-19T21:39:00.6210137Z dist/assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2            25.96 kB
+2026-11-19T21:39:00.6211022Z dist/assets/source-serif-4-cyrillic-wght-italic-CRzqOTyj.woff2       34.97 kB
+2026-11-19T21:39:00.6211881Z dist/assets/source-serif-4-cyrillic-wght-normal-B1g8a0vD.woff2       36.50 kB
+2026-11-19T21:39:00.6212783Z dist/assets/source-serif-4-latin-ext-wght-normal-BVZ5su8S.woff2      42.21 kB
+2026-11-19T21:39:00.6231517Z dist/assets/source-serif-4-latin-ext-wght-italic-B_cmBfNX.woff2      44.42 kB
+2026-11-19T21:39:00.6232384Z dist/assets/inter-latin-wght-normal-Dx4kXJAl.woff2                   48.25 kB
+2026-11-19T21:39:00.6233290Z dist/assets/source-serif-4-latin-wght-normal-DMe4EKeb.woff2          50.93 kB
+2026-11-19T21:39:00.6234074Z dist/assets/source-serif-4-latin-wght-italic-B-rCj6ir.woff2          51.57 kB
+2026-11-19T21:39:00.6234816Z dist/assets/inter-latin-ext-wght-normal-DO1Apj_S.woff2               85.06 kB
+2026-11-19T21:39:00.6235778Z dist/assets/index-C-QohhPF.css                                       35.85 kB │ gzip:   7.06 kB
+2026-11-19T21:39:00.6236688Z dist/assets/index-D6ERmtar.js                                       405.87 kB │ gzip: 126.84 kB
+2026-11-19T21:39:00.6237136Z 
+2026-11-19T21:39:00.6237698Z [32m✓ built in 1.01s[39m
+

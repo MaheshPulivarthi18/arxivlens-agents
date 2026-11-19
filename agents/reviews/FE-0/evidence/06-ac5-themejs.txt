@@ -1,0 +1,46 @@
+$ node /root/mem/qa-69/agents/reviews/FE-0/checks/themejs.mjs
+PASS  exports: THEME_STORAGE_KEY, THEMES, DEFAULT_THEME, getStoredTheme, setStoredTheme, resolveTheme, systemPrefersDark, applyTheme, watchSystemTheme
+PASS  DEFAULT_THEME === "dark" (got "dark")
+PASS  THEMES = light,dark,system (got light,dark,system)
+PASS  same key as index.html pre-paint ("arxivlens-theme")
+PASS  same default as index.html pre-paint
+PASS  theme.js comment points at index.html
+PASS  getStoredTheme: nothing stored -> dark
+PASS  getStoredTheme: stored light -> light
+PASS  getStoredTheme: stored dark -> dark
+PASS  getStoredTheme: stored system -> system
+PASS  getStoredTheme: stored "purple" -> dark
+PASS  getStoredTheme: stored "" -> dark
+PASS  getStoredTheme: stored "DARK" -> dark
+PASS  getStoredTheme: stored "null" -> dark
+PASS  getStoredTheme: storage throws -> dark, no throw (got dark)
+PASS  setStoredTheme(light) persists under arxivlens-theme
+PASS  setStoredTheme(system) persists
+PASS  setStoredTheme(invalid) ignored (keeps system)
+PASS  setStoredTheme swallows storage errors
+PASS  resolveTheme(light, osDark=true) -> light
+PASS  resolveTheme(light, osDark=false) -> light
+PASS  resolveTheme(dark, osDark=true) -> dark
+PASS  resolveTheme(dark, osDark=false) -> dark
+PASS  resolveTheme(system, osDark=true) -> dark
+PASS  resolveTheme(system, osDark=false) -> light
+PASS  systemPrefersDark() true when OS dark
+PASS  systemPrefersDark() false when OS light
+PASS  applyTheme(dark) on OS light -> .dark + colorScheme dark
+PASS  applyTheme(light) -> no .dark + colorScheme light
+PASS  applyTheme(system) on OS dark -> dark
+PASS  applyTheme(system) on OS light -> light
+PASS  applyTheme(invalid) -> default dark
+PASS  watchSystemTheme subscribes one change listener
+PASS  OS -> dark while in system: callback(true) and .dark applied without reload
+PASS  OS -> light while in system: callback(false) and .dark removed
+PASS  unsubscribe removes the listener
+PASS  no callback after unsubscribe
+PASS  legacy addListener path subscribes
+PASS  legacy removeListener path unsubscribes
+PASS  systemPrefersDark() without matchMedia -> false
+PASS  watchSystemTheme without matchMedia -> no-op unsubscribe
+PASS  no window/document/localStorage (SSR/Node): getStoredTheme,applyTheme(system) = dark,light
+RESULT: ALL PASS (42 checks)
+
+[exit code 0]

@@ -1,0 +1,142 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/pulls/69 --jq .body
+## FE-0: Classic research theme: fonts, tokens, dark mode, theme toggle
+
+**Agent:** frontend-engineer · **Spec:** [agents/tasks/FE-0.md](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/main/agents/tasks/FE-0.md) · **Design:** [docs/design/FE-0.md](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/main/docs/design/FE-0.md) (approved with conditions) · **PRD ref:** Product PRD UI-1, UI-2, §7 principles 1 and 3 · **Jira:** story `labels = "task-FE-0"` (epic KAN-5)
+
+This is the design's "FE-0a" part. The six other primitives (tooltip, popover, collapsible, scroll-area, separator, sonner) are FE-0b and are **not** in this PR.
+
+### What changed
+- `src/index.css`: light (paper/ink) `:root` and dark (warm near-black) `.dark` token sets, all shadcn names kept, plus new `--supported`, `--unsupported`, `--unchecked` (+ `-foreground`). Ink-blue accent (`--primary` = links, primary action, `--ring`). `--input` is ≥ 3:1 and a comment next to it states the rule: **every control outline uses `border-input`, never `border-border`**. Body is now `font-sans`. Scrollbar re-tinted via tokens. `--radius` 0.65rem → 0.375rem.
+- `tailwind.config.js`: `font-sans` = Inter Variable stack, `font-serif` = Source Serif 4 Variable stack, `mono` kept (system fallback). `supported`/`unsupported`/`unchecked` colours. `@tailwindcss/typography` registered, with a token-mapped `DEFAULT` prose theme (`maxWidth: 70ch`, follows `.dark` without `prose-invert`). `clinical` and `title` are kept but marked deprecated. `darkMode: ["class"]` kept.
+- `src/main.jsx`: imports `@fontsource-variable/inter`, `@fontsource-variable/source-serif-4` and `…/source-serif-4/wght-italic.css`.
+- `index.html`: Google Fonts `<link>`s removed (no request to fonts.googleapis/gstatic). Adds `<meta name="color-scheme">` and an inline pre-paint script in `<head>` that sets `.dark` before React mounts.
+- New `src/lib/theme.js` (plain ESM: `getStoredTheme`, `setStoredTheme`, `resolveTheme`, `systemPrefersDark`, `applyTheme`, `watchSystemTheme`) and `src/components/ThemeToggle.jsx` (Light / Dark / System radio menu, persisted in `localStorage["arxivlens-theme"]`, live OS-change follow in System, cross-tab sync).
+- New `src/components/ui/dropdown-menu.jsx`: shadcn-style Radix wrapper (Content, Label, Item, RadioItem, Separator forwardRef'd; `cn()`; tokens only; `data-[highlighted]` focus; `font-sans` content).
+- `ui/button.jsx`: only the `default` variant changes, to `bg-primary text-primary-foreground` (no existing caller used it).
+- `Navbar.jsx`: on tokens. The brand is now a keyboard-reachable `<button>`, tabs get `aria-current="page"`, and the brand, tabs, Index Paper, Infrastructure and theme button all have a visible 2px focus ring. Gradient, emerald and glow are removed, the outlined button uses `border-input`, and `<ThemeToggle/>` is mounted.
+- App `README.md`: one sentence on the theme toggle under "Run the UI".
+
+No dependency changes (all packages were already in the lockfile from #64/#67). No change to `package.json`, `package-lock.json`, `vite.config.js` or any file in #68.
+
+### Visible copy change: "Clinical Research AI" badge removed (reversible)
+| | Navbar brand |
+|---|---|
+| **Before** | `[🔬] ArxivLens` **`Clinical Research AI`** (emerald badge) / *Precision-Grounded Literature Engine* (mono) |
+| **After** | `[🔬] ArxivLens` (serif) / *Precision-Grounded Literature Engine* (sans, muted). No badge. |
+
+### For Mahesh: three reversible choices (how to veto)
+1. **First visit is dark until FE-3**, even for OS-light users (`DEFAULT_THEME = "dark"` in `src/lib/theme.js` and in the `index.html` pre-paint script). Light mode would put the ask flow's hard-coded text at ~1.16:1 until FE-3 moves it to tokens, and FE-3 has an AC to flip the default to `"system"`.
+2. **The "Clinical Research AI" badge is removed** (above).
+3. **The accent is ink blue, not arXiv red.** Red stays reserved for *unsupported* and *destructive*, so "click here" never looks like "this claim failed".
+
+To overrule any of them, leave a review comment on this PR (for example "keep the badge", "default to system now" or "use arXiv red"). It goes back to frontend-engineer as a rework item. Each change is a constant or a few lines.
+
+### Acceptance criteria (developer self-check; QA verifies independently)
+- [x] AC1 build + lint: CI `Frontend (lint, test, build)` passed on `ca76bea`. oxlint printed `Found 0 warnings and 0 errors.`, the same as main's `4c7d327` run (0). The first head `dcf93c5` had 1 warning (setState in an effect in ThemeToggle), fixed in `ca76bea`
+- [x] AC2 fonts self-hosted: the CI Vite asset list shows Inter `wght-normal` (7) and Source Serif 4 `wght-normal` (6) plus `wght-italic` (6) `woff2` files; 3 fontsource imports in `main.jsx`; no `fonts.(googleapis|gstatic).com` in `index.html` or `src/` (grep)
+- [x] AC3 tokens: all 25 colour tokens in both `:root` and `.dark`, plus `--radius`; config exposes serif/sans, the status colours and the typography plugin (`DEFAULT`, 70ch). Checked with a Node script
+- [x] AC4 contrast: every pair passes in both themes, parsed from `src/index.css` (table below). `--input` is 3.30/3.48 on background and 3.50/3.23 on card. The one outlined control (Infrastructure) uses `border-input`, and `border-border` appears only on the decorative edges (header hairline, logo tile, menu panel)
+- [x] AC5 dark mode: pre-paint matrix and `theme.js` functions checked in bare Node, 31/31 PASS (below). The toggle is a Radix radio menu (`menuitemradio`, arrow keys, Enter/Space, Esc returns focus) with `aria-label` "Theme: Light", "Theme: Dark" or "Theme: System (dark/light)"
+- [x] AC6 `ui/dropdown-menu.jsx`: exports the 9 components from design §6, uses forwardRef, `cn()` and tokens only, and ThemeToggle uses it
+- [x] AC7 scope: 10 files, all in Scope; +381/−58 = 439 changed lines (ownership check OK, over the 400 warning)
+- [ ] AC8 visual: **fallback used**. The sandbox can't install `node_modules` (npm registry unreachable), so there are no screenshots. Evidence = CI build log + token diff + contrast table
+- [x] AC9 docs: design approved before code; README line added; badge before/after above; font count and size below (after CI)
+
+<details><summary>Contrast table (computed from <code>src/index.css</code>)</summary>
+
+```
+pair                                      min   light   dark
+foreground on background                 4.5   15.66  14.88  PASS
+card-foreground on card                  4.5   16.63  13.79  PASS
+popover-foreground on popover            4.5   16.63  13.40  PASS
+muted-foreground on background           4.5    6.37   7.45  PASS
+muted-foreground on card                 4.5    6.77   6.91  PASS
+muted-foreground on muted                4.5    5.84   5.91  PASS
+primary-foreground on primary            4.5    8.73   8.11  PASS
+secondary-foreground on secondary        4.5   13.73  10.99  PASS
+accent-foreground on accent              4.5    9.47   8.98  PASS
+destructive-foreground on destructive    4.5    6.74   5.89  PASS
+primary on background                    4.5    8.56   8.25  PASS
+primary on card                          4.5    9.09   7.65  PASS
+supported-foreground on supported        4.5    7.23   8.41  PASS
+unsupported-foreground on unsupported    4.5    7.55   7.99  PASS
+unchecked-foreground on unchecked        4.5    7.71   8.82  PASS
+ring on background                       3      8.56   8.25  PASS
+ring on card                             3      9.09   7.65  PASS
+input on background                      3      3.30   3.48  PASS
+input on card                            3      3.50   3.23  PASS
+border on background (decorative)        n/a    1.31   1.46  decorative
+```
+</details>
+
+<details><summary>Pre-paint matrix (index.html script run in Node with stubbed storage/matchMedia)</summary>
+
+```
+stored          | OS dark | OS light
+none            | dark    | dark
+light           | light   | light
+dark            | dark    | dark
+system          | dark    | light
+invalid         | dark    | dark
+storage throws  | dark    | dark
+```
+`theme.js`: same key and default as `index.html`; `resolveTheme` table; `getStoredTheme` fallbacks (none, invalid, throws, no storage → dark); `setStoredTheme` persists, ignores invalid values and swallows errors; `applyTheme` toggles `.dark` and `colorScheme`; `watchSystemTheme` applies an OS change live and unsubscribes cleanly. All PASS.
+</details>
+
+<details><summary>Token diff (old single dark set → new light / dark)</summary>
+
+| Token | Old (dark only) | New light | New dark |
+|---|---|---|---|
+| background | 222 47% 7% | 40 23% 97% | 30 7% 8% |
+| foreground | 210 40% 98% | 222 22% 13% | 40 20% 90% |
+| card / popover | 222 47% 9% | 0 0% 100% | 30 6% 11% / 12% |
+| primary (accent) | 158 64% 45% (emerald) | 216 60% 32% (ink blue) | 214 72% 72% |
+| primary-foreground | 222 47% 7% | 40 23% 98% | 220 35% 10% |
+| secondary | 217 33% 17% | 40 14% 91% | 30 5% 18% |
+| muted | 217 33% 14% | 40 14% 93% | 30 5% 16% |
+| muted-foreground | 215 20.2% 65.1% | 220 9% 37% | 35 8% 64% |
+| accent | 199 89% 48% (cyan) | 214 45% 93% | 214 22% 20% |
+| destructive | 0 62.8% 30.6% | 2 64% 40% | 2 62% 44% |
+| border | 217 33% 18% | 40 10% 85% | 30 5% 20% |
+| input | 217 33% 18% (= border) | 220 8% 55% | 30 5% 42% |
+| ring | 158 64% 45% | 216 60% 32% | 214 72% 72% |
+| supported / unsupported / unchecked | — | new (see design §1) | new |
+| radius | 0.65rem | 0.375rem | — |
+</details>
+
+### Verification
+| Command | Result |
+|---|---|
+| `npm ci && npm run lint && npm run build` (CI Frontend job 135901760356) | pass: lint 0 warnings / 0 errors, `✓ built in 1.01s`, tests "no frontend tests yet" (FE-1 adds them) |
+| `make test-unit` / `make lint` | no Go/Python changes; CI on this head |
+| `make eval` | not run: no retrieval/answering change |
+| Node self-checks (theme matrix, tokens, contrast, static greps) | ALL PASS (uncommitted; committing them as `src/lib/theme.test.js` is a follow-up after #68 merges) |
+| `.github/scripts/ownership-check.sh origin/main agent/frontend/FE-0` | Ownership OK for role=frontend (439 changed lines) |
+
+### Font bundle (from the CI Vite build log)
+From CI Frontend job 135901760356 (head `ca76bea`): **19 `woff2` files, 583.69 kB total** (Inter normal: 7 subsets; Source Serif 4: 6 normal + 6 italic subsets).
+Browsers download only the unicode-range subsets a page uses. For Latin text that's `inter-latin-wght-normal` 48.25 kB + `source-serif-4-latin-wght-normal` 50.93 kB (+ `…-latin-wght-italic` 51.57 kB once italics appear), about 99 kB (151 kB with italics), cached after the first load.
+
+CI on `ca76bea`: Frontend ✅ · Go ✅ · Python M0 ✅ · DB ✅ · Agent ownership ✅
+
+### Not verified / risks
+- No screenshots (AC8 fallback): the sandbox can't install `node_modules`. QA may produce them if their environment can.
+- `dist/` greps (`@font-face`, `.font-serif`) need a local build; the CI step for them is OPS-H14.
+- Interim: feature components still use hard-coded dark classes (FE-3/FE-4/FE-2). In Light mode the ask flow is hard to read until FE-3, which is why the default is dark.
+- `font-title` (Outfit) and `font-mono` (JetBrains Mono) now fall back to Inter and the system monospace font (no Google Fonts and no new dependency).
+
+### Follow-ups
+- Commit the AC5 Node checks as `src/lib/theme.test.js` once FE-1 (#68) merges.
+- OPS-H14 (backend): `frontend` CI job greps `dist/` for `@font-face`, `.font-serif`, `.prose`, `woff2` and no Google font hosts.
+- FE-0b: the six remaining primitives. FE-3: flip `DEFAULT_THEME` to `"system"`.
+
+### Review status (filled by the workflow)
+- QA (qa-reviewer): PENDING → `agents/reviews/FE-0/report.md`
+- PM (pm-lead): —
+- Merge: human, after QA PASS + PM APPROVE
+
+https://claude.ai/code/session_01ATEBeRGmCD5jzSfoDqn6n2
+
+---
+_Generated by [Claude Code](https://claude.ai/code)_
+
