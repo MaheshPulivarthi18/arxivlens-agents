@@ -8,7 +8,7 @@
 | **Depends on** | **ING-6f #58 merged** (same file; AC6 edits its step). Otherwise none to build. Independence: no open PR touches `.github/workflows/stack.yml` (checked 2026-11-17: #51 docs/evals, #52 `db.yml`/README/CONTRIBUTING/`internal/query/search*`/2 tests, #53 `ci.yml`/Makefile/requirements/Dockerfiles, #54 `rag.go`, #55 `internal/db`, `internal/downloader`, `tests/test_m4_chaos.py`). Don't touch `Makefile` (held by #53) |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H12`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P2, CI-only, a few lines, no CLI/table/service/contract change |
-| **Status** | Blocked (needs ING-6f #58 merged: same file, AC6 edits its step). Specced 2026-11-17 by pm-lead |
+| **Status** | In Progress: built, branch `agent/backend/OPS-H12` pushed at `89fd583`; draft PR to be opened by the orchestrator, then AC1/AC2/AC3 (green part)/AC6 need its `stack.yml` run. Specced 2026-11-17 by pm-lead |
 
 ## Goal
 On a green run, `make test-full` in `stack.yml` runs `pytest -q`, which prints only dots, so no log line names a test. ACs like
@@ -57,3 +57,15 @@ grep -E 'PASSED tests/test_m4_chaos.py::' stack.log
 - 2026-11-17 (pm-lead): **sequencing with ING-6f**. Both edit `.github/workflows/stack.yml`, so they must not run in parallel. ING-6f (P1, it
   unblocks ING-6b) goes first, and OPS-H12 starts after ING-6f's PR merges, or rebases on it. Independence check at start: no open PR on `stack.yml`.
 - 2026-11-17 (pm-lead, ING-6f final review): folded ING-6f nit 2 in as the last Scope bullet + AC6 (1 line). Start only after #58 is merged (`pulls/58.merged`), branch from the new `origin/main`.
+- 2026-11-19 (backend): built on `origin/main` 8b55af2 (#58 merged). Commit `89fd583`, `.github/workflows/stack.yml` only, +4/-2 (6 changed lines).
+  - Changes: `PYTEST_ARGS="$(printf -- '--deselect %s ' "${f1[@]}")-rA"` (printf's trailing space separates `-rA`); summary copy is
+    `sed -n '/short test summary info/,$p' test-full.log | grep -v '^PASSED '`; `continue-on-error: true` on the Risk 1 step. `rc=${PIPESTATUS[0]}` and `exit "$rc"` are unchanged.
+  - Local evidence: actionlint 1.7.7 (release binary, same version as the workflow's step) with shellcheck 0.10.0 gives rc=0 on the new file and on main.
+    `bash -n` is OK on the extracted AC4 and Risk 1 `run:` blocks. Ownership check: `Ownership OK for role=backend (6 changed lines)`.
+  - Simulation: the AC4 block (minus `sudo chown`) ran against the real Makefile with pytest 9.1.1 and toy tests (4 pass, 3 skips, 1 deselected).
+    Green: rc 0, 4 `PASSED tests/…` lines = `4 passed`, SKIPPED [n] sum 3 = `3 skipped`, summary has 0 `PASSED` lines and keeps SKIPPED plus the count line.
+    Red (1 failing test): step rc 2, summary keeps the `FAILED …` line and `1 failed, 3 passed, …`.
+  - Side effect for QA: `-rA` also adds a `PASSES` section to the job log (captured stdout of passing tests that printed), above the short summary.
+    It is job log only (the summary copies from `short test summary info` on), so grep with `^…Z PASSED tests/` as the Verification block does.
+  - Not verifiable locally: AC1, AC2, AC3 (green job), AC6 (RISK1 line + step conclusion) need this PR's `stack.yml` run.
+  - Docs: CONTRIBUTING's `stack.yml` row describes triggers and artifacts, not how to read test output, so no follow-up is needed.

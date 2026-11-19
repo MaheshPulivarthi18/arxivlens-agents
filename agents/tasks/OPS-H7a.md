@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H7f **merged** (`5e557bc`). OPS-H10 #26 **merged** (`54cad79`). RET-2 merged (`6cfd836`), so the README sequencing is moot. Must not run alongside another task that edits `.github/workflows/db.yml` (ING-11b, OPS-H9) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7a`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07) |
-| **Status** | Ready (all dependencies merged; re-checked 2026-11-17). Not picked in cycle 2026-11-17 08:00Z: shares `db.yml` with ING-11b. Next backend slot after ING-11b merges |
+| **Status** | In QA: size gate fired (projected ~890 lines); this branch ships the **OPS-H7a1** slice only (`kafka.go`, tests, `db.yml`, `go.mod`) @ `d420463`. OPS-H7a2 (List/CLI/fakes/README) to be specced by pm-lead after a1 merges |
 
 ## Goal
 An operator can list every record in a DLQ up to the end of the topic, page by page, and see each record's `partition/offset` so they can resume.
@@ -51,3 +51,23 @@ KAFKA_BROKERS=localhost:9092 go test -tags integration -count=1 -v ./internal/dl
 - 2026-11-17 (pm-lead, grooming): dependencies merged. Line refs moved: `inspect` reads the first 100 at `cmd/arxivlens/main.go:322`
   (was 309; #46 added the LLM wiring to the `query` command), and the README CLI rows are still `README.md:183-185`. `kmsg` is still `// indirect`
   in `go.mod`. #45 (`393bcf3`) didn't touch `internal/dlq` or `db.yml`.
+- 2026-11-19 (backend-engineer): **size gate fired; split. This branch is OPS-H7a1 only.**
+  - Skeleton commit `39274c6` (stubs + doc comments for the whole ticket): `7 files changed, 84 insertions(+)`. Projection: non-test kafka.go ~200,
+    manager.go ~105, main.go ~80, db.yml ~28, README ~8, go.mod 2 = **~420 (> 250)**. Tests: kafka_test ~110, kafka_integration_test ~120,
+    manager_test ~170, cmd dlq_test ~70 = ~470. **Total ~890 (> 480).** Split at the named seam.
+  - **OPS-H7a1 (built, `agent/backend/OPS-H7a` head `d420463`):** `git diff --stat origin/main`: db.yml +16, go.mod +1/-1, internal/dlq/kafka.go +212,
+    kafka_integration_test.go +110, kafka_test.go +140 → **5 files, 479 insertions, 1 deletion (480 changed; 230 non-test)**. a1 alone first measured 598
+    and was trimmed to fit with no test row dropped except the integration "from mid-partition" subtest (covered by unit rows `below from` / `fn false stops`).
+  - Added `internal/dlq/kafka_test.go` (not in the Scope file list): unit tests for new Go code, no infra (role rule 5).
+  - Types live in `kafka.go` (not manager.go) so a1 doesn't touch manager.go: `Watermark{Low, High}`, `Record{Partition, Offset, Timestamp, Value, Payload}`
+    (`Value` added so a2 can print `UNDECODABLE (n bytes)`), `Reader`, `ErrPartitionStalled` (a wrapped sentinel; the message names topic/partition, offset,
+    snapshot high and the timeout). `KafkaReader` exports `FetchMaxBytes`, `PollTimeout` (1 s), `StallTimeout` (10 s), `Polls()`, `Close()`.
+  - For a2: `Watermarks` on a missing topic returns an error wrapping `kerr.UnknownTopicOrPartition` (no auto-create). `stack.yml:249,260` call `dlq list`
+    for all three DLQs without `|| true`. compose's kafka-init creates them, so it's fine on the stack, but a2 must decide the CLI behaviour (error vs "0 records").
+    a2 also has to assert `var _ Reader = (*KafkaReader)(nil)` when it wires `Manager`; it was cut here for size.
+  - Not run locally: Go 1.25 and the module proxy are unavailable in the sandbox. Ran a scratch Go 1.24 module with the real `internal/dlq/kafka*.go` and
+    `shared/events` plus hand-written `kgo`/`kmsg`/`kerr` stubs (signatures from franz-go v1.16.1 as I know them; **not** the real API): `go vet` (+ `-tags integration`)
+    ok, `go test -race -count=10 ./internal/dlq/` ok, 21 single-edit mutants: 20 killed, M22 (swap low/high inside `Watermarks`) survives unit tests. It's killed only
+    by the integration test (`Low > High` → `mergeWatermarks` error). The real-Kafka test runs only in `db.yml` on the PR (it has no branch-push trigger).
+  - **Next: OPS-H7a2** (pm-lead to spec): `Manager.List` + cursor/page on `Reader`, `manager_test.go` with `fakeReader` (AC1, AC3), `dlq list`/`inspect` CLI +
+    `TestDLQFlags` (AC4, AC5), README CLI table. AC2 is covered by this slice.
