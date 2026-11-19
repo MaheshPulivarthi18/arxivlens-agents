@@ -5,10 +5,10 @@
 | **Owner** | frontend-engineer |
 | **Priority** | P0 (ADR-0003 consequence: unsupported citations must stay visibly flagged; Product PRD §7 principles 1–2) |
 | **PRD ref** | Product PRD UI-1, QA-4, QA-5, §7; ADR-0003 (Accepted) |
-| **Depends on** | **FE-1 merged** (Vitest harness; env-blocked, see FE-1). AI-7 merged (`8406b18`). #46 merged (`cc57474`: new props and `insufficient_evidence`) |
+| **Depends on** | **FE-1 merged** (Vitest harness) and **FE-0 merged** (theme tokens, fonts, `ui/tooltip`). AI-7 merged (`8406b18`). #46 merged (`cc57474`: new props and `insufficient_evidence`) |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-3"`) |
 | **Design required** | **yes** (short, `docs/design/FE-3.md`: states, copy and component changes; P0) |
-| **Status** | Ready once FE-1 merges (FE-1 is env-blocked on npm). Design `docs/design/FE-3.md` not written yet |
+| **Status** | Waiting on dependencies (FE-1, FE-0). Design `docs/design/FE-3.md` not written yet: it can start once FE-0's design is approved |
 
 ## Goal
 After AI-7, `/v1/ask` can return no answer plus evidence passages and a `refusal_reason`. The UI must show that as a
@@ -60,3 +60,8 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   **`insufficient_evidence`** ("the passages found don't answer this question"), and the design must cover the two-stage states (quoted
   answer shown while `writing`, then swapped). A written answer that falls back to quotes stays quoted (`App.jsx:109-110`). Extend AC1/AC2
   with an `insufficient_evidence` fixture.
+- 2026-11-19 (pm-lead, grooming): FE-1 is unblocked (#64/#67 merged the test deps) and now Ready. FE-3 also depends on **FE-0** (classic
+  research theme). Use FE-0's tokens and fonts: answer prose in `font-serif`, the status badges styled with the `supported` / `unsupported` / `unchecked`
+  tokens (add the badge variants here), and a `ui/tooltip` on each status chip explaining what it means (e.g. "Supported: the passage
+  entails this sentence (score x%)"). The tooltip is extra help only: the chip text must carry the meaning without it (AC3 unchanged).
+  Restyling `SynthesisView`/`ReferencesStack` to the tokens is in scope here. The design must not start before FE-0's design is approved.

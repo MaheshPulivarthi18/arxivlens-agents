@@ -5,10 +5,10 @@
 | **Owner** | frontend-engineer |
 | **Priority** | P0 (Phase 1 item 8; Product PRD §7 principle 3 "one click to the source") |
 | **PRD ref** | Product PRD UI-1, QA-3, QA-4, §7 principles 1–3; ADR-0014 (Accepted 2026-11-07); ADR-0018 (Proposed: `answer_kind`) |
-| **Depends on** | **AI-8 merged** (claims + provenance JSON; design stage now), **FE-3 merged** (same components), FE-1 (harness, env-blocked). ADR-0014 Accepted. ING-11b for real `page` values (fixtures suffice for tests) |
+| **Depends on** | **AI-8 merged** (claims + provenance JSON; design stage now), **FE-3 merged** (same components), **FE-1 merged** (harness), **FE-0 merged** (theme, `ui/popover`, `ui/collapsible`). ADR-0014 Accepted. ING-11b for real `page` values (fixtures suffice for tests) |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-4"`) |
 | **Design required** | **yes** (`docs/design/FE-4.md`: layout, states, interaction; P0) |
-| **Status** | Waiting on dependencies (AI-8, FE-3; FE-1 env-blocked). Not ADR-blocked any more: ADR-0014 was Accepted 2026-11-07 |
+| **Status** | Waiting on dependencies (AI-8, FE-3, FE-1, FE-0). Not ADR-blocked: ADR-0014 was Accepted 2026-11-07 |
 
 ## Goal
 Let a researcher check any statement in an answer in one or two clicks: see whether it was supported, unsupported or
@@ -44,3 +44,7 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   so "vN" labels are trustworthy for new ingests. Status chips should use AI-8's `status` (which separates `unverified` from `unsupported`), not
   the `supported` bool. For NLI-verified LLM claims AI-8 gives no `quote` (the prompt doesn't ask for one), so the "quote not located"
   fallback is the common case for written answers. Say so in the design.
+- 2026-11-19 (pm-lead, grooming): added **FE-0** (classic research theme) as a dependency. FE-1 is no longer env-blocked (#64/#67). Use FE-0's
+  primitives: `ui/popover` for an `[n]` preview (paper title, section, status, on hover/focus) and `ui/collapsible` to expand the full passage
+  on a dense reference card. AC2 still holds: Enter/click on `[n]` focuses the card, and the popover is extra help that must not trap focus.
+  Status chips use the FE-0 status tokens, with *not checked* distinct from *unsupported*.

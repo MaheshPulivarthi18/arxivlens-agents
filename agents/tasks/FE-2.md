@@ -5,8 +5,8 @@
 | **Owner** | frontend-engineer |
 | **Priority** | P2 |
 | **PRD ref** | UI-5 (per-citation BibTeX copy already exists in `ReferencesStack.jsx`; this completes the "export" half) |
-| **Depends on** | FE-1 |
-| **Status** | Ready |
+| **Depends on** | **FE-1 merged** (harness) and **FE-0 merged** (theme, `ui/dropdown-menu`) |
+| **Status** | Waiting on dependencies (FE-1, FE-0; best after FE-3) |
 
 ## Goal
 Priya (Product PRD persona) copies citations into a related-work draft. Let her take all of an answer's references at once.
@@ -27,3 +27,7 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
 ```
 
 ## Notes
+- 2026-11-19 (pm-lead, grooming): added **FE-0** as a dependency. Put "Export" in a `ui/dropdown-menu` from FE-0 (items: "BibTeX (.bib)"
+  now; room for Markdown later), styled with the theme tokens. AC2 applies to the trigger and the items (Radix gives keyboard support;
+  test it). The trigger is disabled for refusals. FE-2 and FE-3 both touch `ReferencesStack.jsx`/`SynthesisView.jsx`, so run FE-2 after FE-3 merges, or
+  keep the button in a file FE-3 doesn't change.

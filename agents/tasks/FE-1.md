@@ -5,29 +5,43 @@
 | **Owner** | frontend-engineer |
 | **Priority** | P1 (frontend agent has no way to verify its work beyond `build`) |
 | **PRD ref** | UI-1, QA-3, QA-4, QA-5; Product PRD §7 principles |
-| **Depends on** | — |
-| **Status** | Ready (Wave 1), but **environment-blocked**: registry.npmjs.org still unreachable from agent sandboxes (re-checked 2026-11-17: `curl` → `000`), so the new devDependencies can't be added to `package-lock.json`. Needs Mahesh (allow the host, or push the lockfile change; see Notes) |
+| **Depends on** | ArxivLens #64 (`085183e`) and #67 (`4c7d327`): test devDependencies + lockfile, merged |
+| **Jira** | story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-1"`) |
+| **Design required** | no |
+| **Status** | Ready (unblocked 2026-11-19: dependencies merged in #64/#67). Local npm still unavailable in agent sandboxes, so CI is the verification |
 
 ## Goal
 Give the frontend agent a fast feedback loop and lock down the states that carry the product's trust promise.
 
 ## Scope
-- Add Vitest + @testing-library/react + jsdom as devDependencies; `npm test` script (`vitest run`); config in `vite.config.js` or `vitest.config.js`.
+- **Dependencies are already present** (`vitest`, `@testing-library/react`, `@testing-library/jest-dom`,
+  `@testing-library/user-event`, `jsdom` in `frontend/package.json` + `package-lock.json` since #64/#67). FE-1 adds only:
+  - `frontend/package.json`: a `"test": "vitest run"` entry in `scripts`. **No change to `dependencies` or `devDependencies`**:
+    the lockfile can't be regenerated in the sandbox, and a mismatch makes CI's `npm ci` fail.
+  - `frontend/vitest.config.js` (or a `test` block in `frontend/vite.config.js`): `environment: 'jsdom'`, `setupFiles`, `globals` as you choose.
+  - `frontend/src/test/setup.js`: imports `@testing-library/jest-dom/vitest`, runs `cleanup` after each test.
+  - Test files next to the components (`*.test.jsx`) and fixtures in `frontend/src/test/fixtures.js`.
+  - `frontend/README.md`: a Commands section listing `npm test` (replace the Vite template boilerplate if you like).
 - Tests (with fixture `AskResponse` objects matching `internal/query/rag.go`):
   - `SynthesisView`: renders answer text with `[n]` markers; renders a refusal as a normal state (not an error toast)
   - `ReferencesStack`: each citation shows title, section, and a link to `pdf_url`; `supported: false` is visibly flagged; BibTeX copy calls `onCopy` with an `@article{arxiv_...` string
   - `HeroSearch`: submitting calls the provided handler with the trimmed question; empty input does not submit
-- Out of scope: visual redesign, E2E (Playwright) — later task.
+- Out of scope: visual redesign (FE-0), E2E (Playwright) — later task, any dependency change, `index.css`/`tailwind.config.js`/`main.jsx`/`components/ui/` (FE-0 owns those this cycle).
 
 ## Acceptance criteria
-- [ ] AC1 — `npm ci && npm test` passes in < 30 s locally, no network.
+- [ ] AC1 — CI's frontend job runs `npm test` (the existing "Test (if FE-1 has added a test script)" step) and it passes, with the Vitest run under 30 s and no network access in tests. Local run: "not run: npm registry unreachable" is acceptable (AGENTS.md §4).
 - [ ] AC2 — ≥ 8 test cases across the three components, including refusal and unsupported-citation cases.
 - [ ] AC3 — If a test reveals that unsupported citations are *not* flagged in the UI, fix it (frontend-only) and note it.
-- [ ] AC4 — `npm run lint` and `npm run build` still pass; `frontend/AGENTS.md` Commands table lists `npm test`.
+- [ ] AC4 — `npm run lint` and `npm run build` still pass in CI; `frontend/README.md` lists `npm test` (there is no `frontend/AGENTS.md`).
+- [ ] AC5 — `git diff origin/main -- frontend/package.json` touches only `scripts`; `frontend/package-lock.json` is unchanged.
 
 ## Verification
 ```bash
+# CI (source of truth): the frontend job in .github/workflows/ci.yml
 cd frontend && npm ci && npm run lint && npm test && npm run build
+# scope check (runs in the sandbox)
+git diff origin/main --stat -- frontend/package-lock.json   # must be empty
+git diff origin/main -- frontend/package.json               # only "scripts" lines
 ```
 
 ## Notes
@@ -41,3 +55,11 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   `SynthesisView` now takes `answerKind`, `refusalReason` and `writing`, with subtitles for quoted/synthesized answers and a refusal subtitle.
   `App.jsx` runs the two-stage `quick` → full flow. Fixtures must include `answer_kind`, `synthesis_available` and a `refusal_reason`
   response. The AC3 case still applies: `ReferencesStack.jsx:72` still renders `{score}% Verified` for every citation, including unsupported ones.
+- 2026-11-19 (pm-lead, grooming): **unblocked.** Mahesh merged #64 (`085183e`, vitest ^4.1.12, @testing-library/react ^16.3.3,
+  @testing-library/jest-dom ^6.9.1, @testing-library/user-event ^14.6.13, jsdom ^29.1.1) and #67 (`4c7d327`, UI primitives + fonts,
+  and cleared the oxlint warnings). The env block is gone for dependencies; agent sandboxes still can't reach registry.npmjs.org
+  (`curl` → `000`), so verify through CI on the draft PR. Scope narrowed to the script, config, setup file and tests: don't touch
+  package.json dependencies. The old AC4 named `frontend/AGENTS.md`, which doesn't exist; it's `frontend/README.md` now.
+  FE-0 runs in parallel on disjoint files (`index.css`, `tailwind.config.js`, `main.jsx`, `index.html`, `components/ui/`, `Navbar.jsx`):
+  keep FE-1 off those. Tests should assert on text and roles, not on class names, so FE-0's restyle doesn't break them.
+  The AC3 badge fix (`ReferencesStack.jsx`) stays in FE-1.
