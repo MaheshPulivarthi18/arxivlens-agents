@@ -688,3 +688,11 @@ Format:
 - QA harnesses again couldn't write `report.md` for AI-8b, OPS-H9, FE-0, FE-0b r1; orchestrator saved PR comments verbatim with provenance (`aac3c32`, `5d3dffb`, `ac95f88`).
 - Retro (short, time-boxed): (1) a cycle that dies mid-way leaves a lock and unrecorded PRs — the next cycle's takeover worked, but Step 0 could note "previous cycle unrecorded" explicitly; (2) frontend QA must compile the diff's classes against the real Tailwind config (QA lesson `dbc8444`; pm-lead Backlog line for a `rules/` PR on `agents/area-notes/frontend.md`); (3) pm-lead commits `abfa173`/`ee3e0bc` carry a wrong Claude-Session trailer (not force-fixed).
 - **Waiting on Mahesh: 4 PRs ready for review (#65, #66, #68, #69)**; ADRs and EVAL-8 question unchanged.
+
+## 2026-11-19 23:00Z — pm-lead grooming (Step 3; Ready was empty: every Ready task waits on an unmerged PR)
+- Specced 3 small tasks from existing Backlog lines, each independent of open PRs #65/#66/#68/#69/#70 and of each other (verified file lists via REST on 4c7d327):
+  **OPS-H14** (backend, P3: `ci.yml` frontend job + new `.github/scripts/frontend-dist-report.sh`; report-only `dist/` font/CSS lines + `npm run test --if-present` instead of the EPIPE-prone `npm run | grep -q`),
+  **OPS-H6b** (backend, P2: `internal/kafka/consumer.go` + test; skip the `Poll error … context canceled` log on clean shutdown),
+  **AI-12** (ai, P2: `services/embedder/api.py`, `worker.py`, `tests/test_verify.py`; build ingest workers once, reuse the startup-loaded BGE model, serialize the pipeline).
+- Not picked: `-race` in CI (needs `ci.yml` → clashes with OPS-H14, or `Makefile` + CONTRIBUTING note → #66); RET-1 `search.go` test nits (P3, backend cap of 2); `Makefile test-fe` EPIPE (Makefile, local only).
+- Jira sync skipped: connector unavailable to pm-lead this session; three stories marked "to create" for the orchestrator.
