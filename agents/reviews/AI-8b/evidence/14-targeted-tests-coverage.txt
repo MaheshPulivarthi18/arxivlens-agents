@@ -1,0 +1,46 @@
+$ bash -c export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off; echo '## harness internal/ identical to PR head?'; diff -r /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/r2/internal internal && echo yes; cd /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/r2 && go version && go test -count=1 -race -run 'Ask|Synth|Citation|Claim|QuickAnswer|WithLLMNil' -v ./internal/query/ 2>&1 | grep -E '^(=== RUN|--- |ok|FAIL|PASS)' | grep -v '=== RUN'; echo '## full package'; go test -count=1 ./internal/query/; go test -count=1 -coverprofile=/tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/c2.out ./internal/query/ >/dev/null && go tool cover -func=/tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/c2.out | grep -E 'rag.go:.*(claimStatus|checkCitations|finalize|finalizeClaims|refusal)\s' ; echo '## rag.go per-file statements covered:'; awk -F'[: ,]' 'NR>1 && $1 ~ /rag.go$/ {n=$(NF-1); t+=n; if ($NF>0) c+=n} END {printf "%d/%d = %.1f%%\n", c, t, 100*c/t}' /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/c2.out
+## harness internal/ identical to PR head?
+yes
+go version go1.24.7 linux/amd64
+--- PASS: TestAskRefusesWhenNothingPasses (0.00s)
+--- PASS: TestAskAnswersWithExtractedCitations (0.00s)
+--- PASS: TestValidateCitationsMarkers (0.01s)
+--- PASS: TestValidateCitationsSupportThreshold (0.00s)
+--- PASS: TestValidateCitationsFailClosedWhenUnverifiable (0.01s)
+--- PASS: TestAskResponseShapeAndConstructor (0.00s)
+--- PASS: TestAskRerankFallbackLogsResponseTraceID (0.00s)
+--- PASS: TestAskRefusesAllUnsupported (0.00s)
+--- PASS: TestAskRefusesVerificationUnavailable (0.01s)
+--- PASS: TestAskRefusesNoInRangeMarker (0.00s)
+--- PASS: TestAskKeepsAnswerWithOneSupportedCitation (0.00s)
+--- PASS: TestAskExtractiveAnswerVerifiedByQuote (0.00s)
+--- PASS: TestAskEarlyRefusalHasNoRefusalReason (0.00s)
+--- PASS: TestBuildSynthesisPrompt (0.00s)
+--- PASS: TestBuildSynthesisPromptInjection (0.00s)
+--- PASS: TestParseSynthesis (0.01s)
+--- PASS: TestParseSynthesisErrorHasNoCompletionText (0.00s)
+--- PASS: TestCitationStatusRule (0.03s)
+--- PASS: TestCitationQuote (0.03s)
+--- PASS: TestCitationProvenance (0.01s)
+--- PASS: TestAskClaims (0.02s)
+--- PASS: TestSynthesisAnswersWithVerifiedClaims (0.00s)
+--- PASS: TestSynthesisDropsUnsupportedClaims (0.00s)
+--- PASS: TestSynthesisRefusals (0.00s)
+--- PASS: TestSynthesisFallsBackToExtractive (0.02s)
+--- PASS: TestSynthesisClaimsUnsupportedFallBackToQuotes (0.01s)
+--- PASS: TestQuickAnswerSkipsSynthesis (0.01s)
+--- PASS: TestSynthesisMarkersFollowPromptOrder (0.00s)
+--- PASS: TestWithLLMNilKeepsExtractive (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.198s
+## full package
+ok  	arxivlens/internal/query	0.324s
+arxivlens/internal/query/rag.go:107:		claimStatus		100.0%
+arxivlens/internal/query/rag.go:295:		finalizeClaims		100.0%
+arxivlens/internal/query/rag.go:726:		finalize		100.0%
+arxivlens/internal/query/rag.go:740:		refusal			100.0%
+arxivlens/internal/query/rag.go:827:		checkCitations		98.2%
+## rag.go per-file statements covered:
+416/420 = 99.0%
+
+[exit code 0]

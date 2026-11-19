@@ -1,0 +1,36 @@
+$ gh api .../commits/956db78.../check-runs + .../actions/jobs/{135888563830,135888563205}/logs
+check runs for head 956db7824ec2f706565e02426762a7a5220f2683 (PR #65 round 2):
+Go (vet, gofmt, test, build) | completed | success | job 135888563830 | 2026-11-19T21:17:18Z
+Agent ownership check | completed | success | job 135888563802 | 2026-11-19T21:16:37Z
+Full stack (compose + make test-full) | completed | success | job 135888563560 | 2026-11-19T21:27:54Z
+Frontend (lint, test, build) | completed | success | job 135888563538 | 2026-11-19T21:16:39Z
+DB (migrate twice, HNSW plan + recall) | completed | success | job 135888563318 | 2026-11-19T21:17:58Z
+Python M0 unit tests | completed | success | job 135888563205 | 2026-11-19T21:17:35Z
+
+=== Go job 135888563830 (lines grepped from the fetched job log)
+2026-11-19T21:16:30.1681036Z Complete job name: Go (vet, gofmt, test, build)
+2026-11-19T21:16:31.2272929Z HEAD is now at a14c897 Merge 956db7824ec2f706565e02426762a7a5220f2683 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+2026-11-19T21:16:42.2911548Z ##[group]Run make lint-go
+2026-11-19T21:16:42.3061725Z go vet ./...
+2026-11-19T21:16:43.5179599Z ##[group]Run make test-go
+2026-11-19T21:16:49.1121466Z ok  	arxivlens/internal/arxiv	1.556s
+2026-11-19T21:16:49.1121948Z ok  	arxivlens/internal/config	0.003s
+2026-11-19T21:16:49.1122369Z ok  	arxivlens/internal/crawler	0.096s
+2026-11-19T21:16:49.1122746Z ok  	arxivlens/internal/db	0.004s
+2026-11-19T21:16:49.1123141Z ok  	arxivlens/internal/dlq	0.272s
+2026-11-19T21:16:49.1123653Z ok  	arxivlens/internal/downloader	0.107s
+2026-11-19T21:16:49.1124050Z ok  	arxivlens/internal/kafka	0.031s
+2026-11-19T21:16:49.4415432Z ok  	arxivlens/internal/llm	0.780s
+2026-11-19T21:16:49.4415885Z ok  	arxivlens/internal/llm/llmtest	0.107s
+2026-11-19T21:16:49.4416159Z ok  	arxivlens/internal/query	0.330s
+2026-11-19T21:17:08.2386557Z ok  	arxivlens/internal/kafka	1.045s	coverage: 62.9% of statements
+2026-11-19T21:17:13.6553159Z ok  	arxivlens/internal/llm	1.884s	coverage: 96.6% of statements
+2026-11-19T21:17:13.6557405Z ok  	arxivlens/internal/llm/llmtest	1.117s	coverage: 100.0% of statements
+2026-11-19T21:17:13.7272685Z ##[group]Run make build-go
+
+=== Python M0 job 135888563205 (lines grepped from the fetched job log)
+2026-11-19T21:16:30.3312819Z HEAD is now at a14c897 Merge 956db7824ec2f706565e02426762a7a5220f2683 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+2026-11-19T21:17:21.2833938Z ##[group]Run make test-py
+2026-11-19T21:17:32.4431726Z 185 passed, 3 skipped, 3 warnings in 10.55s
+2026-11-19T21:17:33.5240471Z ============================== 37 passed in 0.25s ==============================
+

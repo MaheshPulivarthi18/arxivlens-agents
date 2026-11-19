@@ -1,0 +1,23 @@
+$ bash /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/bin/m3r2.sh /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h
+## M3 diff (head rag.go vs mutant copy in /tmp/claude-0/-home-claude/a3d83752-0c1b-5383-8968-fd151b8a3eb4/scratchpad/h/m3r2.dAIQ):
+113c113
+< 		unverified = unverified || c.Status == StatusUnverified
+---
+> 		unverified = unverified || false
+## go test -run '^TestAskClaims$' -v on M3:
+=== RUN   TestAskClaims
+    rag_test.go:1357: verifier down claims [{Text:The Method section shows that the proposed method improves accuracy on every benchmark. Status:supported Markers:[1]} {Text:A paraphrase that only NLI could check. Status:unsupported Markers:[2]}]
+    rag_test.go:1369: claimStatus([unverified]) = "unsupported", want "unverified"
+    rag_test.go:1369: claimStatus([unsupported unverified]) = "unsupported", want "unverified"
+    rag_test.go:1369: claimStatus([unverified unsupported]) = "unsupported", want "unverified"
+--- FAIL: TestAskClaims (0.00s)
+FAIL
+FAIL	arxivlens/internal/query	0.004s
+FAIL
+## same test on unmutated head:
+=== RUN   TestAskClaims
+--- PASS: TestAskClaims (0.00s)
+PASS
+ok  	arxivlens/internal/query	0.004s
+
+[exit code 0]
