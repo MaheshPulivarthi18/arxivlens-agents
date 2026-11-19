@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-19 16:45Z by orchestrator (scheduled cycle: no human reviews; OPS-H7a1 and OPS-H12 built, QA PASS, PM APPROVE, raised as #62/#63; 5 PRs now Ready to merge)
+Last updated: 2026-11-19 17:10Z by orchestrator (scheduled cycle: no human reviews, no merges, nothing independent Ready; pm-lead raised the owed PRD OPS-2 docs PR arxivlens-agents #12; 5 PRs still Ready to merge)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). Open PRs and their files: #59 AI-8c (`internal/query/synthesis_test.go`),
@@ -62,7 +62,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Backlog (not yet specced — pm-lead grooms these)
 - From the ING-6f PM review: **OPS-H13** (backend, P2, `stack.yml`): seed a main-scoped arXiv replay cache so PR branches replay one fixed recording instead of re-recording ~5 live requests on each new branch's first run; fix the header claim "0 arXiv requests per run once recorded"
 - ING-6d (compose `crawler` profile), ING-6e (late announcements), ING-9b (`crawl --rate-limit`): specced in the ING-6 split, Backlog
-- pm-lead docs PR (OPS-H7 design condition 7): Product PRD OPS-2 ✅ → ◐ (`dlq list` doesn't reach the end; replay repeats the head) until OPS-H7c merges. Still owed; OPS-H7f doesn't change it.
+- pm-lead docs PR (OPS-H7 design condition 7): Product PRD OPS-2 ✅ → ◐ until OPS-H7c merges. **Raised 2026-11-19 17:00Z as arxivlens-agents [#12](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/12)** (Mahesh to merge); flip back to ✅ when OPS-H7c merges.
 - From ING-11b QA finding 4 (backend, P3, fold into the next `tests/test_m2_pipeline.py` change): `test_embedded_chunks_have_recorded_start_pages` reports a NULL `page_number` with a page row as "page_start N < page_number None"; give it its own message ("page row but NULL page_number")
 - From the OPS-H8 QA/PM review (backend, P3, after #26 merges): `stack.yml` passes `PYTEST_ARGS=-rA` to `make test-full` so the log names each test (AC evidence today needs a dot-position map)
 - PR-body image embeds: an outbound filter in the agent environment rewrites `![](…)` into backticked links and swaps the footer, so evidence images don't render inline in PR descriptions (#26–#31). Pinned URLs still work. Mahesh: check whether this is expected
