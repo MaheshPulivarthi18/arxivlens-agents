@@ -5,7 +5,7 @@
 | **Owner** | frontend-engineer |
 | **Priority** | P1 (unblocks FE-3 `tooltip`, FE-4 `popover` + `collapsible`) |
 | **PRD ref** | Product PRD UI-1, UI-2; §7 principles 1 "Evidence first" and 3 "One click to the source" (via FE-3/FE-4) |
-| **Depends on** | FE-0's design approved (2026-11-19, `docs/design/FE-0.md` §6 is this ticket's API). No merge dependency: the files use existing shadcn token names (`bg-popover`, `border-border`, `ring-ring`, `bg-accent`), which `tailwind.config.js` already maps on `origin/main`. They pick up FE-0's new values when it merges |
+| **Depends on** | FE-0's design approved (2026-11-19, `docs/design/FE-0.md` §6 is this ticket's API) **and FE-0 #69 merged** (pm-lead, QA r1 F1, option a). Correction: `origin/main`'s `tailwind.config.js` does **not** map `popover`, so `bg-popover`/`text-popover-foreground` generate no CSS until #69 adds the `popover` colour entry. The other token names (`border-border`, `ring-ring`, `bg-accent`) are mapped |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-0b"`) |
 | **Design required** | no: covered by `docs/design/FE-0.md` §6 (approved). Any deviation from that table is written in this ticket's Notes before code |
 | **Status** | In QA: draft #70 |
@@ -80,4 +80,10 @@ grep -nE '^export ' src/components/ui/{tooltip,popover,collapsible,scroll-area,s
   - AC2/AC3/AC4: the static greps are clean (6 package imports; the colour/motion grep exits 1; only PascalCase exports per the TS AST; forwardRef + displayName
     on TooltipContent, PopoverContent, ScrollArea, ScrollBar, Separator and Toaster). All six files parse (TypeScript `transpileModule`, JSX).
   - AC5: met (see diff above). AC6: not run by the developer (no `node_modules`, npm registry unreachable). Left to QA.
-
+- 2026-11-19 (frontend-engineer, Rework r1, QA round 1 FAIL): head `25ee64022edd7616113c5527e02c24ef86ffaf0e` (commit "FE-0b: inset scroll-area focus ring; tooltip provider note (QA r1)"), 2 files, +3/-2.
+  - [x] F2 (blocking): `scroll-area.jsx` viewport ring is now inset: `focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring` (dropped `ring-offset-2` and `ring-offset-background`).
+    **Deviation from design §6** (justified): §6's outset FV ring (offset 2) is fully clipped by the Root's `overflow-hidden`, so it fails WCAG 2.4.7. The inset ring
+    uses the same `--ring` token, which both themes define, so it stays visible in light and dark.
+  - [x] N1 (nit): `tooltip.jsx` comment says the innermost Provider wins, so a top-level `TooltipProvider` does not change these tooltips' delay.
+  - CI on `25ee640`: all 5 checks green; Frontend job 135919189463: `Found 0 warnings and 0 errors.` (26 files), `✓ built in 530ms`.
+  - [x] F1: not FE-0b's file. Fixed in FE-0 #69's `tailwind.config.js`; "Depends on" now says FE-0b needs #69 merged, and its wrong claim about main is corrected.
