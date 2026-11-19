@@ -103,3 +103,13 @@ gh workflow run eval.yml --ref agent/ai/AI-8b   # AC9, then read the job log's g
   Choices: an extractive claim's `text` is `normQuote(sentence)` (same normalisation as the AI-8a extractive `quote`); an LLM claim's `text` is
   `claim.Text`. `TestAskKeepsAnswerWithOneSupportedCitation`'s key assertion now includes the additive `claims` key. AC4: splitter handles `e.g.` and `0.5`.
   Mutation M7 (LLM claim status hardcoded `supported`) is unkillable by design (a kept LLM claim always has a supported citation).
+- 2026-11-19 (ai-engineer): **Rework r1** (QA FAIL r1, finding 1 [blocking]). Test-only change in `internal/query/rag_test.go` (+19 lines,
+  commit `956db78`, new PR #65 head `956db7824ec2f706565e02426762a7a5220f2683`): `TestAskClaims` now asserts by literal value that a quote +
+  paraphrase answer with the verifier down gives claims `[supported [1], unverified [2]]`, plus a literal `claimStatus` table
+  (`[]`→V, `[U]`→U, `[V]`→V, `[U,V]`→V, `[V,U]`→V, `[U,S]`→S, `[V,S]`→S, `[U,U]`→U). No `rag.go` change.
+  M3 result: applied temporarily in a go1.24 scratch module (QA harness stubs; `internal/` identical to head) → `FAIL arxivlens/internal/query`,
+  `TestAskClaims` reports `verifier down claims [... Status:unsupported Markers:[2]]` and `claimStatus([unverified]) = "unsupported"`; reverted.
+  QA's 23-mutant script re-run: 21 killed, survivors M0 (control), M14, M23 (equivalent, as in the QA report).
+  CI on `956db78`: 6/6 success (Go, ownership, Python M0, Frontend, DB, Full stack). Local `rag.go` coverage 416/420 = 99.0%.
+  Nit 2 done: PR body now has the AC1 `-v` run, AC8 coverage rows, CI and mutation rows. Branch is behind `origin/main` (no conflict
+  reported by GitHub checks; not rebased, no force-push).
