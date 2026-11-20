@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H14 (#71, merged `1b443f5`; it was the last open PR on `ci.yml`). No open PR touches `.github/workflows/ci.yml` (checked 2026-11-20 08:00Z against #65, #66, #68, #69, #70, #76, #77, #78, #79 via REST) |
 | **Jira** | KAN-83 |
 | **Design required** | no: one CI step's environment, no production code, contract, CLI, table or service change |
-| **Status** | Ready |
+| **Status** | In QA (PR #80) |
 
 ## Goal
 Every Go package has concurrent code (limiter, consumer, crawler loop, rerank fallback, LLM client), but CI's `make test-go` step runs
@@ -69,3 +69,13 @@ run, nothing in retrieval or answering changes. `stack.yml` does not trigger on 
   `tests/test_verify.py`; #78 `tests/test_m2_pipeline.py`; #79 `internal/llm/openai_test.go`) and of OPS-H5b (groomed in the same pass,
   `internal/query/search_integration_test.go`, which only `db.yml` runs). The race detector will also run the tests that #76/#79 add once
   they merge; that's intended.
+- 2026-11-20 08:18Z (backend-engineer): draft PR #80 (https://github.com/MaheshPulivarthi18/ArxivLens/pull/80), head `9df6944`.
+  Diff: `.github/workflows/ci.yml` only, 4+/1- (step renamed `Go unit tests (make test-go, race detector)` with `env: GOFLAGS: -race`).
+  Ownership check: `Ownership OK for role=backend (5 changed lines)`. actionlint not available; YAML parsed by `yaml.safe_load` + green CI.
+  - AC1: run 44700878368 att. 1, job 136168682100 success; `GOFLAGS: -race` in step env; `ok` for arxiv, config, crawler, db, dlq,
+    downloader, kafka, llm, llm/llmtest, query.
+  - AC2: probe `d63caf9` -> run 44700583617, job 136167700565 failed: `WARNING: DATA RACE` (race_probe_test.go:17),
+    `--- FAIL: TestRaceProbe`, `FAIL arxivlens/internal/arxiv`. Reverted by new commit `9df6944` (no force-push); next run green.
+  - AC3: step 47 s (08:14:08Z -> 08:14:55Z) vs baseline 6 s; 43 s on re-run; 33 s on `6e1e9cd` (run 44700413691). < 5 min.
+  - AC4: run 44700878368 att. 2, job 136169622172 success; no race, limiter tests `ok` both attempts.
+  - No race found in production code. Local `make test-unit`/`make lint` not run (local Go 1.24.7 < 1.25); CI is the source of truth.
