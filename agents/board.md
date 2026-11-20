@@ -133,6 +133,8 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 - pm-lead docs PR: Technical PRD §8.1 L4 / §8.2 diagram caveat ("commit after DLQ" not true until OPS-H6 + OPS-H8), Product PRD OPS-1 ✅ → ◐; Proposed Product PRD row ING-8 (extraction quality measured)
 - ING-8 follow-ups: detector improvements from the baseline (backend, `services/processor/`), and a pure `parse_doc_sections(doc)` seam so the scorer stops calling a private method
 - ~~specced as [RET-1b](tasks/RET-1b.md) (KAN-78) (2026-11-20 04:00Z; ±Inf now falls back like NaN instead of being pinned as accepted, see its Notes)~~ backend nits from the RET-1 review (fold into the next `search.go` change): `context.Canceled` fallback test case, `±Inf` score test
+- backend (from RET-1b QA finding 4): `internal/query/server.go` ignores the `json.Encoder.Encode` error after writing 200 → log it with the trace ID in the `/v1/search` and `/v1/ask` handlers, plus a handler test with an unencodable value
+- backend (optional, from RET-1b QA; fold into the next `search.go` change): fallback rows for NaN+Inf in one response (pins which reason wins) and `math.MaxFloat32` (must be accepted)
 - pm-lead docs PR, after RET-1b merges: Technical PRD §7.1 diagram note (`PRD-Technical.md:243`) "rerank error, wrong score count or NaN" → "… NaN or ±Inf"
 - From the AI-1 review: `/internal/rerank` bi-encoder fallback (no cross-encoder) returns uncalibrated dot products → decided in ADR-0011, done in AI-5 if accepted; aux-section match is a substring (`"Notable"` contains `"table"`) → small ai follow-up after AI-5
 - pm-lead PRD docs PR: Product PRD QA-5 ✅ → ◐ (fails open during reranker outages; ADR-0011/AI-5), back to ✅ when AI-5 merges
