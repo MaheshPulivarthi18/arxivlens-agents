@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H9 (#66, merged `050904d`). No open PR touches `.github/workflows/db.yml`, `.github/workflows/image-pins.yml` or `CONTRIBUTING.md` (REST check 2026-11-20 18:00Z of #70, #79, #81, #82, #83, #84, #85, #86) |
 | **Jira** | needs story (epic for Technical PRD §10 harness; label `task-OPS-H9b`) |
 | **Design required** | no: CI shell checks and one doc line; no production code, contract, CLI, table or service |
-| **Status** | Ready |
+| **Status** | Ready to merge (QA PASS r1 · PM APPROVE 2026-11-21; PR #88 raised, Mahesh merges) |
 
 ## Goal
 The OPS-H9 pin checks have three small honesty gaps: `db.yml`'s `version_ge` lets a non-numeric `extversion` (e.g. `missing`) pass as
@@ -80,3 +80,8 @@ in retrieval or answering changes.
   `pgvector 0.8.7 >= 0.8.0: ok`; on main's step `missing` → `pgvector missing >= 0.8.0: ok` rc 0 (the bug); mutant without the regex →
   `::error::self-test: 'missing' passed, want fail`. AC2 a/b/c and AC3 (accepts_all, zero_unauth) exit codes as specified.
   Not run: actionlint/shellcheck (not in sandbox; CI job runs actionlint), real CI runs (AC1 DB job, AC4) pending the PR.
+- 2026-11-21 (pm-lead, final review): QA PASS r1 (`agents/reviews/OPS-H9b/report.md`, evidence 00–07 at `b55a09d`) → **PM APPROVE**.
+  All five ACs are proven by CI (DB job 136478144250, Image pins job 136478143438) plus QA's harness and mutants. PR #88 description
+  rewritten with Evidence, then marked ready for review. QA nits: (1) the `^` anchor has no dry-run row → Backlog, fold into ING-6c
+  (add `v0.8.7` to the must-fail list); (2) the MinIO bullet wording → same Backlog line; (3) the duplicate FAIL + `::error::` line is
+  accepted as is. Jira: needs story (orchestrator). Status → Ready to merge.

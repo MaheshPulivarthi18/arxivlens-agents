@@ -8,7 +8,7 @@
 | **Depends on** | FE-1 (#68, merged `2410d2e`: `frontend/package.json` has `"test": "vitest run"`). No open PR touches `Makefile` (REST check 2026-11-20 18:00Z of #70, #79, #81, #82, #83, #84, #85, #86) |
 | **Jira** | needs story (epic for Technical PRD §10 harness; label `task-OPS-H16`) |
 | **Design required** | no: one Makefile recipe; no production code, contract, CLI, table or service |
-| **Status** | In QA |
+| **Status** | Ready to merge (QA PASS r1 · PM APPROVE 2026-11-21; PR #89 raised, Mahesh merges) |
 
 ## Goal
 `make test-fe` (`Makefile:51-52`) still runs `if npm run | grep -q " test"; then npm test; else echo "no frontend tests yet (FE-1)"; fi`.
@@ -58,3 +58,9 @@ answering changes.
   (FE-1)", exit 0 (the false green). Ownership check: `Ownership OK for role=backend (4 changed lines)`. AC3 not run: `npm ci` fails with
   ENOTFOUND for registry.npmjs.org in this sandbox (Node 22 is present). `make lint`/`make test-unit` not run locally (no source change);
   CI on the PR is the source of truth. Status → In QA.
+- 2026-11-21 (pm-lead, final review): QA PASS r1 (`agents/reviews/OPS-H16/report.md`, evidence 00–08 at `f0758cd`) → **PM APPROVE**.
+  AC3 is accepted under its own "not run: <reason>" branch (registry blocked). Composed evidence: CI Frontend job 136478156455 at this
+  head runs the same `test` script (`vitest run`, 3 files / 19 tests passed, 0 `npm error`), and local `make test-fe` reaches
+  `vitest run`. QA `[spec]` finding 2 (`ci.yml` `npm run test --if-present` silent pass) is specced as [OPS-H17](OPS-H17.md)
+  (backend, P3, Ready). PR #89 description rewritten with Evidence, then marked ready for review. Jira: needs story (orchestrator).
+  Status → Ready to merge.
