@@ -8,7 +8,7 @@
 | **Depends on** | **FE-3a #86 merged** (fixtures `earlyRefusal`, `refusalA/B/C`, `mixedAnswer`, `quotedAnswer`/`synthesizedAnswer` in `src/test/fixtures.js`, the refusal panel and `#references-heading`). Must not overlap any open PR's files (re-check via REST at start) |
 | **Jira** | KAN-93 |
 | **Design required** | no (design done: `docs/design/FE-3.md` §Test plan rows AC1, AC2, AC4, AC6, AC6 two-stage are the spec for this file) |
-| **Status** | In Progress → In QA once the orchestrator opens the draft PR (branch `agent/frontend/FE-3a2`, commit `e7dc3c0`; CI not yet run) |
+| **Status** | Ready to merge (PR [#91](https://github.com/MaheshPulivarthi18/ArxivLens/pull/91) raised 2026-11-21 at `e7dc3c0`; QA r1 PASS, PM APPROVE). Waiting on Mahesh |
 
 ## Goal
 Lock in, as CI regression tests on the real `<App>`, the behaviour QA r1 confirmed only by a one-off browser run for FE-3a: no "verified" claim anywhere on a
@@ -70,3 +70,7 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
     Local checks only: TypeScript `transpileModule` (JSX) 0 diagnostics; ESLint 9 `no-unused-vars`/`no-undef` clean. Main baseline (CI run 44797226987, job 136502158010
     at `230f617`): `Found 0 warnings and 0 errors.`, `Test Files 7 passed (7)` → this PR should show 8 (FE-0f's button.test.jsx would add another if it merges first).
     The CI Vitest log is the pass/fail.
+- 2026-11-21 (pm-lead, final review): **APPROVE** (see `agents/reviews/FE-3a2/report.md` § PM review). QA r1 PASS at `e7dc3c0` (CI 5/5 green; Frontend 8 files / 121 tests, 0 warnings).
+  PR #91 description rewritten with the Evidence table (pinned to `4df0fb0`) and the AC6 mutant table (QA nit 1, marked reasoned, not executed). Marked ready + `ready-to-merge`.
+  QA nit 2 (Toast mock renders `null`, so a "verified" toast escapes AC1; M19) and QA "Missing tests" (stale-search M18, full-stage network failure, zero-citation refusal, discover failure) → Backlog (frontend, P2).
+  QA nit 3: whichever of #91/#92 merges second gets its Frontend job re-run on the new main. Merging #91 unblocks FE-3b.

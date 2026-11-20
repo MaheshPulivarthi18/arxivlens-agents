@@ -825,3 +825,8 @@ Format:
 - Picked (independent files): FE-3a2 (P0, unblocks FE-3b), OPS-H7a2b (P1, unblocks ING-6c/OPS-H7b), FE-0f (P1), RET-1d (P2). Not picked: FE-3b (waits on FE-3a2's App-level asserts; FE WIP 2/2), FE-0d (P2, FE WIP full), ING-6c/OPS-H7b (after OPS-H7a2b, `main.go`), FE-2/FE-4 (after FE-3b). ai-engineer has no Ready task: the `tests/test_evals_data.py`/`scripts/` follow-ups in Backlog are now unblocked and need specs next grooming.
 
 - 2026-11-21 UTC · pm-lead · FE-0f (KAN-97) PR #92 final review: **APPROVE** (QA PASS r1; evidence 00–07 cover AC1–AC4). PR body rewritten with the Evidence section, ready for review, label `ready-to-merge`; draft=false. The body was rewritten by the outbound filter (13×). Board: FE-0f → Ready to merge. The HeroSearch spinner nit is folded into FE-3b AC2; the `[spec]` finding is a lesson. Jira → Ready to merge left to the orchestrator.
+
+## 2026-11-21 — pm-lead (FE-3a2 final review)
+- FE-3a2 / PR #91 @ `e7dc3c0`: **APPROVE** after QA r1 PASS. I checked all 10 evidence PNGs and their `.txt` twins (pinned to `4df0fb0`); CI is 5/5 green and the Frontend job shows 8 files / 121 tests and 0 warnings vs main's 7 / 114 / 0.
+- Raised: PR description rewritten (Evidence table, CI per check, the AC6 M1–M19 mutant table marked reasoned, not executed, per QA nit 1, QA + PM verdicts). Marked ready, label `ready-to-merge`. Board → Ready to merge.
+- Follow-ups: QA nit 2 (Toast mock hides toast text from AC1, M19) + QA missing tests (M18 stale search, full-stage failure, zero-citation refusal, discover failure) → Backlog (frontend, P2). Nit 3: re-run Frontend on whichever of #91/#92 merges second.
