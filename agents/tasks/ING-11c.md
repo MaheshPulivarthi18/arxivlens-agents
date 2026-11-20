@@ -8,7 +8,7 @@
 | **Depends on** | ING-11b (#52, merged `343a1c3`). No open PR touches `tests/test_m2_pipeline.py` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
 | **Jira** | to create (same epic as ING-11b / KAN-59; labels `task-ING-11c`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: one assertion message in a stack-only test |
-| **Status** | Ready |
+| **Status** | In QA — draft PR [#78](https://github.com/MaheshPulivarthi18/ArxivLens/pull/78) `1f24fc9` |
 
 ## Goal
 `test_embedded_chunks_have_recorded_start_pages` (`tests/test_m2_pipeline.py:67`) lumps two different failures into one message. A
@@ -55,3 +55,28 @@ AC3, and the AC1/AC2 harness is a scratch script. `make eval`: not run, because 
   `tests/test_m2_pipeline.py` change) …". No other change to that file is planned, so it gets its own small ticket now. Checked on
   app `origin/main` `e6cffba`: `test_m2_pipeline.py:94` is still `if page_number is None or page_start < page_number:`.
 - Independent of every open PR and of OPS-H6c, AI-12b and LLM-1d (different files).
+- 2026-11-20 (ai-engineer): built on `agent/ai/ING-11c` @ `1f24fc9` (from `e6cffba`). Diff: `tests/test_m2_pipeline.py` only, `3	1`
+  (numstat). `if page_number is None: append("…: page row but NULL page_number")` / `elif page_start < page_number:` keeps the old
+  message; the monotonic check still runs after both branches. `py_compile` OK. Ownership: `Ownership OK for role=ai (4 changed lines)`.
+  ruff (`--select E,F,W --line-length 130`): 2 findings, both pre-existing and also on `origin/main` (`2:8 F401 pytest unused`,
+  `57:1 W293`). None on changed lines 94–97.
+  AC1/AC2 harness (scratch only, not committed): fake `psycopg.connect`/cursor, the test function run on `origin/main` vs branch:
+  ```
+  == before.py
+    None page_start          FAIL  1 of 1 chunks: 2401.1v1 chunk 0: no paper_chunk_pages row
+    page_number None         FAIL  1 of 1 chunks: 2401.1v1 chunk 0: page_start 3 < page_number None
+    page_start<page_number   FAIL  1 of 1 chunks: 2401.1v1 chunk 0: page_start 1 < page_number 2
+    decreasing page_start    FAIL  1 of 2 chunks: 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+    NULL page_number + decreasing FAIL  2 of 2 chunks: …chunk 1: page_start 2 < page_number None; …chunk 1: page_start 2 < previous chunk's 4
+    all good                 PASS
+  == after.py
+    None page_start          FAIL  1 of 1 chunks: 2401.1v1 chunk 0: no paper_chunk_pages row
+    page_number None         FAIL  1 of 1 chunks: 2401.1v1 chunk 0: page row but NULL page_number
+    page_start<page_number   FAIL  1 of 1 chunks: 2401.1v1 chunk 0: page_start 1 < page_number 2
+    decreasing page_start    FAIL  1 of 2 chunks: 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+    NULL page_number + decreasing FAIL  2 of 2 chunks: …chunk 1: page row but NULL page_number; …chunk 1: page_start 2 < previous chunk's 4
+    all good                 PASS
+  ```
+  Same pass/fail set before and after (AC2), the new message replaces the `<` one only for the NULL case (AC1), and the monotonic
+  check still fires alongside it. AC3 is pending: `stack.yml` runs on the PR, so it needs the run ID once the PR is open. `make eval`
+  not run: nothing in retrieval or answering changes.

@@ -8,7 +8,7 @@
 | **Depends on** | LLM-1c (#74, merged `929e908`). No open PR touches `internal/llm/` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
 | **Jira** | to create (epic KAN-1 "Grounded LLM answers"; labels `task-LLM-1d`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one string literal in a test table |
-| **Status** | Ready |
+| **Status** | In QA — draft PR [#79](https://github.com/MaheshPulivarthi18/ArxivLens/pull/79) `fc6d79d` |
 
 ## Goal
 In `TestTLSError`'s "handshake failed" row (`internal/llm/openai_test.go:585` on `e6cffba`), the `absent` list contains
@@ -49,3 +49,12 @@ test-only. `stack.yml` runs (`internal/**`) and has to be green apart from the d
   `internal/llm/openai_test.go` change) …". No other `internal/llm` change is planned, so it gets its own one-line ticket. It's the
   lowest-value pick of this grooming pass. If Mahesh's review queue is the constraint, the orchestrator can leave it for a later cycle.
 - Independent of every open PR and of OPS-H6c (`internal/kafka/`), AI-12b and ING-11c.
+- 2026-11-20 05:10Z (backend-engineer): built on `agent/backend/LLM-1d` (commit `fc6d79d`, base `e6cffba`). Line 585 changed from
+  `` `\r\n` `` to `"\r\n"`. Numstat `1 1 internal/llm/openai_test.go`, the only file in the diff. `gofmt -l` is clean (package and
+  repo-wide), and the ownership check prints `Ownership OK for role=backend (2 changed lines)`. The sandbox has only go1.24.7, so
+  `make lint-go` / `go vet ./...` fail locally on `go.mod requires go >= 1.25.0` (not run locally; CI is the source of truth). The
+  package is stdlib-only, so I ran it in a go1.24 scratch module (go.mod `go 1.24`, the real `internal/llm/*.go` copied in): `go vet`
+  is clean, `go test -race -count=1 -v -run TestTLSError` gives `--- PASS: TestTLSError/handshake_failed`, and the full package passes.
+  AC3 dev preview (QA runs the official one) in the same scratch harness, mutant `return "TLS handshake failed\r\n", nil`
+  (openai.go:255): on head it FAILs with `openai_test.go:604: error "... TLS handshake failed\r\n after 1 attempt" contains "\r\n"`,
+  and on `e6cffba` it PASSes. AC2 CI run ID: pending the orchestrator's push.

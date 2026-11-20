@@ -8,7 +8,7 @@
 | **Depends on** | AI-12 (#73, merged `e6cffba`). No open PR touches `tests/test_verify.py` or `services/embedder/` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
 | **Jira** | to create (epic KAN-4 "Continuous ingestion", as for AI-12; labels `task-AI-12b`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: two tests, no production code, contract, CLI, table or service change |
-| **Status** | Ready |
+| **Status** | In QA — draft PR [#77](https://github.com/MaheshPulivarthi18/ArxivLens/pull/77) `249ff5d` |
 
 ## Goal
 AI-12 made `/internal/ingest` reuse the startup-loaded embedding model and serialized the whole ingest pipeline under `_ingest_lock`
@@ -77,3 +77,29 @@ nothing in retrieval or answering changes.
 - The `stack.yml` second-paper timing half of the same AI-12 Backlog line is **not** in this ticket. It changes `stack.yml`
   (backend-owned) and the arXiv replay prefetch list (`--id`), so it needs its own spec.
 - Independent of every open PR (#65 touches `tests/test_evals_data.py` but not `tests/test_verify.py`), and of OPS-H6c, ING-11c and LLM-1d.
+- 2026-11-20 (ai-engineer): built on `agent/ai/AI-12b` @ `249ff5d` (from `e6cffba`), one file, `tests/test_verify.py` +80/-1. The only
+  deletion is the fixture's `SimpleNamespace(...)` line gaining `emb_init_failures=0`; `FakeEmbedderWorker.__init__` gains the matching
+  3 lines (raise after recording the attempt). No existing test function changed, no production code changed.
+  - AC1+AC2 `test_embed_is_not_serialized_behind_an_in_flight_ingest`: fake model (`embed_texts` -> `np.zeros((n, 768))`) set as
+    `api.embedder`; ingest in a daemon thread with `call_sleep=0.5`; poll the fixture log (bounded 5 s) for the first "enter"; embed runs in
+    its own thread with `join(timeout=5)` and records `_ingest_lock.locked()` and the log's "exit" count at return. Asserts `dim == 768`,
+    one 768-d vector, `{locked_at_return: True, exits_at_return: 0}`, ingest `status == "success"`, `emb_inits[0]["embedder"] is model`,
+    and the model recorded the embed call `(["q"], True, ...)`.
+  - AC3 `test_ingest_failed_embedder_build_keeps_cached_processor`: `emb_init_failures=1` -> first call HTTP 500, `_processor_worker`
+    not None, `proc_inits == 1`, `_embedder_worker is None`; second call success, `proc_inits == 1`, same processor (`is`), 2 embedder
+    construction attempts, `emb_calls == 1`.
+  - AC4 mutants (scratch copies, not committed), `-k 'ingest or embed'`: (a) `embed_texts_endpoint` body under `with _ingest_lock:` ->
+    only the AC1 test fails, at the `at_return` assert (`exits_at_return: 2`), run finished in 1.6 s (no hang). (b1) embedder built
+    before processor -> only AC3 test fails (`_processor_worker` None). (b2) `_processor_worker = None` on embedder build failure -> only
+    AC3 test fails. (c) placeholder in `_embedder_worker` before construction -> only AC3 test fails (`_embedder_worker is None`).
+  - AC5: loop 20/20 pass. Durations: AC1 test 1.00 s call, AC3 test < 0.005 s (combined about 1.0 s, under 2 s).
+  - AC6 local: `pytest -rA tests/test_verify.py` -> both new tests and all 8 ingest/embed tests PASSED; the 3 torch/FastAPI-router tests
+    (`test_verify_pairs_...`, `test_real_nli_...`, `test_startup_handler_...`) fail only under the stubs (pre-existing, need real torch
+    / FastAPI). ruff (E,F,W, 130): 3 pre-existing E501 at lines 22, 71, 126 before and after, none on added lines.
+    `ownership-check.sh origin/main agent/ai/AI-12b` -> `Ownership OK for role=ai (81 changed lines)`. `make lint` is Go + frontend only;
+    neither touched.
+  - Local env: sandbox has no torch/transformers/fastapi/psycopg/ulid/confluent_kafka/minio (pypi blocked), so local runs used a
+    scratch-only pytest plugin (`-p`, MagicMock torch etc., minimal FastAPI/HTTPException/psycopg/ulid), as for AI-12. Not verified here:
+    `make test-py` in CI and the `stack.yml` `-rA` lines; CI is the source of truth. `make eval`: not run (no retrieval/answering change).
+  - Possible later row (out of scope): `/internal/rerank`'s bi-encoder fallback uses the same unlocked startup model; it has no
+    concurrency test either, but it's only used when the cross-encoder failed to load.

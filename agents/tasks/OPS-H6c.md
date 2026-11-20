@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6b (#72, merged `8cf7251`). No open PR touches `internal/kafka/` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
 | **Jira** | to create (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H6c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one test row, no production code, contract, CLI, table or service change |
-| **Status** | Ready |
+| **Status** | In QA — draft PR [#76](https://github.com/MaheshPulivarthi18/ArxivLens/pull/76) `6b1e814` |
 
 ## Goal
 OPS-H6b's guard in `Consumer.Start` skips the `Poll error` log line when the fetch error is ctx's **own** error
@@ -67,3 +67,18 @@ the PR (`internal/**` path) and has to be green apart from the documented F1 ste
 - Independent of every open PR (#65 `internal/query/rag*.go`, `tests/test_evals_data.py`, `README.md`; #66 `db.yml`, `image-pins.yml`,
   `CONTRIBUTING.md`, `docker-compose.yml`; #68/#69/#70 `frontend/**` + root `README.md`), and of AI-12b, ING-11c and LLM-1d (groomed in
   the same pass).
+- 2026-11-20 05:10Z (backend): built on `agent/backend/OPS-H6c` commit `6b1e814` (from `e6cffba`), not pushed. I added a sibling test
+  `TestConsumerPollErrorAfterDeadline` and a `deadlinePoll` fake to `internal/kafka/consumer_test.go`: +37/-0, the only file changed,
+  `consumer.go` untouched. The fake logs `poll(deadline)`, blocks on `<-ctx.Done()` and returns `fetchOf(Partition -1, Err: ctx.Err())`.
+  `Start` runs on `context.WithTimeout(…, 20*ms)`. The row passes on `e6cffba`.
+  Local evidence used a go1.24 scratch module with the real `internal/kafka` + `shared/events` sources and the real franz-go v1.16.1,
+  kmsg v1.7.0, compress, lz4, ulid and x/crypto from tag-pinned GitHub clones. Go 1.25 isn't in the sandbox, so `make lint-go` and
+  the repo-wide `go vet ./...` weren't run; that part is for CI.
+  - `go test -race -count=1 -v -run 'Consumer'`: everything passes, including `--- PASS: TestConsumerPollErrorAfterDeadline (0.02s)`
+    (AC5). Under `-race -count=50` it passed every time.
+  - Mutants on `consumer.go`, each run on the full package and with `-run '^TestConsumerPollErrorAfterDeadline$'`:
+    M9 (`errors.Is(err, context.Canceled)`): only the new test fails (`Poll error (topic=papers.discovered partition=-1): context deadline exceeded`).
+    With the guard removed: the new test and `TestConsumerPollErrorAfterCancel/clean_shutdown_logs_no_poll_error` both fail (AC3).
+  - `gofmt -l internal/kafka/` prints nothing. `go vet ./internal/kafka/` is clean in the scratch module. Ownership check:
+    `Ownership OK for role=backend (37 changed lines)`.
+  - Still open for CI: the AC4 run ID and the `--- PASS` line from the `Kafka consumer tests` step, plus `make lint-go` and `stack.yml`.
