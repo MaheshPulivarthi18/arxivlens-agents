@@ -71,3 +71,5 @@ Reviewed: ticket `agents/tasks/ING-11c.md`; Product PRD QA-3 (✅, unchanged) an
 - **Records gap (fixed here, not a CHANGES item).** The PR body's "Follow-ups created" says the 2 pre-existing ruff findings in `tests/test_m2_pipeline.py` (`2:8 F401` unused `pytest`, `57:1 W293`) went to the Board Backlog, but `agents/board.md` has no such line (grep at 08:00Z). The follow-up is now recorded in the ticket Notes and handed to the orchestrator to add as a Backlog line (ai, P3, fold into the next change to that file), so the PR's claim becomes true. The code is unaffected.
 
 Next: PR #78 stays raised (ready for review, `ready-to-merge`), waiting for Mahesh.
+
+_Update 08:05Z (pm-lead): the "records gap" above is closed. Commit `05fc0ac` added the ruff follow-up to the board Backlog (ai, P3)._
