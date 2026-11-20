@@ -1,0 +1,7 @@
+$ bash -c for j in 136092604706 136173317940; do gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j --jq '"job \(.id) run \(.run_id) head_sha=\(.head_sha[0:7]) \(.conclusion)"'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j/logs | grep -E 'seeded [0-9]+ embeddings' | cut -c1-200; done
+job 136092604706 run 44677459328 head_sha=e6cffba success
+2026-11-20T04:55:32.4735729Z     search_integration_test.go:87: pgvector 0.8.7; seeded 13000 embeddings in 24.474s
+job 136173317940 run 44702290490 head_sha=8cae68b success
+2026-11-20T08:25:54.2319696Z     search_integration_test.go:105: pgvector 0.8.7; seeded 13000 embeddings in 17.773s
+
+[exit code 0]

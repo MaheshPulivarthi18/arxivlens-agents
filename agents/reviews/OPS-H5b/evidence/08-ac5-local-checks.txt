@@ -1,0 +1,10 @@
+$ bash -c git diff --stat origin/main...HEAD; echo "gofmt -l internal/query/: [$(gofmt -l internal/query/)]"; git branch -f agent/backend/OPS-H5b-qa HEAD >/dev/null && bash .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H5b-qa 2>&1 | tail -2; git branch -D agent/backend/OPS-H5b-qa >/dev/null; echo "scratch module copy of the test file identical to head: $(cmp -s internal/query/search_integration_test.go /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H5b-r1/mod/internal/query/search_integration_test.go && echo yes || echo NO)"; cd /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H5b-r1/mod && GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS=-mod=mod go version && GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS=-mod=mod go vet -tags integration ./internal/query/ && echo 'go vet -tags integration ./internal/query/: OK'
+ internal/query/search_integration_test.go | 100 +++++++++++++++++++++++++++++-
+ 1 file changed, 97 insertions(+), 3 deletions(-)
+gofmt -l internal/query/: []
+Ownership OK for role=backend (100 changed lines)
+scratch module copy of the test file identical to head: yes
+go version go1.24.7 linux/amd64
+go vet -tags integration ./internal/query/: OK
+
+[exit code 0]

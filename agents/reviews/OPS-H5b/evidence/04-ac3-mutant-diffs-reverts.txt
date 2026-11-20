@@ -1,0 +1,31 @@
+$ bash -c git log --format='%h parent=%p %s' e6cffba..8cae68b; for c in d341c7a 4ebca83 b2cb615; do echo; echo "== git diff $c^ $c (mutant)"; git diff $c^ $c | grep -E '^[-+][^-+]'; done; echo; for c in 55f5b38 49e266a 8cae68b; do echo "git diff 3e1baea $c: $(git diff 3e1baea $c | wc -l) lines"; done; echo "MUTANT markers at head: $(grep -c MUTANT internal/query/search_integration_test.go)"
+8cae68b parent=b2cb615 OPS-H5b: revert MUTANT (c)
+b2cb615 parent=49e266a OPS-H5b: MUTANT (c) itPrepare always reports 0 other papers (to be reverted)
+49e266a parent=4ebca83 OPS-H5b: revert MUTANT (b)
+4ebca83 parent=55f5b38 OPS-H5b: MUTANT (b) remove leftover DELETE in itPrepare (to be reverted)
+55f5b38 parent=d341c7a OPS-H5b: revert MUTANT (a)
+d341c7a parent=3e1baea OPS-H5b: MUTANT (a) remove post-test cleanup (to be reverted)
+3e1baea parent=e6cffba OPS-H5b: TestHNSWVectorHits cleans up its synthetic corpus and refuses a non-empty DB
+
+== git diff d341c7a^ d341c7a (mutant)
+-	t.Cleanup(func() { // runs even when the test fails; FK cascades remove chunks, embeddings and pages
+-		if _, err := d.Pool.Exec(ctx, itDeleteSynthSQL); err != nil {
+-			t.Errorf("cleanup: %v", err)
+-		}
+-	})
+
+== git diff 4ebca83^ 4ebca83 (mutant)
+-	if _, err := pool.Exec(ctx, itDeleteSynthSQL); err != nil {
+-		return 0, err
+-	}
+
+== git diff b2cb615^ b2cb615 (mutant)
+-	return others, err
++	return 0, err // MUTANT (c)
+
+git diff 3e1baea 55f5b38: 0 lines
+git diff 3e1baea 49e266a: 0 lines
+git diff 3e1baea 8cae68b: 0 lines
+MUTANT markers at head: 0
+
+[exit code 0]

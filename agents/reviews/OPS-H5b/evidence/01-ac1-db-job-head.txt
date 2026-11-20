@@ -1,0 +1,14 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136173317940 --jq '"job \(.id) run \(.run_id) head_sha=\(.head_sha) conclusion=\(.conclusion)"'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136173317940/logs > /tmp/qa81-db.log; grep -E 'HEAD is now at|Run go vet -tags integration ./internal/query/|seeded|--- (PASS|FAIL|SKIP): Test(HNSW|SearchProvenance)|itPrepare:|arxivlens/internal/query' /tmp/qa81-db.log | cut -c1-200; echo "SKIP lines in whole log: $(grep -c -- '--- SKIP' /tmp/qa81-db.log)"; echo "FAIL lines in whole log: $(grep -c -- '--- FAIL' /tmp/qa81-db.log)"
+job 136173317940 run 44702290490 head_sha=8cae68b266f3dc78affa2289275313f411af9125 conclusion=success
+2026-11-20T08:25:10.7023761Z HEAD is now at 92a3ec6 Merge 8cae68b266f3dc78affa2289275313f411af9125 into e6cffba66d677a655ade39588972abc03bc273aa
+2026-11-20T08:25:29.5394813Z ##[group]Run go vet -tags integration ./internal/query/
+2026-11-20T08:25:54.2319696Z     search_integration_test.go:105: pgvector 0.8.7; seeded 13000 embeddings in 17.773s
+2026-11-20T08:26:03.6360967Z --- PASS: TestHNSWVectorHits (27.19s)
+2026-11-20T08:26:03.6621939Z     search_integration_test.go:328: itPrepare: 0 other papers before, 1 after inserting hnswb.foreign
+2026-11-20T08:26:03.6673426Z --- PASS: TestHNSWSeedCleanup (0.02s)
+2026-11-20T08:26:03.7320815Z --- PASS: TestSearchProvenance (0.07s)
+2026-11-20T08:26:03.7371982Z ok  	arxivlens/internal/query	27.290s
+SKIP lines in whole log: 0
+FAIL lines in whole log: 0
+
+[exit code 0]

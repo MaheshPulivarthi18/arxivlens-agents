@@ -1,0 +1,25 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H5b-r1/mutants.sh
+== L1 drop the CI -> Fatalf branch
+   diff < 		if os.Getenv("CI") != "" { // never let a skip pass as green in db.yml
+   diff < 			t.Fatalf(why, others)
+   diff < 		}
+   diff < 		t.Skipf(why, others)
+   diff > 				t.Skipf(why, others)
+   search_integration_test.go:79: DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB
+   --- SKIP: TestHNSWVectorHits (0.01s)
+   expected at head: FAIL (S3); mutant SKIPs = skip would pass green in db.yml
+== L2 guard boundary others > 0 -> others > 1
+   diff < 	if others > 0 {
+   diff > 	if others > 1 {
+   search_integration_test.go:97: no rows in result set
+   --- FAIL: TestHNSWVectorHits (0.01s)
+   expected at head: SKIP (S2); mutant passes the guard and seeds a dev DB
+== L3 t.Cleanup(d.Close) -> defer d.Close() (cleanup ordering)
+   diff < 	t.Cleanup(d.Close) // registered first so it runs last, after the corpus cleanup (t.Cleanup is LIFO)
+   diff > 	defer d.Close() // QA-L3 (t.Cleanup is LIFO)
+   search_integration_test.go:97: no rows in result set
+   search_integration_test.go:86: cleanup: closed pool
+   --- FAIL: TestHNSWVectorHits (0.01s)
+   expected at head: only 'no rows' (S5); mutant adds 'cleanup: closed pool'
+
+[exit code 0]

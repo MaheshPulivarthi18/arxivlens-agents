@@ -1,0 +1,27 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H5b-r1/run.sh /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H5b-r1/mod
+S1 empty DB, CI unset: TestHNSWSeedCleanup -count=2
+   search_integration_test.go:328: itPrepare: 0 other papers before, 1 after inserting hnswb.foreign
+   --- PASS: TestHNSWSeedCleanup (0.02s)
+   search_integration_test.go:328: itPrepare: 0 other papers before, 1 after inserting hnswb.foreign
+   --- PASS: TestHNSWSeedCleanup (0.01s)
+   DB after: papers=[] chunks=0
+S2 dev DB (real paper + chunk, leftover synth.00001), CI unset: TestHNSWVectorHits
+   search_integration_test.go:82: DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB
+   --- SKIP: TestHNSWVectorHits (0.01s)
+   DB after: papers=[2401.00001] chunks=1
+S3 same dev DB, CI=true: TestHNSWVectorHits
+   search_integration_test.go:80: DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB
+   --- FAIL: TestHNSWVectorHits (0.01s)
+   DB after: papers=[2401.00001] chunks=1
+S4 same dev DB, CI unset: TestHNSWSeedCleanup -count=2
+   search_integration_test.go:328: itPrepare: 1 other papers before, 2 after inserting hnswb.foreign
+   --- PASS: TestHNSWSeedCleanup (0.01s)
+   search_integration_test.go:328: itPrepare: 1 other papers before, 2 after inserting hnswb.foreign
+   --- PASS: TestHNSWSeedCleanup (0.01s)
+   DB after: papers=[2401.00001] chunks=1
+S5 empty DB, CI=true: TestHNSWVectorHits passes the guard (then fails: no pgvector here)
+   search_integration_test.go:97: no rows in result set
+   --- FAIL: TestHNSWVectorHits (0.01s)
+   DB after: papers=[] chunks=0
+
+[exit code 0]

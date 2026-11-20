@@ -1,0 +1,47 @@
+$ bash -c grep -n '' internal/query/search_integration_test.go | sed -n '62,93p;255,266p'
+62:func TestHNSWVectorHits(t *testing.T) {
+63:	url := os.Getenv("DATABASE_URL")
+64:	if url == "" {
+65:		t.Skip("DATABASE_URL not set")
+66:	}
+67:	ctx := context.Background()
+68:	d, err := db.Connect(ctx, url)
+69:	if err != nil {
+70:		t.Fatal(err)
+71:	}
+72:	t.Cleanup(d.Close) // registered first so it runs last, after the corpus cleanup (t.Cleanup is LIFO)
+73:	others, err := itPrepare(ctx, d.Pool)
+74:	if err != nil {
+75:		t.Fatalf("prepare: %v", err)
+76:	}
+77:	if others > 0 {
+78:		const why = "DB holds %d non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"
+79:		if os.Getenv("CI") != "" { // never let a skip pass as green in db.yml
+80:			t.Fatalf(why, others)
+81:		}
+82:		t.Skipf(why, others)
+83:	}
+84:	t.Cleanup(func() { // runs even when the test fails; FK cascades remove chunks, embeddings and pages
+85:		if _, err := d.Pool.Exec(ctx, itDeleteSynthSQL); err != nil {
+86:			t.Errorf("cleanup: %v", err)
+87:		}
+88:	})
+89:	conn, err := d.Pool.Acquire(ctx) // one session: the seed uses temp tables
+90:	if err != nil {
+91:		t.Fatal(err)
+92:	}
+93:	defer conn.Release()
+255:const itDeleteSynthSQL = `DELETE FROM papers WHERE arxiv_id LIKE 'synth.%'`
+256:
+257:// itPrepare deletes synth.* papers left by an earlier crashed run and returns how many other papers remain.
+258:func itPrepare(ctx context.Context, pool *pgxpool.Pool) (int, error) {
+259:	if _, err := pool.Exec(ctx, itDeleteSynthSQL); err != nil {
+260:		return 0, err
+261:	}
+262:	var others int
+263:	err := pool.QueryRow(ctx, `SELECT count(*) FROM papers WHERE arxiv_id NOT LIKE 'synth.%'`).Scan(&others)
+264:	return others, err
+265:}
+266:
+
+[exit code 0]

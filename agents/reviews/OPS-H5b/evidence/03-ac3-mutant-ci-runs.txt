@@ -1,0 +1,33 @@
+$ bash -c for j in 136169129675 136170052860 136172426145; do echo; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j --jq '"== job \(.id) run \(.run_id) head_sha=\(.head_sha[0:7]) \(.name): \(.conclusion)"'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j/logs | grep -E 'HEAD is now at|seeded|--- (PASS|FAIL|SKIP): Test(HNSW|SearchProvenance)|search_integration_test.go:[0-9]+: \((a|b|c)\)|itPrepare:|^.{29}FAIL\s' | cut -c29-200; done
+
+== job 136169129675 run 44701014164 head_sha=d341c7a DB (migrate twice, HNSW plan + recall): failure
+ HEAD is now at 6c85778 Merge d341c7a30c3be8f85e186ae9fbbabe4bb5d65512 into e6cffba66d677a655ade39588972abc03bc273aa
+     search_integration_test.go:100: pgvector 0.8.7; seeded 13000 embeddings in 18.76s
+ --- PASS: TestHNSWVectorHits (25.47s)
+     search_integration_test.go:287: (a) leftover corpus after TestHNSWVectorHits: 1000 synth.* papers, 10000 synthetic chunks; want 0, 0
+     search_integration_test.go:323: itPrepare: 0 other papers before, 1 after inserting hnswb.foreign
+ --- FAIL: TestHNSWSeedCleanup (0.13s)
+ --- PASS: TestSearchProvenance (0.04s)
+ FAIL	arxivlens/internal/query	25.649s
+
+== job 136170052860 run 44701294532 head_sha=4ebca83 DB (migrate twice, HNSW plan + recall): failure
+ HEAD is now at d5c3363 Merge 4ebca83b96cf80b0a5e6d741281a781593b25d96 into e6cffba66d677a655ade39588972abc03bc273aa
+     search_integration_test.go:105: pgvector 0.8.7; seeded 13000 embeddings in 21.256s
+ --- PASS: TestHNSWVectorHits (28.12s)
+     search_integration_test.go:311: (b) itPrepare left 1 synth.* papers; want 0
+     search_integration_test.go:325: itPrepare: 0 other papers before, 1 after inserting hnswb.foreign
+ --- FAIL: TestHNSWSeedCleanup (0.01s)
+ --- PASS: TestSearchProvenance (0.02s)
+ FAIL	arxivlens/internal/query	28.157s
+
+== job 136172426145 run 44702017953 head_sha=b2cb615 DB (migrate twice, HNSW plan + recall): failure
+ HEAD is now at 8957ebd Merge b2cb615870837e25ff5b0153edbcd91de874fd79 into e6cffba66d677a655ade39588972abc03bc273aa
+     search_integration_test.go:105: pgvector 0.8.7; seeded 13000 embeddings in 30.89s
+ --- PASS: TestHNSWVectorHits (39.91s)
+     search_integration_test.go:326: (c) itPrepare reported 0 other papers after inserting hnswb.foreign; want 1
+     search_integration_test.go:328: itPrepare: 0 other papers before, 0 after inserting hnswb.foreign
+ --- FAIL: TestHNSWSeedCleanup (0.03s)
+ --- PASS: TestSearchProvenance (0.04s)
+ FAIL	arxivlens/internal/query	39.987s
+
+[exit code 0]

@@ -1,0 +1,18 @@
+$ bash -c grep -n '' internal/query/search_integration_test.go | sed -n '1,13p'; echo; git diff --stat origin/main...HEAD -- README.md CONTRIBUTING.md | wc -l | sed 's/^/README\/CONTRIBUTING changed-file lines: /'
+1://go:build integration
+2:
+3:// HNSW integration test for the vector arm of the hybrid query (OPS-H5). It needs an empty, migrated
+4:// PostgreSQL + pgvector database and seeds a deterministic synthetic corpus (synth.* papers) into it:
+5://
+6://	DATABASE_URL=postgres://... go test -tags integration -v -run TestHNSW ./internal/query/
+7://
+8:// The seed adds chunks to every paper, so the test refuses a DB that holds other papers (skips locally,
+9:// fails when CI is set). It deletes leftover synth.* papers first and its own corpus afterwards (OPS-H5b).
+10:// It plans and runs the production constants (vectorHitsSQL, hybridSearchSQL, hnswSearchSettings),
+11:// not copies, and logs EXPLAIN (ANALYZE, BUFFERS) plus result count and Recall@5 against an exact scan.
+12:package query
+13:
+
+README/CONTRIBUTING changed-file lines: 0
+
+[exit code 0]

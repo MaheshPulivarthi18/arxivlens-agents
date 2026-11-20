@@ -1,0 +1,97 @@
+$ bash -c cd /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H5b-r1; echo '== copies of head files (cmp):'; for f in internal/db/db.go internal/db/watermarks.go internal/query/search_integration_test.go; do cmp -s /root/wt/qa-81/$f mod/$f && echo "  identical  $f" || echo "  DIFFERS  $f"; done; echo '== dependency clones (git HEAD):'; for d in deps/*/; do [ -d $d/.git ] && echo "  $d $(git -C $d describe --tags --always 2>/dev/null) $(git -C $d log -1 --format=%h)"; done; echo '  stubs (empty go.mod): '$(ls -d deps/stub-* | xargs -n1 basename | tr '\n' ' '); echo '== hand-written files:'; for f in $(find . -path ./deps -prune -o -path './mut.*' -prune -o -type f \( -name '*.sh' -o -name 'go.mod' -o -name 'consts_stub.go' \) -print | sort); do echo "---- $f"; cat $f | sed "s#/tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H5b-r1#\$R#g"; done
+== copies of head files (cmp):
+  identical  internal/db/db.go
+  identical  internal/db/watermarks.go
+  identical  internal/query/search_integration_test.go
+== dependency clones (git HEAD):
+  deps/crypto/ v0.21.0 7067223
+  deps/pgpassfile/ v1.0.0 99d8e8e
+  deps/pgservicefile/ 091c0ba 091c0ba
+  deps/pgx/ v5.6.0 572d7ff
+  deps/puddle/ v2.2.1 825ae07
+  deps/sync/ v0.1.0 8fcdb60
+  deps/text/ v0.14.0 6c97a16
+  stubs (empty go.mod): stub-github.com_stretchr_testify stub-net stub-sys stub-term
+== hand-written files:
+---- ./mod/go.mod
+module arxivlens
+
+go 1.24
+
+require github.com/jackc/pgx/v5 v5.6.0
+
+require (
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
+)
+
+replace (
+	github.com/jackc/pgpassfile => $R/deps/pgpassfile
+	github.com/jackc/pgservicefile => $R/deps/pgservicefile
+	github.com/jackc/pgx/v5 => $R/deps/pgx
+	github.com/jackc/puddle/v2 => $R/deps/puddle
+	github.com/stretchr/testify => $R/deps/stub-github.com_stretchr_testify
+	golang.org/x/crypto => $R/deps/crypto
+	golang.org/x/net => $R/deps/stub-net
+	golang.org/x/sync => $R/deps/sync
+	golang.org/x/sys => $R/deps/stub-sys
+	golang.org/x/term => $R/deps/stub-term
+	golang.org/x/text => $R/deps/text
+)
+---- ./mod/internal/query/consts_stub.go
+package query
+
+// QA stub: the production SQL constants are defined in search.go, which pulls in the whole query package.
+// Never executed by the paths run here (TestHNSWVectorHits on a non-empty DB stops at itPrepare; TestHNSWSeedCleanup never uses them).
+const (
+	vectorHitsSQL      = "QA-STUB-NOT-EXECUTED"
+	hybridSearchSQL    = "QA-STUB-NOT-EXECUTED"
+	hnswSearchSettings = "QA-STUB-NOT-EXECUTED"
+)
+---- ./mutants.sh
+#!/bin/bash
+# QA OPS-H5b r1: local probe mutants of the AC4 guard + cleanup ordering (not reachable on CI's empty DB).
+# Each mutant = fresh copy of the scratch module, one code-anchored perl substitution, diff shown, scenario run.
+R=$(dirname "$(readlink -f "$0")"); PGD=$(cat $R/pgdir); F=internal/query/search_integration_test.go
+export GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS=-mod=mod PGOPTIONS="-c client_min_messages=warning"
+export DATABASE_URL="postgres://postgres@/arxivlens?host=$PGD&sslmode=disable"
+q(){ psql -h $PGD -U postgres -d arxivlens -qtAX -c "$1"; }
+dev(){ q "TRUNCATE papers CASCADE"; q "INSERT INTO papers(arxiv_id,title) VALUES ('2401.00001','Real')"; }
+empty(){ q "TRUNCATE papers CASCADE"; }
+run(){ # name, perl subst, setup fn, CI, -run, expectation
+  W=$(mktemp -d $R/mut.XXXX); cp -r $R/mod/. $W/; perl -0pi -e "$2" $W/$F
+  echo "== $1"; diff $R/mod/$F $W/$F | grep '^[<>]' | sed 's/^/   diff /' | cut -c1-150
+  [ -z "$(diff -q $R/mod/$F $W/$F)" ] && { echo "   NOT APPLIED"; return; }
+  (cd $W && go vet -tags integration ./internal/query/ >/dev/null 2>&1) || { echo "   INVALID (does not build)"; return; }
+  $3; out=$(cd $W && if [ -n "$4" ]; then export CI=$4; else unset CI; fi; go test -tags integration -count=1 -v -run "$5" ./internal/query/ 2>&1 | grep -E -e '--- (PASS|FAIL|SKIP)' -e '_test.go:[0-9]+:' | sed 's/^ */   /' | cut -c1-150)
+  echo "$out"; echo "   expected at head: $6"; }
+run "L1 drop the CI -> Fatalf branch" 's/if os\.Getenv\("CI"\) != "" \{[^\n]*\n\t+t\.Fatalf\(why, others\)\n\t+\}\n//' dev true '^TestHNSWVectorHits$' "FAIL (S3); mutant SKIPs = skip would pass green in db.yml"
+run "L2 guard boundary others > 0 -> others > 1" 's/if others > 0 \{/if others > 1 {/' dev "" '^TestHNSWVectorHits$' "SKIP (S2); mutant passes the guard and seeds a dev DB"
+run "L3 t.Cleanup(d.Close) -> defer d.Close() (cleanup ordering)" 's/\tt\.Cleanup\(d\.Close\) \/\/ registered first so it runs last, after the corpus cleanup/\tdefer d.Close() \/\/ QA-L3/' empty true '^TestHNSWVectorHits$' "only 'no rows' (S5); mutant adds 'cleanup: closed pool'"
+---- ./run.sh
+#!/bin/bash
+# QA OPS-H5b r1: run the PR's real search_integration_test.go (+ real internal/db, real pgx v5.6.0) against local PG16.
+# usage: run.sh <module dir>   (DB: migrations 000001+000003 applied, no pgvector)
+M=$1; R=$(dirname "$0"); PGD=$(cat $R/pgdir)
+export GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS=-mod=mod
+export PGOPTIONS="-c client_min_messages=warning"
+export DATABASE_URL="postgres://postgres@/arxivlens?host=$PGD&sslmode=disable"
+q(){ psql -h $PGD -U postgres -d arxivlens -qtAX -c "$1"; }
+state(){ echo "   DB after: papers=[$(q "SELECT string_agg(arxiv_id, ',' ORDER BY arxiv_id) FROM papers")] chunks=$(q 'SELECT count(*) FROM paper_chunks')"; }
+reset(){ q "TRUNCATE papers CASCADE"; }
+t(){ # $1=CI value or '' ; $2=-run ; $3=count
+  (cd $M && if [ -n "$1" ]; then export CI=$1; else unset CI; fi; go test -tags integration -count=${3:-1} -v -run "$2" ./internal/query/ 2>&1) \
+   | grep -E -e '--- (PASS|FAIL|SKIP)' -e '_test.go:[0-9]+:' -e 'panic' | sed 's/^ */   /' | cut -c1-170; }
+echo "S1 empty DB, CI unset: TestHNSWSeedCleanup -count=2"; reset; t "" '^TestHNSWSeedCleanup$' 2; state
+echo "S2 dev DB (real paper + chunk, leftover synth.00001), CI unset: TestHNSWVectorHits"
+reset; q "INSERT INTO papers(arxiv_id,title) VALUES ('2401.00001','Real'),('synth.00001','Leftover')"; q "INSERT INTO paper_chunks(paper_id,chunk_index,content,content_hash) SELECT id,0,'real text','h' FROM papers WHERE arxiv_id IN ('2401.00001','synth.00001')"
+t "" '^TestHNSWVectorHits$'; state
+echo "S3 same dev DB, CI=true: TestHNSWVectorHits"; t true '^TestHNSWVectorHits$'; state
+echo "S4 same dev DB, CI unset: TestHNSWSeedCleanup -count=2"; t "" '^TestHNSWSeedCleanup$' 2; state
+echo "S5 empty DB, CI=true: TestHNSWVectorHits passes the guard (then fails: no pgvector here)"; reset; t true '^TestHNSWVectorHits$'; state
+
+[exit code 0]

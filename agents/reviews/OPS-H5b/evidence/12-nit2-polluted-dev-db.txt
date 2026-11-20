@@ -1,0 +1,10 @@
+$ bash -c export PGOPTIONS='-c client_min_messages=warning' GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS=-mod=mod DATABASE_URL='postgres://postgres@/arxivlens?host=/tmp/qa-h5b-pg.nrHq&sslmode=disable'; q(){ psql -h /tmp/qa-h5b-pg.nrHq -U postgres -d arxivlens -qtAX -c "$1"; }; q 'TRUNCATE papers CASCADE'; q "INSERT INTO papers(arxiv_id,title) VALUES ('2401.00001','Real')"; q "INSERT INTO paper_chunks(paper_id,chunk_index,content,content_hash) SELECT id,0,'synthetic chunk '||id||'-0','h' FROM papers"; echo 'setup: 1 real paper with 1 old-seed chunk'; cd /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H5b-r1/mod && go test -tags integration -count=1 -v -run '^TestHNSW' ./internal/query/ 2>&1 | grep -E -e '--- (PASS|FAIL|SKIP)' -e '_test.go:[0-9]+:'; echo "DB after: papers=[$(q "SELECT string_agg(arxiv_id, ',') FROM papers")] synthetic chunks=$(q "SELECT count(*) FROM paper_chunks WHERE content LIKE 'synthetic chunk %'")"
+setup: 1 real paper with 1 old-seed chunk
+    search_integration_test.go:82: DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB
+--- SKIP: TestHNSWVectorHits (0.01s)
+    search_integration_test.go:292: (a) leftover corpus after TestHNSWVectorHits: 0 synth.* papers, 1 synthetic chunks; want 0, 0
+    search_integration_test.go:328: itPrepare: 1 other papers before, 2 after inserting hnswb.foreign
+--- FAIL: TestHNSWSeedCleanup (0.01s)
+DB after: papers=[2401.00001] synthetic chunks=1
+
+[exit code 0]

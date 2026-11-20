@@ -1,0 +1,9 @@
+$ bash -c gh api 'repos/MaheshPulivarthi18/ArxivLens/commits/8cae68b266f3dc78affa2289275313f411af9125/check-runs?per_page=50' --jq '.check_runs[] | "\(.name) | \(.status) \(.conclusion) | job \(.id)"' | sort
+Agent ownership check | completed success | job 136173317258
+DB (migrate twice, HNSW plan + recall) | completed success | job 136173317940
+Frontend (lint, test, build) | completed success | job 136173317173
+Full stack (compose + make test-full) | completed success | job 136173363764
+Go (vet, gofmt, test, build) | completed success | job 136173317186
+Python M0 unit tests | completed success | job 136173316888
+
+[exit code 0]
