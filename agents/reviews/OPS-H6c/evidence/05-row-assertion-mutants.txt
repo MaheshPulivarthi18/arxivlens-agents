@@ -1,0 +1,8 @@
+$ python3 /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-H6c/tools/test_mutants.py
+== T1 already-expired ctx (AC1 poll-reached check must fire): FAIL
+   consumer_test.go:411: poll(deadline) reached 0 times, want 1: []
+== T2 cancel at 20ms instead of deadline (AC2 check must fire): FAIL
+   consumer_test.go:409: ctx.Err() = context canceled, want context.DeadlineExceeded (the row must end by deadline, not cancel)
+== T3 fake returns no error (row turns vacuous: then AC3b no-guard would survive; shows why the fake must return ctx.Err()): PASS
+
+[exit code 0]

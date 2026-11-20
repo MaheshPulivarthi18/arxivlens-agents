@@ -1,0 +1,184 @@
+$ bash -c cd /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-H6c; for d in franz-go kmsg-src compress lz4 crypto sys text ulid; do echo "dep $d: $(git -C $d remote get-url origin) @ $(git -C $d describe --tags 2>/dev/null)"; done; echo '== harness: find -type f | sort (internal/kafka and shared/events/events.go are cp of PR head 6b1e814)'; (cd harness && find . -type f | sort); for f in $(cd harness && find . -type f -not -path './internal/*' -not -path './shared/*' | sort); do echo "----- harness/$f"; cat harness/$f; done; for f in $(find tools probe -type f | sort); do echo "----- $f"; cat $f; done
+dep franz-go: https://github.com/twmb/franz-go @ v1.16.1
+dep kmsg-src: https://github.com/twmb/franz-go @ pkg/kmsg/v1.7.0
+dep compress: https://github.com/klauspost/compress @ v1.17.6
+dep lz4: https://github.com/pierrec/lz4 @ v4.1.19
+dep crypto: https://github.com/golang/crypto @ v0.21.0
+dep sys: https://github.com/golang/sys @ v0.18.0
+dep text: https://github.com/golang/text @ v0.14.0
+dep ulid: https://github.com/oklog/ulid @ v2.1.0
+== harness: find -type f | sort (internal/kafka and shared/events/events.go are cp of PR head 6b1e814)
+./go.mod
+./internal/kafka/consumer.go
+./internal/kafka/consumer_test.go
+./internal/kafka/producer.go
+./shared/events/events.go
+./stubs/getopt/go.mod
+./stubs/net/go.mod
+./stubs/term/go.mod
+----- harness/./go.mod
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/twmb/franz-go v1.16.1
+)
+
+require (
+	github.com/klauspost/compress v1.17.6 // indirect
+	github.com/pierrec/lz4/v4 v4.1.19 // indirect
+	github.com/twmb/franz-go/pkg/kmsg v1.7.0 // indirect
+)
+
+replace (
+	github.com/klauspost/compress => ../compress
+	github.com/oklog/ulid/v2 => ../ulid
+	github.com/pborman/getopt => ./stubs/getopt
+	github.com/pierrec/lz4/v4 => ../lz4
+	github.com/twmb/franz-go => ../franz-go
+	github.com/twmb/franz-go/pkg/kmsg => ../kmsg-src/pkg/kmsg
+	golang.org/x/crypto => ../crypto
+	golang.org/x/net => ./stubs/net
+	golang.org/x/sys => ../sys
+	golang.org/x/term => ./stubs/term
+	golang.org/x/text => ../text
+)
+----- harness/./stubs/getopt/go.mod
+module github.com/pborman/getopt
+go 1.15
+----- harness/./stubs/net/go.mod
+module golang.org/x/net
+go 1.18
+----- harness/./stubs/term/go.mod
+module golang.org/x/term
+go 1.18
+----- probe/internal/kafka/qa_probe_test.go
+package kafka
+
+// QA probe (not in the PR): fake fidelity of deadlinePoll vs the real franz-go v1.16.1 client on a deadline ctx.
+import (
+	"bytes"
+	"context"
+	"log"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/twmb/franz-go/pkg/kgo"
+)
+
+func TestQARealKgoDeadline(t *testing.T) {
+	cl, err := kgo.NewClient(kgo.SeedBrokers("127.0.0.1:1"), kgo.ConsumerGroup("qa"), kgo.ConsumeTopics(topic))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cl.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+	fs := cl.PollFetches(ctx)
+	fs.EachError(func(tp string, p int32, e error) {
+		t.Logf("real kgo PollFetches on deadline ctx: topic=%q partition=%d err=%v (err==ctx.Err(): %v)", tp, p, e, e == ctx.Err())
+	})
+
+	var buf bytes.Buffer
+	defer log.SetOutput(log.Writer())
+	log.SetOutput(&buf)
+	cl2, _ := kgo.NewClient(kgo.SeedBrokers("127.0.0.1:1"), kgo.ConsumerGroup("qa"), kgo.ConsumeTopics(topic))
+	defer cl2.Close()
+	c := &Consumer{client: cl2, group: "qa", topics: []string{topic}, maxRetries: 3}
+	ctx2, cancel2 := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel2()
+	start := time.Now()
+	rerr := c.Start(ctx2, func(context.Context, *kgo.Record) error { return nil })
+	out := buf.String()
+	log.SetOutput(log.Writer())
+	t.Logf("Start(real kgo, 20ms deadline) = %v in %v; Poll error lines: %d; shutdown line: %v", rerr, time.Since(start).Round(time.Millisecond),
+		strings.Count(out, "Poll error"), strings.Contains(out, "Context cancelled, shutting down"))
+	for _, l := range strings.Split(strings.TrimSpace(out), "\n") {
+		t.Logf("  log: %s", l)
+	}
+}
+----- tools/mutate.py
+#!/usr/bin/env python3
+"""Single-edit mutants of internal/kafka/consumer.go (PR head 6b1e814) in the real franz-go v1.16.1 harness.
+Each mutant: fresh mktemp -d copy of the harness (never deleted), one str.replace that must match exactly once
+(anchored on the code line, not comments), then go test -race -count=1 twice: full package and
+-run '^TestConsumerPollErrorAfterDeadline$'. Build failure -> INVALID (never KILLED). Prints the mutant diff line."""
+import os, re, shutil, subprocess, sys, tempfile
+H = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "harness")
+F = "internal/kafka/consumer.go"
+GL = "\t\t\tif ctx.Err() != nil && errors.Is(err, ctx.Err()) {\n"
+G = GL + "\t\t\t\treturn\n\t\t\t}\n"
+M = [
+ ("CONTROL (no edit)", None, None),
+ ("M9 (AC3a) errors.Is(err, ctx.Err()) -> errors.Is(err, context.Canceled)", GL, GL.replace("errors.Is(err, ctx.Err())", "errors.Is(err, context.Canceled)")),
+ ("AC3b remove the guard", G, ""),
+ ("X1 guard only on DeadlineExceeded (cancel rows should catch)", GL, GL.replace("errors.Is(err, ctx.Err())", "errors.Is(err, context.DeadlineExceeded)")),
+ ("X2 ctx.Err() == context.Canceled && errors.Is(err, ctx.Err())", GL, GL.replace("ctx.Err() != nil &&", "ctx.Err() == context.Canceled &&")),
+ ("X3 err == context.Canceled (identity, not errors.Is)", GL, "\t\t\tif ctx.Err() != nil && err == context.Canceled {\n"),
+]
+os.environ.update(GOTOOLCHAIN="local", GOFLAGS="-mod=mod", GOPROXY="off", GOSUMDB="off")
+def run(d, extra):
+    p = subprocess.run(["go","test","-race","-count=1",*extra,"./internal/kafka/"], cwd=d, capture_output=True, text=True)
+    out = p.stdout + p.stderr
+    if p.returncode == 0: return "PASS (survived)" , []
+    if re.search(r"\[build failed\]|cannot use|undefined:|declared and not used|syntax error", out): return "INVALID (build)", out.splitlines()[:5]
+    fails = sorted(set(re.findall(r"--- FAIL: (\S+)", out)))
+    if not fails: return "INVALID (no --- FAIL line)", out.splitlines()[:5]
+    return "FAIL (killed)", fails
+for name, old, new in M:
+    d = tempfile.mkdtemp(prefix="mut-", dir=os.path.dirname(H))  # sibling of harness so ../<dep> replaces resolve
+    shutil.copytree(H, d, dirs_exist_ok=True)
+    src = open(os.path.join(d, F)).read()
+    if old is not None:
+        n = src.count(old)
+        if n != 1: print(f"{name}: SKIP, anchor matched {n}x"); continue
+        src = src.replace(old, new); open(os.path.join(d, F), "w").write(src)
+    diff = subprocess.run(["diff", os.path.join(H, F), os.path.join(d, F)], capture_output=True, text=True).stdout.strip()
+    full, ff = run(d, [])
+    one, of = run(d, ["-run", "^TestConsumerPollErrorAfterDeadline$"])
+    print(f"== {name}")
+    print("   diff: " + (" | ".join(l for l in diff.splitlines() if l[:1] in "<>") or "(none)"))
+    print(f"   full package: {full} {' '.join(ff)}")
+    print(f"   -run ^TestConsumerPollErrorAfterDeadline$: {one} {' '.join(of)}")
+----- tools/probe.sh
+#!/bin/bash
+# Runs the QA real-kgo probe against the head consumer.go and against the M9 mutant (fresh copies beside the harness).
+Q=$(cd "$(dirname "$0")/.." && pwd); export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off GOSUMDB=off
+for v in head M9; do
+  d=$(mktemp -d "$Q/probe-$v-XXXX"); cp -r "$Q/harness/." "$d/"; cp "$Q/probe/internal/kafka/qa_probe_test.go" "$d/internal/kafka/"
+  [ $v = M9 ] && sed -i 's/if ctx.Err() != nil \&\& errors.Is(err, ctx.Err()) {/if ctx.Err() != nil \&\& errors.Is(err, context.Canceled) {/' "$d/internal/kafka/consumer.go"
+  echo "== consumer.go = $v ($(grep -c 'errors.Is(err, context.Canceled)' "$d/internal/kafka/consumer.go") M9 lines)"
+  (cd "$d" && go test -count=1 -v -run '^TestQARealKgoDeadline$' ./internal/kafka/ 2>&1 | grep -E 'qa_probe_test|^(ok|FAIL|---)')
+done
+----- tools/test_mutants.py
+#!/usr/bin/env python3
+"""Test-side mutants of the NEW row in internal/kafka/consumer_test.go (consumer.go untouched): does each AC1/AC2
+assertion bite when the row degrades? Same harness/copy rules as mutate.py; runs -run '^TestConsumerPollErrorAfterDeadline$'."""
+import os, re, shutil, subprocess, tempfile
+H = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "harness")
+F = "internal/kafka/consumer_test.go"
+W = "\tctx, cancel := context.WithTimeout(context.Background(), 20*ms)\n"
+M = [
+ ("T1 already-expired ctx (AC1 poll-reached check must fire)", W, "\tctx, cancel := context.WithTimeout(context.Background(), -1)\n"),
+ ("T2 cancel at 20ms instead of deadline (AC2 check must fire)", W, "\tctx, cancel := context.WithCancel(context.Background())\n\ttime.AfterFunc(20*ms, cancel)\n"),
+ ("T3 fake returns no error (row turns vacuous: then AC3b no-guard would survive; shows why the fake must return ctx.Err())", "\tp.add(\"poll(deadline)\")\n\t<-ctx.Done()\n\treturn fetchOf(kgo.FetchPartition{Partition: -1, Err: ctx.Err()})\n", "\tp.add(\"poll(deadline)\")\n\t<-ctx.Done()\n\treturn fetchOf()\n"),
+]
+os.environ.update(GOTOOLCHAIN="local", GOFLAGS="-mod=mod", GOPROXY="off", GOSUMDB="off")
+for name, old, new in M:
+    d = tempfile.mkdtemp(prefix="tmut-", dir=os.path.dirname(H))
+    shutil.copytree(H, d, dirs_exist_ok=True)
+    p = os.path.join(d, F); src = open(p).read()
+    n = src.count(old)
+    if n != 1: print(f"{name}: SKIP anchor {n}x"); continue
+    open(p, "w").write(src.replace(old, new))
+    r = subprocess.run(["go","test","-race","-count=1","-v","-run","^TestConsumerPollErrorAfterDeadline$","./internal/kafka/"], cwd=d, capture_output=True, text=True)
+    out = r.stdout + r.stderr
+    msgs = [l.strip() for l in out.splitlines() if "consumer_test.go:" in l]
+    st = "PASS" if r.returncode == 0 else ("FAIL" if "--- FAIL" in out else "INVALID")
+    print(f"== {name}: {st}")
+    for m in msgs: print("   " + m[:200])
+
+[exit code 0]

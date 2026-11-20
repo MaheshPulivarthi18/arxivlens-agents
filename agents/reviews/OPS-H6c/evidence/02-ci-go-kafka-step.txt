@@ -1,0 +1,52 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136098750087/logs | grep ...
+CI job 136098750087 (run 44679348972), head_sha 6b1e814a312837a4e5ebe09cd4ae9a259b815426, fetched via gh api .../actions/jobs/136098750087/logs
+--- step conclusions:
+Set up job: success
+Run actions/checkout@v4: success
+Run actions/setup-go@v5: success
+Run make lint-go: success
+Run make test-go: success
+Kafka consumer tests (verbose, race, coverage): success
+LLM package tests (verbose, race, per-file coverage): success
+Run make build-go: success
+Post Run actions/setup-go@v5: success
+Post Run actions/checkout@v4: success
+Complete job: success
+--- grep of log (checkout merge, lint-go, kafka step, new test, kafka PASS/FAIL summary):
+120:2026-11-20T05:11:31.8516030Z HEAD is now at 1cbae83 Merge 6b1e814a312837a4e5ebe09cd4ae9a259b815426 into e6cffba66d677a655ade39588972abc03bc273aa
+207:2026-11-20T05:11:42.3176843Z ##[group]Run make lint-go
+218:2026-11-20T05:11:51.0569129Z ok  	arxivlens/internal/arxiv	1.557s
+219:2026-11-20T05:11:51.0569745Z ok  	arxivlens/internal/config	0.004s
+220:2026-11-20T05:11:51.0570310Z ok  	arxivlens/internal/crawler	0.099s
+221:2026-11-20T05:11:51.0570882Z ok  	arxivlens/internal/db	0.006s
+222:2026-11-20T05:11:51.0571471Z ok  	arxivlens/internal/dlq	0.271s
+223:2026-11-20T05:11:51.0572077Z ok  	arxivlens/internal/downloader	0.107s
+224:2026-11-20T05:11:51.0572666Z ok  	arxivlens/internal/kafka	0.053s
+225:2026-11-20T05:11:51.5773913Z ok  	arxivlens/internal/llm	0.802s
+226:2026-11-20T05:11:51.5774841Z ok  	arxivlens/internal/llm/llmtest	0.104s
+227:2026-11-20T05:11:51.8080249Z ok  	arxivlens/internal/query	0.332s
+231:2026-11-20T05:11:51.8689492Z ##[group]Run go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go
+349:2026-11-20T05:12:14.7649662Z === RUN   TestConsumerPollErrorAfterCancel
+350:2026-11-20T05:12:14.7650422Z === RUN   TestConsumerPollErrorAfterCancel/clean_shutdown_logs_no_poll_error
+351:2026-11-20T05:12:14.7651425Z === RUN   TestConsumerPollErrorAfterCancel/other_error_after_cancel_is_still_logged
+352:2026-11-20T05:12:14.7652421Z === RUN   TestConsumerPollErrorAfterCancel/client_closed_after_cancel_still_returns_the_error
+353:2026-11-20T05:12:14.7652954Z --- PASS: TestConsumerPollErrorAfterCancel (0.00s)
+354:2026-11-20T05:12:14.7653542Z     --- PASS: TestConsumerPollErrorAfterCancel/clean_shutdown_logs_no_poll_error (0.00s)
+355:2026-11-20T05:12:14.7654261Z     --- PASS: TestConsumerPollErrorAfterCancel/other_error_after_cancel_is_still_logged (0.00s)
+356:2026-11-20T05:12:14.7655064Z     --- PASS: TestConsumerPollErrorAfterCancel/client_closed_after_cancel_still_returns_the_error (0.00s)
+357:2026-11-20T05:12:14.7655645Z === RUN   TestConsumerPollErrorAfterDeadline
+358:2026-11-20T05:12:14.7855037Z --- PASS: TestConsumerPollErrorAfterDeadline (0.02s)
+359:2026-11-20T05:12:14.7855645Z PASS
+361:2026-11-20T05:12:15.7904829Z ok  	arxivlens/internal/kafka	1.071s	coverage: 63.7% of statements
+362:2026-11-20T05:12:15.9328917Z arxivlens/internal/kafka/consumer.go:42:	NewConsumer	28.6%
+363:2026-11-20T05:12:15.9329604Z arxivlens/internal/kafka/consumer.go:72:	Close		0.0%
+364:2026-11-20T05:12:15.9330323Z arxivlens/internal/kafka/consumer.go:79:	retryBackoff	100.0%
+365:2026-11-20T05:12:15.9331088Z arxivlens/internal/kafka/consumer.go:84:	dlqRetryBackoff	100.0%
+366:2026-11-20T05:12:15.9331862Z arxivlens/internal/kafka/consumer.go:89:	ctxWait		100.0%
+367:2026-11-20T05:12:15.9332628Z arxivlens/internal/kafka/consumer.go:101:	Start		100.0%
+625:2026-11-20T05:12:22.2890896Z PASS
+627:2026-11-20T05:12:22.2891581Z ok  	arxivlens/internal/llm	2.005s	coverage: 96.6% of statements
+642:2026-11-20T05:12:22.2897316Z PASS
+644:2026-11-20T05:12:22.2898096Z ok  	arxivlens/internal/llm/llmtest	1.119s	coverage: 100.0% of statements
+--- count of '--- FAIL' in whole log: 0
+

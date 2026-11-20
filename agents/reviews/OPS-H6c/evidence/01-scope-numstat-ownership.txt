@@ -1,0 +1,12 @@
+$ bash -c git diff --stat origin/main...HEAD; git diff --numstat origin/main...HEAD; echo "consumer.go diff lines: $(git diff origin/main...HEAD -- internal/kafka/consumer.go | wc -l)"; echo "deleted lines (^-) in test diff: $(git diff origin/main...HEAD -- internal/kafka/consumer_test.go | grep -c "^-[^-]")"; echo "== gofmt -l internal/kafka/ (go1.24 gofmt):"; gofmt -l internal/kafka/; echo "(end gofmt)"; echo "== ownership-check.sh origin/main HEAD (role from branch name)"; git branch -f agent/backend/OPS-H6c-qa HEAD >/dev/null 2>&1; bash .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H6c 2>&1 | tail -3
+ internal/kafka/consumer_test.go | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+37	0	internal/kafka/consumer_test.go
+consumer.go diff lines: 0
+deleted lines (^-) in test diff: 0
+== gofmt -l internal/kafka/ (go1.24 gofmt):
+(end gofmt)
+== ownership-check.sh origin/main HEAD (role from branch name)
+Ownership OK for role=backend (37 changed lines)
+
+[exit code 0]

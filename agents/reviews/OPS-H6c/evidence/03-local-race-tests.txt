@@ -1,0 +1,35 @@
+$ bash -c export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off GOSUMDB=off; cmp internal/kafka/consumer_test.go /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-H6c/harness/internal/kafka/consumer_test.go && cmp internal/kafka/consumer.go /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-H6c/harness/internal/kafka/consumer.go && echo 'harness kafka sources == PR head (cmp)'; cd /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-H6c/harness && go version && go vet ./internal/kafka/ && echo 'go vet ./internal/kafka/: clean' && go test -race -count=1 -v -run 'Consumer' ./internal/kafka/ 2>&1 | grep -E -- '^(--- |    --- |ok|FAIL|PASS)'; echo '== -race -count=50 -run ^TestConsumerPollErrorAfterDeadline$:'; go test -race -count=50 -v -run '^TestConsumerPollErrorAfterDeadline$' ./internal/kafka/ 2>&1 | grep -E -- '^--- ' | sort | uniq -c; go test -race -count=50 -run '^TestConsumerPollErrorAfterDeadline$' ./internal/kafka/ 2>&1 | tail -1
+harness kafka sources == PR head (cmp)
+go version go1.24.7 linux/amd64
+go vet ./internal/kafka/: clean
+--- PASS: TestConsumerSuccessPath (0.00s)
+    --- PASS: TestConsumerSuccessPath/ok_on_1st (0.00s)
+    --- PASS: TestConsumerSuccessPath/ok_after_1_failure (0.00s)
+    --- PASS: TestConsumerSuccessPath/ok_after_2_failures (0.00s)
+    --- PASS: TestConsumerSuccessPath/commit_error_is_logged,_loop_continues (0.00s)
+--- PASS: TestConsumerDLQThenCommit (0.00s)
+--- PASS: TestConsumerDLQFailureBlocksPartition (0.00s)
+    --- PASS: TestConsumerDLQFailureBlocksPartition/failing_record_first (0.00s)
+    --- PASS: TestConsumerDLQFailureBlocksPartition/earlier_record_in_the_poll_is_committed (0.00s)
+--- PASS: TestConsumerDLQRecovers (0.00s)
+--- PASS: TestNewConsumerRejectsNilProducer (0.00s)
+--- PASS: TestConsumerNilDLQIsFailedPublish (0.00s)
+--- PASS: TestConsumerCancelDuringBackoffReturnsPromptly (0.02s)
+--- PASS: TestConsumerCancelInsideHandlerNoDLQ (0.00s)
+--- PASS: TestConsumerAllowRebalanceAfterEachPoll (0.00s)
+--- PASS: TestConsumerDLQFailureLogNoValue (0.00s)
+--- PASS: TestConsumerPollErrorStillProcessesRecords (0.00s)
+    --- PASS: TestConsumerPollErrorStillProcessesRecords/partition_error,_other_partition_handled (0.00s)
+    --- PASS: TestConsumerPollErrorStillProcessesRecords/client_closed_returns_the_error (0.00s)
+--- PASS: TestConsumerPollErrorAfterCancel (0.00s)
+    --- PASS: TestConsumerPollErrorAfterCancel/clean_shutdown_logs_no_poll_error (0.00s)
+    --- PASS: TestConsumerPollErrorAfterCancel/other_error_after_cancel_is_still_logged (0.00s)
+    --- PASS: TestConsumerPollErrorAfterCancel/client_closed_after_cancel_still_returns_the_error (0.00s)
+--- PASS: TestConsumerPollErrorAfterDeadline (0.02s)
+PASS
+ok  	arxivlens/internal/kafka	1.062s
+== -race -count=50 -run ^TestConsumerPollErrorAfterDeadline$:
+     50 --- PASS: TestConsumerPollErrorAfterDeadline (0.02s)
+ok  	arxivlens/internal/kafka	2.043s
+
+[exit code 0]
