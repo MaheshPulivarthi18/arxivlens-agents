@@ -6,7 +6,7 @@
 | **Priority** | P2 (harness) |
 | **PRD ref** | Technical PRD §11 harness/quality; follow-up from OPS-H5 QA nit 8 (`agents/reviews/OPS-H5/report.md:117`): "`TestHNSWVectorHits` seeds 1000 `synth.*` papers permanently into whatever `DATABASE_URL` points at, and it is likely not re-runnable on the same DB (`UNIQUE (arxiv_id, version)`). On a developer's real DB it would pollute search results." |
 | **Depends on** | OPS-H5 (#16, merged `e67354c`). No open PR touches `internal/query/search_integration_test.go` (checked 2026-11-20 08:00Z against #65, #66, #68, #69, #70, #76, #77, #78, #79 via REST) |
-| **Jira** | to create (epic KAN-3 "Dev harness & infrastructure", as for OPS-H5 KAN-17; labels `task-OPS-H5b`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-84 |
 | **Design required** | no: test-only, no production code, contract, CLI, table or service change |
 | **Status** | Ready |
 

@@ -6,7 +6,7 @@
 | **Priority** | P2 (harness) |
 | **PRD ref** | Technical PRD §11 harness/quality; follow-up from ING-9 QA nit 6 (`agents/reviews/ING-9/report.md:46`, again at `:93`): "The CI Go job runs without `-race`, so AC1's `-race` requirement is proven only by the local scratch run" |
 | **Depends on** | OPS-H14 (#71, merged `1b443f5`; it was the last open PR on `ci.yml`). No open PR touches `.github/workflows/ci.yml` (checked 2026-11-20 08:00Z against #65, #66, #68, #69, #70, #76, #77, #78, #79 via REST) |
-| **Jira** | to create (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H15`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-83 |
 | **Design required** | no: one CI step's environment, no production code, contract, CLI, table or service change |
 | **Status** | Ready |
 
