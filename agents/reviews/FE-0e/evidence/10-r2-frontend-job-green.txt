@@ -1,0 +1,55 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136486858137/logs  (excerpt: checkout, lint, vitest, build; ANSI stripped)
+2026-11-20T18:30:56.0415671Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd2d0e7f130d0ca87fabf5c585a77f9423aa2e25:refs/remotes/pull/87/merge
+2026-11-20T18:30:56.4240125Z From https://github.com/MaheshPulivarthi18/ArxivLens
+2026-11-20T18:30:56.4241309Z  * [new ref]         dd2d0e7f130d0ca87fabf5c585a77f9423aa2e25 -> pull/87/merge
+2026-11-20T18:30:56.4521585Z HEAD is now at dd2d0e7 Merge 27953fdcee2fbc8ece4480b0ad553e5dc56462db into c37d27c1b77756db6100f538f7aaabf5362d584b
+2026-11-20T18:30:58.2696500Z ##[group]Run npm ci
+2026-11-20T18:30:58.2696951Z npm ci
+2026-11-20T18:31:02.6156544Z ##[group]Run npm run lint
+2026-11-20T18:31:02.6156876Z npm run lint
+2026-11-20T18:31:02.6195895Z shell: /usr/bin/bash -e {0}
+2026-11-20T18:31:02.6196199Z ##[endgroup]
+2026-11-20T18:31:02.7208162Z 
+2026-11-20T18:31:02.7208691Z > frontend@0.0.0 lint
+2026-11-20T18:31:02.7209474Z > oxlint
+2026-11-20T18:31:02.7209618Z 
+2026-11-20T18:31:02.7933012Z Found 0 warnings and 0 errors.
+2026-11-20T18:31:02.7934167Z Finished in 27ms on 29 files with 104 rules using 4 threads.
+2026-11-20T18:31:02.8096896Z ##[group]Run npm run test --if-present
+2026-11-20T18:31:02.8097423Z npm run test --if-present
+2026-11-20T18:31:02.8148800Z shell: /usr/bin/bash -e {0}
+2026-11-20T18:31:02.8149264Z ##[endgroup]
+2026-11-20T18:31:02.9167950Z 
+2026-11-20T18:31:02.9168437Z > frontend@0.0.0 test
+2026-11-20T18:31:02.9168899Z > vitest run
+2026-11-20T18:31:02.9169113Z 
+2026-11-20T18:31:03.2561420Z 
+2026-11-20T18:31:03.2564329Z  RUN  v4.1.12 /home/runner/work/ArxivLens/ArxivLens/frontend
+2026-11-20T18:31:03.2565247Z 
+2026-11-20T18:31:04.9022575Z  ✓ src/test/tokens.test.js (5 tests) 12ms
+2026-11-20T18:31:05.5830397Z  ✓ src/components/SynthesisView.test.jsx (6 tests) 380ms
+2026-11-20T18:31:05.6582318Z  ✓ src/components/ReferencesStack.test.jsx (8 tests) 447ms
+2026-11-20T18:31:06.7394065Z  ✓ src/components/HeroSearch.test.jsx (5 tests) 569ms
+2026-11-20T18:31:06.7395201Z      ✓ submits the trimmed question  348ms
+2026-11-20T18:31:06.7444807Z 
+2026-11-20T18:31:06.7452951Z  Test Files  4 passed (4)
+2026-11-20T18:31:06.7480960Z       Tests  24 passed (24)
+2026-11-20T18:31:06.7482077Z    Start at  18:31:03
+2026-11-20T18:31:06.7490941Z    Duration  3.48s (transform 360ms, setup 929ms, import 858ms, tests 1.41s, environment 4.07s)
+2026-11-20T18:31:06.7491999Z 
+2026-11-20T18:31:06.7871512Z ##[group]Run npm run build
+2026-11-20T18:31:06.7871848Z npm run build
+2026-11-20T18:31:06.7907535Z shell: /usr/bin/bash -e {0}
+2026-11-20T18:31:06.7907806Z ##[endgroup]
+2026-11-20T18:31:06.8905348Z 
+2026-11-20T18:31:06.8905918Z > frontend@0.0.0 build
+2026-11-20T18:31:06.8906285Z > vite build
+2026-11-20T18:31:06.8906434Z 
+2026-11-20T18:31:07.1085683Z vite v8.2.2 building client environment for production...
+2026-11-20T18:31:07.1211907Z transforming...
+2026-11-20T18:31:08.0704176Z ✓ 1923 modules transformed.
+2026-11-20T18:31:08.1150283Z rendering chunks...
+2026-11-20T18:31:08.1834043Z 
+2026-11-20T18:31:08.1834400Z ✓ built in 1.07s
+2026-11-20T18:31:08.2592079Z ##[group]Run ../.github/scripts/frontend-dist-report.sh dist
+

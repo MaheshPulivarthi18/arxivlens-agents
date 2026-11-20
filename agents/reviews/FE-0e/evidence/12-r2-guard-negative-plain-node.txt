@@ -1,0 +1,52 @@
+$ /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r2/h/guard_qa_r2.sh /root/wt/qa-FE-0e-r2 /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r2/h/vitest-stub
+test file at 27953fd: new URL( occurrences = 0
+--- head
+PASS pattern catches palette classes, with and without variants 
+PASS components/IngestModal.jsx uses theme tokens, not palette classes 
+PASS components/InfrastructureModal.jsx uses theme tokens, not palette classes 
+PASS components/PapersLibrary.jsx uses theme tokens, not palette classes 
+PASS components/Toast.jsx uses theme tokens, not palette classes 
+=> 5 tests, 0 failed
+
+--- base
+PASS pattern catches palette classes, with and without variants 
+FAIL components/IngestModal.jsx uses theme tokens, not palette classes 
+FAIL components/InfrastructureModal.jsx uses theme tokens, not palette classes 
+FAIL components/PapersLibrary.jsx uses theme tokens, not palette classes 
+FAIL components/Toast.jsx uses theme tokens, not palette classes 
+=> 5 tests, 4 failed
+
+mutant: PapersLibrary.jsx first 'hover:text-accent-foreground' -> 'hover:text-emerald-300'  (1 line changed)
+--- mut
+FAIL components/PapersLibrary.jsx uses theme tokens, not palette classes 
+      expected [], got [ 'components/PapersLibrary.jsx:127 hover:text-emerald-3' ]
+=> 5 tests, 1 failed
+
+mutant: Toast.jsx first 'border-border' -> 'border-emerald-500/40'  (1 line changed)
+--- mut
+FAIL components/Toast.jsx uses theme tokens, not palette classes 
+      expected [], got [ 'components/Toast.jsx:8 border-emerald-5' ]
+=> 5 tests, 1 failed
+
+mutant: InfrastructureModal.jsx first 'text-muted-foreground" />' -> 'text-amber-400" />'  (1 line changed)
+--- mut
+FAIL components/InfrastructureModal.jsx uses theme tokens, not palette classes 
+      expected [], got [ 'components/InfrastructureModal.jsx:57 text-amber-4' ]
+=> 5 tests, 1 failed
+
+mutant: IngestModal.jsx first 'bg-destructive/10' -> 'bg-red-500/10'  (1 line changed)
+--- mut
+FAIL components/IngestModal.jsx uses theme tokens, not palette classes 
+      expected [], got [ 'components/IngestModal.jsx:121 bg-red-5' ]
+=> 5 tests, 1 failed
+
+mutant: IngestModal.jsx first 'bg-destructive/10 border border-destructive/30' -> 'bg-red-500/10 border border-red-500/30'  (1 line changed)
+--- mut
+FAIL components/IngestModal.jsx uses theme tokens, not palette classes 
+      expected [], got [
+        'components/IngestModal.jsx:121 bg-red-5',
+        'components/IngestModal.jsx:121 border-red-5'
+      ]
+=> 5 tests, 1 failed
+
+[exit code 0]

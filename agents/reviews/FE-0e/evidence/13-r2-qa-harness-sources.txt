@@ -1,0 +1,51 @@
+$ bash -c cd /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r2/h && for f in guard_qa_r2.sh vitest-stub/index.js vitest-stub/package.json; do echo "=== $f"; cat $f; echo; done
+=== guard_qa_r2.sh
+#!/usr/bin/env bash
+# QA FE-0e r2: run the PR head's src/test/tokens.test.js under PLAIN NODE with a vitest API stub (NOT real Vitest,
+# no Vite transform). Sets: head, base (origin/main components), 4 single-class mutants, 1 two-class-on-one-line mutant.
+set -u
+WT=$1; STUB=$2; T=$(mktemp -d)
+setup() { rm -rf "$T/$1"; mkdir -p "$T/$1/frontend/node_modules"; cp -r "$WT/frontend/src" "$T/$1/frontend/src"; cp -r "$STUB" "$T/$1/frontend/node_modules/vitest"; }
+runit() { echo "--- $1"; (cd "$T/$1/frontend" && node --input-type=module -e "
+  const v = await import('vitest'); await import('./src/test/tokens.test.js');
+  for (const [s, n, e] of v.results) console.log(s, n, e ? '\n      ' + e.split('\n').join('\n      ') : '')
+  const f = v.results.filter(r => r[0] === 'FAIL').length; console.log('=>', v.results.length, 'tests,', f, 'failed')"); }
+mut() { # file old new
+  setup mut; python3 - "$T/mut/frontend/src/components/$1.jsx" "$2" "$3" <<'PY'
+import sys; p, a, b = sys.argv[1:]; s = open(p).read(); assert a in s, a; open(p, 'w').write(s.replace(a, b, 1))
+PY
+  echo; echo "mutant: $1.jsx first '$2' -> '$3'  ($(diff "$WT/frontend/src/components/$1.jsx" "$T/mut/frontend/src/components/$1.jsx" | grep -c '^>') line changed)"
+  runit mut | grep -vE "^PASS"; }
+echo "test file at $(git -C "$WT" rev-parse --short HEAD): new URL( occurrences = $(grep -c 'new URL(' "$WT/frontend/src/test/tokens.test.js")"
+setup head; runit head
+setup base; for f in IngestModal InfrastructureModal PapersLibrary Toast; do git -C "$WT" show origin/main:frontend/src/components/$f.jsx > "$T/base/frontend/src/components/$f.jsx"; done
+echo; runit base | grep -E "^(---|PASS|FAIL)|=>"
+mut PapersLibrary "hover:text-accent-foreground" "hover:text-emerald-300"
+mut Toast "border-border" "border-emerald-500/40"
+mut InfrastructureModal 'text-muted-foreground" />' 'text-amber-400" />'
+mut IngestModal "bg-destructive/10" "bg-red-500/10"
+mut IngestModal "bg-destructive/10 border border-destructive/30" "bg-red-500/10 border border-red-500/30"
+
+=== vitest-stub/index.js
+// QA FE-0e r1: minimal vitest API stub for running tokens.test.js under plain Node (no Vite transform!).
+// It answers "does the guard LOGIC detect palette classes"; it can NOT reproduce Vite's
+// new URL(`...${x}`, import.meta.url) rewrite that breaks the test in real vitest (see CI log).
+import { isDeepStrictEqual, inspect } from 'node:util'
+export const results = []
+const run = (name, fn, args) => { try { fn(...args); results.push(['PASS', name]) } catch (e) { results.push(['FAIL', name, e.message]) } }
+export const describe = (_n, fn) => fn()
+export const it = (name, fn) => run(name, fn, [])
+it.each = (rows) => (name, fn) => { for (const r of rows) run(name.replace('%s', r), fn, Array.isArray(r) ? r : [r]) }
+export const expect = (v) => {
+  const m = (neg) => ({
+    toMatch: (re) => { if (re.test(v) === neg) throw new Error(`${inspect(v)} ${neg ? 'matched' : 'did not match'} ${re}`) },
+    toBeGreaterThan: (n) => { if ((v > n) === neg) throw new Error(`${v} > ${n} is ${!neg}`) },
+    toEqual: (w) => { if (isDeepStrictEqual(v, w) === neg) throw new Error(`expected ${inspect(w)}, got ${inspect(v)}`) },
+  })
+  return { ...m(false), not: m(true) }
+}
+
+=== vitest-stub/package.json
+{"name":"vitest","type":"module","main":"index.js"}
+
+[exit code 0]
