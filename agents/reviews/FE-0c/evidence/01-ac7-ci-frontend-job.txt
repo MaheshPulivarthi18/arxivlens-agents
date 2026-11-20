@@ -1,0 +1,92 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136313918021/logs  (timestamps/ANSI stripped; npm ci -> dist-report)
+HEAD is now at ea24147 Merge 969c4fb4e335be8e113eb20ed97063751f4c2846 into c37d27c1b77756db6100f538f7aaabf5362d584b
+##[group]Run npm ci
+npm ci
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+
+added 313 packages, and audited 314 packages in 3s
+
+51 packages are looking for funding
+  run `npm fund` for details
+
+4 vulnerabilities (2 moderate, 2 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+##[group]Run npm run lint
+npm run lint
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+
+> frontend@0.0.0 lint
+> oxlint
+
+Found 0 warnings and 0 errors.
+Finished in 24ms on 30 files with 104 rules using 4 threads.
+##[group]Run npm run test --if-present
+npm run test --if-present
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+
+> frontend@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.12 /home/runner/work/ArxivLens/ArxivLens/frontend
+
+ ✓ src/lib/theme.test.js (35 tests) 45ms
+ ✓ src/components/ThemeToggle.test.jsx (4 tests) 207ms
+ ✓ src/components/ReferencesStack.test.jsx (8 tests) 329ms
+ ✓ src/components/SynthesisView.test.jsx (6 tests) 214ms
+ ✓ src/components/HeroSearch.test.jsx (5 tests) 428ms
+
+ Test Files  5 passed (5)
+      Tests  58 passed (58)
+   Start at  13:23:16
+   Duration  2.96s (transform 264ms, setup 790ms, import 802ms, tests 1.22s, environment 3.46s)
+
+##[group]Run npm run build
+npm run build
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+
+> frontend@0.0.0 build
+> vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 1923 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                       1.54 kB │ gzip:   0.82 kB
+dist/assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2              10.25 kB
+dist/assets/inter-greek-ext-wght-normal-DlzME5K_.woff2               11.23 kB
+dist/assets/source-serif-4-vietnamese-wght-normal-BsaNuasd.woff2     13.50 kB
+dist/assets/source-serif-4-vietnamese-wght-italic-D3EGHrWW.woff2     13.92 kB
+dist/assets/source-serif-4-cyrillic-ext-wght-normal-DHTKMUil.woff2   18.11 kB
+dist/assets/source-serif-4-cyrillic-ext-wght-italic-y6hTrs-Y.woff2   18.35 kB
+dist/assets/inter-cyrillic-wght-normal-DqGufNeO.woff2                18.74 kB
+dist/assets/inter-greek-wght-normal-CkhJZR-_.woff2                   18.99 kB
+dist/assets/source-serif-4-greek-wght-normal-BpXpdlRW.woff2          20.18 kB
+dist/assets/source-serif-4-greek-wght-italic-CUp-f2uw.woff2          20.55 kB
+dist/assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2            25.96 kB
+dist/assets/source-serif-4-cyrillic-wght-italic-CRzqOTyj.woff2       34.97 kB
+dist/assets/source-serif-4-cyrillic-wght-normal-B1g8a0vD.woff2       36.50 kB
+dist/assets/source-serif-4-latin-ext-wght-normal-BVZ5su8S.woff2      42.21 kB
+dist/assets/source-serif-4-latin-ext-wght-italic-B_cmBfNX.woff2      44.42 kB
+dist/assets/inter-latin-wght-normal-Dx4kXJAl.woff2                   48.25 kB
+dist/assets/source-serif-4-latin-wght-normal-DMe4EKeb.woff2          50.93 kB
+dist/assets/source-serif-4-latin-wght-italic-B-rCj6ir.woff2          51.57 kB
+dist/assets/inter-latin-ext-wght-normal-DO1Apj_S.woff2               85.06 kB
+dist/assets/index-BVhG_63z.css                                       36.00 kB │ gzip:   7.09 kB
+dist/assets/index-W3-1QdY4.js                                       406.84 kB │ gzip: 127.12 kB
+
+✓ built in 760ms
+##[group]Run ../.github/scripts/frontend-dist-report.sh dist
+

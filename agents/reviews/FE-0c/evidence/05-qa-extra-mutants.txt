@@ -1,0 +1,80 @@
+$ bash /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/harness/extra.sh
+== mutant ctl: CONTROL (FE-3 AC8): DEFAULT_THEME flipped to system in BOTH files -> expect SURVIVED  (fresh copy of PR head 969c4fb, never pushed)
+   index.html: -        var DEFAULT_THEME = 'dark'; // interim until FE-3 flips it to 'system'; same as DEFAULT_THEME in src/lib/theme.js
+   index.html: +        var DEFAULT_THEME = 'system'; // interim until FE-3 flips it to 'system'; same as DEFAULT_THEME in src/lib/theme.js
+   src/lib/theme.js: -export const DEFAULT_THEME = "dark";
+   src/lib/theme.js: +export const DEFAULT_THEME = "system";
+src/lib/theme.test.js: 35 passed, 0 failed (35)
+src/components/ThemeToggle.test.jsx: 4 passed, 0 failed (4)
+RESULT: SURVIVED
+== mutant f: pre-paint never removes .dark (add-only)  (fresh copy of PR head 969c4fb, never pushed)
+   index.html: -        document.documentElement.classList.toggle('dark', dark);
+   index.html: +        if (dark) document.documentElement.classList.add('dark');
+  FAIL pre-paint script agrees with applyTheme(getStoredTheme()) > stored light ("light"), OS dark=true
+       -> expected {"dark":true,"colorScheme":"light"} toEqual {"dark":false,"colorScheme":"light"}
+  FAIL pre-paint script agrees with applyTheme(getStoredTheme()) > stored light ("light"), OS dark=false
+       -> expected {"dark":true,"colorScheme":"light"} toEqual {"dark":false,"colorScheme":"light"}
+  FAIL pre-paint script agrees with applyTheme(getStoredTheme()) > stored system ("system"), OS dark=false
+       -> expected {"dark":true,"colorScheme":"light"} toEqual {"dark":false,"colorScheme":"light"}
+src/lib/theme.test.js: 32 passed, 3 failed (35)
+src/components/ThemeToggle.test.jsx: 4 passed, 0 failed (4)
+RESULT: KILLED (3 failing tests)
+== mutant g: storage key changed in index.html only  (fresh copy of PR head 969c4fb, never pushed)
+   index.html: -        try { pref = localStorage.getItem('arxivlens-theme') || pref; } catch (e) {}
+   index.html: +        try { pref = localStorage.getItem('arxivlens-theme-v2') || pref; } catch (e) {}
+  FAIL index.html pre-paint script vs theme.js (drift guard) > reads the same storage key as theme.js
+       -> expected "arxivlens-theme-v2" toBe "arxivlens-theme"
+  FAIL pre-paint script agrees with applyTheme(getStoredTheme()) > stored light ("light"), OS dark=true
+       -> expected {"dark":true,"colorScheme":"dark"} toEqual {"dark":false,"colorScheme":"light"}
+  FAIL pre-paint script agrees with applyTheme(getStoredTheme()) > stored light ("light"), OS dark=false
+       -> expected {"dark":true,"colorScheme":"dark"} toEqual {"dark":false,"colorScheme":"light"}
+  FAIL pre-paint script agrees with applyTheme(getStoredTheme()) > stored system ("system"), OS dark=false
+       -> expected {"dark":true,"colorScheme":"dark"} toEqual {"dark":false,"colorScheme":"light"}
+src/lib/theme.test.js: 31 passed, 4 failed (35)
+src/components/ThemeToggle.test.jsx: 4 passed, 0 failed (4)
+RESULT: KILLED (4 failing tests)
+== mutant h: storage handler ignores the event key  (fresh copy of PR head 969c4fb, never pushed)
+   src/components/ThemeToggle.jsx: -      if (event.key === THEME_STORAGE_KEY) setPref(getStoredTheme())
+   src/components/ThemeToggle.jsx: +      setPref(getStoredTheme())
+src/lib/theme.test.js: 35 passed, 0 failed (35)
+  FAIL ThemeToggle > ignores a storage event for another key
+       -> getByRole(button, Theme: Dark): found 0; buttons present: ["Theme: Light"]
+src/components/ThemeToggle.test.jsx: 3 passed, 1 failed (4)
+RESULT: KILLED (1 failing tests)
+== mutant i: Safari fallback cleanup is a no-op  (fresh copy of PR head 969c4fb, never pushed)
+   src/lib/theme.js: -  return () => query.removeListener?.(listener);
+   src/lib/theme.js: +  return () => {};
+  FAIL theme.js > watchSystemTheme falls back to addListener/removeListener
+       -> expected 1 toBe 0
+src/lib/theme.test.js: 34 passed, 1 failed (35)
+src/components/ThemeToggle.test.jsx: 4 passed, 0 failed (4)
+RESULT: KILLED (1 failing tests)
+== mutant j: setStoredTheme writes invalid values  (fresh copy of PR head 969c4fb, never pushed)
+   src/lib/theme.js: -  if (!isTheme(pref)) return;
+   src/lib/theme.js: +  
+  FAIL theme.js > setStoredTheme ignores an invalid value
+       -> NOT expected call
+src/lib/theme.test.js: 34 passed, 1 failed (35)
+src/components/ThemeToggle.test.jsx: 4 passed, 0 failed (4)
+RESULT: KILLED (1 failing tests)
+== mutant k: pre-paint drops the try/catch around getItem  (fresh copy of PR head 969c4fb, never pushed)
+   index.html: -        try { pref = localStorage.getItem('arxivlens-theme') || pref; } catch (e) {}
+   index.html: +        pref = localStorage.getItem('arxivlens-theme') || pref;
+  FAIL pre-paint script agrees with applyTheme(getStoredTheme()) > stored throws ("THROW"), OS dark=true
+       -> SecurityError
+  FAIL pre-paint script agrees with applyTheme(getStoredTheme()) > stored throws ("THROW"), OS dark=false
+       -> SecurityError
+src/lib/theme.test.js: 33 passed, 2 failed (35)
+src/components/ThemeToggle.test.jsx: 4 passed, 0 failed (4)
+RESULT: KILLED (2 failing tests)
+== mutant l: pre-paint ignores the OS in system mode  (fresh copy of PR head 969c4fb, never pushed)
+   index.html: -        var dark = pref === 'dark' || (pref === 'system' && !!window.matchMedia &&
+   index.html: -          window.matchMedia('(prefers-color-scheme: dark)').matches);
+   index.html: +        var dark = pref === 'dark' || false;
+  FAIL pre-paint script agrees with applyTheme(getStoredTheme()) > stored system ("system"), OS dark=true
+       -> expected {"dark":false,"colorScheme":"light"} toEqual {"dark":true,"colorScheme":"dark"}
+src/lib/theme.test.js: 34 passed, 1 failed (35)
+src/components/ThemeToggle.test.jsx: 4 passed, 0 failed (4)
+RESULT: KILLED (1 failing tests)
+
+[exit code 0]

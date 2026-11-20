@@ -1,0 +1,44 @@
+$ node /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/harness/run.mjs frontend
+PASS index.html pre-paint script vs theme.js (drift guard) > has an inline classic pre-paint script
+  PASS index.html pre-paint script vs theme.js (drift guard) > uses the same DEFAULT_THEME as theme.js
+  PASS index.html pre-paint script vs theme.js (drift guard) > reads the same storage key as theme.js
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored none (undefined), OS dark=true
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored none (undefined), OS dark=false
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored light ("light"), OS dark=true
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored light ("light"), OS dark=false
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored dark ("dark"), OS dark=true
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored dark ("dark"), OS dark=false
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored system ("system"), OS dark=true
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored system ("system"), OS dark=false
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored invalid ("purple"), OS dark=true
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored invalid ("purple"), OS dark=false
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored empty (""), OS dark=true
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored empty (""), OS dark=false
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored throws ("THROW"), OS dark=true
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > stored throws ("THROW"), OS dark=false
+  PASS pre-paint script agrees with applyTheme(getStoredTheme()) > covers all 14 combinations
+  PASS theme.js > getStoredTheme returns each stored valid theme
+  PASS theme.js > getStoredTheme returns DEFAULT_THEME when the value is missing
+  PASS theme.js > getStoredTheme returns DEFAULT_THEME when the value is invalid
+  PASS theme.js > getStoredTheme returns DEFAULT_THEME when the value is empty
+  PASS theme.js > getStoredTheme returns DEFAULT_THEME when the value is wrong case
+  PASS theme.js > getStoredTheme returns DEFAULT_THEME when storage throws
+  PASS theme.js > setStoredTheme persists a valid theme under the storage key
+  PASS theme.js > setStoredTheme ignores an invalid value
+  PASS theme.js > setStoredTheme swallows a throwing setItem
+  PASS theme.js > resolveTheme(light, prefersDark=true) is light
+  PASS theme.js > resolveTheme(light, prefersDark=false) is light
+  PASS theme.js > resolveTheme(dark, prefersDark=true) is dark
+  PASS theme.js > resolveTheme(dark, prefersDark=false) is dark
+  PASS theme.js > resolveTheme(system, prefersDark=true) is dark
+  PASS theme.js > resolveTheme(system, prefersDark=false) is light
+  PASS theme.js > watchSystemTheme calls back on change and its cleanup unsubscribes
+  PASS theme.js > watchSystemTheme falls back to addListener/removeListener
+src/lib/theme.test.js: 35 passed, 0 failed (35)
+  PASS ThemeToggle > in System mode follows an OS change dark -> light without user action
+  PASS ThemeToggle > follows a theme change made in another tab
+  PASS ThemeToggle > ignores a storage event for another key
+  PASS ThemeToggle > removes its OS listener on unmount
+src/components/ThemeToggle.test.jsx: 4 passed, 0 failed (4)
+
+[exit code 0]

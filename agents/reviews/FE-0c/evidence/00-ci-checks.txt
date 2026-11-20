@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/969c4fb.../check-runs
+check runs for ArxivLens@969c4fb4e335be8e113eb20ed97063751f4c2846 (PR #85 head)
+
+Go (vet, gofmt, test, build)  status=completed  conclusion=success  job=136313918106
+Agent ownership check  status=completed  conclusion=success  job=136313918049
+Frontend (lint, test, build)  status=completed  conclusion=success  job=136313918021
+DB (migrate twice, HNSW plan + recall)  status=completed  conclusion=success  job=136313917869
+Python M0 unit tests  status=completed  conclusion=success  job=136313917601
+
