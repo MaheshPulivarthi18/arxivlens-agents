@@ -6,7 +6,7 @@
 | **Priority** | P3 (harness/quality) |
 | **PRD ref** | Product PRD QA-3 (citations with page; the file's M2 tests); follow-up from the ING-11c QA/PM review (QA nit 1, board Backlog) |
 | **Depends on** | ING-11c (#78, merged `cee2543`). No open PR touches `tests/test_m2_pipeline.py` (checked 2026-11-20 20:00Z against #91–#94) |
-| **Jira** | not created yet (epic KAN-4 "Continuous ingestion", same as ING-11c/KAN-81; labels `task-ING-11d`, `agent-ai`, `arxivlens`) |
+| **Jira** | KAN-102 (epic KAN-4 "Continuous ingestion", same as ING-11c/KAN-81; labels `task-ING-11d`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: two lint fixes in a test file, no behaviour change |
 | **Status** | Ready to merge (PR #98, QA r1 PASS, PM APPROVE 2026-11-21) |
 

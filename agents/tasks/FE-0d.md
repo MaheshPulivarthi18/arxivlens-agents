@@ -44,7 +44,7 @@ git diff origin/main --shortstat
 ## Notes
 - 2026-11-20 (pm-lead): created from FE-0b QA "Missing tests" (raised r1, carried r2/r3) at the FE-0b final review. Kept separate from FE-3/FE-4
   so those stay under 400 lines and so the primitives have tests before their first callers. Independent of FE-0c (different files). Jira story
-  to be created by the orchestrator (pm-lead did not touch Jira in this review).
+  is KAN-90.
 - jsdom notes: Radix Tooltip/Popover may need `ResizeObserver` and `DOMRect` stubs in the test file (not in `setup.js`, which is out of scope); sonner renders toasts asynchronously, so use `findBy*`/`waitFor`.
 - 2026-11-20 20:00Z (pm-lead): re-checked scope against open PRs #91 (`App.test.jsx`), #92 (`ui/button.jsx`, `ui/button.test.jsx`), #93, #94: disjoint. The six primitive files are unchanged on `230f617`. Do **not** import or test `ui/button.jsx` here (#92 owns it), and keep stubs in the test file, not `src/test/setup.js` (FE-3b adds `ResizeObserver` there).
 - 2026-11-21 (pm-lead, final review): **APPROVE**; PR #95 raised (ready for review, `ready-to-merge`). QA r1 PASS at `76b851c`, evidence pinned `e012695`.

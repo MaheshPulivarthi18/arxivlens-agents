@@ -847,3 +847,14 @@ Format:
 - Picked (independent of each other and of #91–#94's files; every `Depends on` merged at `230f617`): **FE-0d** (frontend, new `ui/primitives.test.jsx`), **EVAL-6b** (ai, new spec: `scripts/evaluate_answers.py`, `tests/test_evals_data.py`, `evals/README.md`; `classify()` raises `TypeError` on a list `refusal_reason` on `230f617`, `main` untested, EVAL-10a README/refusal-set nits), **OPS-H5c** (backend, new spec: `internal/query/search_integration_test.go`; refusal guard table test + cleanup hint), **ING-11d** (ai, new spec: `tests/test_m2_pipeline.py`; ruff F401 + W293 confirmed with ruff 0.16.9).
 - Not picked: EVAL-7 `build_rows` and EVAL-5 `CHUNK_COUNTS_SQL` follow-ups (both still real, but share `tests/test_evals_data.py` with EVAL-6b; EVAL-5 "latest version" also touches the RET-2 v1/v2 product question). FE-3b/FE-2, ING-6c/OPS-H7a2c/OPS-H7b, RET-1e wait on #91/#93/#94 merging.
 - Jira: not created by pm-lead (no Atlassian tools in this session); suggested epics EVAL-6b → KAN-2, OPS-H5c → KAN-3, ING-11d → KAN-4.
+
+## 2026-11-20 20:00Z — orchestrator (cycle record)
+- Setup: push dry-run OK on both repos; RUN_LOCK taken (`16cbc3a`); app cloned at `230f617`. Jira connector available (orchestrator did all Jira writes; subagents have no Atlassian tools).
+- Human reviews: none on #91–#94 (only `[qa-reviewer]` comments); no Jira intake. No rework.
+- **FE-0d** (frontend, KAN-90): PR [#95](https://github.com/MaheshPulivarthi18/ArxivLens/pull/95) @ `76b851c`, 1 attempt, QA r1 PASS (QA ran AC6 mutants; developer had no npm), PM APPROVE (AC5/AC6 wording amended) → Ready to merge. Follow-up FE-0g (Backlog).
+- **EVAL-6b** (ai, KAN-100, new): PR [#96](https://github.com/MaheshPulivarthi18/ArxivLens/pull/96) @ `c053564`, 1 attempt, QA r1 PASS (14/14 mutants), PM APPROVE → Ready to merge. Follow-up EVAL-6c candidate (other malformed `/v1/ask` shapes).
+- **OPS-H5c** (backend, KAN-101, new): PR [#97](https://github.com/MaheshPulivarthi18/ArxivLens/pull/97) @ `1d696c7`, 1 attempt, QA r1 PASS, PM APPROVE → Ready to merge. Follow-up: single-action `hnswGuard` (Backlog).
+- **ING-11d** (ai, KAN-102, new): PR [#98](https://github.com/MaheshPulivarthi18/ArxivLens/pull/98) @ `03fa179`, 1 attempt, QA r1 PASS, PM APPROVE → Ready to merge.
+- QA reports saved verbatim from PR comments by the orchestrator (`cdfdb14`; harness still blocks subagent writes of `report.md`). Board: the ING-11d row was left in Ready by a parallel-commit overlap; fixed in this record.
+- Retro: worktree-path and shared-checkout lessons recurred → rules PR [arxivlens-agents#15](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/15) on `sprint.md` (Mahesh to merge).
+- RUN_LOCK released in this commit.

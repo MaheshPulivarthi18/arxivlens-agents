@@ -6,7 +6,7 @@
 | **Priority** | P3 (harness/quality) |
 | **PRD ref** | Product PRD §8 (answer metrics: correct-refusal row, method notes); ADR-0003 (Accepted: anything that isn't a valid refusal is an error). Follow-ups from the EVAL-6 review (board Backlog: "`classify()` treats a non-string `refusal_reason` as an error case instead of raising `TypeError`; tests for `main` loading the real near-miss file and `--near-miss ''`") and the EVAL-10a QA/PM review (QA nit 1 + "Missing tests", `agents/reviews/EVAL-10a/report.md`) |
 | **Depends on** | EVAL-6 (#20), EVAL-10a (#82, merged `21eb4e9`). No open PR touches `scripts/evaluate_answers.py`, `tests/test_evals_data.py` or `evals/README.md` (checked 2026-11-20 20:00Z: open PRs #91–#94 change only `frontend/…`, `README.md`, `cmd/arxivlens/…`, `internal/query/server*.go`) |
-| **Jira** | not created yet (epic KAN-2 "Retrieval & answer quality gates"; labels `task-EVAL-6b`, `agent-ai`, `arxivlens`) |
+| **Jira** | KAN-100 (epic KAN-2 "Retrieval & answer quality gates"; labels `task-EVAL-6b`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: no gate key, threshold, contract, CLI or table change; report-only metric wording only |
 | **Status** | Ready to merge (PR #96 @ `c053564`, QA r1 PASS, PM APPROVE 2026-11-21) |
 
