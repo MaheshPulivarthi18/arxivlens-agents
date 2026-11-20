@@ -93,6 +93,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
   same score and verdict. If real LLM runs show many drifts or an odd confusion matrix, store a hash of each cited sentence in EVAL-6's `case_record` (no text) and compare it in `export`
 - **Human (Mahesh or a reviewer he names), from EVAL-6:** review the 15 rows of `evals/refusal_near_miss.jsonl` (`answered_by` ID correct; no corpus
   paper answers the question; n005 and n009 first). ai-engineer then commits the `reviewed_by` values (small `evals/` PR)
+- From the EVAL-10a QA/PM review (ai, P3, fold into the next `evals/README.md` / `tests/test_evals_data.py` change): QA nit 1, `evals/README.md:135` describes `miss IDs` (`expected_paper_miss_ids`) as "refusals plus wrong-paper answers", but errored answer-set calls are included too (pinned by EVAL-10a AC1); make it "refusals, errored calls and wrong-paper answers". Also QA "Missing tests": an errored **refusal-set** case → `refusal_failure_ids` has no dedicated assertion
 - From the EVAL-6 review (ai, P3, fold into the next `scripts/evaluate_answers.py` change; EVAL-7 did not touch it): `classify()` treats a non-string `refusal_reason`
   as an error case instead of raising `TypeError`; tests for `main` loading the real near-miss file and `--near-miss ''`. String `claims[].markers` → note for AI-8
 - *Proposed* rules PR (Mahesh decides), from EVAL-6 QA finding 5: once EVAL-3 merges, AGENTS.md §4 item 3 + qa-reviewer: PRs that change retrieval or answering get one

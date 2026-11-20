@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-10 (PR #61) **merged**. Same test file `tests/test_evals_data.py`, so don't start while another open PR changes it |
 | **Jira** | KAN-85 |
 | **Design required** | no: tests only, no behaviour change |
-| **Status** | In QA (PR #82, draft) |
+| **Status** | Ready to merge (PR #82 raised 2026-11-20; QA PASS r1, PM APPROVE r1) |
 
 ## Goal
 EVAL-10 prints `refused IDs`, `miss IDs` and `near-miss answered IDs`. Its code handles errored calls correctly, but no test covers
@@ -50,3 +50,6 @@ git diff --stat origin/main && git diff --numstat origin/main
   Local: `124 passed, 1 skipped`; ruff `All checks passed!`; diff `tests/test_evals_data.py` +24/-0; ownership OK (role=ai).
   Mutations, both run locally on reverted scratch edits: AC1 `== "refusal"` → `!= "answered"` and AC2 skipping errored near-miss failures.
   Each one fails both parametrized cases. The existing EVAL-10 test survives the AC1 mutant, which confirms the gap.
+- 2026-11-20 (pm-lead): QA PASS r1 (evidence 00–07 at `40bf917`), PM **APPROVE** r1 in `agents/reviews/EVAL-10a/report.md`. PR #82 description
+  rewritten with the Evidence section, marked ready for review, label `ready-to-merge`. QA nit 1 (`evals/README.md:135` "miss IDs" omits
+  errored calls) and QA's "Missing tests" (errored refusal-set case) → board Backlog (ai, P3).
