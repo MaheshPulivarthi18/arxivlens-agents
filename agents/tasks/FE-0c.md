@@ -6,9 +6,9 @@
 | **Priority** | P2 (harness/quality: guards FE-3 AC8's default flip, which must change two files in lockstep) |
 | **PRD ref** | Product PRD §7 (accessible, readable UI); FE-0 QA "Missing tests" (`agents/reviews/FE-0/report.md` lines 47–49); FE-0 design §AC5 |
 | **Depends on** | FE-1 (#68, merged `2410d2e`: Vitest + jsdom) and FE-0 (#69, merged `54c4de8`: `theme.js`, `ThemeToggle.jsx`, pre-paint script). No open PR touches `frontend/src/lib/`, `frontend/index.html` or `ThemeToggle*` (#70 adds only six `frontend/src/components/ui/*.jsx`; checked 2026-11-20 13:00Z via REST) |
-| **Jira** | needs Jira story (epic KAN-5 "Research UI & citations"; labels `task-FE-0c`, `agent-frontend`, `arxivlens`) |
+| **Jira** | KAN-87 (epic KAN-5 "Research UI & citations"; labels `task-FE-0c`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: tests only, no component, contract or dependency change |
-| **Status** | In QA: draft PR #85 (head `969c4fb`, CI green) |
+| **Status** | Ready to merge (PR #85 raised; QA PASS r1, PM APPROVE r1) |
 
 ## Goal
 FE-0's theme logic was verified only by QA's throwaway scripts (`agents/reviews/FE-0/checks/themejs.mjs`, `prepaint.mjs`). FE-3 AC8 will flip
@@ -83,3 +83,6 @@ npx vitest run src/lib/theme.test.js src/components/ThemeToggle.test.jsx
     (e) no-op cleanup → `watchSystemTheme calls back on change and its cleanup unsubscribes` + `removes its OS listener on unmount`. Re-run on `969c4fb`: same result.
   - [x] AC7: CI job above.
   - Unverified: the mutants ran only in the stand-in harnesses (real vitest/jsdom/Radix unavailable). In CI only the unmutated code ran.
+- 2026-11-20 (pm-lead) **PM final review: APPROVE r1** (`agents/reviews/FE-0c/report.md`). All 6 evidence files at `e527bef` checked against AC1–AC7.
+  PR #85 description rewritten with the Evidence section (stale AC1 bullet and line count fixed) and marked ready for review.
+  QA nit 1 (`frontend/README.md:14` glob says `*.test.jsx`) and the optional no-`matchMedia` tests → Backlog (frontend, P3). QA [spec] finding 3 → pm-lead lesson.

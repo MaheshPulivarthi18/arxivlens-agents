@@ -1,13 +1,13 @@
 # Board
 
-Last updated: 2026-11-20 by pm-lead (FE-3 design review: Approved with changes → split FE-3a Ready / FE-3b Blocked; specced FE-0e; FE-0c #85 and RET-1c #84 In QA). Before: 2026-11-20 by pm-lead (FE-0b #70 final review: APPROVE, raised → Ready to merge; specced FE-0d). Before: 2026-11-20 by pm-lead (PM review: OPS-H7a2 a2a #83 APPROVE → Ready to merge). Before: 2026-11-20 13:10Z by pm-lead (cycle 13:00Z sync + grooming: #65/#66/#68/#69/#76/#77/#78/#80 merged 08:46–09:38Z, and the earlier merges #51–#63, #71–#75 that the board never recorded, moved to Done; specced RET-1c, FE-0c, OPS-H7a2b; FE-3 picked for its design step). Before: 2026-11-20 08:10Z by pm-lead (cycle 08:00Z grooming: OPS-H15, OPS-H5b specced). Before: 2026-11-20 05:10Z by pm-lead (cycle 05:00Z grooming: OPS-H6c, AI-12b, ING-11c, LLM-1d specced)
+Last updated: 2026-11-20 by pm-lead (FE-0c #85 final review: APPROVE, raised → Ready to merge). Before: 2026-11-20 by pm-lead (FE-3 design review: Approved with changes → split FE-3a Ready / FE-3b Blocked; specced FE-0e; FE-0c #85 and RET-1c #84 In QA). Before: 2026-11-20 by pm-lead (FE-0b #70 final review: APPROVE, raised → Ready to merge; specced FE-0d). Before: 2026-11-20 by pm-lead (PM review: OPS-H7a2 a2a #83 APPROVE → Ready to merge). Before: 2026-11-20 13:10Z by pm-lead (cycle 13:00Z sync + grooming: #65/#66/#68/#69/#76/#77/#78/#80 merged 08:46–09:38Z, and the earlier merges #51–#63, #71–#75 that the board never recorded, moved to Done; specced RET-1c, FE-0c, OPS-H7a2b; FE-3 picked for its design step). Before: 2026-11-20 08:10Z by pm-lead (cycle 08:00Z grooming: OPS-H15, OPS-H5b specced). Before: 2026-11-20 05:10Z by pm-lead (cycle 05:00Z grooming: OPS-H6c, AI-12b, ING-11c, LLM-1d specced)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). **Open PRs and their files** (REST, 2026-11-20 13:00Z; app `main` = `c37d27c`):
 #70 FE-0b (`frontend/src/components/ui/collapsible.jsx`, `popover.jsx`, `scroll-area.jsx`, `separator.jsx`, `sonner.jsx`, `tooltip.jsx`) ·
 #79 LLM-1d (`internal/llm/openai_test.go`) · #81 OPS-H5b (`internal/query/search_integration_test.go`) · #82 EVAL-10a (`tests/test_evals_data.py`) ·
 #83 OPS-H7a2a (`cmd/arxivlens/main.go`, `internal/dlq/kafka.go`, `kafka_integration_test.go`, `manager.go`, `manager_test.go`) ·
-#84 RET-1c draft (`internal/query/server.go`, `server_test.go`) · #85 FE-0c draft (`frontend/src/components/ThemeToggle.test.jsx`, `frontend/src/lib/theme.test.js`) (REST re-check 2026-11-20, FE-3 design review).
+#84 RET-1c draft (`internal/query/server.go`, `server_test.go`) · #85 FE-0c Ready to merge (`frontend/src/components/ThemeToggle.test.jsx`, `frontend/src/lib/theme.test.js`) (REST re-check 2026-11-20, FE-3 design review).
 Active (counts toward WIP): backend 1 (#84), frontend 1 (#85), ai 0. Ready to merge (doesn't count): #70, #79, #81, #82, #83.
 `cmd/arxivlens/main.go` order (one file, one PR at a time): OPS-H7a2a (#83) → OPS-H7a2b → ING-6c → OPS-H7b → OPS-H7c. `rag.go` is free (AI-8b merged); next is AI-5 if ADR-0011 is Accepted.
 `ReferencesStack.jsx`/`SynthesisView.jsx` order: FE-3a → FE-3b → FE-4 / FE-2. `tests/test_evals_data.py`: ai follow-ups (EVAL-6 `classify`, EVAL-7 `build_rows`, EVAL-10a README nit) wait for #82.
@@ -32,7 +32,6 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
-| [FE-0c](tasks/FE-0c.md) | Theme tests: pre-paint drift guard, ThemeToggle OS change + cross-tab | frontend-engineer | [#85](https://github.com/MaheshPulivarthi18/ArxivLens/pull/85) (draft) |
 | [RET-1c](tasks/RET-1c.md) | Query API: marshal before writing; encode failure → logged 500 | backend-engineer | [#84](https://github.com/MaheshPulivarthi18/ArxivLens/pull/84) (draft) |
 
 ## PM review
@@ -47,6 +46,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | [OPS-H5b](tasks/OPS-H5b.md) (KAN-84) | `TestHNSWVectorHits` cleans up, refuses a non-empty DB | backend-engineer | [#81](https://github.com/MaheshPulivarthi18/ArxivLens/pull/81) `8cae68b` | QA PASS r1 · PM APPROVE |
 | [EVAL-10a](tasks/EVAL-10a.md) (KAN-85) | Pin errored cases in the `/v1/ask` summary ID lines | ai-engineer | [#82](https://github.com/MaheshPulivarthi18/ArxivLens/pull/82) `69aaaf4` | QA PASS r1 · PM APPROVE |
 | [OPS-H7a2](tasks/OPS-H7a2.md) (KAN-71) | a2a: `Manager.List`, cursors, missing-topic error (a2b CLI still to do) | backend-engineer | [#83](https://github.com/MaheshPulivarthi18/ArxivLens/pull/83) `9bcd07e` | QA FAIL r1 → PASS r2 · PM APPROVE |
+| [FE-0c](tasks/FE-0c.md) (KAN-87) | Theme tests: pre-paint drift guard, ThemeToggle OS change + cross-tab | frontend-engineer | [#85](https://github.com/MaheshPulivarthi18/ArxivLens/pull/85) `969c4fb` | QA PASS r1 · PM APPROVE |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -65,6 +65,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the FE-0c QA/PM review (frontend, P3, fold into the next frontend PR that edits `frontend/README.md`): README line 14 says test files are `src/**/*.test.jsx`; since FE-0c added `src/lib/theme.test.js` it should say `src/**/*.test.{js,jsx}` (matches the Vitest `include`). Optional, same PR or a test-only task: pre-paint script and `systemPrefersDark()` with no `window.matchMedia` (old browsers), which no committed test covers (QA FE-0c "Missing tests")
 - From the FE-3 design review (pm-lead, `docs/` PR, P2): Product PRD QA-4 notes still describe the support check as cosine similarity ≥ 0.50; `rag.go:24` now uses NLI P(entailment) (`/internal/verify`) plus verbatim match. Rewrite the QA-4 note (keep status ◐ until FE-3a/FE-3b merge).
 - ~~specced as [LLM-1d](tasks/LLM-1d.md) (2026-11-20 05:00Z; raw-string nit only, hostname row stays not planned)~~ From the LLM-1c QA/PM review (backend, P3, fold into the next `internal/llm/openai_test.go` change): QA nit 1, in `TestTLSError`'s handshake row the `absent` entry `` `\r\n` `` is a raw-string (4 literal chars, not CR LF); use `"\r\n"` or drop it (`garbage` already pins the bytes). Optional: a hostname-mismatch TLS row once `Config` has a RootCAs hook (not planned)
 - From the OPS-H14 PM review (backend, P3, *Proposed* gate, Mahesh decides; after FE-0 #69 merges): fail the frontend job when `google font hosts` > 0 or `woff2 files` = 0; AC wording "the line types that apply" (per-file `DIST woff2:` only when n ≥ 1); match `.prose`/`.font-serif` as whole selectors. Also: a shellcheck step for `.github/scripts/*.sh` in CI (no sandbox has shellcheck)
