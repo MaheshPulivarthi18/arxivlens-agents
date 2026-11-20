@@ -201,6 +201,26 @@ The alternative is to move the ~40-line envelope rule and its tests into b, whic
 - `Watermarks` on a missing topic returns an error wrapping `kerr.UnknownTopicOrPartition` (no auto-create). The CLI behaviour is decided in OPS-H7a2 AC6: non-zero exit.
 - `KafkaReader.Polls()` counts only polls that returned records.
 
+### Build notes (a2a, PR #83 @ `9bcd07e`, 2026-11-20) — needs pm-lead acknowledgement
+The size gate fired again, so a2 was split into a2a (`Manager.List` + cursor + tests, PR #83) and a2b (CLI wiring, README). Deviations from § Shape
+(`ListOptions{Partition *int32; From Cursor; PageSize int}`), all internal Go API in `internal/dlq/manager.go`. No shared contract changes
+(event envelope, HTTP API, schema), so no ADR is needed.
+- **`ListOptions.Snapshot map[int32]Watermark` (4th field).** If it is nil, `List` takes one snapshot with `Reader.Watermarks`. If it is set,
+  `List` reads `[from, Snapshot[p].High)` and takes no new snapshot. Why: Q2 says a run stops at the watermarks taken **at the start of the run**.
+  `List` returns one page per call, so without this field `dlq list --all` and `inspect` (several `List` calls in one run) would re-snapshot on
+  every page. A DLQ that keeps growing could then push the end of the run back on each page and never reach it. With the field, the CLI passes the first page's
+  `Page.Watermarks` back as `Snapshot` for each later page of the same run. A single `dlq list` page (the operator runs `--from` again by hand) takes
+  a fresh snapshot, as Q3's footer implies. Pinned by `TestListPagesToHighWatermark` (the loop passes `page.Watermarks` back, plus the "records appended
+  after the snapshot" row) and `TestListPassesSnapshotHighAsUntil`.
+- **`Page{Records []Record; Next Cursor; Watermarks map[int32]Watermark; Warnings []string}`.** `Next` is unset at end of topic (it is the `P/O`
+  for Q3's `next page:` footer). `Watermarks` is the snapshot used: it feeds Q3's `end of topic (high watermarks at start: …)` footer and the
+  `Snapshot` above. `Warnings` holds Q2's expiry line (`WARNING partition P: offsets a..b expired`) instead of printing it, so `List` does no I/O
+  besides the `Reader`. a2b prints `Warnings` to stderr.
+- **Empty partitions.** Q2 says an empty partition is "skipped without a fetch". `List` still calls `Reader.Read(p, Low, High)` for it, but
+  `KafkaReader.Read` returns at `from >= until` before it creates a client (`kafka.go`), so nothing is fetched.
+- `NewManager(brokers, reader)` takes the `Reader`. `Replay`/`ListEvents` don't need one until OPS-H7b, so the CLI passes `nil` for now. a2b must
+  pass a `*KafkaReader` (and `Close` it) wherever it calls `List`.
+
 ## Alternatives considered
 1. **Kafka consumer group `arxivlens-dlq-replay` with committed offsets.** It can't express filter holes, and a stray member causes a rebalance. Visibility and reset go through Kafka
    admin tools, and the lock would need a separate store anyway. Rejected (Q1).
