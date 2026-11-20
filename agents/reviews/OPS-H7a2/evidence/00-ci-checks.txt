@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/1ae23bda34d83838b8fa50e6bf39537720c8d55a/check-runs
+head_sha=1ae23bda34d83838b8fa50e6bf39537720c8d55a total_count=6
+success	completed	job 136188972980	DB (migrate twice, HNSW plan + recall)	2026-11-20T09:00:07Z -> 2026-11-20T09:02:12Z
+success	completed	job 136188972639	Go (vet, gofmt, test, build)	2026-11-20T09:00:08Z -> 2026-11-20T09:00:57Z
+success	completed	job 136188972263	Agent ownership check	2026-11-20T09:00:08Z -> 2026-11-20T09:00:20Z
+success	completed	job 136188972154	Python M0 unit tests	2026-11-20T09:00:07Z -> 2026-11-20T09:01:14Z
+success	completed	job 136188971989	Full stack (compose + make test-full)	2026-11-20T09:00:07Z -> 2026-11-20T09:11:48Z
+success	completed	job 136188971832	Frontend (lint, test, build)	2026-11-20T09:00:07Z -> 2026-11-20T09:00:35Z
+

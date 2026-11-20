@@ -1,0 +1,18 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/tools/cover.sh
+== per-function coverage, new functions in manager.go:
+arxivlens/internal/dlq/manager.go:41:	IsSet			100.0%
+arxivlens/internal/dlq/manager.go:43:	String			100.0%
+arxivlens/internal/dlq/manager.go:46:	ParseCursor		100.0%
+arxivlens/internal/dlq/manager.go:75:	List			100.0%
+arxivlens/internal/dlq/manager.go:118:	listPartitions		100.0%
+arxivlens/internal/dlq/manager.go:141:	nextCursor		83.3%
+arxivlens/internal/dlq/manager.go:159:	Error			100.0%
+arxivlens/internal/dlq/manager.go:163:	Unwrap			100.0%
+
+== blocks NEVER executed (count 0) inside List..Unwrap, with the source lines:
+-- lines 146-148:
+   		if wm[p].Low < wm[p].High {
+   			return Cursor{Partition: p, Offset: wm[p].Low, set: true}
+   		}
+
+[exit code 0]

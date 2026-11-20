@@ -1,0 +1,22 @@
+$ gh api .../actions/jobs/136188971989/logs | grep (step script, DLQ Topic, ##[error], test-full summary)
+# Full stack job 136188971989 (head 1ae23bd, PR #83)
+Full stack (compose + make test-full): success head_sha=1ae23bda34d83838b8fa50e6bf39537720c8d55a
+HEAD is now at 8a06034 Merge 1ae23bda34d83838b8fa50e6bf39537720c8d55a into 3835dee2375b28f1b66612b64d8c6f92f3e9fda4
+# step script (after the wait loop): dlq list for all three DLQs, no '|| true'; then kafka-get-offsets must be 0
+for t in papers.discovered.dlq papers.downloaded.dlq papers.chunked.dlq; do
+  ./bin/arxivlens dlq list --topic "$t"
+  end="$(docker compose exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 --topic "$t" --time -1 \
+    | awk -F: '{s += $3} END {print s + 0}')"
+  [ "$end" = 0 ] || { echo "::error::$t holds $end records"; exit 1; }
+done
+# dlq list output in that step (exit 0, step continued):
+=== DLQ Topic: papers.discovered.dlq (Total: 0) ===
+=== DLQ Topic: papers.downloaded.dlq (Total: 0) ===
+=== DLQ Topic: papers.chunked.dlq (Total: 0) ===
+# ##[error] lines in the whole job:
+##[error]Process completed with exit code 2.
+# make test-full:
+246 passed, 1 skipped, 3 deselected, 5 warnings in 77.54s (0:01:17)
+# the ##[error] above is the step labelled 'Known failure F1 (exit $rc; expected to fail on CPU runners until the F1 follow-up lands)':
+FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Rea
+

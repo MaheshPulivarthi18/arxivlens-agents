@@ -1,0 +1,39 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/tools/probe.sh
+=== PR head (1ae23bd) unmodified: 
+--- PASS: TestQAProbePageEndsAtPartitionEnd (0.00s)
+--- PASS: TestQAProbeFromAtLowNoWarning (0.00s)
+ok  	arxivlens/internal/dlq	0.004s
+=== M01 drop next-partition step:  for _, p := range rest[:0] {
+    qa_probe_test.go:35: page 0 Next = 0/0 (set false), want 1/0
+    qa_probe_test.go:44: pages = [[0/0 0/1 0/2]], want [[0/0 0/1 0/2] [1/0 1/1 1/2]]
+    qa_probe_test.go:35: page 0 Next = 0/0 (set false), want 1/5
+    qa_probe_test.go:44: pages = [[0/0 0/1 0/2]], want [[0/0 0/1 0/2] [1/5 1/6]]
+    qa_probe_test.go:35: page 0 Next = 0/0 (set false), want 2/4
+    qa_probe_test.go:44: pages = [[0/0 0/1]], want [[0/0 0/1] [2/4 2/5] [2/6]]
+--- FAIL: TestQAProbePageEndsAtPartitionEnd (0.00s)
+--- PASS: TestQAProbeFromAtLowNoWarning (0.00s)
+FAIL
+FAIL	arxivlens/internal/dlq	0.005s
+FAIL
+=== M02 next partition at 0, not Low:  return Cursor{Partition: p, Offset: 0, set: true}
+    qa_probe_test.go:35: page 0 Next = 1/0 (set true), want 1/5
+    qa_probe_test.go:47: warnings = ["WARNING partition 1: offsets 0..4 expired"], want none (no offsets expired)
+    qa_probe_test.go:35: page 0 Next = 2/0 (set true), want 2/4
+    qa_probe_test.go:47: warnings = ["WARNING partition 2: offsets 0..3 expired"], want none (no offsets expired)
+--- FAIL: TestQAProbePageEndsAtPartitionEnd (0.00s)
+--- PASS: TestQAProbeFromAtLowNoWarning (0.00s)
+FAIL
+FAIL	arxivlens/internal/dlq	0.004s
+FAIL
+=== M06 expiry > -> >=:  if from >= opt.From.Offset {
+    qa_probe_test.go:47: warnings = ["WARNING partition 1: offsets 0..-1 expired"], want none (no offsets expired)
+    qa_probe_test.go:47: warnings = ["WARNING partition 1: offsets 5..4 expired"], want none (no offsets expired)
+    qa_probe_test.go:47: warnings = ["WARNING partition 2: offsets 4..3 expired"], want none (no offsets expired)
+--- FAIL: TestQAProbePageEndsAtPartitionEnd (0.00s)
+    qa_probe_test.go:58: records [0/4 0/5 0/6] warnings ["WARNING partition 0: offsets 4..3 expired"] err <nil>; want 0/4..0/6, no warning
+--- FAIL: TestQAProbeFromAtLowNoWarning (0.00s)
+FAIL
+FAIL	arxivlens/internal/dlq	0.004s
+FAIL
+
+[exit code 0]

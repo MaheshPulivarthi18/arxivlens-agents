@@ -1,0 +1,26 @@
+$ gh api .../actions/jobs/136188972639/logs | grep (HEAD, make lint-go, make test-go, ok lines)
+# Go job 136188972639 (head 1ae23bd, PR #83): checkout merge commit, make lint-go, make test-go
+2026-11-20T09:00:12.0546235Z Complete job name: Go (vet, gofmt, test, build)
+2026-11-20T09:00:15.8018484Z HEAD is now at 8a06034 Merge 1ae23bda34d83838b8fa50e6bf39537720c8d55a into 3835dee2375b28f1b66612b64d8c6f92f3e9fda4
+2026-11-20T09:00:25.6650593Z ##[group]Run make lint-go
+2026-11-20T09:00:25.7108121Z go vet ./...
+2026-11-20T09:00:26.7124128Z ##[group]Run make test-go
+2026-11-20T09:00:26.7186938Z go test ./...
+2026-11-20T09:00:29.5179997Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-20T09:00:31.7325724Z ok  	arxivlens/internal/arxiv	1.552s
+2026-11-20T09:00:31.7326064Z ok  	arxivlens/internal/config	0.005s
+2026-11-20T09:00:31.7326328Z ok  	arxivlens/internal/crawler	0.093s
+2026-11-20T09:00:31.7326616Z ok  	arxivlens/internal/db	0.003s
+2026-11-20T09:00:31.7326959Z ok  	arxivlens/internal/dlq	0.268s
+2026-11-20T09:00:31.7327523Z ok  	arxivlens/internal/downloader	0.106s
+2026-11-20T09:00:31.7327864Z ok  	arxivlens/internal/kafka	0.051s
+2026-11-20T09:00:31.8129597Z ok  	arxivlens/internal/query	0.323s
+2026-11-20T09:00:31.8129912Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-20T09:00:31.8130159Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-20T09:00:31.8130398Z ?   	arxivlens/shared/events	[no test files]
+2026-11-20T09:00:48.3818555Z ok  	arxivlens/internal/kafka	1.061s	coverage: 63.7% of statements
+2026-11-20T09:00:53.5053883Z ##[group]Run make build-go
+
+# job conclusion:
+Go (vet, gofmt, test, build): success head_sha=1ae23bda34d83838b8fa50e6bf39537720c8d55a
+

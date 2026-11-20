@@ -1,0 +1,36 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/tools/scope.sh
+== PR head 1ae23bd, base 3835dee, commits:
+1ae23bd OPS-H7a2: trim manager_test fake (under the 400-line target)
+371ff06 OPS-H7a2: Manager.List pages to the start-time high watermark with P/O cursors (a2a half)
+94db799 OPS-H7a2: skeleton (Manager.List, Cursor, Page, ListOptions; size gate)
+
+== git diff --stat base..head (the a2a PR)
+ cmd/arxivlens/main.go                  |   6 +-
+ internal/dlq/kafka.go                  |   4 +-
+ internal/dlq/kafka_integration_test.go |   4 +-
+ internal/dlq/manager.go                | 145 +++++++++++++++++++-
+ internal/dlq/manager_test.go           | 238 +++++++++++++++++++++++++++++++++
+ 5 files changed, 389 insertions(+), 8 deletions(-)
+
+== non-test vs test changed lines (added+deleted)
+  non-test: 155
+  test: 242
+
+== skeleton commit 94db799 (the 'counted skeleton' the size gate requires):
+
+ internal/dlq/manager.go | 75 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 73 insertions(+), 2 deletions(-)
+
+== ticket's own a2 projection applied on top of the measured a2a (manager_test/manager already in):
+  measured a2a total = 397; ticket projection still to come: main ~80 + README ~8 + dlq_test ~70 = 158
+  => a2 total >= 555 (gate: > 480 changed lines -> split)
+
+== ownership (backend paths) + out-of-scope check
+Ownership OK for role=backend (397 changed lines)
+  no README / workflow / migration / shared-contract file changed
+
+== ListEvents / Replay bodies unchanged (out of scope) — diff of those functions base vs head:
+  ListEvents: identical (45 lines)
+  Replay: identical (52 lines)
+
+[exit code 0]

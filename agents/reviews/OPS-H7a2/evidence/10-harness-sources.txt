@@ -1,0 +1,276 @@
+$ bash -c S=/tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1; for d in $(ls $S/deps); do echo "dep $d: $(git -C $S/deps/$d remote get-url origin) @ $(git -C $S/deps/$d describe --tags 2>/dev/null)"; done; echo; echo '== find harness probe tools -type f | sort (internal/ and shared/ are cp -r of the PR head; see 05 for the identity diff)'; (cd $S && find harness probe tools -type f | sort); for f in $(cd $S && find harness probe tools -type f -not -path 'harness/internal/*' -not -path 'harness/shared/*' -not -name go.sum | sort); do echo; echo "----- $f"; cat $S/$f; done
+dep compress: https://github.com/klauspost/compress @ v1.17.6
+dep crypto: https://github.com/golang/crypto @ v0.21.0
+dep franz-go: https://github.com/twmb/franz-go @ v1.16.1
+dep kmsg-src: https://github.com/twmb/franz-go @ pkg/kmsg/v1.7.0
+dep lz4: https://github.com/pierrec/lz4 @ v4.1.19
+dep sys: https://github.com/golang/sys @ v0.18.0
+dep text: https://github.com/golang/text @ v0.14.0
+dep ulid: https://github.com/oklog/ulid @ v2.1.0
+
+== find harness probe tools -type f | sort (internal/ and shared/ are cp -r of the PR head; see 05 for the identity diff)
+harness/go.mod
+harness/internal/dlq/envelope.go
+harness/internal/dlq/envelope_test.go
+harness/internal/dlq/kafka.go
+harness/internal/dlq/kafka_integration_test.go
+harness/internal/dlq/kafka_test.go
+harness/internal/dlq/manager.go
+harness/internal/dlq/manager_test.go
+harness/internal/kafka/consumer.go
+harness/internal/kafka/consumer_test.go
+harness/internal/kafka/producer.go
+harness/shared/events/events.go
+harness/stubs/getopt/go.mod
+harness/stubs/net/go.mod
+harness/stubs/term/go.mod
+probe/qa_probe_test.go
+tools/cover.sh
+tools/design.sh
+tools/local.sh
+tools/mutate.py
+tools/probe.sh
+tools/scope.sh
+
+----- harness/go.mod
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/twmb/franz-go v1.16.1
+	github.com/twmb/franz-go/pkg/kmsg v1.7.0
+)
+
+require (
+	github.com/klauspost/compress v1.17.4 // indirect
+	github.com/pierrec/lz4/v4 v4.1.19 // indirect
+)
+
+replace (
+	github.com/klauspost/compress => /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/deps/compress
+	github.com/oklog/ulid/v2 => /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/deps/ulid
+	github.com/pborman/getopt => ./stubs/getopt
+	github.com/pierrec/lz4/v4 => /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/deps/lz4
+	github.com/twmb/franz-go => /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/deps/franz-go
+	github.com/twmb/franz-go/pkg/kmsg => /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/deps/kmsg-src/pkg/kmsg
+	golang.org/x/crypto => /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/deps/crypto
+	golang.org/x/net => ./stubs/net
+	golang.org/x/sys => /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/deps/sys
+	golang.org/x/term => ./stubs/term
+	golang.org/x/text => /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/deps/text
+)
+
+----- harness/stubs/getopt/go.mod
+module github.com/pborman/getopt
+go 1.15
+
+----- harness/stubs/net/go.mod
+module golang.org/x/net
+go 1.18
+
+----- harness/stubs/term/go.mod
+module golang.org/x/term
+go 1.18
+
+----- probe/qa_probe_test.go
+package dlq
+
+// QA probe (not part of the PR): the page boundary that falls exactly at a partition's end, with a later non-empty partition.
+import (
+	"context"
+	"reflect"
+	"testing"
+)
+
+func TestQAProbePageEndsAtPartitionEnd(t *testing.T) {
+	cases := []struct {
+		name      string
+		parts     map[int32][2]int64
+		opt       ListOptions
+		wantPages [][]string
+		wantNext1 string
+	}{
+		{"P1 page fills at end of p0, p1 non-empty (Low 0)", map[int32][2]int64{0: {0, 3}, 1: {0, 3}}, ListOptions{PageSize: 3}, [][]string{span(0, 0, 3), span(1, 0, 3)}, "1/0"},
+		{"P2 page fills at end of p0, p1 Low 5", map[int32][2]int64{0: {0, 3}, 1: {5, 2}}, ListOptions{PageSize: 3}, [][]string{span(0, 0, 3), span(1, 5, 7)}, "1/5"},
+		{"P3 page fills at end of p0, p1 empty, p2 Low 4", map[int32][2]int64{0: {0, 2}, 1: {9, 0}, 2: {4, 3}}, ListOptions{PageSize: 2}, [][]string{span(0, 0, 2), span(2, 4, 6), span(2, 6, 7)}, "2/4"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFakeReader(tc.parts)
+			m := NewManager(nil, f)
+			opt := tc.opt
+			var pages [][]string
+			var warns []string
+			for i := 0; i < 10; i++ {
+				page, err := m.List(context.Background(), "t.dlq", opt)
+				if err != nil {
+					t.Fatalf("page %d: %v", i, err)
+				}
+				if i == 0 && page.Next.String() != tc.wantNext1 {
+					t.Errorf("page 0 Next = %v (set %v), want %s", page.Next, page.Next.IsSet(), tc.wantNext1)
+				}
+				pages, warns = append(pages, po(page.Records)), append(warns, page.Warnings...)
+				if !page.Next.IsSet() {
+					break
+				}
+				opt.From, opt.Snapshot = page.Next, page.Watermarks
+			}
+			if !reflect.DeepEqual(pages, tc.wantPages) {
+				t.Errorf("pages = %v, want %v", pages, tc.wantPages)
+			}
+			if len(warns) != 0 {
+				t.Errorf("warnings = %q, want none (no offsets expired)", warns)
+			}
+		})
+	}
+}
+
+// --from P/O exactly at Low (Low > 0) is not an expiry.
+func TestQAProbeFromAtLowNoWarning(t *testing.T) {
+	f := newFakeReader(map[int32][2]int64{0: {4, 3}})
+	page, err := NewManager(nil, f).List(context.Background(), "t.dlq", ListOptions{From: Cursor{Partition: 0, Offset: 4, set: true}})
+	if err != nil || len(page.Warnings) != 0 || !reflect.DeepEqual(po(page.Records), span(0, 4, 7)) {
+		t.Errorf("records %v warnings %q err %v; want 0/4..0/6, no warning", po(page.Records), page.Warnings, err)
+	}
+}
+
+----- tools/cover.sh
+#!/bin/bash
+# Block coverage of the new List/cursor code by the PR's own unit tests (no QA probe), PR-head sources in the go1.24 harness.
+S=$(cd "$(dirname "$0")/.." && pwd); export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off; cd $S/harness
+go test -count=1 -coverprofile=$S/runs/c.out ./internal/dlq/ >/dev/null || exit 1
+echo "== per-function coverage, new functions in manager.go:"
+go tool cover -func=$S/runs/c.out | grep -E "manager.go:.*(ParseCursor|IsSet|String|List|listPartitions|nextCursor|Error|Unwrap)\b"
+echo; echo "== blocks NEVER executed (count 0) inside List..Unwrap, with the source lines:"
+lo=$(grep -n "^func (m \*Manager) List(" internal/dlq/manager.go | cut -d: -f1); hi=$(grep -n "^func (e \*missingTopicError) Unwrap" internal/dlq/manager.go | cut -d: -f1)
+grep "manager.go" $S/runs/c.out | awk -F'[:, ]' -v lo=$lo -v hi=$hi '{split($2,a,"."); split($3,b,"."); if ($NF==0 && a[1]>=lo && a[1]<=hi) print a[1]"-"b[1]}' | sort -un | while IFS=- read a b; do echo "-- lines $a-$b:"; sed -n "${a},${b}p" internal/dlq/manager.go | sed 's/^/   /'; done
+
+----- tools/design.sh
+#!/bin/bash
+# Design deviation check: ListOptions in the approved design vs the PR head; is the deviation recorded in the design file?
+D=/home/claude/arxivlens-agents/docs/design/OPS-H7.md; T=/home/claude/arxivlens-agents/agents/tasks/OPS-H7a2.md; W=/root/wt/qa-83
+echo "== design (team repo main $(git -C /home/claude/arxivlens-agents log -1 --format=%h -- docs/design/OPS-H7.md), ListOptions:"; grep -n "ListOptions" $D | cut -c1-170
+echo "== ticket Scope, ListOptions:"; grep -n "ListOptions{" $T | cut -c1-170
+echo "== PR head $(git -C $W rev-parse --short HEAD) internal/dlq/manager.go:"; grep -n -A6 "^type ListOptions struct" $W/internal/dlq/manager.go
+echo "== occurrences of the word 'Snapshot' in the design file (whole word):"; grep -n -w -c "Snapshot" $D
+echo "== design headings after 'Files and size estimate' (is there a Build notes (a2a) section?):"; awk '/^### Files and size/{f=1} f && /^##/' $D
+echo "== Q2 text the field serves:"; grep -n "At the start of \`list\`/\`replay\`" $D | cut -c1-170
+
+----- tools/local.sh
+#!/bin/bash
+# Local run of the PR's real internal/dlq package (+ internal/kafka, shared/events) against real franz-go v1.16.1 (go1.24 scratch module).
+S=$(cd "$(dirname "$0")/.." && pwd); W=/root/wt/qa-83; export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off
+echo "== harness sources == PR head? (diff -r PR-head dirs vs harness copies; empty = identical)"
+diff -r $W/internal/dlq $S/harness/internal/dlq && diff -r $W/internal/kafka $S/harness/internal/kafka && diff $W/shared/events/events.go $S/harness/shared/events/events.go && echo "  identical: internal/dlq, internal/kafka, shared/events/events.go"
+cd $S/harness; echo "== $(go version); gofmt -l on PR files:"; gofmt -l internal/dlq internal/kafka; echo "  (end gofmt)"; go vet ./internal/dlq/ && echo "  go vet ./internal/dlq/: clean"
+echo "== go test -race -count=1 -v -run 'TestList|TestParseCursor' ./internal/dlq/  (results first)"
+go test -race -count=1 -v -run 'TestList|TestParseCursor' ./internal/dlq/ > $S/runs/local-v.out 2>&1; rc=$?
+grep -E "^(--- |    --- |ok|FAIL)" $S/runs/local-v.out; echo "exit=$rc"
+echo "== whole package (unit, no integration tag): $(go test -race -count=1 ./internal/dlq/ 2>&1 | tail -1)"
+
+----- tools/mutate.py
+#!/usr/bin/env python3
+"""Single-edit mutants of internal/dlq/manager.go (PR #83 head) in the real-franz-go go1.24 harness.
+Each mutant: fresh copy of the harness (mktemp -d), one str.replace that must match exactly once,
+then `go test -count=1 ./internal/dlq/` (unit tests only, no integration tag).
+Build/vet failure -> INVALID (never KILLED). Prints the mutant's changed line next to the verdict."""
+import os, re, shutil, subprocess, sys, tempfile
+S = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+H = os.path.join(S, "harness"); F = "internal/dlq/manager.go"
+M = [
+ ("M01 nextCursor: drop next-partition step (end at partition end)", "\tfor _, p := range rest {\n\t\tif wm[p].Low < wm[p].High {", "\tfor _, p := range rest[:0] {\n\t\tif wm[p].Low < wm[p].High {"),
+ ("M02 nextCursor: next partition starts at 0, not Low", "return Cursor{Partition: p, Offset: wm[p].Low, set: true}", "return Cursor{Partition: p, Offset: 0, set: true}"),
+ ("M03 nextCursor: Next may land on an empty partition", "\t\tif wm[p].Low < wm[p].High {\n\t\t\treturn Cursor{Partition: p,", "\t\tif true {\n\t\t\treturn Cursor{Partition: p,"),
+ ("M04 nextCursor: same-partition test < -> <=", "if last.Offset+1 < wm[last.Partition].High {", "if last.Offset+1 <= wm[last.Partition].High {"),
+ ("M05 nextCursor: rest includes current partition", "nextCursor(wm, parts[i+1:], ", "nextCursor(wm, parts[i:], "),
+ ("M06 expiry: > -> >= (warn when From == Low)", "\t\t\tif from > opt.From.Offset {", "\t\t\tif from >= opt.From.Offset {"),
+ ("M07 expiry: no warning, start at From even below Low", "\t\t\tif from > opt.From.Offset {", "\t\t\tif false {"),
+ ("M08 expiry text: b = Low not Low-1", "opt.From.Offset, from-1))", "opt.From.Offset, from))"),
+ ("M09 until = High+1000 (ignore start-time High)", "m.reader.Read(ctx, topic, p, from, wm[p].High, func", "m.reader.Read(ctx, topic, p, from, wm[p].High+1000, func"),
+ ("M10 ignore opt.Snapshot (re-snapshot every page)", "\tif wm == nil {\n\t\tvar err error", "\tif true {\n\t\tvar err error"),
+ ("M11 missing topic: no AC6 mapping", "errors.Is(err, kerr.UnknownTopicOrPartition) {\n\t\t\treturn Page{}, &missingTopicError", "errors.Is(err, kerr.UnknownTopicOrPartition) && false {\n\t\t\treturn Page{}, &missingTopicError"),
+ ("M12 missing topic: Unwrap returns nil", "func (e *missingTopicError) Unwrap() error { return e.err }", "func (e *missingTopicError) Unwrap() error { return nil }"),
+ ("M13 other Watermarks error swallowed", "\t\t} else if err != nil {\n\t\t\treturn Page{}, err", "\t\t} else if err != nil {\n\t\t\treturn Page{}, nil"),
+ ("M14 Read error swallowed (treated as end)", "\t\tif err != nil {\n\t\t\treturn page, err\n\t\t}\n\t\tif len(page.Records) >= size", "\t\tif err != nil {\n\t\t\treturn page, nil\n\t\t}\n\t\tif len(page.Records) >= size"),
+ ("M15 Read error: skip partition and continue", "\t\tif err != nil {\n\t\t\treturn page, err\n\t\t}\n\t\tif len(page.Records) >= size", "\t\tif err != nil {\n\t\t\tcontinue\n\t\t}\n\t\tif len(page.Records) >= size"),
+ ("M16 callback never stops (page overflows)", "\t\t\treturn len(page.Records) < size\n", "\t\t\treturn true\n"),
+ ("M17 callback stops one early", "\t\t\treturn len(page.Records) < size\n", "\t\t\treturn len(page.Records) < size-1\n"),
+ ("M18 default page size not applied (size<0)", "\tif size <= 0 {\n\t\tsize = DefaultPageSize", "\tif size < 0 {\n\t\tsize = DefaultPageSize"),
+ ("M19 DefaultPageSize 50 -> 49", "const DefaultPageSize = 50", "const DefaultPageSize = 49"),
+ ("M20 Partition filter dropped", "(opt.Partition == nil || p == *opt.Partition) &&", "true &&"),
+ ("M21 From earlier-partition filter dropped", "&& (!opt.From.set || p >= opt.From.Partition) {", "&& true {"),
+ ("M22 From filter > instead of >=", "&& (!opt.From.set || p >= opt.From.Partition) {", "&& (!opt.From.set || p > opt.From.Partition) {"),
+ ("M23 no sort of partitions (reverse)", "return parts[i] < parts[j] })", "return parts[i] > parts[j] })"),
+ ("M24 --from outside --partition check dropped", "if opt.Partition != nil && opt.From.set && *opt.Partition != opt.From.Partition {", "if false {"),
+ ("M25 unknown partition check dropped", "\t\tif _, ok := wm[*want]; !ok {", "\t\tif false {"),
+ ("M26 unknown --from partition not checked", "\t\tif want == nil {\n\t\t\twant = &opt.From.Partition", "\t\tif want == nil {\n\t\t\treturn parts, nil"),
+ ("M27 From offset ignored (start at Low)", "\t\t\t\tfrom = opt.From.Offset\n", "\t\t\t\t_ = opt.From.Offset\n"),
+ ("M28 ParseCursor: drop !ok", "if !ok || errP != nil", "if (!ok && false) || errP != nil"),
+ ("M29 ParseCursor: drop p < 0", "|| p < 0 || o < 0 {", "|| o < 0 {"),
+ ("M30 ParseCursor: drop o < 0", "|| p < 0 || o < 0 {", "|| p < 0 {"),
+ ("M31 ParseCursor: bitSize 32 -> 64", "strconv.ParseInt(ps, 10, 32)", "strconv.ParseInt(ps, 10, 64)"),
+ ("M32 missing-topic text changed", "creates the three DLQs)\", e.topic)", "creates the DLQs)\", e.topic)"),
+ ("M33 error page keeps a Next cursor", "\t\tif err != nil {\n\t\t\treturn page, err\n\t\t}\n\t\tif len(page.Records) >= size", "\t\tif err != nil {\n\t\t\tpage.Next = Cursor{Partition: p, Offset: from, set: true}\n\t\t\treturn page, err\n\t\t}\n\t\tif len(page.Records) >= size"),
+]
+src = open(os.path.join(H, F)).read()
+env = dict(os.environ, GOTOOLCHAIN="local", GOFLAGS="-mod=mod", GOPROXY="off")
+rows = []
+for name, old, new in M:
+    n = src.count(old)
+    if n != 1:
+        rows.append((name, "BADPATTERN(%d)" % n, "", "")); continue
+    d = tempfile.mkdtemp(prefix="mut-", dir=os.path.join(S, "runs"))
+    shutil.copytree(H, os.path.join(d, "h")); w = os.path.join(d, "h")
+    open(os.path.join(w, F), "w").write(src.replace(old, new))
+    changed = " | ".join(l.strip() for l in new.splitlines() if l.strip() and l not in old.splitlines())
+    v = subprocess.run(["go", "vet", "./internal/dlq/"], cwd=w, env=env, capture_output=True, text=True)
+    if v.returncode != 0:
+        rows.append((name, "INVALID", changed, v.stderr.strip().splitlines()[-1][:80])); continue
+    r = subprocess.run(["go", "test", "-count=1", "-timeout", "60s", "./internal/dlq/"], cwd=w, env=env, capture_output=True, text=True)
+    out = r.stdout + r.stderr
+    fails = sorted(set(re.findall(r"--- FAIL: (\S+)", out)))
+    leaf = [f for f in fails if "/" in f] or fails
+    rows.append((name, "KILLED" if r.returncode != 0 else "SURVIVED", changed, ",".join(leaf)[:110]))
+k = sum(1 for r in rows if r[1] == "KILLED"); s = sum(1 for r in rows if r[1] == "SURVIVED"); i = len(rows) - k - s
+print("SUMMARY: %d mutants: %d KILLED, %d SURVIVED, %d INVALID/BADPATTERN" % (len(rows), k, s, i))
+for r in rows:
+    if r[1] != "KILLED": print("  %-9s %s" % (r[1], r[0]))
+print()
+for r in rows:
+    print("%-9s %s\n          mutant line: %s\n          failing: %s" % (r[1], r[0], r[2], r[3] or "-"))
+
+----- tools/probe.sh
+#!/bin/bash
+# Runs the QA probe test against the PR head manager.go and against mutants M01, M02, M06 (same substitutions as tools/mutate.py).
+S=$(cd "$(dirname "$0")/.." && pwd); export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off
+run(){ local name="$1" py="$2"; d=$(mktemp -d -p $S/runs probe-XXXX); cp -r $S/harness $d/h; cp $S/probe/qa_probe_test.go $d/h/internal/dlq/
+  [ -n "$py" ] && python3 -I -c "import sys;p=sys.argv[1];s=open(p).read();o,n=sys.argv[2],sys.argv[3];assert s.count(o)==1;open(p,'w').write(s.replace(o,n))" $d/h/internal/dlq/manager.go "$py" "$3"
+  echo "=== $name: $(diff $S/harness/internal/dlq/manager.go $d/h/internal/dlq/manager.go | grep '^>' | sed 's/^> *//' | tr -s '\t' ' ' || true)"
+  (cd $d/h && go test -count=1 -run 'TestQAProbe' -v ./internal/dlq/ 2>&1 | grep -E '^(=== RUN|--- |    qa_probe|ok|FAIL)' | grep -v '=== RUN')
+}
+run "PR head (1ae23bd) unmodified" ""
+run "M01 drop next-partition step" $'\tfor _, p := range rest {\n' $'\tfor _, p := range rest[:0] {\n'
+run "M02 next partition at 0, not Low" 'return Cursor{Partition: p, Offset: wm[p].Low, set: true}' 'return Cursor{Partition: p, Offset: 0, set: true}'
+run "M06 expiry > -> >=" $'\t\t\tif from > opt.From.Offset {' $'\t\t\tif from >= opt.From.Offset {'
+
+----- tools/scope.sh
+#!/bin/bash
+# Scope + size gate for PR #83, run in the PR-head worktree.
+B=3835dee2375b28f1b66612b64d8c6f92f3e9fda4
+echo "== PR head $(git rev-parse --short HEAD), base $(git rev-parse --short $B), commits:"; git log --oneline $B..HEAD
+echo; echo "== git diff --stat base..head (the a2a PR)"; git diff --stat $B HEAD
+echo; echo "== non-test vs test changed lines (added+deleted)"
+git diff --numstat $B HEAD | awk '{t=($3 ~ /_test\.go$/)?"test":"non-test"; s[t]+=$1+$2} END {for (k in s) print "  " k ": " s[k]}'
+echo; echo "== skeleton commit 94db799 (the 'counted skeleton' the size gate requires):"; git show --stat --format='%h %s' 94db799 | tail -n +2
+echo; echo "== ticket's own a2 projection applied on top of the measured a2a (manager_test/manager already in):"
+echo "  measured a2a total = $(git diff --numstat $B HEAD | awk '{s+=$1+$2} END{print s}'); ticket projection still to come: main ~80 + README ~8 + dlq_test ~70 = 158"
+echo "  => a2 total >= $(( $(git diff --numstat $B HEAD | awk '{s+=$1+$2} END{print s}') + 158 )) (gate: > 480 changed lines -> split)"
+echo; echo "== ownership (backend paths) + out-of-scope check"
+bash .github/scripts/ownership-check.sh $B agent/backend/OPS-H7a2 2>&1 | tail -2 || true
+git diff --name-only $B HEAD | grep -E "^(README.md|\.github/|.*db\.yml|.*stack\.yml|migrations/|shared/)" && echo "OUT OF SCOPE files above" || echo "  no README / workflow / migration / shared-contract file changed"
+echo; echo "== ListEvents / Replay bodies unchanged (out of scope) — diff of those functions base vs head:"
+for f in ListEvents Replay; do a=$(git show $B:internal/dlq/manager.go | awk "/^func \(m \*Manager\) $f\(/,/^}/"); b=$(git show HEAD:internal/dlq/manager.go | awk "/^func \(m \*Manager\) $f\(/,/^}/"); [ "$a" = "$b" ] && echo "  $f: identical ($(echo "$a" | wc -l) lines)" || echo "  $f: CHANGED"; done
+
+[exit code 0]

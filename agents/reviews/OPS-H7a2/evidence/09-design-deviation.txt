@@ -1,0 +1,28 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/tools/design.sh
+== design (team repo main ac95f88, ListOptions:
+46:func (m *Manager) List(ctx, topic string, opt ListOptions) (Page, error)   // ListOptions{Partition *int32; From Cursor; PageSize int}
+== ticket Scope, ListOptions:
+18:- Files: `internal/dlq/manager.go` (`List`, `ListOptions{Partition *int32; From Cursor; PageSize int}`, `Cursor`/`Page`, `ParseCursor("P/O")`,
+== PR head 1ae23bd internal/dlq/manager.go:
+58:type ListOptions struct {
+59-	Partition *int32
+60-	From      Cursor
+61-	PageSize  int
+62-	Snapshot  map[int32]Watermark
+63-}
+64-
+== occurrences of the word 'Snapshot' in the design file (whole word):
+0
+== design headings after 'Files and size estimate' (is there a Build notes (a2a) section?):
+### Files and size estimate (changed lines, including tests)
+### Build notes (a1, PR #62 @ `d420463`, 2026-11-19)
+## Alternatives considered
+## Contracts and invariants
+## Test plan
+## Risks and rollout
+## Open questions
+## PM decision
+== Q2 text the field serves:
+81:- At the start of `list`/`replay`, `Reader.Watermarks` sends one `kmsg.ListOffsetsRequest` (timestamp `-2` = log start, `-1` = high watermark) through
+
+[exit code 0]

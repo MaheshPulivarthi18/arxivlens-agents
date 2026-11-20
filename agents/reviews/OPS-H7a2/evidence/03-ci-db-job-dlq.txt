@@ -1,0 +1,29 @@
+$ gh api .../actions/jobs/136188972980/logs | sed -n 1646,1765p | grep '--- PASS/FAIL' (TestList*, TestParseCursor, TestReadStopsAtSnapshot)
+# DB job 136188972980 (head 1ae23bd, PR #83): step 'go test -tags integration -race -count=1 -v ./internal/dlq/' against apache/kafka:3.7.0
+DB (migrate twice, HNSW plan + recall): success head_sha=1ae23bda34d83838b8fa50e6bf39537720c8d55a
+HEAD is now at 8a06034 Merge 1ae23bda34d83838b8fa50e6bf39537720c8d55a into 3835dee2375b28f1b66612b64d8c6f92f3e9fda4
+# --- results for the new List/cursor tests + the reader integration test (top-level and subtests):
+    kafka_integration_test.go:99: TestReadStopsAtSnapshot: read 1500 records (1 undecodable) from 3 partitions, watermarks map[0:{0 1000} 1:{0 500} 2:{0 0}], in 86 non-empty polls (FetchMaxBytes=4096); 15 records written after the
+--- PASS: TestReadStopsAtSnapshot_Integration (3.98s)
+--- PASS: TestListPagesToHighWatermark (0.00s)
+    --- PASS: TestListPagesToHighWatermark/1_partition,_25_records,_page_10:_3_pages (0.00s)
+    --- PASS: TestListPagesToHighWatermark/3_partitions,_one_empty:_union_is_every_record;_a_full_last_page_is_end (0.00s)
+    --- PASS: TestListPagesToHighWatermark/a_page_that_fills_at_a_partition's_end_before_empty_partitions_is_end (0.00s)
+    --- PASS: TestListPagesToHighWatermark/records_appended_after_the_snapshot_are_not_returned (0.00s)
+    --- PASS: TestListPagesToHighWatermark/Partition_restricts_the_listing (0.00s)
+    --- PASS: TestListPagesToHighWatermark/From_below_Low_warns_and_starts_at_Low (0.00s)
+    --- PASS: TestListPagesToHighWatermark/From_mid-partition_skips_earlier_partitions_and_offsets (0.00s)
+--- PASS: TestListPassesSnapshotHighAsUntil (0.00s)
+--- PASS: TestListErrorsAreNotEnd (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/stall (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/poll_error (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/missing_topic_(AC6) (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/other_watermark_error (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/no_such_--partition (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/no_such_--from_partition (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/--from_outside_--partition (0.00s)
+--- PASS: TestParseCursor (0.00s)
+ok  	arxivlens/internal/dlq	5.273s
+# --- count of FAIL lines in the step:
+0
+
