@@ -169,3 +169,53 @@ No blocking findings.
 
 ## Hand-off
 PASS → **pm-lead** final review. While raising the PR, refresh the stale body lines (finding 1). FE-3a2 becomes Ready once #86 merges.
+
+
+---
+
+# PM final review: FE-3a · PR #86
+
+**Verdict:** APPROVE
+**Reviewed commit:** `fa92c301e7f0fd5b71a0c0d25e4aadf2732e66a2` (QA r2 PASS on the same head) · **Date:** 2026-11-20 · **Reviewer:** pm-lead
+
+**Inputs read:** `agents/tasks/FE-3a.md` (amended ACs + Rework checklist r1), `docs/design/FE-3.md` (PM decision + amendments after QA r1), Product PRD UI-1 / QA-4 / QA-5 / §7,
+ADR-0003, ADR-0014, QA rounds 1–2 above, `gh api …/pulls/86/files` (10 files, all `frontend/`, +433/−98) and **every file in `evidence/`** (00–26, PNG + TXT).
+PR state at review: open, draft, head `fa92c30`, no human review or comment (only the two QA comments).
+
+## Evidence check (each file opened)
+| Files | Proves | Accepted? |
+|---|---|---|
+| 19, 20 (r2), 00–02 (r1) | All 5 CI checks success on `fa92c30`; Frontend job 136473216598: 0 lint warnings (main 0), 70/70 tests, build ok; per-file counts 11→13 and 15→17 | yes: AC7 |
+| 21, 22 | r1→r2 delta is 2 test files, +36/−1, no product file; the 4 new `it()` titles map exactly to the CI count deltas | yes: F4, AC2/AC5/AC6 additions |
+| 23, 24 | QA probe on the real components: control 8/8, 7/7 mutants killed (plural heading, plural link, footer hidden/total dropped, B-specific chip/heading, unverified rule). Harness sources shown | yes, as supporting evidence (not vitest; CI is the authority) |
+| 26, 03 | 10 files in ticket scope, App.jsx = the one prop line, ownership OK 531 lines (≤ ~550 PM limit) | yes: scope, AC4 code-path claim |
+| 05, 06, 07 | r1 real-App browser run 44/44 incl. whole-tree `/verified/i`, B no toast/alert/fetch once, early refusal + discover POST, focus, two-stage; negative control fails the 6 whole-tree checks with the old hero sentence | yes, as the one-off App-level evidence the amended AC1/2/4/6 accept; regression coverage is FE-3a2 |
+| 08, 09 | Component test names; FE-1 replacement table in the PR body | yes: AC1/3/5/6, AC8 |
+| 04 | r1: App.test.jsx absent (the r1 finding) | superseded by the AC amendment + FE-3a2 |
+| 10–18 | Screenshots: A/B/C refusal panels with approved copy, honest chips, "Retrieved passages (no answer was shown)", focus ring on the heading, early-refusal banner unchanged, answer mode with "1 of 3 citations supported", two-stage writing state, light mode | yes. UI matches design §2 copy and Q2 (no Copy/Export on refusal) |
+
+No "⚠ unverified" remains on anything this PR claims. The only gap (App-level regression tests) is a deliberate, specced split: FE-3a2 / KAN-93, P0, after #86 merges.
+
+## PRD / persona fit
+- **§7 principle 2 (honest labels), QA-4:** nothing in the tree says "Verified" any more (hero sentence fixed, footer, export, badge variant removed), and an unchecked citation reads "Not checked" instead of a misleading "0.0%".
+  ADR-0014's conservative rule holds: reserved/unknown statuses and `status`/`supported` disagreement never read Supported.
+- **§7 principle 1 / QA-5 (calm refusal that leads to evidence):** a refusal is a `role="status"` panel, not an error; one link takes keyboard users to the passages; every card keeps one-click "Open PDF" (ADR-0003).
+- **UI-1:** status stays ✅; this is a quality change to an existing row.
+- The remaining "…Sentence-Level Verification" tagline was explicitly kept by the PM decision (change 1); not re-litigated here.
+
+## Scope
+Right size for what the ticket intended after the amendment: nothing missing (every amended AC has a named test or accepted evidence), nothing extra (no file outside the ticket list, HeroSearch is copy-only, App.jsx is one line).
+531 lines is above the 400 target but within the explicit ~550 allowance (prod ~175).
+
+## Docs
+No README/API change needed (only documented `AskResponse`/`Citation` fields are read). PRD QA-4's notes column still describes the pre-AI-2 cosine/fail-open state; refreshing it is a pm-lead `docs/` PR,
+not a blocker for this PR (recorded as a follow-up for the orchestrator).
+
+## Changes made when raising the PR (QA r2 finding 1)
+- "Follow-ups created" now links FE-3a2 (KAN-93) and FE-3b instead of "requested … for pm-lead to spec".
+- Size and the ownership row now say 531 (+433/−98), not 496.
+- AC4 and AC7 ticked (AC7 green in CI; AC4 met as amended), and AC2/AC5/AC6 name the new r2 tests.
+- Evidence section with one row per AC (commit-pinned image URLs: `23e8eeb` for 00–18, `b80b45f` for 19–26), CI results, QA and PM verdicts.
+- QA r2 nit 2 (the `earlyRefusal` fixture reused as an answer-mode response for "0 of 0") needs no action; FE-3a2 can add a one-line comment when it touches the fixtures.
+
+**PM verdict: APPROVE.** PR #86 rewritten and marked ready for review; Mahesh reviews and merges. FE-3a2 becomes startable once #86 merges.

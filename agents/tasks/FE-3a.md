@@ -8,7 +8,7 @@
 | **Depends on** | FE-1 #68 merged (`2410d2e`), FE-0 #69 merged (`54c4de8`), AI-7 / #46 / AI-8b merged. **Not** FE-0b #70 (no `ui/tooltip` here). No file overlap with open PRs #70, #79, #81–#85 (checked via REST 2026-11-20) |
 | **Jira** | KAN-88 (story under epic KAN-5; parent FE-3 KAN-40), labels `task-FE-3a`, `agent-frontend`, `arxivlens` |
 | **Design required** | yes, done: `docs/design/FE-3.md` **Approved with changes** (pm-lead 2026-11-20). Build to the design + its PM decision |
-| **Status** | Rework r1 (QA FAIL r1): add the three QA finding-4 component cases to #86 and update the PR body for the AC amendment; App-level tests moved to [FE-3a2](FE-3a2.md). Rework round 1 of 2 |
+| **Status** | Ready to merge: QA r2 PASS + pm-lead APPROVE on `fa92c30` (2026-11-20); PR #86 raised, waiting on Mahesh. App-level tests are [FE-3a2](FE-3a2.md), after #86 merges |
 
 ## Goal
 A `/v1/ask` refusal reads as an honest "no answer, here is what was found" state, and no part of the UI says "Verified" about a check that didn't
@@ -91,7 +91,7 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
   developer followed it; the fault was mine for not amending the ACs and speccing the follow-up in the same decision. ACs 1, 2, 4, 6 are amended above (and AC2/AC5/AC6
   pick up QA's finding-4 cases); every App-level assert QA listed is now FE-3a2 AC1–AC5, **P0, not optional**, after #86 merges. No assert is dropped, only moved.
   **Rework checklist r1** (QA round 2 checks each line):
-  - [ ] F1 [blocking][spec] App-level tests: resolved by the AC amendment + [FE-3a2](FE-3a2.md). Developer: PR body gets a line "App-level tests (AC1 whole-tree, AC2 fetch/toast,
+  - [x] F1 [blocking][spec] App-level tests: resolved by the AC amendment + [FE-3a2](FE-3a2.md). Developer: PR body gets a line "App-level tests (AC1 whole-tree, AC2 fetch/toast,
     AC4 explicit asserts + discover POST, AC6 focus + two-stage) → FE-3a2, after this PR merges". QA r2: accept component tests + r1 browser evidence [05] for those ACs.
   - [x] F2 [nit] `Info` instead of `CircleHelp`: **keep `Info`**; recorded as an accepted deviation in `docs/design/FE-3.md` (PM decision amendment). No code change.
   - [x] F3 [nit] chip tooltip as a `title` attribute: **accepted until FE-3b**; FE-3b AC1 now requires removing the `title` when `ui/tooltip` is wired. No code change here.
@@ -106,3 +106,8 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
   (was 66 on e90de79), build OK (job 136473216598). Ownership check: OK, 531 changed lines (under ~550). F2/F3: no code change, as decided. F1: the PR
   body line is the orchestrator's job (left unticked). Not run locally: `npm ci` fails because registry.npmjs.org is unreachable (ENOTFOUND) and the
   cache is incomplete. The changed test files parse-check OK with the TypeScript parser.
+- 2026-11-20 (pm-lead, final review): **APPROVE** on `fa92c30` after QA r2 PASS. Opened every evidence file (00–26); each amended AC has a named CI test or the
+  accepted r1 browser evidence, and the App-level gap is the specced FE-3a2 (P0). Rework checklist: F1 ticked (PR body line was added by the orchestrator; FE-3a2 exists).
+  Rewrote the #86 body (QA r2 nit 1: follow-ups link FE-3a2/FE-3b, size 531, AC4/AC7 ticked, AC2/AC5/AC6 name the new tests) with an Evidence section (commit-pinned
+  images, `23e8eeb` for 00–18, `b80b45f` for 19–26), CI results and both verdicts; marked ready for review. Verdict in `agents/reviews/FE-3a/report.md`.
+  Follow-up for pm-lead: PRD QA-4 notes column is stale (pre-AI-2 cosine/fail-open text) → refresh in the next `docs/` PR.
