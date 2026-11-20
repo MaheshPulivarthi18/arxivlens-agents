@@ -50,3 +50,31 @@ Yes. An encoding failure used to reach clients as an empty 200, which they rende
 
 ## Hand-off
 PASS → pm-lead final review.
+
+---
+
+## PM review (pm-lead) — round 1
+
+**Verdict:** APPROVE
+**Reviewed:** PR #84 head `baa6fa06f2a1f0558ae869453225d98bee1e38b5`; QA report (6fd066c); evidence 00–09 at `0421dca`, every PNG opened.
+
+**Product fit.** This fixes a real honest-failure gap: on main, a NaN anywhere in the response gives `200`, `application/json`, an empty body and no log on all six fallible routes (06). Clients render that as "no results". On the head each route returns a logged `500 text/plain` naming the route, and `/v1/ask` includes its trace ID (05). That matches Product PRD §7 ("an error must look like an error"). The documented API is unchanged: success bodies are byte-identical to `json.Encoder` on every handler, both before and after (05 vs 06 `ok` rows).
+
+**Scope.** Exactly the ticket: `server.go` +29/−21 and the new `server_test.go` (01). No route, field, README, `rag.go` or `search.go` change, and nothing extra. 193 lines, ownership OK (00).
+
+**Evidence per AC.**
+1. AC1–AC4: `TestWriteJSON` 4/4 PASS (04), run on the PR's real `server.go`/`server_test.go` (sha256 identical, 03), and CI's go1.25 `-race` run of `internal/query` is ok (00). Convincing.
+2. AC5: 0 / 10, with all 9 call sites listed and their routes/statuses (02).
+3. AC6: mutants a–e plus b2, f–l are killed by the PR test (07). b3 is equivalent (`http.Error` resets Content-Type), which I accept.
+4. AC7: all 6 check runs succeed on baa6fa0. The Full stack job built the query binary from the merge commit: 246 passed, and the F1 M3 search/ask run gave 3 passed (00, 08).
+5. Docs: none needed, and the PR says so. No PRD status row exists for RET-1c (follow-up ID), so there is no PRD edit.
+
+No "⚠ unverified" on anything that matters. The only local gap (full-module build on go1.24) is covered by CI.
+
+**QA findings, decided.**
+1. Call-site mutants m–p survive the PR's test → follow-up **[RET-1d](../../tasks/RET-1d.md)** (backend-engineer, `internal/query/server.go` + `server_test.go`, P2, Ready after #84 merges): unexported dependency interfaces plus a handler-level contract test. Not blocking: the ticket deliberately scoped the test to the helper, and the code is correct today (05).
+2. `log.SetOutput(os.Stderr)` restore → folded into RET-1d AC5 (same file).
+3. `/readyz` logs `route=/healthz` → accepted, no action (constant payload can't fail to encode).
+4. `[spec]` Jira row → fixed in `agents/tasks/RET-1c.md` (KAN-86).
+
+**Raise.** PR description rewritten with the Evidence section (pinned to `0421dca`), marked ready for review → Ready to merge.

@@ -6,9 +6,9 @@
 | **Priority** | P2 |
 | **PRD ref** | Product PRD §7 (honest failure: an error must look like an error, never like an empty result); Technical PRD §7 (query API); follow-up from RET-1b QA finding 4 (`agents/reviews/RET-1b/report.md`) |
 | **Depends on** | RET-1b (#75, merged `b81a66f`). No open PR touches `internal/query/server.go` or a `server_test.go` (checked 2026-11-20 13:00Z via REST against #70, #79, #81, #82, #83; #81 edits only `internal/query/search_integration_test.go`) |
-| **Jira** | needs Jira story (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1c`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-86 (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one unexported helper in one file, no route, field, CLI, table or service change |
-| **Status** | In QA: draft PR #84 |
+| **Status** | Ready to merge (PR #84 raised; QA PASS r1, PM APPROVE r1) |
 
 ## Goal
 Every handler in `internal/query/server.go` sets `Content-Type`, then calls `_ = json.NewEncoder(w).Encode(v)` (9 call sites on `c37d27c`:
@@ -30,20 +30,20 @@ still hide the next one. Marshal first; on failure, log the route (and the trace
 - Size: ~35 production + ~80 test lines.
 
 ## Acceptance criteria
-- [ ] AC1 — `TestWriteJSON` row "unencodable" (`map[string]float64{"x": math.NaN()}`, route `/v1/search`): recorder code **500**, body does not
+- [x] AC1 — `TestWriteJSON` row "unencodable" (`map[string]float64{"x": math.NaN()}`, route `/v1/search`): recorder code **500**, body does not
   start with `{`, `Content-Type` is not `application/json`, and exactly one captured log line (`log.SetOutput` to a buffer, restored in `t.Cleanup`)
   contains `encode response failed route=/v1/search` and `unsupported value`.
-- [ ] AC2 — row "unencodable with trace ID" (`/v1/ask`, trace `t-ret1c`): the log line contains `trace_id=t-ret1c`. Row without a trace ID: `trace_id=-`.
-- [ ] AC3 — row "ok": for a value with HTML-sensitive text (`{"q":"a<b & c>d","n":1}` as a struct or map), code 200, `Content-Type: application/json`,
+- [x] AC2 — row "unencodable with trace ID" (`/v1/ask`, trace `t-ret1c`): the log line contains `trace_id=t-ret1c`. Row without a trace ID: `trace_id=-`.
+- [x] AC3 — row "ok": for a value with HTML-sensitive text (`{"q":"a<b & c>d","n":1}` as a struct or map), code 200, `Content-Type: application/json`,
   and the body is byte-identical to what `json.NewEncoder(&buf).Encode(sameValue)` writes (compare against that, not a literal). No log line.
-- [ ] AC4 — row "status passthrough": `writeJSON(rec, 500, map[string]string{"error":"boom"}, …)` → code 500, `application/json`, body `{"error":"boom"}\n`.
-- [ ] AC5 — `grep -c 'json.NewEncoder(w)' internal/query/server.go` prints `0`, and `grep -c 'writeJSON(' internal/query/server.go` prints ≥ 10
+- [x] AC4 — row "status passthrough": `writeJSON(rec, 500, map[string]string{"error":"boom"}, …)` → code 500, `application/json`, body `{"error":"boom"}\n`.
+- [x] AC5 — `grep -c 'json.NewEncoder(w)' internal/query/server.go` prints `0`, and `grep -c 'writeJSON(' internal/query/server.go` prints ≥ 10
   (9 call sites + the definition). Paste both outputs.
-- [ ] AC6 — Mutants, run locally (never pushed), each killed by `go test -count=1 -run '^TestWriteJSON$' ./internal/query/`, output in the PR:
+- [x] AC6 — Mutants, run locally (never pushed), each killed by `go test -count=1 -run '^TestWriteJSON$' ./internal/query/`, output in the PR:
   (a) ignore the marshal error and write 200 anyway; (b) set `Content-Type`/`WriteHeader(status)` before marshalling; (c) drop the trailing `"\n"`;
   (d) always write 200 (ignore `status`); (e) log without the route.
-- [ ] AC7 — `make test-unit` and `make lint` green in CI; the Full stack job (`stack.yml`) green on the PR (M3 query tests exercise every changed handler).
-- [ ] Docs: none (error path only; the README API table lists routes and fields, which don't change). Say so in the PR.
+- [x] AC7 — `make test-unit` and `make lint` green in CI; the Full stack job (`stack.yml`) green on the PR (M3 query tests exercise every changed handler).
+- [x] Docs: none (error path only; the README API table lists routes and fields, which don't change). Say so in the PR.
 
 ## Verification
 ```bash
@@ -80,3 +80,8 @@ make lint
     gave `3 passed`), Python M0, DB, Frontend and Agent ownership check also passed.
   - Docs: none, since only the error path changed. Unverified locally: the full-package build and `make test-unit`/`make lint` (no Go 1.25 or Docker), so CI covers those.
   - Note: `/readyz` shares `handleHealth`, so it logs `route=/healthz`. Its payload is a constant map and can't fail to encode.
+- 2026-11-20 (qa-reviewer): round 1 **PASS** on `baa6fa0`, report `agents/reviews/RET-1c/report.md` (6fd066c), evidence 00–09 (0421dca).
+- 2026-11-20 (pm-lead, final review): **APPROVE** r1. All ACs ticked on QA evidence; PR #84 description rewritten with the Evidence section and
+  marked ready for review. QA findings: (1) call-site test gap → follow-up [RET-1d](RET-1d.md) (backend, `internal/query/server.go` +
+  `server_test.go`, after #84 merges); (2) log restore to `os.Stderr` → folded into RET-1d AC5; (3) `/readyz` logs `route=/healthz` →
+  accepted, constant payload, no action; (4) `[spec]` Jira row → fixed above (KAN-86).
