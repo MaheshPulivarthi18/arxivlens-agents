@@ -8,7 +8,7 @@
 | **Depends on** | none. Merged prerequisites only (`ci.yml` frontend job exists on `main` 4c7d327). Works before and after FE-0 #69 / FE-1 #68 merge |
 | **Jira** | [KAN-74](https://maheshsworkspace-42184075.atlassian.net/browse/KAN-74) |
 | **Design required** | no: CI-only, report-only step, no contract, gate, CLI, table or service |
-| **Status** | Ready |
+| **Status** | In QA (PR pending) |
 
 ## Goal
 Frontend QA can't run `npm run build` in agent sandboxes, so FE-0's `dist/` checks (self-hosted fonts, no Google font hosts,
@@ -86,3 +86,14 @@ git diff --stat origin/main
 - Why `npm run test --if-present` and not plain `npm test`: on `main` (4c7d327) `frontend/package.json` has no `test` script yet (FE-1 #68
   adds it), so plain `npm test` would fail this PR's own CI. `--if-present` runs Vitest once #68 merges and is a no-op before.
 - The report is not a gate. Making "no Google font hosts" / "woff2 ≥ 1" fail CI after #69 merges is a Backlog item (*Proposed*).
+- 2026-11-20 03:05Z (backend-engineer): built on `agent/backend/OPS-H14` (app commit 84392b4, base 4c7d327; 2 files, +62/-2).
+  New `.github/scripts/frontend-dist-report.sh` (mode 100755) prints the 7 fixed line types. It exits 0 unless `<dist>` or
+  `<dist>/index.html` is missing. `ci.yml` frontend job: `Test` = `npm run test --if-present`, plus a `dist/ report (fonts, CSS)` step
+  after build (`../.github/scripts/frontend-dist-report.sh dist`, since the job's working-directory is `frontend`). Local checks:
+  `bash -n` OK. AC1 pos/neg fixtures give the expected values with exit 0, and the missing dir / no-`index.html` cases exit 1.
+  AC2 mutants: dropping gstatic gives 0 on a gstatic-only fixture, `--include=*.css` misses the index.html host (0), and removing
+  `|| true` makes neg exit 1. `grep -n 'npm run |' ci.yml` gives no output. Ownership check: OK for role=backend (64 lines).
+  On base `package.json`, `npm run test --if-present` exits 0 with no output. Not run locally: shellcheck/actionlint (not in the
+  sandbox, not on PyPI mirror), and `npm ci`/build (npm failed with "Exit handler never called"), so AC3/AC4 need the PR's CI run.
+  Design detail: `.font-serif`/`.prose` are tested with a here-string rather than `printf | grep -q`, so pipefail plus an early
+  `grep -q` exit (SIGPIPE) can't produce a false "no".
