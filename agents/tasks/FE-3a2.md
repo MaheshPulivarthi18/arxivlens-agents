@@ -6,7 +6,7 @@
 | **Priority** | P0 (the regression coverage FE-3a's ACs required; moved out of #86 by the size rule in `docs/design/FE-3.md` PM decision change 5, not optional) |
 | **PRD ref** | Product PRD UI-1, QA-4, QA-5, §7 principles 1–2; ADR-0003, ADR-0014 (Accepted); parent [FE-3a](FE-3a.md) (amended AC1/AC2/AC4/AC6) |
 | **Depends on** | **FE-3a #86 merged** (fixtures `earlyRefusal`, `refusalA/B/C`, `mixedAnswer`, `quotedAnswer`/`synthesizedAnswer` in `src/test/fixtures.js`, the refusal panel and `#references-heading`). Must not overlap any open PR's files (re-check via REST at start) |
-| **Jira** | needs Jira story (epic KAN-5 "Research UI & citations"; labels `task-FE-3a2`, `agent-frontend`, `arxivlens`; link to KAN-88) |
+| **Jira** | KAN-93 |
 | **Design required** | no (design done: `docs/design/FE-3.md` §Test plan rows AC1, AC2, AC4, AC6, AC6 two-stage are the spec for this file) |
 | **Status** | Ready (after #86 merges) |
 
