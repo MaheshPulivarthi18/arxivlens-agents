@@ -8,7 +8,7 @@
 | **Depends on** | LLM-1b (#27, merged `70b0afe`). No open PR touches `internal/llm/` (re-checked 2026-11-20 04:00Z against #65–#73 via REST) |
 | **Jira** | KAN-77 (epic KAN-1 "Grounded LLM answers"; labels `task-LLM-1c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: two fixed-string branches in one private helper; no contract, CLI, table or service change |
-| **Status** | Ready |
+| **Status** | In QA (pending PR) |
 
 ## Goal
 When `LLM_BASE_URL` points at an HTTPS endpoint and TLS fails (untrusted/invalid certificate, or the peer doesn't speak TLS), the
@@ -66,3 +66,15 @@ retrieval/answering change (only an error string on a failure path).
 - Independent of every open PR: #65 (`internal/query/rag*.go`, `tests/test_evals_data.py`, `README.md`), #66 (workflows,
   CONTRIBUTING, compose), #68–#70 (`frontend/**`), #71 (`ci.yml`, `.github/scripts/`), #72 (`internal/kafka/`), #73
   (`services/embedder/`, `tests/test_verify.py`), and of RET-1b (`internal/query/search*.go`) groomed in the same cycle.
+- 2026-11-20 04:10Z (backend-engineer): built on `agent/backend/LLM-1c` (app commit `de27269`, base `4c7d327`; not pushed, the
+  orchestrator opens the draft PR). Diff: `openai.go` +8/-0 (two `case`s before the errno case, doc comment lists the TLS classes),
+  `openai_test.go` +95/-0. New `TestTLSError` (rows `certificate_rejected` via `httptest.NewTLSServer`, `handshake_failed` via a
+  `net.Listen` server writing `"garbage\r\n"`, then `CloseWrite` + draining the ClientHello so the client reads the bad record
+  rather than a reset). AC3: two rows added to the `TestNoSecretLeaks` table (the sweep lives there, not in `TestTransportError`)
+  through a new `url func(*testing.T) string` field, placed between `closed` and `raw` so gofmt doesn't realign existing lines;
+  AC4 numstat shows 0 deletions. Local run: Go 1.24.7 in a scratch copy with `go 1.24` in go.mod (not committed), `GOTOOLCHAIN=local`:
+  `go vet ./internal/llm/` clean, `go test -race -count=1 ./internal/llm/...` ok, `transportDetail` coverage 75.0% (base) → 80.0%.
+  Mutants a–d each fail `TestTLSError` (a: certificate_rejected; b: handshake_failed; c: certificate_rejected at the cause-chain
+  check; d: both). `gofmt -l` clean on all Go files; ownership check OK (role=backend, 103 lines). Not run locally: `go vet ./...`
+  (module downloads blocked), Go 1.25, `stack.yml`; CI to verify AC6. The cert row's httptest server logs one
+  `http: TLS handshake error … bad certificate` line per run (expected stderr noise).
