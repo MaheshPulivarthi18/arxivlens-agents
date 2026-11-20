@@ -87,3 +87,16 @@ grep -nE '^export ' src/components/ui/{tooltip,popover,collapsible,scroll-area,s
   - [x] N1 (nit): `tooltip.jsx` comment says the innermost Provider wins, so a top-level `TooltipProvider` does not change these tooltips' delay.
   - CI on `25ee640`: all 5 checks green; Frontend job 135919189463: `Found 0 warnings and 0 errors.` (26 files), `✓ built in 530ms`.
   - [x] F1: not FE-0b's file. Fixed in FE-0 #69's `tailwind.config.js`; "Depends on" now says FE-0b needs #69 merged, and its wrong claim about main is corrected.
+- 2026-11-20 (frontend-engineer, Rework r2, QA round 2 FAIL): merged `origin/main` (`3835dee`, FE-0 #69 + FE-1 #68) into the branch (merge commit `feece23`, no conflicts, no rebase),
+  then fix commit; head `d10dc7f6d8a567330826b89b14118e23bcc2da1c`. Only `sonner.jsx` changed (+10/-1). Diff vs main: 6 new files, 169 insertions; `ownership-check.sh`: `Ownership OK for role=frontend (169 changed lines)`.
+  - [x] F3 (blocking): `sonner.jsx` now passes `toastOptions.classNames.description = cn("!text-muted-foreground", <caller's description class>)`, spreading any caller
+    `toastOptions` and `toastOptions.classNames` first, so the `{...props}` spread can't drop it (`toastOptions` is destructured out of props). Class checked against
+    `frontend/tailwind.config.js` (Tailwind 4.3.3 `compile()` + `@config`, typography plugin stubbed; CI uses 3.4.19): `.\!text-muted-foreground { color: hsl(var(--muted-foreground)) !important; }`.
+    **Deviation from design §6** (justified): §6 says toasts follow the theme through the four CSS variables alone, with no `theme` prop. That's incomplete: sonner hard-codes
+    `[data-description] { color: #3f3f3f }` and only overrides it under `[data-sonner-theme='dark']`, which never applies without a `theme` prop, so the description was 1.56:1
+    on the dark background. The token class keeps "no `theme` prop" and follows `.dark` like the rest (QA's r2 fix control: 6.73:1 light, 6.68:1 dark). The `!` is needed against sonner's (0,3,0) selector.
+  - [x] N2 (nit): PR body refreshed from `agents/templates/pr.md` (169 lines, inset ring and F3 deviations, merge with main); grepped for other task IDs (only FE-0/FE-1 as context).
+  - [ ] N3 (nit, for FE-4): not in scope. Radix ScrollArea viewport has no `tabindex`; FE-4 passes `tabIndex={0}` + `aria-label` on plain-text passage lists.
+  - [ ] Missing render tests: not in scope (tests are out of this ticket's scope); left to pm-lead as a follow-up or FE-3/FE-4.
+  - CI on `d10dc7f`: Frontend job 136203251672 checked out `Merge d10dc7f… into 3835dee…`; `Found 0 warnings and 0 errors.` (34 files), `Test Files 3 passed (3)`, `✓ 1923 modules transformed`, `✓ built in 997ms`.
+  - Not run locally: `npm ci`/lint/test/build (npm registry unreachable from the sandbox, `npm ci` hangs). Rendering the toast was not done by me; QA r3 re-runs the r2 harness.
