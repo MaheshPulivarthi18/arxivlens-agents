@@ -1,0 +1,13 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/9a6907c5b824c86704cfc08d94f523443d5815d1/check-runs --jq '.check_runs[] | "\(.id)  \(.name)  \(.status)  \(.conclusion)  head_sha=\(.head_sha[0:7])"'; echo; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/runs?head_sha=9a6907c5b824c86704cfc08d94f523443d5815d1' --jq '.workflow_runs[] | "run \(.id)  \(.name)  event=\(.event)  \(.conclusion)"'
+136478145225  Python M0 unit tests  completed  success  head_sha=9a6907c
+136478144250  DB (migrate twice, HNSW plan + recall)  completed  success  head_sha=9a6907c
+136478143589  Go (vet, gofmt, test, build)  completed  success  head_sha=9a6907c
+136478143484  Frontend (lint, test, build)  completed  success  head_sha=9a6907c
+136478143438  Pinned digests resolve  completed  success  head_sha=9a6907c
+136478143058  Agent ownership check  completed  success  head_sha=9a6907c
+
+run 44790951707  Image pins  event=pull_request  success
+run 44790951719  CI  event=pull_request  success
+run 44790952005  DB  event=pull_request  success
+
+[exit code 0]

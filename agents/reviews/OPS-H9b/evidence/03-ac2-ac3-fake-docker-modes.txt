@@ -1,0 +1,60 @@
+$ bash -c bash /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H9b-r1/ac2.sh | sed '/### MUTANTS/,$d'
+head step: 46 lines sha256 17995927aec30518; main step: 42 lines sha256 aae74aebeeb1f83d
+
+===== head  all_good     exit=0  ::error::=0  "no pin resolved"=0  "Re-pin it"=0
+  ok      cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex>
+  ok      cgr.dev/chainguard/minio:latest@sha256:<64hex>
+  ok      pgvector/pgvector:pg16@sha256:<64hex>
+    (expected) Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:<64hex> (ERROR: cgr.dev/chainguard/minio-client@sha256:<64hex>: not found)
+    (expected) Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:<64hex> (ERROR: cgr.dev/chainguard/minio@sha256:<64hex>: not found)
+    (expected) Pinned image pgvector/pgvector:pg16 no longer resolves at sha256:<64hex> (ERROR: pgvector/pgvector@sha256:<64hex>: not found)
+
+===== head  one_missing  exit=1  ::error::=1  "no pin resolved"=0  "Re-pin it"=1
+  ok      cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex>
+  FAIL    cgr.dev/chainguard/minio:latest@sha256:<64hex> (ERROR: cgr.dev/chainguard/minio@sha256:<64hex>: not found)
+  ok      pgvector/pgvector:pg16@sha256:<64hex>
+  ::error::Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:<64hex> (ERROR: cgr.dev/chainguard/minio@sha256:<64hex>: not found). Re-pin it: CONTRIBUTING.md "Pinned images".
+    (expected) Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:<64hex> (ERROR: cgr.dev/chainguard/minio-client@sha256:<64hex>: not found)
+    (expected) Pinned image pgvector/pgvector:pg16 no longer resolves at sha256:<64hex> (ERROR: pgvector/pgvector@sha256:<64hex>: not found)
+
+===== head  broken_all   exit=1  ::error::=1  "no pin resolved"=1  "Re-pin it"=0
+  FAIL    cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex> (ERROR: manifest verification failed for digest sha256:<64hex>)
+  FAIL    cgr.dev/chainguard/minio:latest@sha256:<64hex> (ERROR: manifest verification failed for digest sha256:<64hex>)
+  FAIL    pgvector/pgvector:pg16@sha256:<64hex> (ERROR: manifest verification failed for digest sha256:<64hex>)
+  ::error::no pin resolved: check the tool/registry before re-pinning (all 3 pins failed, FAIL lines above)
+
+===== head  two_missing  exit=1  ::error::=2  "no pin resolved"=0  "Re-pin it"=2
+  FAIL    cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex> (ERROR: cgr.dev/chainguard/minio-client@sha256:<64hex>: not found)
+  FAIL    cgr.dev/chainguard/minio:latest@sha256:<64hex> (ERROR: cgr.dev/chainguard/minio@sha256:<64hex>: not found)
+  ok      pgvector/pgvector:pg16@sha256:<64hex>
+  ::error::Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:<64hex> (ERROR: cgr.dev/chainguard/minio-client@sha256:<64hex>: not found). Re-pin it: CONTRIBUTING.md "Pinned images".
+  ::error::Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:<64hex> (ERROR: cgr.dev/chainguard/minio@sha256:<64hex>: not found). Re-pin it: CONTRIBUTING.md "Pinned images".
+    (expected) Pinned image pgvector/pgvector:pg16 no longer resolves at sha256:<64hex> (ERROR: pgvector/pgvector@sha256:<64hex>: not found)
+
+===== head  accepts_all  exit=1  ::error::=1  "no pin resolved"=0  "Re-pin it"=0
+  ok      cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex>
+  ok      cgr.dev/chainguard/minio:latest@sha256:<64hex>
+  ok      pgvector/pgvector:pg16@sha256:<64hex>
+  ::error::self-test: cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex> resolved, want not found
+
+===== head  zero_unauth  exit=1  ::error::=1  "no pin resolved"=0  "Re-pin it"=0
+  ok      cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex>
+  ok      cgr.dev/chainguard/minio:latest@sha256:<64hex>
+  ok      pgvector/pgvector:pg16@sha256:<64hex>
+  ::error::self-test: cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex> failed with an unexpected error, not 'not found': ERROR: cgr.dev/chainguard/minio-client@sha256:<64hex>: 401 Unauthorized
+
+===== head  wrong_digest exit=1  ::error::=1  "no pin resolved"=1  "Re-pin it"=0
+  FAIL    cgr.dev/chainguard/minio-client:latest-dev@sha256:<64hex> (registry returned digest 'sha256:<64hex>')
+  FAIL    cgr.dev/chainguard/minio:latest@sha256:<64hex> (registry returned digest 'sha256:<64hex>')
+  FAIL    pgvector/pgvector:pg16@sha256:<64hex> (registry returned digest 'sha256:<64hex>')
+  ::error::no pin resolved: check the tool/registry before re-pinning (all 3 pins failed, FAIL lines above)
+
+### AC2(b) byte-identity: the one_missing ::error:: line, head vs main (base c37d27c)
+cmp: identical (1 line, 310 bytes)
+main broken_all for contrast: ::error:: lines=3, Re-pin it=3
+
+### AC3: tautological case removed?
+main: 1 occurrence(s); head: 0 occurrence(s)
+
+
+[exit code 0]

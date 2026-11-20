@@ -1,0 +1,55 @@
+$ bash /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H9b-r1/ac1.sh
+### HEAD step (19 lines, sha256 9ab541601b9ec1b7)
+
+== head                         extversion='0.8.7'      exit=0
+   Dry run of the comparison against MIN=0.8.0:
+     '0.5.1' -> fail (expected)
+     '0.7.4' -> fail (expected)
+     '0.7.99' -> fail (expected)
+     '' -> fail (expected)
+     'missing' -> fail (expected)
+     'abc' -> fail (expected)
+     '0.8.0-dev' -> fail (expected)
+     '0.8.0' -> pass (expected)
+     '0.8.7' -> pass (expected)
+     '0.10.0' -> pass (expected)
+     '1.0.0' -> pass (expected)
+   pg_extension vector extversion: '0.8.7'
+   pgvector 0.8.7 >= 0.8.0: ok
+== head (real check only)       extversion=''           exit=1
+   ::error::pgvector extension is 'missing', need >= 0.8.0 (hnsw.iterative_scan in search.go). Re-pin the postgres image: CONTRIBUTING.md "Pinned images".
+== head (real check only)       extversion='missing'    exit=1
+   ::error::pgvector extension is 'missing', need >= 0.8.0 (hnsw.iterative_scan in search.go). Re-pin the postgres image: CONTRIBUTING.md "Pinned images".
+== head (real check only)       extversion='0.7.4'      exit=1
+   ::error::pgvector extension is '0.7.4', need >= 0.8.0 (hnsw.iterative_scan in search.go). Re-pin the postgres image: CONTRIBUTING.md "Pinned images".
+== head (real check only)       extversion='0.8.0-dev'  exit=1
+   ::error::pgvector extension is '0.8.0-dev', need >= 0.8.0 (hnsw.iterative_scan in search.go). Re-pin the postgres image: CONTRIBUTING.md "Pinned images".
+
+### MAIN step (base c37d27c): the bug
+== main                         extversion='missing'    exit=0
+   pgvector missing >= 0.8.0: ok
+== main                         extversion='0.8.0-dev'  exit=0
+   pgvector 0.8.0-dev >= 0.8.0: ok
+
+### MUTANTS of version_ge (scratch copies of the head step; diff line shown)
+
+-- M1 regex guard removed: KILLED (exit 1)
+   mutant: version_ge() { [ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]; }
+   ::error::self-test: 'missing' passed, want fail
+
+-- M2 regex end anchor dropped: KILLED (exit 1)
+   mutant: version_ge() { [[ $1 =~ ^[0-9]+(\.[0-9]+)* ]] && [ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]; }
+   ::error::self-test: '0.8.0-dev' passed, want fail
+
+-- M3 regex start anchor dropped: SURVIVED (exit 0)
+   mutant: version_ge() { [[ $1 =~ [0-9]+(\.[0-9]+)*$ ]] && [ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]; }
+
+### M3 behaviour probe: does the surviving mutant really change the verdict? (real check, fake extversion)
+   head extversion='v0.8.7'     exit=1  ::error::pgvector extension is 'v0.8.7', need >= 0.8.0 (hnsw
+   m3   extversion='v0.8.7'     exit=0  pgvector v0.8.7 >= 0.8.0: ok
+   head extversion='missing-0.9' exit=1  ::error::pgvector extension is 'missing-0.9', need >= 0.8.0 
+   m3   extversion='missing-0.9' exit=0  pgvector missing-0.9 >= 0.8.0: ok
+   head extversion='x1.0.0'     exit=1  ::error::pgvector extension is 'x1.0.0', need >= 0.8.0 (hnsw
+   m3   extversion='x1.0.0'     exit=0  pgvector x1.0.0 >= 0.8.0: ok
+
+[exit code 0]

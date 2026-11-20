@@ -1,0 +1,118 @@
+$ bash -c cd /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H9b-r1 && find . -type f -not -path './ci/*' | sort | while read f; do echo "===== $f (sha256 $(sha256sum < $f | cut -c1-16))"; cat "$f"; done
+===== ./ac1.sh (sha256 4f50907a42bcf042)
+#!/usr/bin/env bash
+# QA OPS-H9b AC1: run db.yml's real "pgvector >= 0.8.0" step (head and main) under `bash -e` with a fake psql.
+set -u; H="$(cd "$(dirname "$0")" && pwd)"; WT=/root/wt/qa-OPS-H9b; t="$(mktemp -d)"
+python3 "$H/extract.py" "$WT/.github/workflows/db.yml" db "pgvector >= 0.8.0" > "$t/head.sh"
+git -C "$WT" show origin/main:.github/workflows/db.yml > "$t/main.yml"; python3 "$H/extract.py" "$t/main.yml" db "pgvector >= 0.8.0" > "$t/main.sh"
+run() { # label script ext
+  out="$(FAKE_EXT="$3" PSQL="$H/bin/fakepsql" bash -e "$2" 2>&1)"; rc=$?
+  printf '\n== %-28s extversion=%-12s exit=%s\n' "$1" "'$3'" "$rc"; printf '%s\n' "$out" | sed 's/^/   /'
+}
+echo "### HEAD step ($(wc -l < "$t/head.sh") lines, sha256 $(sha256sum < "$t/head.sh" | cut -c1-16))"
+run "head" "$t/head.sh" 0.8.7
+for e in "" missing 0.7.4 0.8.0-dev; do run "head (real check only)" "$t/head.sh" "$e" | grep -E '^==|::error::|: ok$'; done
+echo; echo "### MAIN step (base c37d27c): the bug"
+for e in missing 0.8.0-dev; do run "main" "$t/main.sh" "$e" | grep -E '^==|::error::|: ok$'; done
+echo; echo "### MUTANTS of version_ge (scratch copies of the head step; diff line shown)"
+mut() { # label perl-expr
+  perl -pe "$2" "$t/head.sh" > "$t/m.sh"; d="$(diff "$t/head.sh" "$t/m.sh" | grep '^>' | sed 's/^> *//')"
+  [ -z "$d" ] && { echo "!! $1: mutation did not apply"; return; }
+  out="$(FAKE_EXT=0.8.7 PSQL="$H/bin/fakepsql" bash -e "$t/m.sh" 2>&1)"; rc=$?
+  v="SURVIVED"; [ $rc -ne 0 ] && v="KILLED"
+  printf '\n-- %s: %s (exit %s)\n   mutant: %s\n' "$1" "$v" "$rc" "$d"; printf '%s\n' "$out" | grep -E '::error::' | sed 's/^/   /'
+}
+mut "M1 regex guard removed"       's/\[\[ \$1 =~ \^\[0-9\]\+\(\\\.\[0-9\]\+\)\*\$ \]\] && //'
+mut "M2 regex end anchor dropped"   's/\(\\\.\[0-9\]\+\)\*\$ \]\]/(\\.[0-9]+)* ]]/'
+mut "M3 regex start anchor dropped" 's/=~ \^\[0-9\]/=~ [0-9]/'
+echo; echo "### M3 behaviour probe: does the surviving mutant really change the verdict? (real check, fake extversion)"
+perl -pe 's/=~ \^\[0-9\]/=~ [0-9]/' "$t/head.sh" > "$t/m3.sh"
+for e in v0.8.7 missing-0.9 x1.0.0; do
+  for s in head m3; do f="$t/head.sh"; [ $s = m3 ] && f="$t/m3.sh"
+    out="$(FAKE_EXT="$e" PSQL="$H/bin/fakepsql" bash -e "$f" 2>&1)"; rc=$?
+    printf '   %-4s extversion=%-12s exit=%s  %s\n' "$s" "'$e'" "$rc" "$(printf '%s\n' "$out" | grep -E '::error::|: ok$' | cut -c1-60)"
+  done
+done
+===== ./ac2.sh (sha256 946159b03cc6ef42)
+#!/usr/bin/env bash
+# QA OPS-H9b AC2/AC3: run image-pins.yml's real "Every pinned digest resolves" step (head and main, extracted verbatim)
+# under `bash -e` (GitHub's default run shell) against the fake docker, in the PR worktree (real compose/workflow pins).
+set -u; H="$(cd "$(dirname "$0")" && pwd)"; WT=/root/wt/qa-OPS-H9b; t="$(mktemp -d)"; cd "$WT"
+python3 "$H/extract.py" .github/workflows/image-pins.yml pins "Every pinned digest resolves" > "$t/head.sh"
+git show origin/main:.github/workflows/image-pins.yml > "$t/main.yml"; python3 "$H/extract.py" "$t/main.yml" pins "Every pinned digest resolves" > "$t/main.sh"
+echo "head step: $(wc -l < "$t/head.sh") lines sha256 $(sha256sum < "$t/head.sh" | cut -c1-16); main step: $(wc -l < "$t/main.sh") lines sha256 $(sha256sum < "$t/main.sh" | cut -c1-16)"
+run() { FAKE_MODE="$2" PATH="$H/bin:$PATH" bash -e "$1" > "$t/out.$3.$2" 2>&1; echo $?; }
+show() { # step label mode
+  rc="$(run "$1" "$3" "$2")"; o="$t/out.$2.$3"
+  printf '\n===== %-5s %-12s exit=%s  ::error::=%s  "no pin resolved"=%s  "Re-pin it"=%s\n' "$2" "$3" "$rc" \
+    "$(grep -c '::error::' "$o")" "$(grep -c 'no pin resolved' "$o")" "$(grep -c 'Re-pin it' "$o")"
+  grep -E '::error::|^ok |^FAIL |expected' "$o" | sed -E 's/[0-9a-f]{64}/<64hex>/g; s/^/  /'
+}
+for m in all_good one_missing broken_all two_missing accepts_all zero_unauth wrong_digest; do show "$t/head.sh" head $m; done
+echo; echo "### AC2(b) byte-identity: the one_missing ::error:: line, head vs main (base c37d27c)"
+run "$t/main.sh" one_missing main >/dev/null
+grep '::error::' "$t/out.head.one_missing" > "$t/e.head"; grep '::error::' "$t/out.main.one_missing" > "$t/e.main"
+cmp "$t/e.head" "$t/e.main" && echo "cmp: identical ($(wc -l < "$t/e.head") line, $(wc -c < "$t/e.head") bytes)"
+echo "main broken_all for contrast: ::error:: lines=$(run "$t/main.sh" broken_all main >/dev/null; grep -c '::error::' "$t/out.main.broken_all"), Re-pin it=$(grep -c 'Re-pin it' "$t/out.main.broken_all")"
+echo; echo "### AC3: tautological case removed?"
+echo "main: $(grep -c 'case "\$msg" in' "$t/main.sh") occurrence(s); head: $(grep -c 'case "\$msg" in' "$t/head.sh") occurrence(s)"
+echo; echo "### MUTANTS of the head step (scratch copies; mutant diff lines shown; verdict = some mode's expected outcome broke)"
+expect() { # mode -> "rc errors norepin" check against spec
+  local o="$t/out.m.$1" rc="$2"
+  case "$1" in
+    all_good)    [ "$rc" = 0 ] && ! grep -q '::error::' "$o" ;;
+    one_missing) [ "$rc" = 1 ] && grep -qxF "$(cat "$t/e.main")" "$o" && ! grep -q 'no pin resolved' "$o" ;;
+    broken_all)  [ "$rc" = 1 ] && [ "$(grep -c '::error::' "$o")" = 1 ] && grep -q '::error::no pin resolved: check the tool/registry before re-pinning' "$o" && ! grep -q 'Re-pin it' "$o" ;;
+    two_missing) [ "$rc" = 1 ] && [ "$(grep -c 'Re-pin it' "$o")" = 2 ] && ! grep -q 'no pin resolved' "$o" ;;
+    accepts_all|zero_unauth|wrong_digest) [ "$rc" = 1 ] ;;
+  esac
+}
+mut() { # label perl-expr
+  perl -0pe "$2" "$t/head.sh" > "$t/m.sh"; d="$(diff "$t/head.sh" "$t/m.sh" | grep -E '^[<>]' | sed -E 's/^([<>]) +/\1 /' | cut -c1-110)"
+  [ -z "$d" ] && { echo "!! $1: mutation did not apply"; return; }
+  broke=""
+  for m in all_good one_missing broken_all two_missing accepts_all zero_unauth wrong_digest; do
+    rc="$(FAKE_MODE=$m PATH="$H/bin:$PATH" bash -e "$t/m.sh" > "$t/out.m.$m" 2>&1; echo $?)"
+    expect "$m" "$rc" || broke="$broke $m(exit $rc)"
+  done
+  printf '\n-- %s: %s%s\n' "$1" "$([ -n "$broke" ] && echo KILLED by || echo SURVIVED)" "$broke"; printf '%s\n' "$d" | sed 's/^/   /'
+}
+mut "N0 control (no-op: head unchanged except a comment)" 's/# Nothing resolved:/# Nothing resolved (qa):/'
+mut "N1 drop the no-pin-resolved block" 's/if \[ "\$\{#resolved\[@\]\}" -eq 0 \]; then\n.*?\nfi\n//s'
+mut "N2 no-pin-resolved block without exit" 's/before re-pinning \(all \$\{#pins\[@\]\} pins failed, FAIL lines above\)"; exit 1/before re-pinning (all \${#pins[@]} pins failed, FAIL lines above)"/'
+mut "N3 -eq 0 -> -le 1" 's/"\$\{#resolved\[@\]\}" -eq 0/"\${#resolved[@]}" -le 1/'
+mut "N4 drop the buffered ::error:: print loop" 's/for m in "\$\{failed\[@\]\}"; do echo "::error::\$m"; done\n//'
+mut "N5 drop the final exit on failures" 's/if \[ "\$\{#failed\[@\]\}" -gt 0 \]; then exit 1; fi\n?//'
+mut "N6 final check -gt 0 -> -gt 1" 's/"\$\{#failed\[@\]\}" -gt 0/"\${#failed[@]}" -gt 1/'
+mut "N7 self-test grep not-found accepts anything" "s/grep -qiE 'not found\\|manifest unknown\\|404'/grep -qiE ''/"
+mut "N8 self-test zero-digest resolve check removed" 's/  if resolve "\$\{p%@\*\}@\$zero"; then echo "::error::self-test: [^\n]*\n/  resolve "\${p%@*}@\$zero" || true\n/'
+===== ./bin/docker (sha256 23195319f3d20355)
+#!/usr/bin/env bash
+# QA fake `docker` (from OPS-H9 evidence 11, + two_missing). Behaviour chosen by $FAKE_MODE.
+[ "$1 $2" = "buildx version" ] && { echo "github.com/docker/buildx v0.0.0-fake"; exit 0; }
+[ "$1 $2 $3" = "buildx imagetools inspect" ] || { echo "fake docker: unsupported: $*" >&2; exit 2; }
+ref="$4"; dig="${ref#*@}"; zero="sha256:$(printf '0%.0s' {1..64})"
+ok()       { printf 'Name:      %s\nMediaType: application/vnd.oci.image.index.v1+json\nDigest:    %s\n' "$ref" "$1"; exit 0; }
+notfound() { echo "ERROR: $ref: not found" >&2; exit 1; }
+case "$FAKE_MODE" in
+  all_good)      [ "$dig" = "$zero" ] && notfound; ok "$dig" ;;
+  one_missing)   [ "$dig" = "$zero" ] && notfound; case "$ref" in cgr.dev/chainguard/minio@*) notfound;; esac; ok "$dig" ;;
+  two_missing)   [ "$dig" = "$zero" ] && notfound; case "$ref" in cgr.dev/chainguard/minio*@*) notfound;; esac; ok "$dig" ;;
+  broken_all)    echo "ERROR: manifest verification failed for digest $dig" >&2; exit 1 ;;
+  accepts_all)   ok "$dig" ;;
+  wrong_digest)  [ "$dig" = "$zero" ] && notfound; ok "sha256:$(printf 'a%.0s' {1..64})" ;;
+  zero_unauth)   [ "$dig" = "$zero" ] && { echo "ERROR: $ref: 401 Unauthorized" >&2; exit 1; }; ok "$dig" ;;
+esac
+===== ./bin/fakepsql (sha256 50bf1a383072dbde)
+#!/usr/bin/env bash
+# QA fake psql: prints $FAKE_EXT as the extversion row (empty = no row)
+[ -n "$FAKE_EXT" ] && printf '%s\n' "$FAKE_EXT"; exit 0
+===== ./extract.py (sha256 9b9723f485e41890)
+# QA OPS-H9b: print the `run:` body of one step, verbatim (PyYAML). argv: <workflow yaml path> <job id> <step-name prefix>
+import sys, yaml
+wf = yaml.safe_load(open(sys.argv[1]))
+s = [s for s in wf["jobs"][sys.argv[2]]["steps"] if s.get("name", "").startswith(sys.argv[3])]
+assert len(s) == 1, s
+sys.stdout.write(s[0]["run"])
+
+[exit code 0]

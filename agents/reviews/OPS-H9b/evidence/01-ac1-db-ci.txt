@@ -1,0 +1,26 @@
+$ gh api .../actions/jobs/136478144250/logs | grep -nE 'HEAD is now at|-> (fail|pass) \(expected\)|extversion: |>= 0.8.0: ok|::error::'
+268:2026-11-20T18:15:28.6388972Z HEAD is now at 6d9aa22 Merge 9a6907c5b824c86704cfc08d94f523443d5815d1 into c37d27c1b77756db6100f538f7aaabf5362d584b
+380:2026-11-20T18:15:40.8347752Z [36;1mif grep -v '^extension|plpgsql|' /tmp/run0.txt; then echo "::error::DB is not fresh"; exit 1; fi[0m
+443:2026-11-20T18:15:41.3491958Z ##[group]Run MIN=0.8.0
+449:2026-11-20T18:15:41.3494490Z [36;1m  if version_ge "$v" "$MIN"; then echo "::error::self-test: '$v' passed, want fail"; exit 1; fi[0m
+450:2026-11-20T18:15:41.3494851Z [36;1m  echo "  '$v' -> fail (expected)"[0m
+453:2026-11-20T18:15:41.3495667Z [36;1m  if ! version_ge "$v" "$MIN"; then echo "::error::self-test: '$v' failed, want pass"; exit 1; fi[0m
+454:2026-11-20T18:15:41.3496027Z [36;1m  echo "  '$v' -> pass (expected)"[0m
+457:2026-11-20T18:15:41.3496947Z [36;1mecho "pg_extension vector extversion: '${GOT}'"[0m
+459:2026-11-20T18:15:41.3497930Z [36;1m  echo "::error::pgvector extension is '${GOT:-missing}', need >= $MIN (hnsw.iterative_scan in search.go). Re-pin the postgres image: CONTRIBUTING.md \"Pinned images\"."[0m
+469:2026-11-20T18:15:41.3620309Z   '0.5.1' -> fail (expected)
+470:2026-11-20T18:15:41.3656961Z   '0.7.4' -> fail (expected)
+471:2026-11-20T18:15:41.3693555Z   '0.7.99' -> fail (expected)
+472:2026-11-20T18:15:41.3694074Z   '' -> fail (expected)
+473:2026-11-20T18:15:41.3697136Z   'missing' -> fail (expected)
+474:2026-11-20T18:15:41.3697476Z   'abc' -> fail (expected)
+475:2026-11-20T18:15:41.3697801Z   '0.8.0-dev' -> fail (expected)
+476:2026-11-20T18:15:41.3734157Z   '0.8.0' -> pass (expected)
+477:2026-11-20T18:15:41.3770849Z   '0.8.7' -> pass (expected)
+478:2026-11-20T18:15:41.3807768Z   '0.10.0' -> pass (expected)
+479:2026-11-20T18:15:41.3844012Z   '1.0.0' -> pass (expected)
+480:2026-11-20T18:15:41.4567654Z pg_extension vector extversion: '0.8.7'
+481:2026-11-20T18:15:41.4611317Z pgvector 0.8.7 >= 0.8.0: ok
+505:2026-11-20T18:15:41.6071341Z [36;1m  echo "::error::real_postgres tests did not all run and pass (skipped or none collected)"; exit 1[0m
+2272:2026-11-20T18:16:52.5456007Z Cleaning up orphan processes
+

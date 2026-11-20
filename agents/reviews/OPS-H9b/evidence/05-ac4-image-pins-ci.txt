@@ -1,0 +1,29 @@
+$ gh api .../actions/jobs/136478143438/logs (sections grepped; echoed script lines dropped)
+== merge ref
+118:2026-11-20T18:14:59.3198304Z HEAD is now at 6d9aa22 Merge 9a6907c5b824c86704cfc08d94f523443d5815d1 into c37d27c1b77756db6100f538f7aaabf5362d584b
+== actionlint step, log lines 122-143 verbatim (pull output only; actionlint prints nothing when clean)
+2026-11-20T18:14:59.3566559Z ##[group]Run docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9 -color .github/workflo
+2026-11-20T18:14:59.3612625Z shell: /usr/bin/bash -e {0}
+2026-11-20T18:14:59.3613439Z ##[endgroup]
+2026-11-20T18:14:59.5029040Z Unable to find image 'rhysd/actionlint:1.7.7@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9' locally
+2026-11-20T18:14:59.7537731Z docker.io/rhysd/actionlint@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9: Pulling from rhysd/actionlint
+2026-11-20T18:15:00.4947774Z Digest: sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9
+2026-11-20T18:15:00.9566777Z Status: Downloaded newer image for rhysd/actionlint@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9
+2026-11-20T18:15:00.9624884Z ##[group]Run compose="$(grep -oE 'pgvector/pgvector:[^[:space:]"]+' docker-compose.yml | sort -u)"
+== pin steps
+153:2026-11-20T18:15:00.9832177Z docker-compose.yml: pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+154:2026-11-20T18:15:00.9833041Z db.yml:             pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+205:2026-11-20T18:15:01.3157680Z 3 pinned images:
+206:2026-11-20T18:15:01.3158652Z   cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805
+207:2026-11-20T18:15:01.3159617Z   cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597
+208:2026-11-20T18:15:01.3161155Z   pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+209:2026-11-20T18:15:02.0141813Z ok      cgr.dev/chainguard/minio-client:latest-dev@sha256:39768db4c3fa811bc8f2e2a3e0add8ea391648b1c980de179985e1c353dc1805
+210:2026-11-20T18:15:02.2394737Z ok      cgr.dev/chainguard/minio:latest@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597
+211:2026-11-20T18:15:02.5374583Z ok      pgvector/pgvector:pg16@sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f
+212:2026-11-20T18:15:02.5376004Z Self-test: the all-zero digest of each resolved image must fail as not found
+213:2026-11-20T18:15:02.7897172Z   (expected) Pinned image cgr.dev/chainguard/minio-client:latest-dev no longer resolves at sha256:0000000000000000000000000000000000000000000000000000000000000000 (ERROR: cgr.dev/chainguard/minio-c
+214:2026-11-20T18:15:03.0178529Z   (expected) Pinned image cgr.dev/chainguard/minio:latest no longer resolves at sha256:0000000000000000000000000000000000000000000000000000000000000000 (ERROR: cgr.dev/chainguard/minio@sha256:00000
+215:2026-11-20T18:15:03.2256949Z   (expected) Pinned image pgvector/pgvector:pg16 no longer resolves at sha256:0000000000000000000000000000000000000000000000000000000000000000 (ERROR: docker.io/pgvector/pgvector@sha256:00000000000
+== counts
+ok lines: 3  (expected) lines (non-script): 3  ::error:: emitted (non-script lines): 0
+

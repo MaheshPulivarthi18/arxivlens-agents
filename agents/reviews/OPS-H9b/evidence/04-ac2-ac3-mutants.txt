@@ -1,0 +1,39 @@
+$ bash -c bash /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H9b-r1/ac2.sh | sed -n '/### MUTANTS/,$p'
+### MUTANTS of the head step (scratch copies; mutant diff lines shown; verdict = some mode's expected outcome broke)
+
+-- N0 control (no-op: head unchanged except a comment): SURVIVED
+   < # Nothing resolved: the tool or registry is the likelier cause, so don't tell anyone to re-pin every image.
+   > # Nothing resolved (qa): the tool or registry is the likelier cause, so don't tell anyone to re-pin every im
+
+-- N1 drop the no-pin-resolved block: KILLED by broken_all(exit 1)
+   < if [ "${#resolved[@]}" -eq 0 ]; then
+   < echo "::error::no pin resolved: check the tool/registry before re-pinning (all ${#pins[@]} pins failed, FAIL
+   < fi
+
+-- N2 no-pin-resolved block without exit: KILLED by broken_all(exit 1)
+   < echo "::error::no pin resolved: check the tool/registry before re-pinning (all ${#pins[@]} pins failed, FAIL
+   > echo "::error::no pin resolved: check the tool/registry before re-pinning (all ${#pins[@]} pins failed, FAIL
+
+-- N3 -eq 0 -> -le 1: KILLED by two_missing(exit 1)
+   < if [ "${#resolved[@]}" -eq 0 ]; then
+   > if [ "${#resolved[@]}" -le 1 ]; then
+
+-- N4 drop the buffered ::error:: print loop: KILLED by one_missing(exit 1) two_missing(exit 1)
+   < for m in "${failed[@]}"; do echo "::error::$m"; done
+
+-- N5 drop the final exit on failures: KILLED by one_missing(exit 0) two_missing(exit 0)
+   < if [ "${#failed[@]}" -gt 0 ]; then exit 1; fi
+
+-- N6 final check -gt 0 -> -gt 1: KILLED by one_missing(exit 0)
+   < if [ "${#failed[@]}" -gt 0 ]; then exit 1; fi
+   > if [ "${#failed[@]}" -gt 1 ]; then exit 1; fi
+
+-- N7 self-test grep not-found accepts anything: KILLED by zero_unauth(exit 0)
+   < if ! printf '%s' "$err" | grep -qiE 'not found|manifest unknown|404'; then
+   > if ! printf '%s' "$err" | grep -qiE ''; then
+
+-- N8 self-test zero-digest resolve check removed: SURVIVED
+   < if resolve "${p%@*}@$zero"; then echo "::error::self-test: ${p%@*}@$zero resolved, want not found"; exit 1; 
+   > resolve "${p%@*}@$zero" || true
+
+[exit code 0]
