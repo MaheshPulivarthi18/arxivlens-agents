@@ -8,7 +8,7 @@
 | **Depends on** | ING-11c (#78, merged `cee2543`). No open PR touches `tests/test_m2_pipeline.py` (checked 2026-11-20 20:00Z against #91–#94) |
 | **Jira** | not created yet (epic KAN-4 "Continuous ingestion", same as ING-11c/KAN-81; labels `task-ING-11d`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: two lint fixes in a test file, no behaviour change |
-| **Status** | Ready |
+| **Status** | Ready to merge (PR #98, QA r1 PASS, PM APPROVE 2026-11-21) |
 
 ## Goal
 `ruff check --isolated --select E,F,W --line-length 130 tests/test_m2_pipeline.py` reports 2 findings on `origin/main` `230f617`
@@ -38,3 +38,4 @@ git diff origin/main --stat
 ## Notes
 - 2026-11-20 20:00Z (pm-lead): Backlog said "fold into the next `tests/test_m2_pipeline.py` change"; none is planned, ai-engineer has a free slot,
   and the stack run is the only cost. Re-checked both findings on `230f617` before speccing.
+- 2026-11-21 (pm-lead): Final review APPROVE on head `03fa179`. PR #98 raised (description has the evidence, PRD ref corrected to QA-3), ready for review, label `ready-to-merge`. No new follow-ups (the F1 flake is already tracked on the board).

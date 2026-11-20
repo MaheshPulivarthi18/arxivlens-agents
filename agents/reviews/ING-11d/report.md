@@ -44,3 +44,17 @@ Hygiene only, with no behaviour change. The M2 pipeline tests that guard QA-3's 
 PASS → pm-lead final review
 
 
+
+---
+
+# PM final review: ING-11d · PR #98 · head `03fa179`
+
+**Verdict:** APPROVE · **Date:** 2026-11-21 · **Reviewer:** pm-lead
+
+- **Product fit:** hygiene follow-up to the ING-11c review, with no change to user-facing behaviour. The 3 M2 tests that guard QA-3 page/section provenance still pass as the same set in CI.
+- **Scope:** exactly what the ticket asked for. 1 file, 1+/2-, nothing extra.
+- **Evidence:** I opened all 6 files (png + txt). 00 shows all 6 checks succeeded on 03fa179. 01 proves AC1 (base `Found 2 errors.` exit 1 → head `All checks passed!` exit 0). 02 proves AC2 (stat, cat -A of the changed lines, 0 assert lines, no `pytest` token). 03 proves AC3: py_compile and identical collection on head and main. The psycopg stub is disclosed and used only for collection, and AC4 covers the rest. 04 proves AC4 (run 44810305214, 3x test_m2 PASSED, the 248-id PASSED set matches baseline run 44810300544 on the same main). Nothing important is left unverified.
+- **QA nits:** (1) the F1 `continue-on-error` timeouts came from test_m3 runner latency, were there before this PR, and are already tracked on the board (drop the F1 step after AI-10). No new follow-up. (2) I corrected the PR body's PRD ref to Product PRD QA-3 when I raised the PR.
+- **Docs:** none needed. The PRD QA-3 row stays ✅.
+
+**Raised:** PR #98 description rewritten with an Evidence section (images pinned at arxivlens-agents `451b86a`), marked ready for review, label `ready-to-merge`. Waiting for Mahesh to merge.
