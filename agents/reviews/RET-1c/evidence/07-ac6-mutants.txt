@@ -1,0 +1,83 @@
+$ python3 -I /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1/mutate.py /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1/harness
+mutant                                           TestWriteJSON (PR)   TestQAHandlers (QA probe)
+a  ignore marshal error, write 200 anyway        KILLED               KILLED
+b  Content-Type+WriteHeader before marshal       KILLED               KILLED
+b2 only WriteHeader(status) before marshal       KILLED               KILLED
+b3 only Content-Type before marshal              SURVIVED             SURVIVED
+c  drop trailing newline                         KILLED               KILLED
+d  always 200 (ignore status)                    KILLED               KILLED
+e  log without route                             KILLED               KILLED
+f  no '-' default for empty trace ID             KILLED               KILLED
+g  no log line at all                            KILLED               KILLED
+h  log line twice                                KILLED               KILLED
+i  failure status 502 not 500                    KILLED               KILLED
+j  failure body is JSON-looking                  KILLED               KILLED
+k  no return after http.Error                    KILLED               KILLED
+l  success JSON without HTML escaping            KILLED               KILLED
+m  /v1/ask call site drops resp.TraceID          SURVIVED             KILLED
+n  ingest error path status 200                  SURVIVED             KILLED
+o  discover error path status 200                SURVIVED             KILLED
+p  /v1/stats call site wrong route               SURVIVED             KILLED
+
+--- applied diffs (production lines only) ---
+[a  ignore marshal error, write 200 anyway]
+   -	if err != nil {
+   +	if false && err != nil {
+[b  Content-Type+WriteHeader before marshal]
+   +	w.Header().Set("Content-Type", "application/json")
+   +	w.WriteHeader(status)
+   -	w.Header().Set("Content-Type", "application/json")
+   -	w.WriteHeader(status)
+[b2 only WriteHeader(status) before marshal]
+   +	w.WriteHeader(status)
+   -	w.WriteHeader(status)
+[b3 only Content-Type before marshal]
+   +	w.Header().Set("Content-Type", "application/json")
+   -	w.Header().Set("Content-Type", "application/json")
+[c  drop trailing newline]
+   -	_, _ = w.Write(append(body, '\n'))
+   +	_, _ = w.Write(body)
+[d  always 200 (ignore status)]
+   -	w.WriteHeader(status)
+   +	w.WriteHeader(http.StatusOK)
+[e  log without route]
+   -		log.Printf("[Query Service] encode response failed route=%s trace_id=%s: %v", route, traceID, err)
+   +		log.Printf("[Query Service] encode response failed trace_id=%s: %v", traceID, err)
+[f  no '-' default for empty trace ID]
+   -			traceID = "-"
+   +			traceID = ""
+[g  no log line at all]
+   -		log.Printf("[Query Service] encode response failed route=%s trace_id=%s: %v", route, traceID, err)
+   +		_ = fmt.Sprintf("[Query Service] encode response failed route=%s trace_id=%s: %v", route, traceID, err)
+[h  log line twice]
+   +		log.Printf("[Query Service] encode response failed route=%s trace_id=%s: %v", route, traceID, err)
+[i  failure status 502 not 500]
+   -		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+   +		http.Error(w, "failed to encode response", http.StatusBadGateway)
+[j  failure body is JSON-looking]
+   -		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+   +		http.Error(w, "{}", http.StatusInternalServerError)
+[k  no return after http.Error]
+   -		return
+[l  success JSON without HTML escaping]
+   +	"bytes"
+   -	body, err := json.Marshal(v)
+   +	var bb bytes.Buffer
+   +	e := json.NewEncoder(&bb)
+   +	e.SetEscapeHTML(false)
+   +	err := e.Encode(v)
+   +	body := bytes.TrimSuffix(bb.Bytes(), []byte("\n"))
+[m  /v1/ask call site drops resp.TraceID]
+   -	writeJSON(w, http.StatusOK, resp, "/v1/ask", resp.TraceID)
+   +	writeJSON(w, http.StatusOK, resp, "/v1/ask", "")
+[n  ingest error path status 200]
+   -		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()}, "/v1/papers/ingest", "")
+   +		writeJSON(w, http.StatusOK, map[string]string{"error": err.Error()}, "/v1/papers/ingest", "")
+[o  discover error path status 200]
+   -		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()}, "/v1/papers/discover", "")
+   +		writeJSON(w, http.StatusOK, map[string]string{"error": err.Error()}, "/v1/papers/discover", "")
+[p  /v1/stats call site wrong route]
+   -	writeJSON(w, http.StatusOK, stats, "/v1/stats", "")
+   +	writeJSON(w, http.StatusOK, stats, "/v1/search", "")
+
+[exit code 0]

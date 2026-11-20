@@ -1,0 +1,15 @@
+$ bash -c cd /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1/harness && GOTOOLCHAIN=local go test -race -count=1 -v -run '^TestWriteJSON$' ./internal/query/
+=== RUN   TestWriteJSON
+=== RUN   TestWriteJSON/unencodable
+=== RUN   TestWriteJSON/unencodable_with_trace_ID
+=== RUN   TestWriteJSON/ok
+=== RUN   TestWriteJSON/status_passthrough
+--- PASS: TestWriteJSON (0.00s)
+    --- PASS: TestWriteJSON/unencodable (0.00s)
+    --- PASS: TestWriteJSON/unencodable_with_trace_ID (0.00s)
+    --- PASS: TestWriteJSON/ok (0.00s)
+    --- PASS: TestWriteJSON/status_passthrough (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.010s
+
+[exit code 0]

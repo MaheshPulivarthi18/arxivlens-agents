@@ -1,0 +1,21 @@
+$ bash -c cd /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1/harness && GOTOOLCHAIN=local go test -race -count=1 -v -run '^TestQAHandlers$' ./internal/query/ 2>&1 | grep -v '^=== RUN'
+--- PASS: TestQAHandlers (0.01s)
+    --- PASS: TestQAHandlers/healthz/ok (0.00s)
+    --- PASS: TestQAHandlers/search/ok (0.00s)
+    --- PASS: TestQAHandlers/search/NaN (0.00s)
+    --- PASS: TestQAHandlers/ask/ok (0.00s)
+    --- PASS: TestQAHandlers/ask/NaN (0.00s)
+    --- PASS: TestQAHandlers/paper-status/ok (0.00s)
+    --- PASS: TestQAHandlers/paper-status/NaN (0.00s)
+    --- PASS: TestQAHandlers/stats/ok (0.00s)
+    --- PASS: TestQAHandlers/stats/NaN (0.00s)
+    --- PASS: TestQAHandlers/ingest/ok (0.00s)
+    --- PASS: TestQAHandlers/ingest/NaN (0.00s)
+    --- PASS: TestQAHandlers/discover/ok (0.00s)
+    --- PASS: TestQAHandlers/discover/NaN (0.00s)
+    --- PASS: TestQAHandlers/ingest/ingester-error (0.00s)
+    --- PASS: TestQAHandlers/discover/ingester-error (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.016s
+
+[exit code 0]

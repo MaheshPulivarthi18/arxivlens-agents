@@ -1,0 +1,29 @@
+$ bash -c cd /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1/harness-base && git -C /root/wt/qa-RET-1c show c37d27c:internal/query/server.go | cmp - internal/query/server.go && echo 'harness-base server.go == c37d27c:internal/query/server.go'; GOTOOLCHAIN=local go test -count=1 -v -run '^TestQAHandlers$' ./internal/query/ 2>&1 | grep -v '^=== RUN' | cut -c1-200
+harness-base server.go == c37d27c:internal/query/server.go
+    qa_probe_test.go:122: code=200 ct="application/json" body="" logs=[] (want 500, non-JSON, 1 log line with "encode response failed route=/v1/search trace_id=-:")
+    qa_probe_test.go:122: code=200 ct="application/json" body="" logs=[] (want 500, non-JSON, 1 log line with "encode response failed route=/v1/ask trace_id=tr-qa-1:")
+    qa_probe_test.go:122: code=200 ct="application/json" body="" logs=[] (want 500, non-JSON, 1 log line with "encode response failed route=/v1/papers/{arxiv_id}/status trace_id=-:")
+    qa_probe_test.go:122: code=200 ct="application/json" body="" logs=[] (want 500, non-JSON, 1 log line with "encode response failed route=/v1/stats trace_id=-:")
+    qa_probe_test.go:122: code=200 ct="application/json" body="" logs=[] (want 500, non-JSON, 1 log line with "encode response failed route=/v1/papers/ingest trace_id=-:")
+    qa_probe_test.go:122: code=200 ct="application/json" body="" logs=[] (want 500, non-JSON, 1 log line with "encode response failed route=/v1/papers/discover trace_id=-:")
+--- FAIL: TestQAHandlers (0.00s)
+    --- PASS: TestQAHandlers/healthz/ok (0.00s)
+    --- PASS: TestQAHandlers/search/ok (0.00s)
+    --- FAIL: TestQAHandlers/search/NaN (0.00s)
+    --- PASS: TestQAHandlers/ask/ok (0.00s)
+    --- FAIL: TestQAHandlers/ask/NaN (0.00s)
+    --- PASS: TestQAHandlers/paper-status/ok (0.00s)
+    --- FAIL: TestQAHandlers/paper-status/NaN (0.00s)
+    --- PASS: TestQAHandlers/stats/ok (0.00s)
+    --- FAIL: TestQAHandlers/stats/NaN (0.00s)
+    --- PASS: TestQAHandlers/ingest/ok (0.00s)
+    --- FAIL: TestQAHandlers/ingest/NaN (0.00s)
+    --- PASS: TestQAHandlers/discover/ok (0.00s)
+    --- FAIL: TestQAHandlers/discover/NaN (0.00s)
+    --- PASS: TestQAHandlers/ingest/ingester-error (0.00s)
+    --- PASS: TestQAHandlers/discover/ingester-error (0.00s)
+FAIL
+FAIL	arxivlens/internal/query	0.004s
+FAIL
+
+[exit code 0]

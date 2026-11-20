@@ -1,0 +1,18 @@
+$ bash -c echo "$ grep -c 'json.NewEncoder(w)' internal/query/server.go"; grep -c 'json.NewEncoder(w)' internal/query/server.go; echo "$ grep -c 'writeJSON(' internal/query/server.go"; grep -c 'writeJSON(' internal/query/server.go; echo; grep -n 'writeJSON(\|json.NewEncoder' internal/query/server.go
+$ grep -c 'json.NewEncoder(w)' internal/query/server.go
+0
+$ grep -c 'writeJSON(' internal/query/server.go
+10
+
+99:func writeJSON(w http.ResponseWriter, status int, v any, route, traceID string) {
+115:	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"}, "/healthz", "")
+136:	writeJSON(w, http.StatusOK, map[string]interface{}{
+161:	writeJSON(w, http.StatusOK, resp, "/v1/ask", resp.TraceID)
+180:	writeJSON(w, http.StatusOK, paper, "/v1/papers/{arxiv_id}/status", "")
+190:	writeJSON(w, http.StatusOK, stats, "/v1/stats", "")
+216:		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()}, "/v1/papers/ingest", "")
+220:	writeJSON(w, http.StatusOK, res, "/v1/papers/ingest", "")
+247:		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()}, "/v1/papers/discover", "")
+251:	writeJSON(w, http.StatusOK, res, "/v1/papers/discover", "")
+
+[exit code 0]

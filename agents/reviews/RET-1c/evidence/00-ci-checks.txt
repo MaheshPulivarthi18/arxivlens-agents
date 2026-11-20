@@ -1,0 +1,30 @@
+$ gh api .../commits/baa6fa0/check-runs; gh api .../actions/jobs/{136310387183,136310387146}/logs | grep
+PR #84 head baa6fa06f2a1f0558ae869453225d98bee1e38b5 — check runs:
+Full stack (compose + make test-full) | completed | success | job 136310387284
+Go (vet, gofmt, test, build) | completed | success | job 136310387183
+Agent ownership check | completed | success | job 136310387146
+DB (migrate twice, HNSW plan + recall) | completed | success | job 136310387058
+Frontend (lint, test, build) | completed | success | job 136310386991
+Python M0 unit tests | completed | success | job 136310386748
+
+== Go job 136310387183: checkout + lint + test-go ==
+2026-11-20T13:16:02.9862322Z HEAD is now at a5b03a0 Merge baa6fa06f2a1f0558ae869453225d98bee1e38b5 into c37d27c1b77756db6100f538f7aaabf5362d584b
+2026-11-20T13:16:11.4250766Z GOVERSION='go1.25.0'
+2026-11-20T13:16:11.4494801Z ##[group]Run make lint-go
+2026-11-20T13:16:11.4628821Z go vet ./...
+2026-11-20T13:16:12.8708389Z ##[group]Run make test-go
+2026-11-20T13:16:12.8732766Z   GOFLAGS: -race
+2026-11-20T13:16:12.8789533Z go test ./...
+2026-11-20T13:16:51.7587248Z ok  	arxivlens/internal/arxiv	2.569s
+2026-11-20T13:16:51.7587912Z ok  	arxivlens/internal/config	1.015s
+2026-11-20T13:16:51.7588374Z ok  	arxivlens/internal/crawler	1.125s
+2026-11-20T13:16:51.7588817Z ok  	arxivlens/internal/db	1.016s
+2026-11-20T13:16:51.8212248Z ok  	arxivlens/internal/dlq	1.287s
+2026-11-20T13:16:52.2271059Z ok  	arxivlens/internal/downloader	1.121s
+2026-11-20T13:16:54.1267735Z ok  	arxivlens/internal/llm	2.026s
+2026-11-20T13:16:54.1268678Z ok  	arxivlens/internal/llm/llmtest	1.117s
+2026-11-20T13:16:55.2603709Z ok  	arxivlens/internal/query	1.583s
+
+== Agent ownership job 136310387146 ==
+2026-11-20T13:16:02.6752365Z Ownership OK for role=backend (193 changed lines)
+

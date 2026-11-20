@@ -1,0 +1,17 @@
+$ bash -c GOTOOLCHAIN=local go version 2>&1 | grep -o 'go1[.0-9]*.*' || true; echo '(go.mod needs 1.25; no module proxy here, so the full module cannot build locally)'; echo '$ gofmt -l internal/query/ (PR head)'; gofmt -l internal/query/; echo "gofmt exit=$?"; echo; echo 'harness copies vs PR head (sha256):'; sha256sum internal/query/server.go internal/query/server_test.go /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1/harness/internal/query/server.go /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1/harness/internal/query/server_test.go | sed 's|/tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1|<scratch>|'; cmp internal/query/server.go /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1/harness/internal/query/server.go && cmp internal/query/server_test.go /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1/harness/internal/query/server_test.go && echo 'IDENTICAL'; echo; echo '$ go vet ./... (harness: real server.go + stubbed deps)'; cd /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1/harness && GOTOOLCHAIN=local go vet ./... && echo 'vet OK'
+go1.24.7 linux/amd64
+(go.mod needs 1.25; no module proxy here, so the full module cannot build locally)
+$ gofmt -l internal/query/ (PR head)
+gofmt exit=0
+
+harness copies vs PR head (sha256):
+67a87fdff2d6dc06cd5a370e778ec106fa0c6a769750a3c3cf2fa25af302ec49  internal/query/server.go
+09b10989fbbb7765963d344b8ecf3092c15464d4c3bc73bd6d8eebcff1525ca5  internal/query/server_test.go
+67a87fdff2d6dc06cd5a370e778ec106fa0c6a769750a3c3cf2fa25af302ec49  <scratch>/harness/internal/query/server.go
+09b10989fbbb7765963d344b8ecf3092c15464d4c3bc73bd6d8eebcff1525ca5  <scratch>/harness/internal/query/server_test.go
+IDENTICAL
+
+$ go vet ./... (harness: real server.go + stubbed deps)
+vet OK
+
+[exit code 0]

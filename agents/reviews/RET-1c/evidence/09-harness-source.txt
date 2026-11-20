@@ -1,0 +1,502 @@
+$ bash -c cd /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/qa-RET-1c-r1 && for f in $(find harness harness-base mutate.py -type f | grep -v -e 'internal/query/server.go$' -e 'internal/query/server_test.go$' | sort); do echo "===== $f"; cat $f; done
+===== harness-base/go.mod
+module arxivlens
+
+go 1.24
+===== harness-base/internal/db/stub.go
+// QA stub: only the two methods server.go calls. Not product code.
+package db
+
+import "context"
+
+type PaperRecord struct {
+	ArxivID string  `json:"arxiv_id"`
+	Score   float64 `json:"score"`
+}
+
+type SystemStats struct {
+	Papers int     `json:"papers"`
+	Ratio  float64 `json:"ratio"`
+}
+
+type DB struct {
+	PaperFn func() (*PaperRecord, error)
+	StatsFn func() (*SystemStats, error)
+}
+
+func (d *DB) GetPaperStatus(ctx context.Context, arxivID string) (*PaperRecord, error) { return d.PaperFn() }
+func (d *DB) GetSystemStats(ctx context.Context) (*SystemStats, error)                 { return d.StatsFn() }
+===== harness-base/internal/query/qa_helpers_test.go
+// QA helper for the base-control run only (server_test.go does not compile against base: no writeJSON).
+package query
+
+import "strings"
+
+func nonEmptyLines(s string) []string {
+	var out []string
+	for _, l := range strings.Split(s, "\n") {
+		if strings.TrimSpace(l) != "" {
+			out = append(out, l)
+		}
+	}
+	return out
+}
+===== harness-base/internal/query/qa_probe_test.go
+// QA probe (RET-1c r1): drives the REAL handlers in server.go through httptest with stubbed dependencies.
+package query
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"log"
+	"math"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"arxivlens/internal/db"
+)
+
+func encRef(v any) string {
+	var b bytes.Buffer
+	_ = json.NewEncoder(&b).Encode(v)
+	return b.String()
+}
+
+type probe struct {
+	name     string
+	method   string
+	path     string
+	body     string
+	srv      func(bad bool) *Server
+	okValue  any    // what the handler should encode on success (reference via json.Encoder)
+	route    string // expected route= in the log line on failure
+	traceID  string // expected trace_id= on failure
+}
+
+func TestQAHandlers(t *testing.T) {
+	nan := math.NaN()
+	pick := func(bad bool) float64 {
+		if bad {
+			return nan
+		}
+		return 0.5
+	}
+	probes := []probe{
+		{name: "healthz", method: "GET", path: "/healthz", srv: func(bool) *Server { return &Server{} },
+			okValue: map[string]string{"status": "ok"}, route: "/healthz"},
+		{name: "search", method: "POST", path: "/v1/search", body: `{"query":"a<b"}`,
+			srv: func(bad bool) *Server {
+				return &Server{searchEngine: &SearchEngine{Fn: func() ([]SearchHit, error) { return []SearchHit{{"2401.00001", pick(bad)}}, nil }}}
+			},
+			okValue: map[string]interface{}{"query": "a<b", "count": 1, "hits": []SearchHit{{"2401.00001", 0.5}}}, route: "/v1/search"},
+		{name: "ask", method: "POST", path: "/v1/ask", body: `{"question":"q?"}`,
+			srv: func(bad bool) *Server {
+				return &Server{ragService: &RAGService{Fn: func() (*AskResponse, error) {
+					return &AskResponse{Answer: "x & y", Score: pick(bad), TraceID: "tr-qa-1"}, nil
+				}}}
+			},
+			okValue: &AskResponse{Answer: "x & y", Score: 0.5, TraceID: "tr-qa-1"}, route: "/v1/ask", traceID: "tr-qa-1"},
+		{name: "paper-status", method: "GET", path: "/v1/papers/2401.00001/status",
+			srv: func(bad bool) *Server {
+				return &Server{database: &db.DB{PaperFn: func() (*db.PaperRecord, error) { return &db.PaperRecord{ArxivID: "2401.00001", Score: pick(bad)}, nil }}}
+			},
+			okValue: &db.PaperRecord{ArxivID: "2401.00001", Score: 0.5}, route: "/v1/papers/{arxiv_id}/status"},
+		{name: "stats", method: "GET", path: "/v1/stats",
+			srv: func(bad bool) *Server {
+				return &Server{database: &db.DB{StatsFn: func() (*db.SystemStats, error) { return &db.SystemStats{Papers: 3, Ratio: pick(bad)}, nil }}}
+			},
+			okValue: &db.SystemStats{Papers: 3, Ratio: 0.5}, route: "/v1/stats"},
+		{name: "ingest", method: "POST", path: "/v1/papers/ingest", body: `{"arxiv_id":"2401.00001"}`,
+			srv: func(bad bool) *Server {
+				return &Server{ingester: &PaperIngester{Fn: func() (*IngestResult, error) { return &IngestResult{"ok", pick(bad)}, nil }}}
+			},
+			okValue: &IngestResult{"ok", 0.5}, route: "/v1/papers/ingest"},
+		{name: "discover", method: "POST", path: "/v1/papers/discover", body: `{"query":"x"}`,
+			srv: func(bad bool) *Server {
+				return &Server{ingester: &PaperIngester{Fn: func() (*IngestResult, error) { return &IngestResult{"ok", pick(bad)}, nil }}}
+			},
+			okValue: &IngestResult{"ok", 0.5}, route: "/v1/papers/discover"},
+	}
+
+	mux := func(s *Server) *http.ServeMux {
+		m := http.NewServeMux()
+		m.HandleFunc("GET /healthz", s.handleHealth)
+		m.HandleFunc("GET /readyz", s.handleHealth)
+		m.HandleFunc("GET /v1/stats", s.handleStats)
+		m.HandleFunc("POST /v1/search", s.handleSearch)
+		m.HandleFunc("POST /v1/ask", s.handleAsk)
+		m.HandleFunc("POST /v1/papers/ingest", s.handleIngestPaper)
+		m.HandleFunc("POST /v1/papers/discover", s.handleDiscoverPaper)
+		m.HandleFunc("GET /v1/papers/", s.handlePaperStatus)
+		return m
+	}
+	do := func(s *Server, p probe) (*httptest.ResponseRecorder, []string) {
+		var lb bytes.Buffer
+		prev := log.Writer()
+		log.SetOutput(&lb)
+		defer log.SetOutput(prev)
+		rec := httptest.NewRecorder()
+		mux(s).ServeHTTP(rec, httptest.NewRequest(p.method, p.path, strings.NewReader(p.body)))
+		return rec, nonEmptyLines(lb.String())
+	}
+
+	for _, p := range probes {
+		t.Run(p.name+"/ok", func(t *testing.T) {
+			rec, logs := do(p.srv(false), p)
+			want := encRef(p.okValue)
+			if rec.Code != 200 || rec.Header().Get("Content-Type") != "application/json" || rec.Body.String() != want || len(logs) != 0 {
+				t.Errorf("code=%d ct=%q body=%q want=%q logs=%q", rec.Code, rec.Header().Get("Content-Type"), rec.Body.String(), want, logs)
+			}
+		})
+		if p.name == "healthz" {
+			continue // constant payload, cannot fail to encode
+		}
+		t.Run(p.name+"/NaN", func(t *testing.T) {
+			rec, logs := do(p.srv(true), p)
+			tid := p.traceID
+			if tid == "" {
+				tid = "-"
+			}
+			wantLog := "encode response failed route=" + p.route + " trace_id=" + tid + ":"
+			if rec.Code != 500 || strings.HasPrefix(rec.Body.String(), "{") || rec.Header().Get("Content-Type") == "application/json" ||
+				len(logs) != 1 || !strings.Contains(logs[0], wantLog) || !strings.Contains(logs[0], "unsupported value") {
+				t.Errorf("code=%d ct=%q body=%q logs=%q (want 500, non-JSON, 1 log line with %q)", rec.Code, rec.Header().Get("Content-Type"), rec.Body.String(), logs, wantLog)
+			}
+		})
+	}
+
+	for _, p := range probes {
+		if p.name != "ingest" && p.name != "discover" {
+			continue
+		}
+		t.Run(p.name+"/ingester-error", func(t *testing.T) {
+			s := &Server{ingester: &PaperIngester{Fn: func() (*IngestResult, error) { return nil, errors.New("boom <x>") }}}
+			rec, logs := do(s, p)
+			want := encRef(map[string]string{"error": "boom <x>"})
+			if rec.Code != 500 || rec.Header().Get("Content-Type") != "application/json" || rec.Body.String() != want || len(logs) != 0 {
+				t.Errorf("code=%d ct=%q body=%q want=%q logs=%q", rec.Code, rec.Header().Get("Content-Type"), rec.Body.String(), want, logs)
+			}
+		})
+	}
+}
+===== harness-base/internal/query/stub.go
+// QA stub: minimal stand-ins for the types server.go uses (signatures from search.go, rag.go, ingester.go). Not product code.
+package query
+
+import "context"
+
+type SearchHit struct {
+	ArxivID string  `json:"arxiv_id"`
+	Score   float64 `json:"score"`
+}
+
+type SearchEngine struct{ Fn func() ([]SearchHit, error) }
+
+func (s *SearchEngine) HybridSearch(ctx context.Context, queryString string, categories []string, limit int, rerank bool) ([]SearchHit, error) {
+	return s.Fn()
+}
+
+type AskOptions struct{ Quick bool }
+
+type AskResponse struct {
+	Answer  string  `json:"answer"`
+	Score   float64 `json:"score"`
+	TraceID string  `json:"trace_id"`
+}
+
+type RAGService struct{ Fn func() (*AskResponse, error) }
+
+func (r *RAGService) AskWith(ctx context.Context, question string, categories []string, maxCitations int, opts AskOptions) (*AskResponse, error) {
+	return r.Fn()
+}
+
+type IngestResult struct {
+	Status string  `json:"status"`
+	Took   float64 `json:"took"`
+}
+
+type PaperIngester struct{ Fn func() (*IngestResult, error) }
+
+func (ing *PaperIngester) IngestPaper(ctx context.Context, input string) (*IngestResult, error) { return ing.Fn() }
+func (ing *PaperIngester) DiscoverAndIngest(ctx context.Context, query string) (*IngestResult, error) {
+	return ing.Fn()
+}
+===== harness-base/internal/query/web/index.html
+<html></html>
+===== harness/go.mod
+module arxivlens
+
+go 1.24
+===== harness/internal/db/stub.go
+// QA stub: only the two methods server.go calls. Not product code.
+package db
+
+import "context"
+
+type PaperRecord struct {
+	ArxivID string  `json:"arxiv_id"`
+	Score   float64 `json:"score"`
+}
+
+type SystemStats struct {
+	Papers int     `json:"papers"`
+	Ratio  float64 `json:"ratio"`
+}
+
+type DB struct {
+	PaperFn func() (*PaperRecord, error)
+	StatsFn func() (*SystemStats, error)
+}
+
+func (d *DB) GetPaperStatus(ctx context.Context, arxivID string) (*PaperRecord, error) { return d.PaperFn() }
+func (d *DB) GetSystemStats(ctx context.Context) (*SystemStats, error)                 { return d.StatsFn() }
+===== harness/internal/query/qa_probe_test.go
+// QA probe (RET-1c r1): drives the REAL handlers in server.go through httptest with stubbed dependencies.
+package query
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"log"
+	"math"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"arxivlens/internal/db"
+)
+
+func encRef(v any) string {
+	var b bytes.Buffer
+	_ = json.NewEncoder(&b).Encode(v)
+	return b.String()
+}
+
+type probe struct {
+	name     string
+	method   string
+	path     string
+	body     string
+	srv      func(bad bool) *Server
+	okValue  any    // what the handler should encode on success (reference via json.Encoder)
+	route    string // expected route= in the log line on failure
+	traceID  string // expected trace_id= on failure
+}
+
+func TestQAHandlers(t *testing.T) {
+	nan := math.NaN()
+	pick := func(bad bool) float64 {
+		if bad {
+			return nan
+		}
+		return 0.5
+	}
+	probes := []probe{
+		{name: "healthz", method: "GET", path: "/healthz", srv: func(bool) *Server { return &Server{} },
+			okValue: map[string]string{"status": "ok"}, route: "/healthz"},
+		{name: "search", method: "POST", path: "/v1/search", body: `{"query":"a<b"}`,
+			srv: func(bad bool) *Server {
+				return &Server{searchEngine: &SearchEngine{Fn: func() ([]SearchHit, error) { return []SearchHit{{"2401.00001", pick(bad)}}, nil }}}
+			},
+			okValue: map[string]interface{}{"query": "a<b", "count": 1, "hits": []SearchHit{{"2401.00001", 0.5}}}, route: "/v1/search"},
+		{name: "ask", method: "POST", path: "/v1/ask", body: `{"question":"q?"}`,
+			srv: func(bad bool) *Server {
+				return &Server{ragService: &RAGService{Fn: func() (*AskResponse, error) {
+					return &AskResponse{Answer: "x & y", Score: pick(bad), TraceID: "tr-qa-1"}, nil
+				}}}
+			},
+			okValue: &AskResponse{Answer: "x & y", Score: 0.5, TraceID: "tr-qa-1"}, route: "/v1/ask", traceID: "tr-qa-1"},
+		{name: "paper-status", method: "GET", path: "/v1/papers/2401.00001/status",
+			srv: func(bad bool) *Server {
+				return &Server{database: &db.DB{PaperFn: func() (*db.PaperRecord, error) { return &db.PaperRecord{ArxivID: "2401.00001", Score: pick(bad)}, nil }}}
+			},
+			okValue: &db.PaperRecord{ArxivID: "2401.00001", Score: 0.5}, route: "/v1/papers/{arxiv_id}/status"},
+		{name: "stats", method: "GET", path: "/v1/stats",
+			srv: func(bad bool) *Server {
+				return &Server{database: &db.DB{StatsFn: func() (*db.SystemStats, error) { return &db.SystemStats{Papers: 3, Ratio: pick(bad)}, nil }}}
+			},
+			okValue: &db.SystemStats{Papers: 3, Ratio: 0.5}, route: "/v1/stats"},
+		{name: "ingest", method: "POST", path: "/v1/papers/ingest", body: `{"arxiv_id":"2401.00001"}`,
+			srv: func(bad bool) *Server {
+				return &Server{ingester: &PaperIngester{Fn: func() (*IngestResult, error) { return &IngestResult{"ok", pick(bad)}, nil }}}
+			},
+			okValue: &IngestResult{"ok", 0.5}, route: "/v1/papers/ingest"},
+		{name: "discover", method: "POST", path: "/v1/papers/discover", body: `{"query":"x"}`,
+			srv: func(bad bool) *Server {
+				return &Server{ingester: &PaperIngester{Fn: func() (*IngestResult, error) { return &IngestResult{"ok", pick(bad)}, nil }}}
+			},
+			okValue: &IngestResult{"ok", 0.5}, route: "/v1/papers/discover"},
+	}
+
+	mux := func(s *Server) *http.ServeMux {
+		m := http.NewServeMux()
+		m.HandleFunc("GET /healthz", s.handleHealth)
+		m.HandleFunc("GET /readyz", s.handleHealth)
+		m.HandleFunc("GET /v1/stats", s.handleStats)
+		m.HandleFunc("POST /v1/search", s.handleSearch)
+		m.HandleFunc("POST /v1/ask", s.handleAsk)
+		m.HandleFunc("POST /v1/papers/ingest", s.handleIngestPaper)
+		m.HandleFunc("POST /v1/papers/discover", s.handleDiscoverPaper)
+		m.HandleFunc("GET /v1/papers/", s.handlePaperStatus)
+		return m
+	}
+	do := func(s *Server, p probe) (*httptest.ResponseRecorder, []string) {
+		var lb bytes.Buffer
+		prev := log.Writer()
+		log.SetOutput(&lb)
+		defer log.SetOutput(prev)
+		rec := httptest.NewRecorder()
+		mux(s).ServeHTTP(rec, httptest.NewRequest(p.method, p.path, strings.NewReader(p.body)))
+		return rec, nonEmptyLines(lb.String())
+	}
+
+	for _, p := range probes {
+		t.Run(p.name+"/ok", func(t *testing.T) {
+			rec, logs := do(p.srv(false), p)
+			want := encRef(p.okValue)
+			if rec.Code != 200 || rec.Header().Get("Content-Type") != "application/json" || rec.Body.String() != want || len(logs) != 0 {
+				t.Errorf("code=%d ct=%q body=%q want=%q logs=%q", rec.Code, rec.Header().Get("Content-Type"), rec.Body.String(), want, logs)
+			}
+		})
+		if p.name == "healthz" {
+			continue // constant payload, cannot fail to encode
+		}
+		t.Run(p.name+"/NaN", func(t *testing.T) {
+			rec, logs := do(p.srv(true), p)
+			tid := p.traceID
+			if tid == "" {
+				tid = "-"
+			}
+			wantLog := "encode response failed route=" + p.route + " trace_id=" + tid + ":"
+			if rec.Code != 500 || strings.HasPrefix(rec.Body.String(), "{") || rec.Header().Get("Content-Type") == "application/json" ||
+				len(logs) != 1 || !strings.Contains(logs[0], wantLog) || !strings.Contains(logs[0], "unsupported value") {
+				t.Errorf("code=%d ct=%q body=%q logs=%q (want 500, non-JSON, 1 log line with %q)", rec.Code, rec.Header().Get("Content-Type"), rec.Body.String(), logs, wantLog)
+			}
+		})
+	}
+
+	for _, p := range probes {
+		if p.name != "ingest" && p.name != "discover" {
+			continue
+		}
+		t.Run(p.name+"/ingester-error", func(t *testing.T) {
+			s := &Server{ingester: &PaperIngester{Fn: func() (*IngestResult, error) { return nil, errors.New("boom <x>") }}}
+			rec, logs := do(s, p)
+			want := encRef(map[string]string{"error": "boom <x>"})
+			if rec.Code != 500 || rec.Header().Get("Content-Type") != "application/json" || rec.Body.String() != want || len(logs) != 0 {
+				t.Errorf("code=%d ct=%q body=%q want=%q logs=%q", rec.Code, rec.Header().Get("Content-Type"), rec.Body.String(), want, logs)
+			}
+		})
+	}
+}
+===== harness/internal/query/stub.go
+// QA stub: minimal stand-ins for the types server.go uses (signatures from search.go, rag.go, ingester.go). Not product code.
+package query
+
+import "context"
+
+type SearchHit struct {
+	ArxivID string  `json:"arxiv_id"`
+	Score   float64 `json:"score"`
+}
+
+type SearchEngine struct{ Fn func() ([]SearchHit, error) }
+
+func (s *SearchEngine) HybridSearch(ctx context.Context, queryString string, categories []string, limit int, rerank bool) ([]SearchHit, error) {
+	return s.Fn()
+}
+
+type AskOptions struct{ Quick bool }
+
+type AskResponse struct {
+	Answer  string  `json:"answer"`
+	Score   float64 `json:"score"`
+	TraceID string  `json:"trace_id"`
+}
+
+type RAGService struct{ Fn func() (*AskResponse, error) }
+
+func (r *RAGService) AskWith(ctx context.Context, question string, categories []string, maxCitations int, opts AskOptions) (*AskResponse, error) {
+	return r.Fn()
+}
+
+type IngestResult struct {
+	Status string  `json:"status"`
+	Took   float64 `json:"took"`
+}
+
+type PaperIngester struct{ Fn func() (*IngestResult, error) }
+
+func (ing *PaperIngester) IngestPaper(ctx context.Context, input string) (*IngestResult, error) { return ing.Fn() }
+func (ing *PaperIngester) DiscoverAndIngest(ctx context.Context, query string) (*IngestResult, error) {
+	return ing.Fn()
+}
+===== harness/internal/query/web/index.html
+<html></html>
+===== mutate.py
+#!/usr/bin/env python3
+"""QA RET-1c r1 mutation run: each mutant = one anchored substitution in a fresh copy of the harness's server.go.
+Each mutant is run twice: (1) the PR's own test `-run ^TestWriteJSON$` (AC6 command), (2) QA's handler probe `-run ^TestQAHandlers$`.
+Build failure => INVALID (never counted as KILLED)."""
+import os, re, shutil, subprocess, sys, tempfile, difflib
+H = sys.argv[1]
+SRC = os.path.join(H, "internal/query/server.go")
+orig = open(SRC).read()
+NL = "\n\t"
+M = [
+ ("a  ignore marshal error, write 200 anyway", r"\tbody, err := json.Marshal\(v\)\n\tif err != nil \{", "\tbody, err := json.Marshal(v)\n\tif false && err != nil {"),
+ ("b  Content-Type+WriteHeader before marshal", r"(\tbody, err := json.Marshal\(v\)\n)(.*?)\tw.Header\(\).Set\(\"Content-Type\", \"application/json\"\)\n\tw.WriteHeader\(status\)\n",
+     "\tw.Header().Set(\"Content-Type\", \"application/json\")\n\tw.WriteHeader(status)\n\\1\\2"),
+ ("b2 only WriteHeader(status) before marshal", r"(\tbody, err := json.Marshal\(v\)\n)(.*?)(\tw.Header\(\).Set\(\"Content-Type\", \"application/json\"\)\n)\tw.WriteHeader\(status\)\n",
+     "\tw.WriteHeader(status)\n\\1\\2\\3"),
+ ("b3 only Content-Type before marshal", r"(\tbody, err := json.Marshal\(v\)\n)(.*?)\tw.Header\(\).Set\(\"Content-Type\", \"application/json\"\)\n(\tw.WriteHeader\(status\)\n)",
+     "\tw.Header().Set(\"Content-Type\", \"application/json\")\n\\1\\2\\3"),
+ ("c  drop trailing newline", r"_, _ = w.Write\(append\(body, '\\n'\)\)", "_, _ = w.Write(body)"),
+ ("d  always 200 (ignore status)", r"\tw.WriteHeader\(status\)\n", "\tw.WriteHeader(http.StatusOK)\n"),
+ ("e  log without route", r'route=%s trace_id=%s: %v", route, traceID, err\)', 'trace_id=%s: %v", traceID, err)'),
+ ("f  no '-' default for empty trace ID", r'\t\t\ttraceID = "-"\n', '\t\t\ttraceID = ""\n'),
+ ("g  no log line at all", r'\t\tlog.Printf\("\[Query Service\] encode response failed', '\t\t_ = fmt.Sprintf("[Query Service] encode response failed'),
+ ("h  log line twice", r'(\t\tlog.Printf\("\[Query Service\] encode response failed[^\n]*\n)', '\\1\\1'),
+ ("i  failure status 502 not 500", r'http.Error\(w, "failed to encode response", http.StatusInternalServerError\)', 'http.Error(w, "failed to encode response", http.StatusBadGateway)'),
+ ("j  failure body is JSON-looking", r'http.Error\(w, "failed to encode response"', 'http.Error(w, "{}"'),
+ ("k  no return after http.Error", r'(http.Error\(w, "failed to encode response", http.StatusInternalServerError\)\n)\t\treturn\n', '\\1'),
+ ("l  success JSON without HTML escaping", r'\tbody, err := json.Marshal\(v\)\n',
+     '\tvar bb bytes.Buffer\n\te := json.NewEncoder(&bb)\n\te.SetEscapeHTML(false)\n\terr := e.Encode(v)\n\tbody := bytes.TrimSuffix(bb.Bytes(), []byte("\\\\n"))\n'),
+ ("m  /v1/ask call site drops resp.TraceID", r'writeJSON\(w, http.StatusOK, resp, "/v1/ask", resp.TraceID\)', 'writeJSON(w, http.StatusOK, resp, "/v1/ask", "")'),
+ ("n  ingest error path status 200", r'writeJSON\(w, http.StatusInternalServerError, (map\[string\]string\{"error": err.Error\(\)\}), "/v1/papers/ingest"', 'writeJSON(w, http.StatusOK, \\1, "/v1/papers/ingest"'),
+ ("o  discover error path status 200", r'writeJSON\(w, http.StatusInternalServerError, (map\[string\]string\{"error": err.Error\(\)\}), "/v1/papers/discover"', 'writeJSON(w, http.StatusOK, \\1, "/v1/papers/discover"'),
+ ("p  /v1/stats call site wrong route", r'stats, "/v1/stats", ""\)', 'stats, "/v1/search", "")'),
+]
+def run(d, pat):
+    p = subprocess.run(["go", "test", "-count=1", "-run", pat, "./internal/query/"], cwd=d, capture_output=True, text=True,
+                       env=dict(os.environ, GOTOOLCHAIN="local"))
+    out = p.stdout + p.stderr
+    if "[build failed]" in out or "[setup failed]" in out or re.search(r"^# arxivlens", out, re.M):
+        return "INVALID"
+    return "KILLED" if p.returncode else "SURVIVED"
+rows = []
+for name, pat, rep in M:
+    new, n = re.subn(pat, rep, orig, count=1, flags=re.S)
+    d = tempfile.mkdtemp(prefix="qa-ret1c-mut-")
+    shutil.copytree(H, d, dirs_exist_ok=True)
+    if n != 1 or new == orig:
+        rows.append((name, "NOT-APPLIED", "", [])); continue
+    if name.startswith("l "):
+        new = new.replace('import (\n', 'import (\n\t"bytes"\n', 1)
+    open(os.path.join(d, "internal/query/server.go"), "w").write(new)
+    diff = [l for l in difflib.unified_diff(orig.splitlines(), new.splitlines(), lineterm="", n=0) if l[:1] in "+-" and l[:3] not in ("+++", "---")]
+    rows.append((name, run(d, "^TestWriteJSON$"), run(d, "^TestQAHandlers$"), diff))
+print(f"{'mutant':48} {'TestWriteJSON (PR)':20} {'TestQAHandlers (QA probe)'}")
+for name, a, b, _ in rows:
+    print(f"{name:48} {a:20} {b}")
+print("\n--- applied diffs (production lines only) ---")
+for name, _, _, diff in rows:
+    print(f"[{name}]")
+    for l in diff: print("   " + l.strip()[:150])
+
+[exit code 0]

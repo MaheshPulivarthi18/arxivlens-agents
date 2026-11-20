@@ -1,0 +1,12 @@
+$ bash -c git log --oneline -1; git diff --stat origin/main...HEAD; echo; git diff --name-only origin/main...HEAD; echo; git rev-parse origin/main
+baa6fa0 RET-1c: query API returns a logged 500 when a JSON response can't be encoded
+ internal/query/server.go      |  50 ++++++++-------
+ internal/query/server_test.go | 143 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 172 insertions(+), 21 deletions(-)
+
+internal/query/server.go
+internal/query/server_test.go
+
+c37d27c1b77756db6100f538f7aaabf5362d584b
+
+[exit code 0]

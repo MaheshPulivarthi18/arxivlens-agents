@@ -1,0 +1,16 @@
+$ gh api .../actions/jobs/136310387284/logs | grep -E 'HEAD is now|go build|arxivlens query|PASSED tests/test_m3_query|FAILED|passed'
+== Full stack job 136310387284 (stack.yml; query service = ./bin/arxivlens built from the merge commit) ==
+2026-11-20T13:16:08.8113296Z HEAD is now at a5b03a0 Merge baa6fa06f2a1f0558ae869453225d98bee1e38b5 into c37d27c1b77756db6100f538f7aaabf5362d584b
+2026-11-20T13:17:25.5243162Z go build -o bin/arxivlens ./cmd/arxivlens
+2026-11-20T13:21:07.5332488Z go build -o bin/arxivlens ./cmd/arxivlens
+2026-11-20T13:21:11.7032831Z [36;1mnohup ./bin/arxivlens query --port 8080 > query.log 2>&1 &[0m
+2026-11-20T13:23:55.1177090Z [replay] prefetch FAILED for 1: api?id_list=2401.00001 (arXiv unreachable or rate-limiting, and not in the cache)
+2026-11-20T13:23:55.1179458Z [replay] prefetch FAILED for 2: api?id_list=2401.00002 (time budget) api?id_list=2401.00003 (time budget) (arXiv unreachable or rate-limiting, and not in the cache)
+2026-11-20T13:23:55.4333891Z PASSED tests/test_m3_query.py::test_query_service_health
+2026-11-20T13:23:55.4334420Z PASSED tests/test_m3_query.py::test_paper_status_endpoint
+2026-11-20T13:23:55.4365544Z 246 passed, 1 skipped, 3 deselected, 5 warnings in 46.87s
+2026-11-20T13:24:12.6905479Z 3 passed in 16.30s
+
+F1 step command (names the 3 M3 search/ask tests that '3 passed' refers to):
+2026-11-20T13:23:56.2217277Z python3 -m pytest -q tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank 
+
