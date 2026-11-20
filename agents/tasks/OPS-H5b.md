@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H5 (#16, merged `e67354c`). No open PR touches `internal/query/search_integration_test.go` (checked 2026-11-20 08:00Z against #65, #66, #68, #69, #70, #76, #77, #78, #79 via REST) |
 | **Jira** | KAN-84 |
 | **Design required** | no: test-only, no production code, contract, CLI, table or service change |
-| **Status** | Ready to merge (PR #81 raised, head `8cae68b`; QA PASS r1, PM APPROVE r1) |
+| **Status** | Done: ArxivLens #81 merged by Mahesh → `36ceac0` (2026-11-20 ~18:54Z) |
 
 ## Goal
 `TestHNSWVectorHits` (`internal/query/search_integration_test.go:60`, build tag `integration`) inserts 1000 `synth.NNNNN` papers, 10,000

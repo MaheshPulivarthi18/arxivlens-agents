@@ -8,7 +8,7 @@
 | **Depends on** | RET-1c (#84) **merged** (same files: `internal/query/server.go`, `server_test.go`) |
 | **Jira** | KAN-92 (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1d`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: unexported interfaces inside one package, no route, field, CLI, table, service or exported signature change |
-| **Status** | Ready (after #84 merges) |
+| **Status** | Ready (RET-1c #84 merged `110f6c7`, 2026-11-20; picked for cycle 2026-11-20T19:00Z) |
 
 ## Goal
 RET-1c's `TestWriteJSON` covers the helper but not how the handlers call it. QA showed four call-site mutants survive both the unit test

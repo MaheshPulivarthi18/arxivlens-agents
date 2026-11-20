@@ -8,7 +8,7 @@
 | **Depends on** | FE-1 (#68, merged `2410d2e`: Vitest + jsdom) and FE-0 (#69, merged `54c4de8`: `theme.js`, `ThemeToggle.jsx`, pre-paint script). No open PR touches `frontend/src/lib/`, `frontend/index.html` or `ThemeToggle*` (#70 adds only six `frontend/src/components/ui/*.jsx`; checked 2026-11-20 13:00Z via REST) |
 | **Jira** | KAN-87 (epic KAN-5 "Research UI & citations"; labels `task-FE-0c`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: tests only, no component, contract or dependency change |
-| **Status** | Ready to merge (PR #85 raised; QA PASS r1, PM APPROVE r1) |
+| **Status** | Done: ArxivLens #85 merged by Mahesh → `d7d35ab` (2026-11-20 ~18:54Z) |
 
 ## Goal
 FE-0's theme logic was verified only by QA's throwaway scripts (`agents/reviews/FE-0/checks/themejs.mjs`, `prepaint.mjs`). FE-3 AC8 will flip

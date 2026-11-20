@@ -8,7 +8,7 @@
 | **Depends on** | LLM-1c (#74, merged `929e908`). No open PR touches `internal/llm/` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
 | **Jira** | KAN-82 (epic KAN-1 "Grounded LLM answers"; labels `task-LLM-1d`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one string literal in a test table |
-| **Status** | Ready to merge — PR [#79](https://github.com/MaheshPulivarthi18/ArxivLens/pull/79) `fc6d79d` raised for Mahesh (QA PASS r1, PM APPROVE r1, 2026-11-20) |
+| **Status** | Done: ArxivLens #79 merged by Mahesh → `65824ff` (2026-11-20 ~18:54Z) |
 
 ## Goal
 In `TestTLSError`'s "handshake failed" row (`internal/llm/openai_test.go:585` on `e6cffba`), the `absent` list contains

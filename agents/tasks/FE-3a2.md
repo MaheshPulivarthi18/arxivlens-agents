@@ -8,7 +8,7 @@
 | **Depends on** | **FE-3a #86 merged** (fixtures `earlyRefusal`, `refusalA/B/C`, `mixedAnswer`, `quotedAnswer`/`synthesizedAnswer` in `src/test/fixtures.js`, the refusal panel and `#references-heading`). Must not overlap any open PR's files (re-check via REST at start) |
 | **Jira** | KAN-93 |
 | **Design required** | no (design done: `docs/design/FE-3.md` §Test plan rows AC1, AC2, AC4, AC6, AC6 two-stage are the spec for this file) |
-| **Status** | Ready (after #86 merges) |
+| **Status** | Ready (FE-3a #86 merged `f95184b`, 2026-11-20; picked for cycle 2026-11-20T19:00Z) |
 
 ## Goal
 Lock in, as CI regression tests on the real `<App>`, the behaviour QA r1 confirmed only by a one-off browser run for FE-3a: no "verified" claim anywhere on a

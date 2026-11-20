@@ -8,7 +8,7 @@
 | **Depends on** | FE-1 (#68, merged `2410d2e`: `frontend/package.json` has `"test": "vitest run"`). No open PR touches `Makefile` (REST check 2026-11-20 18:00Z of #70, #79, #81, #82, #83, #84, #85, #86) |
 | **Jira** | KAN-95 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H16`, `agent-backend-engineer`, `arxivlens`) |
 | **Design required** | no: one Makefile recipe; no production code, contract, CLI, table or service |
-| **Status** | Ready to merge (QA PASS r1 · PM APPROVE 2026-11-21; PR #89 raised, Mahesh merges) |
+| **Status** | Done: ArxivLens #89 merged by Mahesh → `b1b26a7` (2026-11-20 ~18:54Z) |
 
 ## Goal
 `make test-fe` (`Makefile:51-52`) still runs `if npm run | grep -q " test"; then npm test; else echo "no frontend tests yet (FE-1)"; fi`.

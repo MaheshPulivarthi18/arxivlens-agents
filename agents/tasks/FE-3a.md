@@ -8,7 +8,7 @@
 | **Depends on** | FE-1 #68 merged (`2410d2e`), FE-0 #69 merged (`54c4de8`), AI-7 / #46 / AI-8b merged. **Not** FE-0b #70 (no `ui/tooltip` here). No file overlap with open PRs #70, #79, #81–#85 (checked via REST 2026-11-20) |
 | **Jira** | KAN-88 (story under epic KAN-5; parent FE-3 KAN-40), labels `task-FE-3a`, `agent-frontend`, `arxivlens` |
 | **Design required** | yes, done: `docs/design/FE-3.md` **Approved with changes** (pm-lead 2026-11-20). Build to the design + its PM decision |
-| **Status** | Ready to merge: QA r2 PASS + pm-lead APPROVE on `fa92c30` (2026-11-20); PR #86 raised, waiting on Mahesh. App-level tests are [FE-3a2](FE-3a2.md), after #86 merges |
+| **Status** | Done: ArxivLens #86 merged by Mahesh → `f95184b` (2026-11-20 ~18:54Z) |
 
 ## Goal
 A `/v1/ask` refusal reads as an honest "no answer, here is what was found" state, and no part of the UI says "Verified" about a check that didn't

@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H9 (#66, merged `050904d`). No open PR touches `.github/workflows/db.yml`, `.github/workflows/image-pins.yml` or `CONTRIBUTING.md` (REST check 2026-11-20 18:00Z of #70, #79, #81, #82, #83, #84, #85, #86) |
 | **Jira** | KAN-94 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H9b`, `agent-backend-engineer`, `arxivlens`) |
 | **Design required** | no: CI shell checks and one doc line; no production code, contract, CLI, table or service |
-| **Status** | Ready to merge (QA PASS r1 · PM APPROVE 2026-11-21; PR #88 raised, Mahesh merges) |
+| **Status** | Done: ArxivLens #88 merged by Mahesh → `c33110c` (2026-11-20 ~18:54Z) |
 
 ## Goal
 The OPS-H9 pin checks have three small honesty gaps: `db.yml`'s `version_ge` lets a non-numeric `extversion` (e.g. `missing`) pass as

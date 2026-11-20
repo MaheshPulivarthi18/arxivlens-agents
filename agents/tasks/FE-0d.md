@@ -8,7 +8,7 @@
 | **Depends on** | FE-0b (#70) **merged**. FE-1 (#68, merged `2410d2e`: Vitest + jsdom + Testing Library). No dependency change needed |
 | **Jira** | KAN-90 (epic KAN-5 "Research UI & citations"; labels `task-FE-0d`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: tests only, no component, contract or dependency change |
-| **Status** | Ready once #70 merges (specced 2026-11-20 by pm-lead at the FE-0b final review) |
+| **Status** | Ready (FE-0b #70 merged `4182485`, 2026-11-20) |
 
 ## Goal
 FE-0b's six primitives were proven only by QA's throwaway smoke harness (real Radix/sonner in headless Chromium). CI lints them but never

@@ -8,7 +8,7 @@
 | **Depends on** | FE-0 #69 merged (`54c4de8`), FE-1 #68 merged. No overlap with FE-3a or open PRs #70, #79, #81–#85 (checked via REST 2026-11-20) |
 | **Jira** | KAN-91 (epic KAN-5 "Research UI & citations"; labels `task-FE-0e`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: class swaps to existing tokens + one grep test; no new component, contract or dependency |
-| **Status** | Ready to merge: QA r1 FAIL → r2 PASS + pm-lead APPROVE on `27953fd` (2026-11-20 UTC); PR #87 raised, waiting on Mahesh |
+| **Status** | Done: ArxivLens #87 merged by Mahesh → `1da13ee` (2026-11-20 ~18:54Z) |
 
 ## Goal
 When FE-3b flips the default theme to "system", an OS-light visitor must not see hard-coded dark-palette text (emerald-400 ≈ 1.8–1.9:1 and red-300 on the

@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-10 (PR #61) **merged**. Same test file `tests/test_evals_data.py`, so don't start while another open PR changes it |
 | **Jira** | KAN-85 |
 | **Design required** | no: tests only, no behaviour change |
-| **Status** | Ready to merge (PR #82 raised 2026-11-20; QA PASS r1, PM APPROVE r1) |
+| **Status** | Done: ArxivLens #82 merged by Mahesh → `21eb4e9` (2026-11-20 ~18:54Z) |
 
 ## Goal
 EVAL-10 prints `refused IDs`, `miss IDs` and `near-miss answered IDs`. Its code handles errored calls correctly, but no test covers

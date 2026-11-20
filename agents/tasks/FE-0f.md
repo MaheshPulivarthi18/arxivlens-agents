@@ -8,7 +8,7 @@
 | **Depends on** | FE-0 #69 merged (`54c4de8`, tokens). No open PR changes `frontend/src/components/ui/button.jsx` (#70 = six other `ui/` files, #86 = `ui/badge.jsx`; REST check 2026-11-21). Independent of FE-0e #87, FE-3a #86, FE-3b and FE-0d |
 | **Jira** | KAN-97 (epic KAN-5 "Research UI & citations"; labels `task-FE-0f`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: one variant string in an existing `ui/` file plus one new test file; no new component, contract or dependency |
-| **Status** | Ready (specced 2026-11-20 UTC by pm-lead at the FE-0e final review) |
+| **Status** | Ready (specced 2026-11-20 UTC by pm-lead at the FE-0e final review; picked for cycle 2026-11-20T19:00Z) |
 
 ## Goal
 `<Button variant="clinical">` draws white `text-sm`/`text-xs` text on an emerald-600 → teal-600 gradient: **3.77:1 / 3.74:1 in both themes**, below

@@ -8,7 +8,7 @@
 | **Depends on** | RET-1b (#75, merged `b81a66f`). No open PR touches `internal/query/server.go` or a `server_test.go` (checked 2026-11-20 13:00Z via REST against #70, #79, #81, #82, #83; #81 edits only `internal/query/search_integration_test.go`) |
 | **Jira** | KAN-86 (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one unexported helper in one file, no route, field, CLI, table or service change |
-| **Status** | Ready to merge (PR #84 raised; QA PASS r1, PM APPROVE r1) |
+| **Status** | Done: ArxivLens #84 merged by Mahesh → `110f6c7` (2026-11-20 ~18:54Z) |
 
 ## Goal
 Every handler in `internal/query/server.go` sets `Content-Type`, then calls `_ = json.NewEncoder(w).Encode(v)` (9 call sites on `c37d27c`:

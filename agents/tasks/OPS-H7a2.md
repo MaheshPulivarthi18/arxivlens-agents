@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H7a1 = ArxivLens PR #62 **merged** (provides `Reader`, `Record`, `Watermark`, `KafkaReader`, `ErrPartitionStalled` in `internal/dlq/kafka.go`). Must not run alongside OPS-H7b (same files: `manager.go`, `main.go`) |
 | **Jira** | KAN-71 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07) and its "Build notes (a1)" |
-| **Status** | Ready to merge (a2a, PR #83 raised @ `9bcd07e`; QA PASS r2, PM APPROVE 2026-11-20). OPS-H7a2b (CLI, `agents/tasks/OPS-H7a2b.md`) still to do: Ready after #83 merges |
+| **Status** | Done: ArxivLens #83 merged by Mahesh → `a0b80fe` (2026-11-20 ~18:54Z) (a2a only; the CLI half is [OPS-H7a2b](OPS-H7a2b.md), Ready, still on KAN-71) |
 
 ## Goal
 An operator can list every record in a DLQ up to the end of the topic, page by page, see each record's `partition/offset` so they can resume, and

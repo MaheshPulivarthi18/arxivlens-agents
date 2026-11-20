@@ -8,7 +8,7 @@
 | **Depends on** | FE-0's design approved (2026-11-19, `docs/design/FE-0.md` §6 is this ticket's API) **and FE-0 #69 merged** (pm-lead, QA r1 F1, option a). Correction: `origin/main`'s `tailwind.config.js` does **not** map `popover`, so `bg-popover`/`text-popover-foreground` generate no CSS until #69 adds the `popover` colour entry. The other token names (`border-border`, `ring-ring`, `bg-accent`) are mapped |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-0b"`) |
 | **Design required** | no: covered by `docs/design/FE-0.md` §6 (approved). Any deviation from that table is written in this ticket's Notes before code |
-| **Status** | Ready to merge (PR #70 raised; QA PASS r3, PM APPROVE) |
+| **Status** | Done: ArxivLens #70 merged by Mahesh → `4182485` (2026-11-20 ~18:54Z) |
 
 ## Goal
 Ship the six remaining shadcn-style Radix/sonner wrappers that the FE-0 design specifies, so FE-3 (status-chip tooltips) and FE-4

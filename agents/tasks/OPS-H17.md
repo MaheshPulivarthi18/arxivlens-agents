@@ -8,7 +8,7 @@
 | **Depends on** | FE-1 (#68, merged `2410d2e`: `frontend/package.json` `"test": "vitest run"`). Independent of OPS-H16 #89 (`Makefile` only) and OPS-H9b #88 (`db.yml`, `image-pins.yml`, `CONTRIBUTING.md`). No open PR touches `.github/workflows/ci.yml` (REST check 2026-11-21 of #70, #79, #81–#89) |
 | **Jira** | KAN-96 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H17`, `agent-backend-engineer`, `arxivlens`) |
 | **Design required** | no: one CI step; no production code, contract, CLI, table or service |
-| **Status** | Ready to merge (PR #90 raised 2026-11-20 UTC; QA PASS r1, PM APPROVE) |
+| **Status** | Done: ArxivLens #90 merged by Mahesh → `230f617` (2026-11-20 ~18:54Z) |
 
 ## Goal
 The CI `frontend` job's Test step (`.github/workflows/ci.yml:72-73` on `c37d27c`) runs `npm run test --if-present`. With real npm,
