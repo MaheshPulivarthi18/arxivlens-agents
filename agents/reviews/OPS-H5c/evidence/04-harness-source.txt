@@ -1,0 +1,110 @@
+$ cat /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/tools/harness.sh
+#!/usr/bin/env bash
+# QA OPS-H5c standalone harness. Run from the PR-head worktree (cwd = app at PR head).
+# Extracts the REAL hnswGuard + TestHNSWGuard from HEAD's search_integration_test.go into a scratch go1.24 module
+# (the real package can't compile here: Go 1.24, no module cache), then:
+#  (1) runs TestHNSWGuard; (2) AC5 + extra single-edit mutants of hnswGuard; (3) AC2 old-vs-new differential of the
+#  refusal block (main lines 77-83 vs head lines 77-83) under CI set/unset; (4) AC3 renders the (a) message.
+set -u
+F=internal/query/search_integration_test.go
+W=$(mktemp -d)
+cd_w() { cd "$W"; }
+extract() { awk -v pat="$2" '$0 ~ pat {p=1} p {print} p && /^}/ {exit}' "$1"; }
+git show HEAD:$F > "$W/head.go"; git show origin/main:$F > "$W/main.go"
+echo "head=$(git rev-parse HEAD) main=$(git rev-parse origin/main)"
+cat > "$W/go.mod" <<'EOF'
+module qa
+go 1.24
+EOF
+{ echo 'package qa'; echo 'import ("fmt"; "testing")'; echo 'var _ = fmt.Sprintf'; echo 'var _ testing.T'
+  extract "$W/head.go" '^func hnswGuard'; extract "$W/head.go" '^func TestHNSWGuard'; } > "$W/guard.go.tmpl"
+cp "$W/guard.go.tmpl" "$W/guard_test.go"
+cd_w
+echo "== (1) TestHNSWGuard on real head source =="
+go test -count=1 -run '^TestHNSWGuard$' . 2>&1 | tail -3
+echo "== (2) single-edit mutants of hnswGuard (go test -run '^TestHNSWGuard$') =="
+mut() { # name, sed expr
+  sed "$2" guard.go.tmpl > guard_test.go
+  if cmp -s guard.go.tmpl guard_test.go; then echo "$1: INVALID (sed did not change source)"; return; fi
+  if ! go vet . >/dev/null 2>&1; then echo "$1: INVALID (does not build)"; return; fi
+  out=$(go test -count=1 -run '^TestHNSWGuard$' -v . 2>&1)
+  if echo "$out" | grep -q '^ok'; then echo "$1: SURVIVED"; else
+    echo "$1: KILLED  failing rows: $(echo "$out" | grep -oE -- '--- FAIL: TestHNSWGuard/[^ ]+' | sed 's/--- FAIL: TestHNSWGuard\///' | tr '\n' ' ')"; fi
+}
+mut "m1 drop CI branch (always skip)   " 's/return !ci, ci/return true, false/'
+mut "m2 others > 0 -> others > 1       " 's/if others > 0 {/if others > 1 {/'
+mut "m3 swap skip/fatal                " 's/return !ci, ci/return ci, !ci/'
+mut "m4 ci treated as always true      " 's/return !ci, ci/return !true, true/'
+mut "x1 ci treated as always false     " 's/return !ci, ci/return !false, false/'
+mut "x2 others > 0 -> others >= 0      " 's/if others > 0 {/if others >= 0 {/'
+mut "x3 skip always false              " 's/return !ci, ci/return false, ci/'
+mut "x4 fatal always false             " 's/return !ci, ci/return !ci, false/'
+mut "x5 empty-DB branch -> false, ci   " 's/return false, false/return false, ci/'
+mut "x6 empty-DB branch -> !ci, false  " 's/return false, false/return !ci, false/'
+cp guard.go.tmpl guard_test.go
+echo "== (3) AC2 differential: refusal block main:77-83 vs head:77-83 (others x CI) =="
+blk() { sed -n 77,83p "$1"; }
+{ echo 'package qa'; echo 'import ("os"; "testing")'
+  echo 'func blockMain(t *testing.T, others int) {'; blk main.go; echo 't.Log("PROCEEDED")'; echo '}'
+  echo 'func blockHead(t *testing.T, others int) {'; blk head.go; echo 't.Log("PROCEEDED")'; echo '}'
+  cat <<'EOF'
+func TestDiff(t *testing.T) {
+	for _, ci := range []string{"", "true"} {
+		for _, n := range []int{0, 1, 5} {
+			os.Setenv("CI", ci)
+			for name, f := range map[string]func(*testing.T, int){"main": blockMain, "head": blockHead} {
+				t.Run(name+"/others="+string(rune('0'+n))+"/CI="+ci, func(t *testing.T) { f(t, n) })
+			}
+		}
+	}
+}
+EOF
+} > diff_test.go
+# go1.24 -v streams each subtest's log lines right after its "=== RUN" line; result comes on its "--- X:" line
+go test -count=1 -v -run '^TestDiff$' . 2>&1 | sed -E 's/^ +//; s/ \([0-9.]+s\)//' | awk '
+  /^=== RUN   TestDiff\// {cur=$3; next}
+  /^[a-z_]+\.go:[0-9]+:/ && cur != "" {x=$0; sub(/^[^ ]+ /,"",x); m[cur]=(m[cur]==""?x:m[cur]" | "x); next}
+  /^--- [A-Z]+: TestDiff\// {r[$3]=$2; k[$3]=1}
+  END {for (t in k) {split(t,a,"/"); print a[2]"\t"a[3]"/"a[4]"\t"r[t]"\t"m[t]}}' > rows.tsv
+awk -F'\t' '$1=="main"{print $2"\t"$3"\t"$4}' rows.tsv | sort > main.rows
+awk -F'\t' '$1=="head"{print $2"\t"$3"\t"$4}' rows.tsv | sort > head.rows
+echo "-- head outcomes (case, result, message):"; cat head.rows
+if diff main.rows head.rows >/dev/null; then echo "DIFF main vs head: IDENTICAL ($(wc -l < head.rows) cases)"; else echo "DIFF main vs head: DIFFERENT"; diff main.rows head.rows; fi
+echo "== (3b) call-site mutants of head:77-83 (outside hnswGuard): does TestHNSWGuard catch them? does the differential? =="
+cp head.go head.orig
+csmut() {
+  sed "77,83$2" head.orig > head.go
+  if cmp -s head.orig head.go; then echo "$1: INVALID (sed did not change source)"; return; fi
+  { echo 'package qa'; echo 'import ("os"; "testing")'
+    echo 'func blockMain(t *testing.T, others int) {'; blk main.go; echo 't.Log("PROCEEDED")'; echo '}'
+    echo 'func blockHead(t *testing.T, others int) {'; blk head.go; echo 't.Log("PROCEEDED")'; echo '}'
+    sed -n '/^func TestDiff/,$p' diff_test.go; } > diff_mut_test.go.new
+  mv diff_test.go diff_test.go.keep; mv diff_mut_test.go.new diff_test.go
+  if ! go vet . >/dev/null 2>&1; then echo "$1: INVALID (does not build)"; mv diff_test.go.keep diff_test.go; return; fi
+  g=$(go test -count=1 -run '^TestHNSWGuard$' . 2>&1 | grep -q '^ok' && echo "TestHNSWGuard=PASS(survives)" || echo "TestHNSWGuard=FAIL")
+  go test -count=1 -v -run '^TestDiff$' . 2>&1 | sed -E 's/^ +//; s/ \([0-9.]+s\)//' | awk '
+    /^=== RUN   TestDiff\// {cur=$3; next}
+    /^[a-z_]+\.go:[0-9]+:/ && cur != "" {x=$0; sub(/^[^ ]+ /,"",x); m[cur]=(m[cur]==""?x:m[cur]" | "x); next}
+    /^--- [A-Z]+: TestDiff\// {r[$3]=$2; k[$3]=1}
+    END {for (t in k) {split(t,a,"/"); print a[2]"\t"a[3]"/"a[4]"\t"r[t]"\t"m[t]}}' > rows.tsv
+  awk -F'\t' '$1=="main"{print $2"\t"$3"\t"$4}' rows.tsv | sort > main.rows
+  awk -F'\t' '$1=="head"{print $2"\t"$3"\t"$4}' rows.tsv | sort > head.rows
+  d=$(diff main.rows head.rows | grep -c '^>' )
+  echo "$1: $g  differential=$([ "$d" = 0 ] && echo identical || echo "DIFFERS in $d cases")"
+  mv diff_test.go.keep diff_test.go
+}
+csmut "c1 'fatal || skip' -> 'fatal || skip && false'" 's/; fatal || skip {/; fatal || skip \&\& false {/'
+csmut "c2 'if fatal {' -> 'if skip {'      " 's/if fatal {/if skip {/'
+csmut "c3 CI != \"\" -> CI == \"\"          " 's/os.Getenv("CI") != ""/os.Getenv("CI") == ""/'
+cp head.orig head.go
+echo "== (4) AC3 rendered (a) message from head source (n=3, c=7) =="
+fmtline=$(grep -n '(a) leftover corpus after TestHNSWVectorHits' head.go | head -1 | cut -d: -f1)
+expr=$(sed -n "${fmtline},$((fmtline+1))p" head.go | sed -E 's/^\s*t\.Errorf\(//; s/, n, c\)$//' | tr -d '\n\t')
+printf 'package main\nimport "fmt"\nfunc main(){ n, c := 3, 7; fmt.Println(fmt.Sprintf(%s, n, c)) }\n' "$expr" > /dev/null
+mkdir -p msg && printf 'package main\nimport "fmt"\nfunc main(){ n, c := 3, 7; fmt.Println(fmt.Sprintf(%s, n, c)) }\n' "$expr" > msg/main.go
+msg=$(go run ./msg); echo "$msg"
+if echo "$msg" | grep -qF "DELETE FROM paper_chunks WHERE content LIKE 'synthetic chunk %'"; then echo "exact SQL present: YES"; else echo "exact SQL present: NO"; fi
+echo "condition line head vs main:"; grep -n "count(synthPapers), count(" head.go main.go | sed 's/^/  /'
+echo "workdir $W (not deleted)"
+
+[exit code 0]

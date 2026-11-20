@@ -1,0 +1,22 @@
+$ bash -c echo 'job: '; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136544832975 --jq '"head_sha=\(.head_sha) run_id=\(.run_id) conclusion=\(.conclusion)"'; grep -E 'HEAD is now at|Run go vet -tags integration ./internal/query/|go test -tags integration .*internal/query|--- (PASS|FAIL|SKIP): (TestHNSW|TestSearchProvenance)|^.{29}(ok|FAIL)[[:space:]]+arxivlens/internal/query|##\[error\]' /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/ci/136544832975.log | sed -E 's/\x1b\[[0-9;]*m//g'; echo; echo "SKIP lines in whole log: $(grep -c -- '--- SKIP' /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/ci/136544832975.log)"; echo "FAIL lines in whole log: $(grep -c -- '--- FAIL' /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/ci/136544832975.log)"
+job: 
+head_sha=1d696c724a45d6e3c98495149c3bd7f7e86cae52 run_id=44810300602 conclusion=success
+2026-11-20T20:20:00.8851393Z HEAD is now at a0efbe7 Merge 1d696c724a45d6e3c98495149c3bd7f7e86cae52 into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+2026-11-20T20:20:16.2214374Z ##[group]Run go vet -tags integration ./internal/query/
+2026-11-20T20:20:16.2215591Z go test -tags integration -count=1 -v -timeout 20m -run 'TestHNSW|TestSearchProvenance' ./internal/query/
+2026-11-20T20:21:01.7406516Z --- PASS: TestHNSWVectorHits (37.37s)
+2026-11-20T20:21:01.7409560Z --- PASS: TestHNSWGuard (0.00s)
+2026-11-20T20:21:01.7409981Z     --- PASS: TestHNSWGuard/others=0/ci=false (0.00s)
+2026-11-20T20:21:01.7410391Z     --- PASS: TestHNSWGuard/others=0/ci=true (0.00s)
+2026-11-20T20:21:01.7410852Z     --- PASS: TestHNSWGuard/others=1/ci=false (0.00s)
+2026-11-20T20:21:01.7411216Z     --- PASS: TestHNSWGuard/others=1/ci=true (0.00s)
+2026-11-20T20:21:01.7411634Z     --- PASS: TestHNSWGuard/others=5/ci=false (0.00s)
+2026-11-20T20:21:01.7412115Z     --- PASS: TestHNSWGuard/others=5/ci=true (0.00s)
+2026-11-20T20:21:01.7545535Z --- PASS: TestHNSWSeedCleanup (0.02s)
+2026-11-20T20:21:01.7824252Z --- PASS: TestSearchProvenance (0.03s)
+2026-11-20T20:21:01.7860650Z ok  	arxivlens/internal/query	37.418s
+
+SKIP lines in whole log: 0
+FAIL lines in whole log: 0
+
+[exit code 0]

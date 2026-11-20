@@ -1,0 +1,25 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136544831672 --jq '"head_sha=\(.head_sha) conclusion=\(.conclusion)"'; grep -E 'HEAD is now at|##\[group\]Run make|^.{29}(ok|FAIL|\?)[[:space:]]+arxivlens|##\[error\]' /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/ci/136544831672.log | sed -E 's/\x1b\[[0-9;]*m//g'
+head_sha=1d696c724a45d6e3c98495149c3bd7f7e86cae52 conclusion=success
+2026-11-20T20:19:31.5270674Z HEAD is now at a0efbe7 Merge 1d696c724a45d6e3c98495149c3bd7f7e86cae52 into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+2026-11-20T20:19:40.9253365Z ##[group]Run make lint-go
+2026-11-20T20:19:42.3419569Z ##[group]Run make test-go
+2026-11-20T20:20:15.3874620Z ?   	arxivlens/cmd/arxivlens	[no test files]
+2026-11-20T20:20:17.9553292Z ok  	arxivlens/internal/arxiv	2.565s
+2026-11-20T20:20:17.9554105Z ok  	arxivlens/internal/config	1.015s
+2026-11-20T20:20:17.9554727Z ok  	arxivlens/internal/crawler	1.123s
+2026-11-20T20:20:17.9555239Z ok  	arxivlens/internal/db	1.013s
+2026-11-20T20:20:18.0029802Z ok  	arxivlens/internal/dlq	1.289s
+2026-11-20T20:20:18.4098530Z ok  	arxivlens/internal/downloader	1.119s
+2026-11-20T20:20:18.4099429Z ok  	arxivlens/internal/kafka	1.062s
+2026-11-20T20:20:20.6210741Z ok  	arxivlens/internal/llm	1.992s
+2026-11-20T20:20:20.6216128Z ok  	arxivlens/internal/llm/llmtest	1.117s
+2026-11-20T20:20:21.2472810Z ok  	arxivlens/internal/query	1.488s
+2026-11-20T20:20:21.2489517Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-20T20:20:22.3653568Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-20T20:20:22.3654084Z ?   	arxivlens/shared/events	[no test files]
+2026-11-20T20:20:24.3273990Z ok  	arxivlens/internal/kafka	1.066s	coverage: 63.7% of statements
+2026-11-20T20:20:27.2139111Z ok  	arxivlens/internal/llm	1.981s	coverage: 96.6% of statements
+2026-11-20T20:20:27.2146338Z ok  	arxivlens/internal/llm/llmtest	1.117s	coverage: 100.0% of statements
+2026-11-20T20:20:27.2929740Z ##[group]Run make build-go
+
+[exit code 0]

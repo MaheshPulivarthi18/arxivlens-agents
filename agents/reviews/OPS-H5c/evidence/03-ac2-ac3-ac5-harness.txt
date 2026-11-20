@@ -1,0 +1,37 @@
+$ bash -c GOTOOLCHAIN=local bash /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/tools/harness.sh
+head=1d696c724a45d6e3c98495149c3bd7f7e86cae52 main=230f617210c7623951d4f9f24d5ec711e32c8d0e
+== (1) TestHNSWGuard on real head source ==
+ok  	qa	0.002s
+== (2) single-edit mutants of hnswGuard (go test -run '^TestHNSWGuard$') ==
+m1 drop CI branch (always skip)   : KILLED  failing rows: others=1/ci=true others=5/ci=true 
+m2 others > 0 -> others > 1       : KILLED  failing rows: others=1/ci=false others=1/ci=true 
+m3 swap skip/fatal                : KILLED  failing rows: others=1/ci=false others=1/ci=true others=5/ci=false others=5/ci=true 
+m4 ci treated as always true      : KILLED  failing rows: others=1/ci=false others=5/ci=false 
+x1 ci treated as always false     : KILLED  failing rows: others=1/ci=true others=5/ci=true 
+x2 others > 0 -> others >= 0      : KILLED  failing rows: others=0/ci=false others=0/ci=true 
+x3 skip always false              : KILLED  failing rows: others=1/ci=false others=5/ci=false 
+x4 fatal always false             : KILLED  failing rows: others=1/ci=true others=5/ci=true 
+x5 empty-DB branch -> false, ci   : KILLED  failing rows: others=0/ci=true 
+x6 empty-DB branch -> !ci, false  : KILLED  failing rows: others=0/ci=false 
+== (3) AC2 differential: refusal block main:77-83 vs head:77-83 (others x CI) ==
+-- head outcomes (case, result, message):
+others=0/CI=	PASS:	PROCEEDED
+others=0/CI=true	PASS:	PROCEEDED
+others=1/CI=	SKIP:	DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB
+others=1/CI=true	FAIL:	DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB
+others=5/CI=	SKIP:	DB holds 5 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB
+others=5/CI=true	FAIL:	DB holds 5 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB
+DIFF main vs head: IDENTICAL (6 cases)
+== (3b) call-site mutants of head:77-83 (outside hnswGuard): does TestHNSWGuard catch them? does the differential? ==
+c1 'fatal || skip' -> 'fatal || skip && false': TestHNSWGuard=PASS(survives)  differential=DIFFERS in 2 cases
+c2 'if fatal {' -> 'if skip {'      : TestHNSWGuard=PASS(survives)  differential=DIFFERS in 4 cases
+c3 CI != "" -> CI == ""          : TestHNSWGuard=PASS(survives)  differential=DIFFERS in 4 cases
+== (4) AC3 rendered (a) message from head source (n=3, c=7) ==
+(a) leftover corpus after TestHNSWVectorHits: 3 synth.* papers, 7 synthetic chunks; want 0, 0; on a dev DB seeded before OPS-H5b run: DELETE FROM paper_chunks WHERE content LIKE 'synthetic chunk %'
+exact SQL present: YES
+condition line head vs main:
+  head.go:322:	if n, c := count(synthPapers), count(`SELECT count(*) FROM paper_chunks WHERE content LIKE 'synthetic chunk %'`); n != 0 || c != 0 {
+  main.go:291:	if n, c := count(synthPapers), count(`SELECT count(*) FROM paper_chunks WHERE content LIKE 'synthetic chunk %'`); n != 0 || c != 0 {
+workdir /tmp/tmp.fED9B5U3GV (not deleted)
+
+[exit code 0]
