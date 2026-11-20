@@ -1,0 +1,19 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136098759408 --jq '"job \(.id) run \(.run_id) head_sha \(.head_sha) \(.status)/\(.conclusion)"'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136098759408 --jq '.steps[] | select(.name|test("AC4|F1|Diagnostics|AC3|AC2")) | "  step: \(.name) = \(.conclusion)"'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136098759408/logs > /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/ci/stack2.log; grep -n 'HEAD is now at' /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/ci/stack2.log; grep -n 'python3 -m pytest -q tests/ ' /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/ci/stack2.log | cut -c1-230; grep -n 'tests/test_m2_pipeline.py::' /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/ci/stack2.log; grep -nE '[0-9]+ passed' /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/ci/stack2.log; grep -n '^.\{29\}FAILED tests' /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/ci/stack2.log | cut -c1-200; grep -c '^.\{29\}FAILED' /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/ci/stack2.log
+job 136098759408 run 44679351931 head_sha 1f24fc9f795d898a2fe0a61bcaa6a852f4c3410a completed/success
+  step: AC2: make stack-up = success
+  step: AC3: crawl 2 papers (before the downloader starts) = success
+  step: AC3: wait until both crawled papers are embedded = success
+  step: AC4: make test-full = success
+  step: Known failure F1 (CPU rerank latency, tracked) = success
+  step: Diagnostics = skipped
+128:2026-11-20T05:11:33.0523605Z HEAD is now at 1ca5d73 Merge 1f24fc9f795d898a2fe0a61bcaa6a852f4c3410a into e6cffba66d677a655ade39588972abc03bc273aa
+2704:2026-11-20T05:21:20.8167771Z python3 -m pytest -q tests/ --deselect tests/test_m3_query.py::test_rag_ask_with_groundedness_support --deselect tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query --deselect tests/
+3250:2026-11-20T05:22:46.4500913Z PASSED tests/test_m2_pipeline.py::test_paper_sections_and_chunks_stored
+3251:2026-11-20T05:22:46.4501872Z PASSED tests/test_m2_pipeline.py::test_chunk_embeddings_and_pgvector_cosine_ops
+3252:2026-11-20T05:22:46.4503230Z PASSED tests/test_m2_pipeline.py::test_embedded_chunks_have_recorded_start_pages
+3300:2026-11-20T05:22:46.4555116Z 243 passed, 1 skipped, 3 deselected, 5 warnings in 84.69s (0:01:24)
+3797:2026-11-20T05:23:18.0866830Z 1 failed, 2 passed in 30.20s
+3796:2026-11-20T05:23:18.0865250Z FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read time
+1
+
+[exit code 0]

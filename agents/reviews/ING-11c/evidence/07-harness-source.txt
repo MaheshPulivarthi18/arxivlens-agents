@@ -1,0 +1,82 @@
+$ bash -c for f in $(find /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c -maxdepth 1 -type f ! -name base_m2.py | sort); do echo "=== $f"; cat $f; done
+=== /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/harness.py
+"""AC1/AC2 harness (QA scratch, not committed): runs the real test function from a given file on hand-made rows.
+psycopg / pytest / services.common.config are stubbed in sys.modules; the cursor returns the rows below."""
+import sys, types, importlib.util
+
+ROWS = None
+class Cur:
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def execute(self, sql, *a): self.sql = sql
+    def fetchall(self): return ROWS
+class Conn:
+    def cursor(self): return Cur()
+    def close(self): pass
+psy = types.ModuleType("psycopg"); psy.connect = lambda *a, **k: Conn()
+sys.modules["psycopg"] = psy
+sys.modules["pytest"] = types.ModuleType("pytest")
+for name in ("services", "services.common"):
+    sys.modules[name] = types.ModuleType(name)
+cfg = types.ModuleType("services.common.config"); cfg.config = types.SimpleNamespace(postgres_url="x", embedding_model="m")
+sys.modules["services.common.config"] = cfg
+
+# (arxiv_id, version, chunk_index, page_number, page_start)
+CASES = [
+    ("None page_start",               [("2401.1", 1, 0, 1, None)]),
+    ("page_number None (ps=3)",       [("2401.1", 1, 0, None, 3)]),
+    ("page_start<page_number (1<2)",  [("2401.1", 1, 0, 2, 1)]),
+    ("decreasing page_start",         [("2401.1", 1, 0, 1, 4), ("2401.1", 1, 1, 1, 2)]),
+    ("NULL page_number + decreasing", [("2401.1", 1, 0, 1, 4), ("2401.1", 1, 1, None, 2)]),
+    ("NULL pn then decreasing",       [("2401.1", 1, 0, None, 4), ("2401.1", 1, 1, 1, 2)]),
+    ("all good",                      [("2401.1", 1, 0, 1, 1), ("2401.1", 1, 1, 1, 3), ("2401.2", 2, 0, 2, 2)]),
+    ("empty result",                  []),
+]
+
+def run(path):
+    global ROWS
+    spec = importlib.util.spec_from_file_location("m2", path); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    out = []
+    for label, rows in CASES:
+        ROWS = rows
+        try:
+            m.test_embedded_chunks_have_recorded_start_pages(); out.append((label, "PASS", ""))
+        except AssertionError as e:
+            out.append((label, "FAIL", str(e)))
+        except Exception as e:
+            out.append((label, "ERROR", f"{type(e).__name__}: {e}"))
+    return out
+
+if __name__ == "__main__":
+    results = {p: run(p) for p in sys.argv[1:]}
+    for p, res in results.items():
+        print(f"== {p.rsplit('/',1)[-1]}")
+        for label, v, msg in res:
+            print(f"  {label:31s} {v}  {msg}")
+    if len(results) >= 2:
+        a, b = list(results.values())[:2]
+        same = [x[1] for x in a] == [x[1] for x in b]
+        print(f"\nverdict column identical between first two files: {same}")
+=== /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/mutants.sh
+#!/bin/bash
+# Mutation check (QA scratch): single edits to src/after.py, each anchored on code context; compare full output to the head.
+set -u
+cd "$(dirname "$0")"; mkdir -p mut
+mk() { # name, perl expr
+  cp src/after.py "mut/$1.py"; perl -0pi -e "$2" "mut/$1.py"
+  echo "--- $1: $(diff src/after.py mut/$1.py | grep '^[<>]' | tr '\n' ' ')"
+}
+mk M1_null_continue 's/(append\(f"\{key\}: page row but NULL page_number"\)\n)/$1            continue\n/'
+mk M2_elif_to_if    's/        elif page_start < page_number:/        if page_start < page_number:/'
+mk M3_drop_null_msg 's/        if page_number is None:\n            problems.append\(f"\{key\}: page row but NULL page_number"\)\n        elif /        if page_number is not None and /'
+mk M4_reword        's/page row but NULL page_number/NULL page_number/'
+python3 -I harness.py src/after.py > mut/head.txt
+for m in mut/M*.py; do
+  python3 -I harness.py "$m" > "mut/$(basename $m .py).txt"
+  verd=$(diff <(grep -E '^  ' mut/head.txt | awk '{print $NF}' ) /dev/null >/dev/null; true)
+  if diff -q <(sed 1d mut/head.txt) <(sed 1d "mut/$(basename $m .py).txt") >/dev/null; then r=SURVIVED; else r=KILLED; fi
+  echo "$(basename $m .py): $r (output differs from head harness output)"
+  diff <(sed 1d mut/head.txt) <(sed 1d "mut/$(basename $m .py).txt") | grep '^>' | head -4
+done
+
+[exit code 0]
