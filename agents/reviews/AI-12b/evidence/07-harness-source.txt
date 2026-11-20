@@ -1,0 +1,211 @@
+$ bash -c cd /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1 && for f in $(find stubs tools render_all.sh -type f ! -path '*__pycache__*' | sort); do echo "===== $f ($(wc -l < $f) lines, sha256 $(sha256sum $f | cut -c1-12))"; cat $f; done
+===== render_all.sh (12 lines, sha256 ac1dfe27d55c)
+#!/bin/bash
+set -e
+cd /home/claude/arxivlens-agents
+E=agents/reviews/AI-12b/evidence; W=/root/qa/AI-12b; Q=/tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1
+R="python3 agents/tools/render_evidence.py --cwd $W"
+$R --title "AC6 scope: diff vs origin/main touches only tests/test_verify.py; removed lines = fixture only; ownership; ruff" --out $E/01-ac6-scope-ownership-ruff.png -- bash -c 'echo "== numstat (merge-base..HEAD) =="; git diff --numstat origin/main...HEAD; echo; echo "== every removed (-) line, plus the fixture +lines =="; git diff -U0 origin/main...HEAD | grep -E "^(@@|-[^-]|\+.*(emb_init_failures|raise RuntimeError))"; echo; echo "== def test_ lines, base vs head (head = base + 2 new) =="; diff <(git show origin/main:tests/test_verify.py | grep -E "^def test_") <(grep -E "^def test_" tests/test_verify.py) || true; echo; echo "== ownership-check.sh origin/main agent/ai/AI-12b (local branch = PR head) =="; git branch -f agent/ai/AI-12b HEAD >/dev/null 2>&1; .github/scripts/ownership-check.sh origin/main agent/ai/AI-12b 2>&1 | tail -3; echo; echo "== ruff E,F,W len 130: head, then base =="; ruff check --isolated --select E,F,W --line-length 130 --output-format concise tests/test_verify.py || true; git show origin/main:tests/test_verify.py > /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/base_test_verify.py; ruff check --isolated --select E,F,W --line-length 130 --output-format concise /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/base_test_verify.py | sed "s#.*/base_test_verify.py#BASE:tests/test_verify.py#" || true; echo "added-line ranges (head): 194, 220-222, 311-386"'
+$R --title "AC1-AC3 local: pytest -rA tests/test_verify.py at PR head (scratch stubs for torch/fastapi/psycopg, see 07)" --out $E/02-ac1-ac3-local-rA.png -- bash -c "PYTHONPATH=$W:$Q/stubs python3 -m pytest -p qa_stubs -p no:cacheprovider -rA -q --durations=4 tests/test_verify.py 2>&1 | grep -E '^(PASSED|FAILED|ERROR|SKIPPED)|s call|passed|failed' ; echo; echo 'note: the 3 FAILED are pre-existing tests that need real torch / FastAPI router (stubbed here); CI passes them (06)'"
+TMPDIR=$Q/mut $R --title "AC4 mutants a/b/c (+a2,b3,d,e by QA) on services/embedder/api.py in scratch copies: all KILLED, none hang" --out $E/03-ac4-mutants.png -- python3 $Q/tools/mutants.py $W $Q/stubs
+$R --title "AC5: 20x loop -k 'ingest or embed' on real code (stubbed deps) + new-test durations" --out $E/04-ac5-loop20.png -- bash -c "export PYTHONPATH=$W:$Q/stubs; ok=0; for i in \$(seq 20); do r=\$(python3 -m pytest -p qa_stubs -p no:cacheprovider -q -k 'ingest or embed' tests/test_verify.py 2>&1 | tail -1) || { echo \"run \$i FAILED: \$r\"; break; }; ok=\$((ok+1)); echo \"run \$i: \$r\"; done; echo \"RESULT: \$ok/20 passed\"; echo; python3 -m pytest -p qa_stubs -p no:cacheprovider -q --durations=0 --durations-min=0 tests/test_verify.py::test_embed_is_not_serialized_behind_an_in_flight_ingest tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor 2>&1 | grep -E 's (call|setup|teardown)|passed'"
+$R --title "AC5 robustness (QA extra): both new tests 20x with 4 CPU-burning processes on a 2-core sandbox" --out $E/05-ac5-loop20-under-cpu-load.png -- bash -c "export PYTHONPATH=$W:$Q/stubs; for j in 1 2 3 4; do timeout 120 python3 -c 'while True: pass' & done; sleep 1; echo \"load: \$(cat /proc/loadavg)\"; ok=0; for i in \$(seq 20); do r=\$(python3 -m pytest -p qa_stubs -p no:cacheprovider -q tests/test_verify.py::test_embed_is_not_serialized_behind_an_in_flight_ingest tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor 2>&1 | tail -1) || { echo \"run \$i FAILED: \$r\"; continue; }; ok=\$((ok+1)); echo \"run \$i: \$r\"; done; echo \"load: \$(cat /proc/loadavg)\"; echo \"RESULT: \$ok/20 passed under load\"; kill \$(jobs -p) 2>/dev/null; true"
+$R --title "AC6 CI: job 136098761099 'Python M0 unit tests' make test-py, -q dots mapped to ids (both new tests '.')" --out $E/06-ac6-ci-test-py-dotmap.png -- bash -c "grep -m1 'HEAD is now at' $Q/ci/py.log | cut -c30-; echo; python3 $Q/tools/dotmap.py $Q/ci/py.log $W $Q/stubs tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py tests/test_verify.py tests/test_arxiv_replay.py"
+$R --title "Harness: QA scratch stub plugin + mutation + dot-map + render script sources (full text in .txt)" --out $E/07-harness-source.png -- bash -c "cd $Q && for f in \$(find stubs tools render_all.sh -type f ! -path '*__pycache__*' | sort); do echo \"===== \$f (\$(wc -l < \$f) lines, sha256 \$(sha256sum \$f | cut -c1-12))\"; cat \$f; done"
+===== stubs/qa_stubs.py (61 lines, sha256 4fd7e2c35881)
+"""QA scratch-only pytest plugin (-p qa_stubs): stubs modules the sandbox cannot install (pypi blocked).
+Real: numpy, pydantic, pytest, the PR's own code. Stubbed: fastapi (minimal FastAPI/HTTPException), ulid,
+and any other unimportable top-level module (torch, transformers, psycopg, confluent_kafka, minio, ...) as MagicMock."""
+import importlib.abc
+import importlib.machinery
+import importlib.util
+import sys
+import types
+import uuid
+from unittest.mock import MagicMock
+
+fastapi = types.ModuleType("fastapi")
+
+
+class HTTPException(Exception):
+    def __init__(self, status_code, detail=None):
+        super().__init__(status_code, detail)
+        self.status_code, self.detail = status_code, detail
+
+
+class FastAPI:
+    def __init__(self, *a, **k):
+        pass
+
+    def _deco(self, *a, **k):
+        return lambda f: f
+
+    post = get = on_event = middleware = _deco
+
+
+fastapi.FastAPI, fastapi.HTTPException = FastAPI, HTTPException
+sys.modules["fastapi"] = fastapi
+
+ulid = types.ModuleType("ulid")
+ulid.new = lambda: uuid.uuid4().hex
+sys.modules["ulid"] = ulid
+
+_REAL_OPTIONAL_PROBES = {"simplejson"}
+
+
+class _MockLoader(importlib.abc.Loader):
+    def create_module(self, spec):
+        m = MagicMock(name=spec.name)
+        m.__path__, m.__spec__, m.__name__ = [], spec, spec.name
+        return m
+
+    def exec_module(self, module):
+        pass
+
+
+class _MockFinder(importlib.abc.MetaPathFinder):
+    STUB_ROOTS = {"torch", "transformers", "psycopg", "psycopg_pool", "pgvector", "confluent_kafka", "minio", "sentence_transformers", "tiktoken",
+                  "fitz", "pymupdf", "boto3", "kafka", "prometheus_client", "uvicorn"}
+
+    def find_spec(self, name, path, target=None):
+        if name.split(".")[0] in self.STUB_ROOTS:
+            return importlib.machinery.ModuleSpec(name, _MockLoader(), is_package=True)
+        return None
+
+
+sys.meta_path.insert(0, _MockFinder())
+===== tools/dotmap.py (30 lines, sha256 06fa104d92e6)
+#!/usr/bin/env python3
+"""Map `pytest -q` progress characters in a CI job log to test ids collected offline at the PR head.
+Usage: dotmap.py <job log> <app worktree> <stubs dir> <pytest file args...>"""
+import os, re, subprocess, sys
+log, wt, stubs, files = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4:]
+env = dict(os.environ, PYTHONPATH=f"{wt}:{stubs}")
+out = subprocess.run([sys.executable, "-m", "pytest", "-p", "qa_stubs", "-p", "no:cacheprovider", "--collect-only", "-q", *files],
+                     cwd=wt, env=env, capture_output=True, text=True).stdout
+ids = [l for l in out.splitlines() if "::" in l]
+text = open(log, encoding="utf-8", errors="replace").read().splitlines()
+start = next(i for i, l in enumerate(text) if "python3 -m pytest -q " + " ".join(files) in l and "##[" not in l and "[36;1m" not in l)
+chars = ""
+for l in text[start + 1:]:
+    m = re.match(r"^\S+Z ([.sFEx]+)\s+\[\s*\d+%\]$", l)
+    if not m:
+        break
+    chars += m.group(1)
+summary = next(l for l in text[start:] if re.search(r"\d+ passed", l))
+print(f"CI summary line : {summary.split('Z ',1)[1]}")
+print(f"outcome chars   : {len(chars)}  (. {chars.count('.')}, s {chars.count('s')}, F {chars.count('F')}, E {chars.count('E')})")
+print(f"ids collected   : {len(ids)} at PR head (offline, scratch stubs)")
+print(f"counts equal    : {len(chars) == len(ids)}")
+print("\n== skipped positions ==")
+for i, (c, t) in enumerate(zip(chars, ids)):
+    if c != ".":
+        print(f"  #{i+1:3} {c} {t}")
+print("\n== tests/test_verify.py positions (CI outcome per id) ==")
+for i, (c, t) in enumerate(zip(chars, ids)):
+    if t.startswith("tests/test_verify.py"):
+        print(f"  #{i+1:3} {c} {t.split('::')[1]}")
+===== tools/mutants.py (101 lines, sha256 7f7157efe148)
+#!/usr/bin/env python3
+"""QA AI-12b mutation run. Usage: mutants.py <app worktree> <stubs dir>.
+Each mutant: copy the worktree (no .git) to a fresh mktemp dir, apply ONE anchored substitution to
+services/embedder/api.py (must match exactly once, else INVALID), check the module still compiles (else INVALID),
+then run (1) the named target test alone and (2) the whole tests/test_verify.py ingest/embed set, and report
+which tests fail. A mutant is KILLED only if a test fails; INVALID never counts as killed."""
+import difflib, os, py_compile, re, shutil, subprocess, sys, tempfile, time
+
+SRC, STUBS = sys.argv[1], sys.argv[2]
+A1 = "test_embed_is_not_serialized_behind_an_in_flight_ingest"
+A3 = "test_ingest_failed_embedder_build_keeps_cached_processor"
+
+EMB_BODY_OLD = """def embed_texts_endpoint(req: EmbedRequest):
+    if not req.texts:"""
+EMB_BODY_NEW = """def embed_texts_endpoint(req: EmbedRequest):
+    with _ingest_lock:
+        return _embed_texts_locked(req)
+
+
+def _embed_texts_locked(req: EmbedRequest):
+    if not req.texts:"""
+# The lock is defined later in the module; a forward reference is resolved at call time.
+
+PROC = """    if _processor_worker is None:
+        _processor_worker = ProcessorWorker()
+"""
+EMB = """    if _embedder_worker is None:
+        # Reuse the startup-loaded model; if startup failed to load it, the worker loads its own.
+        _embedder_worker = EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()
+"""
+MUTANTS = [
+    ("a  embed body under `with _ingest_lock:` (AC4a)", A1, EMB_BODY_OLD, EMB_BODY_NEW),
+    ("a2 embed waits up to 3 s for the lock (acquire(timeout=3))", A1,
+     "    try:\n        vectors = embedder.embed_texts(req.texts, is_query=req.is_query)",
+     "    if _ingest_lock.acquire(timeout=3):\n        _ingest_lock.release()\n    try:\n        vectors = embedder.embed_texts(req.texts, is_query=req.is_query)"),
+    ("b1 build embedder before processor (AC4b)", A3, PROC + EMB, EMB + PROC),
+    ("b2 reset _processor_worker on embedder build failure (AC4b)", A3, EMB,
+     """    if _embedder_worker is None:
+        try:
+            _embedder_worker = EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()
+        except Exception:
+            _processor_worker = None
+            raise
+"""),
+    ("b3 processor rebuilt on every request (no caching)", A3,
+     "    if _processor_worker is None:\n        _processor_worker = ProcessorWorker()\n",
+     "    _processor_worker = ProcessorWorker()\n"),
+    ("c  placeholder cached in _embedder_worker before construction (AC4c)", A3, EMB,
+     """    if _embedder_worker is None:
+        _embedder_worker = object()
+        _embedder_worker = EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()
+"""),
+    ("d  ingest EmbedderWorker ignores the startup model (AC2)", A1,
+     "_embedder_worker = EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()",
+     "_embedder_worker = EmbedderWorker()"),
+    ("e  ingest EmbedderWorker gets a different model object (AC2)", A1,
+     "_embedder_worker = EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()",
+     "_embedder_worker = EmbedderWorker(embedder=__import__('copy').copy(embedder)) if embedder is not None else EmbedderWorker()"),
+]
+
+
+def run(cwd, args):
+    env = dict(os.environ, PYTHONPATH=f"{cwd}:{STUBS}")
+    t = time.monotonic()
+    p = subprocess.run([sys.executable, "-m", "pytest", "-p", "qa_stubs", "-q", "-rf", "-p", "no:cacheprovider", *args],
+                       cwd=cwd, env=env, capture_output=True, text=True, timeout=60)
+    failed = sorted(set(re.findall(r"^FAILED tests/test_verify.py::(\w+)", p.stdout, re.M)))
+    return p.returncode, failed, time.monotonic() - t, p.stdout
+
+
+rows, details = [], []
+for name, target, old, new in MUTANTS:
+    d = tempfile.mkdtemp(prefix="qa-ai12b-mut-")
+    shutil.copytree(SRC, d, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git"))
+    path = os.path.join(d, "services/embedder/api.py")
+    s = open(path).read()
+    n = s.count(old)
+    if n != 1:
+        rows.append((name, "INVALID", f"anchor matched {n}x", "", "")); continue
+    m = s.replace(old, new)
+    open(path, "w").write(m)
+    try:
+        py_compile.compile(path, doraise=True)
+    except py_compile.PyCompileError as e:
+        rows.append((name, "INVALID", f"compile: {e}", "", "")); continue
+    diff = [l for l in difflib.unified_diff(s.splitlines(), m.splitlines(), lineterm="", n=0) if l[:1] in "+-" and l[:3] not in ("+++", "---")]
+    rc1, f1, t1, _ = run(d, [f"tests/test_verify.py::{target}"])
+    rc2, f2, t2, out2 = run(d, ["-k", "ingest or embed", "tests/test_verify.py"])
+    verdict = "KILLED" if (rc1 != 0 and target in f1) else "SURVIVED"
+    rows.append((name, verdict, f"alone: {'FAIL' if rc1 else 'pass'} {t1:.1f}s", f"-k set fails: {', '.join(f2) or 'none'} ({t2:.1f}s)", ""))
+    details.append((name, diff, [l for l in out2.splitlines() if l.startswith(("E ", "FAILED"))][:6]))
+
+print("== RESULTS (target test alone, then the whole -k 'ingest or embed' set of tests/test_verify.py) ==")
+for r in rows:
+    print(f"{r[1]:8} | {r[0]}\n         | {r[2]} | {r[3]}")
+print(f"\nA1 = {A1}\nA3 = {A3}")
+print("\n== mutant diffs (api.py) and first failure lines ==")
+for name, diff, err in details:
+    print(f"-- {name}")
+    for l in diff: print("   " + l)
+    for l in err: print("   > " + l[:150])
+
+[exit code 0]

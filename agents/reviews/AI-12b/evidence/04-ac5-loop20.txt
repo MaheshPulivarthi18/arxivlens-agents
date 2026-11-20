@@ -1,0 +1,32 @@
+$ bash -c export PYTHONPATH=/root/qa/AI-12b:/tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/stubs; ok=0; for i in $(seq 20); do r=$(python3 -m pytest -p qa_stubs -p no:cacheprovider -q -k 'ingest or embed' tests/test_verify.py 2>&1 | tail -1) || { echo "run $i FAILED: $r"; break; }; ok=$((ok+1)); echo "run $i: $r"; done; echo "RESULT: $ok/20 passed"; echo; python3 -m pytest -p qa_stubs -p no:cacheprovider -q --durations=0 --durations-min=0 tests/test_verify.py::test_embed_is_not_serialized_behind_an_in_flight_ingest tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor 2>&1 | grep -E 's (call|setup|teardown)|passed'
+run 1: 8 passed, 7 deselected in 1.65s
+run 2: 8 passed, 7 deselected in 1.59s
+run 3: 8 passed, 7 deselected in 1.59s
+run 4: 8 passed, 7 deselected in 1.59s
+run 5: 8 passed, 7 deselected in 1.59s
+run 6: 8 passed, 7 deselected in 1.59s
+run 7: 8 passed, 7 deselected in 1.60s
+run 8: 8 passed, 7 deselected in 1.57s
+run 9: 8 passed, 7 deselected in 1.59s
+run 10: 8 passed, 7 deselected in 1.59s
+run 11: 8 passed, 7 deselected in 1.58s
+run 12: 8 passed, 7 deselected in 1.59s
+run 13: 8 passed, 7 deselected in 1.59s
+run 14: 8 passed, 7 deselected in 1.59s
+run 15: 8 passed, 7 deselected in 1.59s
+run 16: 8 passed, 7 deselected in 1.60s
+run 17: 8 passed, 7 deselected in 1.58s
+run 18: 8 passed, 7 deselected in 1.59s
+run 19: 8 passed, 7 deselected in 1.59s
+run 20: 8 passed, 7 deselected in 1.60s
+RESULT: 20/20 passed
+
+1.00s call     tests/test_verify.py::test_embed_is_not_serialized_behind_an_in_flight_ingest
+0.14s setup    tests/test_verify.py::test_embed_is_not_serialized_behind_an_in_flight_ingest
+0.00s call     tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor
+0.00s setup    tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor
+0.00s teardown tests/test_verify.py::test_embed_is_not_serialized_behind_an_in_flight_ingest
+0.00s teardown tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor
+2 passed in 1.15s
+
+[exit code 0]

@@ -1,0 +1,97 @@
+$ python3 /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/tools/mutants.py /root/qa/AI-12b /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/stubs
+== RESULTS (target test alone, then the whole -k 'ingest or embed' set of tests/test_verify.py) ==
+KILLED   | a  embed body under `with _ingest_lock:` (AC4a)
+         | alone: FAIL 1.6s | -k set fails: test_embed_is_not_serialized_behind_an_in_flight_ingest (2.0s)
+KILLED   | a2 embed waits up to 3 s for the lock (acquire(timeout=3))
+         | alone: FAIL 1.5s | -k set fails: test_embed_is_not_serialized_behind_an_in_flight_ingest (1.9s)
+KILLED   | b1 build embedder before processor (AC4b)
+         | alone: FAIL 0.5s | -k set fails: test_ingest_failed_embedder_build_keeps_cached_processor (2.0s)
+KILLED   | b2 reset _processor_worker on embedder build failure (AC4b)
+         | alone: FAIL 0.5s | -k set fails: test_ingest_failed_embedder_build_keeps_cached_processor (1.9s)
+KILLED   | b3 processor rebuilt on every request (no caching)
+         | alone: FAIL 0.5s | -k set fails: test_ingest_builds_each_worker_once, test_ingest_concurrent_first_requests_build_once_and_do_not_overlap, test_ingest_failed_embedder_build_keeps_cached_processor (2.2s)
+KILLED   | c  placeholder cached in _embedder_worker before construction (AC4c)
+         | alone: FAIL 0.5s | -k set fails: test_ingest_failed_embedder_build_keeps_cached_processor (2.1s)
+KILLED   | d  ingest EmbedderWorker ignores the startup model (AC2)
+         | alone: FAIL 1.5s | -k set fails: test_embed_is_not_serialized_behind_an_in_flight_ingest, test_ingest_embedder_worker_gets_startup_model (1.9s)
+KILLED   | e  ingest EmbedderWorker gets a different model object (AC2)
+         | alone: FAIL 1.5s | -k set fails: test_embed_is_not_serialized_behind_an_in_flight_ingest, test_ingest_embedder_worker_gets_startup_model (1.9s)
+
+A1 = test_embed_is_not_serialized_behind_an_in_flight_ingest
+A3 = test_ingest_failed_embedder_build_keeps_cached_processor
+
+== mutant diffs (api.py) and first failure lines ==
+-- a  embed body under `with _ingest_lock:` (AC4a)
+   +    with _ingest_lock:
+   +        return _embed_texts_locked(req)
+   +
+   +
+   +def _embed_texts_locked(req: EmbedRequest):
+   > E       AssertionError: assert {'locked_at_r...at_return': 2} == {'locked_at_r...at_return': 0}
+   > E         
+   > E         Differing items:
+   > E         {'exits_at_return': 2} != {'exits_at_return': 0}
+   > E         {'locked_at_return': False} != {'locked_at_return': True}
+   > E         Use -v to get more diff
+-- a2 embed waits up to 3 s for the lock (acquire(timeout=3))
+   +    if _ingest_lock.acquire(timeout=3):
+   +        _ingest_lock.release()
+   > E       AssertionError: assert {'locked_at_r...at_return': 2} == {'locked_at_r...at_return': 0}
+   > E         
+   > E         Differing items:
+   > E         {'locked_at_return': False} != {'locked_at_return': True}
+   > E         {'exits_at_return': 2} != {'exits_at_return': 0}
+   > E         Use -v to get more diff
+-- b1 build embedder before processor (AC4b)
+   -    if _processor_worker is None:
+   -        _processor_worker = ProcessorWorker()
+   +    if _processor_worker is None:
+   +        _processor_worker = ProcessorWorker()
+   > E       assert (None is not None)
+   > FAILED tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor
+-- b2 reset _processor_worker on embedder build failure (AC4b)
+   -        # Reuse the startup-loaded model; if startup failed to load it, the worker loads its own.
+   -        _embedder_worker = EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()
+   +        try:
+   +            _embedder_worker = EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()
+   +        except Exception:
+   +            _processor_worker = None
+   +            raise
+   > E       assert (None is not None)
+   > FAILED tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor
+-- b3 processor rebuilt on every request (no caching)
+   -    if _processor_worker is None:
+   -        _processor_worker = ProcessorWorker()
+   +    _processor_worker = ProcessorWorker()
+   > E       AssertionError: assert (2 == 1)
+   > E        +  where 2 = namespace(proc_inits=2, emb_inits=[{}], proc_calls=2, emb_calls=2, log=[('enter', 140386513188672), ('exit', 140386513...embedde
+   > E       AssertionError: [('enter', 140386392602304), ('exit', 140386392602304), ('enter', 140386392602304), ('exit', 140386392602304), ('enter', 14038
+   > E       assert {'proc_inits'...verlap': True} == {'proc_inits'...verlap': True}
+   > E         
+   > E         Omitting 2 identical items, use -vv to show
+-- c  placeholder cached in _embedder_worker before construction (AC4c)
+   -        # Reuse the startup-loaded model; if startup failed to load it, the worker loads its own.
+   +        _embedder_worker = object()
+   > E       AssertionError: assert <object object at 0x7fb3e4770a30> is None
+   > E        +  where <object object at 0x7fb3e4770a30> = <module 'services.embedder.api' from '/tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1
+   > FAILED tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor
+-- d  ingest EmbedderWorker ignores the startup model (AC2)
+   -        _embedder_worker = EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()
+   +        _embedder_worker = EmbedderWorker()
+   > E       AssertionError: assert (1 == 1 and None is <object object at 0x7fbab49309b0>)
+   > E        +  where 1 = len([{}])
+   > E        +    where [{}] = namespace(proc_inits=1, emb_inits=[{}], proc_calls=1, emb_calls=1, log=[('enter', 140439927568192), ('exit', 140439927...em
+   > E        +  and   None = <built-in method get of dict object at 0x7fbab6c14180>('embedder')
+   > E        +    where <built-in method get of dict object at 0x7fbab6c14180> = {}.get
+   > E       AssertionError: assert (1 == 1 and None is <test_verify.test_embed_is_not_serialized_behind_an_in_flight_ingest.<locals>.FakeModel object at 0
+-- e  ingest EmbedderWorker gets a different model object (AC2)
+   -        _embedder_worker = EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()
+   +        _embedder_worker = EmbedderWorker(embedder=__import__('copy').copy(embedder)) if embedder is not None else EmbedderWorker()
+   > E       AssertionError: assert (1 == 1 and <object object at 0x7f12323309c0> is <object object at 0x7f12323309b0>)
+   > E        +  where 1 = len([{'embedder': <object object at 0x7f12323309c0>}])
+   > E        +    where [{'embedder': <object object at 0x7f12323309c0>}] = namespace(proc_inits=1, emb_inits=[{'embedder': <object object at 0x7f12323309
+   > E        +  and   <object object at 0x7f12323309c0> = <built-in method get of dict object at 0x7f122e70e040>('embedder')
+   > E        +    where <built-in method get of dict object at 0x7f122e70e040> = {'embedder': <object object at 0x7f12323309c0>}.get
+   > E       AssertionError: assert (1 == 1 and <test_verify.test_embed_is_not_serialized_behind_an_in_flight_ingest.<locals>.FakeModel object at 0x7f122e8
+
+[exit code 0]

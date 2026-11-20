@@ -1,0 +1,26 @@
+$ bash -c export PYTHONPATH=/root/qa/AI-12b:/tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/stubs; for j in 1 2 3 4; do timeout 120 python3 -c 'while True: pass' & done; sleep 1; echo "load: $(cat /proc/loadavg)"; ok=0; for i in $(seq 20); do r=$(python3 -m pytest -p qa_stubs -p no:cacheprovider -q tests/test_verify.py::test_embed_is_not_serialized_behind_an_in_flight_ingest tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor 2>&1 | tail -1) || { echo "run $i FAILED: $r"; continue; }; ok=$((ok+1)); echo "run $i: $r"; done; echo "load: $(cat /proc/loadavg)"; echo "RESULT: $ok/20 passed under load"; kill $(jobs -p) 2>/dev/null; true
+load: 0.78 0.92 0.55 5/117 15564
+run 1: 2 passed in 1.48s
+run 2: 2 passed in 1.48s
+run 3: 2 passed in 1.42s
+run 4: 2 passed in 1.57s
+run 5: 2 passed in 1.48s
+run 6: 2 passed in 1.48s
+run 7: 2 passed in 1.45s
+run 8: 2 passed in 1.46s
+run 9: 2 passed in 1.49s
+run 10: 2 passed in 1.45s
+run 11: 2 passed in 1.43s
+run 12: 2 passed in 1.51s
+run 13: 2 passed in 1.39s
+run 14: 2 passed in 1.43s
+run 15: 2 passed in 1.46s
+run 16: 2 passed in 1.38s
+run 17: 2 passed in 1.40s
+run 18: 2 passed in 1.43s
+run 19: 2 passed in 1.57s
+run 20: 2 passed in 1.51s
+load: 2.85 1.44 0.75 5/117 15690
+RESULT: 20/20 passed under load
+
+[exit code 0]

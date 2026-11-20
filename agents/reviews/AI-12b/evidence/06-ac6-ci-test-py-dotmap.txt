@@ -1,0 +1,31 @@
+$ bash -c grep -m1 'HEAD is now at' /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/ci/py.log | cut -c30-; echo; python3 /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/tools/dotmap.py /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/ci/py.log /root/qa/AI-12b /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/stubs tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py tests/test_verify.py tests/test_arxiv_replay.py
+HEAD is now at 4074857 Merge 249ff5dc3f4505bf823fe1103c639278e62cef62 into e6cffba66d677a655ade39588972abc03bc273aa
+
+CI summary line : 192 passed, 3 skipped, 3 warnings in 13.17s
+outcome chars   : 195  (. 192, s 3, F 0, E 0)
+ids collected   : 195 at PR head (offline, scratch stubs)
+counts equal    : True
+
+== skipped positions ==
+  # 18 s tests/test_m0.py::test_rerank_real_cross_encoder_scores_match_single_batch
+  #100 s tests/test_evals_data.py::test_chunk_counts_sql_against_real_postgres
+  #177 s tests/test_verify.py::test_real_nli_separates_support_from_topicality
+
+== tests/test_verify.py positions (CI outcome per id) ==
+  #172 . test_strip_chunk_prefix
+  #173 . test_premise_windows
+  #174 . test_verify_pairs_takes_max_over_windows_and_keeps_order
+  #175 . test_entailment_index_requires_label
+  #176 . test_verify_endpoint_fails_closed_without_model
+  #177 s test_real_nli_separates_support_from_topicality
+  #178 . test_startup_handler_is_load_models_and_loads_verifier
+  #179 . test_ingest_builds_each_worker_once
+  #180 . test_ingest_embedder_worker_gets_startup_model
+  #181 . test_ingest_embedder_worker_loads_own_model_without_startup_model
+  #182 . test_embedder_worker_uses_injected_model
+  #183 . test_ingest_concurrent_first_requests_build_once_and_do_not_overlap
+  #184 . test_ingest_failed_worker_construction_is_not_cached
+  #185 . test_embed_is_not_serialized_behind_an_in_flight_ingest
+  #186 . test_ingest_failed_embedder_build_keeps_cached_processor
+
+[exit code 0]

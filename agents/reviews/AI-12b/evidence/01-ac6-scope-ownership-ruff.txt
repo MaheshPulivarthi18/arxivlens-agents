@@ -1,0 +1,35 @@
+$ bash -c echo "== numstat (merge-base..HEAD) =="; git diff --numstat origin/main...HEAD; echo; echo "== every removed (-) line, plus the fixture +lines =="; git diff -U0 origin/main...HEAD | grep -E "^(@@|-[^-]|\+.*(emb_init_failures|raise RuntimeError))"; echo; echo "== def test_ lines, base vs head (head = base + 2 new) =="; diff <(git show origin/main:tests/test_verify.py | grep -E "^def test_") <(grep -E "^def test_" tests/test_verify.py) || true; echo; echo "== ownership-check.sh origin/main agent/ai/AI-12b (local branch = PR head) =="; git branch -f agent/ai/AI-12b HEAD >/dev/null 2>&1; .github/scripts/ownership-check.sh origin/main agent/ai/AI-12b 2>&1 | tail -3; echo; echo "== ruff E,F,W len 130: head, then base =="; ruff check --isolated --select E,F,W --line-length 130 --output-format concise tests/test_verify.py || true; git show origin/main:tests/test_verify.py > /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/base_test_verify.py; ruff check --isolated --select E,F,W --line-length 130 --output-format concise /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/base_test_verify.py | sed "s#.*/base_test_verify.py#BASE:tests/test_verify.py#" || true; echo "added-line ranges (head): 194, 220-222, 311-386"
+== numstat (merge-base..HEAD) ==
+80	1	tests/test_verify.py
+
+== every removed (-) line, plus the fixture +lines ==
+@@ -194 +194 @@ def ingest(monkeypatch):
+-                         proc_init_sleep=0.0, call_sleep=0.0, proc_init_failures=0)
++                         proc_init_sleep=0.0, call_sleep=0.0, proc_init_failures=0, emb_init_failures=0)
+@@ -219,0 +220,3 @@ def ingest(monkeypatch):
++                if st.emb_init_failures:
++                    st.emb_init_failures -= 1
++                    raise RuntimeError("model load failed")
+@@ -307,0 +311,76 @@ def test_ingest_failed_worker_construction_is_not_cached(ingest):
++    ingest.emb_init_failures = 1
+
+== def test_ lines, base vs head (head = base + 2 new) ==
+13a14,15
+> def test_embed_is_not_serialized_behind_an_in_flight_ingest(ingest, monkeypatch):
+> def test_ingest_failed_embedder_build_keeps_cached_processor(ingest):
+
+== ownership-check.sh origin/main agent/ai/AI-12b (local branch = PR head) ==
+Ownership OK for role=ai (81 changed lines)
+
+== ruff E,F,W len 130: head, then base ==
+tests/test_verify.py:22:131: E501 Line too long (150 > 130)
+tests/test_verify.py:71:131: E501 Line too long (133 > 130)
+tests/test_verify.py:126:131: E501 Line too long (134 > 130)
+Found 3 errors.
+BASE:tests/test_verify.py:22:131: E501 Line too long (150 > 130)
+BASE:tests/test_verify.py:71:131: E501 Line too long (133 > 130)
+BASE:tests/test_verify.py:126:131: E501 Line too long (134 > 130)
+Found 3 errors.
+added-line ranges (head): 194, 220-222, 311-386
+
+[exit code 0]

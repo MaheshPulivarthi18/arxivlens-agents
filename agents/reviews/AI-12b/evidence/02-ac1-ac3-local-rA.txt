@@ -1,0 +1,30 @@
+$ bash -c PYTHONPATH=/root/qa/AI-12b:/tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/qa-AI-12b-r1/stubs python3 -m pytest -p qa_stubs -p no:cacheprovider -rA -q --durations=4 tests/test_verify.py 2>&1 | grep -E '^(PASSED|FAILED|ERROR|SKIPPED)|s call|passed|failed' ; echo; echo 'note: the 3 FAILED are pre-existing tests that need real torch / FastAPI router (stubbed here); CI passes them (06)'
+E         comparison failed
+_____________ test_ingest_failed_worker_construction_is_not_cached _____________
+ERROR    embedder-api:api.py:377 Error ingesting paper 2608.20331: minio down
+___________ test_ingest_failed_embedder_build_keeps_cached_processor ___________
+ERROR    embedder-api:api.py:377 Error ingesting paper 2608.20331: model load failed
+1.00s call     tests/test_verify.py::test_embed_is_not_serialized_behind_an_in_flight_ingest
+0.40s call     tests/test_verify.py::test_ingest_concurrent_first_requests_build_once_and_do_not_overlap
+0.17s call     tests/test_verify.py::test_verify_endpoint_fails_closed_without_model
+0.01s call     tests/test_verify.py::test_verify_pairs_takes_max_over_windows_and_keeps_order
+PASSED tests/test_verify.py::test_strip_chunk_prefix
+PASSED tests/test_verify.py::test_premise_windows
+PASSED tests/test_verify.py::test_entailment_index_requires_label
+PASSED tests/test_verify.py::test_verify_endpoint_fails_closed_without_model
+PASSED tests/test_verify.py::test_ingest_builds_each_worker_once
+PASSED tests/test_verify.py::test_ingest_embedder_worker_gets_startup_model
+PASSED tests/test_verify.py::test_ingest_embedder_worker_loads_own_model_without_startup_model
+PASSED tests/test_verify.py::test_embedder_worker_uses_injected_model
+PASSED tests/test_verify.py::test_ingest_concurrent_first_requests_build_once_and_do_not_overlap
+PASSED tests/test_verify.py::test_ingest_failed_worker_construction_is_not_cached
+PASSED tests/test_verify.py::test_embed_is_not_serialized_behind_an_in_flight_ingest
+PASSED tests/test_verify.py::test_ingest_failed_embedder_build_keeps_cached_processor
+FAILED tests/test_verify.py::test_verify_pairs_takes_max_over_windows_and_keeps_order
+FAILED tests/test_verify.py::test_real_nli_separates_support_from_topicality
+FAILED tests/test_verify.py::test_startup_handler_is_load_models_and_loads_verifier
+3 failed, 12 passed in 1.63s
+
+note: the 3 FAILED are pre-existing tests that need real torch / FastAPI router (stubbed here); CI passes them (06)
+
+[exit code 0]
