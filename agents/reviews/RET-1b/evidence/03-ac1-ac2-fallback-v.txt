@@ -1,0 +1,18 @@
+$ bash -c cd /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/h.wfGu && export GOFLAGS=-mod=mod GOPROXY=off && go version && go vet ./internal/query/ && echo 'go vet: clean' && go test -race -count=1 -v -run TestHybridSearchRerankFallback ./internal/query/ 2>&1 | grep -E -- '--- (PASS|FAIL)|^(ok|FAIL|PASS)' && echo '--- whole scratch package (search_test.go tests):' && go test -race -count=1 ./internal/query/
+go version go1.24.7 linux/amd64
+go vet: clean
+--- PASS: TestHybridSearchRerankFallback (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/rerank_error (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/timeout (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/too_few_scores (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/too_many_scores (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/NaN_score (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/canceled (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/+Inf_score (0.00s)
+    --- PASS: TestHybridSearchRerankFallback/-Inf_score (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.015s
+--- whole scratch package (search_test.go tests):
+ok  	arxivlens/internal/query	1.020s
+
+[exit code 0]

@@ -1,0 +1,85 @@
+$ bash -c for f in mutants.sh basecontrol.sh stackcmp.sh harness.sh; do echo ===== $f; cat /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/$f; done
+===== mutants.sh
+#!/usr/bin/env bash
+# Applies one single-edit mutant at a time to a fresh copy of the harness (real PR search.go), runs the AC5 command
+# and the full package; build failures are reported as INVALID, never KILLED.
+H=${1:?harness dir}
+export GOFLAGS=-mod=mod GOPROXY=off
+declare -a NAMES EXPRS
+add(){ NAMES+=("$1"); EXPRS+=("$2"); }
+add "a: remove Inf check"            '/if math.IsInf(float64(sc), 0) {/,+3d'
+add "b: IsInf(x, 1) only"            's/math.IsInf(float64(sc), 0)/math.IsInf(float64(sc), 1)/'
+add "c: remove context.Canceled case" '/case errors.Is(err, context.Canceled):/,+1d'
+add "d: Inf reason -> \"NaN score\""   's/reason = "Inf score"/reason = "NaN score"/'
+add "e(extra): IsInf(x, -1) only"    's/math.IsInf(float64(sc), 0)/math.IsInf(float64(sc), -1)/'
+add "f(extra): canceled reason -> rerank error" 's/reason = "rerank canceled"/reason = "rerank error"/'
+add "g(extra): NaN check removed (Inf kept)" '/if math.IsNaN(float64(sc)) {/,+3d'
+printf '%-44s %-8s %-8s %s\n' MUTANT AC5-RUN FULL "FAILING ROWS (-run HybridSearchRerank)"
+for i in "${!NAMES[@]}"; do
+  D=$(mktemp -d "$H.mut.XXXX"); cp -r "$H"/. "$D"/
+  sed -i "${EXPRS[$i]}" "$D/internal/query/search.go"
+  if cmp -s "$H/internal/query/search.go" "$D/internal/query/search.go"; then echo "${NAMES[$i]}: NOT APPLIED"; continue; fi
+  if ! (cd "$D" && go vet ./internal/query/ >"$D/vet.out" 2>&1); then printf '%-44s INVALID (build): %s\n' "${NAMES[$i]}" "$(head -2 "$D/vet.out"|tr '\n' ' ')"; continue; fi
+  (cd "$D" && go test -count=1 -v -run HybridSearchRerank ./internal/query/ >"$D/run.out" 2>&1); r1=$?
+  (cd "$D" && go test -count=1 ./internal/query/ >"$D/full.out" 2>&1); r2=$?
+  v1=$([ $r1 -ne 0 ] && echo KILLED || echo SURVIVED); v2=$([ $r2 -ne 0 ] && echo KILLED || echo SURVIVED)
+  rows=$(grep -E '^\s+--- FAIL' "$D/run.out" | sed -E 's/.*--- FAIL: ([^ ]+).*/\1/' | tr '\n' ' ')
+  printf '%-44s %-8s %-8s %s\n' "${NAMES[$i]}" "$v1" "$v2" "$rows"
+  echo "    diff: $(diff "$H/internal/query/search.go" "$D/internal/query/search.go" | grep '^[<>]' | tr -s ' \t' ' ' | tr '\n' '|')"
+  grep -E 'search_test.go:[0-9]+: ' "$D/run.out" | sed 's/^ */    /' | head -3
+done
+===== basecontrol.sh
+#!/usr/bin/env bash
+# Control: PR's search_test.go against origin/main's search.go (pre-fix), plus a JSON probe of an Inf rerank_score.
+H=${1:?}; APP=${2:?}
+export GOFLAGS=-mod=mod GOPROXY=off
+D=$(mktemp -d "$H.base.XXXX"); cp -r "$H"/. "$D"/
+git -C "$APP" show origin/main:internal/query/search.go > "$D/internal/query/search.go"
+echo "base search.go = origin/main $(git -C "$APP" rev-parse --short origin/main); test file = PR head $(git -C "$APP" rev-parse --short HEAD)"
+(cd "$D" && go test -count=1 -v -run TestHybridSearchRerankFallback ./internal/query/ 2>&1) | grep -E -- '--- (PASS|FAIL)|search_test.go:[0-9]+:|^(ok|FAIL)' | sed 's/^ *//'
+cat > "$D/internal/query/zz_probe_test.go" <<'P'
+package query
+
+import (
+	"encoding/json"
+	"math"
+	"testing"
+)
+
+func TestProbeInfJSON(t *testing.T) {
+	for _, v := range []float64{math.Inf(1), math.Inf(-1), float64(float32(math.Inf(1))), 0} {
+		b, err := json.Marshal([]SearchHit{{ChunkID: 1, RerankScore: v}})
+		t.Logf("RerankScore=%v -> err=%v body=%s", v, err, b)
+	}
+}
+P
+echo "--- probe: encoding/json on a SearchHit with ±Inf rerank_score"
+(cd "$D" && go test -count=1 -v -run TestProbeInfJSON ./internal/query/ 2>&1) | grep -E 'RerankScore=' | sed 's/^ *//'
+===== stackcmp.sh
+#!/usr/bin/env bash
+# stack.yml: this PR's job conclusion/steps, AC4 + F1 lines, and the same lines from recent PR runs on the same base.
+set -u
+api(){ gh api "repos/MaheshPulivarthi18/ArxivLens/$1" "${@:2}"; }
+echo "== this PR: run 44672623037 job 136076888827"
+api actions/jobs/136076888827 --jq '"head_sha=\(.head_sha) conclusion=\(.conclusion)"'
+api actions/jobs/136076888827 --jq '.steps[] | select(.name|test("make test-full|Known failure|Diagnostics")) | "  step: \(.name) -> \(.conclusion)"'
+for R in 44672623037 44672616095 44665352254 44665348474 44617013932 44617089981; do
+  J=$(api actions/runs/$R/jobs --jq '.jobs[0].id'); L=$(api actions/jobs/$J/logs)
+  echo "== run $R job $J $(echo "$L" | grep -m1 'HEAD is now' | sed -E 's/.*Merge ([0-9a-f]{7})[0-9a-f]* into ([0-9a-f]{7}).*/head=\1 base=\2/') branch=$(api actions/runs/$R --jq .head_branch)"
+  echo "   AC4: $(echo "$L" | grep -E '[0-9]+ passed.*deselected' | cut -c30-)"
+  echo "   F1 : $(echo "$L" | grep -E '^.{29}([0-9]+ failed, )?[0-9]+ passed in|^.{29}[0-9]+ failed in' | grep -v deselected | cut -c30-)"
+  echo "$L" | grep -E '^.{29}FAILED tests' | cut -c30-120 | sed 's/^/        /'
+done
+===== harness.sh
+#!/usr/bin/env bash
+# Prints the scratch harness: copied files are hash-checked against the PR head; every other file is printed in full.
+H=${1:?}; APP=${2:?}
+echo "harness: $H (go1.24.7, GOFLAGS=-mod=mod GOPROXY=off)"
+for f in search.go search_test.go client.go; do
+  a=$(sha256sum "$H/internal/query/$f" | cut -c1-16); b=$(git -C "$APP" show HEAD:internal/query/$f | sha256sum | cut -c1-16)
+  echo "copied internal/query/$f  harness=$a  PR-head=$b  $([ "$a" = "$b" ] && echo IDENTICAL || echo DIFFERENT)"
+done
+echo "--- scripts: mutants.sh and basecontrol.sh (beside the harness) sha256: $(sha256sum "$(dirname "$H")/mutants.sh" | cut -c1-16) $(sha256sum "$(dirname "$H")/basecontrol.sh" | cut -c1-16)"
+(cd "$H" && find . -type f ! -path './internal/query/search.go' ! -path './internal/query/search_test.go' ! -path './internal/query/client.go' | sort) | while read -r f; do echo "===== $f"; cat "$H/$f"; done
+
+[exit code 0]

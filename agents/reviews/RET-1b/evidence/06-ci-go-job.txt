@@ -1,0 +1,10 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136076889192/logs | grep -E 'Complete job name|HEAD is now|lint-go|go vet|gofmt|test-go|go test|internal/query|GOVERSION|error'
+2026-11-20T04:10:31.4874284Z Complete job name: Go (vet, gofmt, test, build)
+2026-11-20T04:10:32.5490562Z HEAD is now at 064f1b1 Merge 846984439890259093dcfcbe783bf4f5a535a523 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+2026-11-20T04:10:44.2365430Z GOVERSION='go1.25.0'
+2026-11-20T04:10:44.2626839Z ##[group]Run make lint-go
+2026-11-20T04:10:44.2748531Z go vet ./...
+2026-11-20T04:10:45.5077675Z ##[group]Run make test-go
+2026-11-20T04:10:45.5166412Z go test ./...
+2026-11-20T04:10:51.4430659Z ok  	arxivlens/internal/query	0.327s
+

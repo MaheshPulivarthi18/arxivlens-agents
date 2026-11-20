@@ -1,0 +1,78 @@
+$ bash /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/harness.sh /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/h.wfGu /root/wt/RET-1b
+harness: /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/h.wfGu (go1.24.7, GOFLAGS=-mod=mod GOPROXY=off)
+copied internal/query/search.go  harness=712ec58a9c026dc8  PR-head=712ec58a9c026dc8  IDENTICAL
+copied internal/query/search_test.go  harness=7696b4ca35ab6f2d  PR-head=7696b4ca35ab6f2d  IDENTICAL
+copied internal/query/client.go  harness=7c2b0f7617e318fd  PR-head=7c2b0f7617e318fd  IDENTICAL
+--- scripts: mutants.sh and basecontrol.sh (beside the harness) sha256: 83810e48d1d8a53b 666bb11fc091524d
+===== ./go.mod
+module arxivlens
+
+go 1.24
+
+require github.com/jackc/pgx/v5 v5.0.0
+
+replace github.com/jackc/pgx/v5 => ./stubs/pgx
+===== ./internal/db/db.go
+// Stub of arxivlens/internal/db (scratch harness only): Pool.BeginTx is all search.go needs.
+package db
+
+import (
+	"context"
+	"errors"
+
+	"github.com/jackc/pgx/v5"
+)
+
+type Pool struct{}
+
+func (p *Pool) BeginTx(ctx context.Context, o pgx.TxOptions) (pgx.Tx, error) {
+	return nil, errors.New("stub pool")
+}
+
+type DB struct{ Pool *Pool }
+===== ./internal/query/traceid_stub.go
+// generateTraceID copied verbatim from internal/query/rag.go (rag.go itself not in the harness).
+package query
+
+import (
+	"crypto/rand"
+	"fmt"
+)
+
+func generateTraceID() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
+}
+===== ./stubs/pgx/go.mod
+module github.com/jackc/pgx/v5
+
+go 1.24
+===== ./stubs/pgx/pgx.go
+// Stub of the pgx surface used by internal/query/search.go (scratch harness only).
+package pgx
+
+import "context"
+
+type TxAccessMode string
+
+const ReadOnly TxAccessMode = "read only"
+
+type TxOptions struct{ AccessMode TxAccessMode }
+
+type CommandTag struct{}
+
+type Rows interface {
+	Next() bool
+	Scan(dest ...any) error
+	Err() error
+	Close()
+}
+
+type Tx interface {
+	Exec(ctx context.Context, sql string, args ...any) (CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (Rows, error)
+	Rollback(ctx context.Context) error
+}
+
+[exit code 0]

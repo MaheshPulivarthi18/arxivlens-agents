@@ -1,0 +1,23 @@
+$ bash /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/basecontrol.sh /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/h.wfGu /root/wt/RET-1b
+base search.go = origin/main 4c7d327; test file = PR head 8469844
+search_test.go:231: order = [3 1 2 20 19], want RRF top 5
+search_test.go:231: order = [1 20 2 19 18], want RRF top 5
+--- FAIL: TestHybridSearchRerankFallback (0.00s)
+--- PASS: TestHybridSearchRerankFallback/rerank_error (0.00s)
+--- PASS: TestHybridSearchRerankFallback/timeout (0.00s)
+--- PASS: TestHybridSearchRerankFallback/too_few_scores (0.00s)
+--- PASS: TestHybridSearchRerankFallback/too_many_scores (0.00s)
+--- PASS: TestHybridSearchRerankFallback/NaN_score (0.00s)
+--- PASS: TestHybridSearchRerankFallback/canceled (0.00s)
+--- FAIL: TestHybridSearchRerankFallback/+Inf_score (0.00s)
+--- FAIL: TestHybridSearchRerankFallback/-Inf_score (0.00s)
+FAIL
+FAIL	arxivlens/internal/query	0.004s
+FAIL
+--- probe: encoding/json on a SearchHit with ±Inf rerank_score
+zz_probe_test.go:12: RerankScore=+Inf -> err=json: unsupported value: +Inf body=
+zz_probe_test.go:12: RerankScore=-Inf -> err=json: unsupported value: -Inf body=
+zz_probe_test.go:12: RerankScore=+Inf -> err=json: unsupported value: +Inf body=
+zz_probe_test.go:12: RerankScore=0 -> err=<nil> body=[{"chunk_id":1,"arxiv_id":"","title":"","section":"","content":"","rrf_score":0,"version":0}]
+
+[exit code 0]

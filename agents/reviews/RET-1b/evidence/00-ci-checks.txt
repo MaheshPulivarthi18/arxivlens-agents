@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/846984439890259093dcfcbe783bf4f5a535a523/check-runs --jq .check_runs[] | "\(.id) \(.name) \(.status) \(.conclusion) run=\(.details_url|capture("runs/(?<r>[0-9]+)").r)"
+136076890387 DB (migrate twice, HNSW plan + recall) completed success run=44672623044
+136076889219 Frontend (lint, test, build) completed success run=44672623091
+136076889192 Go (vet, gofmt, test, build) completed success run=44672623091
+136076889112 Agent ownership check completed success run=44672623091
+136076888897 Python M0 unit tests completed success run=44672623091
+136076888827 Full stack (compose + make test-full) completed success run=44672623037
+
+[exit code 0]

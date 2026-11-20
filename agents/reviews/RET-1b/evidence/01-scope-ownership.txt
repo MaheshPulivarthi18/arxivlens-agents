@@ -1,0 +1,16 @@
+$ bash -c git rev-parse HEAD; git diff --stat origin/main...HEAD; git diff --numstat origin/main...HEAD; echo "--- ownership-check (local)"; .github/scripts/ownership-check.sh origin/main agent/backend/RET-1b; echo "rc=$?"; echo "--- CI ownership job 136076889112:"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136076889112/logs | grep -E "Ownership|::error" | cut -c30-; echo "--- gofmt -l internal/query/ (empty = clean)"; gofmt -l internal/query/; echo "rc=$?"
+846984439890259093dcfcbe783bf4f5a535a523
+ internal/query/search.go      |  7 ++++++-
+ internal/query/search_test.go | 14 ++++++++++++++
+ 2 files changed, 20 insertions(+), 1 deletion(-)
+6	1	internal/query/search.go
+14	0	internal/query/search_test.go
+--- ownership-check (local)
+Ownership OK for role=backend (21 changed lines)
+rc=0
+--- CI ownership job 136076889112:
+Ownership OK for role=backend (21 changed lines)
+--- gofmt -l internal/query/ (empty = clean)
+rc=0
+
+[exit code 0]

@@ -1,0 +1,31 @@
+$ bash /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/stackcmp.sh
+== this PR: run 44672623037 job 136076888827
+head_sha=846984439890259093dcfcbe783bf4f5a535a523 conclusion=success
+  step: AC4: make test-full -> success
+  step: Known failure F1 (CPU rerank latency, tracked) -> success
+  step: Diagnostics -> skipped
+== run 44672623037 job 136076888827 head=8469844 base=4c7d327 branch=agent/backend/RET-1b
+   AC4: 237 passed, 1 skipped, 3 deselected, 5 warnings in 72.59s (0:01:12)
+   F1 : 1 failed, 2 passed in 26.91s
+        FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.excepti
+== run 44672616095 job 136076867487 head=de27269 base=4c7d327 branch=agent/backend/LLM-1c
+   AC4: 237 passed, 1 skipped, 3 deselected, 5 warnings in 45.87s
+   F1 : 3 passed in 14.97s
+== run 44665352254 job 136053170077 head=e34ebb9 base=4c7d327 branch=agent/ai/AI-12
+   AC4: 243 passed, 1 skipped, 3 deselected, 5 warnings in 49.12s
+   F1 : 3 passed in 16.26s
+== run 44665348474 job 136053158182 head=0fbf4e0 base=4c7d327 branch=agent/backend/OPS-H6b
+   AC4: 237 passed, 1 skipped, 3 deselected, 5 warnings in 45.92s
+   F1 : 3 passed in 15.43s
+== run 44617013932 job 135888299617 head=16dacb9 base=4c7d327 branch=agent/backend/OPS-H9
+   AC4: 237 passed, 1 skipped, 3 deselected, 5 warnings in 76.27s (0:01:16)
+   F1 : 1 failed, 2 passed in 28.08s
+        FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.excepti
+== run 44617089981 job 135888563560 head=956db78 base=4c7d327 branch=agent/ai/AI-8b
+   AC4: 238 passed, 1 skipped, 3 deselected, 5 warnings in 84.15s (0:01:24)
+   F1 : 3 failed in 30.62s
+        FAILED tests/test_m3_query.py::test_rag_ask_with_groundedness_support - requests.exceptions
+        FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.excepti
+        FAILED tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank - requests.exceptions
+
+[exit code 0]

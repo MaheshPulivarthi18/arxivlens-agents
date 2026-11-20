@@ -1,0 +1,27 @@
+$ bash /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/mutants.sh /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/h.wfGu
+MUTANT                                       AC5-RUN  FULL     FAILING ROWS (-run HybridSearchRerank)
+a: remove Inf check                          KILLED   KILLED   TestHybridSearchRerankFallback/+Inf_score TestHybridSearchRerankFallback/-Inf_score 
+    diff: < if math.IsInf(float64(sc), 0) {|< reason = "Inf score"|< break|< }|
+    search_test.go:231: order = [3 1 2 20 19], want RRF top 5
+    search_test.go:231: order = [1 20 2 19 18], want RRF top 5
+b: IsInf(x, 1) only                          KILLED   KILLED   TestHybridSearchRerankFallback/-Inf_score 
+    diff: < if math.IsInf(float64(sc), 0) {|> if math.IsInf(float64(sc), 1) {|
+    search_test.go:231: order = [1 20 2 19 18], want RRF top 5
+c: remove context.Canceled case              KILLED   KILLED   TestHybridSearchRerankFallback/canceled 
+    diff: < case errors.Is(err, context.Canceled):|< reason = "rerank canceled"|
+    search_test.go:244: log "[Query Service] rerank fallback trace_id=0123456789abcdef0123456789abcdef trace_id_source=ctx reason=\"rerank error\" pool=20 scores=0\n" missing "reason=\"rerank canceled\""
+d: Inf reason -> "NaN score"                 KILLED   KILLED   TestHybridSearchRerankFallback/+Inf_score TestHybridSearchRerankFallback/-Inf_score 
+    diff: < reason = "Inf score"|> reason = "NaN score"|
+    search_test.go:244: log "[Query Service] rerank fallback trace_id=0123456789abcdef0123456789abcdef trace_id_source=ctx reason=\"NaN score\" pool=20 scores=20\n" missing "reason=\"Inf score\""
+    search_test.go:244: log "[Query Service] rerank fallback trace_id=0123456789abcdef0123456789abcdef trace_id_source=ctx reason=\"NaN score\" pool=20 scores=20\n" missing "reason=\"Inf score\""
+e(extra): IsInf(x, -1) only                  KILLED   KILLED   TestHybridSearchRerankFallback/+Inf_score 
+    diff: < if math.IsInf(float64(sc), 0) {|> if math.IsInf(float64(sc), -1) {|
+    search_test.go:231: order = [3 1 2 20 19], want RRF top 5
+f(extra): canceled reason -> rerank error    KILLED   KILLED   TestHybridSearchRerankFallback/canceled 
+    diff: < reason = "rerank canceled"|> reason = "rerank error"|
+    search_test.go:244: log "[Query Service] rerank fallback trace_id=0123456789abcdef0123456789abcdef trace_id_source=ctx reason=\"rerank error\" pool=20 scores=0\n" missing "reason=\"rerank canceled\""
+g(extra): NaN check removed (Inf kept)       KILLED   KILLED   TestHybridSearchRerankFallback/NaN_score 
+    diff: < if math.IsNaN(float64(sc)) {|< reason = "NaN score"|< break|< }|
+    search_test.go:231: order = [1 2 3 4 20], want RRF top 5
+
+[exit code 0]
