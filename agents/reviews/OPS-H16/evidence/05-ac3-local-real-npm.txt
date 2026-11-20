@@ -1,0 +1,22 @@
+$ bash -c echo "\$ (cd frontend && timeout 90 npm ci --no-audit --no-fund) 2>&1 | tail -6"; (cd frontend && timeout 90 npm ci --no-audit --no-fund) 2>&1 | tail -6; echo "npm ci rc=${PIPESTATUS[0]}"; echo; echo "\$ ls frontend/node_modules/.bin/vitest"; ls frontend/node_modules/.bin/vitest 2>&1; echo; echo "\$ make test-fe   (real npm, real package.json, no deps installed)"; make test-fe 2>&1; echo "make exit=$?"
+$ (cd frontend && timeout 90 npm ci --no-audit --no-fund) 2>&1 | tail -6
+npm error Exit handler never called!
+npm error This is an error with npm itself. Please report this error at:
+npm error   <https://github.com/npm/cli/issues>
+npm error A complete log of this run can be found in: /home/claude/.npm/_logs/2026-11-20T18_25_59_564Z-debug-0.log
+npm ci rc=1
+
+$ ls frontend/node_modules/.bin/vitest
+ls: cannot access 'frontend/node_modules/.bin/vitest': No such file or directory
+
+$ make test-fe   (real npm, real package.json, no deps installed)
+cd frontend && npm test
+
+> frontend@0.0.0 test
+> vitest run
+
+sh: 1: vitest: not found
+make: *** [Makefile:52: test-fe] Error 127
+make exit=2
+
+[exit code 0]

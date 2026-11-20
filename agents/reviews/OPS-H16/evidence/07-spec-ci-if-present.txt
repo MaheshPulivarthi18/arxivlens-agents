@@ -1,0 +1,9 @@
+$ bash -c echo '$ grep -n -A1 "name: Test" .github/workflows/ci.yml'; grep -n -A1 'name: Test' .github/workflows/ci.yml; d=$(mktemp -d /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1/ifp.XXXX); printf '%s' '{"name":"frontend","private":true,"scripts":{"build":"vite build"}}' > $d/package.json; echo; echo '$ (package.json with no test script) npm run test --if-present'; (cd $d && npm run test --if-present 2>&1); echo "rc=$?"
+$ grep -n -A1 "name: Test" .github/workflows/ci.yml
+72:      - name: Test
+73-        run: npm run test --if-present
+
+$ (package.json with no test script) npm run test --if-present
+rc=0
+
+[exit code 0]

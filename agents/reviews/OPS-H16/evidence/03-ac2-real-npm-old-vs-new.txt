@@ -1,0 +1,56 @@
+$ /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1/real.sh
+npm 10.9.9, node v22.23.5; PR head bf76769
+=== recipe=HEAD package.json test script: NOTEST
+cd frontend && npm test
+npm error Missing script: "test"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/claude/.npm/_logs/2026-11-20T18_25_47_673Z-debug-0.log
+make: *** [/root/wt/qa-OPS-H16/Makefile:52: test-fe] Error 1
+--> make exit=2
+
+=== recipe=OLD package.json test script: NOTEST
+no frontend tests yet (FE-1)
+--> make exit=0
+
+=== recipe=HEAD package.json test script: PASS
+cd frontend && npm test
+
+> test
+> echo FAKE-VITEST-OK
+
+FAKE-VITEST-OK
+--> make exit=0
+
+=== recipe=OLD package.json test script: PASS
+npm error A complete log of this run can be found in: /home/claude/.npm/_logs/2026-11-20T18_25_47_985Z-debug-0.log
+
+> test
+> echo FAKE-VITEST-OK
+
+FAKE-VITEST-OK
+--> make exit=0
+
+=== recipe=HEAD package.json test script: FAIL
+cd frontend && npm test
+
+> test
+> echo FAKE-VITEST-FAIL; exit 1
+
+FAKE-VITEST-FAIL
+make: *** [/root/wt/qa-OPS-H16/Makefile:52: test-fe] Error 1
+--> make exit=2
+
+=== recipe=OLD package.json test script: FAIL
+npm error A complete log of this run can be found in: /home/claude/.npm/_logs/2026-11-20T18_25_48_261Z-debug-0.log
+
+> test
+> echo FAKE-VITEST-FAIL; exit 1
+
+FAKE-VITEST-FAIL
+make: *** [/tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1/oldmk/Makefile:52: test-fe] Error 1
+--> make exit=2
+
+
+[exit code 0]

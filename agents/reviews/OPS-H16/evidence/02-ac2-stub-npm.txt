@@ -1,0 +1,32 @@
+$ /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1/ac2.sh
+head: bf76769  which npm (stub): /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1/bin/npm
+
+=== (a) PR head, npm test succeeds (STUB_RC=0, stub=bin, makefile=Makefile)
+cd frontend && npm test
+--> make exit=0 ; stub calls=1
+    stub log: cwd=/root/wt/qa-OPS-H16/frontend argv=test
+
+=== (b) PR head, npm test fails (STUB_RC=1, stub=bin, makefile=Makefile)
+cd frontend && npm test
+make: *** [Makefile:52: test-fe] Error 1
+--> make exit=2 ; stub calls=1
+    stub log: cwd=/root/wt/qa-OPS-H16/frontend argv=test
+
+=== (b2) PR head, npm missing script (npm exits 1) (STUB_RC=1, stub=bin, makefile=Makefile)
+cd frontend && npm test
+make: *** [Makefile:52: test-fe] Error 1
+--> make exit=2 ; stub calls=1
+    stub log: cwd=/root/wt/qa-OPS-H16/frontend argv=test
+
+=== (c) origin/main recipe, listing has no ' test' line (STUB_RC=0, stub=binold, makefile=/tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1/oldmk/Makefile)
+no frontend tests yet (FE-1)
+--> make exit=0 ; stub calls=1
+    stub log: argv=run
+
+=== (c2) origin/main recipe, same listing, npm test would fail (rc 1) (STUB_RC=1, stub=binold, makefile=/tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1/oldmk/Makefile)
+no frontend tests yet (FE-1)
+--> make exit=0 ; stub calls=1
+    stub log: argv=run
+
+
+[exit code 0]

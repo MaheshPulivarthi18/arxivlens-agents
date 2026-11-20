@@ -1,0 +1,20 @@
+$ bash -c echo '$ make help | grep -E "test-fe|test-unit"'; make help | grep -E 'test-fe|test-unit'; echo; echo '$ make help | grep -c FE-1'; make help | grep -c FE-1; echo; echo '$ git diff --stat origin/main...HEAD'; git diff --stat origin/main...HEAD; echo; echo '$ .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H16   (checked-out HEAD = origin/agent/backend/OPS-H16 = '$(git rev-parse --short origin/agent/backend/OPS-H16)')'; .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H16 2>&1; echo "rc=$?"; echo; echo '--- CI Agent ownership check job 136478155999 log:'; grep -E 'Ownership' /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1/own.log | sed 's/\x1b\[[0-9;]*m//g' | tail -4
+$ make help | grep -E "test-fe|test-unit"
+  test-unit    Fast tests, no infra (Go + M0 + eval data). Frontend tests: make test-fe
+  test-fe      Frontend tests (Vitest; run npm ci in frontend/ first)
+
+$ make help | grep -c FE-1
+0
+
+$ git diff --stat origin/main...HEAD
+ Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+$ .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H16   (checked-out HEAD = origin/agent/backend/OPS-H16 = bf76769)
+Ownership OK for role=backend (4 changed lines)
+rc=0
+
+--- CI Agent ownership check job 136478155999 log:
+2026-11-20T18:15:01.2197357Z Ownership OK for role=backend (4 changed lines)
+
+[exit code 0]

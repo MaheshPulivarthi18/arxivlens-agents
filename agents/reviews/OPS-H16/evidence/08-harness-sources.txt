@@ -1,0 +1,50 @@
+$ bash -c cd /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1 && for f in $(find . -type f \( -name '*.sh' -o -name npm \) | sort); do echo "===== $f"; cat $f; done
+===== ./ac2.sh
+#!/bin/bash
+# AC2 harness. Run from the PR-head worktree root.
+S=/tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1
+run() { # label rc bin makefile
+  export STUB_LOG=$(mktemp); echo "=== $1 (STUB_RC=$2, stub=$3, makefile=$4)"
+  PATH="$S/$3:$PATH" STUB_RC=$2 make -f "$4" test-fe 2>&1; rc=$?
+  echo "--> make exit=$rc ; stub calls=$(wc -l < "$STUB_LOG")"; sed 's/^/    stub log: /' "$STUB_LOG"; echo
+}
+echo "head: $(git rev-parse --short HEAD)  which npm (stub): $(PATH=$S/bin:$PATH command -v npm)"; echo
+run "(a) PR head, npm test succeeds" 0 bin Makefile
+run "(b) PR head, npm test fails" 1 bin Makefile
+run "(b2) PR head, npm missing script (npm exits 1)" 1 bin Makefile
+run "(c) origin/main recipe, listing has no ' test' line" 0 binold $S/oldmk/Makefile
+run "(c2) origin/main recipe, same listing, npm test would fail (rc 1)" 1 binold $S/oldmk/Makefile
+===== ./bin/npm
+#!/bin/sh
+# QA stub npm: log cwd + argv, exit $STUB_RC
+printf 'cwd=%s argv=%s\n' "$(pwd)" "$*" >> "$STUB_LOG"
+exit "${STUB_RC:-0}"
+===== ./binold/npm
+#!/bin/sh
+# QA stub npm for the old recipe: `npm run` listing WITHOUT a " test" line; logs argv
+printf 'argv=%s\n' "$*" >> "$STUB_LOG"
+if [ "$1" = run ] && [ $# -eq 1 ]; then
+  printf 'Lifecycle scripts included in frontend:\n  start\n    vite\navailable via `npm run-script`:\n  dev\n    vite\n  build\n    vite build\n'
+  exit 0
+fi
+exit "${STUB_RC:-0}"
+===== ./real.sh
+#!/bin/bash
+# Real npm (no registry needed): PR-head vs origin/main recipe, on scratch frontend/ dirs.
+S=/tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H16-r1
+HEAD_MK=/root/wt/qa-OPS-H16/Makefile; OLD_MK=$S/oldmk/Makefile
+echo "npm $(npm --version), node $(node --version); PR head $(git -C /root/wt/qa-OPS-H16 rev-parse --short HEAD)"
+mk() { d=$(mktemp -d "$S/proj.XXXX"); mkdir "$d/frontend"; printf '%s' "$1" > "$d/frontend/package.json"; echo "$d"; }
+NOTEST='{"name":"frontend","private":true,"scripts":{"dev":"vite","build":"vite build","lint":"oxlint"}}'
+PASS='{"name":"frontend","private":true,"scripts":{"dev":"vite","build":"vite build","lint":"oxlint","test":"echo FAKE-VITEST-OK"}}'
+FAIL='{"name":"frontend","private":true,"scripts":{"dev":"vite","build":"vite build","lint":"oxlint","test":"echo FAKE-VITEST-FAIL; exit 1"}}'
+for case in "NOTEST:$NOTEST" "PASS:$PASS" "FAIL:$FAIL"; do
+  name=${case%%:*}; json=${case#*:}
+  for mkf in HEAD:$HEAD_MK OLD:$OLD_MK; do
+    d=$(mk "$json"); echo "=== recipe=${mkf%%:*} package.json test script: $name"
+    (cd "$d" && make -f "${mkf#*:}" test-fe 2>&1); rc=$?
+    echo "--> make exit=$rc"; echo
+  done
+done
+
+[exit code 0]
