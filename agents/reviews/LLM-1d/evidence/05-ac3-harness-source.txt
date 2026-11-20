@@ -1,0 +1,27 @@
+$ cat /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/tools/ac3.sh
+#!/usr/bin/env bash
+# AC3 harness: go1.24 scratch module with the real internal/llm sources from a given commit (run inside the app worktree).
+# Usage: ac3.sh <commit> <mutate:0|1>
+set -u
+REV=$1; MUT=$2
+D=$(mktemp -d)
+mkdir -p "$D/internal"
+git archive "$REV" internal/llm | tar -x -C "$D"
+printf 'module arxivlens\n\ngo 1.24\n' > "$D/go.mod"
+F="$D/internal/llm/openai.go"
+if [ "$MUT" = 1 ]; then
+  perl -0pi -e 's/(\t\treturn "TLS handshake failed)(", nil)/$1\\r\\n$2/' "$F"
+  echo "== mutant diff (openai.go, code line anchored on 'return ..., nil'):"
+  git show "$REV:internal/llm/openai.go" | diff - "$F"
+  [ $? -eq 1 ] || { echo "MUTANT NOT APPLIED"; exit 2; }
+fi
+echo "== commit $(git rev-parse --short "$REV"), test row absent list:"
+grep -n 'absent:  \[\]string{"127.0.0.1", "garbage"' "$D/internal/llm/openai_test.go"
+cd "$D"
+echo "== GOTOOLCHAIN=local $(GOTOOLCHAIN=local go version)"
+echo "== gofmt -l internal/llm/:"; GOTOOLCHAIN=local gofmt -l internal/llm/; echo "== go vet ./internal/llm/..."; GOTOOLCHAIN=local go vet ./internal/llm/... && echo "vet clean"
+echo "== go test -race -count=1 -v -run 'TestTLSError' ./internal/llm/"
+GOTOOLCHAIN=local go test -race -count=1 -v -run 'TestTLSError' ./internal/llm/ 2>&1 | grep -E '^(=== RUN|---|    ---|\s+openai_test|ok|FAIL|PASS)' 
+echo "exit=${PIPESTATUS[0]}"
+
+[exit code 0]

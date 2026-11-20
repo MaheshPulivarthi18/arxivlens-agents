@@ -1,0 +1,14 @@
+$ gh api .../actions/jobs/136098767098/logs | grep ...; gh api .../actions/jobs/136098767376/logs | sed -n 208,213p
+2026-11-20T05:11:33.2617775Z HEAD is now at 3a1d141 Merge fc6d79d98433191f8932310a8db9c723523f633a into e6cffba66d677a655ade39588972abc03bc273aa
+2026-11-20T05:11:33.2880348Z ##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+2026-11-20T05:11:33.2881196Z [36;1m.github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"[0m
+2026-11-20T05:11:33.2929915Z   HEAD_REF: agent/backend/LLM-1d
+2026-11-20T05:11:33.2930315Z   BASE_REF: main
+2026-11-20T05:11:33.3180133Z Ownership OK for role=backend (2 changed lines)
+2026-11-20T05:11:52.1239582Z ##[group]Run make lint-go
+2026-11-20T05:11:52.1239944Z [36;1mmake lint-go[0m
+2026-11-20T05:11:52.1278806Z shell: /usr/bin/bash -e {0}
+2026-11-20T05:11:52.1279131Z ##[endgroup]
+2026-11-20T05:11:52.1385734Z go vet ./...
+2026-11-20T05:11:53.6536530Z ##[group]Run make test-go
+

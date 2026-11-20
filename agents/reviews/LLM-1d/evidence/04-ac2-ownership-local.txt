@@ -1,0 +1,5 @@
+$ bash -c git branch -f qa-LLM-1d-tmp HEAD >/dev/null 2>&1; git update-ref refs/heads/agent/backend/LLM-1d HEAD 2>/dev/null; .github/scripts/ownership-check.sh origin/main agent/backend/LLM-1d; echo "exit=$?"
+Ownership OK for role=backend (2 changed lines)
+exit=0
+
+[exit code 0]

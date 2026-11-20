@@ -1,0 +1,26 @@
+$ /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/tools/ac3.sh fc6d79d 1
+== mutant diff (openai.go, code line anchored on 'return ..., nil'):
+255c255
+< 		return "TLS handshake failed", nil
+---
+> 		return "TLS handshake failed\r\n", nil
+== commit fc6d79d, test row absent list:
+585:			absent:  []string{"127.0.0.1", "garbage", "\r\n", "record", "first record"},
+== GOTOOLCHAIN=local go version go1.24.7 linux/amd64
+== gofmt -l internal/llm/:
+== go vet ./internal/llm/...
+vet clean
+== go test -race -count=1 -v -run 'TestTLSError' ./internal/llm/
+=== RUN   TestTLSError
+=== RUN   TestTLSError/certificate_rejected
+=== RUN   TestTLSError/handshake_failed
+    openai_test.go:604: error "llm: provider error: transport: TLS handshake failed\r\n after 1 attempt" contains "\r\n"
+--- FAIL: TestTLSError (0.09s)
+    --- PASS: TestTLSError/certificate_rejected (0.08s)
+    --- FAIL: TestTLSError/handshake_failed (0.01s)
+FAIL
+FAIL	arxivlens/internal/llm	0.107s
+FAIL
+exit=1
+
+[exit code 0]

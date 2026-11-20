@@ -1,0 +1,24 @@
+$ /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/tools/ac3.sh e6cffba 1
+== mutant diff (openai.go, code line anchored on 'return ..., nil'):
+255c255
+< 		return "TLS handshake failed", nil
+---
+> 		return "TLS handshake failed\r\n", nil
+== commit e6cffba, test row absent list:
+585:			absent:  []string{"127.0.0.1", "garbage", `\r\n`, "record", "first record"},
+== GOTOOLCHAIN=local go version go1.24.7 linux/amd64
+== gofmt -l internal/llm/:
+== go vet ./internal/llm/...
+vet clean
+== go test -race -count=1 -v -run 'TestTLSError' ./internal/llm/
+=== RUN   TestTLSError
+=== RUN   TestTLSError/certificate_rejected
+=== RUN   TestTLSError/handshake_failed
+--- PASS: TestTLSError (0.08s)
+    --- PASS: TestTLSError/certificate_rejected (0.08s)
+    --- PASS: TestTLSError/handshake_failed (0.00s)
+PASS
+ok  	arxivlens/internal/llm	1.091s
+exit=0
+
+[exit code 0]

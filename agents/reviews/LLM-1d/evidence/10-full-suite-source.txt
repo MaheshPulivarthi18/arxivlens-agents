@@ -1,0 +1,14 @@
+$ cat /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/tools/full.sh
+#!/usr/bin/env bash
+# Full internal/llm package (go1.24 scratch, -race) at a commit, unmutated and with the AC3 mutant; summary lines only.
+set -u
+REV=$1
+for MUT in 0 1; do
+  D=$(mktemp -d); mkdir -p "$D/internal"; git archive "$REV" internal/llm | tar -x -C "$D"
+  printf 'module arxivlens\n\ngo 1.24\n' > "$D/go.mod"
+  [ "$MUT" = 1 ] && perl -0pi -e 's/(\t\treturn "TLS handshake failed)(", nil)/$1\\r\\n$2/' "$D/internal/llm/openai.go"
+  echo "== $(git rev-parse --short "$REV") mutant=$MUT: go test -race -count=1 -v ./internal/llm/... (FAIL lines + package results)"
+  (cd "$D" && GOTOOLCHAIN=local go test -race -count=1 -v ./internal/llm/... 2>&1 | grep -E -- '--- FAIL|^ok|^FAIL|openai_test.go:[0-9]+: error' ; echo "exit=${PIPESTATUS[0]}")
+done
+
+[exit code 0]

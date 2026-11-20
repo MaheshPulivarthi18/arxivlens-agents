@@ -1,0 +1,26 @@
+$ bash -c echo "merge-base: $(git merge-base origin/main HEAD)  origin/main: $(git rev-parse origin/main)"; echo "== git diff --numstat origin/main...HEAD"; git diff --numstat origin/main...HEAD; echo "== git diff --stat origin/main...HEAD"; git diff --stat origin/main...HEAD; echo "== git diff origin/main...HEAD -- internal/llm/openai_test.go"; git diff origin/main...HEAD -- internal/llm/openai_test.go; echo "== changed lines with cat -A (shows the literal bytes in source)"; git diff -U0 origin/main...HEAD | grep "^[-+]\s" | cat -A
+merge-base: e6cffba66d677a655ade39588972abc03bc273aa  origin/main: e6cffba66d677a655ade39588972abc03bc273aa
+== git diff --numstat origin/main...HEAD
+1	1	internal/llm/openai_test.go
+== git diff --stat origin/main...HEAD
+ internal/llm/openai_test.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+== git diff origin/main...HEAD -- internal/llm/openai_test.go
+diff --git a/internal/llm/openai_test.go b/internal/llm/openai_test.go
+index ac85082..ae7f864 100644
+--- a/internal/llm/openai_test.go
++++ b/internal/llm/openai_test.go
+@@ -582,7 +582,7 @@ func TestTLSError(t *testing.T) {
+ 			name:    "handshake failed",
+ 			url:     func(t *testing.T) string { return notTLSServer(t, garbage) },
+ 			detail:  "transport: TLS handshake failed",
+-			absent:  []string{"127.0.0.1", "garbage", `\r\n`, "record", "first record"},
++			absent:  []string{"127.0.0.1", "garbage", "\r\n", "record", "first record"},
+ 			rawType: func(err error) bool { return errors.As(err, new(tls.RecordHeaderError)) },
+ 		},
+ 	}
+== changed lines with cat -A (shows the literal bytes in source)
+-^I^I^Iabsent:  []string{"127.0.0.1", "garbage", `\r\n`, "record", "first record"},$
++^I^I^Iabsent:  []string{"127.0.0.1", "garbage", "\r\n", "record", "first record"},$
+
+[exit code 0]
