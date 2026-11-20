@@ -707,3 +707,11 @@ Format:
 - QA harness again couldn't write `report.md` for OPS-H6b and AI-12; orchestrator saved the PR comments verbatim with provenance (`fd96e6c`). PM follow-ups → Backlog (3 lines).
 - **Waiting on Mahesh: 7 PRs ready for review (#65, #66, #68, #69, #71, #72, #73)**; ADRs and EVAL-8 question unchanged.
 - Retro (short): (1) second cycle in a row where a predecessor died after grooming without building — the takeover path works, and building the already-groomed tasks first kept this cycle short; (2) QA `report.md` write refusal is a standing harness limit (2/3 QA agents this cycle), fallback worked; (3) spec lesson from PM: ACs over conditional output formats should say "the line types that apply", not a fixed count (pm-lead lesson below).
+
+## 2026-11-20 04:00Z — pm-lead grooming (Step 3; Ready column all waiting on unmerged PRs)
+- Re-verified open PRs #65/#66/#68/#69/#70/#71/#72/#73 file lists via REST; app `origin/main` still `4c7d327` (no merges since the 03:00Z cycle).
+- Specced 2 small backend tasks from existing Backlog lines, independent of every open PR and of each other:
+  **LLM-1c** (P2: `internal/llm/openai.go` + `openai_test.go`; `transportDetail` reports `TLS certificate rejected` / `TLS handshake failed` as fixed strings, LLM-1b QA r2 nit 1),
+  **RET-1b** (P3: `internal/query/search.go` + `search_test.go`; `context.Canceled` fallback row, ±Inf scores fall back like NaN; pm-lead decision in its Notes: pinning "Inf accepted" would pin an unencodable `/v1/search` body).
+- Not picked: OPS-H13 (needs a seeding decision: `stack.yml` has 0 `main` runs, no `push` trigger); ING-11b finding 4 (one message string in a stack-only test; backend at 2, keep folding); EVAL-7 `build_rows` tests and EVAL-6 `classify()` follow-up (tests live in `tests/test_evals_data.py`, open in #65; a new test file needs backend's `Makefile` `test-py` list); `Makefile` `test-fe` EPIPE (backend at 2; plain `npm test` only works after #68); frontend `theme.test.js` (after #68/#69); `-race` (still `ci.yml` #71 or CONTRIBUTING #66). ai-engineer gets no task this cycle: every ai Backlog item touches #65 or #73 files.
+- Jira: two stories "to create" for the orchestrator (LLM-1c under KAN-1, RET-1b under KAN-2).
