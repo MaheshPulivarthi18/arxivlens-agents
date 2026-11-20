@@ -1,0 +1,195 @@
+$ bash -c find . -type f -not -path '*__pycache__*' | sort; for f in $(find . -type f -not -path '*__pycache__*' | sort); do echo; echo "===== $f"; cat $f; done
+./mutate.py
+./mutate_lock.py
+./qa_stubs.py
+./stubs/fastapi/__init__.py
+./stubs/psycopg/__init__.py
+./stubs/psycopg/rows.py
+./stubs/ulid/__init__.py
+
+===== ./mutate.py
+"""QA AI-12 mutation run. Copies the PR head's real sources into a fresh mktemp dir per mutant, applies ONE textual edit,
+checks it compiles (else INVALID), then runs the 6 new tests (x20 for concurrency mutants). Usage: mutate.py <app_dir> <harness_dir>"""
+import os, py_compile, shutil, subprocess, sys, tempfile
+
+APP, H = sys.argv[1], sys.argv[2]
+API, WRK = "services/embedder/api.py", "services/embedder/worker.py"
+SEL = "ingest or injected"
+
+M = [  # id, file, old, new, runs, description
+ ("M0", None, None, None, 20, "control: PR head unmodified"),
+ ("M1", API, "        processor, embedder_worker = _ingest_workers()\n",
+  "        processor, embedder_worker = ProcessorWorker(), EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()\n",
+  1, "build both workers per request (today's main)"),
+ ("M2", API, "    with _ingest_lock:\n        return _ingest_paper(req)", "    if True:\n        return _ingest_paper(req)", 20, "remove the (only) lock"),
+ ("M3", API, "EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()", "EmbedderWorker()", 1,
+  "never pass the startup model"),
+ ("M4", API, "EmbedderWorker(embedder=embedder) if embedder is not None else EmbedderWorker()",
+  "EmbedderWorker() if embedder is not None else EmbedderWorker(embedder=embedder)", 1, "ternary branches swapped"),
+ ("M5", API, "        _processor_worker = ProcessorWorker()\n", "        _processor_worker = object()\n        _processor_worker = ProcessorWorker()\n", 1,
+  "poisoned cache: placeholder stored before construction"),
+ ("M6", API, "        processor, embedder_worker = _ingest_workers()\n        # Step 1", "        # Step 1", 1,
+  "(setup) call _ingest_workers outside the try -> raw exception, not HTTP 500"),
+ ("M7", API, "    if _processor_worker is None:\n        _processor_worker = ProcessorWorker()\n", "    _processor_worker = ProcessorWorker()\n", 1,
+  "processor worker not cached (embedder still cached)"),
+ ("M8", API, "    if _embedder_worker is None:\n", "    if True:\n", 1, "embedder worker not cached (processor still cached)"),
+ ("M9", API, "    with _ingest_lock:\n        return _ingest_paper(req)", "    with threading.Lock():\n        return _ingest_paper(req)", 20,
+  "fresh lock per call"),
+ ("M10", WRK, "embedder if embedder is not None else BGEEmbedder(model_name=config.embedding_model)",
+  "BGEEmbedder(model_name=config.embedding_model)", 1, "worker ignores injected model"),
+ ("M11", WRK, "BGEEmbedder(model_name=config.embedding_model)\n", "BGEEmbedder()\n", 1, "worker default path drops model_name"),
+ ("M12", WRK, "embedder if embedder is not None else BGEEmbedder", "embedder or BGEEmbedder", 1,
+  "truthiness instead of None check (expected equivalent for object())"),
+]
+
+def run_tests(root, runs):
+    env = dict(os.environ, PYTHONPATH=f"{H}/stubs:{H}:{root}")
+    fails, first_fail = 0, ""
+    for _ in range(runs):
+        p = subprocess.run([sys.executable, "-m", "pytest", "-p", "qa_stubs", "-p", "no:cacheprovider", "-q", "-rf",
+                            "tests/test_verify.py", "-k", SEL], cwd=root, env=env, capture_output=True, text=True)
+        if p.returncode != 0:
+            fails += 1
+            if not first_fail:
+                first_fail = "; ".join(l[7:].split(" - ")[0].split("::")[-1] + (" - " + l.split(" - ", 1)[1][:90] if " - " in l else "")
+                                       for l in p.stdout.splitlines() if l.startswith(("FAILED", "ERROR")))
+    return fails, first_fail
+
+print(f"{'id':4} {'verdict':8} {'runs':>4} {'failed':>6}  description | failing tests (first failing run)")
+for mid, f, old, new, runs, desc in M:
+    root = tempfile.mkdtemp(prefix=f"qa-ai12-{mid}-")
+    for d in ("services", "scripts", "shared", "tests"):
+        shutil.copytree(os.path.join(APP, d), os.path.join(root, d))
+    if f:
+        path = os.path.join(root, f)
+        src = open(path).read()
+        if src.count(old) != 1:
+            print(f"{mid:4} INVALID  edit target found {src.count(old)}x"); continue
+        if mid == "M6":  # also put the call before the try
+            src = src.replace(old, new).replace("    try:\n        # Step 1", "    processor, embedder_worker = _ingest_workers()\n    try:\n        # Step 1")
+        else:
+            src = src.replace(old, new)
+        open(path, "w").write(src)
+        try:
+            py_compile.compile(path, doraise=True)
+        except py_compile.PyCompileError as e:
+            print(f"{mid:4} INVALID  does not compile: {e.msg[:80]}"); continue
+    fails, ff = run_tests(root, runs)
+    verdict = ("PASS" if fails == 0 else "FAIL") if mid == "M0" else ("KILLED" if fails else "SURVIVED")
+    print(f"{mid:4} {verdict:8} {runs:>4} {fails:>6}  {desc} | {ff or '-'}")
+
+===== ./mutate_lock.py
+"""QA AI-12 AC4 detail: show the assertion diff of the AC4 test under lock mutants (both properties must flip).
+Usage: mutate_lock.py <app_dir> <harness_dir>"""
+import os, shutil, subprocess, sys, tempfile, re
+APP, H = sys.argv[1], sys.argv[2]
+API = "services/embedder/api.py"
+LOCKED = "    with _ingest_lock:\n        return _ingest_paper(req)"
+M = [
+ ("M2", [(LOCKED, "    if True:\n        return _ingest_paper(req)")], "no lock at all"),
+ ("M13", [(LOCKED, "    if True:\n        return _ingest_paper(req)"),
+          ("        processor, embedder_worker = _ingest_workers()\n",
+           "        with _ingest_lock:\n            processor, embedder_worker = _ingest_workers()\n")],
+  "lock only around worker construction, pipeline unlocked"),
+]
+for mid, edits, desc in M:
+    root = tempfile.mkdtemp(prefix=f"qa-ai12-{mid}-")
+    for d in ("services", "scripts", "shared", "tests"):
+        shutil.copytree(os.path.join(APP, d), os.path.join(root, d))
+    p = os.path.join(root, API); s = open(p).read()
+    for o, n in edits:
+        assert s.count(o) == 1, (mid, o); s = s.replace(o, n)
+    open(p, "w").write(s)
+    env = dict(os.environ, PYTHONPATH=f"{H}/stubs:{H}:{root}")
+    tally = {}
+    for _ in range(20):
+        r = subprocess.run([sys.executable, "-m", "pytest", "-p", "qa_stubs", "-p", "no:cacheprovider", "-q",
+                            "tests/test_verify.py", "-k", "concurrent"], cwd=root, env=env, capture_output=True, text=True)
+        diff = re.findall(r"^E\s+(\{'\w+': \S+\} != \{'\w+': \S+\})", r.stdout, re.M)
+        key = ("pass" if r.returncode == 0 else "FAIL, differing: " + (", ".join(diff) if diff else "?"))
+        tally[key] = tally.get(key, 0) + 1
+    print(f"{mid} ({desc}) 20 runs:")
+    for k, v in tally.items():
+        print(f"   {v:2}x {k}")
+
+===== ./qa_stubs.py
+"""pytest plugin: any module that can't be imported becomes a MagicMock module (torch, transformers, kafka, minio...)."""
+import importlib.abc
+import importlib.machinery
+import sys
+from unittest import mock
+
+REAL_ONLY = {"simplejson", "_pytest", "pytest", "pydantic", "numpy", "fastapi", "psycopg", "ulid"}
+
+
+class _Loader(importlib.abc.Loader):
+    def create_module(self, spec):
+        m = mock.MagicMock(name=spec.name)
+        m.__path__ = []
+        m.__spec__ = spec
+        m.__name__ = spec.name
+        return m
+
+    def exec_module(self, module):
+        pass
+
+
+class _Finder(importlib.abc.MetaPathFinder):
+    def find_spec(self, name, path, target=None):
+        if name.split(".")[0] in REAL_ONLY or name.startswith(("services", "scripts", "shared", "tests")):
+            return None
+        for f in sys.meta_path:
+            if f is self:
+                continue
+            try:
+                s = f.find_spec(name, path, target)
+            except Exception:
+                s = None
+            if s is not None:
+                return None
+        return importlib.machinery.ModuleSpec(name, _Loader(), is_package=True)
+
+
+sys.meta_path.append(_Finder())
+
+===== ./stubs/fastapi/__init__.py
+"""QA stub of fastapi: decorators pass through, HTTPException is a real exception."""
+class HTTPException(Exception):
+    def __init__(self, status_code, detail=None):
+        super().__init__(status_code, detail)
+        self.status_code = status_code
+        self.detail = detail
+
+
+class FastAPI:
+    def __init__(self, *a, **k):
+        pass
+
+    def _deco(self, *a, **k):
+        return lambda f: f
+
+    post = get = on_event = _deco
+
+===== ./stubs/psycopg/__init__.py
+"""QA stub of psycopg: the tests monkeypatch connect."""
+def connect(*a, **k):
+    raise RuntimeError("stub psycopg.connect called unpatched")
+
+
+class Connection:
+    pass
+
+===== ./stubs/psycopg/rows.py
+"""QA stub."""
+dict_row = object()
+
+===== ./stubs/ulid/__init__.py
+"""QA stub of ulid-py."""
+import itertools
+_c = itertools.count()
+
+
+def new():
+    return "01QA%022d" % next(_c)
+
+[exit code 0]

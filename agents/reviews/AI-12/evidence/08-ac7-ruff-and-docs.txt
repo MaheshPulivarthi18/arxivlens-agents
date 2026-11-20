@@ -1,0 +1,19 @@
+$ bash -c R='ruff check --isolated --select E,F,W --line-length 130 --output-format concise services/embedder/api.py services/embedder/worker.py tests/test_verify.py'; $R > /tmp/qa-ai12-ruff-head.txt; D=$(mktemp -d); for f in services/embedder/api.py services/embedder/worker.py tests/test_verify.py; do mkdir -p $D/$(dirname $f); git show origin/main:$f > $D/$f; done; (cd $D && $R > /tmp/qa-ai12-ruff-main.txt); echo "head: $(grep -c ': [EFW][0-9]' /tmp/qa-ai12-ruff-head.txt) findings; main: $(grep -c ': [EFW][0-9]' /tmp/qa-ai12-ruff-main.txt) findings"; echo '--- findings at head whose line is an added line (+) in the PR diff:'; n=0; while IFS=: read -r f l rest; do if git blame -L $l,$l --porcelain HEAD -- $f | head -1 | grep -q $(git rev-parse HEAD); then echo "ADDED: $f:$l$rest"; n=$((n+1)); fi; done < <(grep ': [EFW][0-9]' /tmp/qa-ai12-ruff-head.txt); echo "added-line findings: $n"; echo '--- rule codes head vs main (sorted):'; diff <(grep -o ' [EFW][0-9]*' /tmp/qa-ai12-ruff-head.txt | sort) <(grep -o ' [EFW][0-9]*' /tmp/qa-ai12-ruff-main.txt | sort) && echo identical; echo '--- docstring:'; sed -n 5,12p services/embedder/api.py; echo '--- README untouched:'; git diff --stat origin/main...HEAD -- README.md | wc -l
+head: 12 findings; main: 12 findings
+--- findings at head whose line is an added line (+) in the PR diff:
+added-line findings: 0
+--- rule codes head vs main (sorted):
+identical
+--- docstring:
+Endpoints:
+  POST /internal/embed   {"texts": [...], "is_query": bool} -> {"vectors": [[...]]}
+  POST /internal/rerank  {"query": "...", "passages": [...]} -> {"scores": [...]}
+  POST /internal/verify  {"pairs": [{"claim": "...", "passage": "..."}]} -> {"scores": [...]} (P(entailment))
+  POST /internal/ingest  {"arxiv_id": "...", "version": 1, "pdf_storage_key": "..."}
+                         -> {"status", "arxiv_id", "sections", "chunks", "embeddings"} (on-demand chunk + embed of one paper)
+  GET  /healthz          -> {"status": "ok"}
+"""
+--- README untouched:
+0
+
+[exit code 0]

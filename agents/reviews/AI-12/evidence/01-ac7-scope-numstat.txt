@@ -1,0 +1,15 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; git diff --numstat origin/main...HEAD; echo; echo '--- CI Agent ownership check (job 136053169776):'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136053169776/logs | grep -E 'HEAD is now at|Ownership'
+ services/embedder/api.py    |  30 ++++++++-
+ services/embedder/worker.py |   5 +-
+ tests/test_verify.py        | 155 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 186 insertions(+), 4 deletions(-)
+
+28	2	services/embedder/api.py
+3	2	services/embedder/worker.py
+155	0	tests/test_verify.py
+
+--- CI Agent ownership check (job 136053169776):
+2026-11-20T03:05:56.3899879Z HEAD is now at 4d5370c Merge e34ebb98e25684405df86f815fa06c9fbd38e661 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+2026-11-20T03:05:56.4532691Z Ownership OK for role=ai (190 changed lines)
+
+[exit code 0]

@@ -1,0 +1,8 @@
+$ python3 /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/harness/mutate_lock.py /root/wt/qa-AI-12 /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/harness
+M2 (no lock at all) 20 runs:
+   11x FAIL, differing: {'no_overlap': False} != {'no_overlap': True}, {'proc_inits': 2} != {'proc_inits': 1}
+    9x FAIL, differing: {'proc_inits': 2} != {'proc_inits': 1}, {'no_overlap': False} != {'no_overlap': True}
+M13 (lock only around worker construction, pipeline unlocked) 20 runs:
+   20x FAIL, differing: {'no_overlap': False} != {'no_overlap': True}
+
+[exit code 0]

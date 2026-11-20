@@ -1,0 +1,17 @@
+$ python3 /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/harness/mutate.py /root/wt/qa-AI-12 /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/harness
+id   verdict  runs failed  description | failing tests (first failing run)
+M0   PASS       20      0  control: PR head unmodified | -
+M1   KILLED      1      1  build both workers per request (today's main) | test_ingest_builds_each_worker_once - AssertionE...; test_ingest_concurrent_first_requests_build_once_and_do_not_overlap
+M2   KILLED     20     20  remove the (only) lock | test_ingest_concurrent_first_requests_build_once_and_do_not_overlap
+M3   KILLED      1      1  never pass the startup model | test_ingest_embedder_worker_gets_startup_model
+M4   KILLED      1      1  ternary branches swapped | test_ingest_embedder_worker_gets_startup_model
+M5   KILLED      1      1  poisoned cache: placeholder stored before construction |   embedder-api:api.py:378 Error ingesting paper 2608.20331: minio down; test_ingest_failed_worker_construction_is_not_cached
+M6   KILLED      1      1  (setup) call _ingest_workers outside the try -> raw exception, not HTTP 500 | test_ingest_failed_worker_construction_is_not_cached
+M7   KILLED      1      1  processor worker not cached (embedder still cached) | test_ingest_builds_each_worker_once - AssertionE...; test_ingest_concurrent_first_requests_build_once_and_do_not_overlap
+M8   KILLED      1      1  embedder worker not cached (processor still cached) | test_ingest_builds_each_worker_once - AssertionE...; test_ingest_concurrent_first_requests_build_once_and_do_not_overlap
+M9   KILLED     20     20  fresh lock per call | test_ingest_concurrent_first_requests_build_once_and_do_not_overlap
+M10  KILLED      1      1  worker ignores injected model | test_embedder_worker_uses_injected_model - Asser...
+M11  KILLED      1      1  worker default path drops model_name | test_embedder_worker_uses_injected_model - Asser...
+M12  SURVIVED    1      0  truthiness instead of None check (expected equivalent for object()) | -
+
+[exit code 0]

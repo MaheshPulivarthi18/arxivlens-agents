@@ -1,0 +1,5 @@
+$ bash -c p=0; f=0; for i in $(seq 20); do if PYTHONPATH=/tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/harness/stubs:/tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/harness:$PWD python3 -m pytest -p qa_stubs -p no:cacheprovider -q -k ingest tests/test_verify.py >/dev/null 2>&1; then p=$((p+1)); else f=$((f+1)); fi; done; echo "real code: $p/20 pass, $f fail"; PYTHONPATH=/tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/harness/stubs:/tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/harness:$PWD python3 -m pytest -p qa_stubs -p no:cacheprovider -q -k ingest tests/test_verify.py 2>&1 | tail -1
+real code: 20/20 pass, 0 fail
+5 passed, 8 deselected in 0.59s
+
+[exit code 0]

@@ -1,0 +1,17 @@
+$ bash -c PYTHONPATH=/tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/harness/stubs:/tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/harness:$PWD python3 -m pytest -p qa_stubs -p no:cacheprovider -rA tests/test_verify.py -k 'ingest or injected' 2>&1 | tail -14
+tests/test_verify.py ......                                              [100%]
+
+==================================== PASSES ====================================
+_____________ test_ingest_failed_worker_construction_is_not_cached _____________
+------------------------------ Captured log call -------------------------------
+ERROR    embedder-api:api.py:377 Error ingesting paper 2608.20331: minio down
+=========================== short test summary info ============================
+PASSED tests/test_verify.py::test_ingest_builds_each_worker_once
+PASSED tests/test_verify.py::test_ingest_embedder_worker_gets_startup_model
+PASSED tests/test_verify.py::test_ingest_embedder_worker_loads_own_model_without_startup_model
+PASSED tests/test_verify.py::test_embedder_worker_uses_injected_model
+PASSED tests/test_verify.py::test_ingest_concurrent_first_requests_build_once_and_do_not_overlap
+PASSED tests/test_verify.py::test_ingest_failed_worker_construction_is_not_cached
+======================= 6 passed, 7 deselected in 0.60s ========================
+
+[exit code 0]

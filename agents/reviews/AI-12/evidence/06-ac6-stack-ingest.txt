@@ -1,0 +1,13 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136053170077 --jq '"run \(.run_id) head_sha \(.head_sha) status \(.status) conclusion \(.conclusion)", (.steps[] | select(.name|test("Seed|make test-full|Known failure|Diagnostics")) | "  step: \(.name) -> \(.conclusion)")'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136053170077/logs > /tmp/qa-ai12-stack.log; echo '--- job log:'; grep -E 'HEAD is now at|"status":"success".*embeddings|^.{29}[0-9]+ passed' /tmp/qa-ai12-stack.log | cut -c1-260
+run 44665352254 head_sha e34ebb98e25684405df86f815fa06c9fbd38e661 status completed conclusion success
+  step: Seed the M3/M4 fixture (on-demand ingest of 2608.20331) -> success
+  step: AC4: make test-full -> success
+  step: Known failure F1 (CPU rerank latency, tracked) -> success
+  step: Diagnostics -> skipped
+--- job log:
+2026-11-20T03:05:54.9981462Z HEAD is now at 4d5370c Merge e34ebb98e25684405df86f815fa06c9fbd38e661 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+2026-11-20T03:13:53.6290140Z {"status":"success","arxiv_id":"2608.20331","version":1,"title":"G-CARL: Grounded Checklist-Aligned Reward Learning for Patient-Oriented Medical Report Interpretation","sections":69,"chunks":53,"embeddings":53}
+2026-11-20T03:14:43.4117337Z 243 passed, 1 skipped, 3 deselected, 5 warnings in 49.12s
+2026-11-20T03:15:00.4607614Z 3 passed in 16.26s
+
+[exit code 0]
