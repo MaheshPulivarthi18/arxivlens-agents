@@ -8,7 +8,7 @@
 | **Depends on** | **ING-6f #58 merged** (same file; AC6 edits its step). Otherwise none to build. Independence: no open PR touches `.github/workflows/stack.yml` (checked 2026-11-17: #51 docs/evals, #52 `db.yml`/README/CONTRIBUTING/`internal/query/search*`/2 tests, #53 `ci.yml`/Makefile/requirements/Dockerfiles, #54 `rag.go`, #55 `internal/db`, `internal/downloader`, `tests/test_m4_chaos.py`). Don't touch `Makefile` (held by #53) |
 | **Jira** | not created yet (orchestrator: story under epic KAN-3 "Dev harness & infrastructure", labels `task-OPS-H12`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: P2, CI-only, a few lines, no CLI/table/service/contract change |
-| **Status** | Ready to merge: QA PASS r1 + PM APPROVE 2026-11-19 on `89fd583`; PR #63 raised (ready for review), waiting on Mahesh. Specced 2026-11-17 by pm-lead |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#63](https://github.com/MaheshPulivarthi18/ArxivLens/pull/63) → `f9b20a3` (2026-11-19) |
 
 ## Goal
 On a green run, `make test-full` in `stack.yml` runs `pytest -q`, which prints only dots, so no log line names a test. ACs like
@@ -70,3 +70,4 @@ grep -E 'PASSED tests/test_m4_chaos.py::' stack.log
   - Not verifiable locally: AC1, AC2, AC3 (green job), AC6 (RISK1 line + step conclusion) need this PR's `stack.yml` run.
   - Docs: CONTRIBUTING's `stack.yml` row describes triggers and artifacts, not how to read test output, so no follow-up is needed.
 - 2026-11-19 (pm-lead, final review): **APPROVE** on `89fd583` after QA PASS r1 (`agents/reviews/OPS-H12/report.md`, evidence at `547fa15`). All ACs proven by job 135705503227. AC6: the step `conclusion` proves nothing under `continue-on-error` (QA [spec] finding 1). The proof is the `RISK1 ORDER descending` line plus 0 non-zero annotations, which is how the AC should have been worded; lesson recorded. Human check left for Mahesh: the rendered AC4 step summary has no `PASSED` lines.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#63 `f9b20a3`); Status → Done.

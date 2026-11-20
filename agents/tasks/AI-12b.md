@@ -6,9 +6,9 @@
 | **Priority** | P2 |
 | **PRD ref** | Product PRD ING-4 (on-demand ingest) and QA latency rows (§8: `/v1/ask` must not queue behind an ingest); follow-up from the AI-12 QA/PM review (`agents/reviews/AI-12/report.md`: QA nit 2 and the two missing tests, PM follow-up line 90) |
 | **Depends on** | AI-12 (#73, merged `e6cffba`). No open PR touches `tests/test_verify.py` or `services/embedder/` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
-| **Jira** | to create (epic KAN-4 "Continuous ingestion", as for AI-12; labels `task-AI-12b`, `agent-ai`, `arxivlens`) |
+| **Jira** | KAN-80 |
 | **Design required** | no: two tests, no production code, contract, CLI, table or service change |
-| **Status** | Ready to merge — PR [#77](https://github.com/MaheshPulivarthi18/ArxivLens/pull/77) `249ff5d` (QA PASS r1, PM APPROVE r1), waiting for Mahesh |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#77](https://github.com/MaheshPulivarthi18/ArxivLens/pull/77) → `3835dee` (2026-11-20) |
 
 ## Goal
 AI-12 made `/internal/ingest` reuse the startup-loaded embedding model and serialized the whole ingest pipeline under `_ingest_lock`
@@ -106,3 +106,4 @@ nothing in retrieval or answering changes.
 - 2026-11-20 (qa-reviewer): round 1 **PASS** at `249ff5d`. 8/8 mutants killed, CI 6/6 green, 2 nits (not blocking). See `agents/reviews/AI-12b/report.md`.
 - 2026-11-20 (pm-lead): round 1 **APPROVE**. Opened every evidence file 00–08, and each AC is proven by CI with real deps (06, 08) plus QA's mutants (03). PR description rewritten with the Evidence section, PR marked ready for review. Follow-up: the `/internal/rerank` bi-encoder fallback concurrency test went to Backlog as P3, to ride with AI-5. QA nit 1 (a daemon thread can outlive the test after a failure) wasn't worth a rework round.
 - 2026-11-20 08:00Z (pm-lead): the 05:00Z cycle recorded APPROVE but stopped before raising PR #77 (it was still a draft, with an empty Evidence section and PM line). Raised now: description rewritten with per-AC evidence pinned to `1428bfb`/`c5c97d3`, CI 6/6 on `249ff5d`, QA + PM verdicts; marked ready for review (`draft: false` checked by GET); label `ready-to-merge` added. The Backlog follow-up (`/internal/rerank` fallback test, P3, ride with AI-5) is on the board. See the addendum in `agents/reviews/AI-12b/report.md`.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#77 `3835dee`); Status → Done.

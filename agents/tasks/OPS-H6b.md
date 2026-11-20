@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (#15) merged. No open PR touches `internal/kafka/` |
 | **Jira** | [KAN-75](https://maheshsworkspace-42184075.atlassian.net/browse/KAN-75) |
 | **Design required** | no: one guard in a log statement, no contract/CLI/table/service change |
-| **Status** | Ready to merge (PR #72 @ `0fbf4e0`; QA PASS r1, PM APPROVE r1) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#72](https://github.com/MaheshPulivarthi18/ArxivLens/pull/72) → `8cf7251` (2026-11-20) |
 
 ## Goal
 On a clean shutdown (`ctx` cancelled), franz-go's `PollFetches(ctx)` returns a fetch whose only error is `ctx.Err()` on partition -1, and
@@ -72,3 +72,4 @@ no retrieval/answering change.
   **Not run locally:** `go vet`/`go test` (Go 1.24.7 local, go.mod needs 1.25; module downloads from proxy.golang.org blocked by the
   sandbox proxy even with a 1.24 scratch copy). CI's Go job is the source of truth for AC3/AC5 and coverage rows.
 - 2026-11-20 03:25Z (orchestrator): draft PR [#72](https://github.com/MaheshPulivarthi18/ArxivLens/pull/72) @ `0fbf4e0` → CI green → QA PASS r1 (`agents/reviews/OPS-H6b/report.md`) → PM APPROVE r1 (`5192b06`) → raised for review, label `ready-to-merge`. Jira → Ready to merge.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#72 `8cf7251`); Status → Done.

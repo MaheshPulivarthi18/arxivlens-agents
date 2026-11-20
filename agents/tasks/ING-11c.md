@@ -6,9 +6,9 @@
 | **Priority** | P3 |
 | **PRD ref** | Product PRD QA-3 (citations with page); Technical PRD §5; follow-up from ING-11b QA finding 4 (`agents/reviews/ING-11b/report.md`) |
 | **Depends on** | ING-11b (#52, merged `343a1c3`). No open PR touches `tests/test_m2_pipeline.py` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
-| **Jira** | to create (same epic as ING-11b / KAN-59; labels `task-ING-11c`, `agent-ai`, `arxivlens`) |
+| **Jira** | KAN-81 |
 | **Design required** | no: one assertion message in a stack-only test |
-| **Status** | Ready to merge — PR [#78](https://github.com/MaheshPulivarthi18/ArxivLens/pull/78) `1f24fc9` (QA PASS r1, PM APPROVE r1), waiting for Mahesh |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#78](https://github.com/MaheshPulivarthi18/ArxivLens/pull/78) → `cee2543` (2026-11-20) |
 
 ## Goal
 `test_embedded_chunks_have_recorded_start_pages` (`tests/test_m2_pipeline.py:67`) lumps two different failures into one message. A
@@ -84,3 +84,4 @@ AC3, and the AC1/AC2 harness is a scratch script. `make eval`: not run, because 
 - 2026-11-20 08:00Z (pm-lead): round 1 **APPROVE** (first posted in the PR #78 body by the interrupted 05:00Z cycle; recorded in `agents/reviews/ING-11c/report.md` now). Opened every evidence file 00–08. PR #78 was already ready for review with `ready-to-merge`; its evidence URLs are pinned to `7e1d440` (byte-identical blobs), so I left the PR as is.
   - **Follow-up (for the board Backlog; the PR body says it is there, but it wasn't):** ai, P3, fold into the next change to `tests/test_m2_pipeline.py`: fix the 2 pre-existing ruff findings (`2:8 F401` unused `pytest`, `57:1 W293` whitespace on a blank line). Handed to the orchestrator to add to `agents/board.md`.
   - Resolved 08:05Z: the board Backlog line was added by commit `05fc0ac` (the 05:00Z cycle's late record), so PR #78's follow-up claim now holds. No orchestrator action needed.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#78 `cee2543`); Status → Done.

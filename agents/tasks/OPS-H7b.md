@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H7a1 (ArxivLens #62) **and** OPS-H7a2 **merged** (same files `manager.go`/`main.go`; `Reader`) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7b`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Q1, Q5, Q6, Q7 + PM decision (approved 2026-11-07) |
-| **Status** | Ready after OPS-H7a1 (#62) and OPS-H7a2 merge |
+| **Status** | Waiting on OPS-H7a2a (#83, in QA) and [OPS-H7a2b](OPS-H7a2b.md) merging (same `manager.go`/`main.go`). OPS-H7a1 #62 merged `670108e` |
 
 ## Goal
 Repeated `dlq replay --limit N` runs work through a DLQ of any size, each DLQ record resolved once, and records skipped by a filter stay eligible.
@@ -55,3 +55,4 @@ DATABASE_URL=postgres://... KAFKA_BROKERS=localhost:9092 go test -tags integrati
 - 2026-11-08 (pm-lead): AC4 extended from OPS-H7f QA r2 nit 5. OPS-H7f's own tests can't catch a dry-run-only envelope rule (no publisher seam); `fakePublisher` here can.
 - 2026-11-17 (pm-lead): FYI from the ING-6 design gate: ING-6a adds `migrations/000005_crawl_watermarks` (number fixed). OPS-H7b keeps `000004`.
   If ING-6a merges first, `TestRepoMigrationsOrder`'s `want` list is still a prefix check, so list `000001..000004` (adding `000005` is optional).
+- 2026-11-20 13:00Z (pm-lead, sync): OPS-H7a2 is now two PRs: a2a (#83) and a2b (spec OPS-H7a2b.md); this waits for both.

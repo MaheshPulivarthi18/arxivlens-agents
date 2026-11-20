@@ -8,7 +8,7 @@
 | **Depends on** | **ING-6a Done = both ING-6a1 (#57) and ING-6a2 (#56) merged** (6b edits `loop.go` / `loop_test.go` from 6a2 and adds the `*db.DB` → `watermarkStore` compile-time check that needs 6a1's `watermarks.go`). ~~ING-6f verdict `RISK1 ORDER descending`~~ **satisfied 2026-11-17**: `agents/tasks/ING-6f.md` Notes record `RISK1 ORDER descending` (`2611.21608v1` `2026-11-16T18:59:38Z` ≥ `2611.21602v1` `2026-11-16T18:58:55Z`, PR #58 Full stack job 134275963367), confirmed by QA r1/r2 and pm-lead APPROVE (design Risk 1 cleared for this 2-entry sample; ongoing detection via ING-6c `out_of_order`). ING-6f needn't be merged (no shared files). Approved design `docs/design/ING-6.md` §3–§5, PM conditions 4, 5, 7, 8 |
 | **Jira** | to create under KAN-18's epic, `labels = "task-ING-6b"` |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | Ready to merge (PR #60 at `ea3bf32`: QA PASS r1, pm-lead APPROVE 2026-11-19; waiting on Mahesh) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#60](https://github.com/MaheshPulivarthi18/ArxivLens/pull/60) → `76b33b8` (2026-11-19) |
 
 ## Goal
 Make a crawl pass actually publish: emit the selected batch oldest-first, and move each category's watermark only past papers that were
@@ -66,3 +66,4 @@ go test -count=1 ./internal/crawler/   # crawler_test.go unchanged and green
   Follow-ups moved to ING-6c AC11: an M9 test row (cross-listed paper whose first-category publish fails), the `RunOnce` cancel-before-second-category
   assertion, and the doubled `cat:` prefix. Design build note for the dropped `W' > W` guard written in `docs/design/ING-6.md`. PR raised: ready for
   review, label `ready-to-merge`.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#60 `76b33b8`); Status → Done.

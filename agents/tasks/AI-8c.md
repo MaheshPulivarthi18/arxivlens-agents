@@ -8,7 +8,7 @@
 | **Depends on** | **AI-8a merged** (it adds `checkCitationInvariants` to `internal/query/rag_test.go`). Independence at start: no open PR touches `internal/query/synthesis_test.go` |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8c"`), linked to KAN-60 (AI-8a) |
 | **Design required** | no (test-only, 11 added lines, no contract change; covered by `docs/design/AI-8.md` condition 3) |
-| **Status** | Ready to merge (PR [#59](https://github.com/MaheshPulivarthi18/ArxivLens/pull/59), head `dd5dac5`; QA PASS r1, PM APPROVE) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#59](https://github.com/MaheshPulivarthi18/ArxivLens/pull/59) → `d5fc08b` (2026-11-19) |
 
 ## Goal
 The LLM-path tests in `synthesis_test.go` check the same citation invariants as `rag_test.go`. Every citation has
@@ -64,3 +64,4 @@ bash .github/scripts/ownership-check.sh origin/main agent/backend/AI-8c
   [spec] AC1's "before the response's other assertions" can't hold at `TestSynthesisFallsBackToExtractive` L136
   (the err and answer checks share one `if`, and AC2 forbids editing it). Accepted as is. No follow-up for the synthesis-fixture gaps
   (M1/M4/M5); `rag_test.go` already catches them (see the PM review).
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#59 `d5fc08b`); Status → Done.

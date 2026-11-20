@@ -8,7 +8,7 @@
 | **Depends on** | **FE-1 merged** (Vitest harness) and **FE-0 merged** (theme tokens, fonts) and **FE-0b merged** (`ui/tooltip`; split from FE-0 2026-11-19). AI-7 merged (`8406b18`). #46 merged (`cc57474`: new props and `insufficient_evidence`) |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-3"`) |
 | **Design required** | **yes** (short, `docs/design/FE-3.md`: states, copy and component changes; P0) |
-| **Status** | Waiting on dependencies (FE-1, FE-0, FE-0b). Design `docs/design/FE-3.md` can start now: FE-0's design was approved 2026-11-19 (use its tokens, type scale and §6 primitives API) |
+| **Status** | Design may start now (picked 2026-11-20 13:00Z, **design only**); build waits for FE-0b #70 to merge (`ui/tooltip`). FE-1 #68 and FE-0 #69 merged |
 
 ## Goal
 After AI-7, `/v1/ask` can return no answer plus evidence passages and a `refusal_reason`. The UI must show that as a
@@ -76,3 +76,4 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   ReferencesStack visible). Toasts live in `App.jsx`, so a component test can't prove it. (b) Add test rows for `status: "supported"` + `supported: false`
   and for the reserved ADR-0014 statuses (`partially_supported`, `contradicted`): neither may read Supported/Verified. FE-1's tests leave both mutants alive.
   (c) QA re-confirmed the "PostgreSQL pgvector Verified" footer (`SynthesisView.jsx:115`) and the export heading (`:50`) are still on main (AC5).
+- 2026-11-20 13:00Z (pm-lead, sync): FE-1 (#68 `2410d2e`) and FE-0 (#69 `54c4de8`) merged; FE-0b #70 is in QA r3. Picked for the design step only: the developer writes `docs/design/FE-3.md`, pm-lead reviews; no product code until #70 merges (its `ui/tooltip` API is FE-0 design §6). FE-0c's drift guard (AC1) will catch AC8 changing only one of the two default literals.

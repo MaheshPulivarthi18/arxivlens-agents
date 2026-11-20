@@ -1,0 +1,17 @@
+$ bash -c L=/tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/ci/136202882840.log; grep -m1 'HEAD is now' $L | sed 's/\x1b\[[0-9;]*m//g; s/^[0-9-]*T[0-9:.]*Z //'; echo '== step script (dlq list lines):'; sed -n '3680,3720p' $L | grep -n 'dlq list' | sed 's/\x1b\[[0-9;]*m//g; s/^[0-9-]*T[0-9:.]*Z //'; echo '== step output:'; grep -E '=== DLQ Topic' $L | sed 's/\x1b\[[0-9;]*m//g; s/^[0-9-]*T[0-9:.]*Z //'; echo '== make test-full summary:'; grep -E '^\S+ [0-9]+ passed' $L | sed 's/\x1b\[[0-9;]*m//g; s/^[0-9-]*T[0-9:.]*Z //'; echo '== the only ##[error] in the job, and the step it belongs to (continue-on-error Known failure F1, CPU rerank timeout):'; grep -E 'Known failure F1 \(exit|FAILED tests/|##\[error\]' $L | sed 's/\x1b\[[0-9;]*m//g; s/^[0-9-]*T[0-9:.]*Z //' | cut -c1-200
+HEAD is now at e367729 Merge 9bcd07e46f2bcdef21369a0d9734919cc318078c into 3835dee2375b28f1b66612b64d8c6f92f3e9fda4
+== step script (dlq list lines):
+9:2026-11-20T09:35:52.5297128Z     for t in papers.discovered.dlq papers.downloaded.dlq papers.chunked.dlq; do ./bin/arxivlens dlq list --topic "$t"; done
+20:2026-11-20T09:35:52.5303496Z   ./bin/arxivlens dlq list --topic "$t"
+== step output:
+=== DLQ Topic: papers.discovered.dlq (Total: 0) ===
+=== DLQ Topic: papers.downloaded.dlq (Total: 0) ===
+=== DLQ Topic: papers.chunked.dlq (Total: 0) ===
+== make test-full summary:
+246 passed, 1 skipped, 3 deselected, 5 warnings in 78.70s (0:01:18)
+== the only ##[error] in the job, and the step it belongs to (continue-on-error Known failure F1, CPU rerank timeout):
+  echo "### Known failure F1 (exit $rc; expected to fail on CPU runners until the F1 follow-up lands)"; echo '```'
+FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+##[error]Process completed with exit code 2.
+
+[exit code 0]

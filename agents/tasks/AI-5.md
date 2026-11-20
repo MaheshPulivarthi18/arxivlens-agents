@@ -74,3 +74,4 @@ make eval   # when infra is available
   `Rerank` (the extractive answer's `extractor`) and no LLM call. `TestAskResponseShapeAndConstructor` now also covers `answer_kind`/
   `synthesis_available`. `EarlyRefusalThreshold` still exists (`rag.go:21`). This ticket and AI-8 both edit `rag.go` and its tests, so they can't
   run in parallel. Whichever starts second rebases. No question beyond ADR-0011 itself.
+- 2026-11-20 13:00Z (pm-lead, sync): AI-8b (#65) merged, so `rag.go` no longer queues; the only blocker is ADR-0011 (still Proposed).

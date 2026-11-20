@@ -8,7 +8,7 @@
 | **Depends on** | RET-1 (#9, merged `bb9ee90`). No open PR touches `internal/query/search.go` or `search_test.go` (re-checked 2026-11-20 04:00Z; #65 changes `rag.go`/`rag_test.go` in the same package, different files) |
 | **Jira** | KAN-78 (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1b`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one more fallback condition on an existing branch plus test rows; HTTP response shape unchanged |
-| **Status** | Ready to merge (PR #75 raised 2026-11-20; QA PASS r1, PM APPROVE r1) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#75](https://github.com/MaheshPulivarthi18/ArxivLens/pull/75) → `b81a66f` (2026-11-20) |
 
 ## Goal
 `rerankAndSort` falls back to RRF order when the reranker errors, times out, is cancelled, returns the wrong count or a NaN. Two
@@ -80,3 +80,4 @@ reranker returning ±Inf doesn't occur on the eval stack (scores are finite), so
   (b) `IsInf(x,1)` → `-Inf` FAIL; (c) Canceled case removed → `canceled` FAIL; (d) Inf reason "NaN score" → both Inf rows FAIL.
   AC6 (CI Go job, lint-go, stack.yml) is for CI to verify once the PR is open.
 - 2026-11-20 (pm-lead): Final review **APPROVE** (`agents/reviews/RET-1b/report.md`). PR #75 description rewritten with Evidence, marked ready for review. The ±Inf fall-back choice is flagged in the PR for Mahesh to override. Follow-ups on the Backlog: server.go `Encode` error handling, optional NaN+Inf/MaxFloat32 rows, PRD §7.1 note (existing line). ADR-0010 wording is a note for Mahesh, not edited.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#75 `b81a66f`); Status → Done.

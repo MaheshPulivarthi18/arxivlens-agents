@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H14 (#71, merged `1b443f5`; it was the last open PR on `ci.yml`). No open PR touches `.github/workflows/ci.yml` (checked 2026-11-20 08:00Z against #65, #66, #68, #69, #70, #76, #77, #78, #79 via REST) |
 | **Jira** | KAN-83 |
 | **Design required** | no: one CI step's environment, no production code, contract, CLI, table or service change |
-| **Status** | Ready to merge (PR #80; QA PASS r2, PM APPROVE 2026-11-20) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#80](https://github.com/MaheshPulivarthi18/ArxivLens/pull/80) → `c37d27c` (2026-11-20) |
 
 ## Goal
 Every Go package has concurrent code (limiter, consumer, crawler loop, rerank fallback, LLM client), but CI's `make test-go` step runs
@@ -89,3 +89,4 @@ run, nothing in retrieval or answering changes. `stack.yml` does not trigger on 
   merge); #65's `rag.go`/`rag_test.go` haven't run under `-race` yet. Not blocking: the PR body asks Mahesh to "Update branch" before merging,
   and `ci.yml`'s `push: main` trigger covers it after merge anyway. A race found there → follow-up for the owning package, not a change here.
   PR #80 raised (ready for review, label `ready-to-merge`).
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#80 `c37d27c`); Status → Done.

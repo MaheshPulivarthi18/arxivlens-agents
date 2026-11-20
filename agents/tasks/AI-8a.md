@@ -8,7 +8,7 @@
 | **Depends on** | ADR-0014 Accepted ✅, QA-8 delivered (#46 `cc57474`) ✅, RET-2 merged (`6cfd836`) ✅. **Design approved with conditions**: `docs/design/AI-8.md`, PM decision 2026-11-17. Not a dependency: ADR-0018 (Proposed), ING-11b (`page` is tested with hand-built hits). Independence at start: no open PR touches `internal/query/rag.go`, `rag_test.go` or `synthesis_test.go` (cycle 2026-11-17: ING-11b, EVAL-4 and OPS-H2 don't) |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8a"`), linked to the AI-8 story |
 | **Design required** | yes, done: `docs/design/AI-8.md` (approved, conditions 1–8). No further design. |
-| **Status** | Ready to merge: QA r3 PASS + PM APPROVE (2026-11-17) @ `990aa5a`, PR #54 raised for review |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#54](https://github.com/MaheshPulivarthi18/ArxivLens/pull/54) → `12e9c82` (2026-11-19) |
 
 ## Goal
 Every `/v1/ask` citation, in both answers and refusal evidence, says whether it was checked and passed, checked and failed,
@@ -151,3 +151,4 @@ gh workflow run eval.yml --ref agent/ai/AI-8a   # AC7, then read the job log's g
   on `main` after merge, compared in **AI-8b AC9** (amended, with a stop-and-report rule). Mahesh can optionally dispatch
   `gh workflow run eval.yml --ref agent/ai/AI-8a` before merging (listed in the PR). PRD QA-4 note correction goes to the pending
   pm-lead PRD docs PR.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#54 `12e9c82`); Status → Done.

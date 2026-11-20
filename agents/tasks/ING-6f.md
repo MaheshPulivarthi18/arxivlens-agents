@@ -8,7 +8,7 @@
 | **Depends on** | none to build. Independence (checked 2026-11-17): no open PR touches `.github/workflows/stack.yml` (#51–#57: docs/evals, `db.yml`, `ci.yml`/Makefile, `rag.go`, `internal/db`/`internal/downloader`, `internal/crawler/loop*.go`, `migrations/000005_*`). **Not in parallel with OPS-H12** (same file): ING-6f goes first (P1); OPS-H12 starts after this PR merges or rebases on it |
 | **Jira** | not created yet (orchestrator: story under KAN-18's epic, `labels = "task-ING-6f"`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: CI-only, ~25 lines, no CLI/table/service/contract change, informational (not a gate) |
-| **Status** | Ready to merge (PR #58 raised 2026-11-17 at `61e44e1`: QA r2 PASS, pm-lead APPROVE). Risk 1 verdict `descending` recorded below |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#58](https://github.com/MaheshPulivarthi18/ArxivLens/pull/58) → `8b55af2` (2026-11-19) |
 
 ## Goal
 Answer ING-6 design Risk 1 from data before ING-6b is built. The only committed feed (`internal/crawler/testdata/arxiv_feed.xml`) is a
@@ -109,3 +109,4 @@ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/<full stack job id>/logs 
   follow-up (arXiv always emits fixed-width `YYYY-MM-DDTHH:MM:SSZ`; the probe is informational and ING-6c's Go `out_of_order` uses parsed times).
   Main-scoped replay cache seed: Backlog candidate **OPS-H13** (PROGRESS 2026-11-17 pm-lead ING-6f entry), not specced now: §9's rate rule is
   met on every recording run. **Risk 1 verdict `descending` satisfies ING-6b's ING-6f precondition**; ING-6b still waits on #56 + #57 merged.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#58 `8b55af2`); Status → Done.

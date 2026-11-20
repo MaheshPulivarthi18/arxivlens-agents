@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (Done, #15), ING-10 (Done, #31: the downloader uses the envelope's version), OPS-H10 (Done, #26: `stack.yml` runs on Go/`tests/` PRs). No ADR: no schema, event or HTTP contract change |
 | **Jira** | new story under epic KAN-3 "Dev harness & infrastructure" (`labels = "task-OPS-H11"`), like OPS-H6 (KAN-28) |
 | **Design required** | no: P1, two Go packages + one test file, no new CLI/table/service, no shared-contract change |
-| **Status** | Ready to merge (PR [#55](https://github.com/MaheshPulivarthi18/ArxivLens/pull/55) @ `2039650`: QA r1 PASS, PM APPROVE 2026-11-17, raised for Mahesh; specced 2026-11-17 13:00Z by pm-lead) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#55](https://github.com/MaheshPulivarthi18/ArxivLens/pull/55) → `52e473c` (2026-11-19) |
 
 ## Goal
 Today `Downloader.HandleRecord` always runs `UpdatePaperDownloaded`, which sets `status = 'downloaded'`, and then re-publishes
@@ -95,3 +95,4 @@ make lint
   `-rA` in `stack.yml` only). Finding 2 [nit], no task: on a dev stack where `raw/<id>_v<N>.pdf` was deleted from MinIO, the new real-stack test
   makes one arXiv fetch and then fails on `updated_at`. That's a loud failure, never a false pass; re-crawl the paper first. PRD OPS-4 note goes in
   pm-lead's next `docs/` PR. PR #55 description rewritten with evidence and marked ready for review.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#55 `52e473c`); Status → Done.

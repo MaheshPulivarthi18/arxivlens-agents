@@ -8,7 +8,7 @@
 | **Depends on** | ING-9 (Done `2b71772`), #45 (merged `393bcf3`: `arxiv.GetAPI`, `DefaultRetry`, `ARXIV_API_URL`). Approved design `docs/design/ING-6.md` (PM decision 2026-11-17, conditions 1–10). No open PR touches its files |
 | **Jira** | to create under KAN-18's epic, `labels = "task-ING-6a"` |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | Ready to merge (both parts raised; Done when **both** merge, see Done rule): **ING-6a2** = [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) @ `3f8e903`: QA r1 FAIL → rework r1 → QA r2 PASS, PM APPROVE 2026-11-17, raised (Ready to merge); **ING-6a1** = [#57](https://github.com/MaheshPulivarthi18/ArxivLens/pull/57) @ `c86bd5a`: QA r1 PASS, PM APPROVE 2026-11-17, raised (Ready to merge) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#57](https://github.com/MaheshPulivarthi18/ArxivLens/pull/57) → `6586cc6` (2026-11-19) and [#56](https://github.com/MaheshPulivarthi18/ArxivLens/pull/56) → `437466f` (2026-11-19) |
 
 ## Goal
 Land the pure, unit-testable half of the scheduled crawler: where the watermark lives, how it only moves forward, and how a run decides which
@@ -132,3 +132,4 @@ git diff --stat origin/main   # only the six new files
   section). QA r2 PASS; round-1 findings 1–4 are closed and proven by mutants (r2-06), and all 6 CI checks are green. AC1–AC5, AC8, AC9 (2 files) and AC10 (as decided)
   are met. Size 426 > 400 target, < 480 gate: accepted, the +28 are the rework test rows. PR description rewritten with the Evidence section and the AC10
   values + ING-6f hand-off, marked ready for review. ING-6a is Done when #56 and #57 both merge.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#57 `6586cc6`, #56 `437466f`); Status → Done.

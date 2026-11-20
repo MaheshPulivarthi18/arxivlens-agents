@@ -1,0 +1,32 @@
+$ bash -c L=/tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/ci/136202883013.log; grep -m1 'HEAD is now' $L | sed 's/\x1b\[[0-9;]*m//g; s/^[0-9-]*T[0-9:.]*Z //'; sed -n '/Run make lint-go/,/Run go test -race -count=1 -v -coverprofile=c.out/p' $L | sed 's/\x1b\[[0-9;]*m//g; s/^[0-9-]*T[0-9:.]*Z //' | grep -v '^\s*$' | cut -c1-180; echo '...'; grep -E 'Run make build|##\[error\]|Process completed with exit code' $L | sed 's/\x1b\[[0-9;]*m//g; s/^[0-9-]*T[0-9:.]*Z //'; echo "== '##[error]' lines: $(grep -c '##\[error\]' $L); '--- FAIL' lines: $(grep -c -- '--- FAIL' $L)"
+HEAD is now at e367729 Merge 9bcd07e46f2bcdef21369a0d9734919cc318078c into 3835dee2375b28f1b66612b64d8c6f92f3e9fda4
+##[group]Run make lint-go
+make lint-go
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go vet ./...
+##[group]Run make test-go
+make test-go
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go test ./...
+?   	arxivlens/cmd/arxivlens	[no test files]
+ok  	arxivlens/internal/arxiv	1.553s
+ok  	arxivlens/internal/config	0.004s
+ok  	arxivlens/internal/crawler	0.100s
+ok  	arxivlens/internal/db	0.006s
+ok  	arxivlens/internal/dlq	0.277s
+ok  	arxivlens/internal/downloader	0.108s
+ok  	arxivlens/internal/kafka	0.052s
+ok  	arxivlens/internal/llm	0.778s
+ok  	arxivlens/internal/llm/llmtest	0.111s
+ok  	arxivlens/internal/query	0.345s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+##[group]Run go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go
+...
+##[group]Run make build-go
+== '##[error]' lines: 0; '--- FAIL' lines: 0
+
+[exit code 0]

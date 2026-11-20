@@ -8,7 +8,7 @@
 | **Depends on** | **AI-8 merged** (claims + provenance JSON; design stage now), **FE-3 merged** (same components), **FE-1 merged** (harness), **FE-0 merged** (theme) and **FE-0b merged** (`ui/popover`, `ui/collapsible`; split 2026-11-19). ADR-0014 Accepted. ING-11b for real `page` values (fixtures suffice for tests) |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-4"`) |
 | **Design required** | **yes** (`docs/design/FE-4.md`: layout, states, interaction; P0) |
-| **Status** | Waiting on dependencies (AI-8, FE-3, FE-1, FE-0, FE-0b). Not ADR-blocked: ADR-0014 was Accepted 2026-11-07 |
+| **Status** | Waiting on FE-3 and FE-0b (#70). AI-8b #65, FE-1 #68, FE-0 #69 merged. Not ADR-blocked (ADR-0014 Accepted) |
 
 ## Goal
 Let a researcher check any statement in an answer in one or two clicks: see whether it was supported, unsupported or
@@ -48,3 +48,4 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   primitives: `ui/popover` for an `[n]` preview (paper title, section, status, on hover/focus) and `ui/collapsible` to expand the full passage
   on a dense reference card. AC2 still holds: Enter/click on `[n]` focuses the card, and the popover is extra help that must not trap focus.
   Status chips use the FE-0 status tokens, with *not checked* distinct from *unsupported*.
+- 2026-11-20 13:00Z (pm-lead, sync): AI-8b (#65 `d121a68`), FE-1, FE-0 merged; still needs FE-3 and FE-0b.

@@ -8,7 +8,7 @@
 | **Depends on** | **AI-11 merged** (`68a57a9`, and ING-11 `d3f9408`), **RET-2 merged** (`6cfd836`). Independence check at start: no open PR touches `internal/query/search*.go`, `.github/workflows/db.yml`, `tests/test_evals_data.py`, `tests/test_m2_pipeline.py`, the README API table's `/v1/search` row or `CONTRIBUTING.md:23` (cycle 2026-11-17: no open PRs; OPS-H7a and OPS-H9 also edit `db.yml`, so neither runs alongside this) |
 | **Jira** | KAN-59 (story under epic KAN-1, labels `task-ING-11b`, `agent-backend`, `arxivlens`; linked KAN-55) |
 | **Design required** | yes, **covered by the approved `docs/design/ING-11.md`** (decision 6, part b; PM conditions 4, 5, 6, 9). No new design round |
-| **Status** | **Ready to merge** (2026-11-17): ArxivLens [#52](https://github.com/MaheshPulivarthi18/ArxivLens/pull/52) @ `706e43e` (KAN-59), QA PASS r1, PM APPROVE; raised for Mahesh. Branch `agent/backend/ING-11b` |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#52](https://github.com/MaheshPulivarthi18/ArxivLens/pull/52) → `343a1c3` (2026-11-19) |
 
 ## Goal
 After ING-11 and AI-11, the processor stores each chunk's real start page in `paper_chunk_pages`. This part returns it from
@@ -109,3 +109,4 @@ python3 -m pytest -q tests/test_evals_data.py::test_rrf_pool_sql_mirrors_search_
   - Missing-tests note (`-rA` for test-full): already on the board Backlog (OPS-H8 follow-up), not duplicated.
   - Added `evidence/pm-02b-AC3-page-values.png`, rendered from QA's committed `02-…txt`, because the `02` PNG cuts the PROVENANCE lines before `page=`.
   - After merge (pm-lead): Technical PRD §5/§6.2 docs PR (the `page` source). Board Backlog line for the `CONTRIBUTING.md:23` fix: done by this PR.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#52 `343a1c3`); Status → Done.

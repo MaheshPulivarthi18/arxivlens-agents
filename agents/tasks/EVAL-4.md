@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-3 merged (`122eee3`) **and a completed green run**: nightly `eval.yml` run [43902662193](https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/43902662193) on `main` `40dec5a` (2026-11-16, job 133423130747, `GATE: PASS`). EVAL-6 (`1273a3b`) and AI-7 (`8406b18`) are both in that SHA |
 | **Jira** | not created yet (orchestrator: story under epic "Retrieval & answer quality gates", labels `task-EVAL-4`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: docs-only change in `evals/` + one README line |
-| **Status** | **Ready to merge**: PR [#51](https://github.com/MaheshPulivarthi18/ArxivLens/pull/51) @ `156c394`, QA PASS r2, PM APPROVE 2026-11-17 ([report](../reviews/EVAL-4/report.md)); raised for Mahesh |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#51](https://github.com/MaheshPulivarthi18/ArxivLens/pull/51) → `31e2fad` (2026-11-19) |
 
 ## Goal
 `evals/BASELINE.md` is the reference every "`make eval` doesn't regress" check compares against, and it still says "not
@@ -90,3 +90,4 @@ git diff --stat origin/main   # evals/BASELINE.md, evals/README.md, README.md on
   log names the case. Optional human check in the PR: read `answers.cases` in artifact 14247998742 before 2026-12-16. QA nit 3 done (all refusal
   numbers are in the PR description). PRD §8 drift (Recall@5 "sorts by rerank score", "Technical PRD §9 (Proposed)") goes to the pending pm-lead PRD docs PR.
   PR description rewritten with Evidence and marked ready for review. **Orchestrator:** board → Ready to merge; add EVAL-10 to the backlog.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#51 `31e2fad`); Status → Done.

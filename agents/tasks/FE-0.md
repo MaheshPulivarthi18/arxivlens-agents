@@ -8,7 +8,7 @@
 | **Depends on** | none. ArxivLens #64 (`085183e`) and #67 (`4c7d327`), which added the Radix, sonner, fontsource and typography packages, are merged. Independent of FE-1 (disjoint files, see Scope) |
 | **Jira** | story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-0"`) |
 | **Design required** | **yes**: `docs/design/FE-0.md` (palette with HSL values and contrast ratios, type scale, primitives API, theme toggle behaviour). pm-lead approves before any code |
-| **Status** | Rework r1 (PM CHANGES, reopened after QA F1 on #70): [ArxivLens #69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69) draft, head `dcb5420`, awaiting QA r2. Split: the six other primitives are [FE-0b](FE-0b.md) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69) → `54c4de8` (2026-11-20) |
 
 ## Goal
 Mahesh asked for a "classic UI, think like a pro". Give ArxivLens the look of a research tool (arXiv, Semantic Scholar,
@@ -182,3 +182,4 @@ npm run build && npx vite preview --port 4173 &   # then playwright: light + dar
   `bg|text|border|ring|ring-offset|divide|accent-*` token class in `frontend/src` against the config keys and every `--var` in `index.css`;
   `popover` was the only unmapped one (border, input, ring, background, foreground, primary, secondary, destructive, muted, accent, card,
   supported, unsupported, unchecked were all mapped). Checklist: [x] 1 map popover + audit. [ ] 2 QA r2 runs the classes through Tailwind.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#69 `54c4de8`); Status → Done.

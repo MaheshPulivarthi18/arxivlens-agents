@@ -1,0 +1,23 @@
+$ bash -c L=/tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/ci/136202882949.log; sed -n '/Run .github\/scripts\/ownership-check.sh/,$p' $L | sed 's/\x1b\[[0-9;]*m//g; s/^[0-9-]*T[0-9:.]*Z //' | grep -v '^\s*$' | head -20
+##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+.github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+shell: /usr/bin/bash -e {0}
+env:
+  HEAD_REF: agent/backend/OPS-H7a2
+  BASE_REF: main
+##[endgroup]
+##[warning]409 changed lines (> 400). Consider splitting the change.
+Ownership OK for role=backend (409 changed lines)
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.1
+Temporarily overriding HOME='/home/runner/work/_temp/a309ea39-48d1-40b9-a231-1b872c5c7683' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ArxivLens/ArxivLens
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+
+[exit code 0]

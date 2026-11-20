@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1 (merged `71cb609`). No open PR on `requirements*.txt`, `Makefile`, `ci.yml` or the two Dockerfiles (none in cycle 2026-11-17) |
 | **Jira** | KAN-14 (epic KAN-3) |
 | **Design required** | no: P1 build plumbing, no contract change |
-| **Status** | Ready to merge (PR #53 raised 2026-11-17 at head `95ea3bb`; QA PASS r1, PM APPROVE r1) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#53](https://github.com/MaheshPulivarthi18/ArxivLens/pull/53) → `a5be0e1` (2026-11-19) |
 
 ## Goal
 Setup currently needs `pip install -r requirements-m0.txt minio ulid-py fastapi uvicorn` (plus `opentelemetry-sdk` in `make setup-py`),
@@ -58,3 +58,4 @@ grep -rnE "minio ulid-py|ulid-py fastapi" . --exclude-dir=.git --exclude-dir=nod
 - 2026-11-17 (pm-lead, final review): **APPROVE** → PR #53 raised (ready for review), see `agents/reviews/OPS-H2/report.md`. QA finding 1 (shim omits pytest)
   accepted as specced: the old public instruction was runtime-only (run workers and API) and still works. Follow-up after merge (pm-lead):
   a `rules/` PR to update `agents/area-notes/services.md:9` to `make setup-py`, plus a `docs/` PR to mark the Technical PRD §11 "Unify Python deps" row done.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#53 `a5be0e1`); Status → Done.

@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-6 merged (report-only metrics, done). Tests go in `tests/test_evals_data.py`, which open PR #52 (ING-11b) also changes, so **start only after #52 merges** (file-overlap rule), or put the new tests in a new file `tests/test_evaluate_answers_ids.py` and start now |
 | **Jira** | KAN-69 |
 | **Design required** | no: report-only output, no gate, threshold or contract change |
-| **Status** | Ready to merge (PR #61, QA PASS r1, PM APPROVE 2026-11-19) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#61](https://github.com/MaheshPulivarthi18/ArxivLens/pull/61) → `d64c56d` (2026-11-19) |
 
 ## Goal
 Nightly `eval.yml` run 43902662193 refused 1 of 22 in-corpus answer-set questions (`In-corpus refused : 4.55%`) and answered 3 of 15
@@ -58,3 +58,4 @@ once the PR merges, but this isn't a PR AC.
   [spec] The ruff command had no line length; repo convention is `--isolated --line-length 130`. Follow-up **EVAL-10a**
   (error-outcome tests, P3). The `make lint` Python target (AI-11 follow-up (a)) is still unspecced; there are 63 pre-existing findings
   at 130, so it needs grooming. PR #61 raised (description has evidence, ready for review); waiting on Mahesh.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#61 `d64c56d`); Status → Done.

@@ -8,7 +8,7 @@
 | **Depends on** | LLM-1b (#27, merged `70b0afe`). No open PR touches `internal/llm/` (re-checked 2026-11-20 04:00Z against #65–#73 via REST) |
 | **Jira** | KAN-77 (epic KAN-1 "Grounded LLM answers"; labels `task-LLM-1c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: two fixed-string branches in one private helper; no contract, CLI, table or service change |
-| **Status** | Ready to merge (PR [#74](https://github.com/MaheshPulivarthi18/ArxivLens/pull/74) `de27269`; QA PASS r1, PM APPROVE r1; waiting on Mahesh) |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#74](https://github.com/MaheshPulivarthi18/ArxivLens/pull/74) → `929e908` (2026-11-20) |
 
 ## Goal
 When `LLM_BASE_URL` points at an HTTPS endpoint and TLS fails (untrusted/invalid certificate, or the peer doesn't speak TLS), the
@@ -83,3 +83,4 @@ retrieval/answering change (only an error string on a failure path).
   `TestNoSecretLeaks` (as the developer found), and AC3 now says so. QA nit 1 (the `` `\r\n` `` raw-string in the handshake row's `absent`
   list) is not blocking; it is a Backlog line in `agents/board.md` (fold into the next `internal/llm` test change). PR raised with
   the Evidence section and marked ready for review.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#74 `929e908`); Status → Done.

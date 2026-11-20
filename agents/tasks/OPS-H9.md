@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H1, OPS-H5, EVAL-5 (merged). **EVAL-3 merged** (it may touch `docker-compose.yml` and `CONTRIBUTING.md`). Start when no open PR changes `.github/workflows/db.yml`, `docker-compose.yml` or `CONTRIBUTING.md` (README is out of scope since 2026-11-19). |
 | **Jira** | new story under epic KAN-3 "Dev harness & infrastructure" (`labels = "task-OPS-H9"`) |
 | **Design required** | no: P2 CI changes, no contract change |
-| **Status** | Ready (EVAL-3 merged `122eee3`; OPS-H10 merged; OPS-H7a1 #62 merged). Must not run alongside ING-6c (both edit `.github/workflows/db.yml`). Picked for cycle 2026-11-19 18:00Z alongside AI-8b |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#66](https://github.com/MaheshPulivarthi18/ArxivLens/pull/66) → `050904d` (2026-11-20) |
 
 ## Goal
 Three 2026-11-07 merge-review follow-ups that each could make CI pass or fail for the wrong reason:
@@ -76,3 +76,4 @@ gh run list --workflow <digest-check workflow> --branch agent/backend/OPS-H9 --l
   minio and pgvector; the zero-digest self-test got `not found` for all three; actionlint printed no findings), DB 135888302417, Full stack 135888299617,
   Go 135888301278, Python M0 135888301352, Frontend 135888300318, ownership 135888300961. Not covered in r1: QA nit 5 (`version_ge` on non-numeric input)
   and [spec] 6 (pm-lead answered it in the note above).
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#66 `050904d`); Status → Done.

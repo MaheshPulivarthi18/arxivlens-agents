@@ -8,7 +8,7 @@
 | **Depends on** | ING-6b **merged**; #51 and #52 **merged** (README, `db.yml`); **OPS-H9 merged** (`db.yml`; AC8 documents its pgvector pin); no open PR on `cmd/arxivlens/main.go` (OPS-H7b also edits it), `.github/workflows/stack.yml`, `.github/workflows/db.yml` or `README.md` when the build starts. Approved design `docs/design/ING-6.md`, PM conditions 3, 6, 7, 9 and answer 3 |
 | **Jira** | to create under KAN-18's epic, `labels = "task-ING-6c"` |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | Blocked (ING-6b, #51, #52 not merged) |
+| **Status** | Waiting on #83 (OPS-H7a2a edits `cmd/arxivlens/main.go`) and then on OPS-H7a2b (same `main.go` + `README.md`). Every other dependency is merged: ING-6b #60 `76b33b8`, #51, #52, OPS-H9 #66 `050904d`, #65/#69 (README) |
 
 ## Goal
 Ship the user-facing command and prove on the real stack the PRD row: a second run with no new papers emits zero `papers.discovered` events, and a
@@ -93,3 +93,4 @@ DATABASE_URL=postgres://... go test -tags integration -count=1 -v -run '^(TestAd
   untested) is already covered by AC3's `stack.yml` log lines. Scope gains `internal/crawler/loop.go` + `loop_test.go`. Size about 220 + 25 + 40 ≈ 285.
 - 2026-11-19 18:00Z (pm-lead, plan): AC8 gains OPS-H9's one-line README prerequisite (pgvector ≥ 0.8.0), so OPS-H9 can run beside AI-8b
   without touching README. This task already waits for OPS-H9 to merge (both edit `db.yml`). New dependency: OPS-H9 merged. ~+1 line.
+- 2026-11-20 13:00Z (pm-lead, sync): ING-6b (#60), #51, #52, OPS-H9 (#66) and the README PRs #65/#69 are merged; the only remaining blocker is the shared `cmd/arxivlens/main.go` with open #83, then OPS-H7a2b (README + main.go). Not startable this cycle.

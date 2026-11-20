@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H7f **merged** (`5e557bc`). OPS-H10 #26 **merged** (`54cad79`). RET-2 merged (`6cfd836`), so the README sequencing is moot. Must not run alongside another task that edits `.github/workflows/db.yml` (ING-11b, OPS-H9) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7a`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07) |
-| **Status** | Ready to merge (OPS-H7a1 slice, PR #62 @ `d420463`): QA PASS + PM APPROVE 2026-11-19. AC1, AC3/AC4 CLI halves, AC5 and Docs moved to [OPS-H7a2](OPS-H7a2.md) |
+| **Status** | **Done (a1 slice)**: ArxivLens [#62](https://github.com/MaheshPulivarthi18/ArxivLens/pull/62) → `670108e` merged 2026-11-19. The rest moved to [OPS-H7a2](OPS-H7a2.md) (a2a #83 in QA) and [OPS-H7a2b](OPS-H7a2b.md) |
 
 ## Goal
 An operator can list every record in a DLQ up to the end of the topic, page by page, and see each record's `partition/offset` so they can resume.
@@ -75,3 +75,4 @@ KAFKA_BROKERS=localhost:9092 go test -tags integration -count=1 -v ./internal/dl
   AC1, the `List`/exit-code half of AC3, the print half of AC4, AC5, Docs, `var _ Reader` and the missing-topic CLI decision go to **OPS-H7a2** (`agents/tasks/OPS-H7a2.md`).
   `internal/dlq/kafka_test.go` is accepted in scope (QA finding 3). The design deviations are recorded in `docs/design/OPS-H7.md` "Build notes (a1)". This ticket
   closes when #62 merges. The OPS-2 operator outcome lands with OPS-H7a2.
+- 2026-11-20 13:00Z (pm-lead, sync): #62 merged `670108e`; Status → Done (a1 slice).

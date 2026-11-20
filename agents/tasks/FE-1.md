@@ -8,7 +8,7 @@
 | **Depends on** | ArxivLens #64 (`085183e`) and #67 (`4c7d327`): test devDependencies + lockfile, merged |
 | **Jira** | story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-1"`) |
 | **Design required** | no |
-| **Status** | In QA: draft PR [#68](https://github.com/MaheshPulivarthi18/ArxivLens/pull/68), head `50f1963`, CI green |
+| **Status** | **Done**: merged by Mahesh, ArxivLens [#68](https://github.com/MaheshPulivarthi18/ArxivLens/pull/68) → `2410d2e` (2026-11-20) |
 
 ## Goal
 Give the frontend agent a fast feedback loop and lock down the states that carry the product's trust promise.
@@ -74,3 +74,4 @@ git diff origin/main -- frontend/package.json               # only "scripts" lin
   - Also added a11y labels: `role="article"` + aria-label on citation cards, per-citation labels on Open PDF and Copy BibTeX, and a "Research question" label on the HeroSearch input.
   - Follow-up candidates: (1) SynthesisView still shows a static "PostgreSQL pgvector Verified" footer on refusals (§7 honest refusals). (2) CI's `npm run | grep -q " test"` logs a harmless `npm error` (EPIPE) in the test step (backend owns ci.yml).
   - Jira KAN-19: no Atlassian tools in this session, so I didn't transition the story or comment; pm-lead should move it to In QA and link #68.
+- 2026-11-20 13:00Z (pm-lead, sync): merged (#68 `2410d2e`); Status → Done.
