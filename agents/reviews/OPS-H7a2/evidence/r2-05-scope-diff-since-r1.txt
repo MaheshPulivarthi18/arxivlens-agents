@@ -1,0 +1,37 @@
+$ bash /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/tools/scope-r2.sh
+== PR head 9bcd07e, base 3835dee, commits:
+9bcd07e OPS-H7a2: test page boundaries at a partition's end (QA r1 finding 1, 2)
+1ae23bd OPS-H7a2: trim manager_test fake (under the 400-line target)
+371ff06 OPS-H7a2: Manager.List pages to the start-time high watermark with P/O cursors (a2a half)
+94db799 OPS-H7a2: skeleton (Manager.List, Cursor, Page, ListOptions; size gate)
+
+== what changed since QA round 1 (1ae23bd..HEAD):
+ internal/dlq/manager_test.go | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+  changed lines that are not new table-row names: 6
+
+== git diff --stat base..head
+ cmd/arxivlens/main.go                  |   6 +-
+ internal/dlq/kafka.go                  |   4 +-
+ internal/dlq/kafka_integration_test.go |   4 +-
+ internal/dlq/manager.go                | 145 ++++++++++++++++++-
+ internal/dlq/manager_test.go           | 250 +++++++++++++++++++++++++++++++++
+ 5 files changed, 401 insertions(+), 8 deletions(-)
+  non-test: 155
+  test: 254
+
+== ownership (backend; local ref agent/backend/OPS-H7a2 = 9bcd07e) + out-of-scope check
+::warning::409 changed lines (> 400). Consider splitting the change.
+Ownership OK for role=backend (409 changed lines)
+  no README / workflow / migration / shared-contract / ticket / doc file changed
+
+== ListEvents / Replay bodies unchanged (out of scope):
+  ListEvents: identical (45 lines)
+  Replay: identical (52 lines)
+
+== main moved since the PR's CI merge base: c37d27c OPS-H15: run CI Go unit tests under the race detector (#80) 
+ .github/workflows/ci.yml | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+  head merges cleanly with origin/main c37d27c
+
+[exit code 0]

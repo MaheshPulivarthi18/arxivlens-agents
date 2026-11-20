@@ -1,0 +1,37 @@
+$ bash /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/tools/local-r2.sh
+== harness /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/harness-9bcd07e == PR head? (diff -r; empty = identical)
+  identical: internal/dlq, internal/kafka, shared/events/events.go
+== go version go1.24.7 linux/amd64; gofmt -l internal/dlq internal/kafka:
+  (end gofmt)
+  go vet ./internal/dlq/: clean
+== go test -race -count=1 -v -run 'TestList|TestParseCursor' ./internal/dlq/
+--- PASS: TestListPagesToHighWatermark (0.00s)
+    --- PASS: TestListPagesToHighWatermark/1_partition,_25_records,_page_10:_3_pages (0.00s)
+    --- PASS: TestListPagesToHighWatermark/3_partitions,_one_empty:_union_is_every_record;_a_full_last_page_is_end (0.00s)
+    --- PASS: TestListPagesToHighWatermark/a_page_that_fills_at_a_partition's_end_before_empty_partitions_is_end (0.00s)
+    --- PASS: TestListPagesToHighWatermark/a_page_that_fills_at_a_partition's_end:_Next_is_the_next_partition's_Low_(0) (0.00s)
+    --- PASS: TestListPagesToHighWatermark/a_page_that_fills_at_a_partition's_end:_Next_is_the_next_partition's_Low_(5),_no_warning (0.00s)
+    --- PASS: TestListPagesToHighWatermark/a_page_that_fills_at_a_partition's_end:_Next_skips_an_empty_partition (0.00s)
+    --- PASS: TestListPagesToHighWatermark/From_at_Low_(Low_>_0)_is_not_an_expiry (0.00s)
+    --- PASS: TestListPagesToHighWatermark/From_at_a_partition's_High_goes_on_to_later_partitions (0.00s)
+    --- PASS: TestListPagesToHighWatermark/Partition_on_an_empty_partition_is_one_empty_page_and_end (0.00s)
+    --- PASS: TestListPagesToHighWatermark/records_appended_after_the_snapshot_are_not_returned (0.00s)
+    --- PASS: TestListPagesToHighWatermark/Partition_restricts_the_listing (0.00s)
+    --- PASS: TestListPagesToHighWatermark/From_below_Low_warns_and_starts_at_Low (0.00s)
+    --- PASS: TestListPagesToHighWatermark/From_mid-partition_skips_earlier_partitions_and_offsets (0.00s)
+--- PASS: TestListPassesSnapshotHighAsUntil (0.00s)
+--- PASS: TestListErrorsAreNotEnd (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/stall (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/poll_error (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/missing_topic_(AC6) (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/other_watermark_error (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/no_such_--partition (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/no_such_--from_partition (0.00s)
+    --- PASS: TestListErrorsAreNotEnd/--from_outside_--partition (0.00s)
+--- PASS: TestParseCursor (0.00s)
+ok  	arxivlens/internal/dlq	1.015s
+exit=0
+== counts: top-level tests 4 PASS, subtests 20 PASS, FAIL lines 0
+== whole package, race (unit, no integration tag): ok  	arxivlens/internal/dlq	1.281s
+
+[exit code 0]

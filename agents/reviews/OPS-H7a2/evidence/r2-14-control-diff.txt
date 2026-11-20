@@ -1,0 +1,8 @@
+$ bash -c v(){ grep -E '^(KILLED|SURVIVED|INVALID|BADPATTERN)' $1 | awk '{print $1, $2}'; }; echo "r1 06 rows: $(v /home/claude/arxivlens-agents/agents/reviews/OPS-H7a2/evidence/06-mutants-manager-go.txt | wc -l); r2-07 rows: $(v /home/claude/arxivlens-agents/agents/reviews/OPS-H7a2/evidence/r2-07-mutants-control-1ae23bd.txt | wc -l)"; echo '== diff of (verdict, mutant id), empty = identical:'; diff <(v /home/claude/arxivlens-agents/agents/reviews/OPS-H7a2/evidence/06-mutants-manager-go.txt) <(v /home/claude/arxivlens-agents/agents/reviews/OPS-H7a2/evidence/r2-07-mutants-control-1ae23bd.txt) && echo '  identical'; echo '== diff of full rows incl. failing-test column:'; diff <(grep -A2 -E '^(KILLED|SURVIVED)' /home/claude/arxivlens-agents/agents/reviews/OPS-H7a2/evidence/06-mutants-manager-go.txt) <(grep -A2 -E '^(KILLED|SURVIVED)' /home/claude/arxivlens-agents/agents/reviews/OPS-H7a2/evidence/r2-07-mutants-control-1ae23bd.txt) && echo '  identical'
+r1 06 rows: 33; r2-07 rows: 33
+== diff of (verdict, mutant id), empty = identical:
+  identical
+== diff of full rows incl. failing-test column:
+  identical
+
+[exit code 0]

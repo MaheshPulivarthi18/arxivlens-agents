@@ -1,0 +1,154 @@
+$ bash -c cd /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h; for d in $(ls deps); do echo "dep $d: $(git -C deps/$d remote get-url origin) @ $(git -C deps/$d describe --tags)"; done; echo; echo '== diff r1 mutate.py (extracted from evidence 10) vs r2 mutate.py:'; diff r1src/tools/mutate.py tools/mutate.py; for f in harness-9bcd07e/go.mod tools/local-r2.sh tools/scope-r2.sh tools/design-r2.sh tools/cover-r2.sh tools/probe-r2.sh tools/mutate-r2-extra.py; do echo; echo "----- $f"; cat $f; done
+dep compress: https://github.com/klauspost/compress @ v1.17.6
+dep crypto: https://github.com/golang/crypto @ v0.21.0
+dep franz-go: https://github.com/twmb/franz-go @ v1.16.1
+dep kmsg-src: https://github.com/twmb/franz-go @ pkg/kmsg/v1.7.0
+dep lz4: https://github.com/pierrec/lz4 @ v4.1.19
+dep sys: https://github.com/golang/sys @ v0.18.0
+dep text: https://github.com/golang/text @ v0.14.0
+dep ulid: https://github.com/oklog/ulid @ v2.1.0
+
+== diff r1 mutate.py (extracted from evidence 10) vs r2 mutate.py:
+8c8
+< H = os.path.join(S, "harness"); F = "internal/dlq/manager.go"
+---
+> H = os.environ.get("HARNESS", os.path.join(S, "harness")); F = "internal/dlq/manager.go"
+
+----- harness-9bcd07e/go.mod
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/twmb/franz-go v1.16.1
+	github.com/twmb/franz-go/pkg/kmsg v1.7.0
+)
+
+require (
+	github.com/klauspost/compress v1.17.4 // indirect
+	github.com/pierrec/lz4/v4 v4.1.19 // indirect
+)
+
+replace (
+	github.com/klauspost/compress => /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/deps/compress
+	github.com/oklog/ulid/v2 => /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/deps/ulid
+	github.com/pborman/getopt => ./stubs/getopt
+	github.com/pierrec/lz4/v4 => /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/deps/lz4
+	github.com/twmb/franz-go => /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/deps/franz-go
+	github.com/twmb/franz-go/pkg/kmsg => /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/deps/kmsg-src/pkg/kmsg
+	golang.org/x/crypto => /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/deps/crypto
+	golang.org/x/net => ./stubs/net
+	golang.org/x/sys => /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/deps/sys
+	golang.org/x/term => ./stubs/term
+	golang.org/x/text => /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/deps/text
+)
+
+----- tools/local-r2.sh
+#!/bin/bash
+# Round 2: run the PR head's real internal/dlq (+ internal/kafka, shared/events) in the go1.24 harness with real franz-go v1.16.1.
+S=$(cd "$(dirname "$0")/.." && pwd); W=/root/wt/qa-83; H=$S/harness-$(git -C $W rev-parse --short HEAD); export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off
+echo "== harness $H == PR head? (diff -r; empty = identical)"
+diff -r $W/internal/dlq $H/internal/dlq && diff -r $W/internal/kafka $H/internal/kafka && diff $W/shared/events/events.go $H/shared/events/events.go && echo "  identical: internal/dlq, internal/kafka, shared/events/events.go"
+cd $H; echo "== $(go version); gofmt -l internal/dlq internal/kafka:"; gofmt -l internal/dlq internal/kafka; echo "  (end gofmt)"; go vet ./internal/dlq/ && echo "  go vet ./internal/dlq/: clean"
+echo "== go test -race -count=1 -v -run 'TestList|TestParseCursor' ./internal/dlq/"
+go test -race -count=1 -v -run 'TestList|TestParseCursor' ./internal/dlq/ > $S/runs/local-v.out 2>&1; rc=$?
+grep -E "^(--- |    --- |ok|FAIL)" $S/runs/local-v.out; echo "exit=$rc"
+echo "== counts: top-level tests $(grep -c '^--- PASS' $S/runs/local-v.out) PASS, subtests $(grep -c '^    --- PASS' $S/runs/local-v.out) PASS, FAIL lines $(grep -c -- '--- FAIL' $S/runs/local-v.out)"
+echo "== whole package, race (unit, no integration tag): $(go test -race -count=1 ./internal/dlq/ 2>&1 | tail -1)"
+
+----- tools/scope-r2.sh
+#!/bin/bash
+# Round 2 scope check for PR #83, run in the PR-head worktree.
+B=3835dee2375b28f1b66612b64d8c6f92f3e9fda4
+echo "== PR head $(git rev-parse --short HEAD), base $(git rev-parse --short $B), commits:"; git log --oneline $B..HEAD
+echo; echo "== what changed since QA round 1 (1ae23bd..HEAD):"; git diff --stat 1ae23bd HEAD; git diff 1ae23bd HEAD | grep '^[+-]' | grep -v '^+++\|^---' | grep -v '^+.*{name:' | grep -c . | sed 's/^/  changed lines that are not new table-row names: /'
+echo; echo "== git diff --stat base..head"; git diff --stat $B HEAD
+git diff --numstat $B HEAD | awk '{t=($3 ~ /_test\.go$/)?"test":"non-test"; s[t]+=$1+$2} END {for (k in s) print "  " k ": " s[k]}'
+echo; echo "== ownership (backend) + out-of-scope check"; bash .github/scripts/ownership-check.sh $B HEAD 2>&1 | tail -2
+git diff --name-only $B HEAD | grep -E "^(README.md|\.github/|.*db\.yml|.*stack\.yml|migrations/|shared/|agents/|docs/)" && echo "OUT OF SCOPE files above" || echo "  no README / workflow / migration / shared-contract / ticket / doc file changed"
+echo; echo "== ListEvents / Replay bodies unchanged (out of scope):"
+for f in ListEvents Replay; do a=$(git show $B:internal/dlq/manager.go | awk "/^func \(m \*Manager\) $f\(/,/^}/"); b=$(git show HEAD:internal/dlq/manager.go | awk "/^func \(m \*Manager\) $f\(/,/^}/"); [ "$a" = "$b" ] && echo "  $f: identical ($(echo "$a" | wc -l) lines)" || echo "  $f: CHANGED"; done
+echo; echo "== main moved since the PR's CI merge base: $(git log --oneline $B..origin/main | tr '\n' ' ')"; git diff --stat $B origin/main
+git merge-tree --write-tree origin/main HEAD >/dev/null && echo "  head merges cleanly with origin/main $(git rev-parse --short origin/main)"
+
+----- tools/design-r2.sh
+#!/bin/bash
+# Round 2 design check: is the a2a deviation (ListOptions.Snapshot, Page fields, empty-partition Read) recorded in docs/design/OPS-H7.md?
+R=/home/claude/arxivlens-agents; D=$R/docs/design/OPS-H7.md; W=/root/wt/qa-83
+echo "== design file history (team repo main):"; git -C $R log --format='%h %ad %s' --date=iso -3 -- docs/design/OPS-H7.md
+echo "== headings 'Build notes':"; grep -n "^### Build notes" $D
+echo "== whole-word 'Snapshot' occurrences in the design file: $(grep -n -w -c Snapshot $D)"
+echo "== the a2a Build notes section:"; awk '/^### Build notes \(a2a/{f=1;print;next} f && /^##/{exit} f' $D
+echo "== PR head $(git -C $W rev-parse --short HEAD) types it describes:"; grep -n -A5 "^type ListOptions struct\|^type Page struct" $W/internal/dlq/manager.go
+echo "== KafkaReader.Read early return on empty range (claim in the note):"; grep -n "from >= until" $W/internal/dlq/kafka.go
+
+----- tools/cover-r2.sh
+#!/bin/bash
+# Block coverage of the new List/cursor code by the PR's own unit tests (no QA probe), PR-head sources in the go1.24 harness.
+S=$(cd "$(dirname "$0")/.." && pwd); export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off; cd $S/harness-9bcd07e
+go test -count=1 -coverprofile=$S/runs/c.out ./internal/dlq/ >/dev/null || exit 1
+echo "== per-function coverage, new functions in manager.go:"
+go tool cover -func=$S/runs/c.out | grep -E "manager.go:.*(ParseCursor|IsSet|String|List|listPartitions|nextCursor|Error|Unwrap)\b"
+echo; echo "== blocks NEVER executed (count 0) inside List..Unwrap, with the source lines:"
+lo=$(grep -n "^func (m \*Manager) List(" internal/dlq/manager.go | cut -d: -f1); hi=$(grep -n "^func (e \*missingTopicError) Unwrap" internal/dlq/manager.go | cut -d: -f1)
+grep "manager.go" $S/runs/c.out | awk -F'[:, ]' -v lo=$lo -v hi=$hi '{split($2,a,"."); split($3,b,"."); if ($NF==0 && a[1]>=lo && a[1]<=hi) print a[1]"-"b[1]}' | sort -un | while IFS=- read a b; do echo "-- lines $a-$b:"; sed -n "${a},${b}p" internal/dlq/manager.go | sed 's/^/   /'; done
+
+----- tools/probe-r2.sh
+#!/bin/bash
+# Runs the QA probe test against the PR head manager.go and against mutants M01, M02, M06 (same substitutions as tools/mutate.py).
+S=$(cd "$(dirname "$0")/.." && pwd); export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off
+run(){ local name="$1" py="$2"; d=$(mktemp -d -p $S/runs probe-XXXX); cp -r $S/harness-9bcd07e $d/h; cp $S/probe/qa_probe_test.go $d/h/internal/dlq/
+  [ -n "$py" ] && python3 -I -c "import sys;p=sys.argv[1];s=open(p).read();o,n=sys.argv[2],sys.argv[3];assert s.count(o)==1;open(p,'w').write(s.replace(o,n))" $d/h/internal/dlq/manager.go "$py" "$3"
+  echo "=== $name: $(diff $S/harness-9bcd07e/internal/dlq/manager.go $d/h/internal/dlq/manager.go | grep '^>' | sed 's/^> *//' | tr -s '\t' ' ' || true)"
+  (cd $d/h && go test -count=1 -run 'TestQAProbe' -v ./internal/dlq/ 2>&1 | grep -E '^(=== RUN|--- |    qa_probe|ok|FAIL)' | grep -v '=== RUN')
+}
+run "PR head (9bcd07e) unmodified" ""
+run "M01 drop next-partition step" $'\tfor _, p := range rest {\n' $'\tfor _, p := range rest[:0] {\n'
+run "M02 next partition at 0, not Low" 'return Cursor{Partition: p, Offset: wm[p].Low, set: true}' 'return Cursor{Partition: p, Offset: 0, set: true}'
+run "M06 expiry > -> >=" $'\t\t\tif from > opt.From.Offset {' $'\t\t\tif from >= opt.From.Offset {'
+
+----- tools/mutate-r2-extra.py
+#!/usr/bin/env python3
+"""Round 2 extra mutants (X1-X5) aimed at the new r2 test rows. Single-edit mutants of internal/dlq/manager.go (PR #83 head) in the real-franz-go go1.24 harness.
+Each mutant: fresh copy of the harness (mktemp -d), one str.replace that must match exactly once,
+then `go test -count=1 ./internal/dlq/` (unit tests only, no integration tag).
+Build/vet failure -> INVALID (never KILLED). Prints the mutant's changed line next to the verdict."""
+import os, re, shutil, subprocess, sys, tempfile
+S = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+H = os.environ.get("HARNESS", os.path.join(S, "harness")); F = "internal/dlq/manager.go"
+M = [
+ ("X1 nextCursor: next partition chosen by High > 0, not Low < High (lands on empty partition with Low=High>0)", "\t\tif wm[p].Low < wm[p].High {\n\t\t\treturn Cursor{Partition: p,", "\t\tif wm[p].High > 0 {\n\t\t\treturn Cursor{Partition: p,"),
+ ("X2 From at/after High clamped to High-1 (re-reads the last record)", "\t\t\t\tfrom = opt.From.Offset\n", "\t\t\t\tfrom = min(opt.From.Offset, wm[p].High-1)\n"),
+ ("X3 false expiry warning when From is at/after High", "\t\t\tif from > opt.From.Offset {", "\t\t\tif from > opt.From.Offset || opt.From.Offset >= wm[p].High {"),
+ ("X4 empty --partition page reports a Next cursor at Low", "\treturn page, nil\n}\n\n// listPartitions", "\tif opt.Partition != nil && len(page.Records) == 0 {\n\t\tpage.Next = Cursor{Partition: *opt.Partition, Offset: wm[*opt.Partition].Low, set: true}\n\t}\n\treturn page, nil\n}\n\n// listPartitions"),
+ ("X5 page-full check > instead of >= (a full page never sets Next mid-topic)", "\t\tif len(page.Records) >= size {\n\t\t\tpage.Next", "\t\tif len(page.Records) > size {\n\t\t\tpage.Next"),
+]
+src = open(os.path.join(H, F)).read()
+env = dict(os.environ, GOTOOLCHAIN="local", GOFLAGS="-mod=mod", GOPROXY="off")
+rows = []
+for name, old, new in M:
+    n = src.count(old)
+    if n != 1:
+        rows.append((name, "BADPATTERN(%d)" % n, "", "")); continue
+    d = tempfile.mkdtemp(prefix="mut-", dir=os.path.join(S, "runs"))
+    shutil.copytree(H, os.path.join(d, "h")); w = os.path.join(d, "h")
+    open(os.path.join(w, F), "w").write(src.replace(old, new))
+    changed = " | ".join(l.strip() for l in new.splitlines() if l.strip() and l not in old.splitlines())
+    v = subprocess.run(["go", "vet", "./internal/dlq/"], cwd=w, env=env, capture_output=True, text=True)
+    if v.returncode != 0:
+        rows.append((name, "INVALID", changed, v.stderr.strip().splitlines()[-1][:80])); continue
+    r = subprocess.run(["go", "test", "-count=1", "-timeout", "60s", "./internal/dlq/"], cwd=w, env=env, capture_output=True, text=True)
+    out = r.stdout + r.stderr
+    fails = sorted(set(re.findall(r"--- FAIL: (\S+)", out)))
+    leaf = [f for f in fails if "/" in f] or fails
+    rows.append((name, "KILLED" if r.returncode != 0 else "SURVIVED", changed, ",".join(leaf)[:110]))
+k = sum(1 for r in rows if r[1] == "KILLED"); s = sum(1 for r in rows if r[1] == "SURVIVED"); i = len(rows) - k - s
+print("SUMMARY: %d mutants: %d KILLED, %d SURVIVED, %d INVALID/BADPATTERN" % (len(rows), k, s, i))
+for r in rows:
+    if r[1] != "KILLED": print("  %-9s %s" % (r[1], r[0]))
+print()
+for r in rows:
+    print("%-9s %s\n          mutant line: %s\n          failing: %s" % (r[1], r[0], r[2], r[3] or "-"))
+
+[exit code 0]

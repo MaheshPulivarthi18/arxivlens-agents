@@ -1,0 +1,106 @@
+$ env HARNESS=/tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/harness-9bcd07e python3 -I /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/tools/mutate.py
+SUMMARY: 33 mutants: 31 KILLED, 2 SURVIVED, 0 INVALID/BADPATTERN
+  SURVIVED  M19 DefaultPageSize 50 -> 49
+  SURVIVED  M28 ParseCursor: drop !ok
+
+KILLED    M01 nextCursor: drop next-partition step (end at partition end)
+          mutant line: for _, p := range rest[:0] {
+          failing: TestListPagesToHighWatermark/a_page_that_fills_at_a_partition's_end:_Next_is_the_next_partition's_Low_(0),Test
+KILLED    M02 nextCursor: next partition starts at 0, not Low
+          mutant line: return Cursor{Partition: p, Offset: 0, set: true}
+          failing: TestListPagesToHighWatermark/a_page_that_fills_at_a_partition's_end:_Next_is_the_next_partition's_Low_(5),_no_
+KILLED    M03 nextCursor: Next may land on an empty partition
+          mutant line: if true {
+          failing: TestListPagesToHighWatermark/a_page_that_fills_at_a_partition's_end:_Next_skips_an_empty_partition,TestListPag
+KILLED    M04 nextCursor: same-partition test < -> <=
+          mutant line: if last.Offset+1 <= wm[last.Partition].High {
+          failing: TestListPagesToHighWatermark/3_partitions,_one_empty:_union_is_every_record;_a_full_last_page_is_end,TestListP
+KILLED    M05 nextCursor: rest includes current partition
+          mutant line: nextCursor(wm, parts[i:],
+          failing: TestListPagesToHighWatermark/3_partitions,_one_empty:_union_is_every_record;_a_full_last_page_is_end,TestListP
+KILLED    M06 expiry: > -> >= (warn when From == Low)
+          mutant line: if from >= opt.From.Offset {
+          failing: TestListPagesToHighWatermark/From_at_Low_(Low_>_0)_is_not_an_expiry,TestListPagesToHighWatermark/a_page_that_f
+KILLED    M07 expiry: no warning, start at From even below Low
+          mutant line: if false {
+          failing: TestListPagesToHighWatermark/From_below_Low_warns_and_starts_at_Low
+KILLED    M08 expiry text: b = Low not Low-1
+          mutant line: opt.From.Offset, from))
+          failing: TestListPagesToHighWatermark/From_below_Low_warns_and_starts_at_Low
+KILLED    M09 until = High+1000 (ignore start-time High)
+          mutant line: m.reader.Read(ctx, topic, p, from, wm[p].High+1000, func
+          failing: TestListPagesToHighWatermark/records_appended_after_the_snapshot_are_not_returned
+KILLED    M10 ignore opt.Snapshot (re-snapshot every page)
+          mutant line: if true {
+          failing: TestListPagesToHighWatermark/records_appended_after_the_snapshot_are_not_returned
+KILLED    M11 missing topic: no AC6 mapping
+          mutant line: errors.Is(err, kerr.UnknownTopicOrPartition) && false {
+          failing: TestListErrorsAreNotEnd/missing_topic_(AC6)
+KILLED    M12 missing topic: Unwrap returns nil
+          mutant line: func (e *missingTopicError) Unwrap() error { return nil }
+          failing: TestListErrorsAreNotEnd/missing_topic_(AC6)
+KILLED    M13 other Watermarks error swallowed
+          mutant line: return Page{}, nil
+          failing: TestListErrorsAreNotEnd/other_watermark_error
+KILLED    M14 Read error swallowed (treated as end)
+          mutant line: return page, nil
+          failing: TestListErrorsAreNotEnd/poll_error,TestListErrorsAreNotEnd/stall
+KILLED    M15 Read error: skip partition and continue
+          mutant line: continue
+          failing: TestListErrorsAreNotEnd/poll_error,TestListErrorsAreNotEnd/stall
+KILLED    M16 callback never stops (page overflows)
+          mutant line: return true
+          failing: TestListPagesToHighWatermark/1_partition,_25_records,_page_10:_3_pages,TestListPagesToHighWatermark/3_partitio
+KILLED    M17 callback stops one early
+          mutant line: return len(page.Records) < size-1
+          failing: TestListPagesToHighWatermark/1_partition,_25_records,_page_10:_3_pages,TestListPagesToHighWatermark/3_partitio
+KILLED    M18 default page size not applied (size<0)
+          mutant line: if size < 0 {
+          failing: TestListPagesToHighWatermark/From_at_Low_(Low_>_0)_is_not_an_expiry,TestListPagesToHighWatermark/From_at_a_par
+SURVIVED  M19 DefaultPageSize 50 -> 49
+          mutant line: const DefaultPageSize = 49
+          failing: -
+KILLED    M20 Partition filter dropped
+          mutant line: true &&
+          failing: TestListPagesToHighWatermark/Partition_on_an_empty_partition_is_one_empty_page_and_end,TestListPagesToHighWate
+KILLED    M21 From earlier-partition filter dropped
+          mutant line: && true {
+          failing: TestListPagesToHighWatermark/3_partitions,_one_empty:_union_is_every_record;_a_full_last_page_is_end,TestListP
+KILLED    M22 From filter > instead of >=
+          mutant line: && (!opt.From.set || p > opt.From.Partition) {
+          failing: TestListPagesToHighWatermark/1_partition,_25_records,_page_10:_3_pages,TestListPagesToHighWatermark/3_partitio
+KILLED    M23 no sort of partitions (reverse)
+          mutant line: return parts[i] > parts[j] })
+          failing: TestListPagesToHighWatermark/3_partitions,_one_empty:_union_is_every_record;_a_full_last_page_is_end,TestListP
+KILLED    M24 --from outside --partition check dropped
+          mutant line: if false {
+          failing: TestListErrorsAreNotEnd/--from_outside_--partition
+KILLED    M25 unknown partition check dropped
+          mutant line: if false {
+          failing: TestListErrorsAreNotEnd/no_such_--from_partition,TestListErrorsAreNotEnd/no_such_--partition
+KILLED    M26 unknown --from partition not checked
+          mutant line: return parts, nil
+          failing: TestListErrorsAreNotEnd/no_such_--from_partition
+KILLED    M27 From offset ignored (start at Low)
+          mutant line: _ = opt.From.Offset
+          failing: TestListPagesToHighWatermark/1_partition,_25_records,_page_10:_3_pages,TestListPagesToHighWatermark/3_partitio
+SURVIVED  M28 ParseCursor: drop !ok
+          mutant line: if (!ok && false) || errP != nil
+          failing: -
+KILLED    M29 ParseCursor: drop p < 0
+          mutant line: || o < 0 {
+          failing: TestParseCursor
+KILLED    M30 ParseCursor: drop o < 0
+          mutant line: || p < 0 {
+          failing: TestParseCursor
+KILLED    M31 ParseCursor: bitSize 32 -> 64
+          mutant line: strconv.ParseInt(ps, 10, 64)
+          failing: TestParseCursor
+KILLED    M32 missing-topic text changed
+          mutant line: creates the DLQs)", e.topic)
+          failing: TestListErrorsAreNotEnd/missing_topic_(AC6)
+KILLED    M33 error page keeps a Next cursor
+          mutant line: page.Next = Cursor{Partition: p, Offset: from, set: true}
+          failing: TestListErrorsAreNotEnd/poll_error,TestListErrorsAreNotEnd/stall
+
+[exit code 0]

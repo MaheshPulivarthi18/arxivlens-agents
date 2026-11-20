@@ -1,0 +1,14 @@
+$ bash /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/tools/cover-r2.sh
+== per-function coverage, new functions in manager.go:
+arxivlens/internal/dlq/manager.go:41:	IsSet			100.0%
+arxivlens/internal/dlq/manager.go:43:	String			100.0%
+arxivlens/internal/dlq/manager.go:46:	ParseCursor		100.0%
+arxivlens/internal/dlq/manager.go:75:	List			100.0%
+arxivlens/internal/dlq/manager.go:118:	listPartitions		100.0%
+arxivlens/internal/dlq/manager.go:141:	nextCursor		100.0%
+arxivlens/internal/dlq/manager.go:159:	Error			100.0%
+arxivlens/internal/dlq/manager.go:163:	Unwrap			100.0%
+
+== blocks NEVER executed (count 0) inside List..Unwrap, with the source lines:
+
+[exit code 0]

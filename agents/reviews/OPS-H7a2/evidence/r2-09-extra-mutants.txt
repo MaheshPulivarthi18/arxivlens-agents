@@ -1,0 +1,44 @@
+$ bash -c for c in 1ae23bd 9bcd07e; do echo "######## harness-$c"; HARNESS=/tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/harness-$c python3 -I /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r2/h/tools/mutate-r2-extra.py; echo; done
+######## harness-1ae23bd
+SUMMARY: 5 mutants: 2 KILLED, 3 SURVIVED, 0 INVALID/BADPATTERN
+  SURVIVED  X2 From at/after High clamped to High-1 (re-reads the last record)
+  SURVIVED  X3 false expiry warning when From is at/after High
+  SURVIVED  X4 empty --partition page reports a Next cursor at Low
+
+KILLED    X1 nextCursor: next partition chosen by High > 0, not Low < High (lands on empty partition with Low=High>0)
+          mutant line: if wm[p].High > 0 {
+          failing: TestListPagesToHighWatermark/a_page_that_fills_at_a_partition's_end_before_empty_partitions_is_end
+SURVIVED  X2 From at/after High clamped to High-1 (re-reads the last record)
+          mutant line: from = min(opt.From.Offset, wm[p].High-1)
+          failing: -
+SURVIVED  X3 false expiry warning when From is at/after High
+          mutant line: if from > opt.From.Offset || opt.From.Offset >= wm[p].High {
+          failing: -
+SURVIVED  X4 empty --partition page reports a Next cursor at Low
+          mutant line: if opt.Partition != nil && len(page.Records) == 0 { | page.Next = Cursor{Partition: *opt.Partition, Offset: wm[*opt.Partition].Low, set: true} | }
+          failing: -
+KILLED    X5 page-full check > instead of >= (a full page never sets Next mid-topic)
+          mutant line: if len(page.Records) > size {
+          failing: TestListPagesToHighWatermark/1_partition,_25_records,_page_10:_3_pages,TestListPagesToHighWatermark/3_partitio
+
+######## harness-9bcd07e
+SUMMARY: 5 mutants: 5 KILLED, 0 SURVIVED, 0 INVALID/BADPATTERN
+
+KILLED    X1 nextCursor: next partition chosen by High > 0, not Low < High (lands on empty partition with Low=High>0)
+          mutant line: if wm[p].High > 0 {
+          failing: TestListPagesToHighWatermark/a_page_that_fills_at_a_partition's_end:_Next_skips_an_empty_partition,TestListPag
+KILLED    X2 From at/after High clamped to High-1 (re-reads the last record)
+          mutant line: from = min(opt.From.Offset, wm[p].High-1)
+          failing: TestListPagesToHighWatermark/From_at_a_partition's_High_goes_on_to_later_partitions
+KILLED    X3 false expiry warning when From is at/after High
+          mutant line: if from > opt.From.Offset || opt.From.Offset >= wm[p].High {
+          failing: TestListPagesToHighWatermark/From_at_a_partition's_High_goes_on_to_later_partitions
+KILLED    X4 empty --partition page reports a Next cursor at Low
+          mutant line: if opt.Partition != nil && len(page.Records) == 0 { | page.Next = Cursor{Partition: *opt.Partition, Offset: wm[*opt.Partition].Low, set: true} | }
+          failing: TestListPagesToHighWatermark/Partition_on_an_empty_partition_is_one_empty_page_and_end
+KILLED    X5 page-full check > instead of >= (a full page never sets Next mid-topic)
+          mutant line: if len(page.Records) > size {
+          failing: TestListPagesToHighWatermark/1_partition,_25_records,_page_10:_3_pages,TestListPagesToHighWatermark/3_partitio
+
+
+[exit code 0]
