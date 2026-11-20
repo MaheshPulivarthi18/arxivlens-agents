@@ -79,3 +79,8 @@ run, nothing in retrieval or answering changes. `stack.yml` does not trigger on 
   - AC3: step 47 s (08:14:08Z -> 08:14:55Z) vs baseline 6 s; 43 s on re-run; 33 s on `6e1e9cd` (run 44700413691). < 5 min.
   - AC4: run 44700878368 att. 2, job 136169622172 success; no race, limiter tests `ok` both attempts.
   - No race found in production code. Local `make test-unit`/`make lint` not run (local Go 1.24.7 < 1.25); CI is the source of truth.
+- 2026-11-20 (backend-engineer, rework round 1): QA r1 FAIL, finding 1 only (PR #80 body was OPS-H5b/#81's text). Rewrote the body from
+  `agents/templates/pr.md` for OPS-H15 via REST PATCH (heading, Spec `agents/tasks/OPS-H15.md`, PRD ref, KAN-83, "What changed" =
+  `.github/workflows/ci.yml` job `go`, Verification with `Ownership OK for role=backend (5 changed lines)` re-run on head `9df6944`, CI run
+  IDs, Not verified / risks); kept the AC block, Evidence left for pm-lead. GET check: 0 hits for `OPS-H5b`, `KAN-84`,
+  `search_integration_test`. PR stays draft, head unchanged (`9df6944`), no new commit or CI run; label `qa-fail` removed. Ready for QA round 2.
