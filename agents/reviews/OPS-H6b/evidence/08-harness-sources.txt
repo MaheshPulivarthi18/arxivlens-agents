@@ -1,0 +1,158 @@
+$ bash -c for d in franz-go kmsg-src compress lz4 crypto sys text ulid; do echo "dep $d: $(git -C /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/$d remote get-url origin) @ $(git -C /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/$d describe --tags 2>/dev/null)"; done; echo; echo '== harness: find -type f | sort (internal/, shared/ are cp -r of PR head)'; (cd /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/harness && find . -type f | sort); for f in $(cd /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/harness && find . -type f -not -path './internal/*' -not -path './shared/*' | sort); do echo; echo "----- harness/$f"; cat /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/harness/$f; done; for f in tools/mutate.py tools/probe.sh probe/internal/kafka/qa_probe_test.go; do echo; echo "----- $f"; cat /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/$f; done
+dep franz-go: https://github.com/twmb/franz-go @ v1.16.1
+dep kmsg-src: https://github.com/twmb/franz-go @ pkg/kmsg/v1.7.0
+dep compress: https://github.com/klauspost/compress @ v1.17.6
+dep lz4: https://github.com/pierrec/lz4 @ v4.1.19
+dep crypto: https://github.com/golang/crypto @ v0.21.0
+dep sys: https://github.com/golang/sys @ v0.18.0
+dep text: https://github.com/golang/text @ v0.14.0
+dep ulid: https://github.com/oklog/ulid @ v2.1.0
+
+== harness: find -type f | sort (internal/, shared/ are cp -r of PR head)
+./go.mod
+./internal/kafka/consumer.go
+./internal/kafka/consumer_test.go
+./internal/kafka/producer.go
+./shared/events/events.go
+./stubs/getopt/go.mod
+./stubs/net/go.mod
+./stubs/term/go.mod
+
+----- harness/./go.mod
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/twmb/franz-go v1.16.1
+)
+
+require (
+	github.com/klauspost/compress v1.17.6 // indirect
+	github.com/pierrec/lz4/v4 v4.1.19 // indirect
+	github.com/twmb/franz-go/pkg/kmsg v1.7.0 // indirect
+)
+
+replace (
+	github.com/klauspost/compress => ../compress
+	github.com/oklog/ulid/v2 => ../ulid
+	github.com/pborman/getopt => ./stubs/getopt
+	github.com/pierrec/lz4/v4 => ../lz4
+	github.com/twmb/franz-go => ../franz-go
+	github.com/twmb/franz-go/pkg/kmsg => ../kmsg-src/pkg/kmsg
+	golang.org/x/crypto => ../crypto
+	golang.org/x/net => ./stubs/net
+	golang.org/x/sys => ../sys
+	golang.org/x/term => ./stubs/term
+	golang.org/x/text => ../text
+)
+
+----- harness/./stubs/getopt/go.mod
+module github.com/pborman/getopt
+go 1.15
+
+----- harness/./stubs/net/go.mod
+module golang.org/x/net
+go 1.18
+
+----- harness/./stubs/term/go.mod
+module golang.org/x/term
+go 1.18
+
+----- tools/mutate.py
+#!/usr/bin/env python3
+"""Single-edit mutants of internal/kafka/consumer.go (PR head) against the real franz-go v1.16.1 harness.
+Each mutant: fresh copy of the harness (mktemp -d, never deleted), one str.replace that must match exactly once,
+then go test twice: full package, and -run '^TestConsumerPollErrorAfterCancel$'. Build failure -> INVALID (never KILLED)."""
+import os, re, shutil, subprocess, tempfile
+H = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "harness")
+F = "internal/kafka/consumer.go"
+G = "\t\t\tif ctx.Err() != nil && errors.Is(err, ctx.Err()) {\n\t\t\t\treturn\n\t\t\t}\n"
+CL = "\t\t\tclosed = closed || errors.Is(err, kgo.ErrClientClosed)\n"
+M = [
+ ("M1 (AC4a) remove the guard", G, ""),
+ ("M2 (AC4b) guard on ctx.Err() != nil alone", "if ctx.Err() != nil && errors.Is(err, ctx.Err()) {", "if ctx.Err() != nil {"),
+ ("M3 (AC4c) skip-all-after-cancel before closed", CL + G, "\t\t\tif ctx.Err() != nil {\n\t\t\t\treturn\n\t\t\t}\n" + CL),
+ ("M4 && -> ||", "if ctx.Err() != nil && errors.Is(err, ctx.Err()) {", "if ctx.Err() != nil || errors.Is(err, ctx.Err()) {"),
+ ("M5 negate errors.Is", "if ctx.Err() != nil && errors.Is(err, ctx.Err()) {", "if ctx.Err() != nil && !errors.Is(err, ctx.Err()) {"),
+ ("M6 full guard moved before closed (keeps errors.Is)", CL + G, G + CL),
+ ("M7 drop ctx.Err() != nil operand (expect equivalent)", "if ctx.Err() != nil && errors.Is(err, ctx.Err()) {", "if errors.Is(err, ctx.Err()) {"),
+ ("M8 errors.Is -> == (expect equivalent)", "errors.Is(err, ctx.Err()) {", "err == ctx.Err() {"),
+ ("M9 ctx.Err() -> context.Canceled (expect equivalent here)", "errors.Is(err, ctx.Err()) {", "errors.Is(err, context.Canceled) {"),
+ ("M10 drop closed computation", CL, "\t\t\t_ = kgo.ErrClientClosed\n"),
+]
+def run(d, extra):
+    p = subprocess.run(["go", "test", "-count=1", *extra, "./internal/kafka/"], cwd=d, capture_output=True, text=True,
+                       env={**os.environ, "GOFLAGS": "-mod=mod", "GOPROXY": "off", "GOTOOLCHAIN": "local"})
+    out = p.stdout + p.stderr
+    if "[build failed]" in out or "[setup failed]" in out: return "INVALID", out.splitlines()[:3]
+    if p.returncode == 0: return "SURVIVED", []
+    return "KILLED", sorted(set(re.findall(r"--- FAIL: (\S+)", out)))
+print(f"{'mutant':55} {'full pkg':9} {'-run AfterCancel':17} failing tests (full pkg)")
+for name, old, new in M:
+    d = tempfile.mkdtemp(prefix="mut-")
+    shutil.copytree(H, d, dirs_exist_ok=True, symlinks=True)
+    # harness go.mod uses ../ relative replaces; rewrite to absolute
+    gm = os.path.join(d, "go.mod"); s = open(gm).read()
+    s = s.replace("=> ../", "=> " + os.path.abspath(os.path.join(H, "..")) + "/").replace("=> ./stubs", "=> " + os.path.abspath(H) + "/stubs")
+    open(gm, "w").write(s)
+    src = open(os.path.join(d, F)).read()
+    n = src.count(old)
+    if n != 1: print(f"{name:55} BAD-PATTERN (matches={n})"); continue
+    open(os.path.join(d, F), "w").write(src.replace(old, new))
+    v1, f1 = run(d, [])
+    v2, f2 = run(d, ["-run", "^TestConsumerPollErrorAfterCancel$"])
+    print(f"{name:55} {v1:9} {v2:17} {' '.join(f1)}")
+
+----- tools/probe.sh
+#!/bin/bash
+# Runs the real-franz-go shutdown probe (probe/internal/kafka/qa_probe_test.go) with consumer.go from
+# origin/main (4c7d327, before) and from the app checkout HEAD (after). Run from the app checkout.
+set -u
+export GOFLAGS=-mod=mod GOPROXY=off GOTOOLCHAIN=local
+P=/tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/probe
+for rev in origin/main HEAD; do
+  echo "== consumer.go @ $rev ($(git rev-parse --short $rev))"
+  git show $rev:internal/kafka/consumer.go > $P/internal/kafka/consumer.go
+  (cd $P && go test -count=1 -v -run QAProbe ./internal/kafka/ 2>&1 | grep -v '^=== RUN' | sed -E 's/^[0-9/]+ [0-9:]+ //')
+  echo
+done
+
+----- probe/internal/kafka/qa_probe_test.go
+package kafka
+
+// QA probe (not in the PR): a real franz-go v1.16.1 client, no reachable broker, ctx cancelled after 300ms.
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/twmb/franz-go/pkg/kgo"
+)
+
+func TestQAProbeRealKgoShutdown(t *testing.T) {
+	cl, err := kgo.NewClient(kgo.SeedBrokers("127.0.0.1:1"), kgo.ConsumerGroup("qa-probe"),
+		kgo.ConsumeTopics("papers.discovered"), kgo.DisableAutoCommit(), kgo.BlockRebalanceOnPoll())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cl.Close()
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer log.SetOutput(os.Stderr)
+	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(300*time.Millisecond, cancel)
+	c := &Consumer{client: cl, group: "qa-probe", topics: []string{"papers.discovered"}, maxRetries: 3,
+		backoff: retryBackoff, dlqBackoff: dlqRetryBackoff, wait: ctxWait}
+	serr := c.Start(ctx, func(context.Context, *kgo.Record) error { return nil })
+	out := buf.String()
+	fmt.Printf("Start returned: %v\nPoll error lines: %d\n--- captured consumer log ---\n%s", serr, strings.Count(out, "Poll error"), out)
+}
+
+[exit code 0]

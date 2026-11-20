@@ -1,0 +1,15 @@
+$ bash -c echo "branch agent/backend/OPS-H6b = $(git rev-parse agent/backend/OPS-H6b), HEAD = $(git rev-parse HEAD)"; git diff --stat origin/main...HEAD; echo; git diff --numstat origin/main...HEAD; echo; echo '$ gofmt -l internal/kafka/'; gofmt -l internal/kafka/; echo "(rc=$?, empty = clean)"; echo; .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H6b 2>&1 | tail -3
+branch agent/backend/OPS-H6b = 0fbf4e0d70466e9529a51b0ca7c6580cc4883b81, HEAD = 0fbf4e0d70466e9529a51b0ca7c6580cc4883b81
+ internal/kafka/consumer.go      |  5 ++++
+ internal/kafka/consumer_test.go | 54 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
+
+5	0	internal/kafka/consumer.go
+54	0	internal/kafka/consumer_test.go
+
+$ gofmt -l internal/kafka/
+(rc=0, empty = clean)
+
+Ownership OK for role=backend (59 changed lines)
+
+[exit code 0]

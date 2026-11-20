@@ -1,0 +1,14 @@
+$ python3 /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/tools/mutate.py
+mutant                                                  full pkg  -run AfterCancel  failing tests (full pkg)
+M1 (AC4a) remove the guard                              KILLED    KILLED            TestConsumerPollErrorAfterCancel TestConsumerPollErrorAfterCancel/clean_shutdown_logs_no_poll_error
+M2 (AC4b) guard on ctx.Err() != nil alone               KILLED    KILLED            TestConsumerPollErrorAfterCancel TestConsumerPollErrorAfterCancel/client_closed_after_cancel_still_returns_the_error TestConsumerPollErrorAfterCancel/other_error_after_cancel_is_still_logged
+M3 (AC4c) skip-all-after-cancel before closed           KILLED    KILLED            TestConsumerPollErrorAfterCancel TestConsumerPollErrorAfterCancel/client_closed_after_cancel_still_returns_the_error TestConsumerPollErrorAfterCancel/other_error_after_cancel_is_still_logged
+M4 && -> ||                                             KILLED    KILLED            TestConsumerPollErrorAfterCancel TestConsumerPollErrorAfterCancel/client_closed_after_cancel_still_returns_the_error TestConsumerPollErrorAfterCancel/other_error_after_cancel_is_still_logged
+M5 negate errors.Is                                     KILLED    KILLED            TestConsumerPollErrorAfterCancel TestConsumerPollErrorAfterCancel/clean_shutdown_logs_no_poll_error TestConsumerPollErrorAfterCancel/client_closed_after_cancel_still_returns_the_error TestConsumerPollErrorAfterCancel/other_error_after_cancel_is_still_logged
+M6 full guard moved before closed (keeps errors.Is)     SURVIVED  SURVIVED          
+M7 drop ctx.Err() != nil operand (expect equivalent)    SURVIVED  SURVIVED          
+M8 errors.Is -> == (expect equivalent)                  SURVIVED  SURVIVED          
+M9 ctx.Err() -> context.Canceled (expect equivalent here) SURVIVED  SURVIVED          
+M10 drop closed computation                             KILLED    KILLED            TestConsumerPollErrorAfterCancel TestConsumerPollErrorAfterCancel/client_closed_after_cancel_still_returns_the_error TestConsumerPollErrorStillProcessesRecords TestConsumerPollErrorStillProcessesRecords/client_closed_returns_the_error
+
+[exit code 0]

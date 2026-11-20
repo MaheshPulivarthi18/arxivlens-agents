@@ -1,0 +1,50 @@
+$ bash -c grep -E 'HEAD is now|Run make lint-go|go vet|^.{29}(--- (PASS|FAIL)|    --- (PASS|FAIL)|ok  |FAIL|arxivlens/internal/kafka/consumer.go)' /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/go-job.log | sed '/consumer.go:101/q' | cut -c30-
+HEAD is now at 2ba4fab Merge 0fbf4e0d70466e9529a51b0ca7c6580cc4883b81 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+##[group]Run make lint-go
+go vet ./...
+ok  	arxivlens/internal/arxiv	1.547s
+ok  	arxivlens/internal/config	0.003s
+ok  	arxivlens/internal/crawler	0.095s
+ok  	arxivlens/internal/db	0.004s
+ok  	arxivlens/internal/dlq	0.270s
+ok  	arxivlens/internal/downloader	0.105s
+ok  	arxivlens/internal/kafka	0.031s
+ok  	arxivlens/internal/llm	0.771s
+ok  	arxivlens/internal/llm/llmtest	0.104s
+ok  	arxivlens/internal/query	0.328s
+--- PASS: TestRetryBackoff (0.00s)
+--- PASS: TestDLQRetryBackoff (0.00s)
+--- PASS: TestCtxWait (0.01s)
+--- PASS: TestRetrySleepSchedule (0.00s)
+--- PASS: TestConsumerSuccessPath (0.00s)
+    --- PASS: TestConsumerSuccessPath/ok_on_1st (0.00s)
+    --- PASS: TestConsumerSuccessPath/ok_after_1_failure (0.00s)
+    --- PASS: TestConsumerSuccessPath/ok_after_2_failures (0.00s)
+    --- PASS: TestConsumerSuccessPath/commit_error_is_logged,_loop_continues (0.00s)
+--- PASS: TestConsumerDLQThenCommit (0.00s)
+--- PASS: TestConsumerDLQFailureBlocksPartition (0.00s)
+    --- PASS: TestConsumerDLQFailureBlocksPartition/failing_record_first (0.00s)
+    --- PASS: TestConsumerDLQFailureBlocksPartition/earlier_record_in_the_poll_is_committed (0.00s)
+--- PASS: TestConsumerDLQRecovers (0.00s)
+--- PASS: TestNewConsumerRejectsNilProducer (0.00s)
+--- PASS: TestConsumerNilDLQIsFailedPublish (0.00s)
+--- PASS: TestConsumerCancelDuringBackoffReturnsPromptly (0.02s)
+--- PASS: TestConsumerCancelInsideHandlerNoDLQ (0.00s)
+--- PASS: TestConsumerAllowRebalanceAfterEachPoll (0.00s)
+--- PASS: TestConsumerDLQFailureLogNoValue (0.00s)
+--- PASS: TestConsumerPollErrorStillProcessesRecords (0.00s)
+    --- PASS: TestConsumerPollErrorStillProcessesRecords/partition_error,_other_partition_handled (0.00s)
+    --- PASS: TestConsumerPollErrorStillProcessesRecords/client_closed_returns_the_error (0.00s)
+--- PASS: TestConsumerPollErrorAfterCancel (0.00s)
+    --- PASS: TestConsumerPollErrorAfterCancel/clean_shutdown_logs_no_poll_error (0.00s)
+    --- PASS: TestConsumerPollErrorAfterCancel/other_error_after_cancel_is_still_logged (0.00s)
+    --- PASS: TestConsumerPollErrorAfterCancel/client_closed_after_cancel_still_returns_the_error (0.00s)
+ok  	arxivlens/internal/kafka	1.046s	coverage: 63.7% of statements
+arxivlens/internal/kafka/consumer.go:42:	NewConsumer	28.6%
+arxivlens/internal/kafka/consumer.go:72:	Close		0.0%
+arxivlens/internal/kafka/consumer.go:79:	retryBackoff	100.0%
+arxivlens/internal/kafka/consumer.go:84:	dlqRetryBackoff	100.0%
+arxivlens/internal/kafka/consumer.go:89:	ctxWait		100.0%
+arxivlens/internal/kafka/consumer.go:101:	Start		100.0%
+
+[exit code 0]

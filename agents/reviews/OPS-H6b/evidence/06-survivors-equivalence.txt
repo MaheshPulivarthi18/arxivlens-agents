@@ -1,0 +1,43 @@
+$ bash -c K=/tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/franz-go/pkg/kgo; echo '== M7: EachError never calls fn with a nil err, and errors.Is(non-nil, nil) is false'; grep -n -A12 'func (fs Fetches) EachError' $K/record_and_fetch.go; echo; echo '== M8: the cancel fetch carries ctx.Err() unwrapped'; grep -n -A10 'func NewErrFetch' $K/consumer.go; grep -n -B1 -A2 'case <-ctx.Done():' $K/consumer.go | sed -n 1,4p; echo; echo '== M6: ErrClientClosed is its own sentinel, never a context error'; grep -n 'ErrClientClosed = ' $K/*.go; echo; echo '== M9: every production Start ctx is signal.NotifyContext (Canceled only, no deadline)'; grep -n 'NotifyContext\|consumer.Start' cmd/arxivlens/main.go
+== M7: EachError never calls fn with a nil err, and errors.Is(non-nil, nil) is false
+446:func (fs Fetches) EachError(fn func(string, int32, error)) {
+447-	for _, f := range fs {
+448-		for i := range f.Topics {
+449-			ft := &f.Topics[i]
+450-			for j := range ft.Partitions {
+451-				fp := &ft.Partitions[j]
+452-				if fp.Err != nil {
+453-					fn(ft.Topic, fp.Partition, fp.Err)
+454-				}
+455-			}
+456-		}
+457-	}
+458-}
+
+== M8: the cancel fetch carries ctx.Err() unwrapped
+352:func NewErrFetch(err error) Fetches {
+353-	return []Fetch{{
+354-		Topics: []FetchTopic{{
+355-			Topic: "",
+356-			Partitions: []FetchPartition{{
+357-				Partition: -1,
+358-				Err:       err,
+359-			}},
+360-		}},
+361-	}}
+362-}
+418-		select {
+419:		case <-ctx.Done():
+420-			return NewErrFetch(ctx.Err())
+421-		default:
+
+== M6: ErrClientClosed is its own sentinel, never a context error
+/tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/franz-go/pkg/kgo/errors.go:206:	ErrClientClosed = errors.New("client closed")
+
+== M9: every production Start ctx is signal.NotifyContext (Canceled only, no deadline)
+106:			ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+145:			ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+177:			return consumer.Start(ctx, dl.HandleRecord)
+233:			ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
+[exit code 0]

@@ -1,0 +1,21 @@
+$ bash -c echo '== before: CI run 44585775176 job 135778169056 (push main 4c7d327)'; grep -E 'HEAD is now|internal/kafka.*coverage|kafka/consumer.go:' /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/go-main.log | cut -c30-; echo; echo '== after: CI run 44665348466 job 136053158087 (PR #72 merge 2ba4fab)'; grep -E 'HEAD is now|internal/kafka.*coverage|kafka/consumer.go:' /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/go-job.log | cut -c30-
+== before: CI run 44585775176 job 135778169056 (push main 4c7d327)
+ok  	arxivlens/internal/kafka	1.047s	coverage: 62.9% of statements
+arxivlens/internal/kafka/consumer.go:42:	NewConsumer	28.6%
+arxivlens/internal/kafka/consumer.go:72:	Close		0.0%
+arxivlens/internal/kafka/consumer.go:79:	retryBackoff	100.0%
+arxivlens/internal/kafka/consumer.go:84:	dlqRetryBackoff	100.0%
+arxivlens/internal/kafka/consumer.go:89:	ctxWait		100.0%
+arxivlens/internal/kafka/consumer.go:101:	Start		100.0%
+
+== after: CI run 44665348466 job 136053158087 (PR #72 merge 2ba4fab)
+HEAD is now at 2ba4fab Merge 0fbf4e0d70466e9529a51b0ca7c6580cc4883b81 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+ok  	arxivlens/internal/kafka	1.046s	coverage: 63.7% of statements
+arxivlens/internal/kafka/consumer.go:42:	NewConsumer	28.6%
+arxivlens/internal/kafka/consumer.go:72:	Close		0.0%
+arxivlens/internal/kafka/consumer.go:79:	retryBackoff	100.0%
+arxivlens/internal/kafka/consumer.go:84:	dlqRetryBackoff	100.0%
+arxivlens/internal/kafka/consumer.go:89:	ctxWait		100.0%
+arxivlens/internal/kafka/consumer.go:101:	Start		100.0%
+
+[exit code 0]

@@ -1,0 +1,24 @@
+$ /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/qa-mod/tools/probe.sh
+== consumer.go @ origin/main (4c7d327)
+Start returned: <nil>
+Poll error lines: 1
+--- captured consumer log ---
+[Kafka Consumer] Starting group=qa-probe topics=[papers.discovered]
+[Kafka Consumer] Poll error (topic= partition=-1): context canceled
+[Kafka Consumer] Context cancelled, shutting down group=qa-probe
+--- PASS: TestQAProbeRealKgoShutdown (0.30s)
+PASS
+ok  	arxivlens/internal/kafka	0.307s
+
+== consumer.go @ HEAD (0fbf4e0)
+Start returned: <nil>
+Poll error lines: 0
+--- captured consumer log ---
+[Kafka Consumer] Starting group=qa-probe topics=[papers.discovered]
+[Kafka Consumer] Context cancelled, shutting down group=qa-probe
+--- PASS: TestQAProbeRealKgoShutdown (0.30s)
+PASS
+ok  	arxivlens/internal/kafka	0.306s
+
+
+[exit code 0]
