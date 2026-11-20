@@ -761,3 +761,14 @@ Format:
 - Re-evaluated: ING-6c's deps all merged but it shares `cmd/arxivlens/main.go` with #83 (and README with OPS-H7a2b) → waits. FE-3/FE-2/FE-4 unblocked by #68/#69 except FE-0b #70. OPS-H7a2's README condition (#65/#69) is met. `rag.go` free; AI-5 still needs ADR-0011.
 - Specced: **RET-1c** (backend, P2: `writeJSON` helper in `internal/query/server.go` + new `server_test.go`; encode failure → logged 500, success bytes identical to `Encoder.Encode`), **FE-0c** (frontend, P2 harness: new `src/lib/theme.test.js` + `ThemeToggle.test.jsx`; index.html/theme.js drift guard ahead of FE-3 AC8), **OPS-H7a2b** (backend, P1: the CLI half of OPS-H7a2, after #83 merges; folds QA OPS-H7a2 r1 findings 4, 6, 7).
 - Plan for this cycle (3 picks): FE-3 design step only (P0, KAN-40), RET-1c, FE-0c. ai-engineer: no task independent of #82 (`tests/test_evals_data.py`) and of ADR-0011; nothing invented.
+
+## 2026-11-20 08:00Z — orchestrator (scheduled cycle, session_01ATEBeV1rceor8faNPTfyTH) — interrupted by usage limit ~09:50Z
+- Took over the stale 05:00Z lock. No human reviews on any agent PR. Finished the 05:00Z cycle's Step 6: PM APPROVE recorded for OPS-H6c #76 and ING-11c #78 (`3f75a9e`), AI-12b #77 raised (`f0d525f`), LLM-1d #79 PM APPROVE + raised (`9a0600a`); Jira KAN-79..82 → Ready to merge.
+- Grooming picked 2 (OPS-H15, OPS-H5b); after Mahesh merged #65/#66/#68/#69 mid-cycle, 2 more were started (EVAL-10a, OPS-H7a2). 4 new tasks total, each touching files disjoint from every open PR.
+  - **OPS-H15** (KAN-83) → #80: QA FAIL r1 (PR body was OPS-H5b's), body rewritten, QA PASS r2, PM APPROVE → **merged 09:38Z**.
+  - **OPS-H5b** (KAN-84) → #81 `8cae68b`: QA PASS r1, PM APPROVE, raised.
+  - **EVAL-10a** (KAN-85) → #82 `69aaaf4`: QA PASS r1, PM APPROVE, raised.
+  - **OPS-H7a2** (KAN-71) → #83: size gate fired, split; PR is the a2a half (`Manager.List`/cursor). QA FAIL r1 (nextCursor branch untested; `Snapshot` not in design). Rework agent cut off by the usage limit after pushing `9bcd07e`; the 13:00Z cycle completed QA r2 PASS + PM APPROVE. OPS-H7a2b (CLI) specced by the 13:00Z cycle.
+- **FE-0b** #70: QA FAIL r2 (F3 dark-mode toast description 1.56:1), frontend rework `d10dc7f` (CI green on main 3835dee); QA r3 PASS + PM APPROVE done by the 13:00Z cycle.
+- QA reports for OPS-H15, OPS-H5b, EVAL-10a, OPS-H7a2 r1 saved verbatim from PR comments (QA harness can't write report.md).
+- Not done here (lock owned by the 13:00Z cycle): board columns, retro. Jira synced; KAN-73/KAN-71 → Ready to merge at 13:17Z after their PM APPROVE commits.
