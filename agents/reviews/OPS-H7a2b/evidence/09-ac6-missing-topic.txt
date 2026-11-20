@@ -1,0 +1,24 @@
+$ /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/ac.sh missing_topic M03|M20 withDLQManager\(newReader const missing|unknown := |missing topic
+## go test -race -count=1 -v -run 'TestDLQFlags/(missing_topic)' ./cmd/arxivlens/   (harness = real main.go DLQ section + real dlq_test.go)
+--- PASS: TestDLQFlags (0.00s)
+    --- PASS: TestDLQFlags/missing_topic_(list) (0.00s)
+    --- PASS: TestDLQFlags/missing_topic_(inspect) (0.00s)
+PASS
+ok  	arxivlens/cmd/arxivlens	1.016s
+
+## mutants aimed at this AC (full TestDLQFlags each; from mutants-r1.txt)
+KILLED    M03 list: error ignored (treated as end)         missing_topic_(list), poll_error_is_an_error,_not_end, stall_is_an_error,_not_end
+KILLED    M20 inspect: error ignored                       inspect_stall_is_an_error, missing_topic_(inspect)
+
+## code under test (PR head cmd/arxivlens/main.go)
+300:func withDLQManager(newReader func() (dlqReader, error), fn func(context.Context, *dlq.Manager) error) error {
+371:			return withDLQManager(newReader, func(ctx context.Context, mgr *dlq.Manager) error {
+413:			return withDLQManager(newReader, func(ctx context.Context, mgr *dlq.Manager) error {
+
+## test rows (PR head cmd/arxivlens/dlq_test.go)
+98:	const missing = "dlq: topic no.such.dlq does not exist (check --topic; compose's kafka-init creates the three DLQs)"
+100:	unknown := fmt.Errorf("dlq: metadata for no.such.dlq: %w", kerr.UnknownTopicOrPartition)
+143:		{name: "missing topic (list)", setup: func(f *fakeDLQ) { f.wmErr = unknown },
+145:		{name: "missing topic (inspect)", setup: func(f *fakeDLQ) { f.wmErr = unknown },
+
+[exit code 0]

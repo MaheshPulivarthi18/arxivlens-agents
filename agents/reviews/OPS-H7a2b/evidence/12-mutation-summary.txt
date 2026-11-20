@@ -1,0 +1,69 @@
+$ bash -c python3 /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/mutate.py /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/h-head
+SUMMARY: 29 mutants, 25 KILLED, 4 SURVIVED, 0 INVALID
+  SURVIVED: M21 inspect --key prints undecodable records
+  SURVIVED: M22 'No DLQ events' also without --key
+  SURVIVED: M25 --page-size default 0
+  SURVIVED: M30 SilenceUsage off on list
+
+KILLED    M01 warnings to stdout                           expired_offsets_warn_on_stderr_only
+KILLED    M02 warnings dropped                             expired_offsets_warn_on_stderr_only
+KILLED    M03 list: error ignored (treated as end)         missing_topic_(list), poll_error_is_an_error,_not_end, stall_is_an_error,_not_end
+KILLED    M04 --all re-snapshots each page                 --all_pages_on_one_start-time_snapshot
+KILLED    M05 inspect re-snapshots each page               inspect_--key_scans_past_500,_first_match_only, inspect_pages_on_one_start-time_snapshot
+KILLED    M06 inspect page 100 not 500                     inspect_--key_scans_past_500,_first_match_only, inspect_pages_on_one_start-time_snapshot
+KILLED    M07 inspect --key does not stop at first match   inspect_--key_scans_past_500,_first_match_only
+KILLED    M08 UNDECODABLE byte count off by one            inspect_without_--key_prints_every_record, undecodable_record_in_list
+KILLED    M09 inspect hides undecodable                    inspect_without_--key_prints_every_record
+KILLED    M10 --limit not an alias                         --limit_is_an_alias_of_--page-size
+KILLED    M11 --partition always applied                   --from_P/O_then_the_later_partitions
+KILLED    M12 --partition ignored                          --partition
+KILLED    M13 --from ignored                               --from_P/O_then_the_later_partitions, expired_offsets_warn_on_stderr_only
+KILLED    M14 bad --from accepted                          bad_--from
+KILLED    M15 next footer without --topic                  --page-size, default_page_size_is_50
+KILLED    M16 N counts only the last page                  --all_pages_on_one_start-time_snapshot
+KILLED    M17 watermarks in descending order               --from_P/O_then_the_later_partitions, --partition
+KILLED    M18 footer prints Low not High                   --all_pages_on_one_start-time_snapshot, --from_P/O_then_the_later_partitions, --partition
+KILLED    M19 reader never closed                          --all_pages_on_one_start-time_snapshot, --from_P/O_then_the_later_partitions, --limit_is_an_alias_of_--page-si
+KILLED    M20 inspect: error ignored                       inspect_stall_is_an_error, missing_topic_(inspect)
+SURVIVED  M21 inspect --key prints undecodable records     
+SURVIVED  M22 'No DLQ events' also without --key           
+KILLED    M23 --all ignored                                --all_pages_on_one_start-time_snapshot
+KILLED    M24 always --all                                 --limit_is_an_alias_of_--page-size, --page-size, default_page_size_is_50
+SURVIVED  M25 --page-size default 0                        
+KILLED    M26 Manager built with nil reader                panic; default_page_size_is_50
+KILLED    M27 records of a failing page not printed        --all_pages_on_one_start-time_snapshot, --from_P/O_then_the_later_partitions, --limit_is_an_alias_of_--page-si
+KILLED    M29 inspect without --key stops after first record inspect_without_--key_prints_every_record
+SURVIVED  M30 SilenceUsage off on list                     
+
+mutant edits (old -> new):
+M01: 'fmt.Fprintln(errOut, w)' -> 'fmt.Fprintln(out, w); _ = errOut'
+M02: 'fmt.Fprintln(errOut, w)' -> '_, _ = w, errOut'
+M03: 'if err != nil {\n\t\t\t\t\t\treturn err // a stall' -> 'if false && err != nil {\n\t\t\t\t\t\treturn err // a stall'
+M04: 'opt.From, opt.Snapshot = page.Next, page.Watermarks // --all' -> 'opt.From = page.Next // --all'
+M05: 'opt.From, opt.Snapshot = page.Next, page.Watermarks // one snapshot' -> 'opt.From = page.Next // one snapshot'
+M06: 'dlq.ListOptions{PageSize: 500}' -> 'dlq.ListOptions{PageSize: 100}'
+M07: 'return nil // first match' -> '{} // first match'
+M08: 'UNDECODABLE (%d bytes)\\n", r.Partition, r.Offset, len(r.Value))' -> 'UNDECODABLE (%d bytes)\\n", r.Partition, r.Offset, len(r.Value)-1)'
+M09: 'printDLQRecord(out, r)\n\t\t\t\t\t\t\tcontinue' -> 'continue'
+M10: 'IntVar(&pageSize, "limit"' -> 'IntVar(&limit, "limit"'
+M11: 'if cmd.Flags().Changed("partition") {' -> 'if true {'
+M12: 'opt.Partition = &partition' -> '_ = &partition'
+M13: 'opt.From = c\n' -> '_ = c\n'
+M14: 'c, err := dlq.ParseCursor(from)\n\t\t\t\tif err != nil {' -> 'c, err := dlq.ParseCursor(from)\n\t\t\t\tif false && err != nil {'
+M15: 'next page: arxivlens dlq list --topic %s --from %s\\n", topic, page.Next' -> 'next page: arxivlens dlq list --from %s\\n", page.Next'
+M16: 'n += len(page.Records)' -> 'n = len(page.Records)'
+M17: 'return parts[i] < parts[j]' -> 'return parts[i] > parts[j]'
+M18: 'fmt.Sprintf("%d=%d", p, wm[p].High)' -> 'fmt.Sprintf("%d=%d", p, wm[p].Low)'
+M19: 'defer r.Close()' -> '_ = r.Close'
+M20: 'if err != nil {\n\t\t\t\t\t\treturn err\n\t\t\t\t\t}\n\t\t\t\t\tif !page.Next.IsSet() {\n\t\t\t\t\t\tbreak' -> 'if false && err != nil {\n\t\t\t\t\t\treturn err\n\t\t\t\t\t}\n\t\t\t\t\tif !page.Next.IsSet() {\n\t\t\t\t\t\tbreak'
+M21: 'if key != "" && (ev == nil || ev.OriginalKey != key) {' -> 'if key != "" && (ev != nil && ev.OriginalKey != key) {'
+M22: 'if key != "" {\n\t\t\t\t\tfmt.Fprintf(out, "No DLQ events' -> 'if true {\n\t\t\t\t\tfmt.Fprintf(out, "No DLQ events'
+M23: 'if !all {' -> 'if true {'
+M24: 'if !all {' -> 'if false {'
+M25: 'IntVar(&pageSize, "page-size", dlq.DefaultPageSize' -> 'IntVar(&pageSize, "page-size", 0'
+M26: 'dlq.NewManager(nil, r)' -> 'dlq.NewManager(nil, nil)'
+M27: 'for _, r := range page.Records {\n\t\t\t\t\t\tprintDLQRecord(out, r)' -> 'for _, r := range page.Records[:0] {\n\t\t\t\t\t\tprintDLQRecord(out, r)'
+M29: 'if key != "" {\n\t\t\t\t\t\t\treturn nil // first match' -> 'if true {\n\t\t\t\t\t\t\treturn nil // first match'
+M30: 'a page at a time, up to the high watermarks at start",\n\t\tSilenceUsage: true,' -> 'a page at a time, up to the high watermarks at start",'
+
+[exit code 0]

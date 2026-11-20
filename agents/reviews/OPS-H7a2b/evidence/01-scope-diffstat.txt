@@ -1,0 +1,12 @@
+$ bash -c git log --oneline origin/main..HEAD; echo; git diff --stat origin/main...HEAD; echo; git diff --numstat origin/main...HEAD | awk "{s+=\$1+\$2} END {print \"changed lines (adds+dels):\", s}"
+0f99a63 OPS-H7a2b: dlq list/inspect on Manager.List (P/O cursor, --partition/--from/--page-size/--all, stderr warnings, README)
+7788f17 OPS-H7a2b: skeleton (stub newDLQCmdWith + dlq_test.go) for the size gate
+
+ README.md                 |   9 ++-
+ cmd/arxivlens/dlq_test.go | 198 ++++++++++++++++++++++++++++++++++++++++++++++
+ cmd/arxivlens/main.go     | 188 ++++++++++++++++++++++++++++++++-----------
+ 3 files changed, 348 insertions(+), 47 deletions(-)
+
+changed lines (adds+dels): 395
+
+[exit code 0]

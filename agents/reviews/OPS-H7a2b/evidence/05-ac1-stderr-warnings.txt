@@ -1,0 +1,24 @@
+$ /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/ac.sh expired M01|M02 errOut|Warnings expired|wantErrOut \[\]string|stderr lacks
+## go test -race -count=1 -v -run 'TestDLQFlags/(expired)' ./cmd/arxivlens/   (harness = real main.go DLQ section + real dlq_test.go)
+--- PASS: TestDLQFlags (0.00s)
+    --- PASS: TestDLQFlags/expired_offsets_warn_on_stderr_only (0.00s)
+PASS
+ok  	arxivlens/cmd/arxivlens	1.016s
+
+## mutants aimed at this AC (full TestDLQFlags each; from mutants-r1.txt)
+KILLED    M01 warnings to stdout                           expired_offsets_warn_on_stderr_only
+KILLED    M02 warnings dropped                             expired_offsets_warn_on_stderr_only
+
+## code under test (PR head cmd/arxivlens/main.go)
+370:			out, errOut := cmd.OutOrStdout(), cmd.ErrOrStderr()
+376:					for _, w := range page.Warnings {
+377:						fmt.Fprintln(errOut, w)
+416:					page, err := mgr.List(ctx, topic, opt) // From is always >= the snapshot's Low here, so no expiry Warnings
+
+## test rows (PR head cmd/arxivlens/dlq_test.go)
+111:		wantErrOut []string
+132:		{name: "expired offsets warn on stderr only", counts: map[int32]int{0: 0}, setup: func(f *fakeDLQ) { f.low[0] = 5; f.add(0, 3) },
+134:			notOut: []string{"WARNING"}, wantErrOut: []string{"WARNING partition 0: offsets 2..4 expired\n"}, wmCalls: 1, closed: 1},
+190:					t.Errorf("stderr lacks %q: %q", s, errOut)
+
+[exit code 0]

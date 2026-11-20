@@ -1,0 +1,28 @@
+$ gh api .../actions/jobs/136509386842/logs (excerpt)
+# Full stack job 136509386842 (head 0f99a63): AC8 = the three 'dlq list' lines. Output first, then the step script.
+2026-11-20T19:12:49.7198783Z HEAD is now at 26cda97 Merge 0f99a63f1f8240f630825c8d8231c3724a4d420f into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+
+## output
+2026-11-20T19:20:55.1864123Z === DLQ topic: papers.discovered.dlq ===
+2026-11-20T19:20:55.1917970Z end of topic (high watermarks at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=0 7=0 8=0 9=0 10=0 11=0; 0 records)
+2026-11-20T19:20:56.8503574Z === DLQ topic: papers.downloaded.dlq ===
+2026-11-20T19:20:56.8655953Z end of topic (high watermarks at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=0 7=0 8=0 9=0 10=0 11=0; 0 records)
+2026-11-20T19:20:58.6789262Z === DLQ topic: papers.chunked.dlq ===
+2026-11-20T19:20:58.6839847Z end of topic (high watermarks at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=0 7=0 8=0 9=0 10=0 11=0; 0 records)
+
+## step script lines that run dlq list (stack.yml at the PR merge ref)
+2026-11-20T19:19:10.0426351Z     for t in papers.discovered.dlq papers.downloaded.dlq papers.chunked.dlq; do ./bin/arxivlens dlq list --topic "$t"; done
+2026-11-20T19:19:10.0433071Z for t in papers.discovered.dlq papers.downloaded.dlq papers.chunked.dlq; do
+2026-11-20T19:19:10.0434094Z   ./bin/arxivlens dlq list --topic "$t"
+2026-11-20T19:19:10.0435262Z   end="$(docker compose exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 --topic "$t" --time -1 \
+2026-11-20T19:19:10.0436427Z     | awk -F: '{s += $3} END {print s + 0}')"
+2026-11-20T19:19:10.0437131Z   [ "$end" = 0 ] || { echo "::error::$t holds $end records"; exit 1; }
+2026-11-20T19:19:10.0437765Z done
+count of '|| true' in these lines: 0
+
+## make test-full summary; the next step is 'Known failure F1' (continue-on-error: true, stack.yml:295-297; tracked, not this PR)
+2026-11-20T19:23:36.0443374Z 248 passed, 1 skipped, 3 deselected, 5 warnings in 84.05s (0:01:24)
+2026-11-20T19:24:07.7093343Z 2 failed, 1 passed in 30.41s
+
+Full stack (compose + make test-full)  completed  success  https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44800007601/job/136509386842
+

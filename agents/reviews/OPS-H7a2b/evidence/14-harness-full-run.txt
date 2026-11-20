@@ -1,0 +1,41 @@
+$ bash -c cd /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/h-head && export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off GOSUMDB=off; go version; go vet ./... && echo 'go vet: clean'; echo "gofmt -l on PR files: [$(gofmt -l /root/wt/qa-OPS-H7a2b/cmd/arxivlens/)]"; go test -race -count=1 -v ./cmd/arxivlens/ ./internal/dlq/ 2>&1 | grep -E -- '^(--- |ok|FAIL)|^    --- (PASS|FAIL): TestDLQFlags'
+go version go1.24.7 linux/amd64
+go vet: clean
+gofmt -l on PR files: []
+--- PASS: TestDLQFlags (0.02s)
+    --- PASS: TestDLQFlags/default_page_size_is_50 (0.00s)
+    --- PASS: TestDLQFlags/--page-size (0.00s)
+    --- PASS: TestDLQFlags/--limit_is_an_alias_of_--page-size (0.00s)
+    --- PASS: TestDLQFlags/--partition (0.00s)
+    --- PASS: TestDLQFlags/--from_P/O_then_the_later_partitions (0.00s)
+    --- PASS: TestDLQFlags/bad_--from (0.00s)
+    --- PASS: TestDLQFlags/--all_pages_on_one_start-time_snapshot (0.00s)
+    --- PASS: TestDLQFlags/expired_offsets_warn_on_stderr_only (0.00s)
+    --- PASS: TestDLQFlags/undecodable_record_in_list (0.00s)
+    --- PASS: TestDLQFlags/stall_is_an_error,_not_end (0.00s)
+    --- PASS: TestDLQFlags/poll_error_is_an_error,_not_end (0.00s)
+    --- PASS: TestDLQFlags/missing_topic_(list) (0.00s)
+    --- PASS: TestDLQFlags/missing_topic_(inspect) (0.00s)
+    --- PASS: TestDLQFlags/reader_factory_error (0.00s)
+    --- PASS: TestDLQFlags/inspect_--key_scans_past_500,_first_match_only (0.00s)
+    --- PASS: TestDLQFlags/inspect_pages_on_one_start-time_snapshot (0.00s)
+    --- PASS: TestDLQFlags/inspect_without_--key_prints_every_record (0.00s)
+    --- PASS: TestDLQFlags/inspect_stall_is_an_error (0.00s)
+--- PASS: TestQAProbeFooterAfterPartition (0.00s)
+--- PASS: TestQAProbeInspectKeyWithUndecodable (0.00s)
+--- PASS: TestQAProbeInspectEmptyNoKey (0.00s)
+ok  	arxivlens/cmd/arxivlens	1.034s
+--- PASS: TestReplayEnvelope (0.00s)
+--- PASS: TestReplayEnvelopeNeverEmpty (0.00s)
+--- PASS: TestReplayEnvelopeSkipReasonsDistinct (0.00s)
+--- PASS: TestReplaySkipLine (0.00s)
+--- PASS: TestReadLoop (0.27s)
+--- PASS: TestWatermarkResponses (0.00s)
+--- PASS: TestDecodeRecord (0.00s)
+--- PASS: TestListPagesToHighWatermark (0.00s)
+--- PASS: TestListPassesSnapshotHighAsUntil (0.00s)
+--- PASS: TestListErrorsAreNotEnd (0.00s)
+--- PASS: TestParseCursor (0.00s)
+ok  	arxivlens/internal/dlq	1.288s
+
+[exit code 0]

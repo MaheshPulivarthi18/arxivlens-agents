@@ -1,0 +1,46 @@
+$ bash -c cd /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/h-head && GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off GOSUMDB=off go test -count=1 -v -run 'TestQAProbe' ./cmd/arxivlens/
+=== RUN   TestQAProbeFooterAfterPartition
+    qa_probe_test.go:17: run 1: dlq list --partition 0 --page-size 2
+        === DLQ topic: papers.downloaded.dlq ===
+        0/0  key=k0-0  error=E  failed_at=  -> 
+            message: 
+        0/1  key=k0-1  error=E  failed_at=  -> 
+            message: 
+        next page: arxivlens dlq list --topic papers.downloaded.dlq --from 0/2
+    qa_probe_test.go:30: run 2 (footer command verbatim): dlq list --topic papers.downloaded.dlq --from 0/2
+        === DLQ topic: papers.downloaded.dlq ===
+        0/2  key=k0-2  error=E  failed_at=  -> 
+            message: 
+        1/0  key=k1-0  error=E  failed_at=  -> 
+            message: 
+        1/1  key=k1-1  error=E  failed_at=  -> 
+            message: 
+        1/2  key=k1-2  error=E  failed_at=  -> 
+            message: 
+        end of topic (high watermarks at start: 0=3 1=3; 4 records)
+    qa_probe_test.go:31: RESULT partition-1 records in run 2: true; reads=[0:2-3 1:0-3]
+--- PASS: TestQAProbeFooterAfterPartition (0.00s)
+=== RUN   TestQAProbeInspectKeyWithUndecodable
+    qa_probe_test.go:41: inspect --key k0-2 with 0/0 undecodable:
+        ==================================================
+        DLQ Record:     0/2
+        Original Topic:  (Partition 0, Offset 0)
+        Paper Key:      k0-2
+        Error Type:     E
+        Error Message:  
+        Attempts:       0
+        Consumer Group: 
+        Traceparent:    
+        Failed At:      
+        Stack Trace:
+        
+        ==================================================
+    qa_probe_test.go:42: RESULT UNDECODABLE line printed under --key: false
+--- PASS: TestQAProbeInspectKeyWithUndecodable (0.00s)
+=== RUN   TestQAProbeInspectEmptyNoKey
+    qa_probe_test.go:48: inspect (no --key) on an empty topic: err=<nil> stdout=""
+--- PASS: TestQAProbeInspectEmptyNoKey (0.00s)
+PASS
+ok  	arxivlens/cmd/arxivlens	0.005s
+
+[exit code 0]

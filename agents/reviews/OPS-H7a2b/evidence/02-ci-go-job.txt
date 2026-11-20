@@ -1,0 +1,39 @@
+$ gh api .../actions/jobs/136509388044/logs (excerpt)
+# Go job 136509388044 (head 0f99a63), excerpt: checkout, make lint-go, make test-go (GOFLAGS=-race), make build-go
+2026-11-20T19:12:50.2873721Z Complete job name: Go (vet, gofmt, test, build)
+2026-11-20T19:12:53.5949095Z HEAD is now at 26cda97 Merge 0f99a63f1f8240f630825c8d8231c3724a4d420f into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+2026-11-20T19:13:03.4535430Z ##[group]Run make lint-go
+2026-11-20T19:13:03.4535724Z make lint-go
+2026-11-20T19:13:03.4558865Z shell: /usr/bin/bash -e {0}
+2026-11-20T19:13:03.4559110Z ##[endgroup]
+2026-11-20T19:13:03.4917320Z go vet ./...
+2026-11-20T19:13:04.5164402Z ##[group]Run make test-go
+2026-11-20T19:13:04.5164714Z make test-go
+2026-11-20T19:13:04.5183164Z shell: /usr/bin/bash -e {0}
+2026-11-20T19:13:04.5183600Z env:
+2026-11-20T19:13:04.5183900Z   GOFLAGS: -race
+2026-11-20T19:13:04.5184135Z ##[endgroup]
+2026-11-20T19:13:04.5234685Z go test ./...
+2026-11-20T19:13:34.0955932Z ok  	arxivlens/cmd/arxivlens	1.028s
+2026-11-20T19:13:35.6271957Z ok  	arxivlens/internal/arxiv	2.560s
+2026-11-20T19:13:35.6272595Z ok  	arxivlens/internal/config	1.011s
+2026-11-20T19:13:35.6276603Z ok  	arxivlens/internal/crawler	1.116s
+2026-11-20T19:13:35.6277169Z ok  	arxivlens/internal/db	1.010s
+2026-11-20T19:13:35.8976266Z ok  	arxivlens/internal/dlq	1.277s
+2026-11-20T19:13:36.0005173Z ok  	arxivlens/internal/downloader	1.116s
+2026-11-20T19:13:37.0561172Z ok  	arxivlens/internal/kafka	1.062s
+2026-11-20T19:13:38.2034352Z ok  	arxivlens/internal/llm	1.937s
+2026-11-20T19:13:38.2040911Z ok  	arxivlens/internal/llm/llmtest	1.112s
+2026-11-20T19:13:38.7411255Z ok  	arxivlens/internal/query	1.510s
+2026-11-20T19:13:38.7422542Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-20T19:13:39.6096035Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-20T19:13:44.1054181Z ##[group]Run make build-go
+2026-11-20T19:13:44.1054429Z make build-go
+2026-11-20T19:13:44.1072329Z shell: /usr/bin/bash -e {0}
+2026-11-20T19:13:44.1072554Z ##[endgroup]
+2026-11-20T19:13:44.1118680Z go build -o bin/arxivlens ./cmd/arxivlens
+2026-11-20T19:13:44.8829979Z Post job cleanup.
+
+# conclusion:
+Go (vet, gofmt, test, build)  completed  success  https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44800007927/job/136509388044
+

@@ -1,0 +1,45 @@
+$ /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/ac.sh default_page|--page-size|--limit|--partition|--from|bad|--all|inspect_--key|inspect_pages M04|M05|M06|M07|M10|M11|M12|M13|M14|M15|M16|M17|M18|M23|M24|M25|M29 next page:|end of topic \(|PageSize: 500|Snapshot = |DefaultPageSize|MarkHidden
+## go test -race -count=1 -v -run 'TestDLQFlags/(default_page|--page-size|--limit|--partition|--from|bad|--all|inspect_--key|inspect_pages)' ./cmd/arxivlens/   (harness = real main.go DLQ section + real dlq_test.go)
+--- PASS: TestDLQFlags (0.02s)
+    --- PASS: TestDLQFlags/default_page_size_is_50 (0.00s)
+    --- PASS: TestDLQFlags/--page-size (0.00s)
+    --- PASS: TestDLQFlags/--limit_is_an_alias_of_--page-size (0.00s)
+    --- PASS: TestDLQFlags/--partition (0.00s)
+    --- PASS: TestDLQFlags/--from_P/O_then_the_later_partitions (0.00s)
+    --- PASS: TestDLQFlags/bad_--from (0.00s)
+    --- PASS: TestDLQFlags/--all_pages_on_one_start-time_snapshot (0.00s)
+    --- PASS: TestDLQFlags/inspect_--key_scans_past_500,_first_match_only (0.00s)
+    --- PASS: TestDLQFlags/inspect_pages_on_one_start-time_snapshot (0.00s)
+PASS
+ok  	arxivlens/cmd/arxivlens	1.029s
+
+## mutants aimed at this AC (full TestDLQFlags each; from mutants-r1.txt)
+KILLED    M04 --all re-snapshots each page                 --all_pages_on_one_start-time_snapshot
+KILLED    M05 inspect re-snapshots each page               inspect_--key_scans_past_500,_first_match_only, inspect_pages_on_one_start-time_snapshot
+KILLED    M06 inspect page 100 not 500                     inspect_--key_scans_past_500,_first_match_only, inspect_pages_on_one_start-time_snapshot
+KILLED    M07 inspect --key does not stop at first match   inspect_--key_scans_past_500,_first_match_only
+KILLED    M10 --limit not an alias                         --limit_is_an_alias_of_--page-size
+KILLED    M11 --partition always applied                   --from_P/O_then_the_later_partitions
+KILLED    M12 --partition ignored                          --partition
+KILLED    M13 --from ignored                               --from_P/O_then_the_later_partitions, expired_offsets_warn_on_stderr_only
+KILLED    M14 bad --from accepted                          bad_--from
+KILLED    M15 next footer without --topic                  --page-size, default_page_size_is_50
+KILLED    M16 N counts only the last page                  --all_pages_on_one_start-time_snapshot
+KILLED    M17 watermarks in descending order               --from_P/O_then_the_later_partitions, --partition
+KILLED    M18 footer prints Low not High                   --all_pages_on_one_start-time_snapshot, --from_P/O_then_the_later_partitions, --partition
+KILLED    M23 --all ignored                                --all_pages_on_one_start-time_snapshot
+KILLED    M24 always --all                                 --limit_is_an_alias_of_--page-size, --page-size, default_page_size_is_50
+SURVIVED  M25 --page-size default 0                        
+KILLED    M29 inspect without --key stops after first record inspect_without_--key_prints_every_record
+
+## code under test (PR head cmd/arxivlens/main.go)
+387:						fmt.Fprintf(out, "end of topic (high watermarks at start: %s; %d records)\n", watermarkList(page.Watermarks), n)
+391:						fmt.Fprintf(out, "next page: arxivlens dlq list --topic %s --from %s\n", topic, page.Next)
+394:					opt.From, opt.Snapshot = page.Next, page.Watermarks // --all: one start-time snapshot for the whole run
+402:	listCmd.Flags().IntVar(&pageSize, "page-size", dlq.DefaultPageSize, "Records per page")
+403:	listCmd.Flags().IntVar(&pageSize, "limit", dlq.DefaultPageSize, "Alias of --page-size")
+404:	_ = listCmd.Flags().MarkHidden("limit")
+414:				opt := dlq.ListOptions{PageSize: 500}
+441:					opt.From, opt.Snapshot = page.Next, page.Watermarks // one snapshot for the whole scan
+
+[exit code 0]

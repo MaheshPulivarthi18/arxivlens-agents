@@ -1,0 +1,23 @@
+$ gh api .../actions/jobs/136509386630/logs (excerpt)
+# DB job 136509386630 (head 0f99a63): real-Kafka dlq step (KAFKA_BROKERS=localhost:9092 go test -tags integration -race ./internal/dlq/)
+2026-11-20T19:13:11.5519163Z HEAD is now at 26cda97 Merge 0f99a63f1f8240f630825c8d8231c3724a4d420f into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+2026-11-20T19:14:03.5616091Z ##[group]Run go vet -tags integration ./internal/dlq/
+2026-11-20T19:14:03.5616396Z go vet -tags integration ./internal/dlq/
+2026-11-20T19:14:03.5617065Z KAFKA_BROKERS=localhost:9092 go test -tags integration -race -count=1 -v -timeout 10m ./internal/dlq/
+2026-11-20T19:14:19.8070160Z --- PASS: TestReplayEnvelope (0.00s)
+2026-11-20T19:14:19.8331475Z --- PASS: TestReplayEnvelopeNeverEmpty (0.00s)
+2026-11-20T19:14:19.8332178Z --- PASS: TestReplayEnvelopeSkipReasonsDistinct (0.00s)
+2026-11-20T19:14:19.8332749Z --- PASS: TestReplaySkipLine (0.00s)
+2026-11-20T19:14:23.4846938Z --- PASS: TestReadStopsAtSnapshot_Integration (3.68s)
+2026-11-20T19:14:23.7511905Z --- PASS: TestReadLoop (0.27s)
+2026-11-20T19:14:23.7517811Z --- PASS: TestWatermarkResponses (0.00s)
+2026-11-20T19:14:23.7518457Z --- PASS: TestDecodeRecord (0.00s)
+2026-11-20T19:14:23.7531372Z --- PASS: TestListPagesToHighWatermark (0.00s)
+2026-11-20T19:14:23.7541067Z --- PASS: TestListPassesSnapshotHighAsUntil (0.00s)
+2026-11-20T19:14:23.7543716Z --- PASS: TestListErrorsAreNotEnd (0.00s)
+2026-11-20T19:14:23.7546719Z --- PASS: TestParseCursor (0.00s)
+2026-11-20T19:14:23.7546932Z PASS
+2026-11-20T19:14:24.7581931Z ok  	arxivlens/internal/dlq	4.961s
+
+DB (migrate twice, HNSW plan + recall)  completed  success  https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44800007616/job/136509386630
+

@@ -1,0 +1,30 @@
+$ /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/ac.sh undecodable|inspect_without M08|M09|M21 UNDECODABLE|printDLQRecord|ev == nil UNDECODABLE|garbage|"null"
+## go test -race -count=1 -v -run 'TestDLQFlags/(undecodable|inspect_without)' ./cmd/arxivlens/   (harness = real main.go DLQ section + real dlq_test.go)
+--- PASS: TestDLQFlags (0.00s)
+    --- PASS: TestDLQFlags/undecodable_record_in_list (0.00s)
+    --- PASS: TestDLQFlags/inspect_without_--key_prints_every_record (0.00s)
+PASS
+ok  	arxivlens/cmd/arxivlens	1.016s
+
+## mutants aimed at this AC (full TestDLQFlags each; from mutants-r1.txt)
+KILLED    M08 UNDECODABLE byte count off by one            inspect_without_--key_prints_every_record, undecodable_record_in_list
+KILLED    M09 inspect hides undecodable                    inspect_without_--key_prints_every_record
+SURVIVED  M21 inspect --key prints undecodable records     
+
+## code under test (PR head cmd/arxivlens/main.go)
+311:// printDLQRecord prints one record as P/O first (the form --from takes); an undecodable record is never hidden.
+312:func printDLQRecord(w io.Writer, r dlq.Record) {
+314:	if ev == nil {
+315:		fmt.Fprintf(w, "%d/%d  UNDECODABLE (%d bytes)\n", r.Partition, r.Offset, len(r.Value))
+380:						printDLQRecord(out, r)
+419:						if key != "" && (ev == nil || ev.OriginalKey != key) {
+422:						if ev == nil {
+423:							printDLQRecord(out, r)
+
+## test rows (PR head cmd/arxivlens/dlq_test.go)
+136:			f.log[0][0] = dlq.Record{Partition: 0, Offset: 0, Value: []byte("garbage")}
+137:		}, args: []string{"list"}, wantReads: []string{"0:0-2"}, wantOut: []string{"0/0  UNDECODABLE (7 bytes)\n", "0/1  key"}, wmCalls: 1, closed: 1},
+157:			f.log[0][1] = dlq.Record{Partition: 0, Offset: 1, Value: []byte("null")}
+158:		}, args: []string{"inspect"}, wantReads: []string{"0:0-2"}, wantOut: []string{"DLQ Record:     0/0\n", "0/1  UNDECODABLE (4 bytes)\n"}, wmCalls: 1, closed: 1},
+
+[exit code 0]

@@ -1,0 +1,286 @@
+$ bash -c cd /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1; echo '## identity checks (first)'; diff <(tail -n +$(grep -n '^// dlqReader is' h-head/cmd/arxivlens/main.go | cut -d: -f1) h-head/cmd/arxivlens/main.go) <(tail -n +$(grep -n '^// dlqReader is' /root/wt/qa-OPS-H7a2b/cmd/arxivlens/main.go | cut -d: -f1) /root/wt/qa-OPS-H7a2b/cmd/arxivlens/main.go) && echo 'main.go DLQ section: IDENTICAL to PR head'; cmp h-head/cmd/arxivlens/dlq_test.go /root/wt/qa-OPS-H7a2b/cmd/arxivlens/dlq_test.go && echo 'dlq_test.go: IDENTICAL'; diff -r h-head/internal/dlq /root/wt/qa-OPS-H7a2b/internal/dlq | grep -v integration_test; echo 'internal/dlq: identical except the removed *_integration_test.go'; for d in deps/*/; do echo "$d $(git -C $d describe --tags 2>/dev/null || echo stub) $(head -1 $d/go.mod)"; done; echo; echo '## harness files'; find build-harness.sh ac.sh mutate.py h-head/go.mod h-head/cmd/arxivlens/qa_probe_test.go -type f | sort | while read f; do echo "=== $f"; cat $f; done; echo '=== h-head/cmd/arxivlens/main.go (QA header only; the rest is the PR section above)'; head -22 h-head/cmd/arxivlens/main.go
+## identity checks (first)
+main.go DLQ section: IDENTICAL to PR head
+dlq_test.go: IDENTICAL
+internal/dlq: identical except the removed *_integration_test.go
+deps/cobra/ v1.8.0 module github.com/spf13/cobra
+deps/compress/ v1.17.6 module github.com/klauspost/compress
+deps/crypto/ v0.21.0 module golang.org/x/crypto
+deps/franz-go/ v1.16.1 module github.com/twmb/franz-go
+deps/kmsgrepo/ pkg/kmsg/v1.7.0 module github.com/twmb/franz-go
+deps/lz4/ v4.1.19 module github.com/pierrec/lz4/v4
+deps/mousetrap/ v1.1 module github.com/inconshreveable/mousetrap
+deps/pflag/ v1.0.5 module github.com/spf13/pflag
+deps/stub-md2man/ stub module github.com/cpuguy83/go-md2man/v2
+deps/stub-xnet/ stub module golang.org/x/net
+deps/stub-xterm/ stub module golang.org/x/term
+deps/stub-yaml/ stub module gopkg.in/yaml.v3
+deps/sys/ v0.18.0 module golang.org/x/sys
+deps/text/ v0.14.0 module golang.org/x/text
+deps/ulid/ v2.1.0 module github.com/oklog/ulid/v2
+
+## harness files
+=== ac.sh
+#!/bin/bash
+# ac.sh "<subtest regex>" "<mutant id regex>" "<main.go grep>" : run the named TestDLQFlags rows (-race -v) in the harness
+# built from this PR head, then show the matching mutant verdicts from mutants-r1.txt and the code lines under test.
+R=/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1
+cd $R/h-head; export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off GOSUMDB=off
+echo "## go test -race -count=1 -v -run 'TestDLQFlags/($1)' ./cmd/arxivlens/   (harness = real main.go DLQ section + real dlq_test.go)"
+go test -race -count=1 -v -run "TestDLQFlags/($1)" ./cmd/arxivlens/ 2>&1 | grep -E -- '--- (PASS|FAIL)|^(ok|FAIL|PASS)'
+echo; echo "## mutants aimed at this AC (full TestDLQFlags each; from mutants-r1.txt)"
+grep -E "^(KILLED|SURVIVED|INVALID)[^M]*($2) " $R/mutants-r1.txt
+echo; echo "## code under test (PR head cmd/arxivlens/main.go)"
+grep -n -E "$3" /root/wt/qa-OPS-H7a2b/cmd/arxivlens/main.go
+[ -n "$4" ] && { echo; echo "## test rows (PR head cmd/arxivlens/dlq_test.go)"; grep -n -E "$4" /root/wt/qa-OPS-H7a2b/cmd/arxivlens/dlq_test.go | cut -c1-230; }
+exit 0
+=== build-harness.sh
+#!/bin/bash
+# build-harness.sh <app-src-dir> <harness-dir>: go1.24 scratch module "arxivlens" with the app's REAL internal/dlq,
+# internal/kafka, shared/events, the REAL DLQ section of cmd/arxivlens/main.go (from "// dlqReader is" to EOF) and the
+# REAL cmd/arxivlens/dlq_test.go. Only header.go (package, imports, cfg stand-in) is written here. Deps = tag-pinned clones.
+set -e
+SRC=$1; H=$2; DEPS=/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps
+mkdir -p $H/cmd/arxivlens $H/internal $H/shared
+cp -r $SRC/internal/dlq $SRC/internal/kafka $H/internal/; cp -r $SRC/shared/events $H/shared/
+rm -f $H/internal/dlq/*integration_test.go $H/shared/events/*.py
+start=$(grep -n '^// dlqReader is' $SRC/cmd/arxivlens/main.go | cut -d: -f1)
+{ cat <<'HDR'
+package main
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"os/signal"
+	"sort"
+	"strings"
+	"syscall"
+
+	"arxivlens/internal/dlq"
+	"github.com/spf13/cobra"
+)
+
+var cfg = &struct{ KafkaBrokers []string }{}
+
+func main() { _ = newDLQCmd().Execute() }
+
+HDR
+tail -n +$start $SRC/cmd/arxivlens/main.go; } > $H/cmd/arxivlens/main.go
+[ -f $SRC/cmd/arxivlens/dlq_test.go ] && cp $SRC/cmd/arxivlens/dlq_test.go $H/cmd/arxivlens/
+cat > $H/go.mod <<GOMOD
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/spf13/cobra v1.8.0
+	github.com/spf13/pflag v1.0.5
+	github.com/twmb/franz-go v1.16.1
+	github.com/twmb/franz-go/pkg/kmsg v1.7.0
+	github.com/klauspost/compress v1.17.6
+	github.com/pierrec/lz4/v4 v4.1.19
+	github.com/inconshreveable/mousetrap v1.1.0
+	golang.org/x/crypto v0.21.0
+	golang.org/x/sys v0.18.0
+	golang.org/x/text v0.14.0
+)
+
+replace (
+	github.com/oklog/ulid/v2 => $DEPS/ulid
+	github.com/spf13/cobra => $DEPS/cobra
+	github.com/spf13/pflag => $DEPS/pflag
+	github.com/twmb/franz-go => $DEPS/franz-go
+	github.com/twmb/franz-go/pkg/kmsg => $DEPS/kmsgrepo/pkg/kmsg
+	github.com/klauspost/compress => $DEPS/compress
+	github.com/pierrec/lz4/v4 => $DEPS/lz4
+	github.com/inconshreveable/mousetrap => $DEPS/mousetrap
+	golang.org/x/crypto => $DEPS/crypto
+	golang.org/x/sys => $DEPS/sys
+	golang.org/x/text => $DEPS/text
+	golang.org/x/net => $DEPS/stub-xnet
+	golang.org/x/term => $DEPS/stub-xterm
+	github.com/cpuguy83/go-md2man/v2 => $DEPS/stub-md2man
+	gopkg.in/yaml.v3 => $DEPS/stub-yaml
+)
+GOMOD
+=== h-head/cmd/arxivlens/qa_probe_test.go
+package main
+
+// QA probes (not part of the PR): drive the real CLI through the PR's own fakeDLQ / runDLQ helpers.
+
+import (
+	"strings"
+	"testing"
+)
+
+func TestQAProbeFooterAfterPartition(t *testing.T) {
+	// 2 partitions x 3 records; list only partition 0, 2 per page, then follow the printed next-page command verbatim.
+	f := newFakeDLQ(map[int32]int{0: 3, 1: 3})
+	out, _, err := runDLQ(f, nil, "list", "--partition", "0", "--page-size", "2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("run 1: dlq list --partition 0 --page-size 2\n%s", out)
+	var next string
+	for _, l := range strings.Split(out, "\n") {
+		if strings.HasPrefix(l, "next page: arxivlens dlq ") {
+			next = strings.TrimPrefix(l, "next page: arxivlens dlq ")
+		}
+	}
+	args := strings.Fields(next)
+	f2 := newFakeDLQ(map[int32]int{0: 3, 1: 3})
+	out2, _, err := runDLQ(f2, nil, args...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("run 2 (footer command verbatim): dlq %s\n%s", next, out2)
+	t.Logf("RESULT partition-1 records in run 2: %v; reads=%v", strings.Contains(out2, "1/0  key"), f2.reads)
+}
+
+func TestQAProbeInspectKeyWithUndecodable(t *testing.T) {
+	f := newFakeDLQ(map[int32]int{0: 3})
+	f.log[0][0].Payload = nil
+	out, _, err := runDLQ(f, nil, "inspect", "--key", "k0-2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("inspect --key k0-2 with 0/0 undecodable:\n%s", out)
+	t.Logf("RESULT UNDECODABLE line printed under --key: %v", strings.Contains(out, "UNDECODABLE"))
+}
+
+func TestQAProbeInspectEmptyNoKey(t *testing.T) {
+	f := newFakeDLQ(map[int32]int{0: 0})
+	out, _, err := runDLQ(f, nil, "inspect")
+	t.Logf("inspect (no --key) on an empty topic: err=%v stdout=%q", err, out)
+}
+=== h-head/go.mod
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/spf13/cobra v1.8.0
+	github.com/spf13/pflag v1.0.5
+	github.com/twmb/franz-go v1.16.1
+	github.com/twmb/franz-go/pkg/kmsg v1.7.0
+	github.com/klauspost/compress v1.17.6
+	github.com/pierrec/lz4/v4 v4.1.19
+	github.com/inconshreveable/mousetrap v1.1.0
+	golang.org/x/crypto v0.21.0
+	golang.org/x/sys v0.18.0
+	golang.org/x/text v0.14.0
+)
+
+replace (
+	github.com/oklog/ulid/v2 => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/ulid
+	github.com/spf13/cobra => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/cobra
+	github.com/spf13/pflag => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/pflag
+	github.com/twmb/franz-go => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/franz-go
+	github.com/twmb/franz-go/pkg/kmsg => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/kmsgrepo/pkg/kmsg
+	github.com/klauspost/compress => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/compress
+	github.com/pierrec/lz4/v4 => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/lz4
+	github.com/inconshreveable/mousetrap => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/mousetrap
+	golang.org/x/crypto => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/crypto
+	golang.org/x/sys => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/sys
+	golang.org/x/text => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/text
+	golang.org/x/net => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/stub-xnet
+	golang.org/x/term => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/stub-xterm
+	github.com/cpuguy83/go-md2man/v2 => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/stub-md2man
+	gopkg.in/yaml.v3 => /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-OPS-H7a2b-r1/deps/stub-yaml
+)
+=== mutate.py
+#!/usr/bin/env python3
+"""mutate.py <harness-dir>: single-edit mutants of the REAL DLQ section of cmd/arxivlens/main.go (PR head).
+Each mutant: an anchored code substring that must occur exactly once (else INVALID-ANCHOR). Each copy is a fresh
+mktemp dir; build failure = INVALID (never KILLED). Runs `go test -count=1 ./cmd/arxivlens/` (full TestDLQFlags)."""
+import os, re, shutil, subprocess, sys, tempfile
+H = sys.argv[1]
+T = "\t"
+M = [
+ ("M01 warnings to stdout", "fmt.Fprintln(errOut, w)", "fmt.Fprintln(out, w); _ = errOut"),
+ ("M02 warnings dropped", "fmt.Fprintln(errOut, w)", "_, _ = w, errOut"),
+ ("M03 list: error ignored (treated as end)", "if err != nil {\n" + T*6 + "return err // a stall", "if false && err != nil {\n" + T*6 + "return err // a stall"),
+ ("M04 --all re-snapshots each page", "opt.From, opt.Snapshot = page.Next, page.Watermarks // --all", "opt.From = page.Next // --all"),
+ ("M05 inspect re-snapshots each page", "opt.From, opt.Snapshot = page.Next, page.Watermarks // one snapshot", "opt.From = page.Next // one snapshot"),
+ ("M06 inspect page 100 not 500", "dlq.ListOptions{PageSize: 500}", "dlq.ListOptions{PageSize: 100}"),
+ ("M07 inspect --key does not stop at first match", "return nil // first match", "{} // first match"),
+ ("M08 UNDECODABLE byte count off by one", "UNDECODABLE (%d bytes)\\n\", r.Partition, r.Offset, len(r.Value))", "UNDECODABLE (%d bytes)\\n\", r.Partition, r.Offset, len(r.Value)-1)"),
+ ("M09 inspect hides undecodable", "printDLQRecord(out, r)\n" + T*7 + "continue", "continue"),
+ ("M10 --limit not an alias", "IntVar(&pageSize, \"limit\"", "IntVar(&limit, \"limit\""),
+ ("M11 --partition always applied", "if cmd.Flags().Changed(\"partition\") {", "if true {"),
+ ("M12 --partition ignored", "opt.Partition = &partition", "_ = &partition"),
+ ("M13 --from ignored", "opt.From = c\n", "_ = c\n"),
+ ("M14 bad --from accepted", "c, err := dlq.ParseCursor(from)\n" + T*4 + "if err != nil {", "c, err := dlq.ParseCursor(from)\n" + T*4 + "if false && err != nil {"),
+ ("M15 next footer without --topic", "next page: arxivlens dlq list --topic %s --from %s\\n\", topic, page.Next", "next page: arxivlens dlq list --from %s\\n\", page.Next"),
+ ("M16 N counts only the last page", "n += len(page.Records)", "n = len(page.Records)"),
+ ("M17 watermarks in descending order", "return parts[i] < parts[j]", "return parts[i] > parts[j]"),
+ ("M18 footer prints Low not High", "fmt.Sprintf(\"%d=%d\", p, wm[p].High)", "fmt.Sprintf(\"%d=%d\", p, wm[p].Low)"),
+ ("M19 reader never closed", "defer r.Close()", "_ = r.Close"),
+ ("M20 inspect: error ignored", "if err != nil {\n" + T*6 + "return err\n" + T*5 + "}\n" + T*5 + "if !page.Next.IsSet() {\n" + T*6 + "break", "if false && err != nil {\n" + T*6 + "return err\n" + T*5 + "}\n" + T*5 + "if !page.Next.IsSet() {\n" + T*6 + "break"),
+ ("M21 inspect --key prints undecodable records", "if key != \"\" && (ev == nil || ev.OriginalKey != key) {", "if key != \"\" && (ev != nil && ev.OriginalKey != key) {"),
+ ("M22 'No DLQ events' also without --key", "if key != \"\" {\n" + T*5 + "fmt.Fprintf(out, \"No DLQ events", "if true {\n" + T*5 + "fmt.Fprintf(out, \"No DLQ events"),
+ ("M23 --all ignored", "if !all {", "if true {"),
+ ("M24 always --all", "if !all {", "if false {"),
+ ("M25 --page-size default 0", "IntVar(&pageSize, \"page-size\", dlq.DefaultPageSize", "IntVar(&pageSize, \"page-size\", 0"),
+ ("M26 Manager built with nil reader", "dlq.NewManager(nil, r)", "dlq.NewManager(nil, nil)"),
+ ("M27 records of a failing page not printed", "for _, r := range page.Records {\n" + T*6 + "printDLQRecord(out, r)", "for _, r := range page.Records[:0] {\n" + T*6 + "printDLQRecord(out, r)"),
+ ("M29 inspect without --key stops after first record", "if key != \"\" {\n" + T*7 + "return nil // first match", "if true {\n" + T*7 + "return nil // first match"),
+ ("M30 SilenceUsage off on list", "a page at a time, up to the high watermarks at start\",\n" + T*2 + "SilenceUsage: true,", "a page at a time, up to the high watermarks at start\","),
+]
+src = open(os.path.join(H, "cmd/arxivlens/main.go")).read()
+env = dict(os.environ, GOTOOLCHAIN="local", GOFLAGS="-mod=mod", GOPROXY="off", GOSUMDB="off")
+res = []
+for name, old, new in M:
+    n = src.count(old)
+    if n != 1:
+        res.append((name, f"INVALID-ANCHOR (count={n})", "")); continue
+    d = tempfile.mkdtemp(prefix="mut-", dir=os.path.dirname(H.rstrip("/")))
+    shutil.copytree(H, d, dirs_exist_ok=True)
+    open(os.path.join(d, "cmd/arxivlens/main.go"), "w").write(src.replace(old, new))
+    b = subprocess.run(["go", "vet", "./cmd/arxivlens/"], cwd=d, env=env, capture_output=True, text=True)
+    if b.returncode != 0:
+        res.append((name, "INVALID (build)", b.stderr.strip().splitlines()[-1][:90])); continue
+    t = subprocess.run(["go", "test", "-count=1", "./cmd/arxivlens/"], cwd=d, env=env, capture_output=True, text=True, timeout=300)
+    fails = sorted(set(re.findall(r"--- FAIL: TestDLQFlags/(\S+)", t.stdout)))
+    panic = "panic:" in t.stdout
+    v = "KILLED" if t.returncode != 0 else "SURVIVED"
+    res.append((name, v, ("panic; " if panic else "") + (", ".join(fails)[:110] if fails else "")))
+k = sum(1 for r in res if r[1] == "KILLED"); s = [r for r in res if r[1] == "SURVIVED"]; inv = [r for r in res if r[1].startswith("INVALID")]
+print(f"SUMMARY: {len(res)} mutants, {k} KILLED, {len(s)} SURVIVED, {len(inv)} INVALID")
+for r in s: print("  SURVIVED:", r[0])
+for r in inv: print("  INVALID:", r[0], r[1], r[2])
+print()
+for name, v, why in res:
+    print(f"{v:9} {name:48} {why}")
+print("\nmutant edits (old -> new):")
+for name, old, new in M:
+    print(f"{name.split()[0]}: {old!r} -> {new!r}")
+=== h-head/cmd/arxivlens/main.go (QA header only; the rest is the PR section above)
+package main
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"os/signal"
+	"sort"
+	"strings"
+	"syscall"
+
+	"arxivlens/internal/dlq"
+	"github.com/spf13/cobra"
+)
+
+var cfg = &struct{ KafkaBrokers []string }{}
+
+func main() { _ = newDLQCmd().Execute() }
+
+// dlqReader is the DLQ topic reader the CLI builds per command; *dlq.KafkaReader in production, a fake in dlq_test.go.
+type dlqReader interface {
+
+[exit code 0]
