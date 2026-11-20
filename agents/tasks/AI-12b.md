@@ -8,7 +8,7 @@
 | **Depends on** | AI-12 (#73, merged `e6cffba`). No open PR touches `tests/test_verify.py` or `services/embedder/` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
 | **Jira** | to create (epic KAN-4 "Continuous ingestion", as for AI-12; labels `task-AI-12b`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: two tests, no production code, contract, CLI, table or service change |
-| **Status** | In QA — draft PR [#77](https://github.com/MaheshPulivarthi18/ArxivLens/pull/77) `249ff5d` |
+| **Status** | Ready to merge — PR [#77](https://github.com/MaheshPulivarthi18/ArxivLens/pull/77) `249ff5d` (QA PASS r1, PM APPROVE r1), waiting for Mahesh |
 
 ## Goal
 AI-12 made `/internal/ingest` reuse the startup-loaded embedding model and serialized the whole ingest pipeline under `_ingest_lock`
@@ -103,3 +103,5 @@ nothing in retrieval or answering changes.
     `make test-py` in CI and the `stack.yml` `-rA` lines; CI is the source of truth. `make eval`: not run (no retrieval/answering change).
   - Possible later row (out of scope): `/internal/rerank`'s bi-encoder fallback uses the same unlocked startup model; it has no
     concurrency test either, but it's only used when the cross-encoder failed to load.
+- 2026-11-20 (qa-reviewer): round 1 **PASS** at `249ff5d`. 8/8 mutants killed, CI 6/6 green, 2 nits (not blocking). See `agents/reviews/AI-12b/report.md`.
+- 2026-11-20 (pm-lead): round 1 **APPROVE**. Opened every evidence file 00–08, and each AC is proven by CI with real deps (06, 08) plus QA's mutants (03). PR description rewritten with the Evidence section, PR marked ready for review. Follow-up: the `/internal/rerank` bi-encoder fallback concurrency test went to Backlog as P3, to ride with AI-5. QA nit 1 (a daemon thread can outlive the test after a failure) wasn't worth a rework round.

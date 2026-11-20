@@ -156,6 +156,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 - From the AI-3 review (#13), QA finding 2 (backend, P2): `/v1/ask` `max_citations` has no upper bound (`internal/query/server.go:52,136`), so one embed request (and the hit list) can be arbitrarily large. *Proposed (needs Mahesh's OK on the value)*: reject `max_citations` > 20 with 400, or clamp it; add a handler test. Could ride with "Auth + rate limiting"
 - From the AI-3 review (#13), QA finding 3 (ai, P2, after EVAL-3 gives a full-stack `make eval`): measure AI-3's benefit. Run `make eval` on `9c1229a` (before) vs the merge of #13 (after), compare `/v1/ask` p50/p95 and the supported-citation rate (±0.01), and record the numbers in the AI-3 notes / `evals/BASELINE.md` (EVAL-4)
 - pm-lead docs PR after #13 merges: Technical PRD §11 row "Batch embedding in RAG validation" (`docs/PRD-Technical.md:385`) → done, link PR #13
+- From the AI-12b review (ai, P3, ride with AI-5 since it touches the same fallback): a test that `/internal/rerank`'s bi-encoder fallback (cross-encoder failed to load; it uses the same unlocked startup model) is not serialized behind an in-flight ingest, in the same style as `test_embed_is_not_serialized_behind_an_in_flight_ingest`. Optionally fold in QA nit 1: after a regression, stop that test's daemon threads from outliving monkeypatch teardown
 
 ## Repo split (2026-11-02)
 All tickets, docs, reviews and agent rules moved from ArxivLens to this repo. ArxivLens PRs #3, #4, #5, #7 were closed
