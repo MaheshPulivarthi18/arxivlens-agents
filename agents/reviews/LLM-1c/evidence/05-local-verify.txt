@@ -1,0 +1,25 @@
+$ /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/h/harness.sh /root/wt/LLM-1c verify
+### app HEAD: de2726988b08a96202d7b30cde9888cf1dd10371   go: go version go1.24.7 linux/amd64
+### gofmt -l internal/llm/ (empty = clean)
+rc=0
+### go vet ./internal/llm/...
+rc=0
+### go test -race -count=1 -v -run 'TLS|Transport' ./internal/llm/ (PASS/FAIL lines)
+--- PASS: TestTransportError (0.00s)
+--- PASS: TestTLSError (0.08s)
+    --- PASS: TestTLSError/certificate_rejected (0.08s)
+    --- PASS: TestTLSError/handshake_failed (0.00s)
+PASS
+ok  	arxivlens/internal/llm	1.102s
+### go test -race -count=1 -v -run 'TestNoSecretLeaks/TLS' ./internal/llm/
+--- PASS: TestNoSecretLeaks (0.10s)
+    --- PASS: TestNoSecretLeaks/TLS:_certificate_rejected (0.09s)
+    --- PASS: TestNoSecretLeaks/TLS:_not_a_TLS_server (0.00s)
+ok  	arxivlens/internal/llm	1.117s
+### go test -race -count=1 ./internal/llm/... (whole package)
+ok  	arxivlens/internal/llm	2.113s
+ok  	arxivlens/internal/llm/llmtest	1.118s
+### coverage
+arxivlens/internal/llm/openai.go:247:	transportDetail	80.0%
+
+[exit code 0]

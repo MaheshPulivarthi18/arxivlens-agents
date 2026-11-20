@@ -1,0 +1,5 @@
+$ /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/h/harness.sh /root/wt/LLM-1c flake
+### go test -race -count=100 -run '^TestTLSError$|^TestNoSecretLeaks$' ./internal/llm/
+ok  	arxivlens/internal/llm	26.746s
+
+[exit code 0]

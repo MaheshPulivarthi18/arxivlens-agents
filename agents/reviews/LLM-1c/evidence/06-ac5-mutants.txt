@@ -1,0 +1,45 @@
+$ /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/h/harness.sh /root/wt/LLM-1c mutants
+### control (no mutation)
+ok  	arxivlens/internal/llm	0.783s
+a: remove certificate branch                 [full]           KILLED   TestTLSError TestTLSError/certificate_rejected 
+              openai_test.go:600: error "llm: provider error: transport: malformed response or protocol error after 1 attempt" should contain "transport: TLS certificate rejected"
+a: remove certificate branch                 [^TestTLSError$] KILLED   TestTLSError TestTLSError/certificate_rejected 
+              openai_test.go:600: error "llm: provider error: transport: malformed response or protocol error after 1 attempt" should contain "transport: TLS certificate rejected"
+      diff: < case errors.As(err, new(*tls.CertificateVerificationError)):|< return "TLS certificate rejected", nil|
+b: remove handshake branch                   [full]           KILLED   TestTLSError TestTLSError/handshake_failed 
+              openai_test.go:600: error "llm: provider error: transport: malformed response or protocol error after 1 attempt" should contain "transport: TLS handshake failed"
+b: remove handshake branch                   [^TestTLSError$] KILLED   TestTLSError TestTLSError/handshake_failed 
+              openai_test.go:600: error "llm: provider error: transport: malformed response or protocol error after 1 attempt" should contain "transport: TLS handshake failed"
+      diff: < case errors.As(err, new(tls.RecordHeaderError)):|< return "TLS handshake failed", nil|
+c: cert branch keeps raw err as cause        [full]           KILLED   TestTLSError TestTLSError/certificate_rejected 
+              openai_test.go:608: raw TLS error reachable through the cause chain of llm: provider error: transport: TLS certificate rejected after 1 attempt
+c: cert branch keeps raw err as cause        [^TestTLSError$] KILLED   TestTLSError TestTLSError/certificate_rejected 
+              openai_test.go:608: raw TLS error reachable through the cause chain of llm: provider error: transport: TLS certificate rejected after 1 attempt
+      diff: < return "TLS certificate rejected", nil|> return "TLS certificate rejected", err|
+d: swap the two detail strings               [full]           KILLED   TestTLSError TestTLSError/certificate_rejected TestTLSError/handshake_failed 
+              openai_test.go:600: error "llm: provider error: transport: TLS handshake failed after 1 attempt" should contain "transport: TLS certificate rejected"
+              openai_test.go:600: error "llm: provider error: transport: TLS certificate rejected after 1 attempt" should contain "transport: TLS handshake failed"
+d: swap the two detail strings               [^TestTLSError$] KILLED   TestTLSError TestTLSError/certificate_rejected TestTLSError/handshake_failed 
+              openai_test.go:600: error "llm: provider error: transport: TLS handshake failed after 1 attempt" should contain "transport: TLS certificate rejected"
+              openai_test.go:600: error "llm: provider error: transport: TLS certificate rejected after 1 attempt" should contain "transport: TLS handshake failed"
+      diff: < return "TLS certificate rejected", nil|< case errors.As(err, new(tls.RecordHeaderError)):|> case errors.As(err, new(tls.RecordHeaderError)):|> return "TLS certificate rejected", nil|
+e: handshake branch keeps raw err as cause   [full]           KILLED   TestTLSError TestTLSError/handshake_failed 
+              openai_test.go:608: raw TLS error reachable through the cause chain of llm: provider error: transport: TLS handshake failed after 1 attempt
+e: handshake branch keeps raw err as cause   [^TestTLSError$] KILLED   TestTLSError TestTLSError/handshake_failed 
+              openai_test.go:608: raw TLS error reachable through the cause chain of llm: provider error: transport: TLS handshake failed after 1 attempt
+      diff: < return "TLS handshake failed", nil|> return "TLS handshake failed", err|
+f: cert branch copies err.Error() as detail  [full]           KILLED   TestTLSError TestTLSError/certificate_rejected 
+              openai_test.go:604: error "llm: provider error: transport: TLS certificate rejected: Post \"https://127.0.0.1:37453/chat/completions\": tls: failed to verify certificate: x509: certificate signed by unknown authority after 1 attempt" contains "https://127.0.0.1:37453"
+f: cert branch copies err.Error() as detail  [^TestTLSError$] KILLED   TestTLSError TestTLSError/certificate_rejected 
+              openai_test.go:604: error "llm: provider error: transport: TLS certificate rejected: Post \"https://127.0.0.1:44609/chat/completions\": tls: failed to verify certificate: x509: certificate signed by unknown authority after 1 attempt" contains "https://127.0.0.1:44609"
+      diff: < return "TLS certificate rejected", nil|> return "TLS certificate rejected: "+err.Error(), nil|
+g: handshake branch copies err.Error()       [full]           KILLED   TestTLSError TestTLSError/handshake_failed 
+              openai_test.go:604: error "llm: provider error: transport: TLS handshake failed: Post \"https://127.0.0.1:46869/chat/completions\": tls: first record does not look like a TLS handshake after 1 attempt" contains "https://127.0.0.1:46869"
+g: handshake branch copies err.Error()       [^TestTLSError$] KILLED   TestTLSError TestTLSError/handshake_failed 
+              openai_test.go:604: error "llm: provider error: transport: TLS handshake failed: Post \"https://127.0.0.1:38667/chat/completions\": tls: first record does not look like a TLS handshake after 1 attempt" contains "https://127.0.0.1:38667"
+      diff: < return "TLS handshake failed", nil|> return "TLS handshake failed: "+err.Error(), nil|
+h: TLS cases moved after the EOF case        [full]           SURVIVED 
+h: TLS cases moved after the EOF case        [^TestTLSError$] SURVIVED 
+      diff: < case errors.As(err, new(*tls.CertificateVerificationError)):|< return "TLS certificate rejected", nil|< case errors.As(err, new(tls.RecordHeaderError)):|< return "TLS handshake failed", nil|
+
+[exit code 0]

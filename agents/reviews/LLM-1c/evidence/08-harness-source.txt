@@ -1,0 +1,59 @@
+$ cat /tmp/claude-0/-home-claude/e5b214e4-da05-553c-a74b-4b4622d3e98a/scratchpad/h/harness.sh
+#!/usr/bin/env bash
+# QA LLM-1c harness: copies the PR's real internal/llm into a fresh go1.24 scratch module
+# (stdlib-only package; go.mod lowered 1.25 -> 1.24 because the sandbox has Go 1.24.7, no proxy).
+# usage: harness.sh <app-checkout> verify|mutants|flake
+set -u
+APP=$1; MODE=$2
+export GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off
+new() { d=$(mktemp -d); mkdir -p "$d/internal"; cp -r "$APP/internal/llm" "$d/internal/"; printf 'module arxivlens\n\ngo 1.24\n' > "$d/go.mod"; echo "$d"; }
+case $MODE in
+verify)
+  d=$(new); cd "$d"
+  echo "### app HEAD: $(git -C "$APP" rev-parse HEAD)   go: $(go version)"
+  echo "### gofmt -l internal/llm/ (empty = clean)"; gofmt -l internal/llm/; echo "rc=$?"
+  echo "### go vet ./internal/llm/..."; go vet ./internal/llm/...; echo "rc=$?"
+  echo "### go test -race -count=1 -v -run 'TLS|Transport' ./internal/llm/ (PASS/FAIL lines)"
+  go test -race -count=1 -v -run 'TLS|Transport' ./internal/llm/ 2>&1 | grep -E '^(---|    ---|ok|FAIL|PASS)'
+  echo "### go test -race -count=1 -v -run 'TestNoSecretLeaks/TLS' ./internal/llm/"
+  go test -race -count=1 -v -run 'TestNoSecretLeaks/TLS' ./internal/llm/ 2>&1 | grep -E '^(---|    ---|ok|FAIL)'
+  echo "### go test -race -count=1 ./internal/llm/... (whole package)"
+  go test -race -count=1 ./internal/llm/... 2>&1 | tail -3
+  echo "### coverage"
+  go test -count=1 -coverprofile=llm.out ./internal/llm/ >/dev/null 2>&1; go tool cover -func=llm.out | grep -E 'transportDetail|openai.go '
+  ;;
+flake)
+  d=$(new); cd "$d"
+  echo "### go test -race -count=100 -run '^TestTLSError$|^TestNoSecretLeaks$' ./internal/llm/"
+  go test -race -count=100 -run '^TestTLSError$|^TestNoSecretLeaks$' ./internal/llm/ 2>&1 | grep -vE 'http: TLS handshake error' | tail -5
+  ;;
+mutants)
+  F=internal/llm/openai.go
+  CERT='	case errors.As(err, new(*tls.CertificateVerificationError)):\n		return "TLS certificate rejected", nil\n'
+  run() { # name, perl substitution, test filter
+    local name=$1 sub=$2 d; d=$(new); cd "$d"
+    perl -0pi -e "$sub" $F
+    if cmp -s $F "$APP/$F"; then echo "$name  INVALID (mutation did not apply)"; return; fi
+    if ! go vet ./internal/llm/ >/dev/null 2>&1 && ! go build ./internal/llm/ >/dev/null 2>&1; then echo "$name  INVALID (build failed)"; return; fi
+    for scope in full '^TestTLSError$'; do
+      if [ $scope = full ]; then out=$(go test -count=1 ./internal/llm/ 2>&1); else out=$(go test -count=1 -run "$scope" ./internal/llm/ 2>&1); fi
+      fails=$(echo "$out" | grep -E '^\s*--- FAIL' | sed -E 's/ \(.*//; s/^\s*--- FAIL: //' | tr '\n' ' ')
+      if echo "$out" | grep -qE '^(FAIL|--- FAIL)'; then v=KILLED; else v=SURVIVED; fi
+      printf '%-44s %-16s %-8s %s\n' "$name" "[$scope]" "$v" "$fails"
+      echo "$out" | grep -E 'openai_test.go:[0-9]+:' | head -3 | sed 's/^/      /'
+    done
+    echo "      diff: $(diff "$APP/$F" $F | grep -E '^[<>]' | tr '\t' ' ' | tr -s ' ' | head -4 | tr '\n' '|')"
+  }
+  echo "### control (no mutation)"; d=$(new); (cd "$d"; go test -count=1 ./internal/llm/ 2>&1 | tail -1)
+  run "a: remove certificate branch" 's/\tcase errors\.As\(err, new\(\*tls\.CertificateVerificationError\)\):\n\t\treturn "TLS certificate rejected", nil\n//' 
+  run "b: remove handshake branch" 's/\tcase errors\.As\(err, new\(tls\.RecordHeaderError\)\):\n\t\treturn "TLS handshake failed", nil\n//'
+  run "c: cert branch keeps raw err as cause" 's/return "TLS certificate rejected", nil/return "TLS certificate rejected", err/'
+  run "d: swap the two detail strings" 's/return "TLS certificate rejected", nil/return "XSWAPX", nil/; s/return "TLS handshake failed", nil/return "TLS certificate rejected", nil/; s/return "XSWAPX", nil/return "TLS handshake failed", nil/'
+  run "e: handshake branch keeps raw err as cause" 's/return "TLS handshake failed", nil/return "TLS handshake failed", err/'
+  run "f: cert branch copies err.Error() as detail" 's/return "TLS certificate rejected", nil/return "TLS certificate rejected: "+err.Error(), nil/'
+  run "g: handshake branch copies err.Error()" 's/return "TLS handshake failed", nil/return "TLS handshake failed: "+err.Error(), nil/'
+  run "h: TLS cases moved after the EOF case" 's/(\tcase errors\.As\(err, new\(\*tls\.CertificateVerificationError\)\):\n\t\treturn "TLS certificate rejected", nil\n\tcase errors\.As\(err, new\(tls\.RecordHeaderError\)\):\n\t\treturn "TLS handshake failed", nil\n)(.*?)(\t\treturn "connection closed early", nil\n)/$2$3$1/s'
+  ;;
+esac
+
+[exit code 0]

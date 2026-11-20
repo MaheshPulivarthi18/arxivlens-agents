@@ -1,0 +1,9 @@
+$ gh api .../actions/jobs/136076869021/logs | grep -E 'HEAD is now|Ownership'; gh api .../actions/jobs/136076867487/logs | grep -E 'HEAD is now|test-full|N passed|N failed|##[error]'
+2026-11-20T04:10:28.1115428Z HEAD is now at 16a0b47 Merge de2726988b08a96202d7b30cde9888cf1dd10371 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+2026-11-20T04:10:28.1769446Z Ownership OK for role=backend (103 changed lines)
+2026-11-20T04:10:28.3204834Z HEAD is now at 16a0b47 Merge de2726988b08a96202d7b30cde9888cf1dd10371 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+2026-11-20T04:19:48.5748324Z 237 passed, 1 skipped, 3 deselected, 5 warnings in 45.87s
+2026-11-20T04:20:04.2418237Z 3 passed in 14.97s
+2026-11-20T04:20:09.2007110Z Cleaning up orphan processes
+count of '##[error]' lines in stack job log: 0
+

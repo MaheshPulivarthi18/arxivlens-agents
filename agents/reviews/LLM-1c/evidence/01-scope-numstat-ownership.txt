@@ -1,0 +1,13 @@
+$ bash -c git diff --stat origin/main...HEAD; echo "--- numstat (added deleted file)"; git diff --numstat origin/main...HEAD; echo "--- deleted lines in openai_test.go:"; git diff origin/main...HEAD -- internal/llm/openai_test.go | grep -c "^-[^-]"; echo "--- ownership-check.sh origin/main agent/backend/LLM-1c"; .github/scripts/ownership-check.sh origin/main agent/backend/LLM-1c
+ internal/llm/openai.go      |  8 ++++
+ internal/llm/openai_test.go | 95 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 103 insertions(+)
+--- numstat (added deleted file)
+8	0	internal/llm/openai.go
+95	0	internal/llm/openai_test.go
+--- deleted lines in openai_test.go:
+0
+--- ownership-check.sh origin/main agent/backend/LLM-1c
+Ownership OK for role=backend (103 changed lines)
+
+[exit code 0]

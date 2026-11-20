@@ -1,0 +1,5 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135778169056/logs | grep -E 'HEAD is now|transportDetail|openai.go |TestTLSError'
+2026-11-19T18:15:40.2001732Z ##[group]Run go test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out
+2026-11-19T18:15:45.4720904Z arxivlens/internal/llm/openai.go:243:		transportDetail	75.0%
+2026-11-19T18:15:45.4761510Z arxivlens/internal/llm/openai.go 95.2%
+

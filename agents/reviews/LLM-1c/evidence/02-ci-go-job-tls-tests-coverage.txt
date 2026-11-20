@@ -1,0 +1,28 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136076869340/logs | grep -E 'HEAD is now|lint-go|go vet|internal/llm|TestTLSError|TestNoSecretLeaks/TLS|build-go' (config.go/llm.go/fake.go and 100% openai.go rows dropped)
+2026-11-20T04:10:27.8714129Z HEAD is now at 16a0b47 Merge de2726988b08a96202d7b30cde9888cf1dd10371 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+2026-11-20T04:10:36.7415854Z ##[group]Run make lint-go
+2026-11-20T04:10:36.7592319Z go vet ./...
+2026-11-20T04:10:38.3375740Z ##[group]Run make test-go
+2026-11-20T04:10:45.6955409Z ok  	arxivlens/internal/llm	0.810s
+2026-11-20T04:10:45.6956008Z ok  	arxivlens/internal/llm/llmtest	0.104s
+2026-11-20T04:11:09.1610271Z ##[group]Run go test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out
+2026-11-20T04:11:15.3242760Z === RUN   TestTLSError
+2026-11-20T04:11:15.3243076Z === RUN   TestTLSError/certificate_rejected
+2026-11-20T04:11:15.3244055Z === RUN   TestTLSError/handshake_failed
+2026-11-20T04:11:15.3244357Z --- PASS: TestTLSError (0.06s)
+2026-11-20T04:11:15.3244725Z     --- PASS: TestTLSError/certificate_rejected (0.06s)
+2026-11-20T04:11:15.3245492Z     --- PASS: TestTLSError/handshake_failed (0.00s)
+2026-11-20T04:11:15.3255315Z === RUN   TestNoSecretLeaks/TLS:_certificate_rejected
+2026-11-20T04:11:15.3256621Z === RUN   TestNoSecretLeaks/TLS:_not_a_TLS_server
+2026-11-20T04:11:15.3262983Z     --- PASS: TestNoSecretLeaks/TLS:_certificate_rejected (0.01s)
+2026-11-20T04:11:15.3263450Z     --- PASS: TestNoSecretLeaks/TLS:_not_a_TLS_server (0.00s)
+2026-11-20T04:11:15.3264321Z ok  	arxivlens/internal/llm	1.997s	coverage: 96.6% of statements
+2026-11-20T04:11:15.3270167Z ok  	arxivlens/internal/llm/llmtest	1.119s	coverage: 100.0% of statements
+2026-11-20T04:11:15.3994071Z arxivlens/internal/llm/openai.go:175:		attempt		91.1%
+2026-11-20T04:11:15.3994473Z arxivlens/internal/llm/openai.go:247:		transportDetail	80.0%
+2026-11-20T04:11:15.3994888Z arxivlens/internal/llm/openai.go:268:		ctxError	100.0%
+2026-11-20T04:11:15.3995354Z arxivlens/internal/llm/openai.go:275:		retryable	100.0%
+2026-11-20T04:11:15.3996099Z arxivlens/internal/llm/openai.go:284:		parseRetryAfter	100.0%
+2026-11-20T04:11:15.4037316Z arxivlens/internal/llm/openai.go 95.3%
+2026-11-20T04:11:15.4078082Z ##[group]Run make build-go
+
