@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6b (#72, merged `8cf7251`). No open PR touches `internal/kafka/` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
 | **Jira** | to create (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H6c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one test row, no production code, contract, CLI, table or service change |
-| **Status** | In QA — draft PR [#76](https://github.com/MaheshPulivarthi18/ArxivLens/pull/76) `6b1e814` |
+| **Status** | Ready to merge — PR [#76](https://github.com/MaheshPulivarthi18/ArxivLens/pull/76) `6b1e814` (QA PASS r1, PM APPROVE r1), waiting for Mahesh |
 
 ## Goal
 OPS-H6b's guard in `Consumer.Start` skips the `Poll error` log line when the fetch error is ctx's **own** error
@@ -82,3 +82,5 @@ the PR (`internal/**` path) and has to be green apart from the documented F1 ste
   - `gofmt -l internal/kafka/` prints nothing. `go vet ./internal/kafka/` is clean in the scratch module. Ownership check:
     `Ownership OK for role=backend (37 changed lines)`.
   - Still open for CI: the AC4 run ID and the `--- PASS` line from the `Kafka consumer tests` step, plus `make lint-go` and `stack.yml`.
+- 2026-11-20 (qa-reviewer): round 1 **PASS** at `6b1e814`. M9 and the no-guard mutant killed, real-kgo probe matches the fake, CI 6/6 green, 1 nit. See `agents/reviews/OPS-H6c/report.md`.
+- 2026-11-20 08:00Z (pm-lead): round 1 **APPROVE** (first posted in the PR #76 body by the interrupted 05:00Z cycle; recorded in `agents/reviews/OPS-H6c/report.md` now). Opened every evidence file 00–08; each AC is proven by CI (02, 08) and QA's mutants (04, 05). PR #76 was already ready for review with `ready-to-merge`; its evidence URLs are pinned to `4e33774`, which holds byte-identical blobs, so I left the PR as is. No follow-ups.

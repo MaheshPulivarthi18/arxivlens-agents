@@ -8,7 +8,7 @@
 | **Depends on** | ING-11b (#52, merged `343a1c3`). No open PR touches `tests/test_m2_pipeline.py` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
 | **Jira** | to create (same epic as ING-11b / KAN-59; labels `task-ING-11c`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: one assertion message in a stack-only test |
-| **Status** | In QA — draft PR [#78](https://github.com/MaheshPulivarthi18/ArxivLens/pull/78) `1f24fc9` |
+| **Status** | Ready to merge — PR [#78](https://github.com/MaheshPulivarthi18/ArxivLens/pull/78) `1f24fc9` (QA PASS r1, PM APPROVE r1), waiting for Mahesh |
 
 ## Goal
 `test_embedded_chunks_have_recorded_start_pages` (`tests/test_m2_pipeline.py:67`) lumps two different failures into one message. A
@@ -80,3 +80,6 @@ AC3, and the AC1/AC2 harness is a scratch script. `make eval`: not run, because 
   Same pass/fail set before and after (AC2), the new message replaces the `<` one only for the NULL case (AC1), and the monotonic
   check still fires alongside it. AC3 is pending: `stack.yml` runs on the PR, so it needs the run ID once the PR is open. `make eval`
   not run: nothing in retrieval or answering changes.
+- 2026-11-20 (qa-reviewer): round 1 **PASS** at `1f24fc9`. Same pass/fail set before and after, 4/4 harness mutants detected, `stack.yml` names the test PASSED, CI 6/6 green, 1 nit. See `agents/reviews/ING-11c/report.md`.
+- 2026-11-20 08:00Z (pm-lead): round 1 **APPROVE** (first posted in the PR #78 body by the interrupted 05:00Z cycle; recorded in `agents/reviews/ING-11c/report.md` now). Opened every evidence file 00–08. PR #78 was already ready for review with `ready-to-merge`; its evidence URLs are pinned to `7e1d440` (byte-identical blobs), so I left the PR as is.
+  - **Follow-up (for the board Backlog; the PR body says it is there, but it wasn't):** ai, P3, fold into the next change to `tests/test_m2_pipeline.py`: fix the 2 pre-existing ruff findings (`2:8 F401` unused `pytest`, `57:1 W293` whitespace on a blank line). Handed to the orchestrator to add to `agents/board.md`.
