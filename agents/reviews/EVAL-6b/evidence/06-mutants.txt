@@ -1,0 +1,88 @@
+$ python3 /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/qa-EVAL-6b-r1/harness/mutants.py /root/wt/qa-EVAL-6b
+SUMMARY: 14/14 killed (full file)
+  m1   full=KILLED    ac-tests=KILLED    AC6: remove non-string guard in classify()
+  m2   full=KILLED    ac-tests=KILLED    AC6: falsy non-string ([] / 0) falls through as no reason
+  m3   full=KILLED    ac-tests=KILLED    AC6: count non-string values via str(reason)
+  m4   full=KILLED    ac-tests=KILLED    AC6: main always loads near-miss
+  m5   full=KILLED    ac-tests=KILLED    extra: case_record keeps raw non-string reason
+  m6   full=KILLED    ac-tests=KILLED    extra: reason counter uses raw value (base code)
+  m7   full=KILLED    ac-tests=KILLED    extra: guard drops `is not None` (null -> error)
+  m8   full=KILLED    ac-tests=KILLED    extra: _reason_str passes non-strings through
+  m9   full=KILLED    ac-tests=KILLED    extra: main swaps answers/refusals files
+  m10  full=KILLED    ac-tests=KILLED    extra: main never writes --json-out
+  m11  full=KILLED    ac-tests=KILLED    extra: main never loads near-miss
+  m12  full=KILLED    ac-tests=KILLED    extra: refusal-set failure also listed as answer-set miss
+  m13  full=KILLED    ac-tests=KILLED    extra: refusal-set errors not counted as errors
+  m14  full=KILLED    ac-tests=KILLED    extra: guard lets ints through (0 -> no reason)
+
+m1 AC6: remove non-string guard in classify()
+    full file : KILLED    9 failed, 133 passed, 1 skipped in 0.78s
+    AC tests  : KILLED [-k classify_non_string or classify_null_or_empty] 8 failed, 6 passed, 129 deselected in 0.37s
+      -    if reason is not None and not isinstance(reason, str):
+      -        return "error"  # a non-string reason (even a falsy [] or 0) fails closed, never "no reason"
+m2 AC6: falsy non-string ([] / 0) falls through as no reason
+    full file : KILLED    4 failed, 138 passed, 1 skipped in 0.47s
+    AC tests  : KILLED [-k classify_non_string or classify_null_or_empty] 4 failed, 10 passed, 129 deselected in 0.16s
+      -    if reason is not None and not isinstance(reason, str):
+      +    if reason and not isinstance(reason, str):
+m3 AC6: count non-string values via str(reason)
+    full file : KILLED    1 failed, 141 passed, 1 skipped in 0.38s
+    AC tests  : KILLED [-k evaluate_completes_on_non_string] 1 failed, 142 deselected in 0.08s
+      -        reason = _reason_str(resp or {})
+      +        reason = str((resp or {}).get("refusal_reason") or "")
+m4 AC6: main always loads near-miss
+    full file : KILLED    1 failed, 141 passed, 1 skipped in 0.40s
+    AC tests  : KILLED [-k test_main_] 1 failed, 1 passed, 141 deselected in 0.10s
+      -                       load_cases(args.near_miss) if args.near_miss else None)
+      +                       load_cases(args.near_miss))
+m5 extra: case_record keeps raw non-string reason
+    full file : KILLED    1 failed, 141 passed, 1 skipped in 0.39s
+    AC tests  : KILLED [-k evaluate_completes_on_non_string] 1 failed, 142 deselected in 0.07s
+      -        "refusal_reason": _reason_str(r) or None, "latency_ms": round(ms, 1),
+      +        "refusal_reason": r.get("refusal_reason") or None, "latency_ms": round(ms, 1),
+m6 extra: reason counter uses raw value (base code)
+    full file : KILLED    1 failed, 141 passed, 1 skipped in 0.41s
+    AC tests  : KILLED [-k evaluate_completes_on_non_string] 1 failed, 142 deselected in 0.09s
+      -        reason = _reason_str(resp or {})
+      +        reason = (resp or {}).get("refusal_reason")
+m7 extra: guard drops `is not None` (null -> error)
+    full file : KILLED    20 failed, 122 passed, 1 skipped in 0.82s
+    AC tests  : KILLED [-k classify_non_string or classify_null_or_empty] 1 failed, 13 passed, 129 deselected in 0.10s
+      -    if reason is not None and not isinstance(reason, str):
+      +    if not isinstance(reason, str):
+m8 extra: _reason_str passes non-strings through
+    full file : KILLED    1 failed, 141 passed, 1 skipped in 0.54s
+    AC tests  : KILLED [-k evaluate_completes_on_non_string] 1 failed, 142 deselected in 0.09s
+      -    return reason if isinstance(reason, str) else ""
+      +    return reason or ""
+m9 extra: main swaps answers/refusals files
+    full file : KILLED    2 failed, 140 passed, 1 skipped in 0.42s
+    AC tests  : KILLED [-k test_main_] 2 failed, 141 deselected in 0.10s
+      -    metrics = evaluate(load_cases(args.answers), load_cases(args.refusals), make_http_ask(args.api_url, args.timeout),
+      +    metrics = evaluate(load_cases(args.refusals), load_cases(args.answers), make_http_ask(args.api_url, args.timeout),
+m10 extra: main never writes --json-out
+    full file : KILLED    2 failed, 140 passed, 1 skipped in 0.45s
+    AC tests  : KILLED [-k test_main_] 2 failed, 141 deselected in 0.18s
+      -    if args.json_out:
+      +    if False:
+m11 extra: main never loads near-miss
+    full file : KILLED    1 failed, 141 passed, 1 skipped in 0.48s
+    AC tests  : KILLED [-k test_main_] 1 failed, 1 passed, 141 deselected in 0.08s
+      -                       load_cases(args.near_miss) if args.near_miss else None)
+      +                       None)
+m12 extra: refusal-set failure also listed as answer-set miss
+    full file : KILLED    1 failed, 141 passed, 1 skipped in 0.44s
+    AC tests  : KILLED [-k failed_refusal_set_call] 1 failed, 142 deselected in 0.08s
+      +            misses.append(case["id"])
+m13 extra: refusal-set errors not counted as errors
+    full file : KILLED    5 failed, 137 passed, 1 skipped in 0.49s
+    AC tests  : KILLED [-k failed_refusal_set_call] 1 failed, 142 deselected in 0.07s
+      -        if outcome == "error":
+      +        if outcome == "error" and case_set == "answer":
+m14 extra: guard lets ints through (0 -> no reason)
+    full file : KILLED    2 failed, 140 passed, 1 skipped in 0.44s
+    AC tests  : KILLED [-k classify_non_string or classify_null_or_empty] 2 failed, 12 passed, 129 deselected in 0.11s
+      -    if reason is not None and not isinstance(reason, str):
+      +    if reason is not None and not isinstance(reason, (str, int)):
+
+[exit code 0]

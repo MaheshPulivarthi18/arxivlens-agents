@@ -1,0 +1,7 @@
+$ bash -c echo "PR head $(git rev-parse --short HEAD):"; python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py 2>&1 | tail -1; echo "origin/main $(git -C /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/qa-EVAL-6b-r1/base rev-parse --short HEAD):"; cd /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/qa-EVAL-6b-r1/base && python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py 2>&1 | tail -1
+PR head c053564:
+142 passed, 1 skipped in 0.24s
+origin/main 230f617:
+124 passed, 1 skipped in 0.28s
+
+[exit code 0]

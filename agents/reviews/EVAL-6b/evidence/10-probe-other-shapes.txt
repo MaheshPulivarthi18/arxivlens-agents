@@ -1,0 +1,8 @@
+$ python3 -I /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/qa-EVAL-6b-r1/harness/probe_other_shapes.py
+OK     refusal_reason=['x'] (this PR): errors=['a1', 'x1'] counts={}
+OK     refusal_reason='bogus' (unknown string): errors=['a1', 'x1'] counts={'bogus': 2}
+RAISES citations=5 (non-list): TypeError: 'int' object is not iterable
+RAISES citations=['str'] (non-dict item): AttributeError: 'str' object has no attribute 'get'
+RAISES response is a list: AttributeError: 'list' object has no attribute 'get'
+
+[exit code 0]

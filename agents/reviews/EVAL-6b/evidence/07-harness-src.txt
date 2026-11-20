@@ -1,0 +1,105 @@
+$ bash -c for f in $(find /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/qa-EVAL-6b-r1/harness -type f | sort); do echo "=== $f"; cat "$f"; done
+=== /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/qa-EVAL-6b-r1/harness/base_control.sh
+#!/bin/bash
+# QA EVAL-6b r1 base control: the PR head's tests/test_evals_data.py run against origin/main's scripts/evaluate_answers.py.
+# Expect: exactly the new rows that pin the fix fail (non-string reasons), the rest (main wiring, failed refusal call) pass.
+set -u
+WT=$1; BASE=$(git -C "$WT" rev-parse origin/main)
+d=$(mktemp -d /tmp/qa-eval6b-base-XXXX)
+git -C "$WT" archive "$BASE" | tar -x -C "$d"
+git -C "$WT" show HEAD:tests/test_evals_data.py > "$d/tests/test_evals_data.py"
+echo "base script: origin/main $(git -C "$WT" rev-parse --short "$BASE"); tests: PR head $(git -C "$WT" rev-parse --short HEAD)"
+cd "$d" && python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py -rf 2>&1 | grep -E "^FAILED|^[0-9]+ (passed|failed)" | sed 's/ - .*//'
+=== /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/qa-EVAL-6b-r1/harness/mutants.py
+"""QA EVAL-6b r1 mutation harness: each mutant = one anchored code substitution in a fresh `git archive` copy of the PR head.
+Verdict: KILLED (pytest rc=1, failures), SURVIVED (rc=0), INVALID (anchor not found exactly once, or collection error rc!=1)."""
+import os, subprocess, sys, tempfile, difflib
+
+WT = sys.argv[1]
+SA = "scripts/evaluate_answers.py"
+GUARD = '    if reason is not None and not isinstance(reason, str):\n        return "error"  # a non-string reason (even a falsy [] or 0) fails closed, never "no reason"\n'
+K_CLASSIFY = "classify_non_string or classify_null_or_empty"
+K_EVAL = "evaluate_completes_on_non_string"
+K_MAIN = "test_main_"
+K_AC4 = "failed_refusal_set_call"
+MUTANTS = [
+    ("m1 AC6: remove non-string guard in classify()", GUARD, "", K_CLASSIFY),
+    ("m2 AC6: falsy non-string ([] / 0) falls through as no reason", "if reason is not None and not isinstance(reason, str):",
+     "if reason and not isinstance(reason, str):", K_CLASSIFY),
+    ("m3 AC6: count non-string values via str(reason)", "reason = _reason_str(resp or {})",
+     'reason = str((resp or {}).get("refusal_reason") or "")', K_EVAL),
+    ("m4 AC6: main always loads near-miss", "load_cases(args.near_miss) if args.near_miss else None",
+     "load_cases(args.near_miss)", K_MAIN),
+    ("m5 extra: case_record keeps raw non-string reason", '"refusal_reason": _reason_str(r) or None',
+     '"refusal_reason": r.get("refusal_reason") or None', K_EVAL),
+    ("m6 extra: reason counter uses raw value (base code)", "reason = _reason_str(resp or {})",
+     'reason = (resp or {}).get("refusal_reason")', K_EVAL),
+    ("m7 extra: guard drops `is not None` (null -> error)", "if reason is not None and not isinstance(reason, str):",
+     "if not isinstance(reason, str):", K_CLASSIFY),
+    ("m8 extra: _reason_str passes non-strings through", "return reason if isinstance(reason, str) else \"\"",
+     'return reason or ""', K_EVAL),
+    ("m9 extra: main swaps answers/refusals files", "evaluate(load_cases(args.answers), load_cases(args.refusals),",
+     "evaluate(load_cases(args.refusals), load_cases(args.answers),", K_MAIN),
+    ("m10 extra: main never writes --json-out", "    if args.json_out:\n", "    if False:\n", K_MAIN),
+    ("m11 extra: main never loads near-miss", "load_cases(args.near_miss) if args.near_miss else None", "None", K_MAIN),
+    ("m12 extra: refusal-set failure also listed as answer-set miss", '            false_answers.append(case["id"])\n',
+     '            false_answers.append(case["id"])\n            misses.append(case["id"])\n', K_AC4),
+    ("m13 extra: refusal-set errors not counted as errors", '        if outcome == "error":\n            errors.append',
+     '        if outcome == "error" and case_set == "answer":\n            errors.append', K_AC4),
+    ("m14 extra: guard lets ints through (0 -> no reason)", "not isinstance(reason, str):", "not isinstance(reason, (str, int)):",
+     K_CLASSIFY),
+]
+
+def run(d, *args):
+    p = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/test_evals_data.py", *args],
+                       cwd=d, capture_output=True, text=True)
+    last = [l for l in p.stdout.splitlines() if l.strip()][-1:] or [""]
+    return p.returncode, last[0]
+
+def verdict(rc):
+    return {0: "SURVIVED", 1: "KILLED"}.get(rc, f"INVALID(rc={rc})")
+
+rows = []
+for name, old, new, k in MUTANTS:
+    d = tempfile.mkdtemp(prefix="qa-eval6b-m-")
+    subprocess.run(f"git -C {WT} archive HEAD | tar -x -C {d}", shell=True, check=True)
+    path = os.path.join(d, SA)
+    src = open(path, encoding="utf-8").read()
+    n = src.count(old)
+    if n != 1:
+        rows.append((name, f"INVALID(anchor x{n})", "", "", "")); continue
+    mut = src.replace(old, new)
+    open(path, "w", encoding="utf-8").write(mut)
+    diff = [l for l in difflib.unified_diff(src.splitlines(), mut.splitlines(), lineterm="", n=0) if l[:1] in "+-" and l[:3] not in ("+++", "---")]
+    rc_all, s_all = run(d)
+    rc_k, s_k = run(d, "-k", k)
+    rows.append((name, verdict(rc_all), s_all, verdict(rc_k) + f" [-k {k}]", s_k, diff))
+
+killed = sum(1 for r in rows if r[1] == "KILLED")
+print(f"SUMMARY: {killed}/{len(rows)} killed (full file)")
+for r in rows:
+    print(f"  {r[0].split()[0]:4} full={r[1]:9} ac-tests={r[3].split()[0]:9} {r[0].split(' ',1)[1]}")
+print()
+for r in rows:
+    print(f"{r[0]}\n    full file : {r[1]:9} {r[2]}\n    AC tests  : {r[3]} {r[4]}")
+    for l in (r[5] if len(r) > 5 else []):
+        print(f"      {l.strip()[:120]}")
+=== /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/qa-EVAL-6b-r1/harness/probe_other_shapes.py
+"""QA EVAL-6b r1 probe (out of ticket scope, informational): other malformed /v1/ask shapes through evaluate()."""
+import sys; sys.path.insert(0, ".")
+from scripts import evaluate_answers as ea
+ANS = [{"id": "a1", "question": "qa", "expected_arxiv_ids": ["1706.03762"]}]
+REF = [{"id": "x1", "question": "qr"}]
+shapes = {"refusal_reason=['x'] (this PR)": {"citations": [], "refusal_reason": ["x"]},
+          "refusal_reason='bogus' (unknown string)": {"citations": [], "refusal_reason": "bogus"},
+          "citations=5 (non-list)": {"citations": 5},
+          "citations=['str'] (non-dict item)": {"citations": ["c"]},
+          "response is a list": ["not", "a", "dict"]}
+for name, resp in shapes.items():
+    try:
+        m = ea.evaluate(ANS, REF, lambda q: (resp, 1.0))
+        print(f"OK     {name}: errors={m['error_case_ids']} counts={m['refusal_reason_counts']}")
+    except Exception as e:
+        print(f"RAISES {name}: {type(e).__name__}: {e}")
+
+[exit code 0]

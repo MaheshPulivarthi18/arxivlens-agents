@@ -1,0 +1,12 @@
+$ gh api .../actions/jobs/{136544805122,136502157925}/logs | grep
+### PR #96 job 136544805122 (head c0535643303c188264f269c68c5b94b107fc8583)
+2026-11-20T20:19:27.6813466Z HEAD is now at 5473411 Merge c0535643303c188264f269c68c5b94b107fc8583 into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+2026-11-20T20:20:18.2002158Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py tests/test_verify.py tests/test_arxiv_replay.py
+2026-11-20T20:20:30.3141985Z 213 passed, 3 skipped, 3 warnings in 11.39s
+2026-11-20T20:20:31.5431982Z ============================== 37 passed in 0.23s ==============================
+
+### origin/main 230f617 job 136502157925 (baseline)
+2026-11-20T19:00:29.1066430Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py tests/test_verify.py tests/test_arxiv_replay.py
+2026-11-20T19:00:43.4356109Z 195 passed, 3 skipped, 3 warnings in 13.36s
+2026-11-20T19:00:44.9844317Z ============================== 37 passed in 0.25s ==============================
+

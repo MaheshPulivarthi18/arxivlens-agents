@@ -1,0 +1,22 @@
+$ bash -c python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k "non_string or null_or_empty or test_main_ or failed_refusal_set_call" 2>&1 | grep -E "PASSED|FAILED|ERROR|passed|failed" | sed -e "s/ *\[ *[0-9]*%\]//" -e "s#tests/test_evals_data.py::##"
+test_classify_non_string_refusal_reason_is_error[no_citations-['x']] PASSED
+test_classify_non_string_refusal_reason_is_error[no_citations-{'k': 1}] PASSED
+test_classify_non_string_refusal_reason_is_error[no_citations-7] PASSED
+test_classify_non_string_refusal_reason_is_error[no_citations-True] PASSED
+test_classify_non_string_refusal_reason_is_error[no_citations-[]] PASSED
+test_classify_non_string_refusal_reason_is_error[no_citations-0] PASSED
+test_classify_non_string_refusal_reason_is_error[with_citations-['x']] PASSED
+test_classify_non_string_refusal_reason_is_error[with_citations-{'k': 1}] PASSED
+test_classify_non_string_refusal_reason_is_error[with_citations-7] PASSED
+test_classify_non_string_refusal_reason_is_error[with_citations-True] PASSED
+test_classify_non_string_refusal_reason_is_error[with_citations-[]] PASSED
+test_classify_non_string_refusal_reason_is_error[with_citations-0] PASSED
+test_classify_null_or_empty_reason_means_no_reason[null] PASSED
+test_classify_null_or_empty_reason_means_no_reason[empty] PASSED
+test_evaluate_completes_on_non_string_refusal_reason PASSED
+test_main_loads_real_sets_including_near_miss PASSED
+test_main_near_miss_empty_skips_the_set PASSED
+test_failed_refusal_set_call_is_error_and_refusal_failure PASSED
+====================== 18 passed, 125 deselected in 0.06s ======================
+
+[exit code 0]
