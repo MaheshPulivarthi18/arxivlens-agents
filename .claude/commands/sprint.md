@@ -112,7 +112,7 @@ the PRD, the design, the diff and the evidence.
 ## Step 6 — PM review and raise the PR (delegate to `pm-lead`)
 Give `pm-lead` the ticket, the PRD rows, the approved design (if any), the diff summary and the QA evidence pack.
 pm-lead opens every evidence file and checks product fit, scope, docs, and that each AC has convincing evidence.
-- **APPROVE** → pm-lead rewrites the PR description from `agents/templates/pr.md` with an **Evidence** section: one row
+- **APPROVE** → pm-lead first appends the PM verdict to `report.md` and pushes it to this repo's `main`, then rewrites the PR description from `agents/templates/pr.md` with an **Evidence** section: one row
   per AC with its screenshot embedded from this repo, pinned to the commit that added it
   (`![](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/<sha>/agents/reviews/<ID>/evidence/<file>.png?raw=true)`),
   CI check results, the QA verdict and the PM verdict. Then it **raises the PR**: marks it ready for review with
