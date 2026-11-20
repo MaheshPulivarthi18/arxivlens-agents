@@ -4,11 +4,11 @@
 |---|---|
 | **Owner** | backend-engineer |
 | **Priority** | P2 (harness) |
-| **PRD ref** | Technical PRD §11 harness/quality; follow-up from ING-9 QA nit 6 (`agents/reviews/ING-9/report.md:46`, again at `:93`): "The CI Go job runs without `-race`, so AC1's `-race` requirement is proven only by the local scratch run" |
+| **PRD ref** | Technical PRD §10 Testing and evaluation (CI harness; no PRD row, §11 Roadmap has none either); follow-up from ING-9 QA nit 6 (`agents/reviews/ING-9/report.md:46`, again at `:93`): "The CI Go job runs without `-race`, so AC1's `-race` requirement is proven only by the local scratch run" |
 | **Depends on** | OPS-H14 (#71, merged `1b443f5`; it was the last open PR on `ci.yml`). No open PR touches `.github/workflows/ci.yml` (checked 2026-11-20 08:00Z against #65, #66, #68, #69, #70, #76, #77, #78, #79 via REST) |
 | **Jira** | KAN-83 |
 | **Design required** | no: one CI step's environment, no production code, contract, CLI, table or service change |
-| **Status** | In QA (PR #80) |
+| **Status** | Ready to merge (PR #80; QA PASS r2, PM APPROVE 2026-11-20) |
 
 ## Goal
 Every Go package has concurrent code (limiter, consumer, crawler loop, rerank fallback, LLM client), but CI's `make test-go` step runs
@@ -84,3 +84,8 @@ run, nothing in retrieval or answering changes. `stack.yml` does not trigger on 
   `.github/workflows/ci.yml` job `go`, Verification with `Ownership OK for role=backend (5 changed lines)` re-run on head `9df6944`, CI run
   IDs, Not verified / risks); kept the AC block, Evidence left for pm-lead. GET check: 0 hits for `OPS-H5b`, `KAN-84`,
   `search_integration_test`. PR stays draft, head unchanged (`9df6944`), no new commit or CI run; label `qa-fail` removed. Ready for QA round 2.
+- 2026-11-20 (pm-lead, final review): **APPROVE** (`agents/reviews/OPS-H15/report.md`, "PM decision ... round 1"). Fixed QA r1 [spec]
+  finding 3: PRD ref now points at Technical PRD §10, since §11 has no harness row. Main moved 7 PRs past the base (`ci.yml` untouched, clean
+  merge); #65's `rag.go`/`rag_test.go` haven't run under `-race` yet. Not blocking: the PR body asks Mahesh to "Update branch" before merging,
+  and `ci.yml`'s `push: main` trigger covers it after merge anyway. A race found there → follow-up for the owning package, not a change here.
+  PR #80 raised (ready for review, label `ready-to-merge`).

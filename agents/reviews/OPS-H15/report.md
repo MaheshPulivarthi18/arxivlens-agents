@@ -93,3 +93,26 @@ PASS → pm-lead for final review (Step 4). The PR stays draft. Label `qa-pass` 
 _Evidence pack: https://github.com/MaheshPulivarthi18/arxivlens-agents/tree/01e0b3a9fbfa253525fdb5ac732968524c4cd17c/agents/reviews/OPS-H15 (round-2 files 07–09 are in commit `01e0b3a`; round-1 files 00–06 are unchanged)._
 
 
+
+## PM decision — pm-lead, 2026-11-20 — round 1
+
+**Verdict: APPROVE**
+
+Reviewed: ticket `agents/tasks/OPS-H15.md`, Technical PRD §10 (the harness section; §11 Roadmap has no harness row), the diff (`pulls/80/files`: `.github/workflows/ci.yml` +4 -1, job `go` only), CI on head `9df6944` (5/5 check runs `completed success`, re-read via REST this session), QA round 1 (FAIL, PR body only) and round 2 (PASS), and every evidence file 00–09 (PNG opened; each shows the result for its AC, not only the command).
+
+| AC | Evidence | PM check |
+|---|---|---|
+| AC1 | 01 | `GOFLAGS: -race` in the step env (log line 216) and `ok` for all 10 test packages, including the 9 the AC names plus `llm/llmtest`; none `(cached)`. Step name confirmed in 03. ✅ |
+| AC2 | 02 | Probe `d63caf9` → `WARNING: DATA RACE`, `--- FAIL: TestRaceProbe`, `FAIL arxivlens/internal/arxiv`, `make: *** [Makefile:46: test-go] Error 1`. Revert `9df6944` is a new commit, `git diff 6e1e9cd 9df6944` empty, timeline only `committed` events, no probe file at head, next run green. ✅ |
+| AC3 | 03 | REST step timings: 6 s baseline → 47 s / 43 s (33 s on `6e1e9cd`); the whole Go job grows ~18 s because the Kafka step now reuses the race build. Far under 5 min. ✅ |
+| AC4 | 04, 03 | Attempt 2 (job 136169622172) green, all `ok`, limiter tests `ok` both attempts. ✅ |
+| AC5 | 05 | `ci.yml` only, 4+/1-; ownership OK locally and in CI; actionlint "not run", YAML parses + CI accepted it; no other open PR on `ci.yml`. ✅ |
+| Docs | 05, diff | Local `make test-go` unchanged, so no README/CONTRIBUTING edit. No PRD row tracks this harness item, so no status column to update. ✅ |
+
+**Product fit / scope.** Closes ING-9 QA nit 6: a data race in any Go package (limiter, crawler, consumer, rerank fallback, LLM client) now fails CI instead of being "proven only locally" (reliability, Technical PRD §8/§9; quality harness §10). No gate weakened, no contract, threshold or production code touched. Scope is exactly the ticket's: nothing missing, nothing extra. Follow-up "-race in the Makefile + CONTRIBUTING cgo note" stays optional and is not created now (the ticket says it's for Mahesh to want).
+
+**QA [spec] finding (r1 #3) — fixed in the ticket:** PRD ref changed from "§11 harness/quality" to "Technical PRD §10 Testing and evaluation (CI harness; no PRD row)".
+
+**Main moved (QA r2 nit 1) — decision: don't block; ask Mahesh in the PR body.** PR CI ran on merge ref `e6cffba` + `9df6944`. Since then 7 PRs merged; `ci.yml` is untouched and the merge is clean (09). #65 adds `rag.go`/`rag_test.go` changes that have not yet run under `-race`, but its diff adds no goroutine/`sync`/`chan` lines (09), and `ci.yml` also runs on `push` to `main`, so the first `main` run after merge will run them under the detector anyway. The PR body recommends **"Update branch" before merging** (≈ 1 min Go job) to get that proof pre-merge. If a race shows up there or on `main`, it's a real race in the owning package (follow-up for its owner per the ticket's stop-and-report rule), not a reason to revert or loosen this step.
+
+Next: PR #80 body rewritten with the Evidence section (images pinned to `39b4ee8` / `01e0b3a`), marked ready for review, label `ready-to-merge`. Merge: Mahesh.
