@@ -841,3 +841,9 @@ Format:
 - Independence: the four PRs touch disjoint files (frontend App.test.jsx / ui/button.* ; cmd/arxivlens + README / internal/query); all `Depends on` were merged at 230f617.
 - Not picked: FE-3b (waits on FE-3a2 merge; frontend at 2/2), FE-0d (frontend at 2/2), ING-6c/OPS-H7b (`main.go` queue behind #93), ai-engineer has no unblocked Ready task (EVAL-6/EVAL-7 Backlog items need specs).
 - Rounds: QA 4 (all first-round PASS), PM 4 (all APPROVE), 0 rework. QA harness refused `report.md` 4×; orchestrator saved PR comments verbatim with provenance (`63075f1`). Outbound filter again un-embedded images in PR bodies. Worktrees landed at `/root/wt/<ID>` ($HOME=/root), not `/home/claude/wt` as the orchestrator told the developers.
+
+## 2026-11-20 20:00Z — pm-lead (cycle 20:00Z grooming)
+- Sync (orchestrator): no merges/closes since 19:00Z; #91–#94 all Ready to merge, no human reviews; ADRs unchanged; WIP 0 for every developer.
+- Picked (independent of each other and of #91–#94's files; every `Depends on` merged at `230f617`): **FE-0d** (frontend, new `ui/primitives.test.jsx`), **EVAL-6b** (ai, new spec: `scripts/evaluate_answers.py`, `tests/test_evals_data.py`, `evals/README.md`; `classify()` raises `TypeError` on a list `refusal_reason` on `230f617`, `main` untested, EVAL-10a README/refusal-set nits), **OPS-H5c** (backend, new spec: `internal/query/search_integration_test.go`; refusal guard table test + cleanup hint), **ING-11d** (ai, new spec: `tests/test_m2_pipeline.py`; ruff F401 + W293 confirmed with ruff 0.16.9).
+- Not picked: EVAL-7 `build_rows` and EVAL-5 `CHUNK_COUNTS_SQL` follow-ups (both still real, but share `tests/test_evals_data.py` with EVAL-6b; EVAL-5 "latest version" also touches the RET-2 v1/v2 product question). FE-3b/FE-2, ING-6c/OPS-H7a2c/OPS-H7b, RET-1e wait on #91/#93/#94 merging.
+- Jira: not created by pm-lead (no Atlassian tools in this session); suggested epics EVAL-6b → KAN-2, OPS-H5c → KAN-3, ING-11d → KAN-4.

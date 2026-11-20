@@ -8,7 +8,7 @@
 | **Depends on** | FE-0b (#70) **merged**. FE-1 (#68, merged `2410d2e`: Vitest + jsdom + Testing Library). No dependency change needed |
 | **Jira** | KAN-90 (epic KAN-5 "Research UI & citations"; labels `task-FE-0d`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: tests only, no component, contract or dependency change |
-| **Status** | Ready (FE-0b #70 merged `4182485`, 2026-11-20) |
+| **Status** | Ready, picked for cycle 2026-11-20 20:00Z (FE-0b #70 merged `4182485`, 2026-11-20) |
 
 ## Goal
 FE-0b's six primitives were proven only by QA's throwaway smoke harness (real Radix/sonner in headless Chromium). CI lints them but never
@@ -46,3 +46,4 @@ git diff origin/main --shortstat
   so those stay under 400 lines and so the primitives have tests before their first callers. Independent of FE-0c (different files). Jira story
   to be created by the orchestrator (pm-lead did not touch Jira in this review).
 - jsdom notes: Radix Tooltip/Popover may need `ResizeObserver` and `DOMRect` stubs in the test file (not in `setup.js`, which is out of scope); sonner renders toasts asynchronously, so use `findBy*`/`waitFor`.
+- 2026-11-20 20:00Z (pm-lead): re-checked scope against open PRs #91 (`App.test.jsx`), #92 (`ui/button.jsx`, `ui/button.test.jsx`), #93, #94: disjoint. The six primitive files are unchanged on `230f617`. Do **not** import or test `ui/button.jsx` here (#92 owns it), and keep stubs in the test file, not `src/test/setup.js` (FE-3b adds `ResizeObserver` there).
