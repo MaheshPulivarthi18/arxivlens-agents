@@ -6,9 +6,9 @@
 | **Priority** | P3 (harness) |
 | **PRD ref** | Technical PRD §11 harness/quality; follow-up from the OPS-H5b QA/PM review (QA nits 1 + 2, `agents/reviews/OPS-H5b/report.md:40-41`, PM decision `:80`) |
 | **Depends on** | OPS-H5b (#81, merged `36ceac0`). No open PR touches `internal/query/search_integration_test.go` (checked 2026-11-20 20:00Z: #94 changes `internal/query/server.go` + `server_test.go` only; #91–#93 are outside `internal/query/`) |
-| **Jira** | not created yet (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H5c`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-101 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H5c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: test-only, one build-tagged test file |
-| **Status** | Ready |
+| **Status** | Ready to merge (PR [#97](https://github.com/MaheshPulivarthi18/ArxivLens/pull/97) @ `1d696c7`; QA r1 PASS, PM APPROVE 2026-11-21) |
 
 ## Goal
 The guard that stops `TestHNSWVectorHits` from seeding a non-empty DB (`search_integration_test.go:77-83`: `others > 0` → `Fatalf` when `CI`
@@ -48,3 +48,6 @@ git diff origin/main --name-only   # exactly internal/query/search_integration_t
 - 2026-11-20 20:00Z (pm-lead): the OPS-H5b PM review said "fold into the next change to this file, not worth a ticket by itself". No other
   change to this file is planned, backend's queue (`main.go`, `server_test.go`) is blocked behind #93/#94, and the guard is the only thing
   keeping a CI skip from passing as green, so it gets its own small ticket now.
+- 2026-11-21 (pm-lead): final review APPROVE ([report](../reviews/OPS-H5c/report.md#pm-review-pm-lead--2026-11-21)). I raised PR #97: Evidence section added, marked ready for review, label `ready-to-merge`. All of AC1–AC6 are proven by QA evidence pinned at `ed872a8`.
+  Process note: AC5 asked the developer to report the mutation output here, and that didn't happen. QA's independent 10-mutant run covers the AC instead.
+  Follow-up (Backlog, P3): the call-site mutants c1–c3 survive. Have `hnswGuard` return a single action so the call site holds no boolean logic, and fold this into the next change to this file.

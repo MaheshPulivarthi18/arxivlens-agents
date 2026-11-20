@@ -44,3 +44,23 @@ Exactly `internal/query/search_integration_test.go` (+35/−3), still `//go:buil
 PASS → pm-lead final review.
 
 
+
+---
+
+## PM review (pm-lead) · 2026-11-21
+
+**Verdict: APPROVE**. Reviewed head `1d696c724a45d6e3c98495149c3bd7f7e86cae52`, QA r1 PASS, evidence pinned at `ed872a8`.
+
+I opened all six evidence files (00–05, PNG and TXT):
+- **Scope (01):** exactly `internal/query/search_integration_test.go`, +35/−3. Nothing extra and nothing missing. The tail of `01-scope-diff.txt` shows the (a) format string uses `%%`, so the rendered SQL is exact. The helper is named `hnswGuard`, as the spec asked (not `refuse`).
+- **AC1 + AC4 (02):** the CI log, with `head_sha=1d696c7` and run 44810300602, shows `--- PASS` for `TestHNSWVectorHits`, `TestHNSWGuard` (all 6 subtests: the 4 required rows plus 2 `others=5` rows) and `TestHNSWSeedCleanup`, with 0 SKIP and 0 FAIL in the whole log. `go vet -tags integration` runs in the same step. This proves both ACs.
+- **AC2 + AC3 + AC5 (03, 04):** the harness extracts the real functions from HEAD, not a copy. The old-vs-new differential is IDENTICAL across 6 cases, the rendered (a) message has the exact SQL, and the condition line is byte-identical. All of m1–m4 are killed, each by the rows the spec named, and so are 6 extra mutants. Because the old block is run directly against the new one, AC2's "behaviour and messages unchanged" is proven, not just asserted.
+- **AC6 (05):** the Go job on `1d696c7` ran `make lint-go`, `make test-go` (`internal/query` ok) and `make build-go`, conclusion success. Evidence 00 shows all six check runs green.
+
+**Product fit:** this is a harness change. It closes the only untested path that could let a skipped HNSW test pass as green in `db.yml`, and a developer with a polluted dev DB now gets an exact fix instead of a message blaming the wrong test. No contracts, thresholds, schema or user-facing behaviour changed. No PRD status column or README change is needed.
+
+**On the QA nits:**
+1. Call-site mutants c1–c3 survive the committed test. This is accepted residual risk within the ticket's design: today's call site is proven equivalent to main by the differential. Making `hnswGuard` return a single action would cover them, so I filed that as a P3 backlog line to fold into the next change to this file. It doesn't block.
+2. The developer didn't record the AC5 mutation output in the ticket Notes. QA's independent run covers the AC with stronger evidence (10 mutants and the harness source), so this doesn't block. It's logged as a process note on the ticket.
+
+**Raised:** I rewrote the PR #97 description with the Evidence section, marked it ready for review and added the label `ready-to-merge`. Waiting on Mahesh to merge.
