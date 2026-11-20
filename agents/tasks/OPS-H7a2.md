@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H7a1 = ArxivLens PR #62 **merged** (provides `Reader`, `Record`, `Watermark`, `KafkaReader`, `ErrPartitionStalled` in `internal/dlq/kafka.go`). Must not run alongside OPS-H7b (same files: `manager.go`, `main.go`) |
 | **Jira** | KAN-71 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07) and its "Build notes (a1)" |
-| **Status** | Ready once #62 merges |
+| **Status** | In QA (a2a half, ArxivLens PR #83, draft); OPS-H7a2b (CLI) needs a spec |
 
 ## Goal
 An operator can list every record in a DLQ up to the end of the topic, page by page, see each record's `partition/offset` so they can resume, and
@@ -64,3 +64,19 @@ KAFKA_BROKERS=localhost:9092 go test -tags integration -count=1 -v ./internal/dl
   - `KafkaReader.Polls()` counts only polls that returned records. Fix the integration log line to say "non-empty polls" (QA finding 2).
   - Optional, not required: a unit row that pins the −2/−1 `ListOffsets` order (mutant M26). Today only the real-Kafka test catches it. Skip it if it pushes the size gate.
   - OPS-H7b depends on this ticket and on #62 being merged.
+- 2026-11-20 (backend-engineer): **size gate fired → split; PR #83 is OPS-H7a2a.**
+  - Skeleton `94db799` (`internal/dlq/manager.go | 75 +++++++++++++++++++++++++++++++++++++++++++++++--`, 73+/2-), committed before the bodies.
+  - The first full draft measured `cmd/arxivlens/main.go | 198` and `manager.go | 80`. With README (~8) that is ~294 non-test lines (> 250), and with the tests (~250) the total projects to ~550 (> 480).
+    So I split at the ticket's seam.
+  - **a2a (PR #83, head `1ae23bd`, 397 changed lines):** `Manager.List`, `ListOptions`, `Cursor`/`ParseCursor`, `Page`, the AC6 missing-topic error, `var _ Reader = (*KafkaReader)(nil)`,
+    the `Polls` doc, the "non-empty polls" log wording, and `manager_test.go` (`fakeReader`, chunks of 3).
+    It covers AC1, the `List` halves of AC3, AC6 and AC7, and AC8 via CI. `main.go` changes only `NewManager(cfg.KafkaBrokers, nil)` ×3.
+  - **Deviation:** `ListOptions` has a 4th field, `Snapshot map[int32]Watermark` (nil: `List` takes one). `--all` and `inspect` pass `Page.Watermarks` so the whole run stops at its start-time watermarks (Q2).
+    Without it each page would re-snapshot. This is internal API, not a contract.
+  - **a2b (needs a spec, pm-lead):** the CLI. `newDLQCmdWith(readerFactory)` wires a `*KafkaReader` + `Close`. It adds the `--partition`, `--from`, `--page-size`, hidden `--limit` and `--all` flags,
+    the footers, `UNDECODABLE (n bytes)` in list/inspect, `inspect` scanning pages of 500 on one snapshot and stopping at the first match, and warnings to stderr.
+    Then `TestDLQFlags` + the README rows. Covers AC3/AC6 CLI exits, AC4, AC5, the AC7 wiring and Docs.
+    A draft of the main.go part (~198 changed lines, untested) was written; it was not committed anywhere, so a2b rebuilds it from this description.
+  - Verified locally: `gofmt -l .` is clean. In a scratch module (stubs for `events.DLQPayload` + `kerr` only), `go vet` is clean and `go test -race` passes (4 tests, 15 subtests).
+    8 hand mutants all fail the tests. `ownership-check.sh`: OK, 397 lines. Real `make test-unit`/`make lint`: CI only (Go 1.24.7 locally, no module proxy).
+
