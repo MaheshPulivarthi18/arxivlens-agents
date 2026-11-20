@@ -56,3 +56,6 @@ DATABASE_URL=postgres://... KAFKA_BROKERS=localhost:9092 go test -tags integrati
 - 2026-11-17 (pm-lead): FYI from the ING-6 design gate: ING-6a adds `migrations/000005_crawl_watermarks` (number fixed). OPS-H7b keeps `000004`.
   If ING-6a merges first, `TestRepoMigrationsOrder`'s `want` list is still a prefix check, so list `000001..000004` (adding `000005` is optional).
 - 2026-11-20 13:00Z (pm-lead, sync): OPS-H7a2 is now two PRs: a2a (#83) and a2b (spec OPS-H7a2b.md); this waits for both.
+- 2026-11-20 (pm-lead, PM review of #83): from the design's "Build notes (a2a)" acknowledgement: a2a left `replay` on `NewManager(cfg.KafkaBrokers, nil)`.
+  When `Replay` moves onto the `Reader` here, the `replay` command must build and `Close` a `*dlq.KafkaReader` like a2b does for `list`/`inspect`,
+  and no CLI path may keep a `nil` reader. Include that in the `TestDLQFlags`/replay CLI test.

@@ -201,7 +201,7 @@ The alternative is to move the ~40-line envelope rule and its tests into b, whic
 - `Watermarks` on a missing topic returns an error wrapping `kerr.UnknownTopicOrPartition` (no auto-create). The CLI behaviour is decided in OPS-H7a2 AC6: non-zero exit.
 - `KafkaReader.Polls()` counts only polls that returned records.
 
-### Build notes (a2a, PR #83 @ `9bcd07e`, 2026-11-20) — needs pm-lead acknowledgement
+### Build notes (a2a, PR #83 @ `9bcd07e`, 2026-11-20) — acknowledged by pm-lead 2026-11-20 (see below)
 The size gate fired again, so a2 was split into a2a (`Manager.List` + cursor + tests, PR #83) and a2b (CLI wiring, README). Deviations from § Shape
 (`ListOptions{Partition *int32; From Cursor; PageSize int}`), all internal Go API in `internal/dlq/manager.go`. No shared contract changes
 (event envelope, HTTP API, schema), so no ADR is needed.
@@ -220,6 +220,18 @@ The size gate fired again, so a2 was split into a2a (`Manager.List` + cursor + t
   `KafkaReader.Read` returns at `from >= until` before it creates a client (`kafka.go`), so nothing is fetched.
 - `NewManager(brokers, reader)` takes the `Reader`. `Replay`/`ListEvents` don't need one until OPS-H7b, so the CLI passes `nil` for now. a2b must
   pass a `*KafkaReader` (and `Close` it) wherever it calls `List`.
+
+**pm-lead acknowledgement (2026-11-20, PM review of PR #83 @ `9bcd07e`): Acknowledged; these notes amend § Shape.**
+- `ListOptions.Snapshot` is accepted. It is what makes Q2's "stop at the watermarks taken at the start of the run" true for a multi-page
+  run (`--all`, `inspect`); without it the design's own `List` signature could not meet Q2. Nil = take a snapshot keeps the single-page
+  `dlq list --from P/O` behaviour Q3 describes. Pinned by M10 (killed) in QA r2 evidence `r2-08`.
+- `Page{Records, Next, Watermarks, Warnings}` is accepted. Returning `Warnings` instead of printing keeps `List` free of I/O; the stderr
+  rule moves to the CLI and is OPS-H7a2b AC1 (CLI half). `Watermarks` feeds Q3's end-of-topic footer and is OPS-H7a2b AC5.
+- Empty partitions: calling `Read(p, Low, High)` with `Low == High` is equivalent to "skipped without a fetch" because
+  `KafkaReader.Read` returns at `from >= until` before creating a client (`kafka.go:153`, verified in QA r2 evidence `r2-11`). Accepted.
+- `NewManager(brokers, nil)` for `Replay`/`ListEvents` is a transitional state only. OPS-H7a2b AC7 forbids calling `List` on a nil-reader
+  `Manager`; OPS-H7b removes the `nil` when it moves `Replay` onto the `Reader` (added to `agents/tasks/OPS-H7b.md` Notes).
+- None of this touches a shared contract (event envelope, HTTP API, schema, embedding, gates), so no ADR is needed.
 
 ## Alternatives considered
 1. **Kafka consumer group `arxivlens-dlq-replay` with committed offsets.** It can't express filter holes, and a stray member causes a rebalance. Visibility and reset go through Kafka

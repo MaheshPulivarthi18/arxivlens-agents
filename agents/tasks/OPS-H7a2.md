@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H7a1 = ArxivLens PR #62 **merged** (provides `Reader`, `Record`, `Watermark`, `KafkaReader`, `ErrPartitionStalled` in `internal/dlq/kafka.go`). Must not run alongside OPS-H7b (same files: `manager.go`, `main.go`) |
 | **Jira** | KAN-71 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07) and its "Build notes (a1)" |
-| **Status** | In QA (a2a half, ArxivLens PR #83, draft); OPS-H7a2b (CLI) needs a spec |
+| **Status** | Ready to merge (a2a, PR #83 raised @ `9bcd07e`; QA PASS r2, PM APPROVE 2026-11-20). OPS-H7a2b (CLI, `agents/tasks/OPS-H7a2b.md`) still to do: Ready after #83 merges |
 
 ## Goal
 An operator can list every record in a DLQ up to the end of the topic, page by page, see each record's `partition/offset` so they can resume, and
@@ -94,3 +94,7 @@ KAFKA_BROKERS=localhost:9092 go test -tags integration -count=1 -v ./internal/dl
     - [ ] F4 (M19) and F6/F7 (spec): these are for OPS-H7a2b / pm-lead and were not done here. F5 (`ParseCursor` accepts `+3/5`, `03/007`) is optional and harmless, so it is left as is.
     - CI on `9bcd07e`: all 6 check runs succeeded (Go 136202883013, DB with real Kafka 136202882278, where all 13 `TestListPagesToHighWatermark` subtests PASS, Full stack
       136202882840, Python M0, Frontend, ownership). The size is now 409 changed lines: `ownership-check` passes with only the >400 warning, and the 12 extra lines are the requested test rows.
+- 2026-11-20 (pm-lead, PM review): **APPROVE** on `9bcd07e` (verdict in `agents/reviews/OPS-H7a2/report.md`). PR #83 marked ready for review with the evidence in its description.
+  - Acknowledged the design's "Build notes (a2a)" (`Snapshot`, `Page`, empty-partition `Read`, transitional `NewManager(…, nil)`) in `docs/design/OPS-H7.md`.
+  - QA r1 findings 6, 7 and nit M19 are confirmed carried in `OPS-H7a2b.md` (AC1/AC5/AC7/AC8, skeleton stubs `main.go`, default 50 in `TestDLQFlags`).
+  - This story (KAN-71) is Done only when OPS-H7a2b merges too. Open pm-lead debt: Product PRD OPS-2 ✅ → ◐ (design PM decision condition 7) in the next docs PR.

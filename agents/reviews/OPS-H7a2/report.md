@@ -170,3 +170,35 @@ None for the a2a scope. All four "missing tests" listed in r1 now exist and are 
 
 ## Hand-off
 PASS → pm-lead final review. For pm-lead: acknowledge the design's "Build notes (a2a)" deviation, and carry r1 findings 6 and 7 plus nit 1 into the OPS-H7a2b spec. The PR is still a draft, and pm-lead marks it ready.
+
+---
+
+# PM review — OPS-H7a2 (a2a half) · PR #83 @ `9bcd07e`
+
+**Verdict:** APPROVE
+**Reviewer:** pm-lead · **Date:** 2026-11-20 · **Inputs:** ticket `agents/tasks/OPS-H7a2.md`, `agents/tasks/OPS-H7a2b.md`, design `docs/design/OPS-H7.md` (Shape, Q2, Q3, PM decision, Build notes a1/a2a), Product PRD OPS-2 / §5.3, Technical §5, PR #83 files (REST), QA r1 + r2 above, and every round-2 evidence file `r2-00`…`r2-14` (opened, PNG and `.txt`).
+
+**Why APPROVE:** `Manager.List` delivers exactly the a2a seam the ticket defined for its size gate. QA r2 evidence proves every a2a AC half, including the cross-partition page boundary that failed r1, and the deviation from the design is justified, recorded, and now acknowledged.
+
+## Checks
+1. **Product fit (PRD OPS-2, §5.3; Product PRD §7 principles).** The core of OPS-2's fix is here: a listing that reaches the start-time end of the topic, resumes from a printed `P/O`, and never treats a stall, a poll error or a missing topic as "end" (honest failure, no silent truncation). Operators see nothing new until OPS-H7a2b wires the CLI. That is the split the ticket itself defined, so it is acceptable. The diff (`main.go` `NewManager(…, nil)` ×3) makes no change users can see.
+2. **Scope.** 5 files, all in the ticket's Scope and backend paths. `ListEvents`/`Replay` are byte-identical (r2-05). No README, workflow, migration or `shared/` change. Nothing extra. The CLI halves are correctly left for a2b.
+3. **Size.** 409 changed lines = 155 non-test + 254 test (r2-05). The 2026-11-07 PM decision allows (a)/(b) above 400 **for test lines only**. The 12 lines over the target are the test rows QA asked for in r1. Accepted.
+4. **AC evidence (a2a halves).**
+   - AC1: r2-01 (CI, real-Kafka DB job: 13 `TestListPagesToHighWatermark` rows PASS), r2-06 (local `-race`, 4 tests / 20 subtests), r2-08 (M01/M02/M06/M09/M10/M20 killed), r2-09 (X1-X5, each killed by its own row), r2-10 (100% coverage of `List`, `listPartitions`, `nextCursor`, `ParseCursor`, with no count-0 block left), r2-12 (the r1 probe passes on the head and fails on M01/M02/M06). Convincing. The stderr half is OPS-H7a2b AC1.
+   - AC3 (List half): r2-01/r2-06 `TestListErrorsAreNotEnd/stall`, `/poll_error`. r2-08 M13-M15 killed.
+   - AC6 (List half): `TestListErrorsAreNotEnd/missing_topic_(AC6)`, exact text + `errors.Is`. M11/M12 killed (r2-08).
+   - AC7 (List half): `var _ Reader = (*KafkaReader)(nil)` compiles in CI (r2-01, r2-02).
+   - AC8: r2-01 (DB job, `TestReadStopsAtSnapshot_Integration` PASS), r2-03 (Full stack: `dlq list` ×3 run without `|| true`, 246 passed / 1 skipped). The only `##[error]` is the `continue-on-error` known-failure F1 step, which is unrelated.
+   - CI: r2-00, 6/6 success on `9bcd07e`. r2-04 ownership OK. The harness is trustworthy: the r2-07 control run on `1ae23bd` reproduces r1 exactly (r2-14), and r2-13 shows the pinned dependency sources.
+   - No "⚠ unverified" remains on an a2a AC. `make test-unit`/`make lint` are CI-only (Go 1.24 sandbox), which AGENTS.md §4 allows.
+5. **Design.** I acknowledged the "Build notes (a2a)" deviation (`ListOptions.Snapshot`, `Page{…}`, `Read` on empty partitions, transitional `NewManager(…, nil)`) explicitly in `docs/design/OPS-H7.md`. It is internal Go API with no shared-contract change, so no ADR. I added the "no `nil` reader after OPS-H7b" rule to `agents/tasks/OPS-H7b.md` Notes.
+6. **QA carry-overs to OPS-H7a2b: confirmed in the spec.** r1 finding 6: stderr warnings = a2b AC1, `*KafkaReader` + `Close` on every path = AC7, `Page.Watermarks` passed back as `Snapshot` for `--all`/`inspect` = AC5, AC8 restated with the three `dlq list` log lines, and never calling `List` on a nil-reader `Manager` = AC7. r1 finding 7: the skeleton must stub `main.go` and `dlq_test.go` (Scope, size gate). Nit M19: the default page size of 50 is pinned in `TestDLQFlags` (AC5).
+7. **Docs.** No app README change is due in a2a (the CLI is unchanged). The README rows are OPS-H7a2b's Docs AC.
+
+## Notes (not blocking this PR)
+- **PRD truthfulness, pm-lead debt:** Product PRD OPS-2 still reads ✅. PM decision condition 7 (2026-11-07) said ◐ until OPS-H7c, and the QA reports assume ◐. The next pm-lead `docs/` PR must flip it to ◐. That is mine, not this PR's.
+- CI ran on merge `e367729` (main `3835dee`). Main is now `c37d27c` (OPS-H15, `GOFLAGS=-race`), and the PR merges cleanly. The DB job and QA's local run already ran `./internal/dlq/` under `-race` (r2-05).
+- `ParseCursor` accepts `+3/5` and `03/007` (QA nit). It is harmless; leave it unless a2b wants an exact `^\d+/\d+$`.
+
+→ PR raised (ready for review) with the evidence in its description. Jira → Ready to merge (by the orchestrator).
