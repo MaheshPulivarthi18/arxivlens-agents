@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-20 04:10Z by pm-lead (cycle 04:00Z grooming: LLM-1c, RET-1b specced; independent of every open PR). Before: 2026-11-20 03:30Z orchestrator (cycle 03:00Z: OPS-H14 #71, OPS-H6b #72, AI-12 #73 built, QA PASS r1, PM APPROVE, raised for Mahesh)
+Last updated: 2026-11-20 pm-lead (LLM-1c #74 PM APPROVE, raised → Ready to merge). Before: 2026-11-20 04:10Z pm-lead (cycle 04:00Z grooming: LLM-1c, RET-1b specced; independent of every open PR). Before: 2026-11-20 03:30Z orchestrator (cycle 03:00Z: OPS-H14 #71, OPS-H6b #72, AI-12 #73 built, QA PASS r1, PM APPROVE, raised for Mahesh)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). **Open PRs and their files:**
@@ -14,7 +14,6 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 0c | [LLM-1c](tasks/LLM-1c.md) (KAN-77) (Jira: to create) | LLM client names TLS failures (`TLS certificate rejected` / `TLS handshake failed`) | backend-engineer | P2 | LLM-1b merged; no open PR touches `internal/llm/` | **startable now**; independent of RET-1b |
 | 0d | [RET-1b](tasks/RET-1b.md) (KAN-78) (Jira: to create) | Rerank fallback: `context.Canceled` test row; ±Inf scores fall back like NaN | backend-engineer | P3 | RET-1 merged; no open PR touches `search.go`/`search_test.go` | **startable now**; independent of LLM-1c |
 | 0b | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | **after #66 (OPS-H9) merges**; README also after #65/#69 | AC11 = ING-6b QA nits |
 | 5 | [FE-3](tasks/FE-3.md) (KAN-40) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 #68, FE-0 #69, FE-0b #70 merged | AC8: flip theme default to `system`; QA follow-ups folded in |
@@ -47,6 +46,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | [OPS-H14](tasks/OPS-H14.md) (KAN-74) | Frontend CI `dist/` font/CSS report; `npm run test --if-present` | backend-engineer | [#71](https://github.com/MaheshPulivarthi18/ArxivLens/pull/71) `84392b4` | QA PASS r1 · PM APPROVE |
 | [OPS-H6b](tasks/OPS-H6b.md) (KAN-75) | Go consumer: no "Poll error" on its own clean shutdown | backend-engineer | [#72](https://github.com/MaheshPulivarthi18/ArxivLens/pull/72) `0fbf4e0` | QA PASS r1 · PM APPROVE |
 | [AI-12](tasks/AI-12.md) (KAN-76) | `/internal/ingest` reuses its workers + startup model | ai-engineer | [#73](https://github.com/MaheshPulivarthi18/ArxivLens/pull/73) `e34ebb9` | QA PASS r1 · PM APPROVE · eval not run (no retrieval change) |
+| [LLM-1c](tasks/LLM-1c.md) (KAN-77) | LLM client names TLS failures (`TLS certificate rejected` / `TLS handshake failed`) | backend-engineer | [#74](https://github.com/MaheshPulivarthi18/ArxivLens/pull/74) `de27269` | QA PASS r1 · PM APPROVE · eval not run (error string only) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -63,6 +63,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the LLM-1c QA/PM review (backend, P3, fold into the next `internal/llm/openai_test.go` change): QA nit 1, in `TestTLSError`'s handshake row the `absent` entry `` `\r\n` `` is a raw-string (4 literal chars, not CR LF); use `"\r\n"` or drop it (`garbage` already pins the bytes). Optional: a hostname-mismatch TLS row once `Config` has a RootCAs hook (not planned)
 - From the OPS-H14 PM review (backend, P3, *Proposed* gate, Mahesh decides; after FE-0 #69 merges): fail the frontend job when `google font hosts` > 0 or `woff2 files` = 0; AC wording "the line types that apply" (per-file `DIST woff2:` only when n ≥ 1); match `.prose`/`.font-serif` as whole selectors. Also: a shellcheck step for `.github/scripts/*.sh` in CI (no sandbox has shellcheck)
 - From the OPS-H6b PM review (backend, P2, next `internal/kafka/consumer*` change): add a deadline-ctx row (`context.WithTimeout` → `DeadlineExceeded`) to `TestConsumerPollErrorAfterCancel` asserting no `Poll error` (QA mutant M9 survived)
 - From the AI-12 PM review (ai, P2): `stack.yml` ingests a second paper after the seed and logs both durations (first automated data point for PRD §8 single-paper ingest < 60 s); tests for concurrent `/internal/embed` + `/internal/ingest` on the shared startup model, and for `EmbedderWorker` construction failing while the processor slot is cached

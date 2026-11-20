@@ -8,7 +8,7 @@
 | **Depends on** | LLM-1b (#27, merged `70b0afe`). No open PR touches `internal/llm/` (re-checked 2026-11-20 04:00Z against #65–#73 via REST) |
 | **Jira** | KAN-77 (epic KAN-1 "Grounded LLM answers"; labels `task-LLM-1c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: two fixed-string branches in one private helper; no contract, CLI, table or service change |
-| **Status** | In QA (pending PR) |
+| **Status** | Ready to merge (PR [#74](https://github.com/MaheshPulivarthi18/ArxivLens/pull/74) `de27269`; QA PASS r1, PM APPROVE r1; waiting on Mahesh) |
 
 ## Goal
 When `LLM_BASE_URL` points at an HTTPS endpoint and TLS fails (untrusted/invalid certificate, or the peer doesn't speak TLS), the
@@ -26,25 +26,25 @@ Report a fixed TLS class instead, still without copying any server bytes, URL or
   TLS alerts sent by the server (`remote error: tls: …`, a `*net.OpError` without errno), retry policy, `Config`, README, `internal/query/`.
 
 ## Acceptance criteria
-- [ ] AC1: New test, certificate: `httptest.NewTLSServer` (self-signed, so the client's default roots reject it) as `BaseURL`.
+- [x] AC1: New test, certificate: `httptest.NewTLSServer` (self-signed, so the client's default roots reject it) as `BaseURL`.
   `Complete` returns an error with `errors.Is(err, ErrProvider)`, `Status == 0`, and `err.Error()` contains
   `transport: TLS certificate rejected`. It does **not** contain the server URL, `127.0.0.1`, `x509` or `certificate signed by`, and
   `errors.As(err, new(*tls.CertificateVerificationError))` is false (the raw error isn't kept as cause).
-- [ ] AC2: New test, handshake: a `net.Listen` TCP server that, on accept, writes a few non-TLS bytes that do **not** start with
+- [x] AC2: New test, handshake: a `net.Listen` TCP server that, on accept, writes a few non-TLS bytes that do **not** start with
   `HTTP/` (e.g. `"garbage\r\n"`, otherwise `net/http` rewrites the error) and closes; client `BaseURL` = `https://<addr>`. Error has
   `ErrProvider`, `Status == 0`, contains `transport: TLS handshake failed`, and contains none of the bytes written nor the address.
-- [ ] AC3: The AC1/AC2 errors pass the same leak sweep `TestTransportError` uses (every `Unwrap` cause and `%v %+v %#v %s` of err,
+- [x] AC3: The AC1/AC2 errors pass the same leak sweep `TestNoSecretLeaks` uses (every `Unwrap` cause and `%v %+v %#v %s` of err,
   client and request contain no key/prompt sentinel), either by adding rows to that table or by reusing its sweep.
-- [ ] AC4: Existing tests pass unmodified: `git diff --numstat origin/main -- internal/llm/openai_test.go` shows 0 deletions (or
+- [x] AC4: Existing tests pass unmodified: `git diff --numstat origin/main -- internal/llm/openai_test.go` shows 0 deletions (or
   only deletions inside a table the developer extended, listed in Notes with the reason).
-- [ ] AC5: Mutation, one per branch (QA applies each to `openai.go`, runs `go test -count=1 ./internal/llm/`, shows a named test
+- [x] AC5: Mutation, one per branch (QA applies each to `openai.go`, runs `go test -count=1 ./internal/llm/`, shows a named test
   failing): (a) remove the certificate branch → AC1 test fails; (b) remove the handshake branch → AC2 test fails; (c) return the raw
   `err` as cause in the certificate branch → AC1's `errors.As` check fails; (d) swap the two detail strings → both fail.
-- [ ] AC6: CI `ci.yml` job `Go (vet, gofmt, test, build)` green; its LLM step (`go test -race -count=1 -v -coverprofile=llm.out
+- [x] AC6: CI `ci.yml` job `Go (vet, gofmt, test, build)` green; its LLM step (`go test -race -count=1 -v -coverprofile=llm.out
   ./internal/llm/...`) shows the new test names as `--- PASS` and the `transportDetail` row of `go tool cover -func` (quote run ID,
   before vs after; it was 75% at LLM-1b r2). `make lint-go` clean. Ownership check passes for role=backend. `stack.yml` (triggered by
   `internal/**`) concludes success, or any failure is shown to fail identically on a main-based run.
-- [ ] Docs: the `transportDetail` doc comment lists the TLS classes. No README change (no flag, env or API change).
+- [x] Docs: the `transportDetail` doc comment lists the TLS classes. No README change (no flag, env or API change).
 
 ## Verification
 ```bash
@@ -78,3 +78,8 @@ retrieval/answering change (only an error string on a failure path).
   check; d: both). `gofmt -l` clean on all Go files; ownership check OK (role=backend, 103 lines). Not run locally: `go vet ./...`
   (module downloads blocked), Go 1.25, `stack.yml`; CI to verify AC6. The cert row's httptest server logs one
   `http: TLS handshake error … bad certificate` line per run (expected stderr noise).
+- 2026-11-20 (pm-lead, final review): **APPROVE** r1 on PR #74 head `de27269` (QA PASS r1; report and evidence in
+  `agents/reviews/LLM-1c/`). Fixed QA [spec] finding 2: AC3 said the sweep was the one "`TestTransportError` uses". The sweep lives in
+  `TestNoSecretLeaks` (as the developer found), and AC3 now says so. QA nit 1 (the `` `\r\n` `` raw-string in the handshake row's `absent`
+  list) is not blocking; it is a Backlog line in `agents/board.md` (fold into the next `internal/llm` test change). PR raised with
+  the Evidence section and marked ready for review.
