@@ -279,3 +279,11 @@ conservative reading of ADR-0014: reserved/unknown statuses and `status`/`suppor
    "n passages", chip texts `Supported · x%` / `Unsupported · x%` / `Not checked`, the three tooltips, the footer "n of m citations supported", the export
    "• <chip text>" suffix, and "Referenced Studies & Evidence" → "References". Plus the hero sentence in change 1. The export title and toast texts stay (out of scope).
 6. **Discover on refusal C:** no, not in FE-3 (C can't reach users today). Revisit together with Q3 if Mahesh wants C visible.
+
+**Amendments after FE-3a QA round 1** (pm-lead, 2026-11-20; PR #86 at `e90de79`):
+- **Change 5 applied.** The FE-3a build came to ~640 lines with `App.test.jsx`, so it moved out. FE-3a's AC1/AC2/AC4/AC6 are amended and the App-level rows of
+  §Test plan (AC1 whole-tree, AC2, AC4, AC6 focus, AC6 two-stage) are now `agents/tasks/FE-3a2.md` (P0, after #86 merges). No assert dropped.
+- **Accepted deviation: `Info` instead of `CircleHelp`** for the "Not checked" chip icon (§3). Reason: the icon name couldn't be checked against the installed
+  lucide-react 1.x offline, and `Info` is already used by the refusal panel. The icon is `aria-hidden`; the chip text carries the meaning. FE-3b may switch it
+  (CI's `vite build` catches a missing export) but doesn't have to.
+- **Chip `title` attribute** is acceptable in FE-3a only; FE-3b removes it when it wires `ui/tooltip`, so screen readers don't hear the meaning twice.

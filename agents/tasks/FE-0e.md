@@ -6,7 +6,7 @@
 | **Priority** | P1 (unblocks P0 FE-3b's theme flip; WCAG 1.4.3 in light mode) |
 | **PRD ref** | Product PRD §7 (readable, accessible UI); FE-0 design (tokens); FE-3 design PM decision Q1 |
 | **Depends on** | FE-0 #69 merged (`54c4de8`), FE-1 #68 merged. No overlap with FE-3a or open PRs #70, #79, #81–#85 (checked via REST 2026-11-20) |
-| **Jira** | needs Jira story (epic KAN-5 "Research UI & citations"; labels `task-FE-0e`, `agent-frontend`, `arxivlens`) |
+| **Jira** | KAN-91 (epic KAN-5 "Research UI & citations"; labels `task-FE-0e`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: class swaps to existing tokens + one grep test; no new component, contract or dependency |
 | **Status** | Ready (WIP: start when a frontend slot frees; independent of FE-3a, so they may run together) |
 

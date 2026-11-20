@@ -6,7 +6,7 @@
 | **Priority** | P2 (harness/quality: today nothing in CI executes the six files; Vite tree-shakes them until FE-3/FE-4 import them) |
 | **PRD ref** | Product PRD §7 (accessible, readable UI; principles 1 "Evidence first" and 3 "One click to the source" via FE-3/FE-4); FE-0b QA "Missing tests" (`agents/reviews/FE-0b/report.md`, rounds 1–3) |
 | **Depends on** | FE-0b (#70) **merged**. FE-1 (#68, merged `2410d2e`: Vitest + jsdom + Testing Library). No dependency change needed |
-| **Jira** | needs Jira story (epic KAN-5 "Research UI & citations"; labels `task-FE-0d`, `agent-frontend`, `arxivlens`) |
+| **Jira** | KAN-90 (epic KAN-5 "Research UI & citations"; labels `task-FE-0d`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: tests only, no component, contract or dependency change |
 | **Status** | Ready once #70 merges (specced 2026-11-20 by pm-lead at the FE-0b final review) |
 

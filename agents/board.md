@@ -1,34 +1,36 @@
 # Board
 
-Last updated: 2026-11-20 by pm-lead (RET-1c #84 final review: APPROVE, raised → Ready to merge; specced RET-1d). Before: 2026-11-20 by pm-lead (FE-0c #85 final review: APPROVE, raised → Ready to merge). Before: 2026-11-20 by pm-lead (FE-3 design review: Approved with changes → split FE-3a Ready / FE-3b Blocked; specced FE-0e; FE-0c #85 and RET-1c #84 In QA). Before: 2026-11-20 by pm-lead (FE-0b #70 final review: APPROVE, raised → Ready to merge; specced FE-0d). Before: 2026-11-20 by pm-lead (PM review: OPS-H7a2 a2a #83 APPROVE → Ready to merge). Before: 2026-11-20 13:10Z by pm-lead (cycle 13:00Z sync + grooming: #65/#66/#68/#69/#76/#77/#78/#80 merged 08:46–09:38Z, and the earlier merges #51–#63, #71–#75 that the board never recorded, moved to Done; specced RET-1c, FE-0c, OPS-H7a2b; FE-3 picked for its design step). Before: 2026-11-20 08:10Z by pm-lead (cycle 08:00Z grooming: OPS-H15, OPS-H5b specced). Before: 2026-11-20 05:10Z by pm-lead (cycle 05:00Z grooming: OPS-H6c, AI-12b, ING-11c, LLM-1d specced)
+Last updated: 2026-11-20 by pm-lead (cycle 13:00Z record: FE-3a #86 QA FAIL r1 → option (a): ACs amended, App-level tests specced as FE-3a2; #86 in Rework r1; Jira keys KAN-88..92 recorded; open PRs re-checked via REST, app `main` = `c37d27c`). Before: 2026-11-20 by pm-lead (RET-1c #84 final review: APPROVE, raised → Ready to merge; specced RET-1d). Before: 2026-11-20 by pm-lead (FE-0c #85 final review: APPROVE, raised → Ready to merge). Before: 2026-11-20 by pm-lead (FE-3 design review: Approved with changes → split FE-3a Ready / FE-3b Blocked; specced FE-0e; FE-0c #85 and RET-1c #84 In QA). Before: 2026-11-20 by pm-lead (FE-0b #70 final review: APPROVE, raised → Ready to merge; specced FE-0d). Before: 2026-11-20 by pm-lead (PM review: OPS-H7a2 a2a #83 APPROVE → Ready to merge). Before: 2026-11-20 13:10Z by pm-lead (cycle 13:00Z sync + grooming: #65/#66/#68/#69/#76/#77/#78/#80 merged 08:46–09:38Z, and the earlier merges #51–#63, #71–#75 that the board never recorded, moved to Done; specced RET-1c, FE-0c, OPS-H7a2b; FE-3 picked for its design step). Before: 2026-11-20 08:10Z by pm-lead (cycle 08:00Z grooming: OPS-H15, OPS-H5b specced). Before: 2026-11-20 05:10Z by pm-lead (cycle 05:00Z grooming: OPS-H6c, AI-12b, ING-11c, LLM-1d specced)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). **Open PRs and their files** (REST, 2026-11-20 13:00Z; app `main` = `c37d27c`):
 #70 FE-0b (`frontend/src/components/ui/collapsible.jsx`, `popover.jsx`, `scroll-area.jsx`, `separator.jsx`, `sonner.jsx`, `tooltip.jsx`) ·
 #79 LLM-1d (`internal/llm/openai_test.go`) · #81 OPS-H5b (`internal/query/search_integration_test.go`) · #82 EVAL-10a (`tests/test_evals_data.py`) ·
 #83 OPS-H7a2a (`cmd/arxivlens/main.go`, `internal/dlq/kafka.go`, `kafka_integration_test.go`, `manager.go`, `manager_test.go`) ·
-#84 RET-1c Ready to merge (`internal/query/server.go`, `server_test.go`) · #85 FE-0c Ready to merge (`frontend/src/components/ThemeToggle.test.jsx`, `frontend/src/lib/theme.test.js`) (REST re-check 2026-11-20, FE-3 design review).
-Active (counts toward WIP): backend 0, frontend 0, ai 0. Ready to merge (doesn't count): #70, #79, #81, #82, #83, #84, #85.
+#84 RET-1c Ready to merge (`internal/query/server.go`, `server_test.go`) · #85 FE-0c Ready to merge (`frontend/src/components/ThemeToggle.test.jsx`, `frontend/src/lib/theme.test.js`) ·
+#86 FE-3a draft, Rework r1 (`frontend/src/App.jsx`, `components/HeroSearch.jsx`, `ReferencesStack.jsx` + test, `SynthesisView.jsx` + test, `ui/badge.jsx`, `lib/citations.js` + test, `test/fixtures.js`) (REST re-check 2026-11-20, cycle 13:00Z record).
+Active (counts toward WIP): backend 0, frontend 1 (#86 FE-3a rework), ai 0. Ready to merge (doesn't count): #70, #79, #81, #82, #83, #84, #85.
 `cmd/arxivlens/main.go` order (one file, one PR at a time): OPS-H7a2a (#83) → OPS-H7a2b → ING-6c → OPS-H7b → OPS-H7c. `rag.go` is free (AI-8b merged); next is AI-5 if ADR-0011 is Accepted.
-`ReferencesStack.jsx`/`SynthesisView.jsx` order: FE-3a → FE-3b → FE-4 / FE-2. `tests/test_evals_data.py`: ai follow-ups (EVAL-6 `classify`, EVAL-7 `build_rows`, EVAL-10a README nit) wait for #82.
+`ReferencesStack.jsx`/`SynthesisView.jsx` order: FE-3a (#86) → FE-3a2 (`App.test.jsx`) → FE-3b → FE-4 / FE-2. `tests/test_evals_data.py`: ai follow-ups (EVAL-6 `classify`, EVAL-7 `build_rows`, EVAL-10a README nit) wait for #82.
 Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; see the 2026-11-17 grooming notes.
 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 1 | [FE-3a](tasks/FE-3a.md) (KAN-40, needs own Jira) | Refusal panel + honest chips (Supported / Unsupported / Not checked), no "Verified" anywhere (FE-3 part 1) | frontend-engineer | P0 | FE-1 #68, FE-0 #69 merged; **not** #70; no overlap with open PRs | design `docs/design/FE-3.md` **Approved with changes** 2026-11-20; takes frontend's 2nd WIP slot (with #85) |
-| 1b | [FE-0e](tasks/FE-0e.md) (needs Jira) | Secondary screens (ingest, infrastructure, library, toast) on theme tokens + palette-class guard | frontend-engineer | P1 | FE-0 #69 merged; independent of FE-3a | unblocks FE-3b's theme flip; start when a frontend slot frees |
+| 1 | [FE-3a2](tasks/FE-3a2.md) (**needs Jira story**, link KAN-88) | App-level regression tests for FE-3a (`App.test.jsx` only): whole-tree no "verified", refusal B no toast/one fetch, early refusal + discover POST, panel-link focus, two-stage | frontend-engineer | P0 | **after #86 merges** | new from FE-3a QA r1 FAIL (option a); FE-3a's ACs amended to point here |
+| 1b | [FE-0e](tasks/FE-0e.md) (KAN-91) | Secondary screens (ingest, infrastructure, library, toast) on theme tokens + palette-class guard | frontend-engineer | P1 | FE-0 #69 merged; independent of FE-3a | unblocks FE-3b's theme flip; start when a frontend slot frees |
 | 4 | [OPS-H7a2b](tasks/OPS-H7a2b.md) (KAN-71) | `dlq list`/`inspect` CLI on `Manager.List`, flags, footers, README | backend-engineer | P1 | **after #83 merges** | first in the `main.go` queue |
 | 5 | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl-loop` CLI, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | **after #83 and OPS-H7a2b merge** (`main.go`, `README.md`) | AC11 = ING-6b QA nits |
 | 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1, FE-0 merged; **after FE-3a + FE-3b** (`ReferencesStack.jsx`) | |
 | 7 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | after #83 + OPS-H7a2b merge | |
 | 8 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
-| 9 | [FE-0d](tasks/FE-0d.md) (**needs Jira story**) | Render tests for the six FE-0b ui primitives | frontend-engineer | P2 | **after #70 merges** | new from FE-0b PM review (2026-11-20); one new test file `ui/primitives.test.jsx` |
-| 10 | [RET-1d](tasks/RET-1d.md) (**needs Jira story**) | Handler-level contract test for the `writeJSON` call sites (+ log-restore nit) | backend-engineer | P2 | **after #84 merges** (`internal/query/server.go`, `server_test.go`) | new from RET-1c PM review (2026-11-20) |
+| 9 | [FE-0d](tasks/FE-0d.md) (KAN-90) | Render tests for the six FE-0b ui primitives | frontend-engineer | P2 | **after #70 merges** | new from FE-0b PM review (2026-11-20); one new test file `ui/primitives.test.jsx` |
+| 10 | [RET-1d](tasks/RET-1d.md) (KAN-92) | Handler-level contract test for the `writeJSON` call sites (+ log-restore nit) | backend-engineer | P2 | **after #84 merges** (`internal/query/server.go`, `server_test.go`) | new from RET-1c PM review (2026-11-20) |
 
 ## In progress
 | ID | Title | Owner | Branch |
 |---|---|---|---|
+| [FE-3a](tasks/FE-3a.md) (KAN-88) | **Rework r1** (QA FAIL r1): add QA finding-4 component cases + PR-body note on the AC amendment; App-level tests → FE-3a2. Rework round 1 of 2 | frontend-engineer | `agent/frontend/FE-3a`, draft [#86](https://github.com/MaheshPulivarthi18/ArxivLens/pull/86) `e90de79` |
 
 ## In QA
 | ID | Title | Owner | PR |
@@ -52,7 +54,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
-| [FE-3b](tasks/FE-3b.md) (KAN-40, needs own Jira) | Ask flow on tokens, status-chip tooltips, theme default → `system` (FE-3 part 2, AC8) | frontend-engineer | FE-0b #70, FE-3a and FE-0e **merged** (P0) |
+| [FE-3b](tasks/FE-3b.md) (KAN-89) | Ask flow on tokens, status-chip tooltips, theme default → `system` (FE-3 part 2, AC8) | frontend-engineer | FE-0b #70, FE-3a #86 and FE-0e **merged**; FE-3a2 preferably first (P0) |
 | [FE-4](tasks/FE-4.md) (KAN-44) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | FE-3a + FE-3b merged, FE-0b #70 merged (AI-8b #65 merged) |
 | FE-3 design Q3/Q6 | Should a full-stage `insufficient_evidence` (writing stage says the passages don't answer) be shown under the quoted answer, and offer "Search arXiv & Index"? | Mahesh | product decision on his two-stage flow (ADR-0018, Proposed); today the quoted answer stays and the refusal is dropped. No task until he answers |
 | [AI-10](tasks/AI-10.md) (KAN-51) | Configurable int8/`max_length` reranker (design-required) | ai-engineer | Mahesh's answer on ADR-0015 (premise changed: GPU is the reference hardware since #43/#47). AI-9 is merged (`d4b1cf3`) |

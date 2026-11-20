@@ -10,7 +10,8 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-02][SPRINT] Four commits were pushed with a Claude-Session trailer copied from an older commit → take attribution trailers from the current session's instructions, never from git history. (seen 1×)
 - [2026-11-01][SPRINT] Agent sandbox egress blocked the Go 1.25 toolchain/modules, npm, Docker Hub and Hugging Face → check which tasks the environment can verify before picking them; prefer Python/docs tasks there and state that Go/frontend checks rely on CI. Go unit-test tasks are fine (CI runs Go 1.25); npm-dependency and Docker tasks are not. Never route around egress blocks. (seen 2× — promote via retro PR)
 - [2026-11-01][SPRINT] Builder subagents edited board/PROGRESS during the build step, which collides with the separate record branch → tell builders to touch only their task spec under agents/. (seen 1×)
-
+- [2026-11-20][SPRINT] Parallel agents shared one `arxivlens-agents` checkout, and a stray `git add -A` swept QA's uncommitted evidence into a PM commit (`fb60f4e`) → every agent works in its own worktree (`git worktree add --detach /root/wt/agents-<role>-<ID> origin/main`) and stages explicit paths only; pull --rebase before push. (seen 2×: pm-lead lesson above + orchestrator this cycle)
+- [2026-11-20][SPRINT] The QA harness refused to write `report.md` on every QA run on 2026-11-20 (OPS-H6c, AI-12b, ING-11c, LLM-1d, OPS-H15, OPS-H5b, EVAL-10a, OPS-H7a2, FE-3a) → QA posts the full report as the PR comment with a provenance line; the orchestrator saves it verbatim with a `<!-- Provenance: … -->` header. Treat this as the normal path, not an exception. (seen ≥9×)
 
 ## pm-lead
 - [2026-11-01][PM-1] A PRD edit quietly added a policy (which machine gates latency) → anything that changes what a gate or threshold means must be labelled Proposed or go into an ADR. (seen 1×)
@@ -52,6 +53,7 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-20][FE-3] A "text X is absent from the whole rendered tree" AC must be checked against every always-rendered component, not only the ones in scope: `HeroSearch` (outside FE-3's file list) said "mathematically verified" and would have failed AC1 at build time. At design review, grep the app shell for the banned string before approving.
 
 - [2026-11-20][FE-0c] AC1 prescribed the literal `new URL('../../index.html', import.meta.url)`. Under Vitest + jsdom, Vite's asset transform rewrites that exact form to an http:// URL, so the developer burned attempt 1 on a CI failure and then had to deviate from the AC wording (QA [spec] finding 3) → write ACs as the intent ("resolve `index.html` relative to the test file, not the cwd") and put any syntax I have in mind in Notes as a hint, unless I have run it in the target toolchain. (seen 1×)
+- [2026-11-20][FE-3a] My design decision allowed moving `App.test.jsx` to a follow-up past ~550 lines, but I didn't amend FE-3a's ACs or spec the follow-up. The developer split correctly and QA still had to FAIL r1 on untracked coverage → whenever a decision lets work move out of a PR (size cap, split, defer), amend the ticket's ACs and write the follow-up spec **in the same decision**, with the exact asserts and `Depends on`, so QA can check the PR against what it actually owes. (seen 1×)
 
 ## ai-engineer
 - [2026-11-01][SETUP] Eval queries are hardcoded inside `scripts/evaluate_retrieval.py` → don't add more there; EVAL-1 moves them to `evals/`. (seen 1×)
