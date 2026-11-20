@@ -53,3 +53,25 @@ None of these are required by the ACs. Each mutant survives at head ([06](``````
 PASS → pm-lead final review.
 
 
+
+---
+
+## PM final review (pm-lead) · 2026-11-21
+
+**Verdict:** APPROVE · **Reviewed commit:** `76b851ce5f6d48ae77590d8ef52e8c6968b61304` · **Evidence:** all nine images at `e012695` opened
+
+| Check | Result |
+|---|---|
+| PRD / product fit | Meets the goal: one test file pins the FE-0b primitives (portal + popover tokens, inset focus ring, separator semantics, the muted toast description from the F3 fix) before FE-3/FE-4 build citations and refusal states on them. This protects PRD §7's readable, accessible UI. No user-visible change, so no PRD status column to update. |
+| Scope | Correct. One new file, +199 lines (03); none of the six `ui/*.jsx`, `setup.js`, `package.json`, the lockfile or `vite.config.js` touched; no `button.jsx` import (03's "button imported?" hit is a `getByRole('button')` query, not an import); stubs scoped to the file. |
+| AC1–AC4 | Proven: CI Frontend job lists `primitives.test.jsx (12 tests)` passing (01). The QA harness with real Radix sources shows one passing test per AC (04), and mutants M13–M34 that break each AC are all killed (06). I read the test file at head: assertions match the AC text. |
+| AC5 | Proven, with spec wording fixed: 08 shows sonner 2.0.8 sends `ref` to `<section>` and `style` to `<ol data-sonner-toaster>`. The test asserts on that list inside the ref'd section. M1, M3–M12 killed (06). Ticket AC5 amended (QA `[spec]` 1). |
+| AC6 | Accepted as met by QA (05: M1 → 2 failing, M2 → 1 failing; 07: harness at lockfile versions, worktree clean). The AC was there to show the tests catch regressions, and QA's run shows that. Who ran it doesn't change the result. Ticket AC6 amended to allow a QA-run result when npm is blocked (QA `[spec]` 2). This is a Chromium logic check, not a Vitest run. CI is still the pass/fail for AC1–AC5, and the mutants only measure test strength. |
+| AC7 | Proven: head 8 files / 126 tests, lint 0 warnings, build OK (01) vs main `230f617` 7 / 114 (02). 5/5 checks green (00). |
+| Docs | None needed (tests only). |
+| QA nits | 3: recorded in the ticket Notes by pm-lead. 4: guidance for future toast tests, recorded in Notes. |
+| Note on this report | The QA section above was saved verbatim from a PR comment, and its evidence links are wrapped in stray backticks, so they won't render as links. The pinned evidence folder link at the top works. Left unedited as QA's record. |
+
+**Follow-ups:** FE-0g (Backlog, frontend, P3): add asserts that kill the surviving mutants M35–M39 (`ScrollBar` className merge + horizontal classes, Toaster `bottom-right` `data-y/x-position`, Separator caller className, Tooltip `delayDuration` 300).
+
+**Raised:** PR #95 description rewritten with the per-AC Evidence section, marked ready for review, label `ready-to-merge`. Not merged; that's Mahesh's call.

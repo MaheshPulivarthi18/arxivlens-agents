@@ -8,7 +8,7 @@
 | **Depends on** | FE-0b (#70) **merged**. FE-1 (#68, merged `2410d2e`: Vitest + jsdom + Testing Library). No dependency change needed |
 | **Jira** | KAN-90 (epic KAN-5 "Research UI & citations"; labels `task-FE-0d`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: tests only, no component, contract or dependency change |
-| **Status** | Ready, picked for cycle 2026-11-20 20:00Z (FE-0b #70 merged `4182485`, 2026-11-20) |
+| **Status** | Ready to merge: [#95](https://github.com/MaheshPulivarthi18/ArxivLens/pull/95) @ `76b851c`, QA r1 PASS, PM APPROVE 2026-11-21 (picked cycle 2026-11-20 20:00Z) |
 
 ## Goal
 FE-0b's six primitives were proven only by QA's throwaway smoke harness (real Radix/sonner in headless Chromium). CI lints them but never
@@ -22,14 +22,14 @@ pin the behaviour QA verified, so later edits to `ui/*.jsx` can't silently regre
 - Size: ~150 test lines.
 
 ## Acceptance criteria
-- [ ] AC1 — **Tooltip / Popover:** rendered open (`open` prop or `defaultOpen`), the content is in `document.body` but **outside** the render container (portal), has `font-sans`, `bg-popover` and `text-popover-foreground` in its class list, and the forwarded `ref` points at that element. A caller `className` is merged (present alongside the defaults).
-- [ ] AC2 — **Collapsible:** with `defaultOpen` the content text is in the document and `data-state="open"`; closed, the content text is not in the document; clicking the trigger (`user-event`) opens it.
-- [ ] AC3 — **ScrollArea / ScrollBar:** the viewport (`[data-radix-scroll-area-viewport]`) has `focus-visible:ring-inset` and `focus-visible:ring-ring` and no `ring-offset` class (pins the FE-0b inset-ring deviation); the Root's ref forwards; children render inside the viewport.
-- [ ] AC4 — **Separator:** default renders `role="none"` with `h-px w-full`; `decorative={false}` renders `role="separator"`; `orientation="vertical"` gives `h-full w-px` (and `aria-orientation="vertical"` when not decorative).
-- [ ] AC5 — **Toaster:** the rendered sonner section (`ref` target) carries the inline variables `--normal-bg: hsl(var(--popover))`, `--normal-text`, `--normal-border`, `--border-radius`; a caller `style={{ "--normal-bg": "red" }}` overrides that one variable and keeps the other three. After `toast("t", { description: "d" })`, the description element (`[data-description]`) has `!text-muted-foreground`; with `toastOptions={{ classNames: { title: "x-title", description: "x-desc" } }}` the title has `x-title` and the description has both `!text-muted-foreground` and `x-desc` (pins the FE-0b F3 fix). No `data-sonner-theme="dark"` is needed for this.
-- [ ] AC6 — **Mutation check:** the developer reports (in Notes, with output) that the AC5 description assertion fails when `sonner.jsx`'s `classNames.description` line is removed, and the AC3 assertion fails when `ring-inset` is replaced by `ring-offset-2`. Changes reverted before commit.
-- [ ] AC7 — `npm run lint` (0 warnings) and `npm test` pass in CI on the draft PR; test file count goes up by one versus main.
-- [ ] Docs: none.
+- [x] AC1 — **Tooltip / Popover:** rendered open (`open` prop or `defaultOpen`), the content is in `document.body` but **outside** the render container (portal), has `font-sans`, `bg-popover` and `text-popover-foreground` in its class list, and the forwarded `ref` points at that element. A caller `className` is merged (present alongside the defaults).
+- [x] AC2 — **Collapsible:** with `defaultOpen` the content text is in the document and `data-state="open"`; closed, the content text is not in the document; clicking the trigger (`user-event`) opens it.
+- [x] AC3 — **ScrollArea / ScrollBar:** the viewport (`[data-radix-scroll-area-viewport]`) has `focus-visible:ring-inset` and `focus-visible:ring-ring` and no `ring-offset` class (pins the FE-0b inset-ring deviation); the Root's ref forwards; children render inside the viewport.
+- [x] AC4 — **Separator:** default renders `role="none"` with `h-px w-full`; `decorative={false}` renders `role="separator"`; `orientation="vertical"` gives `h-full w-px` (and `aria-orientation="vertical"` when not decorative).
+- [x] AC5 — **Toaster:** once a toast is shown, sonner's list `<ol data-sonner-toaster>` inside the `ref` target `<section>` carries the inline variables (sonner 2.0.8 forwards `ref` to the `<section>` but puts `style` on the list; amended 2026-11-21 from QA `[spec]` 1) `--normal-bg: hsl(var(--popover))`, `--normal-text`, `--normal-border`, `--border-radius`; a caller `style={{ "--normal-bg": "red" }}` overrides that one variable and keeps the other three. After `toast("t", { description: "d" })`, the description element (`[data-description]`) has `!text-muted-foreground`; with `toastOptions={{ classNames: { title: "x-title", description: "x-desc" } }}` the title has `x-title` and the description has both `!text-muted-foreground` and `x-desc` (pins the FE-0b F3 fix). No `data-sonner-theme="dark"` is needed for this.
+- [x] AC6 — **Mutation check:** the developer reports (in Notes, with output), or, when the developer sandbox can't install npm packages, QA shows with its harness (evidence file) that the AC5 description assertion fails when `sonner.jsx`'s `classNames.description` line is removed, and the AC3 assertion fails when `ring-inset` is replaced by `ring-offset-2`. Changes reverted before commit.
+- [x] AC7 — `npm run lint` (0 warnings) and `npm test` pass in CI on the draft PR; test file count goes up by one versus main.
+- [x] Docs: none.
 
 ## Verification
 ```bash
@@ -47,3 +47,8 @@ git diff origin/main --shortstat
   to be created by the orchestrator (pm-lead did not touch Jira in this review).
 - jsdom notes: Radix Tooltip/Popover may need `ResizeObserver` and `DOMRect` stubs in the test file (not in `setup.js`, which is out of scope); sonner renders toasts asynchronously, so use `findBy*`/`waitFor`.
 - 2026-11-20 20:00Z (pm-lead): re-checked scope against open PRs #91 (`App.test.jsx`), #92 (`ui/button.jsx`, `ui/button.test.jsx`), #93, #94: disjoint. The six primitive files are unchanged on `230f617`. Do **not** import or test `ui/button.jsx` here (#92 owns it), and keep stubs in the test file, not `src/test/setup.js` (FE-3b adds `ResizeObserver` there).
+- 2026-11-21 (pm-lead, final review): **APPROVE**; PR #95 raised (ready for review, `ready-to-merge`). QA r1 PASS at `76b851c`, evidence pinned `e012695`.
+  `[spec]` 1: AC5 reworded to the sonner 2.0.8 DOM (variables on `<ol data-sonner-toaster>` inside the ref'd `<section>`), which the test already does.
+  `[spec]` 2: AC6 now accepts a QA-run mutation result when npm is blocked. The developer couldn't run Vitest; QA ran M1 (2 tests fail) and M2 (1 fails) on copies, and the worktree stayed clean (evidence 05, 07).
+  Nit 3: the developer left no Notes entry; this entry records the AC5 deviation and the AC6 hand-off. Nit 4: keep unique toast text per test if toast tests are added.
+  Follow-up: FE-0g (Backlog), covering surviving mutants M35–M39 (ScrollBar className/horizontal, Toaster position, Separator className, Tooltip `delayDuration`).
