@@ -125,3 +125,38 @@ Evidence (round 2, arxivlens-agents @ 175d597):
 - 13 r2 QA harness sources: https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/175d59748128721936c0892468f74eaccfd5b8ac/agents/reviews/FE-0e/evidence/13-r2-qa-harness-sources.png?raw=true
 
 Not produced: light/dark screenshots of the four screens. They need the app's node_modules, and the registry is blocked, so contrast stays computed from the tokens (r1 evidence 06).
+
+---
+
+## PM final review (pm-lead)
+
+**Reviewed commit:** `27953fdcee2fbc8ece4480b0ad553e5dc56462db` (QA r2 PASS on the same head; CI on merge `dd2d0e7` = head + main `c37d27c`, main unchanged) · **Date:** 2026-11-20 (UTC) · **Reviewer:** pm-lead
+**Inputs:** `agents/tasks/FE-0e.md`; `docs/design/FE-0.md` (tokens, `border-input` rule, contrast appendix); `docs/design/FE-3.md` PM decision Q1(b); PRD UI-2/UI-3/UI-4; `gh api …/pulls/87/files` (5 files, +69/−23, all `frontend/`); QA r1 + r2 above.
+
+### Evidence check (every file opened)
+| File | Proves | Accepted? |
+|---|---|---|
+| 00, 01, 02 (r1) | r1 head red: Frontend job 4 failed in `tokens.test.js` (ENOENT `src/test/undefined`), build not run; main baseline 0 warnings, 19 tests, built | yes, as the r1 FAIL record and the lint/test baseline |
+| 03 (r1) | root cause: Vite 8.2.2 `assetImportMetaUrl` rewrites a template-literal `new URL(…, import.meta.url)` into an `import.meta.glob('../*')` lookup | yes |
+| 04 (r1) | AC3: the 4 components are byte-identical to base with every `className` blanked; 0 non-`className` changed lines; 5 files | yes (components unchanged since, evidence 11) |
+| 05 (r1) | guard logic: base fails 8/7/4/2 (= ticket counts), 4 single-line mutants caught (stub) | yes, as logic evidence |
+| 06 (r1) | AC2: 49/49 in-file text/icon/non-text pairs ≥ min in light and dark (lowest text 5.84/5.91); base emerald-400 1.75, red-300 1.67 in light; `ui/` variants listed below min | yes for AC2 as clarified. The pgvector node outline `border-primary/40` (2.06/2.32, min 1.0) is a decorative border: the node is identified by its `text-primary` label (9.09/7.65), so 1.4.11 doesn't apply |
+| 07 (r1) | all 14 new classes generate CSS against `tailwind.config.js` (controls `bg-popoverx` → none); twMerge drops the Badge's emerald classes | yes |
+| 08, 13 | QA harness sources (r1, r2) | yes |
+| 09 (r2) | 5/5 check runs `success` on head `27953fd` | yes (re-checked via REST today: same 5 job IDs, all success) |
+| 10 (r2) | AC1/AC3/AC4: oxlint `Found 0 warnings and 0 errors.`, `✓ src/test/tokens.test.js (5 tests)`, `Tests 24 passed (24)`, `✓ built in 1.07s` | yes |
+| 11 (r2) | r1→r2 diff = `tokens.test.js` only (+12/−5), uses `fileURLToPath` + `path`; components/`index.css`/`tailwind.config.js` untouched; ownership OK (92 lines) | yes |
+| 12 (r2) | head test file under plain Node: 5/5 at head, base 4 fail, 4 single-class mutants + 1 two-class mutant (both hits reported via `matchAll`) | yes, with QA's caveat: not real Vitest |
+
+### Judgement
+1. **PRD fit.** UI-2 (library), UI-3 (ingest modal) and UI-4 (infrastructure modal) stay ✅ and become readable for an OS-light visitor: the ~1.7:1 emerald/red text is gone, every class-string colour is ≥ 4.5:1 (text) / ≥ 3:1 (icons) in both themes. This is exactly what FE-3 PM decision Q1(b) needed before FE-3b flips the default.
+2. **Scope.** Right size: 4 components (class strings only) + the guard, 92 changed lines. Two departures from the mapping guide, both accepted: error text uses `text-unsupported-foreground` (dark `destructive` as text is 2.77:1, evidence 06), and the pre-existing `text-muted-foreground/60` "(vN)" became `text-muted-foreground` (2.72 light before, inside AC2's "every text colour"). Nothing missing: `ui/badge.jsx`, the ask-flow files, sonner and the theme default are untouched as the ticket required.
+3. **AC coverage.** AC1–AC4 all have CI or computed evidence. The one ⚠ (no real-Vitest run failing on a palette class) doesn't matter for the AC: the only Vite-sensitive step is path resolution, and the CI pass with `lines.length > 1` proves it; the matching is plain `matchAll` + `toEqual`, shown failing on mutants in Node. No "⚠ unverified" left on anything that affects users.
+4. **Docs.** No README/CONTRIBUTING change needed (no behaviour or command change). No PRD status change (UI-2/3/4 already ✅; there is no theme row). Light/dark screenshots were not produced (registry blocked); contrast is computed from the tokens, which is what AC2 asks for.
+
+### QA `[spec]` findings (pm-lead decisions)
+- **(a) AC2 wording vs `ui/` variants** (r1 #3, r2 #2): AC2 now reads "every text colour **set by a class string in** the four files"; `ui/` variant colours are reported, not owed. `ui/badge` `arxiv`: FE-3a #86 (Ready to merge, `fa92c30`) retargets it to opaque `bg-secondary text-secondary-foreground` = **13.73:1 light / 10.99:1 dark** on any surface (pm-lead calc with the FE-0 appendix functions on `src/index.css`), so the 1.41/1.65 light cases go away when #86 merges. FE-3b's flip already waits on FE-3a #86 **merged** (FE-3b `Depends on`; confirmed). `ui/button` `clinical` (3.77/3.74, both themes, pre-existing, also `HeroSearch.jsx:75`): new task **[FE-0f](../../tasks/FE-0f.md)** (frontend, P1, Ready, needs Jira story) retargets the variant in `button.jsx` to `bg-primary text-primary-foreground` (8.73/8.11), independent of every open PR.
+- **(b) Guard regex gaps** (r1 #5, r2 #3): folded into **FE-3b AC2** — `ring-offset/outline/divide/decoration/fill/stroke/placeholder/caret`, all Tailwind palettes, and `white`/`black` on every utility except `shadow` (`Toast.jsx`'s `shadow-black/80` is legitimate; pm-lead ran the widened pattern on #87's head: 0 other hits).
+- **(c) Inputs `border-border` vs `border-input`** (r1 #6, r2 #4): Backlog (frontend, P3), per FE-0 design's rule for form controls.
+
+**PM verdict: APPROVE.** PR #87 description rewritten from `agents/templates/pr.md` with the Evidence section (one row per AC, commit-pinned images: `9f1ddf2` for 00–08, `175d597` for 09–13), CI results, QA r1 FAIL → r2 PASS and this verdict; marked ready for review. Mahesh reviews and merges. Jira KAN-91 → Ready to merge is left to the orchestrator.

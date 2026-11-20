@@ -8,7 +8,7 @@
 | **Depends on** | FE-0 #69 merged (`54c4de8`), FE-1 #68 merged. No overlap with FE-3a or open PRs #70, #79, #81–#85 (checked via REST 2026-11-20) |
 | **Jira** | KAN-91 (epic KAN-5 "Research UI & citations"; labels `task-FE-0e`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: class swaps to existing tokens + one grep test; no new component, contract or dependency |
-| **Status** | In QA, rework r1 (PR #87 draft, branch `agent/frontend/FE-0e`, head `27953fd`) |
+| **Status** | Ready to merge: QA r1 FAIL → r2 PASS + pm-lead APPROVE on `27953fd` (2026-11-20 UTC); PR #87 raised, waiting on Mahesh |
 
 ## Goal
 When FE-3b flips the default theme to "system", an OS-light visitor must not see hard-coded dark-palette text (emerald-400 ≈ 1.8–1.9:1 and red-300 on the
@@ -25,8 +25,10 @@ light card). Move these four components to FE-0's tokens and add a guard so the 
 ## Acceptance criteria
 - [ ] AC1 — `src/test/tokens.test.js` (Node `fs` in Vitest) asserts the four files contain no
   `/\b(?:[a-z-]+:)*(text|bg|border|ring|from|via|to|shadow)-(slate|emerald|amber|cyan|teal|red|green)-\d/`. The file list is an exported/obvious array so FE-3b can extend it.
-- [ ] AC2 — QA evidence: contrast of every text colour now used in the four files on its surface, light and dark, ≥ 4.5:1 (≥ 3:1 for icons/large text),
-  computed from `src/index.css` with FE-0's appendix script.
+- [ ] AC2 — QA evidence: contrast of every text colour **set by a class string in** the four files on its surface, light and dark, ≥ 4.5:1 (≥ 3:1 for
+  icons/large text), computed from `src/index.css` with FE-0's appendix script. Colours that come from a `ui/` component variant (`ui/button` `clinical`,
+  `ui/badge` `arxiv`) are reported but not owed here: `arxiv` is retargeted by FE-3a (#86), `clinical` by [FE-0f](FE-0f.md). *(Wording clarified
+  2026-11-20 by pm-lead from QA `[spec]` r1 #3 / r2 #2; the check itself is unchanged.)*
 - [ ] AC3 — Existing tests pass; no behaviour, copy or DOM-structure change (diff is class strings + the new test).
 - [ ] AC4 — CI `frontend` job green (`npm ci && npm run lint && npm test && npm run build`), lint warnings not above main.
 
@@ -156,3 +158,10 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
     passes in CI, and the same logic in plain node finds the injected classes. I couldn't run Vitest locally because npm is blocked.
   - Ownership: `ownership-check.sh origin/main agent/frontend/FE-0e` → `Ownership OK for role=frontend (92 changed lines)`.
   - Findings 3, 5 and 6 go to pm-lead or a follow-up task; they aren't changed here.
+- **2026-11-20 UTC (pm-lead, final review): APPROVE** on `27953fd` after QA r1 FAIL → r2 PASS. All 14 evidence images (00–08 @ `9f1ddf2`, 09–13 @ `175d597`)
+  opened. AC1 green in real Vitest (CI job 136486858137, `tokens.test.js` 5 tests; `lines.length > 1` proves the files were read); negative behaviour shown
+  in plain Node only (accepted: the Vite-sensitive part is path resolution, proven by the CI pass). AC2 49/49 in-file pairs pass both themes. AC3 class
+  strings only. AC4 0 warnings, 24/24, `✓ built in 1.07s`. PR #87 description rewritten with the Evidence section and marked ready for review.
+  QA `[spec]` items: (a) AC2 wording clarified above; `arxiv` badge → FE-3a (#86, computed 13.73/10.99 on any surface); `clinical` button → new
+  **FE-0f** (P1, Ready). (b) Guard regex gaps folded into **FE-3b AC2** (other utilities, all palettes, `white`/`black` except `shadow`).
+  (c) Inputs `border-border` → `border-input`: Backlog (frontend, P3). No PRD status change: UI-2/3/4 are already ✅; no README change (no behaviour change).
