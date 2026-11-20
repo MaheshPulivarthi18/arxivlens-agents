@@ -1,0 +1,104 @@
+$ bash -c cd /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-EVAL-10a-r1 && for f in $(find . -maxdepth 1 -name '*.py' -type f | sort); do echo "=== $f"; cat $f; done
+=== ./mutate.py
+#!/usr/bin/env python3
+"""QA EVAL-10a mutation harness. Copies the PR-head worktree to a fresh mktemp dir per mutant,
+applies one anchored substitution to scripts/evaluate_answers.py, and runs pytest twice:
+(a) only the new test, (b) the whole tests/test_evals_data.py. Never touches the PR worktree."""
+import subprocess, sys, tempfile, shutil, os
+SRC = sys.argv[1]
+NEW = "tests/test_evals_data.py::test_errored_cases_are_misses_and_near_miss_failures_not_refusals"
+OLD = "tests/test_evals_data.py::test_report_names_refused_missed_and_near_miss_ids"
+F = "scripts/evaluate_answers.py"
+MUTANTS = [
+ ("M1 AC1 named: answer-loop `== \"refusal\"` -> `!= \"answered\"`",
+  '        if outcome != "answered":\n            if outcome == "refusal":\n                refused_answers += 1',
+  '        if outcome != "answered":\n            if outcome != "answered":\n                refused_answers += 1'),
+ ("M2 AC2 named: errored near-miss excluded from failures",
+  '        else:\n            near_miss_failures.append(case["id"])\n            if outcome == "error":',
+  '        else:\n            if outcome != "error":\n                near_miss_failures.append(case["id"])\n            if outcome == "error":'),
+ ("M3 errored answer case not a miss (skip misses on error)",
+  '                refused_ids.append(case["id"])\n            misses.append(case["id"])',
+  '                refused_ids.append(case["id"])\n            if outcome != "error":\n                misses.append(case["id"])'),
+ ("M4 classify: failed call (None) -> refusal",
+  '    if resp is None:\n        return "error"',
+  '    if resp is None:\n        return "refusal"'),
+ ("M5 classify: verification_unavailable -> refusal",
+  '"verification_unavailable": "error",',
+  '"verification_unavailable": "refusal",'),
+ ("M6 gated_call: error not recorded in error_case_ids",
+  '        if outcome == "error":\n            errors.append(case["id"])',
+  '        if outcome == "never":\n            errors.append(case["id"])'),
+ ("M7 near-miss: errors counted as refusals",
+  '        _, outcome, _ = call(case, "near_miss")\n        if outcome == "refusal":',
+  '        _, outcome, _ = call(case, "near_miss")\n        if outcome in ("refusal", "error"):'),
+ ("M8 print: refused line prints miss IDs",
+  "print(f\"  refused IDs            : {', '.join(m['answer_refused_ids'])}\")",
+  "print(f\"  refused IDs            : {', '.join(m['expected_paper_miss_ids'])}\")"),
+ ("M9 print: miss line prints refused IDs",
+  "print(f\"  miss IDs               : {', '.join(m['expected_paper_miss_ids'])}\")",
+  "print(f\"  miss IDs               : {', '.join(m['answer_refused_ids'])}\")"),
+ ("M10 print: near-miss line prints refused IDs",
+  "print(f\"  near-miss answered IDs : {', '.join(m['near_miss_failure_ids'])}\")",
+  "print(f\"  near-miss answered IDs : {', '.join(m['answer_refused_ids'])}\")"),
+ ("M11 AC3 leak: per-case record carries the question text",
+  '        records.append(case_record(case["id"], case_set, resp, ms))',
+  '        records.append({**case_record(case["id"], case_set, resp, ms), "q": case["question"]})'),
+ ("M12 near-miss error not in near_miss_error_ids",
+  '            if outcome == "error":\n                near_miss_errors.append(case["id"])',
+  '            if outcome == "never":\n                near_miss_errors.append(case["id"])'),
+]
+def run(d, sel):
+    p = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", sel], cwd=d,
+                       capture_output=True, text=True)
+    last = [l for l in p.stdout.splitlines() if l.strip()][-1]
+    return p.returncode, last
+orig = open(os.path.join(SRC, F)).read()
+print(f"{'mutant':<72} | new test (2 params)        | EVAL-10 old test     | whole file")
+rows = []
+for name, a, b in MUTANTS:
+    n = orig.count(a)
+    if n != 1:
+        print(f"{name:<72} | INVALID anchor count={n}"); continue
+    d = tempfile.mkdtemp(prefix="qa-eval10a-")
+    shutil.copytree(SRC, d, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git"))
+    open(os.path.join(d, F), "w").write(orig.replace(a, b))
+    diff = subprocess.run(["diff", os.path.join(SRC, F), os.path.join(d, F)], capture_output=True, text=True).stdout
+    rn, ln = run(d, NEW); ro, lo = run(d, OLD); rf, lf = run(d, "tests/test_evals_data.py")
+    if any(r not in (0, 1) for r in (rn, ro, rf)):
+        v = "INVALID(collect/err)"
+    else:
+        v = "KILLED" if rn == 1 else "SURVIVED"
+    print(f"{name:<72} | {v:<8} {ln:<17} | {lo:<20} | {lf}")
+    rows.append((name, diff))
+print("\n--- applied diffs (scripts/evaluate_answers.py) ---")
+for name, diff in rows:
+    print(f"## {name}\n{diff}")
+=== ./probe.py
+"""QA EVAL-10a probe: replay the PR's fixture (both error paths) through the real evaluate()/print_report()
+at the PR head, print the ID lines and the IDs per list, and grep the output + json for fixture text."""
+import io, json, sys, contextlib
+sys.path.insert(0, "."); sys.path.insert(0, "tests")
+import test_evals_data as t
+from scripts import evaluate_answers as ea
+for name, err in (("failed_call", None), ("verification_unavailable", t.B_RESPONSE)):
+    answers = [{"id": "a7", "question": "Q-REFUSED-err", "expected_arxiv_ids": ["1706.03762"]},
+               {"id": "a9", "question": "Q-ERRORED-ans", "expected_arxiv_ids": ["1706.03762"]}]
+    nm = [{"id": "n6", "question": "Q-ERRORED-nm"}]
+    canned = {"Q-REFUSED-err": t.EARLY, "Q-ERRORED-ans": err, "Q-ERRORED-nm": err}
+    m = ea.evaluate(answers, [], lambda q: (canned[q], 50.0), nm)
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        ea.print_report(m)
+    out = buf.getvalue(); dumped = json.dumps(m)
+    print(f"== {name}: outcomes={[r['outcome'] for r in m['cases']]}")
+    for k in ("answer_refused_ids", "expected_paper_miss_ids", "error_case_ids", "near_miss_failure_ids", "near_miss_error_ids"):
+        print(f"   {k:<24} = {m[k]}")
+    for l in out.splitlines():
+        if "IDs" in l or "WARNING" in l:
+            print("   report| " + l)
+    print(f"   AC1 a9 on refused line: {'a9' in [l for l in out.splitlines() if 'refused IDs' in l][0]}")
+    texts = ("Q-REFUSED-err", "Q-ERRORED-ans", "Q-ERRORED-nm", t.B_RESPONSE["answer"], t.EARLY["answer"], "passage text")
+    leaks = [x for x in texts if x in out or x in dumped]
+    print(f"   AC3 fixture texts found in report/json: {leaks if leaks else 'none'} (checked {len(texts)})")
+
+[exit code 0]

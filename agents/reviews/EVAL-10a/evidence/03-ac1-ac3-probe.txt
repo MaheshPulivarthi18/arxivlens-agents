@@ -1,0 +1,27 @@
+$ python3 -I /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-EVAL-10a-r1/probe.py
+== failed_call: outcomes=['refusal', 'error', 'error']
+   answer_refused_ids       = ['a7']
+   expected_paper_miss_ids  = ['a7', 'a9']
+   error_case_ids           = ['a9']
+   near_miss_failure_ids    = ['n6']
+   near_miss_error_ids      = ['n6']
+   report|   refused IDs            : a7
+   report|   miss IDs               : a7, a9
+   report| WARNING: errors          : a9 (0 verification_unavailable)
+   report|   near-miss answered IDs : n6
+   AC1 a9 on refused line: False
+   AC3 fixture texts found in report/json: none (checked 6)
+== verification_unavailable: outcomes=['refusal', 'error', 'error']
+   answer_refused_ids       = ['a7']
+   expected_paper_miss_ids  = ['a7', 'a9']
+   error_case_ids           = ['a9']
+   near_miss_failure_ids    = ['n6']
+   near_miss_error_ids      = ['n6']
+   report|   refused IDs            : a7
+   report|   miss IDs               : a7, a9
+   report| WARNING: errors          : a9 (1 verification_unavailable)
+   report|   near-miss answered IDs : n6
+   AC1 a9 on refused line: False
+   AC3 fixture texts found in report/json: none (checked 6)
+
+[exit code 0]

@@ -1,0 +1,8 @@
+$ bash -c python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py 2>&1 | tail -2; python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k test_errored_cases 2>&1 | grep -E "PASSED|FAILED|passed|failed"
+...s.................................................                    [100%]
+124 passed, 1 skipped in 0.35s
+tests/test_evals_data.py::test_errored_cases_are_misses_and_near_miss_failures_not_refusals[failed_call] PASSED [ 50%]
+tests/test_evals_data.py::test_errored_cases_are_misses_and_near_miss_failures_not_refusals[verification_unavailable] PASSED [100%]
+====================== 2 passed, 123 deselected in 0.08s =======================
+
+[exit code 0]

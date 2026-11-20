@@ -1,0 +1,15 @@
+$ gh api .../actions/jobs/{136186133171,136184190114,136186133149}/logs | grep
+## PR #82 head 69aaaf4 — Python M0 unit tests job 136186133171
+121:2026-11-20T08:53:42.5228280Z HEAD is now at 3f8c695 Merge 69aaaf454794bc0b7abf0fe6b24c055bf631316f into 3835dee2375b28f1b66612b64d8c6f92f3e9fda4
+437:2026-11-20T08:54:44.5383459Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py tests/test_verify.py tests/test_arxiv_replay.py
+465:2026-11-20T08:54:58.6889532Z 195 passed, 3 skipped, 3 warnings in 13.12s
+522:2026-11-20T08:55:00.0047216Z ============================== 37 passed in 0.24s ==============================
+
+## base main 3835dee — Python M0 unit tests job 136184190114
+426:2026-11-20T08:50:20.9181229Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py tests/test_verify.py tests/test_arxiv_replay.py
+454:2026-11-20T08:50:33.9249303Z 193 passed, 3 skipped, 3 warnings in 12.13s
+511:2026-11-20T08:50:34.8774571Z ============================== 37 passed in 0.22s ==============================
+
+## Ownership check job 136186133149
+206:2026-11-20T08:53:41.0312362Z Ownership OK for role=ai (24 changed lines)
+

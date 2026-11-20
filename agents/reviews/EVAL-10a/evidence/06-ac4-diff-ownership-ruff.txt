@@ -1,0 +1,12 @@
+$ bash -c git rev-parse origin/main; git diff --stat origin/main; git diff --numstat origin/main; .github/scripts/ownership-check.sh origin/main agent/ai/EVAL-10a; echo "--- ruff"; ruff check --isolated --select E,F,W --line-length 130 tests/test_evals_data.py; echo "--- removed/modified existing lines (count of - lines in -U0 diff)"; git diff -U0 origin/main | grep -c "^-[^-]" || true
+3835dee2375b28f1b66612b64d8c6f92f3e9fda4
+ tests/test_evals_data.py | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+24	0	tests/test_evals_data.py
+Ownership OK for role=ai (24 changed lines)
+--- ruff
+All checks passed!
+--- removed/modified existing lines (count of - lines in -U0 diff)
+0
+
+[exit code 0]

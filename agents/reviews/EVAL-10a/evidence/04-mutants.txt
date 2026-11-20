@@ -1,0 +1,92 @@
+$ python3 -I /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-EVAL-10a-r1/mutate.py /root/wt/qa-82
+mutant                                                                   | new test (2 params)        | EVAL-10 old test     | whole file
+M1 AC1 named: answer-loop `== "refusal"` -> `!= "answered"`              | KILLED   2 failed in 0.11s | 1 passed in 0.04s    | 4 failed, 120 passed, 1 skipped in 0.33s
+M2 AC2 named: errored near-miss excluded from failures                   | KILLED   2 failed in 0.11s | 1 passed in 0.04s    | 2 failed, 122 passed, 1 skipped in 0.28s
+M3 errored answer case not a miss (skip misses on error)                 | KILLED   2 failed in 0.11s | 1 passed in 0.04s    | 2 failed, 122 passed, 1 skipped in 0.33s
+M4 classify: failed call (None) -> refusal                               | KILLED   1 failed, 1 passed in 0.08s | 1 passed in 0.04s    | 7 failed, 117 passed, 1 skipped in 0.39s
+M5 classify: verification_unavailable -> refusal                         | KILLED   1 failed, 1 passed in 0.12s | 1 passed in 0.05s    | 4 failed, 120 passed, 1 skipped in 0.36s
+M6 gated_call: error not recorded in error_case_ids                      | KILLED   2 failed in 0.13s | 1 passed in 0.06s    | 7 failed, 117 passed, 1 skipped in 0.46s
+M7 near-miss: errors counted as refusals                                 | KILLED   2 failed in 0.11s | 1 passed in 0.05s    | 3 failed, 121 passed, 1 skipped in 0.39s
+M8 print: refused line prints miss IDs                                   | KILLED   2 failed in 0.12s | 1 failed in 0.08s    | 3 failed, 121 passed, 1 skipped in 0.28s
+M9 print: miss line prints refused IDs                                   | KILLED   2 failed in 0.12s | 1 failed in 0.09s    | 3 failed, 121 passed, 1 skipped in 0.36s
+M10 print: near-miss line prints refused IDs                             | KILLED   2 failed in 0.17s | 1 failed in 0.12s    | 3 failed, 121 passed, 1 skipped in 0.31s
+M11 AC3 leak: per-case record carries the question text                  | KILLED   2 failed in 0.12s | 1 failed in 0.09s    | 3 failed, 121 passed, 1 skipped in 0.31s
+M12 near-miss error not in near_miss_error_ids                           | KILLED   2 failed in 0.17s | 1 passed in 0.06s    | 3 failed, 121 passed, 1 skipped in 0.29s
+
+--- applied diffs (scripts/evaluate_answers.py) ---
+## M1 AC1 named: answer-loop `== "refusal"` -> `!= "answered"`
+207c207
+<             if outcome == "refusal":
+---
+>             if outcome != "answered":
+
+## M2 AC2 named: errored near-miss excluded from failures
+244c244,245
+<             near_miss_failures.append(case["id"])
+---
+>             if outcome != "error":
+>                 near_miss_failures.append(case["id"])
+
+## M3 errored answer case not a miss (skip misses on error)
+210c210,211
+<             misses.append(case["id"])
+---
+>             if outcome != "error":
+>                 misses.append(case["id"])
+
+## M4 classify: failed call (None) -> refusal
+78c78
+<         return "error"
+---
+>         return "refusal"
+
+## M5 classify: verification_unavailable -> refusal
+70c70
+< REFUSAL_REASONS = {"all_citations_unsupported": "refusal", "verification_unavailable": "error",
+---
+> REFUSAL_REASONS = {"all_citations_unsupported": "refusal", "verification_unavailable": "refusal",
+
+## M6 gated_call: error not recorded in error_case_ids
+200c200
+<         if outcome == "error":
+---
+>         if outcome == "never":
+
+## M7 near-miss: errors counted as refusals
+241c241
+<         if outcome == "refusal":
+---
+>         if outcome in ("refusal", "error"):
+
+## M8 print: refused line prints miss IDs
+286c286
+<         print(f"  refused IDs            : {', '.join(m['answer_refused_ids'])}")
+---
+>         print(f"  refused IDs            : {', '.join(m['expected_paper_miss_ids'])}")
+
+## M9 print: miss line prints refused IDs
+288c288
+<         print(f"  miss IDs               : {', '.join(m['expected_paper_miss_ids'])}")
+---
+>         print(f"  miss IDs               : {', '.join(m['answer_refused_ids'])}")
+
+## M10 print: near-miss line prints refused IDs
+300c300
+<         print(f"  near-miss answered IDs : {', '.join(m['near_miss_failure_ids'])}")
+---
+>         print(f"  near-miss answered IDs : {', '.join(m['answer_refused_ids'])}")
+
+## M11 AC3 leak: per-case record carries the question text
+189c189
+<         records.append(case_record(case["id"], case_set, resp, ms))
+---
+>         records.append({**case_record(case["id"], case_set, resp, ms), "q": case["question"]})
+
+## M12 near-miss error not in near_miss_error_ids
+245c245
+<             if outcome == "error":
+---
+>             if outcome == "never":
+
+
+[exit code 0]

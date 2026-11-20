@@ -1,0 +1,31 @@
+$ bash /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-EVAL-10a-r1/bodycheck.sh /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-EVAL-10a-r1/pr82-body.md
+title : EVAL-10a: pin errored cases in the /v1/ask summary ID lines (test-only)
+files : tests/test_evals_data.py
+--- headings / Spec / Jira lines in body
+1:## EVAL-10a: Pin errored cases in the `/v1/ask` summary ID lines (test-only)
+3:**Agent:** ai-engineer · **Spec:** [agents/tasks/EVAL-10a.md](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/main/agents/tasks/EVAL-10a.md) · **PRD ref:** Product PRD §8 (answer metrics: method notes); follow-up from the EVAL-10 PM review · **Jira:** KAN-85
+5:### What changed
+8:### Acceptance criteria
+14:### Verification
+23:### Not verified / risks
+26:### Follow-ups created
+29:### Evidence (filled by pm-lead when raising the PR)
+35:### Review status (filled by the workflow)
+--- task IDs mentioned in body (should be only EVAL-10a / EVAL-10):
+      3 EVAL-10
+      5 EVAL-10a
+      2 Q-ERRORED
+      1 Q-REFUSED
+--- Jira keys in body:
+      1 KAN-85
+--- backticked repo paths in body:
+`ownership-check.sh`
+`scripts/evaluate_answers.py`
+`tests/test_evals_data.py`
+--- AC count in body vs ticket:
+4
+4
+--- other open agent/ai PRs this cycle:
+#82 agent/ai/EVAL-10a
+
+[exit code 0]
