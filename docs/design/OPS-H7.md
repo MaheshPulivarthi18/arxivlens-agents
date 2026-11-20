@@ -350,3 +350,8 @@ Postgres down for `replay` (it fails before reading), expired offsets, undecodab
 
 The split covers all eight ACs: AC1 is in a, AC2 in b, AC3 in c, AC4 is spread across f/b/c, AC5 and AC6 are in b, AC7 is split between a and b, and AC8 is in c.
 `OPS-H7` stays the umbrella and is Done when OPS-H7c merges.
+
+**Amendment 2026-11-21 (pm-lead, from OPS-H7a2b QA r1 finding 1 `[spec]`).** Q3's `next page:` footer repeats `--partition P` and `--page-size N`
+when the operator gave them: `next page: arxivlens dlq list --topic T [--partition P] [--page-size N] --from P/O`. Without them the footer is as Q3 shows.
+Reason: `--from` alone continues into the later partitions at the default page size, so pasting the footer after `--partition 1 --page-size 10` left
+partition 1. PR #93 ships Q3's original text (it matched OPS-H7a2b AC5, and following it never hides records). [OPS-H7a2c](../../agents/tasks/OPS-H7a2c.md) makes the change.

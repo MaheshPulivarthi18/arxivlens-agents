@@ -8,7 +8,7 @@
 | **Depends on** | **OPS-H7a2a = ArxivLens PR #83 merged** (`Manager.List`, `ListOptions{…, Snapshot}`, `Page{Next, Watermarks, Warnings}`, `ParseCursor`, missing-topic error). #65/#69 (root `README.md`) are merged. Must not run alongside ING-6c or OPS-H7b (both edit `cmd/arxivlens/main.go`; ING-6c also edits `README.md`) |
 | **Jira** | KAN-71 (the OPS-H7a2 story; a2b is its second PR) |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07), "Build notes (a1)" and "Build notes (a2a, PR #83)" |
-| **Status** | In Progress: built on `agent/backend/OPS-H7a2b` (`7788f17` skeleton, `0f99a63` build); draft PR to be opened by the orchestrator |
+| **Status** | **Ready to merge**: ArxivLens [#93](https://github.com/MaheshPulivarthi18/ArxivLens/pull/93) @ `0f99a63` raised for Mahesh 2026-11-21 (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 The operator half of OPS-H7a2: `arxivlens dlq list` pages to the start-time end of the topic and prints a resumable `P/O` cursor, and `dlq inspect`
@@ -25,24 +25,24 @@ finds a key anywhere in the topic. a2a (#83) built `Manager.List`; this PR wires
 
 ## Acceptance criteria
 (Carried from OPS-H7a2; numbering kept so QA can map them.)
-- [ ] AC1 (CLI half) — `Page.Warnings` (e.g. `WARNING partition P: offsets a..b expired`) go to **stderr**, never stdout. Test captures both streams.
-- [ ] AC3 (CLI half) — errors are not "end": a fake reader returning a wrapped `ErrPartitionStalled`, or a poll error, makes `dlq list` (cobra `Execute`)
+- [x] AC1 (CLI half) — `Page.Warnings` (e.g. `WARNING partition P: offsets a..b expired`) go to **stderr**, never stdout. Test captures both streams.
+- [x] AC3 (CLI half) — errors are not "end": a fake reader returning a wrapped `ErrPartitionStalled`, or a poll error, makes `dlq list` (cobra `Execute`)
   return non-zero and print the error; stdout has no "end of topic" footer.
-- [ ] AC4 — `Payload == nil` prints `P/O  UNDECODABLE (n bytes)` with `n = len(Value)`, in `dlq list` and in `inspect` without `--key`. Unit test.
-- [ ] AC5 — `inspect` scans the whole topic up to the start-time watermarks with the same reader (no first-100 cap, `main.go:322` on `c37d27c`, still `:322` on `230f617`): pages of
+- [x] AC4 — `Payload == nil` prints `P/O  UNDECODABLE (n bytes)` with `n = len(Value)`, in `dlq list` and in `inspect` without `--key`. Unit test.
+- [x] AC5 — `inspect` scans the whole topic up to the start-time watermarks with the same reader (no first-100 cap, `main.go:322` on `c37d27c`, still `:322` on `230f617`): pages of
   500 on **one** snapshot (pass `Page.Watermarks` back as `ListOptions.Snapshot`), stops at the first match when `--key` is set, prints `P/O`.
   `--all` also reuses the first page's `Watermarks` as `Snapshot` for every later page (records appended mid-run are not listed: test with a fake that
   appends after the first page). `TestDLQFlags` checks each flag reaches `ListOptions` (`--partition`, `--from` parsed by `ParseCursor`, `--page-size`,
   `--limit` alias, and **the default page size 50 when no flag is given**, which kills a2a's surviving mutant M19). Footers exactly:
   `next page: arxivlens dlq list --topic T --from P/O` or `end of topic (high watermarks at start: 0=H0 1=H1 ...; N records)`.
-- [ ] AC6 (CLI half) — `dlq list` / `inspect` on a missing topic exit non-zero with
+- [x] AC6 (CLI half) — `dlq list` / `inspect` on a missing topic exit non-zero with
   `dlq: topic <T> does not exist (check --topic; compose's kafka-init creates the three DLQs)` (fake reader returning a wrapped `kerr.UnknownTopicOrPartition`).
-- [ ] AC7 (wiring half) — the CLI builds a `*dlq.KafkaReader` and closes it on success and error paths (test: fake factory records `Close`); the CLI never
+- [x] AC7 (wiring half) — the CLI builds a `*dlq.KafkaReader` and closes it on success and error paths (test: fake factory records `Close`); the CLI never
   calls `List` on a `Manager` built with a `nil` reader (QA OPS-H7a2 finding 6: that nil-panics). `Replay` keeps `NewManager(…, nil)` until OPS-H7b.
-- [ ] AC8 — CI green on the PR: Go job, the DB job's real-Kafka step, and the Full stack job (`stack.yml` runs `dlq list` for all three DLQs without `|| true`).
+- [x] AC8 — CI green on the PR: Go job, the DB job's real-Kafka step, and the Full stack job (`stack.yml` runs `dlq list` for all three DLQs without `|| true`).
   Paste the three `dlq list` output lines from the Full stack job log (each ends with an `end of topic (…)` footer).
-- [ ] AC9 — `make test-unit`, `make lint` green; `go test -race ./cmd/arxivlens/ ./internal/dlq/` green.
-- [ ] Docs — README CLI rows list `--partition`, `--from P/O`, `--page-size` (default 50), `--all`, the `P/O` column, both footers and the stderr warning.
+- [x] AC9 — `make test-unit`, `make lint` green; `go test -race ./cmd/arxivlens/ ./internal/dlq/` green.
+- [x] Docs — README CLI rows list `--partition`, `--from P/O`, `--page-size` (default 50), `--all`, the `P/O` column, both footers and the stderr warning.
   pm-lead's docs PR flips OPS-2 back to ✅ only after OPS-H7c.
 
 ## Verification
@@ -80,3 +80,6 @@ KAFKA_BROKERS=localhost:9092 go test -tags integration -count=1 -v ./internal/dl
     the real DLQ section of `main.go` and the real `dlq_test.go`, plus stubs for cobra/pflag and kerr. Results: `go vet` clean, `go test -race` → `TestDLQFlags` 18/18 PASS.
     17 single-edit mutants: 16 killed, 1 survived, M17 (flag default `0` instead of `DefaultPageSize`). M17 is equivalent because `List` maps `<= 0` to 50.
     `gofmt -l cmd/` is clean. CI is the source of truth for AC8/AC9 (Go job, DB job's real-Kafka step, Full stack `dlq list` lines).
+- 2026-11-21 (pm-lead): final review **APPROVE** (`agents/reviews/OPS-H7a2b/report.md`); PR #93 description rewritten with the evidence, marked ready for review → **Ready to merge**.
+  QA finding 1 `[spec]` (footer drops `--partition`/`--page-size`) accepted as specced and moved to follow-up **[OPS-H7a2c](OPS-H7a2c.md)**, with QA nits 2-4
+  (inspect `--key` + undecodable test, inspect empty-topic output, errors printed twice). Nit 5 noted on OPS-H7c. Design Q3 amended.

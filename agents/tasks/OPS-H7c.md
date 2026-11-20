@@ -51,3 +51,5 @@ make stack-up && ./bin/arxivlens migrate && make test-full
   and goes down the wrap path, so it gets a **new** `event_id` (OPS-H7f row `b_envelope_with_wrong_field_type`). Here AC2 must cover that row with the
   deterministic ULID (stable across replays), and the PR description must name the case: its original `event_id` is not kept, so L2 won't dedupe it against the first attempt.
   Don't add lenient parsing to keep the ID without a design note.
+- 2026-11-21 (pm-lead, from OPS-H7a2b QA r1 nit 5): until now CI's real-Kafka `dlq list` runs only covered empty DLQs. AC3's stack step, `dlq list --all` before and
+  after the replay on a seeded DLQ, is the first non-empty `list --all` against a broker. Paste both outputs (`P/O` lines + `end of topic (…; N records)`) from the job log.
