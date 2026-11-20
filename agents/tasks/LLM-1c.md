@@ -6,7 +6,7 @@
 | **Priority** | P2 |
 | **PRD ref** | Product PRD QA-8 (LLM synthesis; operators must be able to tell why it fell back); Technical PRD §7.2; follow-up from LLM-1b QA r2 nit 1 / PM review (`agents/reviews/LLM-1b/report.md`) |
 | **Depends on** | LLM-1b (#27, merged `70b0afe`). No open PR touches `internal/llm/` (re-checked 2026-11-20 04:00Z against #65–#73 via REST) |
-| **Jira** | to create (epic KAN-1 "Grounded LLM answers"; labels `task-LLM-1c`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-77 (epic KAN-1 "Grounded LLM answers"; labels `task-LLM-1c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: two fixed-string branches in one private helper; no contract, CLI, table or service change |
 | **Status** | Ready |
 

@@ -6,7 +6,7 @@
 | **Priority** | P3 |
 | **PRD ref** | Product PRD QA-1/QA-2; Technical PRD §7.1 (rerank fallback); ADR-0010 (Accepted); follow-up from RET-1 QA "Missing tests" + PM nits 1–2 (`agents/reviews/RET-1/report.md`) |
 | **Depends on** | RET-1 (#9, merged `bb9ee90`). No open PR touches `internal/query/search.go` or `search_test.go` (re-checked 2026-11-20 04:00Z; #65 changes `rag.go`/`rag_test.go` in the same package, different files) |
-| **Jira** | to create (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1b`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-78 (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1b`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one more fallback condition on an existing branch plus test rows; HTTP response shape unchanged |
 | **Status** | Ready |
 
