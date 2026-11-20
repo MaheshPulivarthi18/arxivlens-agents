@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H5 (#16, merged `e67354c`). No open PR touches `internal/query/search_integration_test.go` (checked 2026-11-20 08:00Z against #65, #66, #68, #69, #70, #76, #77, #78, #79 via REST) |
 | **Jira** | KAN-84 |
 | **Design required** | no: test-only, no production code, contract, CLI, table or service change |
-| **Status** | Ready |
+| **Status** | In QA (draft PR #81, head `8cae68b`) |
 
 ## Goal
 `TestHNSWVectorHits` (`internal/query/search_integration_test.go:60`, build tag `integration`) inserts 1000 `synth.NNNNN` papers, 10,000
@@ -88,3 +88,23 @@ retrieval or answering changes. `stack.yml` triggers on `internal/**` and must b
   `CONTRIBUTING.md`, `docker-compose.yml`; #68/#69/#70 `frontend/**` + root `README.md`; #76 `internal/kafka/consumer_test.go`; #77
   `tests/test_verify.py`; #78 `tests/test_m2_pipeline.py`; #79 `internal/llm/openai_test.go`) and of OPS-H15 (groomed in the same pass,
   `ci.yml` only; this file has the `integration` build tag, so `ci.yml`'s `go test ./...` doesn't compile it).
+- 2026-11-20 08:30Z (backend-engineer): built on `agent/backend/OPS-H5b`, draft PR **#81**
+  (https://github.com/MaheshPulivarthi18/ArxivLens/pull/81). Final head `8cae68b`; diff vs `origin/main` is
+  `internal/query/search_integration_test.go | 100 +++-` (97+/3-) only; ownership check `OK for role=backend (100 changed lines)`;
+  `gofmt -l internal/query/` empty. `go vet -tags integration` not run locally (Go 1.24.7, no module proxy); db.yml runs it (green).
+  - What: `itPrepare(ctx, pool)` deletes `synth.%` and returns `count(*) … NOT LIKE 'synth.%'`; `TestHNSWVectorHits` registers
+    `t.Cleanup(d.Close)` first, then `itPrepare` → `t.Fatalf` if `CI` set / `t.Skipf` otherwise when others > 0, then a `t.Cleanup`
+    deleting `synth.%`. `TestHNSWSeedCleanup` (a)/(b)/(c) as specced; (c) asserts `others == base+1` (base = count after (b), 0 on CI),
+    so it doesn't false-fail on a dev DB; on CI that is exactly "reports 1".
+  - AC1/AC2 (final head, run 44702290490, DB job 136173317940): `search_integration_test.go:105: pgvector 0.8.7; seeded 13000 embeddings in 17.773s`,
+    `--- PASS: TestHNSWVectorHits (27.19s)`, `--- PASS: TestHNSWSeedCleanup (0.02s)`, `--- PASS: TestSearchProvenance (0.07s)`, no SKIP.
+    First head `3e1baea` also green (run 44700495052, job 136167400131, same three PASS, `seeded 13000`).
+  - AC3 mutants (each pushed, then reverted with `git revert` commit, no force-push):
+    (a) `d341c7a` remove post-test cleanup → run 44701014164 job 136169129675:
+        `search_integration_test.go:287: (a) leftover corpus after TestHNSWVectorHits: 1000 synth.* papers, 10000 synthetic chunks; want 0, 0` → `--- FAIL: TestHNSWSeedCleanup`; reverted `55f5b38`.
+    (b) `4ebca83` remove the DELETE in itPrepare → run 44701294532 job 136170052860:
+        `search_integration_test.go:311: (b) itPrepare left 1 synth.* papers; want 0` → `--- FAIL: TestHNSWSeedCleanup`; reverted `49e266a`.
+    (c) `b2cb615` itPrepare returns 0 → run 44702017953 job 136172426145:
+        `search_integration_test.go:326: (c) itPrepare reported 0 other papers after inserting hnswb.foreign; want 1` → `--- FAIL: TestHNSWSeedCleanup`; reverted `8cae68b`.
+    `git diff --stat 3e1baea` after each revert was empty.
+  - AC5: ci.yml Go job 136173317186 (run 44702290628) success; ownership, frontend, Python M0 checks success. stack.yml Full stack job 136173363764 (run 44702290543) success (`AC4: make test-full` success; F1 step as documented).
