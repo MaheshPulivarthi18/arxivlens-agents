@@ -8,7 +8,7 @@
 | **Depends on** | none. Merged prerequisites only (`ci.yml` frontend job exists on `main` 4c7d327). Works before and after FE-0 #69 / FE-1 #68 merge |
 | **Jira** | [KAN-74](https://maheshsworkspace-42184075.atlassian.net/browse/KAN-74) |
 | **Design required** | no: CI-only, report-only step, no contract, gate, CLI, table or service |
-| **Status** | In QA (PR pending) |
+| **Status** | Ready to merge (PR #71 @ `84392b4`; QA PASS r1, PM APPROVE r1) |
 
 ## Goal
 Frontend QA can't run `npm run build` in agent sandboxes, so FE-0's `dist/` checks (self-hosted fonts, no Google font hosts,
@@ -97,3 +97,4 @@ git diff --stat origin/main
   sandbox, not on PyPI mirror), and `npm ci`/build (npm failed with "Exit handler never called"), so AC3/AC4 need the PR's CI run.
   Design detail: `.font-serif`/`.prose` are tested with a here-string rather than `printf | grep -q`, so pipefail plus an early
   `grep -q` exit (SIGPIPE) can't produce a false "no".
+- 2026-11-20 03:25Z (orchestrator): draft PR [#71](https://github.com/MaheshPulivarthi18/ArxivLens/pull/71) @ `84392b4` → CI green → QA PASS r1 (`agents/reviews/OPS-H14/report.md`) → PM APPROVE r1 (`35b0986`) → raised for review, label `ready-to-merge`. Jira → Ready to merge.

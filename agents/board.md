@@ -1,22 +1,19 @@
 # Board
 
-Last updated: 2026-11-19 23:10Z by pm-lead (cycle 23:00Z grooming: OPS-H14, OPS-H6b, AI-12 specced Ready, independent of open PRs). Before: 22:20Z orchestrator (cycle 21:00Z: AI-8b #65, OPS-H9 #66, FE-1 #68, FE-0 #69 raised for Mahesh; FE-0b #70 in QA)
+Last updated: 2026-11-20 03:30Z by orchestrator (cycle 03:00Z: OPS-H14 #71, OPS-H6b #72, AI-12 #73 built, QA PASS r1, PM APPROVE, raised for Mahesh). Before: 2026-11-19 23:10Z pm-lead grooming
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). **Open PRs and their files:**
 #65 AI-8b (`internal/query/rag.go`, `rag_test.go`, `tests/test_evals_data.py`, `README.md`) · #66 OPS-H9 (`.github/workflows/db.yml`, `image-pins.yml`, `CONTRIBUTING.md`, `docker-compose.yml`) ·
 #68 FE-1 (`frontend/package.json`, `vite.config.js`, `src/test/*`, `*.test.jsx`, `ReferencesStack.jsx`, `HeroSearch.jsx`, `frontend/README.md`) ·
 #69 FE-0 (`frontend/index.html`, `index.css`, `tailwind.config.js`, `main.jsx`, `Navbar.jsx`, `ThemeToggle.jsx`, `lib/theme.js`, `ui/button.jsx`, `ui/dropdown-menu.jsx`, root `README.md`) ·
-#70 FE-0b (six new `frontend/src/components/ui/*.jsx`).
+#70 FE-0b (six new `frontend/src/components/ui/*.jsx`) · #71 OPS-H14 (`.github/workflows/ci.yml` frontend job, new `.github/scripts/frontend-dist-report.sh`) · #72 OPS-H6b (`internal/kafka/consumer.go`, `consumer_test.go`) · #73 AI-12 (`services/embedder/api.py`, `worker.py`, `tests/test_verify.py`).
 `rag.go` order (one file, one owner): AI-8b (#65) → AI-5 (if ADR-0011 is Accepted). Root `README.md` is touched by #65 and #69.
 Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; see the 2026-11-17 grooming notes.
 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 0a | [OPS-H14](tasks/OPS-H14.md) (KAN-74) (Jira: to create) | Frontend CI job prints `dist/` font/CSS report; `Test` step without spurious `npm error` | backend-engineer | P3 | none (start now) | independent of open PRs (files: `.github/workflows/ci.yml` frontend job, new `.github/scripts/frontend-dist-report.sh`) |
-| 0c | [OPS-H6b](tasks/OPS-H6b.md) (KAN-75) (Jira: to create) | Go consumer: no "Poll error" log for its own clean shutdown | backend-engineer | P2 | none (start now) | independent of open PRs (files: `internal/kafka/consumer.go`, `consumer_test.go`) |
-| 0d | [AI-12](tasks/AI-12.md) (KAN-76) (Jira: to create) | `/internal/ingest` reuses its workers + the loaded embedding model | ai-engineer | P2 | none (start now) | independent of open PRs (files: `services/embedder/api.py`, `services/embedder/worker.py`, `tests/test_verify.py`) |
 | 0b | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | **after #66 (OPS-H9) merges**; README also after #65/#69 | AC11 = ING-6b QA nits |
 | 5 | [FE-3](tasks/FE-3.md) (KAN-40) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 #68, FE-0 #69, FE-0b #70 merged | AC8: flip theme default to `system`; QA follow-ups folded in |
 | 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 #68 + FE-0 #69 merged | |
@@ -45,6 +42,9 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | [OPS-H9](tasks/OPS-H9.md) (KAN-45) | CI: real-Postgres step, pgvector ≥ 0.8 pin, digest-pin check | backend-engineer | [#66](https://github.com/MaheshPulivarthi18/ArxivLens/pull/66) `16dacb9` | QA FAIL r1 → PASS r2 · PM APPROVE · after merge run `image-pins.yml` once |
 | [FE-1](tasks/FE-1.md) (KAN-19) | Vitest harness + 19 answer/citation tests; no "Verified" on unsupported | frontend-engineer | [#68](https://github.com/MaheshPulivarthi18/ArxivLens/pull/68) `50f1963` | QA PASS r1 · PM APPROVE |
 | [FE-0](tasks/FE-0.md) (KAN-72) | Classic research theme: tokens, fonts, dark mode, toggle | frontend-engineer | [#69](https://github.com/MaheshPulivarthi18/ArxivLens/pull/69) `dcb5420` | QA PASS r1 · PM APPROVE r1 → reopened (popover unmapped) → QA PASS r2 · PM APPROVE r2 · veto notes in PR |
+| [OPS-H14](tasks/OPS-H14.md) (KAN-74) | Frontend CI `dist/` font/CSS report; `npm run test --if-present` | backend-engineer | [#71](https://github.com/MaheshPulivarthi18/ArxivLens/pull/71) `84392b4` | QA PASS r1 · PM APPROVE |
+| [OPS-H6b](tasks/OPS-H6b.md) (KAN-75) | Go consumer: no "Poll error" on its own clean shutdown | backend-engineer | [#72](https://github.com/MaheshPulivarthi18/ArxivLens/pull/72) `0fbf4e0` | QA PASS r1 · PM APPROVE |
+| [AI-12](tasks/AI-12.md) (KAN-76) | `/internal/ingest` reuses its workers + startup model | ai-engineer | [#73](https://github.com/MaheshPulivarthi18/ArxivLens/pull/73) `e34ebb9` | QA PASS r1 · PM APPROVE · eval not run (no retrieval change) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -61,6 +61,9 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the OPS-H14 PM review (backend, P3, *Proposed* gate, Mahesh decides; after FE-0 #69 merges): fail the frontend job when `google font hosts` > 0 or `woff2 files` = 0; AC wording "the line types that apply" (per-file `DIST woff2:` only when n ≥ 1); match `.prose`/`.font-serif` as whole selectors. Also: a shellcheck step for `.github/scripts/*.sh` in CI (no sandbox has shellcheck)
+- From the OPS-H6b PM review (backend, P2, next `internal/kafka/consumer*` change): add a deadline-ctx row (`context.WithTimeout` → `DeadlineExceeded`) to `TestConsumerPollErrorAfterCancel` asserting no `Poll error` (QA mutant M9 survived)
+- From the AI-12 PM review (ai, P2): `stack.yml` ingests a second paper after the seed and logs both durations (first automated data point for PRD §8 single-paper ingest < 60 s); tests for concurrent `/internal/embed` + `/internal/ingest` on the shared startup model, and for `EmbedderWorker` construction failing while the processor slot is cached
 - From the FE-0 r2 QA/PM review (pm-lead, `rules/` PR on `agents/area-notes/frontend.md`, P2): standing frontend rule — every class used in a frontend diff must generate CSS against the real `frontend/tailwind.config.js` (QA probes it; the developer checks new token classes are mapped). F1 (`bg-popover` unmapped) got past FE-0 r1 because no AC required it
 - From the OPS-H9 QA/PM review (backend, P3, fold into the next `.github/workflows/db.yml` / `image-pins.yml` change, e.g. ING-6c only if it stays small): QA nit 5 `version_ge` treats non-numeric `extversion` as ≥ 0.8.0 (require `^[0-9]+(\.[0-9]+)*$`); nit 7 when no pin resolves, print "no pin resolved: check the tool/registry before re-pinning" instead of "Re-pin it" per image; nit 8 drop or fix the tautological "message names the image" `case` in the self-test; CONTRIBUTING "Pinned images": note GitHub pauses the weekly schedule after 60 days without repo activity
 - ~~CI part~~ → specced in [OPS-H14](tasks/OPS-H14.md) (KAN-74) AC4 (2026-11-19 23:00Z; `npm run test --if-present`). Still open: `Makefile` `test-fe` has the same `grep -q` pattern (local only; backend, fold into the next `Makefile` change). Original: From the FE-1 QA/PM review (backend, P3, fold into the next `.github/workflows/ci.yml` change, e.g. OPS-H14): the frontend job's "Test (if FE-1 has added a test script)" step (`if npm run | grep -q " test"; then npm test; …`) logs a spurious `npm error` (EPIPE when grep closes the pipe). Now that `npm test` exists, replace the conditional with a plain `npm test` step

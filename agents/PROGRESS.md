@@ -696,3 +696,14 @@ Format:
   **AI-12** (ai, P2: `services/embedder/api.py`, `worker.py`, `tests/test_verify.py`; build ingest workers once, reuse the startup-loaded BGE model, serialize the pipeline).
 - Not picked: `-race` in CI (needs `ci.yml` → clashes with OPS-H14, or `Makefile` + CONTRIBUTING note → #66); RET-1 `search.go` test nits (P3, backend cap of 2); `Makefile test-fe` EPIPE (Makefile, local only).
 - Jira sync skipped: connector unavailable to pm-lead this session; three stories marked "to create" for the orchestrator.
+
+## 2026-11-20 03:00Z — orchestrator (scheduled cycle, session_01ATEBeRyuD6DUxLPSWVCU4W)
+- Lock: `agents/RUN_LOCK` from 2026-11-19T23:00:31Z (the 23:00Z cycle groomed + created KAN-74/75/76 but never built, recorded or released) was > 100 min old → taken over (`906f717`), released in this commit. Push dry-run, app clone and Jira OK.
+- Sync: no merges since the 21:00Z cycle; no human reviews or untagged comments on #65/#66/#68/#69/#70; no Jira intake; no ADR changes. #65/#66/#68/#69 still Ready to merge; FE-0b #70 stays In QA until #69 merges.
+- Plan: used the 23:00Z pm-lead grooming as-is (3 Ready tasks, independent of each other and of every open PR, re-verified against `pulls/<n>/files`). Backend and ai had 0 active PRs (their open PRs are Ready to merge). No 4th independent task (ING-6c/OPS-H7a2/EVAL-10a/FE-* all wait on unmerged PRs).
+- **OPS-H14 → #71** (backend, `ci.yml` frontend job + new script): 1 attempt `84392b4`, CI green (dist/ report printed in CI, no `npm error`) → QA PASS r1 (`abc6635`/`e8f62e6`) → PM APPROVE (`35b0986`) → **Ready to merge** (KAN-74).
+- **OPS-H6b → #72** (backend, `internal/kafka/consumer*.go`): 1 attempt `0fbf4e0`, CI green incl. Full stack → QA PASS r1 (mutants a/b/c killed; real franz-go probe shows the shutdown "Poll error" gone; `67faa18`) → PM APPROVE (`5192b06`) → **Ready to merge** (KAN-75).
+- **AI-12 → #73** (ai, `services/embedder/api.py`, `worker.py`, `tests/test_verify.py`): 1 attempt `e34ebb9`, CI green incl. Full stack (seed ingest success, run 44665352254) → QA PASS r1 (12/13 mutants, survivor equivalent; `158054c`) → PM APPROVE (`3aea2d5`) → **Ready to merge** (KAN-76). `make eval` not run (no retrieval/answering change).
+- QA harness again couldn't write `report.md` for OPS-H6b and AI-12; orchestrator saved the PR comments verbatim with provenance (`fd96e6c`). PM follow-ups → Backlog (3 lines).
+- **Waiting on Mahesh: 7 PRs ready for review (#65, #66, #68, #69, #71, #72, #73)**; ADRs and EVAL-8 question unchanged.
+- Retro (short): (1) second cycle in a row where a predecessor died after grooming without building — the takeover path works, and building the already-groomed tasks first kept this cycle short; (2) QA `report.md` write refusal is a standing harness limit (2/3 QA agents this cycle), fallback worked; (3) spec lesson from PM: ACs over conditional output formats should say "the line types that apply", not a fixed count (pm-lead lesson below).
