@@ -46,3 +46,37 @@ This delivers the harness item. Frontend QA can now read real `dist/` font/CSS f
 
 ## Hand-off
 PASS → pm-lead final review
+
+---
+
+# PM final review — OPS-H14 · PR #71 · round 1
+
+**Verdict:** APPROVE
+**Reviewer:** pm-lead · **Date:** 2026-11-20 · **Reviewed head:** `84392b480343892cd59b498850f850b676b392ea` (unchanged since QA) · **Evidence commit:** `abc66350eb2dd4c2d6d4bf93ab7f8ef55728d7d0`
+
+## What I checked
+- I opened all nine evidence files (00–08 `.png` + `.txt`). Each one shows real command output on head 84392b4, and each covers the AC it is labelled for:
+  - 00: all 5 check runs succeeded on the head.
+  - 01: AC1 pos/neg values and exit codes, matching the ticket's fixture definitions exactly. The fixture files are printed.
+  - 02/03: AC2's three named mutants (M1, M2, M3–M5) are KILLED, with the output diffs shown.
+  - 04 + 08: AC3 real CI lines from run 44665341877, compared against the base's facts.
+  - 05: AC4 Test step log, 0 `npm error` lines, #68 not merged, no `npm run |` left.
+  - 06: AC5 diff stat, the single ci.yml hunk inside `frontend:`, mode 100755, ownership OK, the Docs header.
+  - 07: the harness can be reproduced.
+- **PRD fit:** this is a dev-harness item (Technical PRD §11). It closes FE-0 QA finding 3: frontend QA now gets `dist/` font/CSS facts from the CI log without a local npm build. It also removes the EPIPE `npm error` noise seen on FE-1 #68. It is report-only, as specced, so no new gate is added without a decision.
+- **Scope:** exactly the two files in Scope, +62/-2. Nothing extra, and nothing the ticket intended is missing. `--if-present` behaves correctly on both sides of #68: it is a no-op now and will run Vitest after #68 merges.
+- **Docs:** the script header covers what it prints, that it is report-only, and why. No README/CONTRIBUTING change was needed (CI-only). No PRD status row tracks this harness item, so there is no PRD edit.
+- **"⚠ unverified":** shellcheck was not run by either sandbox. The ticket accepts `bash -n`, and the script's real CI run is green, so this is not blocking.
+
+## Findings from QA
+1. QA nit 1 (the PR body lacked AC3/AC4 quotes, run ID and case): **fixed by pm-lead** in the raised PR description. It now has run 44665341877, the case "before #69 / #68 not merged", and the six quoted `DIST` lines.
+2. QA [spec] 3 ("all 7 line types" when n = 0): this is my ticket wording. The script follows the fixed format, which omits the per-file `DIST woff2:` line when n = 0, so the code is correct. The wording gets fixed in the follow-up gate ticket (Backlog below), not in this PR.
+3. QA nit 2 (`.prose` / `.font-serif` substring match) is acceptable for a report and gets addressed in the gate follow-up.
+
+## Backlog (follow-ups, not tasks yet)
+- **OPS-H14 gate (*Proposed*, after FE-0 #69 merges):** make the dist report fail CI when `google font hosts` > 0 or `woff2 files` = 0. AC wording for that ticket: "all 7 line types, the per-file `DIST woff2:` line only when n ≥ 1". Match selectors at a boundary (e.g. `\.prose[^-a-zA-Z0-9_]`) before treating `.prose`/`.font-serif` as gate inputs.
+- **shellcheck in CI** (backend, harness): add a shellcheck step for `.github/scripts/*.sh`. Neither sandbox has it.
+- **Spec-writing lesson:** when a fixed output format has conditional lines, ACs must say "line types that apply" rather than give a fixed count.
+
+## Hand-off
+APPROVE → PR #71 description rewritten with Evidence, marked ready for review, label `ready-to-merge`. Jira → Ready to merge (orchestrator). Merge: Mahesh.
