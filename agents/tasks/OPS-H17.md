@@ -8,7 +8,7 @@
 | **Depends on** | FE-1 (#68, merged `2410d2e`: `frontend/package.json` `"test": "vitest run"`). Independent of OPS-H16 #89 (`Makefile` only) and OPS-H9b #88 (`db.yml`, `image-pins.yml`, `CONTRIBUTING.md`). No open PR touches `.github/workflows/ci.yml` (REST check 2026-11-21 of #70, #79, #81–#89) |
 | **Jira** | needs story (epic for Technical PRD §10 harness; label `task-OPS-H17`) |
 | **Design required** | no: one CI step; no production code, contract, CLI, table or service |
-| **Status** | Ready |
+| **Status** | In QA |
 
 ## Goal
 The CI `frontend` job's Test step (`.github/workflows/ci.yml:72-73` on `c37d27c`) runs `npm run test --if-present`. With real npm,
@@ -51,3 +51,12 @@ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/<job>/logs | grep -nE 'Ru
   `origin/main` `c37d27c`: `ci.yml:72-73` `- name: Test` / `run: npm run test --if-present`; the job has
   `defaults.run.working-directory: frontend`. Before this, `make test-fe` (local) and CI used two different guards. After OPS-H16
   and this task, both run `npm test` with no silent pass.
+- 2026-11-20 (backend-engineer): build. Branch `agent/backend/OPS-H17` pushed, head `9dae472`, from `origin/main` `c37d27c`. PR not opened yet
+  (orchestrator raises it). Diff: `.github/workflows/ci.yml | 2 +-`, `run: npm run test --if-present` → `run: npm test`. Step name `Test`,
+  position (after lint, before build) and `defaults.run.working-directory: frontend` are unchanged (yaml.safe_load step list:
+  checkout, setup-node, `npm ci`, `npm run lint`, `Test`, `npm run build`, dist/ report). `grep -n if-present ci.yml` → none.
+  Ownership: `Ownership OK for role=backend (2 changed lines)`. AC3 (npm 10.9.9 / node v22.23.5, scratch dir outside the repo,
+  `{"scripts":{"build":"true"}}`): `npm run test --if-present` → no output, rc=0; `npm test` → `npm error Missing script: "test"`,
+  rc=1. Positive control with `"test":"echo ran-tests"`: `npm test` → `ran-tests`, rc=0. `frontend/package.json:11` has
+  `"test": "vitest run"`. Not run: actionlint (not installed). AC2/AC4 (CI) are pending: `ci.yml` triggers only on `pull_request` and on
+  push to `main`, so the branch push started no run (`actions/runs?head_sha=9dae472` total_count 0). Make/eval not run: no source change.
