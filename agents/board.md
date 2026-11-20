@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-21 UTC by pm-lead (FE-3a2 #91 final review: APPROVE, raised → Ready to merge). Before: 2026-11-21 UTC by pm-lead (FE-0f #92 final review: APPROVE, raised → Ready to merge; HeroSearch spinner nit folded into FE-3b). Before: 2026-11-20 19:00Z by pm-lead (cycle 19:00Z sync: Mahesh merged all 12 Ready-to-merge PRs #70, #79, #81–#90 at ~18:54Z → Done; FE-3a2, FE-0f, OPS-H7a2b, RET-1d picked; FE-0d, FE-3b unblocked → Ready; app `main` = `230f617`, no open agent PRs). Before: 2026-11-20 UTC by pm-lead (OPS-H17 #90 final review: APPROVE, raised → Ready to merge). Before: 2026-11-20 UTC by pm-lead (FE-0e #87 final review: APPROVE after QA r1 FAIL → r2 PASS; specced FE-0f; FE-3b AC2 widened).
+Last updated: 2026-11-21 UTC by pm-lead (RET-1d #94 final review: APPROVE, raised → Ready to merge; specced RET-1e). Before: 2026-11-21 UTC by pm-lead (FE-3a2 #91 final review: APPROVE, raised → Ready to merge). Before: 2026-11-21 UTC by pm-lead (FE-0f #92 final review: APPROVE, raised → Ready to merge; HeroSearch spinner nit folded into FE-3b). Before: 2026-11-20 19:00Z by pm-lead (cycle 19:00Z sync: Mahesh merged all 12 Ready-to-merge PRs #70, #79, #81–#90 at ~18:54Z → Done; FE-3a2, FE-0f, OPS-H7a2b, RET-1d picked; FE-0d, FE-3b unblocked → Ready; app `main` = `230f617`, no open agent PRs). Before: 2026-11-20 UTC by pm-lead (OPS-H17 #90 final review: APPROVE, raised → Ready to merge). Before: 2026-11-20 UTC by pm-lead (FE-0e #87 final review: APPROVE after QA r1 FAIL → r2 PASS; specced FE-0f; FE-3b AC2 widened).
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). **Open agent PRs:** none (REST, 2026-11-20 19:00Z; app `main` = `230f617`).
@@ -13,13 +13,12 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
 | 2 | [OPS-H7a2b](tasks/OPS-H7a2b.md) (KAN-71) | `dlq list`/`inspect` CLI on `Manager.List`, flags, footers, README | backend-engineer | P1 | #83 merged `a0b80fe` | **picked 2026-11-20 19:00Z**; first in the `main.go` queue, unblocks ING-6c + OPS-H7b |
-| 3 | [RET-1d](tasks/RET-1d.md) (KAN-92) | Handler-level contract test for the `writeJSON` call sites (+ log-restore nit) | backend-engineer | P2 | #84 merged `110f6c7` | **picked 2026-11-20 19:00Z** |
-| 4 | [FE-3b](tasks/FE-3b.md) (KAN-89) | Ask flow on tokens, status-chip tooltips, theme default → `system` (FE-3 part 2, AC8; design-required, design Approved) | frontend-engineer | P0 | #70, #86, #87 merged; **after FE-3a2 merges** (App-level asserts; FE WIP 2/2 this cycle) | AC2 widened guard (FE-0e QA `[spec]`); AC2 also covers the `HeroSearch.jsx:81` spinner (FE-0f QA nit) |
-| 5 | [FE-0d](tasks/FE-0d.md) (KAN-90) | Render tests for the six FE-0b ui primitives | frontend-engineer | P2 | #70 merged `4182485` | one new test file `ui/primitives.test.jsx`; FE WIP full this cycle |
-| 6 | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl-loop` CLI, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | **after OPS-H7a2b merges** (`main.go`, `README.md`) | AC11 = ING-6b QA nits; fold the OPS-H9b QA nit (Backlog) |
-| 7 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | after OPS-H7a2b merges | |
-| 8 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
-| 9 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | **after FE-3b** (`ReferencesStack.jsx`) | |
+| 3 | [FE-3b](tasks/FE-3b.md) (KAN-89) | Ask flow on tokens, status-chip tooltips, theme default → `system` (FE-3 part 2, AC8; design-required, design Approved) | frontend-engineer | P0 | #70, #86, #87 merged; **after FE-3a2 merges** (App-level asserts; FE WIP 2/2 this cycle) | AC2 widened guard (FE-0e QA `[spec]`); AC2 also covers the `HeroSearch.jsx:81` spinner (FE-0f QA nit) |
+| 4 | [FE-0d](tasks/FE-0d.md) (KAN-90) | Render tests for the six FE-0b ui primitives | frontend-engineer | P2 | #70 merged `4182485` | one new test file `ui/primitives.test.jsx`; FE WIP full this cycle |
+| 5 | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl-loop` CLI, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | **after OPS-H7a2b merges** (`main.go`, `README.md`) | AC11 = ING-6b QA nits; fold the OPS-H9b QA nit (Backlog) |
+| 6 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | after OPS-H7a2b merges | |
+| 7 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
+| 8 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | **after FE-3b** (`ReferencesStack.jsx`) | |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -38,6 +37,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 |---|---|---|---|---|
 | [FE-0f](tasks/FE-0f.md) (KAN-97) | `ui/button` `clinical` variant on theme tokens (3.77:1 → ≥ 6.67:1, both themes) + `ui/button.test.jsx` | frontend-engineer | [#92](https://github.com/MaheshPulivarthi18/ArxivLens/pull/92) (`ce86ddf`, ready for review, `ready-to-merge`) | QA PASS r1 · PM APPROVE 2026-11-21 |
 | [FE-3a2](tasks/FE-3a2.md) (KAN-93) | App-level regression tests for FE-3a (`App.test.jsx` only) | frontend-engineer | [#91](https://github.com/MaheshPulivarthi18/ArxivLens/pull/91) @ `e7dc3c0`, raised 2026-11-21 | QA r1 PASS · PM APPROVE ([report](reviews/FE-3a2/report.md)). Merge unblocks FE-3b; re-run Frontend on whichever of #91/#92 merges second |
+| [RET-1d](tasks/RET-1d.md) (KAN-92) | Handler-level contract test for the `writeJSON` call sites (+ log-restore nit) | backend-engineer | [#94](https://github.com/MaheshPulivarthi18/ArxivLens/pull/94) (`a5bf0f4`, ready for review, label `ready-to-merge`) | QA r1 PASS · PM APPROVE 2026-11-21 ([report](reviews/RET-1d/report.md)); AC3 amended |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -55,6 +55,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- [RET-1e](tasks/RET-1e.md) (backend, P2, specced 2026-11-21; Jira pending): handler rows for the `http.Error` paths + `SetIngester(non-nil)` (RET-1d QA q2/e2/e3). → Ready once #94 merges (same file `server_test.go`).
 - From the FE-3a2 QA/PM review (frontend, P2, after #91 merges; a small test-only task or fold into FE-3b's `App.test.jsx` edits): QA nit 2, the `Toast` mock renders `null`, so a toast saying "verified" on refusal A/C escapes AC1's whole-tree check (mutant M19). Have the mock render `<output>{props.message}</output>` or call `expectNoToastMessage()` in both AC1 tests. QA "Missing tests": a newer search discards both stages of an older one (`App.jsx:87`, `:108`; M18), full-stage network failure (status clears, quoted answer stays, no toast), a zero-citation refusal at App level (no link, panel still `role="status"`), and discover failure (`❌` toast, no re-run).
 - From the FE-0e QA/PM review (frontend, P3, after #87 merges; fold into the next PR that edits these files): the text inputs in `IngestModal.jsx` (arXiv ID) and `PapersLibrary.jsx` (filter) use `border-border`; FE-0 design's rule is that form controls use `border-input` (≥ 3:1, WCAG 1.4.11). Swap them and have QA compute `input` on `background`/`card` both themes (QA FE-0e r1 #6 / r2 #4).
 - From the OPS-H9b QA/PM review (backend, P3, fold into ING-6c, the next `db.yml` change, and the next `CONTRIBUTING.md` "Pinned images" touch): QA nit 1, add `v0.8.7` (non-numeric prefix) to the `pgvector >= 0.8.0` dry-run must-fail list so a dropped `^` anchor in `version_ge` fails the self-test (mutant M3 survives today; head's regex is correct). QA nit 2, the MinIO bullet still says `image-pins.yml` "fails weekly with `Pinned image <name> no longer resolves`"; mention the 60-day pause and the `no pin resolved` case there too. (Nit 3, the duplicate FAIL + `::error::` line, is accepted as is.)
