@@ -1,0 +1,46 @@
+$ bash -c cd /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/deps/sonner && git describe --tags && sed -n '784,820p' src/index.tsx; echo '--- test reads the vars here:'; grep -n 'data-sonner-toaster\|tagName' /root/wt/qa-FE-0d/frontend/src/components/ui/primitives.test.jsx
+v2.0.8
+  return (
+    // Remove item from normal navigation flow, only available via hotkey
+    <section
+      ref={ref}
+      aria-label={customAriaLabel ?? `${containerAriaLabel} ${hotkeyLabel}`}
+      tabIndex={-1}
+      aria-live="polite"
+      aria-relevant="additions text"
+      aria-atomic="false"
+      suppressHydrationWarning
+      data-react-aria-top-layer
+    >
+      {possiblePositions.map((position, index) => {
+        const [y, x] = position.split('-');
+
+        if (!filteredToasts.length) return null;
+
+        return (
+          <ol
+            key={position}
+            dir={dir === 'auto' ? getDocumentDirection() : dir}
+            tabIndex={-1}
+            ref={listRef}
+            className={className}
+            data-sonner-toaster
+            data-sonner-theme={actualTheme}
+            data-y-position={y}
+            data-x-position={x}
+            style={
+              {
+                '--front-toast-height': `${heights[0]?.height || 0}px`,
+                '--width': `${TOAST_WIDTH}px`,
+                '--gap': `${gap}px`,
+                ...style,
+                ...assignOffset(offset, mobileOffset),
+              } as React.CSSProperties
+            }
+--- test reads the vars here:
+154:  // sonner renders the toasts asynchronously; its list (<ol data-sonner-toaster>, inside the ref'd <section>)
+168:    expect(ref.current.tagName).toBe('SECTION');
+169:    const list = ref.current.querySelector('[data-sonner-toaster]');
+181:    const list = ref.current.querySelector('[data-sonner-toaster]');
+
+[exit code 0]

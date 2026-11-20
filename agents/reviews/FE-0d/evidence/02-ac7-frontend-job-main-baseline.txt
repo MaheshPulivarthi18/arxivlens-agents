@@ -1,8 +1,15 @@
-$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136502158010/logs | grep -E 'HEAD is now|Run npm|Found|✓ src|Test Files|Tests |built in'
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136502158010/logs | sed 's/ANSI//g' | grep -E 'HEAD is now|Run npm|Found|✓ src|Test Files|Tests |built in'
 2026-11-20T18:59:29.1024044Z ##[group]Run npm ci
 2026-11-20T18:59:32.6183200Z ##[group]Run npm run lint
 2026-11-20T18:59:32.7845011Z Found 0 warnings and 0 errors.
 2026-11-20T18:59:32.8029389Z ##[group]Run npm test
+2026-11-20T18:59:34.7913676Z  ✓ src/lib/theme.test.js (35 tests) 55ms
+2026-11-20T18:59:35.3984822Z  ✓ src/components/ReferencesStack.test.jsx (13 tests) 493ms
+2026-11-20T18:59:35.4504211Z  ✓ src/components/SynthesisView.test.jsx (17 tests) 548ms
+2026-11-20T18:59:35.9011306Z  ✓ src/lib/citations.test.js (35 tests) 13ms
+2026-11-20T18:59:36.6183998Z  ✓ src/test/tokens.test.js (5 tests) 5ms
+2026-11-20T18:59:36.8874252Z  ✓ src/components/ThemeToggle.test.jsx (4 tests) 184ms
+2026-11-20T18:59:37.4930888Z  ✓ src/components/HeroSearch.test.jsx (5 tests) 460ms
 2026-11-20T18:59:37.4960581Z  Test Files  7 passed (7)
 2026-11-20T18:59:37.4961158Z       Tests  114 passed (114)
 2026-11-20T18:59:37.5351190Z ##[group]Run npm run build

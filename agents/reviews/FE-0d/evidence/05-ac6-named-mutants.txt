@@ -1,0 +1,8 @@
+$ bash -c python3 -I /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/h/mutants.py /root/wt/qa-FE-0d/frontend/src /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/deps M1 M2
+M1 AC6a sonner: drop classNames.description line  KILLED (2 failing)
+                                                    -> gives the description the muted token class; merges caller toastOptions.classNames with the muted description class
+M2 AC6b scroll-area: ring-inset -> ring-offset-2  KILLED (1 failing)
+                                                    -> viewport has an inset focus ring (no ring-offset), Root ref forwards, 
+killed 2 / survived 0 / invalid 0
+
+[exit code 0]

@@ -1,11 +1,18 @@
-$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136544778476/logs | grep -E 'HEAD is now|Run npm|Found|Finished|✓ src|×|Test Files|Tests |built in|error'
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136544778476/logs | sed 's/ANSI//g' | grep -E 'HEAD is now|Run npm|Found|Finished|✓ src|×|FAIL|Test Files|Tests |built in'
 2026-11-20T20:19:25.5681720Z HEAD is now at 1e7f1d1 Merge 76b851ce5f6d48ae77590d8ef52e8c6968b61304 into 230f617210c7623951d4f9f24d5ec711e32c8d0e
-2026-11-20T20:19:26.8109601Z (node:2187) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 2026-11-20T20:19:28.5259525Z ##[group]Run npm ci
 2026-11-20T20:19:32.1051519Z ##[group]Run npm run lint
 2026-11-20T20:19:32.2589327Z Found 0 warnings and 0 errors.
 2026-11-20T20:19:32.2589850Z Finished in 25ms on 40 files with 104 rules using 4 threads.
 2026-11-20T20:19:32.2783231Z ##[group]Run npm test
+2026-11-20T20:19:34.0437875Z  ✓ src/lib/theme.test.js (35 tests) 47ms
+2026-11-20T20:19:34.6418243Z  ✓ src/components/ui/primitives.test.jsx (12 tests) 390ms
+2026-11-20T20:19:34.7830601Z  ✓ src/components/SynthesisView.test.jsx (17 tests) 575ms
+2026-11-20T20:19:35.6426448Z  ✓ src/components/ReferencesStack.test.jsx (13 tests) 422ms
+2026-11-20T20:19:35.9020252Z  ✓ src/lib/citations.test.js (35 tests) 42ms
+2026-11-20T20:19:36.3665161Z  ✓ src/components/ThemeToggle.test.jsx (4 tests) 235ms
+2026-11-20T20:19:36.7102361Z  ✓ src/test/tokens.test.js (5 tests) 5ms
+2026-11-20T20:19:37.4294249Z  ✓ src/components/HeroSearch.test.jsx (5 tests) 466ms
 2026-11-20T20:19:37.4325266Z  Test Files  8 passed (8)
 2026-11-20T20:19:37.4326360Z       Tests  126 passed (126)
 2026-11-20T20:19:37.4710647Z ##[group]Run npm run build

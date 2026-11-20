@@ -1,0 +1,210 @@
+$ bash -c cd /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/h && sha256sum build.mjs run.mjs mutants.py shim/*; echo; echo radix $(git -C /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/deps/radix rev-parse --short HEAD) sonner $(git -C /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/deps/sonner describe --tags); cd /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/deps && node -e 'const l=require(process.argv[1]).packages,fs=require("fs");for(const n of ["tooltip","popover","collapsible","scroll-area","separator"])console.log("@radix-ui/react-"+n,JSON.parse(fs.readFileSync("radix/packages/react/"+n+"/package.json")).version,"lock",l["node_modules/@radix-ui/react-"+n].version);console.log("sonner",JSON.parse(fs.readFileSync("sonner/package.json")).version,"lock",l["node_modules/sonner"].version);for(const n of ["react","react-dom","clsx","tailwind-merge"])console.log(n,JSON.parse(fs.readFileSync("/opt/npm-tools/node_modules/"+n+"/package.json")).version,"lock",l["node_modules/"+n].version)' /root/wt/qa-FE-0d/frontend/package-lock.json; echo; echo '--- PR worktree status (empty = clean, mutants ran on copies):'; git -C /root/wt/qa-FE-0d status --porcelain --untracked-files=no; echo; echo 'Differences from CI: Chromium not jsdom (ResizeObserver/DOMRect exist, so the file stubs are skipped); vitest/RTL/user-event/jest-dom are QA shims; react-remove-scroll stubbed (non-modal Popover). Logic check only, CI Vitest is pass/fail.'; cd /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/h; for f in build.mjs run.mjs mutants.py shim/vitest.js shim/rtl.js shim/remove-scroll-stub.jsx; do echo "===== $f"; cat $f; done
+339898acee59254b62c2d397c3abbfd832aa6c5e9d7f2a8919859e4c9391a2e2  build.mjs
+fb04cb66908ae5ab373d356be0f6b722c1a3737f263505ba8ac89466f6ee5b03  run.mjs
+d890cbaf7c79bc1566762e9bb64ff3564b1f11ed9b2a7d4d439353b5a2a4d46c  mutants.py
+40f5db0ca4142be38d491ac9e4ed3ca6fbb399ab202684c46a83f74839f12c9a  shim/remove-scroll-stub.jsx
+955e8c218efd03280f7159f110a13e199479cdd3de0476b5f3e3081309665a3c  shim/rtl.js
+66eec382ff7095f19a0627851bcbb684f037a9da3b17fec66825a4eee9fde4ab  shim/vitest.js
+
+radix eb3a2b7 sonner v2.0.8
+@radix-ui/react-tooltip 1.4.1 lock 1.4.1
+@radix-ui/react-popover 1.3.1 lock 1.3.1
+@radix-ui/react-collapsible 1.2.1 lock 1.2.1
+@radix-ui/react-scroll-area 1.4.0 lock 1.4.0
+@radix-ui/react-separator 1.2.0 lock 1.2.0
+sonner 2.0.8 lock 2.0.8
+react 19.2.8 lock 19.2.8
+react-dom 19.2.8 lock 19.2.8
+clsx 2.1.1 lock 2.1.1
+tailwind-merge 3.6.0 lock 3.6.0
+
+--- PR worktree status (empty = clean, mutants ran on copies):
+
+Differences from CI: Chromium not jsdom (ResizeObserver/DOMRect exist, so the file stubs are skipped); vitest/RTL/user-event/jest-dom are QA shims; react-remove-scroll stubbed (non-modal Popover). Logic check only, CI Vitest is pass/fail.
+===== build.mjs
+// QA FE-0d harness: bundle <frontend src dir>/components/ui/primitives.test.jsx with the shims and real Radix/sonner sources.
+// usage: node build.mjs <src dir> <deps dir> <out.js>
+import * as esbuild from '/opt/npm-tools/node_modules/esbuild/lib/main.js';
+import path from 'node:path'; import fs from 'node:fs';
+const [src, deps, out] = process.argv.slice(2);
+const here = path.dirname(new URL(import.meta.url).pathname), T = '/opt/npm-tools/node_modules';
+const radix = (n, dirs) => { for (const d of dirs) { const p = path.join(deps, 'radix/packages', d, n, 'src/index.ts'); if (fs.existsSync(p)) return p; if (fs.existsSync(p + 'x')) return p + 'x'; } throw new Error('no radix ' + n); };
+const plugin = { name: 'alias', setup(b) {
+  b.onResolve({ filter: /.*/ }, a => {
+    const s = a.path;
+    if (s === 'vitest') return { path: path.join(here, 'shim/vitest.js') };
+    if (s === '@testing-library/react' || s === '@testing-library/user-event') return { path: path.join(here, 'shim/rtl.js') };
+    if (s === 'sonner') return { path: path.join(deps, 'sonner/src/index.tsx') };
+    if (s === 'react-remove-scroll') return { path: path.join(here, 'shim/remove-scroll-stub.jsx') };
+    if (s === '@radix-ui/env-check/is-development') return { path: path.join(deps, 'radix/packages/core/env-check/src/internal/is-development.true.ts') };
+    let m = s.match(/^@radix-ui\/(?:react-)?(.+)$/); if (m) return { path: s.startsWith('@radix-ui/react-') ? radix(m[1], ['react']) : radix(m[1], ['core']) };
+    if (/^(react|react-dom|@floating-ui|aria-hidden|use-sync-external-store|clsx|tailwind-merge)(\/|$)/.test(s)) return { path: requireResolve(s) };
+    return undefined;
+  });
+} };
+import { createRequire } from 'node:module'; const req = createRequire(T + '/'); const requireResolve = s => req.resolve(s);
+const entry = `import { __run } from ${JSON.stringify(path.join(here, 'shim/vitest.js'))}; import ${JSON.stringify(path.join(src, 'components/ui/primitives.test.jsx'))}; window.__run = __run;`;
+await esbuild.build({ stdin: { contents: entry, resolveDir: src, loader: 'js' }, bundle: true, outfile: out, plugins: [plugin], jsx: 'automatic', loader: { '.css': 'empty', '.js': 'jsx' }, define: { 'process.env.NODE_ENV': '"development"' }, format: 'iife', logLevel: 'error' });
+console.log('built', out);
+===== run.mjs
+// QA FE-0d harness: run a bundle in headless Chromium and print per-test results. usage: node run.mjs <bundle.js> <label>
+import { chromium } from '/opt/npm-tools/node_modules/playwright/index.mjs'; import fs from 'node:fs';
+const [bundle, label] = process.argv.slice(2);
+const b = await chromium.launch(); const p = await b.newPage(); const errs = [];
+p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
+await p.setContent('<!doctype html><html><head></head><body></body></html>');
+await p.addScriptTag({ content: fs.readFileSync(bundle, 'utf8') });
+const res = await p.evaluate(() => window.__run());
+const fails = res.filter(r => !r.ok);
+console.log(`[${label}] ${res.length - fails.length}/${res.length} passed, ${fails.length} failed`);
+for (const r of res) console.log(`  ${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.ok ? '' : '\n        ' + r.err}`);
+console.log(`[${label}] page errors: ${errs.length}`); for (const e of errs.slice(0, 5)) console.log('  ' + e);
+await b.close();
+===== mutants.py
+# QA FE-0d: single-edit mutants of the six ui primitives. Each copies <frontend>/src to a fresh dir, applies one exact
+# edit (one or more exact string replacements; M4/M13/M18 need two) (INVALID if the text isn't found exactly once or the bundle fails), builds and runs the PR's test file.
+import os, shutil, subprocess, sys, tempfile
+SRC, DEPS, H = sys.argv[1], sys.argv[2], os.path.dirname(os.path.abspath(__file__))
+M = [
+ ("M1 AC6a sonner: drop classNames.description line", "sonner.jsx", '        description: cn("!text-muted-foreground", toastOptions?.classNames?.description),\n', ''),
+ ("M2 AC6b scroll-area: ring-inset -> ring-offset-2", "scroll-area.jsx", 'focus-visible:ring-inset', 'focus-visible:ring-offset-2'),
+ ("M3 sonner: drop ...style", "sonner.jsx", '      ...style,\n', ''),
+ ("M4 sonner: ...style before defaults", "sonner.jsx", [('style={{\n      "--normal-bg"', 'style={{\n      ...style,\n      "--normal-bg"'), ('"var(--radius)",\n      ...style,\n', '"var(--radius)",\n')]),
+ ("M5 sonner: drop ...toastOptions?.classNames", "sonner.jsx", '        ...toastOptions?.classNames,\n', ''),
+ ("M6 sonner: drop caller description from cn", "sonner.jsx", 'cn("!text-muted-foreground", toastOptions?.classNames?.description)', 'cn("!text-muted-foreground")'),
+ ("M7 sonner: drop ref", "sonner.jsx", '    ref={ref}\n', ''),
+ ("M8 sonner: drop 'toaster' class", "sonner.jsx", 'cn("toaster", className)', 'cn(className)'),
+ ("M9 sonner: --normal-text -> --foreground", "sonner.jsx", '"hsl(var(--popover-foreground))"', '"hsl(var(--foreground))"'),
+ ("M10 sonner: drop --border-radius", "sonner.jsx", '      "--border-radius": "var(--radius)",\n', ''),
+ ("M11 sonner: --normal-bg -> --background", "sonner.jsx", '"--normal-bg": "hsl(var(--popover))"', '"--normal-bg": "hsl(var(--background))"'),
+ ("M12 sonner: drop --normal-border", "sonner.jsx", '      "--normal-border": "hsl(var(--border))",\n', ''),
+ ("M13 tooltip: no Portal", "tooltip.jsx", [('  <TooltipPrimitive.Portal>\n', '  <>\n'), ('  </TooltipPrimitive.Portal>\n', '  </>\n')]),
+ ("M14 tooltip: drop caller className", "tooltip.jsx", 'shadow-sm",\n        className\n', 'shadow-sm"\n'),
+ ("M15 tooltip: drop ref", "tooltip.jsx", '      ref={ref}\n', ''),
+ ("M16 tooltip: drop font-sans", "tooltip.jsx", 'font-sans text-xs', 'text-xs'),
+ ("M17 tooltip: text-popover-foreground -> text-foreground", "tooltip.jsx", 'text-popover-foreground', 'text-foreground'),
+ ("M18 popover: no Portal", "popover.jsx", [('  <PopoverPrimitive.Portal>\n', '  <>\n'), ('  </PopoverPrimitive.Portal>\n', '  </>\n')]),
+ ("M19 popover: drop caller className", "popover.jsx", 'outline-none",\n        className\n', 'outline-none"\n'),
+ ("M20 popover: bg-popover -> bg-background", "popover.jsx", 'bg-popover', 'bg-background'),
+ ("M21 popover: drop ref", "popover.jsx", '      ref={ref}\n', ''),
+ ("M22 scroll-area: drop ring-ring", "scroll-area.jsx", ' focus-visible:ring-ring"', '"'),
+ ("M23 scroll-area: add ring-offset-2 (keep inset)", "scroll-area.jsx", 'focus-visible:ring-inset', 'focus-visible:ring-inset focus-visible:ring-offset-2'),
+ ("M24 scroll-area: drop Root ref", "scroll-area.jsx", '  <ScrollAreaPrimitive.Root\n    ref={ref}\n', '  <ScrollAreaPrimitive.Root\n'),
+ ("M25 scroll-area: drop Root className", "scroll-area.jsx", 'cn("relative overflow-hidden", className)', 'cn("relative overflow-hidden")'),
+ ("M26 scroll-area: children outside viewport", "scroll-area.jsx", '      {children}\n    </ScrollAreaPrimitive.Viewport>', '    </ScrollAreaPrimitive.Viewport>\n      {children}'),
+ ("M27 separator: decorative default false", "separator.jsx", 'decorative = true', 'decorative = false'),
+ ("M28 separator: swap orientation classes", "separator.jsx", '"h-px w-full" : "h-full w-px"', '"h-full w-px" : "h-px w-full"'),
+ ("M29 separator: don't pass orientation", "separator.jsx", '      orientation={orientation}\n', ''),
+ ("M30 separator: don't pass decorative", "separator.jsx", '      decorative={decorative}\n', ''),
+ ("M31 separator: drop ref", "separator.jsx", '      ref={ref}\n', ''),
+ ("M32 collapsible: Content forceMount", "collapsible.jsx", 'const CollapsibleContent = CollapsiblePrimitive.CollapsibleContent', 'const CollapsibleContent = (p) => <CollapsiblePrimitive.CollapsibleContent forceMount {...p} />'),
+ ("M33 collapsible: Root ignores defaultOpen", "collapsible.jsx", 'const Collapsible = CollapsiblePrimitive.Root', 'const Collapsible = ({ defaultOpen: _d, ...p }) => <CollapsiblePrimitive.Root {...p} />'),
+ ("M34 collapsible: Trigger is a plain button", "collapsible.jsx", 'const CollapsibleTrigger = CollapsiblePrimitive.CollapsibleTrigger', 'const CollapsibleTrigger = ({ asChild: _a, ...p }) => <button type="button" {...p} />'),
+ ("M35 scroll-bar: drop caller className", "scroll-area.jsx", '      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent",\n      className\n', '      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent"\n'),
+ ("M36 scroll-bar: horizontal gets vertical classes", "scroll-area.jsx", 'orientation === "horizontal" && "h-2.5 flex-col', 'orientation === "horizontal" && "h-full w-2.5'),
+ ("M37 sonner: position bottom-right -> top-center", "sonner.jsx", 'position="bottom-right"', 'position="top-center"'),
+ ("M38 separator: drop caller className", "separator.jsx", '"h-px w-full" : "h-full w-px",\n        className\n', '"h-px w-full" : "h-full w-px"\n'),
+ ("M39 tooltip: delayDuration default 300 -> 0", "tooltip.jsx", 'const Tooltip = ({ delayDuration = 300', 'const Tooltip = ({ delayDuration = 0'),
+]
+only = sys.argv[3:]
+summary = []
+for name, f, *rest in M:
+    edits = rest[0] if len(rest) == 1 else [tuple(rest)]
+    if only and name.split()[0] not in only: continue
+    d = tempfile.mkdtemp(prefix='mut-', dir=os.path.join(H, 'mut'))
+    shutil.copytree(SRC, os.path.join(d, 'src'))
+    p = os.path.join(d, 'src/components/ui', f); s = open(p).read()
+    bad = [s.count(o) for o, _ in edits if s.count(o) != 1]
+    if bad: summary.append((name, 'INVALID (text found %s×)' % bad, '')); continue
+    for o, n in edits: s = s.replace(o, n)
+    open(p, 'w').write(s)
+    b = subprocess.run(['node', os.path.join(H, 'build.mjs'), os.path.join(d, 'src'), DEPS, os.path.join(d, 'out.js')], capture_output=True, text=True)
+    if b.returncode: summary.append((name, 'INVALID (build failed)', b.stderr.strip().splitlines()[0][:150])); continue
+    r = subprocess.run(['node', os.path.join(H, 'run.mjs'), os.path.join(d, 'out.js'), name.split()[0]], capture_output=True, text=True)
+    fails = [l.strip()[6:] for l in r.stdout.splitlines() if l.strip().startswith('FAIL ')]
+    summary.append((name, 'KILLED (%d failing)' % len(fails) if fails else ('SURVIVED' if r.returncode == 0 else 'INVALID (run error)'), '; '.join(x.split(' > ')[-1][:70] for x in fails)))
+w = max(len(n) for n, *_ in summary)
+for n, v, why in summary: print(f'{n:<{w}}  {v}' + (f'\n{"":<{w}}    -> {why}' if why else ''))
+print('killed %d / survived %d / invalid %d' % tuple(sum(v.startswith(k) for _, v, _ in summary) for k in ('KILLED', 'SURVIVED', 'INVALID')))
+===== shim/vitest.js
+// QA FE-0d harness: minimal vitest shim (describe/it/hooks/expect/vi) + jest-dom matchers, run in headless Chromium.
+const tests = [], hooks = { beforeAll: [], afterAll: [], afterEach: [] }; let prefix = [];
+export function describe(name, fn) { prefix.push(name); fn(); prefix.pop(); }
+export function it(name, fn) { tests.push({ name: [...prefix, name].join(' > '), fn }); }
+export const beforeAll = f => hooks.beforeAll.push(f), afterAll = f => hooks.afterAll.push(f), afterEach = f => hooks.afterEach.push(f);
+let extraAfterEach = [];
+export function __registerAfterEach(f) { extraAfterEach.push(f); }
+const stubs = [];
+export const vi = {
+  stubGlobal(n, v) { stubs.push([n, Object.getOwnPropertyDescriptor(globalThis, n)]); globalThis[n] = v; },
+  unstubAllGlobals() { for (const [n, d] of stubs.reverse()) d ? Object.defineProperty(globalThis, n, d) : delete globalThis[n]; stubs.length = 0; },
+};
+const fmt = v => v instanceof Element ? `<${v.tagName.toLowerCase()} class="${v.getAttribute('class') || ''}">` : JSON.stringify(v);
+function matchers(actual, neg) {
+  const check = (ok, msg) => { if (ok === neg) throw new Error((neg ? 'NOT ' : '') + msg); };
+  const m = {
+    toBe: e => check(Object.is(actual, e), `expected ${fmt(actual)} toBe ${fmt(e)}`),
+    toBeInstanceOf: c => check(actual instanceof c, `expected ${fmt(actual)} instanceof ${c && c.name}`),
+    toBeNull: () => check(actual === null, `expected ${fmt(actual)} toBeNull`),
+    toMatch: re => check(typeof actual === 'string' && re.test(actual), `expected ${fmt(actual)} toMatch ${re}`),
+    toHaveClass: (...cs) => { if (!(actual instanceof Element)) throw new Error('toHaveClass: not an element: ' + fmt(actual)); const have = new Set((actual.getAttribute('class') || '').split(/\s+/).filter(Boolean)); check(cs.every(c => have.has(c)), `expected ${fmt(actual)} toHaveClass ${cs.join(' ')}`); },
+    toHaveAttribute: (n, v) => { if (!(actual instanceof Element)) throw new Error('toHaveAttribute: not an element: ' + fmt(actual)); const ok = actual.hasAttribute(n) && (v === undefined || actual.getAttribute(n) === String(v)); check(ok, `expected ${fmt(actual)} toHaveAttribute ${n}=${v} (got ${actual.getAttribute(n)})`); },
+    toBeInTheDocument: () => check(actual instanceof Element && actual.ownerDocument.documentElement.contains(actual), `expected ${fmt(actual)} toBeInTheDocument`),
+    toHaveTextContent: t => { if (!(actual instanceof Element)) throw new Error('toHaveTextContent: not an element'); const s = actual.textContent.replace(/\s+/g, ' ').trim(); check(s.includes(t), `expected text "${s}" to contain "${t}"`); },
+    toContainElement: el => { if (!(actual instanceof Element)) throw new Error('toContainElement: container not an element: ' + fmt(actual)); check(el instanceof Element && actual.contains(el), `expected ${fmt(actual)} toContainElement ${fmt(el)}`); },
+  };
+  return m;
+}
+export function expect(actual) { const m = matchers(actual, false); m.not = matchers(actual, true); return m; }
+export async function __run() {
+  const out = [];
+  for (const h of hooks.beforeAll) await h();
+  for (const t of tests) {
+    let err = null;
+    try { await t.fn(); } catch (e) { err = e; }
+    for (const h of [...hooks.afterEach, ...extraAfterEach]) { try { await h(); } catch (e) { err = err || e; } }
+    out.push({ name: t.name, ok: !err, err: err ? String(err.message || err).split('\n')[0].slice(0, 220) : '' });
+  }
+  for (const h of hooks.afterAll) await h();
+  return out;
+}
+===== shim/rtl.js
+// QA FE-0d harness: minimal @testing-library/react + user-event shim (own-text getByText, simple getByRole, waitFor, cleanup).
+import * as React from 'react';
+import { createRoot } from 'react-dom/client';
+import { __registerAfterEach } from 'vitest';
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+export const act = React.act;
+const mounted = [];
+export function render(ui) {
+  const container = document.body.appendChild(document.createElement('div'));
+  const root = createRoot(container);
+  React.act(() => root.render(ui));
+  mounted.push({ root, container });
+  return { container, unmount: () => React.act(() => root.unmount()) };
+}
+export function cleanup() { for (const { root, container } of mounted.splice(0)) { React.act(() => root.unmount()); container.remove(); } }
+__registerAfterEach(cleanup);
+const norm = s => s.replace(/\s+/g, ' ').trim();
+const ownText = n => Array.from(n.childNodes).filter(c => c.nodeType === 3).map(c => c.textContent).join('');
+const allByText = t => Array.from(document.body.querySelectorAll('*')).filter(e => !e.matches('script, style') && norm(ownText(e)) === t);
+const inaccessible = e => { for (let n = e; n && n.nodeType === 1; n = n.parentElement) { const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden' || n.hidden || n.getAttribute('aria-hidden') === 'true') return true; } return false; };
+const implicitRole = e => e.getAttribute('role') || ({ BUTTON: 'button', A: e.hasAttribute('href') ? 'link' : null, HR: 'separator' })[e.tagName] || null;
+function one(list, what) { if (list.length === 0) throw new Error(`Unable to find ${what}`); if (list.length > 1) throw new Error(`Found multiple (${list.length}) ${what}`); return list[0]; }
+export async function waitFor(fn, { timeout = 1000, interval = 50 } = {}) {
+  const t0 = performance.now(); let last;
+  for (;;) { try { let r; await React.act(async () => { r = fn(); }); return r; } catch (e) { last = e; } if (performance.now() - t0 > timeout) throw last; await new Promise(r => setTimeout(r, interval)); }
+}
+export const screen = {
+  getByText: t => one(allByText(t), `text "${t}"`),
+  queryByText: t => { const l = allByText(t); if (l.length > 1) throw new Error('multiple'); return l[0] || null; },
+  findByText: t => waitFor(() => one(allByText(t), `text "${t}"`)),
+  getByRole: (role, { name } = {}) => one(Array.from(document.body.querySelectorAll('*')).filter(e => implicitRole(e) === role && !inaccessible(e) && (name === undefined || norm(e.getAttribute('aria-label') || e.textContent) === name)), `role ${role} name ${name}`),
+};
+export default { setup: () => ({ async click(el) { await React.act(async () => { for (const [T, type] of [[PointerEvent, 'pointerdown'], [MouseEvent, 'mousedown'], [PointerEvent, 'pointerup'], [MouseEvent, 'mouseup'], [MouseEvent, 'click']]) el.dispatchEvent(new T(type, { bubbles: true, cancelable: true, button: 0, pointerType: 'mouse' })); }); } }) };
+===== shim/remove-scroll-stub.jsx
+// QA harness stub: react-remove-scroll is only used by modal Popover; pass children through.
+import * as React from 'react';
+export const RemoveScroll = React.forwardRef(({ children, as: _as, allowPinchZoom: _a, enabled: _e, shards: _s, ...p }, ref) => React.Children.only(children));
+
+[exit code 0]

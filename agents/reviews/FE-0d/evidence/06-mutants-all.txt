@@ -1,0 +1,119 @@
+$ bash -c python3 -I /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/h/mutants.py /root/wt/qa-FE-0d/frontend/src /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/deps > /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/h/all.out 2>&1; tail -1 /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/h/all.out; grep -v '^  ' /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/h/all.out | head -n -1; echo; echo '===== full output'; cat /tmp/claude-0/-home-claude/7937b758-f5f2-5c36-bc1c-5e4f9c416dbe/scratchpad/h/all.out
+killed 34 / survived 5 / invalid 0
+M1 AC6a sonner: drop classNames.description line         KILLED (2 failing)
+M2 AC6b scroll-area: ring-inset -> ring-offset-2         KILLED (1 failing)
+M3 sonner: drop ...style                                 KILLED (1 failing)
+M4 sonner: ...style before defaults                      KILLED (1 failing)
+M5 sonner: drop ...toastOptions?.classNames              KILLED (1 failing)
+M6 sonner: drop caller description from cn               KILLED (1 failing)
+M7 sonner: drop ref                                      KILLED (2 failing)
+M8 sonner: drop 'toaster' class                          KILLED (1 failing)
+M9 sonner: --normal-text -> --foreground                 KILLED (1 failing)
+M10 sonner: drop --border-radius                         KILLED (1 failing)
+M11 sonner: --normal-bg -> --background                  KILLED (1 failing)
+M12 sonner: drop --normal-border                         KILLED (1 failing)
+M13 tooltip: no Portal                                   KILLED (1 failing)
+M14 tooltip: drop caller className                       KILLED (1 failing)
+M15 tooltip: drop ref                                    KILLED (1 failing)
+M16 tooltip: drop font-sans                              KILLED (1 failing)
+M17 tooltip: text-popover-foreground -> text-foreground  KILLED (1 failing)
+M18 popover: no Portal                                   KILLED (1 failing)
+M19 popover: drop caller className                       KILLED (1 failing)
+M20 popover: bg-popover -> bg-background                 KILLED (1 failing)
+M21 popover: drop ref                                    KILLED (1 failing)
+M22 scroll-area: drop ring-ring                          KILLED (1 failing)
+M23 scroll-area: add ring-offset-2 (keep inset)          KILLED (1 failing)
+M24 scroll-area: drop Root ref                           KILLED (1 failing)
+M25 scroll-area: drop Root className                     KILLED (1 failing)
+M26 scroll-area: children outside viewport               KILLED (1 failing)
+M27 separator: decorative default false                  KILLED (2 failing)
+M28 separator: swap orientation classes                  KILLED (3 failing)
+M29 separator: don't pass orientation                    KILLED (1 failing)
+M30 separator: don't pass decorative                     KILLED (2 failing)
+M31 separator: drop ref                                  KILLED (1 failing)
+M32 collapsible: Content forceMount                      KILLED (1 failing)
+M33 collapsible: Root ignores defaultOpen                KILLED (1 failing)
+M34 collapsible: Trigger is a plain button               KILLED (1 failing)
+M35 scroll-bar: drop caller className                    SURVIVED
+M36 scroll-bar: horizontal gets vertical classes         SURVIVED
+M37 sonner: position bottom-right -> top-center          SURVIVED
+M38 separator: drop caller className                     SURVIVED
+M39 tooltip: delayDuration default 300 -> 0              SURVIVED
+
+===== full output
+M1 AC6a sonner: drop classNames.description line         KILLED (2 failing)
+                                                           -> gives the description the muted token class; merges caller toastOptions.classNames with the muted description class
+M2 AC6b scroll-area: ring-inset -> ring-offset-2         KILLED (1 failing)
+                                                           -> viewport has an inset focus ring (no ring-offset), Root ref forwards, 
+M3 sonner: drop ...style                                 KILLED (1 failing)
+                                                           -> points sonner variables at the tokens and lets a caller override one o
+M4 sonner: ...style before defaults                      KILLED (1 failing)
+                                                           -> points sonner variables at the tokens and lets a caller override one o
+M5 sonner: drop ...toastOptions?.classNames              KILLED (1 failing)
+                                                           -> merges caller toastOptions.classNames with the muted description class
+M6 sonner: drop caller description from cn               KILLED (1 failing)
+                                                           -> merges caller toastOptions.classNames with the muted description class
+M7 sonner: drop ref                                      KILLED (2 failing)
+                                                           -> points sonner variables at the tokens and lets a caller override one o; defaults --normal-bg to the popover token
+M8 sonner: drop 'toaster' class                          KILLED (1 failing)
+                                                           -> defaults --normal-bg to the popover token
+M9 sonner: --normal-text -> --foreground                 KILLED (1 failing)
+                                                           -> points sonner variables at the tokens and lets a caller override one o
+M10 sonner: drop --border-radius                         KILLED (1 failing)
+                                                           -> points sonner variables at the tokens and lets a caller override one o
+M11 sonner: --normal-bg -> --background                  KILLED (1 failing)
+                                                           -> defaults --normal-bg to the popover token
+M12 sonner: drop --normal-border                         KILLED (1 failing)
+                                                           -> points sonner variables at the tokens and lets a caller override one o
+M13 tooltip: no Portal                                   KILLED (1 failing)
+                                                           -> TooltipContent renders in a portal with the popover tokens, forwards i
+M14 tooltip: drop caller className                       KILLED (1 failing)
+                                                           -> TooltipContent renders in a portal with the popover tokens, forwards i
+M15 tooltip: drop ref                                    KILLED (1 failing)
+                                                           -> TooltipContent renders in a portal with the popover tokens, forwards i
+M16 tooltip: drop font-sans                              KILLED (1 failing)
+                                                           -> TooltipContent renders in a portal with the popover tokens, forwards i
+M17 tooltip: text-popover-foreground -> text-foreground  KILLED (1 failing)
+                                                           -> TooltipContent renders in a portal with the popover tokens, forwards i
+M18 popover: no Portal                                   KILLED (1 failing)
+                                                           -> PopoverContent renders in a portal with the popover tokens, forwards i
+M19 popover: drop caller className                       KILLED (1 failing)
+                                                           -> PopoverContent renders in a portal with the popover tokens, forwards i
+M20 popover: bg-popover -> bg-background                 KILLED (1 failing)
+                                                           -> PopoverContent renders in a portal with the popover tokens, forwards i
+M21 popover: drop ref                                    KILLED (1 failing)
+                                                           -> PopoverContent renders in a portal with the popover tokens, forwards i
+M22 scroll-area: drop ring-ring                          KILLED (1 failing)
+                                                           -> viewport has an inset focus ring (no ring-offset), Root ref forwards, 
+M23 scroll-area: add ring-offset-2 (keep inset)          KILLED (1 failing)
+                                                           -> viewport has an inset focus ring (no ring-offset), Root ref forwards, 
+M24 scroll-area: drop Root ref                           KILLED (1 failing)
+                                                           -> viewport has an inset focus ring (no ring-offset), Root ref forwards, 
+M25 scroll-area: drop Root className                     KILLED (1 failing)
+                                                           -> viewport has an inset focus ring (no ring-offset), Root ref forwards, 
+M26 scroll-area: children outside viewport               KILLED (1 failing)
+                                                           -> viewport has an inset focus ring (no ring-offset), Root ref forwards, 
+M27 separator: decorative default false                  KILLED (2 failing)
+                                                           -> is decorative and horizontal by default; orientation="vertical" switches the size classes and sets aria-orienta
+M28 separator: swap orientation classes                  KILLED (3 failing)
+                                                           -> is decorative and horizontal by default; decorative={false} exposes role="separator"; orientation="vertical" switches the size classes and sets aria-orienta
+M29 separator: don't pass orientation                    KILLED (1 failing)
+                                                           -> orientation="vertical" switches the size classes and sets aria-orienta
+M30 separator: don't pass decorative                     KILLED (2 failing)
+                                                           -> is decorative and horizontal by default; orientation="vertical" switches the size classes and sets aria-orienta
+M31 separator: drop ref                                  KILLED (1 failing)
+                                                           -> is decorative and horizontal by default
+M32 collapsible: Content forceMount                      KILLED (1 failing)
+                                                           -> closed keeps the content out of the document until the trigger is clic
+M33 collapsible: Root ignores defaultOpen                KILLED (1 failing)
+                                                           -> defaultOpen shows the content with data-state="open"
+M34 collapsible: Trigger is a plain button               KILLED (1 failing)
+                                                           -> closed keeps the content out of the document until the trigger is clic
+M35 scroll-bar: drop caller className                    SURVIVED
+M36 scroll-bar: horizontal gets vertical classes         SURVIVED
+M37 sonner: position bottom-right -> top-center          SURVIVED
+M38 separator: drop caller className                     SURVIVED
+M39 tooltip: delayDuration default 300 -> 0              SURVIVED
+killed 34 / survived 5 / invalid 0
+
+[exit code 0]
