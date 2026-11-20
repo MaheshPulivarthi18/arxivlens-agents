@@ -1,0 +1,24 @@
+$ bash -c echo 'job 136509370552 head_sha='$(gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136509370552 --jq .head_sha); sed 's/\x1b\[[0-9;]*m//g' /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-FE-3a2-r1/fe-job.log | grep -E 'HEAD is now at|> oxlint|Found .* warnings|RUN  v|✓ src/|✓ AC|×|FAIL|Test Files|Tests  |vite build|built in' | cut -c30-
+job 136509370552 head_sha=e7dc3c003802acf65d43f0b99acce634df6aabca
+HEAD is now at f1ad59b Merge e7dc3c003802acf65d43f0b99acce634df6aabca into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+> oxlint
+Found 0 warnings and 0 errors.
+ RUN  v4.1.12 /home/runner/work/ArxivLens/ArxivLens/frontend
+ ✓ src/lib/theme.test.js (35 tests) 56ms
+ ✓ src/components/SynthesisView.test.jsx (17 tests) 365ms
+ ✓ src/components/ReferencesStack.test.jsx (13 tests) 442ms
+ ✓ src/lib/citations.test.js (35 tests) 10ms
+ ✓ src/test/tokens.test.js (5 tests) 9ms
+ ✓ src/components/ThemeToggle.test.jsx (4 tests) 187ms
+ ✓ src/App.test.jsx (7 tests) 2705ms
+     ✓ AC1: refusal A, the whole page never says "verified"  972ms
+     ✓ AC1: refusal C, the whole page never says "verified"  320ms
+     ✓ AC3: early refusal renders as today and the discover button posts the question  307ms
+     ✓ AC4: the panel link (Tab, then Enter) moves focus to the passages heading  396ms
+ ✓ src/components/HeroSearch.test.jsx (5 tests) 448ms
+ Test Files  8 passed (8)
+      Tests  121 passed (121)
+> vite build
+✓ built in 806ms
+
+[exit code 0]

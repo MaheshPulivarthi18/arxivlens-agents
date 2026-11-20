@@ -1,0 +1,40 @@
+$ bash -c cd frontend/src; echo "== App.test.jsx 142-158"; sed -n "142,158p" App.test.jsx; echo "== SynthesisView.jsx 28-36, 113-116"; sed -n "28,36p;113,116p" components/SynthesisView.jsx; echo "== ReferencesStack.jsx 35-38"; sed -n "35,38p" components/ReferencesStack.jsx
+== App.test.jsx 142-158
+  it('AC4: the panel link (Tab, then Enter) moves focus to the passages heading', async () => {
+    stubFetch({ quick: refusalA });
+    const user = userEvent.setup();
+    render(<App />);
+    await ask(user);
+    await refusalPanel();
+
+    const link = screen.getByRole('link', { name: 'Read the 2 retrieved passages' });
+    for (let i = 0; i < 60 && document.activeElement !== link; i++) await user.tab();
+    expect(document.activeElement).toBe(link);
+
+    await user.keyboard('{Enter}');
+    const heading = document.getElementById('references-heading');
+    expect(heading).not.toBeNull();
+    expect(document.activeElement).toBe(heading);
+    expect(document.activeElement).toHaveAttribute('id', 'references-heading');
+  });
+== SynthesisView.jsx 28-36, 113-116
+  // The panel link moves focus to the evidence (ReferencesStack's heading has tabIndex -1).
+  const focusEvidence = (e) => {
+    e.preventDefault();
+    const heading = document.getElementById('references-heading');
+    if (heading) {
+      heading.focus();
+      heading.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    }
+  };
+              <a
+                href="#references-heading"
+                onClick={focusEvidence}
+                className="mt-2 inline-block text-sm text-primary underline underline-offset-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+== ReferencesStack.jsx 35-38
+      <div className="flex items-center justify-between px-1">
+        <h3
+          id="references-heading"
+          tabIndex={-1}
+
+[exit code 0]

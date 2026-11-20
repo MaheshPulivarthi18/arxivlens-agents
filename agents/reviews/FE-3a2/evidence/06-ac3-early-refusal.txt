@@ -1,0 +1,47 @@
+$ bash -c cd frontend/src; echo "== App.test.jsx 113-140"; sed -n "113,140p" App.test.jsx; echo "== App.jsx 88-91, 126-130, 173-175, 188"; sed -n "88,91p;126,130p;173p;188p" App.jsx | cut -c1-170; echo "== role=article / Clinical Literature Synthesis sources"; grep -n "role=\"article\"\|Clinical Literature Synthesis" components/*.jsx
+== App.test.jsx 113-140
+  it('AC3: early refusal renders as today and the discover button posts the question', async () => {
+    const fetchMock = stubFetch({
+      quick: earlyRefusal,
+      discover: { title: 'A Newly Discovered Paper On Grounding', arxiv_id: '2405.00001' },
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    await ask(user);
+
+    expect(await screen.findByText('Relevance Protection Activated:')).toBeInTheDocument();
+    const code = screen.getByText((_, el) => el.tagName === 'CODE' && el.textContent === `"${QUESTION}"`);
+    expect(code).toBeInTheDocument();
+    expect(screen.queryAllByRole('article')).toHaveLength(0);
+    expect(screen.queryByText('Clinical Literature Synthesis')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: `⚡ Search arXiv for "${QUESTION}" & Index` }));
+    const discoverCalls = fetchMock.mock.calls.filter(([url]) => url === '/v1/papers/discover');
+    expect(discoverCalls).toHaveLength(1);
+    const [, init] = discoverCalls[0];
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body)).toEqual({ query: QUESTION });
+
+    // The re-run search after indexing gets the early refusal again; still no cards, no synthesis card.
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => url === '/v1/ask')).toHaveLength(2));
+    expect(await screen.findByText('Relevance Protection Activated:')).toBeInTheDocument();
+    expect(screen.queryAllByRole('article')).toHaveLength(0);
+    expect(screen.queryByText('Clinical Literature Synthesis')).toBeNull();
+  });
+== App.jsx 88-91, 126-130, 173-175, 188
+      if (quick.answer && quick.answer.includes("No indexed papers are relevant")) {
+        setEarlyRefusal(true);
+        return;
+      }
+      const resp = await fetch('/v1/papers/discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: lastQuestion })
+      });
+                    <strong className="font-semibold text-amber-300">Relevance Protection Activated:</strong>
+                    <span>⚡ Search arXiv for "{lastQuestion}" & Index</span>
+== role=article / Clinical Literature Synthesis sources
+components/ReferencesStack.jsx:59:            role="article"
+components/SynthesisView.jsx:89:              Clinical Literature Synthesis
+
+[exit code 0]

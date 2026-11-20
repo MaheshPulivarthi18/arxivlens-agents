@@ -1,0 +1,15 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/91 --jq .body > /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-FE-3a2-r1/pr-body-live.md; echo "== lines mentioning AC6 / mutant / fails when:"; grep -n -iE "AC6|mutant|negative|fails" /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-FE-3a2-r1/pr-body-live.md; echo; echo "== body line count: $(wc -l < /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-FE-3a2-r1/pr-body-live.md)"; echo "== section headings:"; grep -n "^###" /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-FE-3a2-r1/pr-body-live.md
+== lines mentioning AC6 / mutant / fails when:
+14:- [ ] AC6 mutant reasoning in ticket Notes (QA to run real mutants)
+
+== body line count: 39
+== section headings:
+5:### What changed
+8:### Acceptance criteria
+17:### Verification
+24:### Not verified / risks
+27:### Follow-ups created
+30:### Evidence (filled by pm-lead when raising the PR)
+33:### Review status (filled by the workflow)
+
+[exit code 0]

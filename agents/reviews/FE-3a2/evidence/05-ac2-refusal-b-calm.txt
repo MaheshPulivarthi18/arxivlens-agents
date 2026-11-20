@@ -1,0 +1,47 @@
+$ bash -c cd frontend/src; echo "== App.test.jsx 63-76 (helpers, afterEach)"; sed -n "63,76p" App.test.jsx; echo "== App.test.jsx 97-111 (AC2)"; sed -n "97,111p" App.test.jsx; echo; echo "== App.jsx 104 (writing-stage gate)"; sed -n "104,105p" App.jsx; echo "== internal/query/rag.go 220-225"; sed -n "220,225p" ../../internal/query/rag.go; echo "== fixtures.js: synthesis_available occurrences"; grep -n "synthesis_available" test/fixtures.js
+== App.test.jsx 63-76 (helpers, afterEach)
+const refusalPanel = () => screen.findByRole('status', { name: /no answer shown/i });
+
+function expectNoToastMessage() {
+  expect(toastSpy).toHaveBeenCalled();
+  for (const [props] of toastSpy.mock.calls) expect(props.message).toBe('');
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  toastSpy.mockClear();
+  const seen = unexpected;
+  unexpected = [];
+  expect(seen).toEqual([]);
+});
+== App.test.jsx 97-111 (AC2)
+  it('AC2: refusal B is calm: no toast, no alert, passages visible, no writing stage', async () => {
+    const fetchMock = stubFetch({ quick: refusalB });
+    const user = userEvent.setup();
+    render(<App />);
+    await ask(user);
+    await refusalPanel();
+    // Let any follow-up request or toast a broken App would make settle before asserting their absence.
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    expectNoToastMessage();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByRole('heading', { name: /Retrieved passages/ })).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+== App.jsx 104 (writing-stage gate)
+    if (!quick.synthesis_available) return;
+    setSynthesis('writing');
+== internal/query/rag.go 220-225
+	}
+	resp := r.finalize(ctx, traceID, r.buildExtractiveAnswer(ctx, question, hits), hits)
+	if resp.RefusalReason == "" {
+		resp.AnswerKind = AnswerQuoted
+		resp.SynthesisAvailable = r.llm != nil && opts.Quick
+	}
+== fixtures.js: synthesis_available occurrences
+53:  synthesis_available: true,
+
+[exit code 0]

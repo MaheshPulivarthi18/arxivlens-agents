@@ -1,0 +1,18 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; echo "--- REST pulls/91/files:"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/91/files --jq ".[] | \"\(.filename) +\(.additions) -\(.deletions) \(.status)\""; for n in 92 93 94; do echo "--- open PR #$n files:"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/$n/files --jq ".[].filename"; done
+ frontend/src/App.test.jsx | 202 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 202 insertions(+)
+
+--- REST pulls/91/files:
+frontend/src/App.test.jsx +202 -0 added
+--- open PR #92 files:
+frontend/src/components/ui/button.jsx
+frontend/src/components/ui/button.test.jsx
+--- open PR #93 files:
+README.md
+cmd/arxivlens/dlq_test.go
+cmd/arxivlens/main.go
+--- open PR #94 files:
+internal/query/server.go
+internal/query/server_test.go
+
+[exit code 0]

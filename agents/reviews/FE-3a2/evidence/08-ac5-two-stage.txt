@@ -1,0 +1,60 @@
+$ bash -c cd frontend/src; echo "== App.test.jsx 162-201"; sed -n "162,201p" App.test.jsx; echo "== App.jsx 104-118"; sed -n "104,118p" App.jsx
+== App.test.jsx 162-201
+  it('AC5a: quoted answer with a writing status, then swapped for the synthesized one', async () => {
+    const full = deferred();
+    const fetchMock = stubFetch({ quick: quotedAnswer, full: () => full.promise });
+    const user = userEvent.setup();
+    render(<App />);
+    await ask(user);
+
+    expect(await screen.findByText(QUOTED)).toBeInTheDocument();
+    expect(await screen.findByText(WRITING)).toBeInTheDocument();
+    expect(screen.queryByText(SYNTHESIZED)).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      full.resolve(synthesizedAnswer);
+    });
+    expect(await screen.findByText(SYNTHESIZED)).toBeInTheDocument();
+    expect(screen.queryByText(QUOTED)).toBeNull();
+    expect(screen.queryByText(WRITING)).toBeNull();
+  });
+
+  it('AC5b: a refused written answer keeps the quoted one, no panel, no toast', async () => {
+    const full = deferred();
+    stubFetch({ quick: quotedAnswer, full: () => full.promise });
+    const user = userEvent.setup();
+    render(<App />);
+    await ask(user);
+
+    expect(await screen.findByText(QUOTED)).toBeInTheDocument();
+    expect(await screen.findByText(WRITING)).toBeInTheDocument();
+
+    await act(async () => {
+      full.resolve(refusalC);
+    });
+    // The writing status clears in the same update that decides whether to swap.
+    await waitFor(() => expect(screen.queryByText(WRITING)).toBeNull());
+    expect(screen.getByText(QUOTED)).toBeInTheDocument();
+    expect(screen.queryByText('No answer shown')).toBeNull();
+    expect(screen.queryByRole('status', { name: /no answer shown/i })).toBeNull();
+    expectNoToastMessage();
+  });
+== App.jsx 104-118
+    if (!quick.synthesis_available) return;
+    setSynthesis('writing');
+    try {
+      const full = await ask(question, false);
+      if (seq !== searchSeq.current) return;
+      // Keep the quoted answer if the written one was refused: the quotes are already verified evidence.
+      if (full.answer_kind === 'synthesized') {
+        setSearchResult(full);
+        if (full.citations && full.citations.length > 0) setActiveMarker(full.citations[0].marker);
+      }
+    } catch (err) {
+      console.error("Synthesis request failed:", err);
+    } finally {
+      if (seq === searchSeq.current) setSynthesis('idle');
+    }
+
+[exit code 0]

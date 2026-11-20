@@ -1,0 +1,15 @@
+$ bash -c echo 'job 136502158010 head_sha='$(gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136502158010 --jq .head_sha); sed 's/\x1b\[[0-9;]*m//g' /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-FE-3a2-r1/main-fe-job.log | grep -E 'HEAD is now at|Found .* warnings|✓ src/|Test Files|Tests  |built in' | cut -c30-
+job 136502158010 head_sha=230f617210c7623951d4f9f24d5ec711e32c8d0e
+Found 0 warnings and 0 errors.
+ ✓ src/lib/theme.test.js (35 tests) 55ms
+ ✓ src/components/ReferencesStack.test.jsx (13 tests) 493ms
+ ✓ src/components/SynthesisView.test.jsx (17 tests) 548ms
+ ✓ src/lib/citations.test.js (35 tests) 13ms
+ ✓ src/test/tokens.test.js (5 tests) 5ms
+ ✓ src/components/ThemeToggle.test.jsx (4 tests) 184ms
+ ✓ src/components/HeroSearch.test.jsx (5 tests) 460ms
+ Test Files  7 passed (7)
+      Tests  114 passed (114)
+✓ built in 782ms
+
+[exit code 0]

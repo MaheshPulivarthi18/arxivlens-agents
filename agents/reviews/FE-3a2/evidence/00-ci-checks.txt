@@ -1,0 +1,10 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/e7dc3c003802acf65d43f0b99acce634df6aabca/check-runs --jq ".check_runs[] | \"\(.name): \(.status) / \(.conclusion)  (job \(.id))\""; echo; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/91 --jq "\"PR #91 draft=\(.draft) merged=\(.merged) head=\(.head.sha)\""
+Go (vet, gofmt, test, build): completed / success  (job 136509370761)
+Frontend (lint, test, build): completed / success  (job 136509370552)
+Agent ownership check: completed / success  (job 136509370498)
+Python M0 unit tests: completed / success  (job 136509370446)
+DB (migrate twice, HNSW plan + recall): completed / success  (job 136509369579)
+
+PR #91 draft=true merged=false head=e7dc3c003802acf65d43f0b99acce634df6aabca
+
+[exit code 0]
