@@ -1,0 +1,32 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; bash .github/scripts/ownership-check.sh origin/main agent/frontend/FE-3a 2>&1 | tail -5; echo; echo '# HeroSearch.jsx diff (copy only):'; git diff origin/main...HEAD -- frontend/src/components/HeroSearch.jsx
+ frontend/src/App.jsx                             |   1 +
+ frontend/src/components/HeroSearch.jsx           |   2 +-
+ frontend/src/components/ReferencesStack.jsx      |  56 ++++--------
+ frontend/src/components/ReferencesStack.test.jsx |  51 +++++++++--
+ frontend/src/components/SynthesisView.jsx        | 112 +++++++++++++++--------
+ frontend/src/components/SynthesisView.test.jsx   |  82 +++++++++++++++--
+ frontend/src/components/ui/badge.jsx             |  10 +-
+ frontend/src/lib/citations.js                    |  51 +++++++++++
+ frontend/src/lib/citations.test.js               |  85 +++++++++++++++++
+ frontend/src/test/fixtures.js                    |  46 +++++++++-
+ 10 files changed, 398 insertions(+), 98 deletions(-)
+
+::warning::496 changed lines (> 400). Consider splitting the change.
+Ownership OK for role=frontend (496 changed lines)
+
+# HeroSearch.jsx diff (copy only):
+diff --git a/frontend/src/components/HeroSearch.jsx b/frontend/src/components/HeroSearch.jsx
+index afd7c2a..30ec491 100644
+--- a/frontend/src/components/HeroSearch.jsx
++++ b/frontend/src/components/HeroSearch.jsx
+@@ -55,7 +55,7 @@ export default function HeroSearch({ onSearch, loading }) {
+         Query Peer-Reviewed Research Literature
+       </h1>
+       <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto mb-6">
+-        Ask biomedical, AI, and clinical research questions. Every claim is mathematically verified against underlying PostgreSQL vector embeddings.
++        Ask research questions about the indexed arXiv papers. Every answer cites the passages it came from, and each citation is labelled supported, unsupported or not checked.
+       </p>
+ 
+       {/* Main Clinical Search Bar */}
+
+[exit code 0]

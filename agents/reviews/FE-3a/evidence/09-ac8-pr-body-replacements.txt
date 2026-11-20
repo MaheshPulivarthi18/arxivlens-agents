@@ -1,0 +1,13 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/86 --jq .body | sed -n '/FE-1 tests replaced/,/Unchanged FE-1 tests/p'
+### FE-1 tests replaced or rewritten (PM change 4 / AC8)
+| FE-1 assert (before) | Replacement (after) | Why it is not weaker |
+|---|---|---|
+| `ReferencesStack › labels a supported citation as Verified with its score`: `getByText(/87\.3% Verified/)` | `› answer mode: chips read "Supported · 87.3%" and "Unsupported · 12.0%", heading "References"`: exact chip text on both cards, heading id, no `/verified/i` anywhere, gauge gone | exact strings for two states instead of a regex for one, plus a whole-render negative assert; `citations.test.js` adds rows 1–5 with `/\bSupported\b/` only for kind supported (kills both FE-1 QA mutants) |
+| `ReferencesStack › shows an unchecked citation … as Unverified`: `getByText(/Unverified · 0\.0%/)` + no `\bVerified\b` | `› shows an unchecked citation … as "Not checked", with no percentage`: exact "Not checked" in card 3, body has no `0.0%` and no `/verified/i` | exact text, scoped to the card; the negative assert is case-insensitive and also bans the misleading `0.0%` |
+| `SynthesisView › renders a refusal as a normal state with its reason`: `getByText(refusalAnswer.answer)`, `getByText(/No verified answer/)`, no alert, no quoted/written subtitle, `onCopy` not called | `› refusal A/B/C shows its copy in a "No answer shown" status panel` (3 cases): `getByRole('status', {name: /no answer shown/i})` has the exact approved copy, server sentence NOT rendered, new subtitle, no alert, no `[n]` buttons, no `/verified/i`, `onCopy` not called. Plus unknown-reason fallback, zero-citation panel, hidden Copy/Export, tab-order test | every original assert kept or made exact; covers all three reasons instead of one |
+| `SynthesisView › labels a quoted answer…`: `queryByText(/No verified answer/)` absent | same test: `queryByText(/No answer shown\|Evidence only/)` absent | same check against the new refusal strings |
+| Fixture `refusalAnswer` | renamed `refusalA` (scores per design: unsupported 0.31 + unverified 0); added `refusalB`, `refusalC`, `mixedAnswer`, `earlyRefusal` and the four citation variants | — |
+
+Unchanged FE-1 tests: marker buttons, marker click, synthesized subtitle, writing status, PDF links + fallback, `supported: false` flagged (with and without `status`), BibTeX, empty state, all HeroSearch tests.
+
+[exit code 0]

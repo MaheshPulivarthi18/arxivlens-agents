@@ -1,0 +1,5 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136207398197/logs | grep -E 'Found [0-9]+ warn|Test Files|Tests  ' | sed -E 's/^[0-9TZ:.-]+ //; s/\x1b\[[0-9;]*m//g'
+Found 0 warnings and 0 errors.
+ Test Files  3 passed (3)
+
+[exit code 0]

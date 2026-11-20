@@ -1,0 +1,14 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136324730223/logs | grep -E '> oxlint|> vitest|> vite build|Found [0-9]+ warn|Test Files|Tests  |\.test\.js|built in|error' | sed -E 's/^[0-9TZ:.-]+ //; s/\x1b\[[0-9;]*m//g'
+(node:2347) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+> oxlint
+Found 0 warnings and 0 errors.
+> vitest run
+ ✓ src/lib/citations.test.js (35 tests) 19ms
+ ✓ src/components/ReferencesStack.test.jsx (11 tests) 418ms
+ ✓ src/components/SynthesisView.test.jsx (15 tests) 462ms
+ ✓ src/components/HeroSearch.test.jsx (5 tests) 449ms
+ Test Files  4 passed (4)
+> vite build
+✓ built in 784ms
+
+[exit code 0]

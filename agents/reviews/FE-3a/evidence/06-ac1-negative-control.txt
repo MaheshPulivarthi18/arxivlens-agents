@@ -1,0 +1,14 @@
+$ bash /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/harness/mutants.sh
+58c58
+<         Ask research questions about the indexed arXiv papers. Every answer cites the passages it came from, and each citation is labelled supported, unsupported or not checked.
+---
+>         Ask biomedical, AI, and clinical research questions. Every claim is mathematically verified against underlying PostgreSQL vector embeddings.
+FAIL  refusalA (dark): AC1 whole tree (document.body.textContent) has no /verified/i  — Every claim is mathematically verified against underlying PostgreSQL
+FAIL  refusalA (light): AC1 whole tree (document.body.textContent) has no /verified/i  — Every claim is mathematically verified against underlying PostgreSQL
+FAIL  refusalC (dark): AC1 whole tree has no /verified/i
+FAIL  refusalB (dark): AC2 whole tree has no /verified/i
+FAIL  mixedAnswer (dark): AC1/5 whole tree has no /verified/i
+FAIL  mixedAnswer (light): AC1/5 whole tree has no /verified/i
+38 PASS, 6 FAIL
+
+[exit code 0]

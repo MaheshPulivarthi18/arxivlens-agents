@@ -1,0 +1,61 @@
+$ bash -c node --version; node /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/harness/twbuild.mjs frontend /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/harness/app.css && node /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/harness/run.mjs frontend /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/harness/shots
+v22.23.5
+tailwind v4 compat build: 24 files, 2273 candidate tokens -> /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/harness/app.css
+PASS  refusalA (dark): AC1 status panel "No answer shown" has A copy
+PASS  refusalA (dark): AC1 heading "Retrieved passages (no answer was shown)"
+PASS  refusalA (dark): AC1 chips "Unsupported · 31.0%" and "Not checked"
+PASS  refusalA (dark): AC1 no "0.0%" anywhere
+PASS  refusalA (dark): AC1 whole tree (document.body.textContent) has no /verified/i
+PASS  refusalA (dark): AC5 Copy Synthesis / Export Note absent
+PASS  refusalA (dark): AC5 no "pgvector Verified"
+PASS  refusalA (dark): AC6 panel reachable by Tab (link "Read the 2 retrieved passages" after 6 Tab presses)
+PASS  refusalA (dark): AC6 Enter on the link focuses #references-heading  — activeElement.id=references-heading
+PASS  refusalA (dark): fetch /v1/ask called once
+PASS  refusalA (light): AC1 status panel "No answer shown" has A copy
+PASS  refusalA (light): AC1 heading "Retrieved passages (no answer was shown)"
+PASS  refusalA (light): AC1 chips "Unsupported · 31.0%" and "Not checked"
+PASS  refusalA (light): AC1 no "0.0%" anywhere
+PASS  refusalA (light): AC1 whole tree (document.body.textContent) has no /verified/i
+PASS  refusalA (light): AC5 Copy Synthesis / Export Note absent
+PASS  refusalA (light): AC5 no "pgvector Verified"
+PASS  refusalC (dark): AC1 C copy
+PASS  refusalC (dark): AC1 heading
+PASS  refusalC (dark): AC1 every chip "Not checked" (2), no "%" chip
+PASS  refusalC (dark): AC1 whole tree has no /verified/i
+PASS  refusalB (dark): AC2 B copy
+PASS  refusalB (dark): AC2 no toast ever rendered with a message (MutationObserver over 3.5 s)  — []
+PASS  refusalB (dark): AC2 no role="alert"
+PASS  refusalB (dark): AC2 "Retrieved passages" heading visible
+PASS  refusalB (dark): AC2 /v1/ask called once (no writing stage)  — [{"question":"how are citations checked","max_citations":5,"quick":true}]
+PASS  refusalB (dark): AC2 whole tree has no /verified/i
+PASS  earlyRefusal (dark): AC4 banner "Relevance Protection Activated:"
+PASS  earlyRefusal (dark): AC4 echoed question in <code>
+PASS  earlyRefusal (dark): AC4 no article cards
+PASS  earlyRefusal (dark): AC4 no "Clinical Literature Synthesis"
+PASS  earlyRefusal (dark): AC4 discover button label unchanged
+PASS  earlyRefusal (dark): AC4 discover POSTs /v1/papers/discover {query}  — {"query":"how are citations checked"}
+PASS  refusalA zero citations: AC6 panel rendered without a link
+PASS  mixedAnswer (dark): AC3 chips "Supported · 87.3%", "Unsupported · 12.0%", "Not checked"
+PASS  mixedAnswer (dark): AC5 footer "1 of 3 citations supported", no "pgvector Verified"
+PASS  mixedAnswer (dark): AC1/5 whole tree has no /verified/i
+--- Export Note markdown (clipboard) ---
+# Clinical & Academic Research Note
+
+Hybrid search finds the passages [1] and an entailment check rejects weak ones [2] [3].
+
+## References
+- [1] **Grounded Retrieval for Scientific QA** (§ Methods) - [arXiv:2401.01234](https://arxiv.org/pdf/2401.01234v2) • Supported · 87.3%
+- [2] **Entailment Checks for Citations** (§ Results) - [arXiv:2402.05678](https://arxiv.org/pdf/2402.05678v1) • Unsupported · 12.0%
+- [3] **Passage Without a Check** (§ Introduction) - [arXiv:2403.09999](https://arxiv.org/pdf/2403.09999v1) • Not checked
+---
+PASS  mixedAnswer (dark): AC5 export "## References", no /Verified/, entries end with chip text
+PASS  mixedAnswer (light): AC3 chips "Supported · 87.3%", "Unsupported · 12.0%", "Not checked"
+PASS  mixedAnswer (light): AC5 footer "1 of 3 citations supported", no "pgvector Verified"
+PASS  mixedAnswer (light): AC1/5 whole tree has no /verified/i
+PASS  two-stage quoted → synthesized: AC6 quoted answer + "Writing a summary…" status while full stage pending
+PASS  two-stage quoted → synthesized: AC6 swapped to synthesized; indicator gone
+PASS  two-stage full-stage refusal: AC6 full-stage refusal keeps the quoted answer (2 /v1/ask calls)
+
+44 PASS, 0 FAIL
+
+[exit code 0]

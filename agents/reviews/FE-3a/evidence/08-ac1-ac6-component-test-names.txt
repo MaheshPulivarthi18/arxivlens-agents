@@ -1,0 +1,39 @@
+$ bash -c git grep -nE "^\s*(it|it\.each|describe)\(|\]\)\('" HEAD -- frontend/src/lib/citations.test.js frontend/src/components/SynthesisView.test.jsx frontend/src/components/ReferencesStack.test.jsx | sed 's/^HEAD://'
+frontend/src/components/ReferencesStack.test.jsx:22:describe('ReferencesStack', () => {
+frontend/src/components/ReferencesStack.test.jsx:23:  it('shows title, section and a one-click link to pdf_url for each citation', () => {
+frontend/src/components/ReferencesStack.test.jsx:33:  it('falls back to the arXiv PDF URL when pdf_url is empty', () => {
+frontend/src/components/ReferencesStack.test.jsx:41:  it('answer mode: chips read "Supported · 87.3%" and "Unsupported · 12.0%", heading "References"', () => {
+frontend/src/components/ReferencesStack.test.jsx:53:  it('flags supported: false visibly and never calls it Verified', () => {
+frontend/src/components/ReferencesStack.test.jsx:62:  it('flags supported: false even without a status field (older responses)', () => {
+frontend/src/components/ReferencesStack.test.jsx:68:  it('shows an unchecked citation (verifier outage, score 0) as "Not checked", with no percentage', () => {
+frontend/src/components/ReferencesStack.test.jsx:74:  it('refusal A: heading "Retrieved passages (no answer was shown)", "Unsupported · 31.0%" and "Not checked" chips, no "0.0%"', () => {
+frontend/src/components/ReferencesStack.test.jsx:88:  it('refusal C: every chip reads "Not checked"', () => {
+frontend/src/components/ReferencesStack.test.jsx:95:  it('refusal mode: a legacy citation without status and score 0 reads "Not checked"', () => {
+frontend/src/components/ReferencesStack.test.jsx:100:  it('Copy BibTeX passes an @article{arxiv_... entry to onCopy', async () => {
+frontend/src/components/ReferencesStack.test.jsx:111:  it('shows an empty state when there are no citations', () => {
+frontend/src/components/SynthesisView.test.jsx:27:describe('SynthesisView', () => {
+frontend/src/components/SynthesisView.test.jsx:28:  it('renders the answer text with each [n] marker as a button', () => {
+frontend/src/components/SynthesisView.test.jsx:35:  it('clicking a marker reports its citation number', async () => {
+frontend/src/components/SynthesisView.test.jsx:42:  it('labels a quoted answer as quoted from the papers', () => {
+frontend/src/components/SynthesisView.test.jsx:48:  it('labels a synthesized answer as a checked written answer', () => {
+frontend/src/components/SynthesisView.test.jsx:53:  it.each([
+frontend/src/components/SynthesisView.test.jsx:57:  ])('refusal %s shows its copy in a "No answer shown" status panel, not an error', (_r, response, copy) => {
+frontend/src/components/SynthesisView.test.jsx:71:  it('an unknown refusal reason shows the server text in the panel', () => {
+frontend/src/components/SynthesisView.test.jsx:76:  it('refusal mode hides Copy Synthesis and Export Note', () => {
+frontend/src/components/SynthesisView.test.jsx:82:  it('refusal panel is in the tab order through its passages link', async () => {
+frontend/src/components/SynthesisView.test.jsx:91:  it('a refusal with zero citations still renders the panel, without a link', () => {
+frontend/src/components/SynthesisView.test.jsx:98:  it('no "PostgreSQL pgvector Verified" in answer or refusal mode', () => {
+frontend/src/components/SynthesisView.test.jsx:107:  it('answer-mode footer summarises how many citations are supported', () => {
+frontend/src/components/SynthesisView.test.jsx:112:  it('Export Note writes "## References" and each entry ends with its chip text', async () => {
+frontend/src/components/SynthesisView.test.jsx:126:  it('announces when the synthesized answer is still being written', () => {
+frontend/src/lib/citations.test.js:35:describe('citationState', () => {
+frontend/src/lib/citations.test.js:36:  it.each(ROWS)('%s', (_name, cit, refusal, kind, text) => {
+frontend/src/lib/citations.test.js:43:  it.each(ROWS)('%s: only a supported kind says "Supported", nothing says "verified"', (_name, cit, refusal) => {
+frontend/src/lib/citations.test.js:52:  it('a "Not checked" chip shows no percentage', () => {
+frontend/src/lib/citations.test.js:57:  it('defaults to answer mode', () => {
+frontend/src/lib/citations.test.js:61:  it('tooltips describe the meaning without naming a checking method', () => {
+frontend/src/lib/citations.test.js:68:describe('markdownNote', () => {
+frontend/src/lib/citations.test.js:71:  it('uses a plain "## References" heading and never says verified', () => {
+frontend/src/lib/citations.test.js:76:  it('ends each entry with its chip text', () => {
+
+[exit code 0]

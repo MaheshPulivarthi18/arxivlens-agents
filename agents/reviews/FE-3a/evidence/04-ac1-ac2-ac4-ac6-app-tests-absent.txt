@@ -1,0 +1,18 @@
+$ bash -c echo '# test files at PR head:'; git ls-tree -r --name-only HEAD frontend/src | grep -E '\.test\.jsx?$'; echo; echo '# frontend/src/App.test.jsx at PR head:'; git cat-file -e HEAD:frontend/src/App.test.jsx 2>&1 || echo 'ABSENT'; echo; echo '# tests in the PR that render <App> or stub fetch:'; git grep -nE "<App|stubGlobal\('fetch'|/v1/papers/discover" HEAD -- 'frontend/src/**/*.test.*' || echo 'none'; echo; echo '# early-refusal fixture usage in tests (AC4):'; git grep -n 'earlyRefusal' HEAD -- 'frontend/src/**/*.test.*' || echo 'earlyRefusal fixture is defined but used by no test'
+# test files at PR head:
+frontend/src/components/HeroSearch.test.jsx
+frontend/src/components/ReferencesStack.test.jsx
+frontend/src/components/SynthesisView.test.jsx
+frontend/src/lib/citations.test.js
+
+# frontend/src/App.test.jsx at PR head:
+fatal: path 'frontend/src/App.test.jsx' does not exist in 'HEAD'
+ABSENT
+
+# tests in the PR that render <App> or stub fetch:
+none
+
+# early-refusal fixture usage in tests (AC4):
+earlyRefusal fixture is defined but used by no test
+
+[exit code 0]
