@@ -8,7 +8,7 @@
 | **Depends on** | FE-1 (#68, merged `2410d2e`: `frontend/package.json` has `"test": "vitest run"`). No open PR touches `Makefile` (REST check 2026-11-20 18:00Z of #70, #79, #81, #82, #83, #84, #85, #86) |
 | **Jira** | needs story (epic for Technical PRD §10 harness; label `task-OPS-H16`) |
 | **Design required** | no: one Makefile recipe; no production code, contract, CLI, table or service |
-| **Status** | Ready |
+| **Status** | In QA |
 
 ## Goal
 `make test-fe` (`Makefile:51-52`) still runs `if npm run | grep -q " test"; then npm test; else echo "no frontend tests yet (FE-1)"; fi`.
@@ -50,3 +50,11 @@ answering changes.
   backend, fold into the next `Makefile` change)". No `Makefile` change is queued, and backend has no unblocked work this cycle, so it runs
   standalone. Checked on app `origin/main` `c37d27c`: `Makefile:51-52`; `frontend/package.json:11` `"test": "vitest run"`.
 - Independent of OPS-H9b (groomed in the same pass: `db.yml`, `image-pins.yml`, `CONTRIBUTING.md`).
+- 2026-11-20 18:15Z (backend-engineer): built on `agent/backend/OPS-H16` (head `bf76769`, from `c37d27c`). `Makefile` only, 2+/2-:
+  `test-fe: ## Frontend tests (Vitest; run npm ci in frontend/ first)` / `cd frontend && npm test` (recipe no longer `@`-silenced, so
+  the command is echoed). Ran: `make -n test-fe` → `cd frontend && npm test`; `make help | grep test-fe` → new text, no "FE-1";
+  stub-npm runs (stub in the session scratchpad, outside the repo): (a) `STUB_RC=0` → exit 0, one call, argv `test`; (b) `STUB_RC=1` →
+  `make: *** [Makefile:52: test-fe] Error 1`, exit 2; (c) `origin/main` Makefile with a listing lacking ` test` → "no frontend tests yet
+  (FE-1)", exit 0 (the false green). Ownership check: `Ownership OK for role=backend (4 changed lines)`. AC3 not run: `npm ci` fails with
+  ENOTFOUND for registry.npmjs.org in this sandbox (Node 22 is present). `make lint`/`make test-unit` not run locally (no source change);
+  CI on the PR is the source of truth. Status → In QA.
