@@ -1,0 +1,13 @@
+$ bash -c echo '== head 1f24fc9'; ruff check --isolated --select E,F,W --line-length 130 --output-format concise tests/test_m2_pipeline.py; echo '== base e6cffba'; git show e6cffba:tests/test_m2_pipeline.py > /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/base_m2.py; ruff check --isolated --select E,F,W --line-length 130 --output-format concise /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/base_m2.py; true
+== head 1f24fc9
+tests/test_m2_pipeline.py:2:8: F401 [*] `pytest` imported but unused
+tests/test_m2_pipeline.py:57:1: W293 [*] Blank line contains whitespace
+Found 2 errors.
+[*] 2 fixable with the `--fix` option.
+== base e6cffba
+/tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/base_m2.py:2:8: F401 [*] `pytest` imported but unused
+/tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/base_m2.py:57:1: W293 [*] Blank line contains whitespace
+Found 2 errors.
+[*] 2 fixable with the `--fix` option.
+
+[exit code 0]

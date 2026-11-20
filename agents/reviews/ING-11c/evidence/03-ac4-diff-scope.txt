@@ -1,0 +1,22 @@
+$ bash -c git rev-parse HEAD origin/main; git diff --numstat origin/main...HEAD; git diff --name-only origin/main...HEAD; git diff origin/main...HEAD
+1f24fc9f795d898a2fe0a61bcaa6a852f4c3410a
+e6cffba66d677a655ade39588972abc03bc273aa
+3	1	tests/test_m2_pipeline.py
+tests/test_m2_pipeline.py
+diff --git a/tests/test_m2_pipeline.py b/tests/test_m2_pipeline.py
+index 727aca5..b9417ff 100644
+--- a/tests/test_m2_pipeline.py
++++ b/tests/test_m2_pipeline.py
+@@ -91,7 +91,9 @@ def test_embedded_chunks_have_recorded_start_pages():
+         if page_start is None:
+             problems.append(f"{key}: no paper_chunk_pages row")
+             continue
+-        if page_number is None or page_start < page_number:
++        if page_number is None:
++            problems.append(f"{key}: page row but NULL page_number")
++        elif page_start < page_number:
+             problems.append(f"{key}: page_start {page_start} < page_number {page_number}")
+         last = prev.get((arxiv_id, version))
+         if last is not None and page_start < last:
+
+[exit code 0]

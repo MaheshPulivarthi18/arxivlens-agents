@@ -1,0 +1,23 @@
+$ bash -c git show e6cffba:tests/test_m2_pipeline.py > /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/src/before.py; git show HEAD:tests/test_m2_pipeline.py > /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/src/after.py; python3 -I /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/harness.py /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/src/before.py /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/src/after.py
+== before.py
+  None page_start                 FAIL  1 of 1 chunks: 2401.1v1 chunk 0: no paper_chunk_pages row
+  page_number None (ps=3)         FAIL  1 of 1 chunks: 2401.1v1 chunk 0: page_start 3 < page_number None
+  page_start<page_number (1<2)    FAIL  1 of 1 chunks: 2401.1v1 chunk 0: page_start 1 < page_number 2
+  decreasing page_start           FAIL  1 of 2 chunks: 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+  NULL page_number + decreasing   FAIL  2 of 2 chunks: 2401.1v1 chunk 1: page_start 2 < page_number None; 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+  NULL pn then decreasing         FAIL  2 of 2 chunks: 2401.1v1 chunk 0: page_start 4 < page_number None; 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+  all good                        PASS  
+  empty result                    FAIL  no chunks of embedded papers to check
+== after.py
+  None page_start                 FAIL  1 of 1 chunks: 2401.1v1 chunk 0: no paper_chunk_pages row
+  page_number None (ps=3)         FAIL  1 of 1 chunks: 2401.1v1 chunk 0: page row but NULL page_number
+  page_start<page_number (1<2)    FAIL  1 of 1 chunks: 2401.1v1 chunk 0: page_start 1 < page_number 2
+  decreasing page_start           FAIL  1 of 2 chunks: 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+  NULL page_number + decreasing   FAIL  2 of 2 chunks: 2401.1v1 chunk 1: page row but NULL page_number; 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+  NULL pn then decreasing         FAIL  2 of 2 chunks: 2401.1v1 chunk 0: page row but NULL page_number; 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+  all good                        PASS  
+  empty result                    FAIL  no chunks of embedded papers to check
+
+verdict column identical between first two files: True
+
+[exit code 0]

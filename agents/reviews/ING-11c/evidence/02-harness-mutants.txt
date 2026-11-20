@@ -1,0 +1,22 @@
+$ bash /tmp/claude-0/-home-claude/79151a37-53f3-5c9b-8d4b-0e19ba1021a7/scratchpad/ing11c/mutants.sh
+--- M1_null_continue: >             continue 
+--- M2_elif_to_if: <         elif page_start < page_number: >         if page_start < page_number: 
+--- M3_drop_null_msg: <         if page_number is None: <             problems.append(f"{key}: page row but NULL page_number") <         elif page_start < page_number: >         if page_number is not None and page_start < page_number: 
+--- M4_reword: <             problems.append(f"{key}: page row but NULL page_number") >             problems.append(f"{key}: NULL page_number") 
+M1_null_continue: KILLED (output differs from head harness output)
+>   NULL page_number + decreasing   FAIL  1 of 2 chunks: 2401.1v1 chunk 1: page row but NULL page_number
+>   NULL pn then decreasing         FAIL  1 of 2 chunks: 2401.1v1 chunk 0: page row but NULL page_number
+M2_elif_to_if: KILLED (output differs from head harness output)
+>   page_number None (ps=3)         ERROR  TypeError: '<' not supported between instances of 'int' and 'NoneType'
+>   NULL page_number + decreasing   ERROR  TypeError: '<' not supported between instances of 'int' and 'NoneType'
+>   NULL pn then decreasing         ERROR  TypeError: '<' not supported between instances of 'int' and 'NoneType'
+M3_drop_null_msg: KILLED (output differs from head harness output)
+>   page_number None (ps=3)         PASS  
+>   NULL page_number + decreasing   FAIL  1 of 2 chunks: 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+>   NULL pn then decreasing         FAIL  1 of 2 chunks: 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+M4_reword: KILLED (output differs from head harness output)
+>   page_number None (ps=3)         FAIL  1 of 1 chunks: 2401.1v1 chunk 0: NULL page_number
+>   NULL page_number + decreasing   FAIL  2 of 2 chunks: 2401.1v1 chunk 1: NULL page_number; 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+>   NULL pn then decreasing         FAIL  2 of 2 chunks: 2401.1v1 chunk 0: NULL page_number; 2401.1v1 chunk 1: page_start 2 < previous chunk's 4
+
+[exit code 0]

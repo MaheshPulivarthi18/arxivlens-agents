@@ -1,0 +1,5 @@
+$ bash -c .github/scripts/ownership-check.sh origin/main agent/ai/ING-11c; echo rc=$?
+Ownership OK for role=ai (4 changed lines)
+rc=0
+
+[exit code 0]
