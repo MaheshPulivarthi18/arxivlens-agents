@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (#15) merged. No open PR touches `internal/kafka/` |
 | **Jira** | [KAN-75](https://maheshsworkspace-42184075.atlassian.net/browse/KAN-75) |
 | **Design required** | no: one guard in a log statement, no contract/CLI/table/service change |
-| **Status** | Ready |
+| **Status** | In QA (PR pending) |
 
 ## Goal
 On a clean shutdown (`ctx` cancelled), franz-go's `PollFetches(ctx)` returns a fetch whose only error is `ctx.Err()` on partition -1, and
@@ -61,3 +61,13 @@ no retrieval/answering change.
   already returns the shutdown shape (`Partition: -1, Err: ctx.Err()`) at `consumer_test.go:58-62`.
 - Independent of every open PR (#65 `internal/query/rag*.go`, `tests/test_evals_data.py`, `README.md`; #66 workflows/CONTRIBUTING/compose;
   #68–#70 `frontend/**`) and of OPS-H14 (`ci.yml`, `.github/scripts/`) and AI-12 (`services/embedder/`, `tests/test_verify.py`).
+- 2026-11-20 (backend-engineer): built on `agent/backend/OPS-H6b` commit `0fbf4e0` (from 4c7d327), +59/-0 lines.
+  `consumer.go`: in `EachError`, `closed` is still computed first for every error, then
+  `if ctx.Err() != nil && errors.Is(err, ctx.Err()) { return }` skips only the log line; comment above `EachError` says why.
+  `consumer_test.go` (additions only): `cancelPoll` wrapper (cancels ctx inside `PollFetches`, returns a scripted fetch) and
+  table test `TestConsumerPollErrorAfterCancel` with rows: "clean shutdown logs no poll error" (AC1, fake's `poll(end)` path),
+  "other error after cancel is still logged" (AC2, `errBoom` on partition 0), "client closed after cancel still returns the error"
+  (AC4c guard row). Expected mutant kills: (a) row 1, (b) row 2, (c) rows 2 and 3.
+  Local: `gofmt -l internal/kafka/` clean; ownership check `Ownership OK for role=backend (59 changed lines)`.
+  **Not run locally:** `go vet`/`go test` (Go 1.24.7 local, go.mod needs 1.25; module downloads from proxy.golang.org blocked by the
+  sandbox proxy even with a 1.24 scratch copy). CI's Go job is the source of truth for AC3/AC5 and coverage rows.
