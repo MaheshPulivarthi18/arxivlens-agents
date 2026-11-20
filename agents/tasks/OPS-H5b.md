@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H5 (#16, merged `e67354c`). No open PR touches `internal/query/search_integration_test.go` (checked 2026-11-20 08:00Z against #65, #66, #68, #69, #70, #76, #77, #78, #79 via REST) |
 | **Jira** | KAN-84 |
 | **Design required** | no: test-only, no production code, contract, CLI, table or service change |
-| **Status** | In QA (draft PR #81, head `8cae68b`) |
+| **Status** | Ready to merge (PR #81 raised, head `8cae68b`; QA PASS r1, PM APPROVE r1) |
 
 ## Goal
 `TestHNSWVectorHits` (`internal/query/search_integration_test.go:60`, build tag `integration`) inserts 1000 `synth.NNNNN` papers, 10,000
@@ -43,24 +43,24 @@ other papers. CI's numbers must not change.
   refuses non-empty DBs), `search_provenance_integration_test.go`.
 
 ## Acceptance criteria
-- [ ] AC1: CI `db.yml` job `DB (migrate twice, HNSW plan + recall)` passes on the PR head. Step `HNSW plan + recall + search provenance
+- [x] AC1: CI `db.yml` job `DB (migrate twice, HNSW plan + recall)` passes on the PR head. Step `HNSW plan + recall + search provenance
   (real search.go SQL)` shows `--- PASS: TestHNSWVectorHits`, `--- PASS: TestHNSWSeedCleanup` (or the name chosen) and
   `--- PASS: TestSearchProvenance`, with **no** `--- SKIP` for any of them. Quote the run ID and the three lines.
-- [ ] AC2: The seed is unchanged. The log line `pgvector 0.8.7; seeded 13000 embeddings in …` appears with the count `13000`, as on `main`
+- [x] AC2: The seed is unchanged. The log line `pgvector 0.8.7; seeded 13000 embeddings in …` appears with the count `13000`, as on `main`
   `e6cffba` (run 44677459328, job 136092604706: `search_integration_test.go:87: pgvector 0.8.7; seeded 13000 embeddings in 24.474s`).
   The line number may move; the count may not. `RESULT` lines aren't compared (iterative-scan rows vary between runs of unchanged main).
-- [ ] AC3: Mutation, one per mutant. The developer pushes each as a temporary commit on the task branch and reverts it with a new commit
+- [x] AC3: Mutation, one per mutant. The developer pushes each as a temporary commit on the task branch and reverts it with a new commit
   (no force-push), as OPS-H5 did with `d0e1123`. Quote each red run's ID and the failing line:
   (a) remove the post-test cleanup (item 3) → `TestHNSWSeedCleanup` fails on assertion (a);
   (b) remove the leftover `DELETE` in the helper (item 1) → `TestHNSWSeedCleanup` fails on assertion (b);
   (c) make the helper always report 0 other papers → `TestHNSWSeedCleanup` fails on assertion (c).
   The final diff contains none of the mutants, and the last run is green.
-- [ ] AC4: The `CI` → `t.Fatalf` / otherwise `t.Skipf` branch (item 2) is in the diff and QA quotes it. It can't run in CI without a
+- [x] AC4: The `CI` → `t.Fatalf` / otherwise `t.Skipf` branch (item 2) is in the diff and QA quotes it. It can't run in CI without a
   non-empty DB, so it's reviewed by reading.
-- [ ] AC5: Final diff is `internal/query/search_integration_test.go` only (`git diff --stat origin/main`), well under 400 lines.
+- [x] AC5: Final diff is `internal/query/search_integration_test.go` only (`git diff --stat origin/main`), well under 400 lines.
   `gofmt -l internal/query/` is empty; `go vet -tags integration ./internal/query/` passes (the `db.yml` step runs it). CI `ci.yml` is green.
   The ownership check passes for role=backend.
-- [ ] Docs: the file's header comment (lines 3–9) says the test needs an **empty** migrated DB and cleans up after itself. No README or
+- [x] Docs: the file's header comment (lines 3–9) says the test needs an **empty** migrated DB and cleans up after itself. No README or
   CONTRIBUTING change.
 
 ## Verification
@@ -108,3 +108,7 @@ retrieval or answering changes. `stack.yml` triggers on `internal/**` and must b
         `search_integration_test.go:326: (c) itPrepare reported 0 other papers after inserting hnswb.foreign; want 1` → `--- FAIL: TestHNSWSeedCleanup`; reverted `8cae68b`.
     `git diff --stat 3e1baea` after each revert was empty.
   - AC5: ci.yml Go job 136173317186 (run 44702290628) success; ownership, frontend, Python M0 checks success. stack.yml Full stack job 136173363764 (run 44702290543) success (`AC4: make test-full` success; F1 step as documented).
+- 2026-11-20 (pm-lead): **PM APPROVE r1** (`agents/reviews/OPS-H5b/report.md`, "PM decision — round 1"). All 13 evidence files opened, and each AC is
+  proven (AC1 01, AC2 02, AC3 03+04, AC4 05 plus real-PG 06/07, AC5 08+09+00, Docs 10). The PR body was checked against the title, ticket and files:
+  it is OPS-H5b's own. Base drift checked: #66 (`db.yml` eval-data step) rolls back its `eval5.*` rows, so the CI guard still sees an empty DB.
+  QA nits 1+2 went to the board Backlog (backend P3, next change to this file); nits 3 and 4 were accepted with no action. PR #81 raised for Mahesh.
