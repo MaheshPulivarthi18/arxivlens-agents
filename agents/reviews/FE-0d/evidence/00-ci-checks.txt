@@ -1,0 +1,9 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/76b851ce5f6d48ae77590d8ef52e8c6968b61304/check-runs --jq '.check_runs[] | "\(.name) \(.status) \(.conclusion) job=\(.id)"'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/95 --jq '"PR #95 draft=\(.draft) merged=\(.merged) head=\(.head.sha)"'
+Go (vet, gofmt, test, build) completed success job=136544779342
+Python M0 unit tests completed success job=136544778877
+Frontend (lint, test, build) completed success job=136544778476
+DB (migrate twice, HNSW plan + recall) completed success job=136544778465
+Agent ownership check completed success job=136544778167
+PR #95 draft=true merged=false head=76b851ce5f6d48ae77590d8ef52e8c6968b61304
+
+[exit code 0]

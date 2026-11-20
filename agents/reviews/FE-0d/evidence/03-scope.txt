@@ -1,0 +1,10 @@
+$ bash -c git diff origin/main...HEAD --name-only; git diff origin/main...HEAD --shortstat; echo '--- untouched (empty = no diff):'; git diff origin/main...HEAD --stat -- frontend/src/components/ui/tooltip.jsx frontend/src/components/ui/popover.jsx frontend/src/components/ui/collapsible.jsx frontend/src/components/ui/scroll-area.jsx frontend/src/components/ui/separator.jsx frontend/src/components/ui/sonner.jsx frontend/src/test/setup.js frontend/package.json frontend/package-lock.json frontend/vite.config.js; echo '--- button imported?'; grep -n 'button' frontend/src/components/ui/primitives.test.jsx || echo none; echo '--- template-literal new URL?'; grep -n 'new URL' frontend/src/components/ui/primitives.test.jsx || echo none
+frontend/src/components/ui/primitives.test.jsx
+ 1 file changed, 199 insertions(+)
+--- untouched (empty = no diff):
+--- button imported?
+102:    await user.click(screen.getByRole('button', { name: 'Details' }));
+--- template-literal new URL?
+none
+
+[exit code 0]
