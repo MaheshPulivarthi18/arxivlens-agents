@@ -8,7 +8,7 @@
 | **Depends on** | RET-1 (#9, merged `bb9ee90`). No open PR touches `internal/query/search.go` or `search_test.go` (re-checked 2026-11-20 04:00Z; #65 changes `rag.go`/`rag_test.go` in the same package, different files) |
 | **Jira** | KAN-78 (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1b`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one more fallback condition on an existing branch plus test rows; HTTP response shape unchanged |
-| **Status** | Ready |
+| **Status** | In QA (pending PR) |
 
 ## Goal
 `rerankAndSort` falls back to RRF order when the reranker errors, times out, is cancelled, returns the wrong count or a NaN. Two
@@ -69,3 +69,13 @@ reranker returning ±Inf doesn't occur on the eval stack (scores are finite), so
   package, no shared file or helper: `search_test.go` helpers `newEngine`, `fakeReranker`, `byRank`, `ids` are defined in search
   tests), #66 (workflows, CONTRIBUTING, compose), #68–#70 (`frontend/**`), #71 (`ci.yml`, `.github/scripts/`), #72 (`internal/kafka/`),
   #73 (`services/embedder/`, `tests/test_verify.py`), and of LLM-1c (`internal/llm/`) groomed in the same cycle.
+- 2026-11-20 (backend-engineer): built on `agent/backend/RET-1b` (app commit `8469844`, base `4c7d327`). `search.go`: `math.IsInf(x, 0)`
+  check after the NaN check in the score loop → reason `"Inf score"`, same fallback path; doc comment now says "a NaN or ±Inf
+  score". `search_test.go`: `infAt3(sign)` helper, rows `canceled`, `+Inf score`, `-Inf score`, and `json.Marshal(hits)` asserted
+  in the shared row body. Diff 20+/1- (search_test.go additions only, 0 removed lines). Local: `gofmt -l` clean; ownership check
+  OK (role=backend). Sandbox has Go 1.24.7 and no module proxy, so the real module can't build. Scratch module (go 1.24, real
+  `search.go`/`search_test.go`/`client.go`, stubbed `pgx`/`db`, `generateTraceID` copied from rag.go): `go vet` clean;
+  `go test -race -v -run TestHybridSearchRerankFallback` lists all 8 sub-tests PASS; all `search_test.go` tests pass
+  (other package test files not in the scratch). AC5 mutants in scratch: (a) Inf check removed → `+Inf`/`-Inf` rows FAIL;
+  (b) `IsInf(x,1)` → `-Inf` FAIL; (c) Canceled case removed → `canceled` FAIL; (d) Inf reason "NaN score" → both Inf rows FAIL.
+  AC6 (CI Go job, lint-go, stack.yml) is for CI to verify once the PR is open.
