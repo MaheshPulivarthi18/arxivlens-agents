@@ -1,0 +1,17 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/9dae472aed2d925e8167c1ea7509bbe1412369e0/check-runs --jq '.check_runs[] | "\(.id)  \(.name)  \(.status)  \(.conclusion)"'; echo; for j in $(gh api repos/MaheshPulivarthi18/ArxivLens/commits/9dae472aed2d925e8167c1ea7509bbe1412369e0/check-runs --jq '.check_runs[].id'); do gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j --jq '"job \(.id) head_sha=\(.head_sha) \(.name): \(.conclusion)"'; done; echo; echo "origin/main: $(git rev-parse origin/main)"; grep -m1 'HEAD is now at' /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H17-r1/fe.log | cut -c30-
+136491104907  DB (migrate twice, HNSW plan + recall)  completed  success
+136491104274  Go (vet, gofmt, test, build)  completed  success
+136491104061  Agent ownership check  completed  success
+136491103955  Frontend (lint, test, build)  completed  success
+136491103744  Python M0 unit tests  completed  success
+
+job 136491104907 head_sha=9dae472aed2d925e8167c1ea7509bbe1412369e0 DB (migrate twice, HNSW plan + recall): success
+job 136491104274 head_sha=9dae472aed2d925e8167c1ea7509bbe1412369e0 Go (vet, gofmt, test, build): success
+job 136491104061 head_sha=9dae472aed2d925e8167c1ea7509bbe1412369e0 Agent ownership check: success
+job 136491103955 head_sha=9dae472aed2d925e8167c1ea7509bbe1412369e0 Frontend (lint, test, build): success
+job 136491103744 head_sha=9dae472aed2d925e8167c1ea7509bbe1412369e0 Python M0 unit tests: success
+
+origin/main: c37d27c1b77756db6100f538f7aaabf5362d584b
+HEAD is now at 1450d11 Merge 9dae472aed2d925e8167c1ea7509bbe1412369e0 into c37d27c1b77756db6100f538f7aaabf5362d584b
+
+[exit code 0]

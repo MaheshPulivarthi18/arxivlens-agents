@@ -1,0 +1,42 @@
+$ /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H17-r1/ac3.sh /root/wt/qa-OPS-H17
+node v22.23.5 / npm 10.9.9
+=== Case A: ticket scratch package (no test script)
+--- package.json: {"name":"x","private":true,"scripts":{"build":"true"}}
+$ npm run test --if-present   (OLD step)
+rc=0
+$ npm test                    (NEW step)
+npm error Missing script: "test"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/claude/.npm/_logs/2026-11-20T18_42_03_649Z-debug-0.log
+rc=1
+=== Case B: real frontend/package.json at PR head with the "test" script deleted (simulated regression)
+--- package.json: {"name": "frontend", "private": true, "scripts": {"dev": "vite", "build": "vite build", "lint": "oxlint", "preview": "vite preview"}}
+$ npm run test --if-present   (OLD step)
+rc=0
+$ npm test                    (NEW step)
+npm error Missing script: "test"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/claude/.npm/_logs/2026-11-20T18_42_03_848Z-debug-0.log
+rc=1
+=== Case C: positive control, test script present
+--- package.json: {"name":"x","private":true,"scripts":{"test":"echo ran-tests"}}
+$ npm run test --if-present   (OLD step)
+
+> test
+> echo ran-tests
+
+ran-tests
+rc=0
+$ npm test                    (NEW step)
+
+> test
+> echo ran-tests
+
+ran-tests
+rc=0
+
+[exit code 0]

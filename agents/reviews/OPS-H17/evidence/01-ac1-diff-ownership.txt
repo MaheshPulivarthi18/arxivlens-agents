@@ -1,0 +1,36 @@
+$ bash -c git diff --stat origin/main...HEAD; git diff origin/main...HEAD -- .github/workflows/ci.yml; echo '$ grep -n if-present .github/workflows/ci.yml'; grep -n 'if-present' .github/workflows/ci.yml || echo none; echo '$ grep -rn if-present .github/ Makefile'; grep -rn 'if-present' .github/ Makefile || echo none; echo '--- frontend job steps (yaml)'; python3 -c 'import yaml;j=yaml.safe_load(open(".github/workflows/ci.yml"))["jobs"]["frontend"];print("defaults:",j["defaults"]);[print(i,s.get("name",""),"|",s.get("run",s.get("uses"))) for i,s in enumerate(j["steps"])]'; echo '$ .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H17'; .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H17; echo rc=$?; echo '--- CI Agent ownership job 136491104061:'; grep 'Ownership' /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H17-r1/own.log | cut -c30-
+ .github/workflows/ci.yml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 4a56212..c0161a9 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -70,7 +70,7 @@ jobs:
+       - run: npm ci
+       - run: npm run lint
+       - name: Test
+-        run: npm run test --if-present
++        run: npm test
+       - run: npm run build
+       - name: dist/ report (fonts, CSS)
+         run: ../.github/scripts/frontend-dist-report.sh dist
+$ grep -n if-present .github/workflows/ci.yml
+none
+$ grep -rn if-present .github/ Makefile
+none
+--- frontend job steps (yaml)
+defaults: {'run': {'working-directory': 'frontend'}}
+0  | actions/checkout@v4
+1  | actions/setup-node@v4
+2  | npm ci
+3  | npm run lint
+4 Test | npm test
+5  | npm run build
+6 dist/ report (fonts, CSS) | ../.github/scripts/frontend-dist-report.sh dist
+$ .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H17
+Ownership OK for role=backend (2 changed lines)
+rc=0
+--- CI Agent ownership job 136491104061:
+Ownership OK for role=backend (2 changed lines)
+
+[exit code 0]

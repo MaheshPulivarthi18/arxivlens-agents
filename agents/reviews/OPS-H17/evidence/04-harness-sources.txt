@@ -1,0 +1,17 @@
+$ bash -c cd /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-OPS-H17-r1 && for f in $(find . -maxdepth 1 -type f -name '*.sh' | sort); do echo "=== $f"; cat $f; done
+=== ./ac3.sh
+#!/usr/bin/env bash
+# AC3: old CI step vs new CI step with real npm, scratch package.json without a "test" script.
+set -u
+echo "node $(node -v) / npm $(npm -v)"
+run() { local d="$1"; echo "--- package.json: $(cat "$d/package.json")"
+  echo "\$ npm run test --if-present   (OLD step)"; (cd "$d" && npm run test --if-present 2>&1); echo "rc=$?"
+  echo "\$ npm test                    (NEW step)"; (cd "$d" && npm test 2>&1); echo "rc=$?"; }
+echo "=== Case A: ticket scratch package (no test script)"
+a=$(mktemp -d); printf '{"name":"x","private":true,"scripts":{"build":"true"}}' > "$a/package.json"; run "$a"
+echo "=== Case B: real frontend/package.json at PR head with the \"test\" script deleted (simulated regression)"
+b=$(mktemp -d); python3 -c 'import json,sys; p=json.load(open(sys.argv[1])); del p["scripts"]["test"]; json.dump({"name":p["name"],"private":True,"scripts":p["scripts"]},open(sys.argv[2],"w"))' "$1/frontend/package.json" "$b/package.json"; run "$b"
+echo "=== Case C: positive control, test script present"
+c=$(mktemp -d); printf '{"name":"x","private":true,"scripts":{"test":"echo ran-tests"}}' > "$c/package.json"; run "$c"
+
+[exit code 0]
