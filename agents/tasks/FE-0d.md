@@ -1,0 +1,48 @@
+# FE-0d: Commit render tests for the six FE-0b ui primitives
+
+| | |
+|---|---|
+| **Owner** | frontend-engineer |
+| **Priority** | P2 (harness/quality: today nothing in CI executes the six files; Vite tree-shakes them until FE-3/FE-4 import them) |
+| **PRD ref** | Product PRD §7 (accessible, readable UI; principles 1 "Evidence first" and 3 "One click to the source" via FE-3/FE-4); FE-0b QA "Missing tests" (`agents/reviews/FE-0b/report.md`, rounds 1–3) |
+| **Depends on** | FE-0b (#70) **merged**. FE-1 (#68, merged `2410d2e`: Vitest + jsdom + Testing Library). No dependency change needed |
+| **Jira** | needs Jira story (epic KAN-5 "Research UI & citations"; labels `task-FE-0d`, `agent-frontend`, `arxivlens`) |
+| **Design required** | no: tests only, no component, contract or dependency change |
+| **Status** | Ready once #70 merges (specced 2026-11-20 by pm-lead at the FE-0b final review) |
+
+## Goal
+FE-0b's six primitives were proven only by QA's throwaway smoke harness (real Radix/sonner in headless Chromium). CI lints them but never
+renders them, so a typo in a namespace member or a broken `toastOptions` merge would first show up in FE-3/FE-4. Commit jsdom render tests that
+pin the behaviour QA verified, so later edits to `ui/*.jsx` can't silently regress it.
+
+## Scope
+- New `frontend/src/components/ui/primitives.test.jsx` only. Nothing else (no change to the six `ui/*.jsx`, `package.json`, the lockfile, `vite.config.js` or `src/test/setup.js`).
+- Starting point: QA's harness description and facts in `agents/reviews/FE-0b/evidence/25-r3-ac6-smoke-facts.txt`, `26-r3-f3-toast-description.txt`, `29-r3-harness-sources.txt` (read them here, don't copy files into `app/`).
+- Out of scope: computed colours and contrast (jsdom doesn't compute Tailwind CSS: assert class names and inline styles instead), mounting `<Toaster/>` in the app, any new dependency.
+- Size: ~150 test lines.
+
+## Acceptance criteria
+- [ ] AC1 — **Tooltip / Popover:** rendered open (`open` prop or `defaultOpen`), the content is in `document.body` but **outside** the render container (portal), has `font-sans`, `bg-popover` and `text-popover-foreground` in its class list, and the forwarded `ref` points at that element. A caller `className` is merged (present alongside the defaults).
+- [ ] AC2 — **Collapsible:** with `defaultOpen` the content text is in the document and `data-state="open"`; closed, the content text is not in the document; clicking the trigger (`user-event`) opens it.
+- [ ] AC3 — **ScrollArea / ScrollBar:** the viewport (`[data-radix-scroll-area-viewport]`) has `focus-visible:ring-inset` and `focus-visible:ring-ring` and no `ring-offset` class (pins the FE-0b inset-ring deviation); the Root's ref forwards; children render inside the viewport.
+- [ ] AC4 — **Separator:** default renders `role="none"` with `h-px w-full`; `decorative={false}` renders `role="separator"`; `orientation="vertical"` gives `h-full w-px` (and `aria-orientation="vertical"` when not decorative).
+- [ ] AC5 — **Toaster:** the rendered sonner section (`ref` target) carries the inline variables `--normal-bg: hsl(var(--popover))`, `--normal-text`, `--normal-border`, `--border-radius`; a caller `style={{ "--normal-bg": "red" }}` overrides that one variable and keeps the other three. After `toast("t", { description: "d" })`, the description element (`[data-description]`) has `!text-muted-foreground`; with `toastOptions={{ classNames: { title: "x-title", description: "x-desc" } }}` the title has `x-title` and the description has both `!text-muted-foreground` and `x-desc` (pins the FE-0b F3 fix). No `data-sonner-theme="dark"` is needed for this.
+- [ ] AC6 — **Mutation check:** the developer reports (in Notes, with output) that the AC5 description assertion fails when `sonner.jsx`'s `classNames.description` line is removed, and the AC3 assertion fails when `ring-inset` is replaced by `ring-offset-2`. Changes reverted before commit.
+- [ ] AC7 — `npm run lint` (0 warnings) and `npm test` pass in CI on the draft PR; test file count goes up by one versus main.
+- [ ] Docs: none.
+
+## Verification
+```bash
+# CI (source of truth): Frontend job on the draft PR
+cd frontend && npm ci && npm run lint && npm test && npm run build
+
+# Scope (sandbox)
+git diff origin/main --name-only     # exactly frontend/src/components/ui/primitives.test.jsx
+git diff origin/main --shortstat
+```
+
+## Notes
+- 2026-11-20 (pm-lead): created from FE-0b QA "Missing tests" (raised r1, carried r2/r3) at the FE-0b final review. Kept separate from FE-3/FE-4
+  so those stay under 400 lines and so the primitives have tests before their first callers. Independent of FE-0c (different files). Jira story
+  to be created by the orchestrator (pm-lead did not touch Jira in this review).
+- jsdom notes: Radix Tooltip/Popover may need `ResizeObserver` and `DOMRect` stubs in the test file (not in `setup.js`, which is out of scope); sonner renders toasts asynchronously, so use `findBy*`/`waitFor`.

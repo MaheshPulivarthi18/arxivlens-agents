@@ -1,13 +1,13 @@
 # Board
 
-Last updated: 2026-11-20 by pm-lead (PM review: OPS-H7a2 a2a #83 APPROVE → Ready to merge). Before: 2026-11-20 13:10Z by pm-lead (cycle 13:00Z sync + grooming: #65/#66/#68/#69/#76/#77/#78/#80 merged 08:46–09:38Z, and the earlier merges #51–#63, #71–#75 that the board never recorded, moved to Done; specced RET-1c, FE-0c, OPS-H7a2b; FE-3 picked for its design step). Before: 2026-11-20 08:10Z by pm-lead (cycle 08:00Z grooming: OPS-H15, OPS-H5b specced). Before: 2026-11-20 05:10Z by pm-lead (cycle 05:00Z grooming: OPS-H6c, AI-12b, ING-11c, LLM-1d specced)
+Last updated: 2026-11-20 by pm-lead (FE-0b #70 final review: APPROVE, raised → Ready to merge; specced FE-0d). Before: 2026-11-20 by pm-lead (PM review: OPS-H7a2 a2a #83 APPROVE → Ready to merge). Before: 2026-11-20 13:10Z by pm-lead (cycle 13:00Z sync + grooming: #65/#66/#68/#69/#76/#77/#78/#80 merged 08:46–09:38Z, and the earlier merges #51–#63, #71–#75 that the board never recorded, moved to Done; specced RET-1c, FE-0c, OPS-H7a2b; FE-3 picked for its design step). Before: 2026-11-20 08:10Z by pm-lead (cycle 08:00Z grooming: OPS-H15, OPS-H5b specced). Before: 2026-11-20 05:10Z by pm-lead (cycle 05:00Z grooming: OPS-H6c, AI-12b, ING-11c, LLM-1d specced)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). **Open PRs and their files** (REST, 2026-11-20 13:00Z; app `main` = `c37d27c`):
 #70 FE-0b (`frontend/src/components/ui/collapsible.jsx`, `popover.jsx`, `scroll-area.jsx`, `separator.jsx`, `sonner.jsx`, `tooltip.jsx`) ·
 #79 LLM-1d (`internal/llm/openai_test.go`) · #81 OPS-H5b (`internal/query/search_integration_test.go`) · #82 EVAL-10a (`tests/test_evals_data.py`) ·
 #83 OPS-H7a2a (`cmd/arxivlens/main.go`, `internal/dlq/kafka.go`, `kafka_integration_test.go`, `manager.go`, `manager_test.go`).
-Active (counts toward WIP): backend 0, frontend 1 (#70), ai 0. Ready to merge (doesn't count): #79, #81, #82, #83.
+Active (counts toward WIP): backend 0, frontend 0, ai 0. Ready to merge (doesn't count): #70, #79, #81, #82, #83.
 `cmd/arxivlens/main.go` order (one file, one PR at a time): OPS-H7a2a (#83) → OPS-H7a2b → ING-6c → OPS-H7b → OPS-H7c. `rag.go` is free (AI-8b merged); next is AI-5 if ADR-0011 is Accepted.
 `ReferencesStack.jsx`/`SynthesisView.jsx` order: FE-3 → FE-4 / FE-2. `tests/test_evals_data.py`: ai follow-ups (EVAL-6 `classify`, EVAL-7 `build_rows`, EVAL-10a README nit) wait for #82.
 Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; see the 2026-11-17 grooming notes.
@@ -23,6 +23,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1, FE-0 merged; **after FE-3** (`ReferencesStack.jsx`) | |
 | 7 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | after #83 + OPS-H7a2b merge | |
 | 8 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
+| 9 | [FE-0d](tasks/FE-0d.md) | Render tests for the six FE-0b ui primitives | frontend-engineer | P2 | **after #70 merges** | new from FE-0b PM review; one new test file; needs Jira story |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -31,7 +32,6 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
-| [FE-0b](tasks/FE-0b.md) (KAN-73) | Six themed ui primitives | frontend-engineer | [#70](https://github.com/MaheshPulivarthi18/ArxivLens/pull/70) `d10dc7f` — QA r3 running (2026-11-20 13:00Z cycle) |
 
 ## PM review
 | ID | Title | Owner | PR |
@@ -40,6 +40,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
+| [FE-0b](tasks/FE-0b.md) (KAN-73) | Six themed ui primitives | frontend-engineer | [#70](https://github.com/MaheshPulivarthi18/ArxivLens/pull/70) `d10dc7f` | QA PASS r3 · PM APPROVE |
 | [LLM-1d](tasks/LLM-1d.md) (KAN-82) | `TestTLSError`: `"\r\n"` instead of the raw string | backend-engineer | [#79](https://github.com/MaheshPulivarthi18/ArxivLens/pull/79) `fc6d79d` | QA PASS r1 · PM APPROVE |
 | [OPS-H5b](tasks/OPS-H5b.md) (KAN-84) | `TestHNSWVectorHits` cleans up, refuses a non-empty DB | backend-engineer | [#81](https://github.com/MaheshPulivarthi18/ArxivLens/pull/81) `8cae68b` | QA PASS r1 · PM APPROVE |
 | [EVAL-10a](tasks/EVAL-10a.md) (KAN-85) | Pin errored cases in the `/v1/ask` summary ID lines | ai-engineer | [#82](https://github.com/MaheshPulivarthi18/ArxivLens/pull/82) `69aaaf4` | QA PASS r1 · PM APPROVE |

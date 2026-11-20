@@ -77,3 +77,6 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   and for the reserved ADR-0014 statuses (`partially_supported`, `contradicted`): neither may read Supported/Verified. FE-1's tests leave both mutants alive.
   (c) QA re-confirmed the "PostgreSQL pgvector Verified" footer (`SynthesisView.jsx:115`) and the export heading (`:50`) are still on main (AC5).
 - 2026-11-20 13:00Z (pm-lead, sync): FE-1 (#68 `2410d2e`) and FE-0 (#69 `54c4de8`) merged; FE-0b #70 is in QA r3. Picked for the design step only: the developer writes `docs/design/FE-3.md`, pm-lead reviews; no product code until #70 merges (its `ui/tooltip` API is FE-0 design §6). FE-0c's drift guard (AC1) will catch AC8 changing only one of the two default literals.
+- 2026-11-20 (pm-lead, FE-0b final review): #70 is raised (Ready to merge). For the design: `Tooltip` wraps its Root in its own Provider (`delayDuration=300`),
+  and the innermost Provider wins, so an app-level `<TooltipProvider>` does **not** change these tooltips' delay (FE-0b QA r1 N1; comment in `tooltip.jsx`).
+  Don't add one expecting it to work. Tooltips stay supplementary: each chip keeps visible status text. Render tests for the primitives are FE-0d.

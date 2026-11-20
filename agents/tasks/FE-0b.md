@@ -8,7 +8,7 @@
 | **Depends on** | FE-0's design approved (2026-11-19, `docs/design/FE-0.md` §6 is this ticket's API) **and FE-0 #69 merged** (pm-lead, QA r1 F1, option a). Correction: `origin/main`'s `tailwind.config.js` does **not** map `popover`, so `bg-popover`/`text-popover-foreground` generate no CSS until #69 adds the `popover` colour entry. The other token names (`border-border`, `ring-ring`, `bg-accent`) are mapped |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-0b"`) |
 | **Design required** | no: covered by `docs/design/FE-0.md` §6 (approved). Any deviation from that table is written in this ticket's Notes before code |
-| **Status** | In QA: draft #70 |
+| **Status** | Ready to merge (PR #70 raised; QA PASS r3, PM APPROVE) |
 
 ## Goal
 Ship the six remaining shadcn-style Radix/sonner wrappers that the FE-0 design specifies, so FE-3 (status-chip tooltips) and FE-4
@@ -100,3 +100,9 @@ grep -nE '^export ' src/components/ui/{tooltip,popover,collapsible,scroll-area,s
   - [ ] Missing render tests: not in scope (tests are out of this ticket's scope); left to pm-lead as a follow-up or FE-3/FE-4.
   - CI on `d10dc7f`: Frontend job 136203251672 checked out `Merge d10dc7f… into 3835dee…`; `Found 0 warnings and 0 errors.` (34 files), `Test Files 3 passed (3)`, `✓ 1923 modules transformed`, `✓ built in 997ms`.
   - Not run locally: `npm ci`/lint/test/build (npm registry unreachable from the sandbox, `npm ci` hangs). Rendering the toast was not done by me; QA r3 re-runs the r2 harness.
+- 2026-11-20 (pm-lead, final review): **APPROVE** at `d10dc7f` (QA PASS r3, `agents/reviews/FE-0b/report.md`). PR #70 raised (ready for review). The two §6 deviations
+  (inset viewport ring, toast description class) are accepted as justified. Open items are tracked like this:
+  - [x] N4 (design §6 out of date): amendment note added under the §6 table in `docs/design/FE-0.md`.
+  - [x] Missing render tests: follow-up **[FE-0d](FE-0d.md)** (P2, frontend, after #70 merges).
+  - [x] N3 (`tabIndex={0}` + `aria-label` on plain-text ScrollAreas) and the `!` needed for a caller's toast description colour: added to FE-4's Notes (and the §6 amendment).
+  - [x] N1 (an app-level `TooltipProvider` can't configure `Tooltip`): added to FE-3's Notes.

@@ -196,3 +196,42 @@ None blocking.
 
 ### Hand-off
 **PASS → pm-lead** for final review (stage 4). The PR stays draft until pm-lead raises it.
+
+---
+
+## PM review (pm-lead) — round 3
+
+**Verdict: APPROVE** · **Commit:** `d10dc7f6d8a567330826b89b14118e23bcc2da1c` · **Date:** 2026-11-20 · **Evidence reviewed:** `b541c8f` files 21–29 (all opened)
+
+**Product fit.** The ticket's goal is shared, token-styled, accessible primitives that FE-3 (status-chip tooltips) and FE-4 (`[n]` popovers, collapsible
+passages) can build on, serving UI-1/UI-2 and §7 principles 1 "Evidence first" and 3 "One click to the source". The smoke render of the **real** components
+(25 light/dark) shows a readable tooltip and an `[n]`-style popover with a citation quote in both themes, a working collapsible, an overflowing scroll area with a
+visible keyboard focus ring (25 focused, inset 2px ring in the `--ring` colour) and a theme-following toast whose description passes AA in both themes
+(6.73:1 / 6.68:1, 26). Nothing is mounted or user-visible yet, so no README or PRD status change is due (UI-1/UI-2 are already ✅; the user-visible change
+comes with FE-3/FE-4).
+
+**Scope.** Exactly six new files, 169 insertions, no existing file, dependency or contract touched (23, PR files API). The two deviations from design §6
+(inset viewport ring, toast description token class) are needed to meet AC2's "FV ring" and AC3's "theme-following toasts" as users need them. Both are
+recorded in the ticket Notes and the PR body, and I accept them. Nothing extra: the forwardRef on `Toaster` and the `TooltipProvider` default were
+design-silent choices, and both are harmless.
+
+**Evidence per AC.**
+| AC | Evidence | Convincing? |
+|---|---|---|
+| AC1 | 21 (5/5 checks green on `d10dc7f`), 22 (Frontend job on merge with main `3835dee`: 0/0 on 34 files vs 28 on main, 3 test files pass, build OK) | yes. The build tree-shakes the unimported files, and AC6's real-component bundle covers that gap |
+| AC2 | 24 (imports, exports, forwardRef/displayName, Portal + `font-sans`, palette/motion grep exit 1), 27 (43/43 classes generate), 25 facts (portal, font, z-50, inset ring) | yes |
+| AC3 | 24 (`sonner.jsx:15-18` variables, no `theme`), 26 (description contrast plus caller-merge case plus r2 control reproducing 1.56:1) | yes; the control proves the harness detects the defect |
+| AC4 | 22 (lint 0 warnings with `only-export-components` active), 24 (`tooltip.jsx:13-14`) | yes |
+| AC5 | 23 (6 × `A`, 169 lines, merges cleanly with current main `c37d27c`), 28 (ownership OK) | yes |
+| AC6 | 25 light, 25 dark, 25 facts (0 console errors; library versions = lockfile in 29), 25 focused light/dark | yes |
+| Docs | 23 (README untouched) | yes (none required) |
+
+No "⚠ unverified" remains on anything that matters. Local `npm ci` was not possible (registry blocked); CI is the source of truth and is green.
+
+**Open items, and how they are tracked.**
+1. N4 (design §6 text out of date): fixed now. An amendment note under the §6 table in `docs/design/FE-0.md` describes both deviations.
+2. Missing render tests: follow-up [FE-0d](../../tasks/FE-0d.md) (P2, frontend-engineer, after #70 merges; Jira story still to be created).
+3. N3 (`tabIndex={0}` + `aria-label` on plain-text ScrollAreas) and QA r3 nit 2 (caller description colour needs `!`): written into FE-4's Notes and the §6 amendment.
+4. N1 (an app-level `TooltipProvider` has no effect): written into FE-3's Notes.
+
+**Action:** PR #70 description rewritten with the Evidence section and marked ready for review. Board → Ready to merge.

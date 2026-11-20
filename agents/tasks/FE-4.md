@@ -49,3 +49,7 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   on a dense reference card. AC2 still holds: Enter/click on `[n]` focuses the card, and the popover is extra help that must not trap focus.
   Status chips use the FE-0 status tokens, with *not checked* distinct from *unsupported*.
 - 2026-11-20 13:00Z (pm-lead, sync): AI-8b (#65 `d121a68`), FE-1, FE-0 merged; still needs FE-3 and FE-0b.
+- 2026-11-20 (pm-lead, FE-0b final review): #70 is raised (Ready to merge). Two caller-side rules from FE-0b QA for the design (also in `docs/design/FE-0.md` §6 amendment):
+  (a) N3: a `ScrollArea` holding plain-text passages (no focusable children) gets `tabIndex={0}` and an `aria-label`; Radix sets no `tabindex` and Safari
+  doesn't make scroll containers focusable. (b) If FE-4 shows toasts, a custom description colour in `toastOptions.classNames.description` needs `!`
+  (the Toaster's `!text-muted-foreground` wins otherwise). Render tests for the primitives are FE-0d.
