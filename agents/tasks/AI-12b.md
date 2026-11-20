@@ -1,0 +1,79 @@
+# AI-12b: Tests for `/internal/embed` during an in-flight ingest, and a failed embedder-worker build (test-only)
+
+| | |
+|---|---|
+| **Owner** | ai-engineer |
+| **Priority** | P2 |
+| **PRD ref** | Product PRD ING-4 (on-demand ingest) and QA latency rows (§8: `/v1/ask` must not queue behind an ingest); follow-up from the AI-12 QA/PM review (`agents/reviews/AI-12/report.md`: QA nit 2 and the two missing tests, PM follow-up line 90) |
+| **Depends on** | AI-12 (#73, merged `e6cffba`). No open PR touches `tests/test_verify.py` or `services/embedder/` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
+| **Jira** | to create (epic KAN-4 "Continuous ingestion", as for AI-12; labels `task-AI-12b`, `agent-ai`, `arxivlens`) |
+| **Design required** | no: two tests, no production code, contract, CLI, table or service change |
+| **Status** | Ready |
+
+## Goal
+AI-12 made `/internal/ingest` reuse the startup-loaded embedding model and serialized the whole ingest pipeline under `_ingest_lock`
+(`services/embedder/api.py:288,305`). `/internal/embed` (`api.py:229`), which `/v1/search` and `/v1/ask` call for every query, uses the
+same model object **without** the lock. That's on purpose: a query must not wait behind a 30–80 s ingest. No test pins it, though,
+and no test covers an `EmbedderWorker` build that fails after the `ProcessorWorker` slot is already cached. Add both tests, so a later
+change that locks `/internal/embed`, or that drops and rebuilds the processor on an embedder failure, goes red.
+
+## Scope
+- Files expected to change (and only this one): `tests/test_verify.py`. Use the existing `ingest` fixture (`tests/test_verify.py:179`).
+  It may gain one knob for the embedder-construction failure (e.g. `emb_init_failures`, mirroring `proc_init_failures`) and the
+  matching lines in `FakeEmbedderWorker.__init__`. Those fixture lines are the only allowed deletions/edits. Every existing test function
+  stays unmodified.
+- Out of scope: `services/embedder/api.py`, `worker.py`, or any other production change. If a test shows current behaviour differs
+  from an AC, **stop and report** in Notes, and don't change the code. Also out of scope: the `/internal/rerank` bi-encoder fallback
+  (same unlocked model, different endpoint; mention in Notes if worth a row later) and `stack.yml` second-paper timing (separate Backlog line).
+
+## Acceptance criteria
+- [ ] AC1 (embed isn't serialized behind ingest): set `api.embedder` to a fake model whose `embed_texts(texts, is_query)` returns a
+  `numpy` array of shape `(len(texts), 768)`. Start one `ingest_paper_endpoint` call in a thread with the fixture's `call_sleep`
+  widened (e.g. 0.5 s), and wait on a `threading.Event` (or poll the fixture log) until its first `process_message` has **entered**. Then
+  call `api.embed_texts_endpoint(api.EmbedRequest(texts=["q"], is_query=True))`. Assert that it returns `dim == 768` and one vector
+  **while the ingest is still in progress** (`api._ingest_lock.locked()` is True at return, or the fixture log has no matching "exit"
+  yet). After joining the thread, assert that the ingest returned `status == "success"`.
+- [ ] AC2 (same model object): in the AC1 test, the fake `EmbedderWorker` was built with `embedder=<the same fake model object>` that
+  served the embed call (identity, `is`), and that object's `embed_texts` was called by the embed endpoint (call recorded).
+- [ ] AC3 (embedder build fails while processor is cached): fresh slots, embedder construction fails once. The first request
+  raises `HTTPException` with `status_code == 500`. After it, `api._processor_worker` is **not None** and `ingest.proc_inits == 1`, and
+  `api._embedder_worker is None`. A second request returns `status == "success"`, and the processor was still built only once
+  (`proc_inits == 1`, same object as after the first request, checked with `is`). The embedder fake saw 2 construction attempts.
+- [ ] AC4 (mutation, one per behaviour; QA applies each to `services/embedder/api.py` in a scratch checkout and names the failing test):
+  (a) wrap the body of `embed_texts_endpoint` in `with _ingest_lock:` → the AC1 test fails. It must **fail, not hang**: use
+  `join(timeout=…)` / a bounded wait so the mutant reports within 10 s.
+  (b) in `_ingest_workers`, build the embedder worker before the processor, or reset `_processor_worker = None` when the embedder build
+  raises (any one variant that rebuilds the processor) → the AC3 test fails on `proc_inits` or identity.
+  (c) cache a placeholder in `_embedder_worker` before construction (it stays set on failure) → the AC3 test fails.
+- [ ] AC5 (stable): `for i in $(seq 20); do python3 -m pytest -q -k 'ingest or embed' tests/test_verify.py || break; done` passes
+  20/20 on the real code (paste the loop result). The new tests together add < 2 s to `tests/test_verify.py`.
+- [ ] AC6: CI `ci.yml` job `Python M0 unit tests`, step `make test-py` passes (`tests/test_verify.py` is in `test-py`, `Makefile:49`).
+  The step uses `pytest -q`, so also quote `python3 -m pytest -rA tests/test_verify.py` locally, or the `stack.yml` `-rA` lines naming
+  the new tests as `PASSED` (`stack.yml` runs on `tests/**` PRs). `ruff` reports no findings on added lines. The diff touches only
+  `tests/test_verify.py`, with deletions limited to the fixture lines named in Scope. The ownership check passes for role=ai.
+- [ ] Docs: none (test-only). Each test's docstring says what it pins and why (embed must not wait behind ingest).
+
+## Verification
+```bash
+python3 -m pytest -rA tests/test_verify.py
+for i in $(seq 20); do python3 -m pytest -q -k 'ingest or embed' tests/test_verify.py || break; done   # AC5
+ruff check --isolated --select E,F,W --line-length 130 tests/test_verify.py   # no findings on added lines
+.github/scripts/ownership-check.sh origin/main agent/ai/AI-12b
+git diff --stat origin/main && git diff --numstat origin/main
+```
+Importing `services.embedder.api` needs torch/transformers/fastapi (installed in CI's Python job). If the sandbox lacks them, a
+scratch-only stub plugin like AI-12's is fine for local runs (say so), and CI is the source of truth. `make eval`: not run, because
+nothing in retrieval or answering changes.
+
+## Notes
+- 2026-11-20 05:00Z (pm-lead): specced from the Backlog line "From the AI-12 PM review (ai, P2): … tests for concurrent
+  `/internal/embed` + `/internal/ingest` on the shared startup model, and for `EmbedderWorker` construction failing while the processor
+  slot is cached". Checked on app `origin/main` `e6cffba`: `_ingest_workers` (`api.py:293-301`) builds the processor first and the
+  embedder second, each only if its slot is `None`. `embed_texts_endpoint` (`api.py:229-243`) takes no lock. The existing AC5 test
+  `test_ingest_failed_worker_construction_is_not_cached` covers only a **processor** failure.
+- PM decision (within the ticket, no contract involved): the property to pin is "embed doesn't wait for the ingest lock", not
+  "embed and ingest run truly in parallel on the model". The BGE model is already shared by concurrent `/internal/embed` calls (QA AI-12
+  nit 2), and a threading race on the model itself can't be shown reliably with fakes.
+- The `stack.yml` second-paper timing half of the same AI-12 Backlog line is **not** in this ticket. It changes `stack.yml`
+  (backend-owned) and the arXiv replay prefetch list (`--id`), so it needs its own spec.
+- Independent of every open PR (#65 touches `tests/test_evals_data.py` but not `tests/test_verify.py`), and of OPS-H6c, ING-11c and LLM-1d.

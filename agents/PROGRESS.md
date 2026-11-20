@@ -725,3 +725,13 @@ Format:
 - QA harnesses again couldn't write `report.md`; orchestrator saved both PR comments verbatim with provenance (`ba21d26`). PM follow-ups → Backlog (server.go ignored Encode error; optional rows; LLM-1c raw-string nit).
 - **Waiting on Mahesh: 9 PRs ready for review (#65, #66, #68, #69, #71–#75)**; ADRs and EVAL-8 question unchanged.
 - Retro (short): (1) 2/2 first-round PASS; small, mutant-specified ACs keep QA quick; (2) the QA `report.md` write refusal is now a standing harness limit (every QA agent for 3 cycles) — the verbatim-save fallback works, but the saved copies show the outbound filter's backtick rewrite of links (already a Backlog line); (3) the review queue for Mahesh keeps growing (9 PRs) while new Ready work depends on those merges — grooming more follow-ups adds review load rather than unblocking anything.
+
+## 2026-11-20 05:00Z — pm-lead grooming (Step 3; Ready column all waiting on unmerged PRs)
+- App `origin/main` = `e6cffba` (Mahesh merged #71–#75). Re-checked file lists of the 5 open PRs via REST: #65 (`README.md`, `internal/query/rag*.go`, `tests/test_evals_data.py`), #66 (`db.yml`, `image-pins.yml`, `CONTRIBUTING.md`, `docker-compose.yml`), #68/#69/#70 (`frontend/**`, #69 also root `README.md`).
+- Specced 4 test-only tasks from existing Backlog lines, independent of every open PR and of each other (one file each, no shared contract):
+  **OPS-H6c** (backend, P2, `internal/kafka/consumer_test.go`: deadline-ended ctx row, kills OPS-H6b QA mutant M9),
+  **AI-12b** (ai, P2, `tests/test_verify.py`: `/internal/embed` returns while `/internal/ingest` holds `_ingest_lock` and uses the same model object; failed `EmbedderWorker` build keeps the cached processor),
+  **ING-11c** (ai, P3, `tests/test_m2_pipeline.py`: "page row but NULL page_number" message; owner ai since `tests/` is shared and backend has 2),
+  **LLM-1d** (backend, P3, `internal/llm/openai_test.go:585`: `"\r\n"` instead of the raw string; lowest value, droppable).
+- Not picked: EVAL-6 `classify()` and EVAL-7 `build_rows` tests (both test in `tests/test_evals_data.py`, open in #65); AI-12 `stack.yml` second-paper timing (backend-owned `stack.yml` + replay prefetch list, needs its own spec); `server.go` Encode-error logging (no handler seam checked yet; next pass); frontend items (after #68/#69/#70).
+- Review-load note: these add up to 4 more PRs to a Mahesh queue of 4 open Ready-to-merge PRs plus FE-0b; all are small test-only diffs.
