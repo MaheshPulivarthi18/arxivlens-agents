@@ -1,0 +1,23 @@
+$ bash -c echo "HEAD=$(git rev-parse --short HEAD)"; git diff --stat origin/main...HEAD; echo; echo "-- App.jsx diff:"; git diff origin/main...HEAD -- frontend/src/App.jsx | grep "^[-+][^-+]"; echo; git diff --name-only origin/main...HEAD | grep -vE "^frontend/" || echo "no files outside frontend/"; echo; bash .github/scripts/ownership-check.sh origin/main agent/frontend/FE-3a 2>&1 | tail -3
+HEAD=fa92c30
+ frontend/src/App.jsx                             |   1 +
+ frontend/src/components/HeroSearch.jsx           |   2 +-
+ frontend/src/components/ReferencesStack.jsx      |  56 ++++--------
+ frontend/src/components/ReferencesStack.test.jsx |  67 ++++++++++++--
+ frontend/src/components/SynthesisView.jsx        | 112 +++++++++++++++--------
+ frontend/src/components/SynthesisView.test.jsx   | 101 ++++++++++++++++++--
+ frontend/src/components/ui/badge.jsx             |  10 +-
+ frontend/src/lib/citations.js                    |  51 +++++++++++
+ frontend/src/lib/citations.test.js               |  85 +++++++++++++++++
+ frontend/src/test/fixtures.js                    |  46 +++++++++-
+ 10 files changed, 433 insertions(+), 98 deletions(-)
+
+-- App.jsx diff:
++                    refusalReason={searchResult.refusal_reason}
+
+no files outside frontend/
+
+::warning::531 changed lines (> 400). Consider splitting the change.
+Ownership OK for role=frontend (531 changed lines)
+
+[exit code 0]

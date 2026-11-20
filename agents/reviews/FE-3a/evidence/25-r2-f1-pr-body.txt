@@ -1,0 +1,25 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/86 --jq '"PR #86 head=\(.head.sha[0:7]) draft=\(.draft) merged=\(.merged) updated=\(.updated_at)"'; echo; echo '-- lines naming FE-3a2 / App-level / follow-up:'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/86 --jq .body | grep -n -iE 'FE-3a2|App-level|follow-up|^### |496|531|^- \[ \]'
+PR #86 head=fa92c30 draft=true merged=false updated=2026-11-20T18:09:03Z
+
+-- lines naming FE-3a2 / App-level / follow-up:
+5:### What changed
+14:### FE-1 tests replaced or rewritten (PM change 4 / AC8)
+25:### Acceptance criteria
+26:- [x] AC1 (component level) — `SynthesisView.test.jsx › refusal A/C shows its copy…` and `ReferencesStack.test.jsx › refusal A: heading…, "Unsupported · 31.0%" and "Not checked"…, no "0.0%"`, `› refusal C: every chip reads "Not checked"`. The hero sentence matching `/verified/i` is replaced. **App-level whole-tree assert: moved to the follow-up (see below).**
+27:- [x] AC2 (component level) — `SynthesisView › refusal B …` (copy, `role=status`, no alert). **App-level fetch/toast test: follow-up.**
+29:- [ ] AC4 — early refusal code path is unchanged in this PR (App.jsx diff is the one `refusalReason` line). **Its explicit App test is in the follow-up.**
+31:- [x] AC6 (component level) — `SynthesisView › refusal panel is in the tab order through its passages link`, `› a refusal with zero citations still renders the panel, without a link`; `ReferencesStack` asserts `#references-heading` with `tabindex=-1`. **Link→focus in the full App and the two-stage rows: follow-up.**
+32:- [ ] AC7 — CI `frontend` job (see below).
+35:### Size and the App.test.jsx split
+36:With `src/App.test.jsx` (144 lines) the diff was 640 changed lines, past the ~550 limit in the PM decision (change 5), so it is moved to a follow-up task instead of trimming coverage. This PR: 10 files, +398 / −98 (496; ~470 was the accepted estimate). The follow-up adds only `src/App.test.jsx` (fixtures `earlyRefusal`, `refusalB`, `refusalC` are already here): whole-tree `/verified/i` for A and C, refusal B with `fetch` stubbed (toast only ever `''`, no alert, `fetch` once), early refusal + discover POST, link → focus, two-stage swap and full-stage refusal.
+38:### Verification
+44:| `.github/scripts/ownership-check.sh origin/main agent/frontend/FE-3a` | `Ownership OK for role=frontend (496 changed lines)` (warning: > 400) |
+47:### Not verified / risks
+52:### Follow-ups created
+53:- App-level tests for FE-3a (`src/App.test.jsx`, ~144 lines), requested in the ticket Notes for pm-lead to spec.
+55:### Evidence (filled by pm-lead when raising the PR)
+57:### Rework r1 (QA FAIL r1 → head `fa92c30`)
+58:- F1: App-level tests (AC1 whole-tree, AC2 fetch/toast, AC4 explicit asserts + discover POST, AC6 focus + two-stage) → FE-3a2, after this PR merges.
+62:### Review status (filled by the workflow)
+
+[exit code 0]

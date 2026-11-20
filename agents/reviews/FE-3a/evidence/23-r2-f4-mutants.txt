@@ -1,0 +1,42 @@
+$ bash -c echo '== control: unmutated fa92c30'; node /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-3a-r2/harness/run.mjs /root/wt/qa-FE-3a-r2/frontend; echo; echo '== mutants'; /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-3a-r2/harness/mutants.sh /root/wt/qa-FE-3a-r2/frontend
+== control: unmutated fa92c30
+pass  T1 refusal B: heading has "Retrieved passages (no answer was shown)"
+pass  T1 refusal B: heading text contains "2 passages"
+pass  T1 refusal B: card [1] has exact text "Unsupported · 22.0%"
+pass  T1 refusal B: card [2] has exact text "Not checked"
+pass  T1 refusal B: body has no /0\.0%|verified/i
+pass  T2 one passage: heading text matches /\b1 passage$/
+pass  T3 one passage: status panel link text === "Read the 1 retrieved passage"
+pass  T4 empty citations: an element with exact text "0 of 0 citations supported"
+
+== mutants
+M1 KILLED — heading badge always plural
+      FAIL  T2 one passage: heading text matches /\b1 passage$/
+      <             {citations.length} {refusalReason ? (citations.length === 1 ? 'passage' : 'passages') : 'cited'}
+      >             {citations.length} {refusalReason ? 'passages' : 'cited'}
+M2 KILLED — panel link always plural
+      FAIL  T3 one passage: status panel link text === "Read the 1 retrieved passage"
+      <                 Read the {cits.length} retrieved passage{cits.length === 1 ? '' : 's'}
+      >                 Read the {cits.length} retrieved passage{'s'}
+M3 KILLED — footer hidden when an answer has no citations
+      FAIL  T4 empty citations: an element with exact text "0 of 0 citations supported"
+      <       {!refusalReason && (
+      >       {!refusalReason && cits.length > 0 && (
+M4 KILLED — footer drops the total
+      FAIL  T4 empty citations: an element with exact text "0 of 0 citations supported"
+      <             {supportedCount} of {cits.length} citations supported
+      >             {supportedCount} citations supported
+M5 KILLED — B refusal shows every chip Not checked
+      FAIL  T1 refusal B: card [1] has exact text "Unsupported · 22.0%"
+      <         const check = citationState(cit, { refusal: !!refusalReason });
+      >         const check = (refusalReason === 'verification_unavailable' ? { kind: 'unchecked', text: 'Not checked', tooltip: '' } : citationState(cit, { refusal: !!refusalReason }));
+M6 KILLED — drop the unverified -> unchecked rule
+      FAIL  T1 refusal B: card [2] has exact text "Not checked"
+      FAIL  T1 refusal B: body has no /0\.0%|verified/i
+      <   if (status === 'unverified') return 'unchecked';
+M7 KILLED — B refusal keeps the answer-mode heading
+      FAIL  T1 refusal B: heading has "Retrieved passages (no answer was shown)"
+      <           <span>{refusalReason ? 'Retrieved passages (no answer was shown)' : 'References'}</span>
+      >           <span>{refusalReason && refusalReason !== 'verification_unavailable' ? 'Retrieved passages (no answer was shown)' : 'References'}</span>
+
+[exit code 0]

@@ -1,0 +1,20 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136473216598 --jq '"job head_sha=\(.head_sha) conclusion=\(.conclusion)"'; sed -E 's/\x1b\[[0-9;]*m//g' /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-3a-r2/fe-job.log | grep -E 'HEAD is now at|Found [0-9]+ warnings|✓ src/|Test Files|Tests |built in'; echo; echo '--- r1 head e90de79 (job 136324730223) for comparison:'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136324730223/logs | sed -E 's/\x1b\[[0-9;]*m//g' | grep -E '✓ src/|Tests '
+job head_sha=fa92c301e7f0fd5b71a0c0d25e4aadf2732e66a2 conclusion=success
+2026-11-20T18:06:08.7415300Z HEAD is now at 22dbda7 Merge fa92c301e7f0fd5b71a0c0d25e4aadf2732e66a2 into c37d27c1b77756db6100f538f7aaabf5362d584b
+2026-11-20T18:06:18.7871805Z Found 0 warnings and 0 errors.
+2026-11-20T18:06:20.4124496Z  ✓ src/lib/citations.test.js (35 tests) 10ms
+2026-11-20T18:06:20.9469648Z  ✓ src/components/ReferencesStack.test.jsx (13 tests) 411ms
+2026-11-20T18:06:20.9834234Z  ✓ src/components/SynthesisView.test.jsx (17 tests) 438ms
+2026-11-20T18:06:21.7128909Z  ✓ src/components/HeroSearch.test.jsx (5 tests) 418ms
+2026-11-20T18:06:21.7163570Z  Test Files  4 passed (4)
+2026-11-20T18:06:21.7164114Z       Tests  70 passed (70)
+2026-11-20T18:06:22.6920882Z ✓ built in 731ms
+
+--- r1 head e90de79 (job 136324730223) for comparison:
+2026-11-20T13:44:56.8178602Z  ✓ src/lib/citations.test.js (35 tests) 19ms
+2026-11-20T13:44:57.4080747Z  ✓ src/components/ReferencesStack.test.jsx (11 tests) 418ms
+2026-11-20T13:44:57.4532223Z  ✓ src/components/SynthesisView.test.jsx (15 tests) 462ms
+2026-11-20T13:44:58.1647746Z  ✓ src/components/HeroSearch.test.jsx (5 tests) 449ms
+2026-11-20T13:44:58.1673623Z       Tests  66 passed (66)
+
+[exit code 0]

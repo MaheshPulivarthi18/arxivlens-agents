@@ -1,0 +1,90 @@
+$ bash -c git diff --stat e90de79 fa92c30; echo; echo "product (non-test) files changed r1->r2:"; git diff --name-only e90de79 fa92c30 | grep -v "\.test\.jsx\?$" || echo "  (none)"; echo; git diff e90de79 fa92c30
+ frontend/src/components/ReferencesStack.test.jsx | 16 ++++++++++++++++
+ frontend/src/components/SynthesisView.test.jsx   | 21 ++++++++++++++++++++-
+ 2 files changed, 36 insertions(+), 1 deletion(-)
+
+product (non-test) files changed r1->r2:
+  (none)
+
+diff --git a/frontend/src/components/ReferencesStack.test.jsx b/frontend/src/components/ReferencesStack.test.jsx
+index a4494ef..a103e13 100644
+--- a/frontend/src/components/ReferencesStack.test.jsx
++++ b/frontend/src/components/ReferencesStack.test.jsx
+@@ -7,6 +7,7 @@ import {
+   unsupportedCitation,
+   unverifiedCitation,
+   refusalA,
++  refusalB,
+   refusalC,
+ } from '../test/fixtures';
+ 
+@@ -85,6 +86,21 @@ describe('ReferencesStack', () => {
+     expect(screen.getAllByRole('link', { name: /open pdf/i })).toHaveLength(2);
+   });
+ 
++  it('refusal B: "Unsupported · 22.0%" and "Not checked" chips under "2 passages"', () => {
++    renderStack(refusalB.citations, vi.fn(), refusalB.refusal_reason);
++    const heading = screen.getByRole('heading', { name: /Retrieved passages \(no answer was shown\)/ });
++    expect(heading).toHaveTextContent('2 passages');
++    expect(within(card(1)).getByText('Unsupported · 22.0%')).toBeInTheDocument();
++    expect(within(card(2)).getByText('Not checked')).toBeInTheDocument();
++    expect(document.body.textContent).not.toMatch(/0\.0%|verified/i);
++  });
++
++  it('refusal mode with one passage: heading badge reads "1 passage"', () => {
++    renderStack([refusalA.citations[0]], vi.fn(), refusalA.refusal_reason);
++    const heading = screen.getByRole('heading', { name: /Retrieved passages \(no answer was shown\)/ });
++    expect(heading).toHaveTextContent(/\b1 passage$/);
++  });
++
+   it('refusal C: every chip reads "Not checked"', () => {
+     renderStack(refusalC.citations, vi.fn(), refusalC.refusal_reason);
+     expect(screen.getByRole('heading', { name: /Retrieved passages \(no answer was shown\)/ })).toBeInTheDocument();
+diff --git a/frontend/src/components/SynthesisView.test.jsx b/frontend/src/components/SynthesisView.test.jsx
+index 90545f9..28218e0 100644
+--- a/frontend/src/components/SynthesisView.test.jsx
++++ b/frontend/src/components/SynthesisView.test.jsx
+@@ -2,7 +2,15 @@ import { describe, it, expect, vi } from 'vitest';
+ import { render, screen, within, cleanup } from '@testing-library/react';
+ import userEvent from '@testing-library/user-event';
+ import SynthesisView from './SynthesisView';
+-import { quotedAnswer, synthesizedAnswer, mixedAnswer, refusalA, refusalB, refusalC } from '../test/fixtures';
++import {
++  quotedAnswer,
++  synthesizedAnswer,
++  mixedAnswer,
++  earlyRefusal,
++  refusalA,
++  refusalB,
++  refusalC,
++} from '../test/fixtures';
+ 
+ const COPY_A = /A draft answer was written, but none of its statements was supported by the passages it cited, so it isn't shown\. The passages that were found are listed as evidence\./;
+ const COPY_B = /Citation checking is unavailable right now, so the answer couldn't be checked and isn't shown\. The passages that were found are listed as evidence\. Try again in a moment\./;
+@@ -88,6 +96,12 @@ describe('SynthesisView', () => {
+     expect(document.activeElement).toBe(link);
+   });
+ 
++  it('a refusal with one passage links "Read the 1 retrieved passage"', () => {
++    renderView({ ...refusalA, citations: [refusalA.citations[0]] });
++    const panel = screen.getByRole('status', { name: /no answer shown/i });
++    expect(within(panel).getByRole('link', { name: 'Read the 1 retrieved passage' })).toBeInTheDocument();
++  });
++
+   it('a refusal with zero citations still renders the panel, without a link', () => {
+     renderView({ ...refusalA, citations: [] });
+     const panel = screen.getByRole('status', { name: /no answer shown/i });
+@@ -109,6 +123,11 @@ describe('SynthesisView', () => {
+     expect(screen.getByText('1 of 3 citations supported')).toBeInTheDocument();
+   });
+ 
++  it('answer-mode footer with no citations reads "0 of 0 citations supported"', () => {
++    renderView(earlyRefusal);
++    expect(screen.getByText('0 of 0 citations supported')).toBeInTheDocument();
++  });
++
+   it('Export Note writes "## References" and each entry ends with its chip text', async () => {
+     const user = userEvent.setup();
+     const props = renderView(mixedAnswer);
+
+[exit code 0]

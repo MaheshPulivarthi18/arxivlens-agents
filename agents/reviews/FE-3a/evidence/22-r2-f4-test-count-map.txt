@@ -1,0 +1,13 @@
+$ bash -c for f in frontend/src/components/ReferencesStack.test.jsx frontend/src/components/SynthesisView.test.jsx frontend/src/lib/citations.test.js frontend/src/components/HeroSearch.test.jsx; do a=$(git show e90de79:$f | grep -cE "^\s*it(\.each)?\("); b=$(git show fa92c30:$f | grep -cE "^\s*it(\.each)?\("); e=$(git show fa92c30:$f | grep -cE "^\s*it\.each"); echo "$f: it() blocks e90de79=$a fa92c30=$b (it.each blocks at head: $e)"; done; echo; echo "new it() titles at fa92c30 (not present at e90de79):"; for f in frontend/src/components/ReferencesStack.test.jsx frontend/src/components/SynthesisView.test.jsx; do diff <(git show e90de79:$f | grep -oE "^\s*it\(.*" ) <(git show fa92c30:$f | grep -oE "^\s*it\(.*") | grep "^>" | sed "s|^>|  $f:|"; done
+frontend/src/components/ReferencesStack.test.jsx: it() blocks e90de79=11 fa92c30=13 (it.each blocks at head: 0)
+frontend/src/components/SynthesisView.test.jsx: it() blocks e90de79=13 fa92c30=15 (it.each blocks at head: 1)
+frontend/src/lib/citations.test.js: it() blocks e90de79=7 fa92c30=7 (it.each blocks at head: 2)
+frontend/src/components/HeroSearch.test.jsx: it() blocks e90de79=5 fa92c30=5 (it.each blocks at head: 0)
+
+new it() titles at fa92c30 (not present at e90de79):
+  frontend/src/components/ReferencesStack.test.jsx:   it('refusal B: "Unsupported · 22.0%" and "Not checked" chips under "2 passages"', () => {
+  frontend/src/components/ReferencesStack.test.jsx:   it('refusal mode with one passage: heading badge reads "1 passage"', () => {
+  frontend/src/components/SynthesisView.test.jsx:   it('a refusal with one passage links "Read the 1 retrieved passage"', () => {
+  frontend/src/components/SynthesisView.test.jsx:   it('answer-mode footer with no citations reads "0 of 0 citations supported"', () => {
+
+[exit code 0]

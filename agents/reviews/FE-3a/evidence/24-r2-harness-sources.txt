@@ -1,0 +1,88 @@
+$ bash -c cd /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-3a-r2/harness && for f in $(find . -type f | sort); do echo "===== $f"; cat $f; done
+===== ./entry.jsx
+// Renders the four r2 scenarios with the real SynthesisView/ReferencesStack and runs the r2 tests' assertions on the live DOM.
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
+import SynthesisView from 'FE/src/components/SynthesisView.jsx';
+import ReferencesStack from 'FE/src/components/ReferencesStack.jsx';
+import { earlyRefusal, refusalA, refusalB } from 'FE/src/test/fixtures.js';
+const out = [];
+const ok = (name, cond) => out.push(`${cond ? 'pass' : 'FAIL'}  ${name}`);
+function mount(el) { const d = document.createElement('div'); document.body.innerHTML = ''; document.body.appendChild(d); const r = createRoot(d); flushSync(() => r.render(el)); return () => r.unmount(); }
+const view = (resp) => <SynthesisView answer={resp.answer} traceId={resp.trace_id} citations={resp.citations} answerKind={resp.answer_kind} refusalReason={resp.refusal_reason} writing={false} onCitationClick={() => {}} onCopy={() => {}} />;
+const card = (m) => [...document.querySelectorAll('[role=article]')].find((a) => new RegExp(`Citation \\[${m}\\]`).test(a.getAttribute('aria-label')));
+const heading = () => document.getElementById('references-heading');
+// T1 ReferencesStack refusal B
+let u = mount(<ReferencesStack citations={refusalB.citations} activeMarker={null} onCopy={() => {}} refusalReason={refusalB.refusal_reason} />);
+ok('T1 refusal B: heading has "Retrieved passages (no answer was shown)"', /Retrieved passages \(no answer was shown\)/.test(heading()?.textContent));
+ok('T1 refusal B: heading text contains "2 passages"', heading()?.textContent.includes('2 passages'));
+ok('T1 refusal B: card [1] has exact text "Unsupported · 22.0%"', [...card(1).querySelectorAll('*')].some((n) => n.textContent.trim() === 'Unsupported · 22.0%'));
+ok('T1 refusal B: card [2] has exact text "Not checked"', [...card(2).querySelectorAll('*')].some((n) => n.textContent.trim() === 'Not checked'));
+ok('T1 refusal B: body has no /0\\.0%|verified/i', !/0\.0%|verified/i.test(document.body.textContent));
+u();
+// T2 ReferencesStack one passage
+u = mount(<ReferencesStack citations={[refusalA.citations[0]]} activeMarker={null} onCopy={() => {}} refusalReason={refusalA.refusal_reason} />);
+ok('T2 one passage: heading text matches /\\b1 passage$/', /\b1 passage$/.test(heading()?.textContent));
+u();
+// T3 SynthesisView one passage link
+u = mount(view({ ...refusalA, citations: [refusalA.citations[0]] }));
+const panel = document.querySelector('section[role=status]');
+ok('T3 one passage: status panel link text === "Read the 1 retrieved passage"', [...(panel?.querySelectorAll('a') || [])].some((a) => a.textContent.trim() === 'Read the 1 retrieved passage'));
+u();
+// T4 SynthesisView answer mode, empty citations
+u = mount(view(earlyRefusal));
+ok('T4 empty citations: an element with exact text "0 of 0 citations supported"', [...document.querySelectorAll('*')].some((n) => n.children.length === 0 && n.textContent === '0 of 0 citations supported'));
+u();
+window.__out = out;
+===== ./mutants.sh
+#!/bin/bash
+# usage: mutants.sh <pristine frontend dir> — one single-edit mutant per r2 test target; each in a fresh mktemp copy.
+H=$(dirname "$0"); SRC=$1
+run() { # id file perl-expr description
+  local id=$1 f=$2 expr=$3 desc=$4 d; d=$(mktemp -d "$H/../m-XXXX"); cp -r "$SRC/src" "$d/src"
+  perl -0pi -e "$expr" "$d/src/$f"
+  local delta; delta=$(diff "$SRC/src/$f" "$d/src/$f" | grep '^[<>]' | sed 's/^/      /')
+  if [ -z "$delta" ]; then echo "$id INVALID (substitution did not apply) — $desc"; return; fi
+  local res; res=$(node "$H/run.mjs" "$d" 2>&1)
+  local fails; fails=$(echo "$res" | grep -E '^(FAIL|PAGEERROR)' | sed 's/^/      /')
+  if ! echo "$res" | grep -qE '^(pass|FAIL) '; then echo "$id INVALID (harness did not run) — $desc"; echo "$res" | head -3 | sed 's/^/      /';
+  elif [ -n "$fails" ]; then echo "$id KILLED — $desc"; echo "$fails"; else echo "$id SURVIVED — $desc"; fi
+  echo "$delta"
+}
+run M1 components/ReferencesStack.jsx "s/\(citations\.length === 1 \? 'passage' : 'passages'\)/'passages'/" "heading badge always plural"
+run M2 components/SynthesisView.jsx "s/passage\{cits\.length === 1 \? '' : 's'\}/passage{'s'}/" "panel link always plural"
+run M3 components/SynthesisView.jsx "s/\{!refusalReason && \(\n        <CardFooter/{!refusalReason && cits.length > 0 && (\n        <CardFooter/" "footer hidden when an answer has no citations"
+run M4 components/SynthesisView.jsx "s/\{supportedCount\} of \{cits\.length\} citations supported/{supportedCount} citations supported/" "footer drops the total"
+run M5 components/ReferencesStack.jsx "s/citationState\(cit, \{ refusal: !!refusalReason \}\)/(refusalReason === 'verification_unavailable' ? { kind: 'unchecked', text: 'Not checked', tooltip: '' } : citationState(cit, { refusal: !!refusalReason }))/" "B refusal shows every chip Not checked"
+run M6 lib/citations.js "s/  if \(status === 'unverified'\) return 'unchecked';\n//" "drop the unverified -> unchecked rule"
+run M7 components/ReferencesStack.jsx "s/\{refusalReason \? 'Retrieved passages \(no answer was shown\)' : 'References'\}/{refusalReason \&\& refusalReason !== 'verification_unavailable' ? 'Retrieved passages (no answer was shown)' : 'References'}/" "B refusal keeps the answer-mode heading"
+===== ./run.mjs
+// usage: node run.mjs <frontend dir>  — bundles the real components with esbuild, runs entry.jsx in headless Chrome, prints results.
+import { createRequire } from 'node:module'; import path from 'node:path';
+const require = createRequire('/opt/npm-tools/node_modules/');
+const esbuild = require('esbuild'); const { chromium } = require('playwright');
+const H = path.dirname(new URL(import.meta.url).pathname); const FE = path.resolve(process.argv[2]);
+const plug = { name: 'qa', setup(b) {
+  b.onResolve({ filter: /^FE\// }, (a) => ({ path: path.join(FE, a.path.slice(3)) }));
+  b.onResolve({ filter: /^lucide-react$/ }, () => ({ path: `${H}/stubs-lucide.jsx` }));
+  b.onResolve({ filter: /^@radix-ui\/react-slot$/ }, () => ({ path: `${H}/stubs-slot.jsx` }));
+  b.onResolve({ filter: /^(react|react-dom|clsx|tailwind-merge|class-variance-authority)(\/.*)?$/ }, (a) => ({ path: require.resolve(a.path) }));
+}};
+const js = (await esbuild.build({ entryPoints: [`${H}/entry.jsx`], bundle: true, format: 'iife', write: false, jsx: 'automatic', loader: { '.js': 'jsx' }, define: { 'process.env.NODE_ENV': '"development"' }, plugins: [plug], logLevel: 'error' })).outputFiles[0].text;
+const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome' });
+const page = await browser.newPage(); const errs = []; page.on('pageerror', (e) => errs.push(e.message));
+await page.setContent('<html><body></body></html>'); await page.addScriptTag({ content: js });
+const out = await page.evaluate(() => window.__out || []);
+for (const l of out) console.log(l); for (const e of errs) console.log('PAGEERROR ' + e);
+await browser.close();
+===== ./stubs-lucide.jsx
+// QA stub: lucide-react is not installable offline; every icon renders an empty svg.
+const Icon = (props) => <svg aria-hidden="true" className={props.className} />;
+export const FileText = Icon, Copy = Icon, Download = Icon, Info = Icon, ExternalLink = Icon, FileCode = Icon,
+  ShieldCheck = Icon, ShieldAlert = Icon, BookOpen = Icon;
+===== ./stubs-slot.jsx
+// QA stub: @radix-ui/react-slot (Button asChild is not used by the components under test).
+export const Slot = ({ children }) => children;
+
+[exit code 0]
