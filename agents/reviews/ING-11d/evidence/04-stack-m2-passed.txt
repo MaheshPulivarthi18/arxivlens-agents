@@ -1,0 +1,21 @@
+$ gh api .../actions/jobs/{136544848630,136544831949}/logs | grep
+== PR #98 Full stack: run 44810305214 / job 136544848630 (head 03fa179) ==
+HEAD is now at b7bfe8c Merge 03fa179149ea3d42acc830268df19c52e64ed85a into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+PASSED tests/test_m2_pipeline.py::test_paper_sections_and_chunks_stored
+PASSED tests/test_m2_pipeline.py::test_chunk_embeddings_and_pgvector_cosine_ops
+PASSED tests/test_m2_pipeline.py::test_embedded_chunks_have_recorded_start_pages
+248 passed, 1 skipped, 3 deselected, 5 warnings in 90.48s (0:01:30)
+step 'AC4: make test-full': success
+
+== Baseline: PR agent/backend/OPS-H5c, run 44810300544 / job 136544831949 (latest green stack.yml on another PR) ==
+HEAD is now at a0efbe7 Merge 1d696c724a45d6e3c98495149c3bd7f7e86cae52 into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+PASSED tests/test_m2_pipeline.py::test_paper_sections_and_chunks_stored
+PASSED tests/test_m2_pipeline.py::test_chunk_embeddings_and_pgvector_cosine_ops
+PASSED tests/test_m2_pipeline.py::test_embedded_chunks_have_recorded_start_pages
+248 passed, 1 skipped, 3 deselected, 5 warnings in 47.12s
+
+== diff of the test_m2_pipeline PASSED id sets (empty = same set) ==
+(identical)
+== diff of ALL PASSED id sets in AC4 step ==
+(identical, 248 ids)
+

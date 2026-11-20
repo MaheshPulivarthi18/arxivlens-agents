@@ -1,0 +1,14 @@
+$ gh api .../actions/jobs/{136544848630,136544831949}/logs | grep
+== PR #98 job 136544848630: step 24 'Known failure F1' (continue-on-error: true, stack.yml:295-297) ==
+FAILED tests/test_m3_query.py::test_rag_ask_with_groundedness_support - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (
+FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out
+FAILED tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (
+3 failed in 30.68s
+##[error]Process completed with exit code 2.
+
+== baseline job 136544831949, same step: summary line ==
+3 passed in 15.55s
+
+== test_m2_pipeline lines in the F1 step of PR #98 (expect none; F1 runs only test_m3 ids) ==
+0
+

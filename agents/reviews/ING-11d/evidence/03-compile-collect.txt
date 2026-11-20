@@ -1,0 +1,26 @@
+$ bash /tmp/claude-0/ac3.sh
+Python 3.13.18
+py_compile OK (head)
+== AST test functions: head vs main ==
+HEAD: ['test_paper_sections_and_chunks_stored', 'test_chunk_embeddings_and_pgvector_cosine_ops', 'test_embedded_chunks_have_recorded_start_pages']
+origin/main: ['test_paper_sections_and_chunks_stored', 'test_chunk_embeddings_and_pgvector_cosine_ops', 'test_embedded_chunks_have_recorded_start_pages']
+== collection-only stub (/tmp/claude-0/stub/psycopg.py; real psycopg absent in sandbox) ==
+class _Any:
+    def __getattr__(self, n): return _Any()
+    def __call__(self, *a, **k): return _Any()
+def __getattr__(n):  # collection-only stub
+    return _Any()
+== collect (head 03fa179) ==
+tests/test_m2_pipeline.py::test_paper_sections_and_chunks_stored
+tests/test_m2_pipeline.py::test_chunk_embeddings_and_pgvector_cosine_ops
+tests/test_m2_pipeline.py::test_embedded_chunks_have_recorded_start_pages
+
+3 tests collected in 0.08s
+== collect (main 230f617) ==
+tests/test_m2_pipeline.py::test_paper_sections_and_chunks_stored
+tests/test_m2_pipeline.py::test_chunk_embeddings_and_pgvector_cosine_ops
+tests/test_m2_pipeline.py::test_embedded_chunks_have_recorded_start_pages
+
+3 tests collected in 0.06s
+
+[exit code 0]

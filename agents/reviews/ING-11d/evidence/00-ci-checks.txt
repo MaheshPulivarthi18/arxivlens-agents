@@ -1,0 +1,12 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/03fa179.../check-runs
+head 03fa179149ea3d42acc830268df19c52e64ed85a  (gh api repos/MaheshPulivarthi18/ArxivLens/commits/<sha>/check-runs, fetched 2026-11-20T20:33:04Z)
+136544848934  Python M0 unit tests  completed  success
+136544848715  Frontend (lint, test, build)  completed  success
+136544848630  Full stack (compose + make test-full)  completed  success
+136544848597  Agent ownership check  completed  success
+136544848379  DB (migrate twice, HNSW plan + recall)  completed  success
+136544848221  Go (vet, gofmt, test, build)  completed  success
+
+Full stack job:
+run_id=44810305214 job=136544848630 head_sha=03fa179149ea3d42acc830268df19c52e64ed85a conclusion=success
+

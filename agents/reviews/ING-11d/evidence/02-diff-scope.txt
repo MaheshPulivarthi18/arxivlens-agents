@@ -1,0 +1,15 @@
+$ bash -c git diff origin/main...HEAD --stat; echo; echo "== changed lines (whitespace shown as cat -A) =="; git diff origin/main...HEAD -U0 | grep -E "^[-+][^-+]" | cat -A; echo; echo "== changed lines mentioning assert: $(git diff origin/main...HEAD -U0 | grep -E "^[-+][^-+]" | grep -c assert) =="; echo "== grep -n \"pytest\\.\" tests/test_m2_pipeline.py =="; grep -n "pytest\." tests/test_m2_pipeline.py; echo "grep exit=$? (1 = no match)"; echo "== any remaining \"pytest\" token =="; grep -nw pytest tests/test_m2_pipeline.py; echo "grep exit=$?"
+ tests/test_m2_pipeline.py | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+== changed lines (whitespace shown as cat -A) ==
+-import pytest$
+-        $
+
+== changed lines mentioning assert: 0 ==
+== grep -n "pytest\." tests/test_m2_pipeline.py ==
+grep exit=1 (1 = no match)
+== any remaining "pytest" token ==
+grep exit=1
+
+[exit code 0]

@@ -1,0 +1,45 @@
+$ bash -c echo "== BEFORE: origin/main $(git rev-parse --short origin/main) =="; git show origin/main:tests/test_m2_pipeline.py > /tmp/claude-0/base_test_m2_pipeline.py; ruff --version; ruff check --isolated --select E,F,W --line-length 130 /tmp/claude-0/base_test_m2_pipeline.py; echo "exit=$?"; echo; echo "== AFTER: PR head $(git rev-parse --short HEAD) =="; ruff check --isolated --select E,F,W --line-length 130 tests/test_m2_pipeline.py; echo "exit=$?"
+== BEFORE: origin/main 230f617 ==
+ruff 0.16.9
+F401 [*] `pytest` imported but unused
+ --> /tmp/claude-0/base_test_m2_pipeline.py:2:8
+  |
+1 | import psycopg
+2 | import pytest
+  |        ^^^^^^
+3 | from services.common.config import config
+  |
+help: Remove unused import: `pytest`
+  |
+1 | import psycopg
+  - import pytest
+2 | from services.common.config import config
+  |
+
+W293 [*] Blank line contains whitespace
+  --> /tmp/claude-0/base_test_m2_pipeline.py:57:1
+   |
+55 |             LIMIT 3;
+56 |         """, (sample_vec_str, config.embedding_model, sample_vec_str))
+57 |         
+   | ^^^^^^^^
+58 |         results = cur.fetchall()
+59 |         assert len(results) == 3
+   |
+help: Remove whitespace from blank line
+   |
+56 |         """, (sample_vec_str, config.embedding_model, sample_vec_str))
+   -         
+57 +
+58 |         results = cur.fetchall()
+   |
+
+Found 2 errors.
+[*] 2 fixable with the `--fix` option.
+exit=1
+
+== AFTER: PR head 03fa179 ==
+All checks passed!
+exit=0
+
+[exit code 0]
