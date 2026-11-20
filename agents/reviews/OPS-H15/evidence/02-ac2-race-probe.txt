@@ -1,0 +1,41 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H15-r1/bin/probe.sh
+## probe job 136167700565 (run 44700583617) on d63caf9:
+   conclusion=failure head=d63caf9521768cc9447900462b442850a6dc0338
+120:2026-11-20T08:11:39.5103457Z HEAD is now at 36a74e8 Merge d63caf9521768cc9447900462b442850a6dc0338 into e6cffba66d677a655ade39588972abc03bc273aa
+215:2026-11-20T08:11:50.5976847Z   GOFLAGS: -race
+220:2026-11-20T08:12:33.7720704Z WARNING: DATA RACE
+246:2026-11-20T08:12:33.7777916Z WARNING: DATA RACE
+271:2026-11-20T08:12:33.7802450Z --- FAIL: TestRaceProbe (0.00s)
+272:2026-11-20T08:12:33.7803144Z     race_probe_test.go:22: n=2000
+273:2026-11-20T08:12:33.7804023Z     testing.go:1617: race detected during execution of test
+275:2026-11-20T08:12:33.7805266Z FAIL	arxivlens/internal/arxiv	1.573s
+276:2026-11-20T08:12:33.7805975Z ok  	arxivlens/internal/config	1.021s
+277:2026-11-20T08:12:33.7806651Z ok  	arxivlens/internal/crawler	1.134s
+278:2026-11-20T08:12:33.7807268Z ok  	arxivlens/internal/db	1.017s
+279:2026-11-20T08:12:34.9183166Z ok  	arxivlens/internal/dlq	1.298s
+280:2026-11-20T08:12:35.5642004Z ok  	arxivlens/internal/downloader	1.137s
+281:2026-11-20T08:12:35.5648189Z ok  	arxivlens/internal/kafka	1.046s
+282:2026-11-20T08:12:36.8141221Z ok  	arxivlens/internal/llm	2.030s
+283:2026-11-20T08:12:36.8141737Z ok  	arxivlens/internal/llm/llmtest	1.117s
+284:2026-11-20T08:12:38.7900647Z ok  	arxivlens/internal/query	1.620s
+289:2026-11-20T08:12:40.3441953Z make: *** [Makefile:46: test-go] Error 1
+
+## PR commits (linear, no force-push events in timeline):
+   6e1e9cd OPS-H15: run CI Go unit tests (make test-go) under the race detector
+   d63caf9 OPS-H15: temporary racy probe test (AC2, will be reverted)
+   9df6944 Revert "OPS-H15: temporary racy probe test (AC2, will be reverted)"
+   timeline events: committed,committed,committed
+
+## probe commit content:
+      d63caf9 OPS-H15: temporary racy probe test (AC2, will be reverted)
+   
+    internal/arxiv/race_probe_test.go | 23 +++++++++++++++++++++++
+    1 file changed, 23 insertions(+)
+## git diff 6e1e9cd 9df6944 (empty = revert exact):
+   (end)
+## race_probe files tracked at head: 0
+
+## next run on revert head 9df6944, run 44700878368 attempt 1:
+   job 136168682100 Go (vet, gofmt, test, build) success head=9df6944
+
+[exit code 0]

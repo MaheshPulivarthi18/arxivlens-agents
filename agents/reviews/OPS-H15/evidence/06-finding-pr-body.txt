@@ -1,0 +1,36 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H15-r1/bin/body.sh
+## PR #80 title: OPS-H15: run CI Go unit tests under the race detector
+   files: .github/workflows/ci.yml
+   body headings/links:
+     1:## OPS-H5b: `TestHNSWVectorHits` cleans up its synthetic corpus and refuses a non-empty DB
+     3:**Agent:** backend-engineer · **Spec:** [agents/tasks/OPS-H5b.md](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/main/agents/tasks/OPS-H5b.md) · **PRD re
+     5:### What changed
+     6:- `internal/query/search_integration_test.go` only (test-only, `integration` build tag):
+     13:### Acceptance criteria
+     14:- [x] AC1: head `9df6944`, run 44700878368 attempt 1, job 136168682100 `Go (vet, gofmt, test, build)` success. Step env header `GOFLAGS: -race`; `ok` for `internal/arx
+     18:- [x] AC5 — diff is this one file; ownership check OK for role=backend
+     20:### Verification
+     25:| `.github/scripts/ownership-check.sh origin/main agent/backend/OPS-H5b` | `Ownership OK for role=backend (100 changed lines)` |
+     29:### Not verified / risks
+     32:### Follow-ups created
+     35:### Evidence (filled by pm-lead when raising the PR)
+     39:### Review status (filled by the workflow)
+## PR #81 title: OPS-H5b: TestHNSWVectorHits cleans up its synthetic corpus and refuses a non-empty DB
+   files: internal/query/search_integration_test.go
+   body headings/links:
+     1:## OPS-H5b: `TestHNSWVectorHits` cleans up its synthetic corpus and refuses a non-empty DB
+     3:**Agent:** backend-engineer · **Spec:** [agents/tasks/OPS-H5b.md](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/main/agents/tasks/OPS-H5b.md) · **PRD re
+     5:### What changed
+     6:- `internal/query/search_integration_test.go` only (test-only, `integration` build tag):
+     13:### Acceptance criteria
+     14:- [x] AC1 — run 44702290490 (DB job 136173317940) on head `8cae68b`: `--- PASS: TestHNSWVectorHits`, `--- PASS: TestHNSWSeedCleanup`, `--- PASS: TestSearchProvenance
+     15:- [x] AC2 — same job: `search_integration_test.go:105: pgvector 0.8.7; seeded 13000 embeddings in 17.773s`
+     18:- [x] AC5 — diff is this one file; ownership check OK for role=backend
+     20:### Verification
+     25:| `.github/scripts/ownership-check.sh origin/main agent/backend/OPS-H5b` | `Ownership OK for role=backend (100 changed lines)` |
+     29:### Not verified / risks
+     32:### Follow-ups created
+     35:### Evidence (filled by pm-lead when raising the PR)
+     39:### Review status (filled by the workflow)
+
+[exit code 0]

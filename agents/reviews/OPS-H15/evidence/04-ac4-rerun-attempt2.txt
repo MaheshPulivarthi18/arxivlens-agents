@@ -1,0 +1,22 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H15-r1/bin/loggrep.sh 136169622172 HEAD is now at|GOFLAGS: -race|^.{29}(ok|FAIL|\?|--- FAIL)[[:space:]:]|DATA RACE|##\[error\]
+120:2026-11-20T08:16:07.7313997Z HEAD is now at ff5e450 Merge 9df6944431bbe3224720caf97f7b15664922a4fa into e6cffba66d677a655ade39588972abc03bc273aa
+217:2026-11-20T08:16:19.1635710Z   GOFLAGS: -race
+220:2026-11-20T08:16:54.8388703Z ?   	arxivlens/cmd/arxivlens	[no test files]
+221:2026-11-20T08:16:57.4106720Z ok  	arxivlens/internal/arxiv	2.570s
+222:2026-11-20T08:16:57.4107142Z ok  	arxivlens/internal/config	1.025s
+223:2026-11-20T08:16:57.4107699Z ok  	arxivlens/internal/crawler	1.141s
+224:2026-11-20T08:16:57.4108229Z ok  	arxivlens/internal/db	1.014s
+225:2026-11-20T08:16:57.6997850Z ok  	arxivlens/internal/dlq	1.287s
+226:2026-11-20T08:16:57.9237654Z ok  	arxivlens/internal/downloader	1.118s
+227:2026-11-20T08:16:57.9549893Z ok  	arxivlens/internal/kafka	1.045s
+228:2026-11-20T08:17:00.1677981Z ok  	arxivlens/internal/llm	2.041s
+229:2026-11-20T08:17:00.1678910Z ok  	arxivlens/internal/llm/llmtest	1.119s
+230:2026-11-20T08:17:00.9295671Z ok  	arxivlens/internal/query	1.541s
+231:2026-11-20T08:17:00.9324970Z ?   	arxivlens/internal/storage	[no test files]
+232:2026-11-20T08:17:02.2295676Z ?   	arxivlens/internal/telemetry	[no test files]
+233:2026-11-20T08:17:02.2296103Z ?   	arxivlens/shared/events	[no test files]
+362:2026-11-20T08:17:04.1910579Z ok  	arxivlens/internal/kafka	1.046s	coverage: 63.7% of statements
+628:2026-11-20T08:17:07.1509838Z ok  	arxivlens/internal/llm	1.977s	coverage: 96.6% of statements
+645:2026-11-20T08:17:07.1518341Z ok  	arxivlens/internal/llm/llmtest	1.116s	coverage: 100.0% of statements
+
+[exit code 0]

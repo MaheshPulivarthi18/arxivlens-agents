@@ -1,0 +1,16 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H15-r1/bin/ci.sh
+check runs on head 9df6944431bbe3224720caf97f7b15664922a4fa:
+  Agent ownership check | completed success | job 136169625051
+  Python M0 unit tests | completed success | job 136169624788
+  Frontend (lint, test, build) | completed success | job 136169624104
+  Go (vet, gofmt, test, build) | completed success | job 136169622172
+  DB (migrate twice, HNSW plan + recall) | completed success | job 136168682185
+
+workflow runs for head:
+  run 44700878356 DB attempt=1 success
+  run 44700878368 CI attempt=2 success
+
+PR #80 state:
+  state=open merged=false draft=true head=9df6944431bbe3224720caf97f7b15664922a4fa base=e6cffba66d677a655ade39588972abc03bc273aa
+
+[exit code 0]

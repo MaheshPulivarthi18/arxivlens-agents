@@ -1,0 +1,38 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H15-r1/bin/steps.sh 136092606453 136168682100 136169622172 136167700565 136167133992
+job 136092606453 | run 44677460170 attempt 1 | Go (vet, gofmt, test, build) | success | head e6cffba
+   Run make lint-go | success | 2026-11-20T04:54:32Z -> 2026-11-20T04:54:33Z | 1s
+   Run make test-go | success | 2026-11-20T04:54:33Z -> 2026-11-20T04:54:39Z | 6s
+   Kafka consumer tests (verbose, race, coverage) | success | 2026-11-20T04:54:39Z -> 2026-11-20T04:54:59Z | 20s
+   LLM package tests (verbose, race, per-file coverage) | success | 2026-11-20T04:54:59Z -> 2026-11-20T04:55:05Z | 6s
+   Run make build-go | success | 2026-11-20T04:55:05Z -> 2026-11-20T04:55:06Z | 1s
+
+job 136168682100 | run 44700878368 attempt 1 | Go (vet, gofmt, test, build) | success | head 9df6944
+   Run make lint-go | success | 2026-11-20T08:14:06Z -> 2026-11-20T08:14:08Z | 2s
+   Go unit tests (make test-go, race detector) | success | 2026-11-20T08:14:08Z -> 2026-11-20T08:14:55Z | 47s
+   Kafka consumer tests (verbose, race, coverage) | success | 2026-11-20T08:14:55Z -> 2026-11-20T08:14:57Z | 2s
+   LLM package tests (verbose, race, per-file coverage) | success | 2026-11-20T08:14:57Z -> 2026-11-20T08:15:00Z | 3s
+   Run make build-go | success | 2026-11-20T08:15:00Z -> 2026-11-20T08:15:01Z | 1s
+
+job 136169622172 | run 44700878368 attempt 2 | Go (vet, gofmt, test, build) | success | head 9df6944
+   Run make lint-go | success | 2026-11-20T08:16:17Z -> 2026-11-20T08:16:19Z | 2s
+   Go unit tests (make test-go, race detector) | success | 2026-11-20T08:16:19Z -> 2026-11-20T08:17:02Z | 43s
+   Kafka consumer tests (verbose, race, coverage) | success | 2026-11-20T08:17:02Z -> 2026-11-20T08:17:04Z | 2s
+   LLM package tests (verbose, race, per-file coverage) | success | 2026-11-20T08:17:04Z -> 2026-11-20T08:17:07Z | 3s
+   Run make build-go | success | 2026-11-20T08:17:07Z -> 2026-11-20T08:17:08Z | 1s
+
+job 136167700565 | run 44700583617 attempt 1 | Go (vet, gofmt, test, build) | failure | head d63caf9
+   Run make lint-go | success | 2026-11-20T08:11:48Z -> 2026-11-20T08:11:50Z | 2s
+   Go unit tests (make test-go, race detector) | failure | 2026-11-20T08:11:50Z -> 2026-11-20T08:12:40Z | 50s
+   Kafka consumer tests (verbose, race, coverage) | skipped | 2026-11-20T08:12:40Z -> 2026-11-20T08:12:40Z | 0s
+   LLM package tests (verbose, race, per-file coverage) | skipped | 2026-11-20T08:12:40Z -> 2026-11-20T08:12:40Z | 0s
+   Run make build-go | skipped | 2026-11-20T08:12:40Z -> 2026-11-20T08:12:40Z | 0s
+
+job 136167133992 | run 44700413691 attempt 1 | Go (vet, gofmt, test, build) | success | head 6e1e9cd
+   Run make lint-go | success | 2026-11-20T08:10:29Z -> 2026-11-20T08:10:30Z | 1s
+   Go unit tests (make test-go, race detector) | success | 2026-11-20T08:10:30Z -> 2026-11-20T08:11:03Z | 33s
+   Kafka consumer tests (verbose, race, coverage) | success | 2026-11-20T08:11:03Z -> 2026-11-20T08:11:05Z | 2s
+   LLM package tests (verbose, race, per-file coverage) | success | 2026-11-20T08:11:05Z -> 2026-11-20T08:11:08Z | 3s
+   Run make build-go | success | 2026-11-20T08:11:08Z -> 2026-11-20T08:11:08Z | 0s
+
+
+[exit code 0]
