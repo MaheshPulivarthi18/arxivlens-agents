@@ -1,0 +1,33 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; echo "changed files:"; git diff --name-only origin/main...HEAD; echo; echo "existing test files changed (expect none):"; git diff --name-only origin/main...HEAD -- "*.test.*" | grep -v "^frontend/src/components/ui/button.test.jsx$" || echo "  none"; echo "callers changed (expect none):"; git diff --name-only origin/main...HEAD -- frontend/src/components/HeroSearch.jsx frontend/src/components/IngestModal.jsx frontend/src/components/InfrastructureModal.jsx | grep . || echo "  none"; echo; echo "button.jsx diff:"; git diff origin/main...HEAD -- frontend/src/components/ui/button.jsx
+ frontend/src/components/ui/button.jsx      |  4 ++-
+ frontend/src/components/ui/button.test.jsx | 39 ++++++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+), 1 deletion(-)
+
+changed files:
+frontend/src/components/ui/button.jsx
+frontend/src/components/ui/button.test.jsx
+
+existing test files changed (expect none):
+  none
+callers changed (expect none):
+  none
+
+button.jsx diff:
+diff --git a/frontend/src/components/ui/button.jsx b/frontend/src/components/ui/button.jsx
+index 87b2d88..16c7117 100644
+--- a/frontend/src/components/ui/button.jsx
++++ b/frontend/src/components/ui/button.jsx
+@@ -18,8 +18,10 @@ const buttonVariants = cva(
+           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+         ghost: "hover:bg-muted hover:text-foreground",
+         link: "text-primary underline-offset-4 hover:underline",
++        // Deprecated (FE-0 design §6): kept so callers can move to `default` without a flag day.
++        // FE-0f: theme tokens instead of the emerald/teal gradient (white on it was < 4.5:1, WCAG 1.4.3).
+         clinical:
+-          "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow hover:from-emerald-500 hover:to-teal-500 font-semibold",
++          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 font-semibold",
+       },
+       size: {
+         default: "h-9 px-4 py-2",
+
+[exit code 0]

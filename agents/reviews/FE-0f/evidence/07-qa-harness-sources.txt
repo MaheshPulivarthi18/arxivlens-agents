@@ -1,0 +1,95 @@
+$ bash -c echo '== fe0f_contrast.py =='; cat /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/fe0f_contrast.py; echo; echo '== fe0f_classes.mjs =='; cat /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/fe0f_classes.mjs
+== fe0f_contrast.py ==
+"""FE-0f AC2: contrast of Button variant="clinical" text on its fill, idle + hover,
+light + dark, token values parsed from frontend/src/index.css (cwd = app at PR head).
+Functions = FE-0 design appendix (exact HSL->sRGB, WCAG 2.x relative luminance).
+Hover fill hover:bg-primary/90 = primary at alpha 0.9 composited (sRGB, as browsers do) over the surface."""
+import colorsys, re, sys
+css = open("frontend/src/index.css").read()
+def block(sel):
+    m = re.search(re.escape(sel) + r"\s*\{(.*?)\n\s*\}", css, re.S); return m.group(1)
+def parse(b): return dict(re.findall(r"--([\w-]+):\s*([^;]+);", b))
+T = {"light": parse(block(":root")), "dark": {**parse(block(":root")), **parse(block(".dark"))}}
+def rgb(h):
+    H, S, L = [float(x.rstrip('%')) for x in h.split()]
+    return colorsys.hls_to_rgb(H / 360, L / 100, S / 100)
+def lumc(c):
+    f = lambda v: v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+    r, g, b = map(f, c); return 0.2126 * r + 0.7152 * g + 0.0722 * b
+def ratio_c(a, b):
+    la, lb = lumc(a), lumc(b); return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
+def over(fg, a, bg): return tuple(a * x + (1 - a) * y for x, y in zip(fg, bg))
+# old variant, for the before/after: white on emerald-600 #059669 / teal-600 #0d9488
+hexc = lambda h: tuple(int(h[i:i+2], 16) / 255 for i in (1, 3, 5))
+print("Source: frontend/src/index.css   classes: " + re.search(r'clinical:\s*\n\s*"([^"]+)"', open("frontend/src/components/ui/button.jsx").read()).group(1))
+for t in ("light", "dark"):
+    print(f"[{t}] primary={T[t]['primary']!r} primary-foreground={T[t]['primary-foreground']!r} background={T[t]['background']!r} card={T[t]['card']!r} supported={T[t]['supported']!r}")
+print()
+print(f"{'state':<42}{'light':>9}{'dark':>9}  result (min 4.5:1, WCAG 1.4.3)")
+rows = [("idle: fg on primary", None)] + [(f"hover: fg on primary/90 over {s}", s) for s in ("background", "card", "supported")]
+ok = True
+for label, surf in rows:
+    vals = []
+    for t in ("light", "dark"):
+        fg, p = rgb(T[t]["primary-foreground"]), rgb(T[t]["primary"])
+        fill = p if surf is None else over(p, 0.9, rgb(T[t][surf]))
+        vals.append(ratio_c(fg, fill))
+    res = "PASS" if min(vals) >= 4.5 else "FAIL"; ok &= res == "PASS"
+    print(f"{label:<42}{vals[0]:>8.2f}:1{vals[1]:>7.2f}:1  {res}")
+print()
+print("before (main): white on emerald-600 / teal-600 gradient ends (theme-independent)")
+for n, h in (("emerald-600 #059669", "#059669"), ("teal-600 #0d9488", "#0d9488")):
+    print(f"  white on {n:<20} {ratio_c((1,1,1), hexc(h)):.2f}:1")
+print("\nobservation (not an AC2 pair): HeroSearch.jsx:81 loading spinner is border-t-white (caller class, out of scope) on the disabled (opacity-50) button")
+for t in ("light", "dark"):
+    print(f"  [{t}] white on primary {ratio_c((1,1,1), rgb(T[t]['primary'])):.2f}:1   (vs primary-foreground {ratio_c(rgb(T[t]['primary-foreground']), rgb(T[t]['primary'])):.2f}:1)")
+print("\nfocus ring (base class, unchanged): ring token == primary?", {t: T[t]['ring'] == T[t]['primary'] for t in T})
+print("ALL AC2 PAIRS PASS" if ok else "AC2 FAIL"); sys.exit(0 if ok else 1)
+
+== fe0f_classes.mjs ==
+// FE-0f AC1/AC3 logic check (NOT the Vitest run; CI is pass/fail). cwd = app at PR head.
+// Evaluates the real buttonVariants cva() literal from ui/button.jsx (PR head and origin/main) with the
+// lockfile versions of cva 0.7.1 / clsx 2.1.1 / tailwind-merge 3.6.0 and the real cn() (src/lib/utils.js),
+// for the exact props of the four call sites, then applies the AC1 assertions of ui/button.test.jsx.
+import { createRequire } from 'node:module';
+import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+const req = createRequire('/opt/npm-tools/node_modules/');
+const { cva } = req('class-variance-authority'); const { clsx } = req('clsx'); const { twMerge } = req('tailwind-merge');
+const cn = (...i) => twMerge(clsx(i));
+const load = (src) => { const m = src.match(/const buttonVariants = (cva\([\s\S]*?\n\))\n/); return new Function('cva', `return ${m[1]}`)(cva); };
+const head = load(readFileSync('frontend/src/components/ui/button.jsx', 'utf8'));
+const main = load(execSync('git show origin/main:frontend/src/components/ui/button.jsx').toString());
+const sites = [ // [file:line, props] copied from the call sites at the PR head
+  ['HeroSearch.jsx:75 submit', { variant: 'clinical', className: 'shrink-0 gap-2 px-5 py-2.5 h-auto rounded-lg' }],
+  ['IngestModal.jsx:90 Index Paper', { variant: 'clinical', className: 'gap-2 shrink-0' }],
+  ['IngestModal.jsx:159 Ask', { variant: 'clinical', size: 'sm', className: 'gap-1.5 text-xs' }],
+  ['InfrastructureModal.jsx:139 Replay DLQ', { variant: 'clinical', size: 'sm', className: 'gap-1.5 text-xs h-8' }],
+];
+const has = (c, t) => c.split(/\s+/).includes(t);
+const ac1 = (c) => {
+  const fails = [];
+  for (const t of ['bg-primary', 'text-primary-foreground', 'hover:bg-primary/90', 'font-semibold', 'focus-visible:ring-1', 'focus-visible:ring-ring']) if (!has(c, t)) fails.push('missing ' + t);
+  for (const b of ['emerald', 'teal', 'from-', 'to-', 'text-white']) if (c.includes(b)) fails.push('contains ' + b);
+  return fails;
+};
+const colours = (c) => c.split(/\s+/).filter((x) => x && !x.startsWith('font-')).sort().join(' ');
+let bad = 0;
+console.log('RESULTS');
+for (const [name, v] of [['PR head ce86ddf', head], ['origin/main (mutant = revert)', main]]) {
+  const bare = cn(v({ variant: 'clinical' }));
+  const f = ac1(bare); const eqDef = colours(bare) === colours(cn(v({})));
+  console.log(`  ${name}: AC1 assertions on <Button variant="clinical"> -> ${f.length ? 'FAIL (' + f.join(', ') + ')' : 'PASS'}; colours == default: ${eqDef}`);
+  if (name.startsWith('PR') && (f.length || !eqDef)) bad++;
+}
+console.log('  call sites at PR head (cn() with caller className, as rendered):');
+for (const [n, p] of sites) {
+  const c = cn(head(p)); const f = ac1(c); if (f.length) bad++;
+  console.log(`    ${n.padEnd(40)} ${f.length ? 'FAIL ' + f.join(', ') : 'tokens kept, no palette class'}`);
+}
+console.log(bad ? 'LOGIC CHECK FAIL' : 'LOGIC CHECK PASS (head passes, revert-to-main mutant is caught)');
+console.log('\nDETAIL (full className at PR head)');
+for (const [n, p] of sites) console.log(`  ${n}:\n    ${cn(head(p))}`);
+process.exit(bad ? 1 : 0);
+
+[exit code 0]

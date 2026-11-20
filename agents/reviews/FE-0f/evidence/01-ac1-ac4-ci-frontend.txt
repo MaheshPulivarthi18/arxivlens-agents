@@ -1,0 +1,30 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136509375965/logs
+Frontend (lint, test, build) job 136509375965 on PR head ce86ddf (gh api .../actions/jobs/136509375965/logs, ANSI stripped)
+== summary lines ==
+177:Found 0 warnings and 0 errors.
+196: ✓ src/components/ui/button.test.jsx (3 tests) 123ms
+200: Test Files  8 passed (8)
+201:      Tests  117 passed (117)
+241:✓ built in 729ms
+
+== full test step ==
+> vitest run
+
+
+ RUN  v4.1.12 /home/runner/work/ArxivLens/ArxivLens/frontend
+
+ ✓ src/lib/theme.test.js (35 tests) 36ms
+ ✓ src/components/SynthesisView.test.jsx (17 tests) 407ms
+ ✓ src/components/ReferencesStack.test.jsx (13 tests) 399ms
+ ✓ src/lib/citations.test.js (35 tests) 9ms
+ ✓ src/test/tokens.test.js (5 tests) 10ms
+ ✓ src/components/ThemeToggle.test.jsx (4 tests) 204ms
+ ✓ src/components/ui/button.test.jsx (3 tests) 123ms
+ ✓ src/components/HeroSearch.test.jsx (5 tests) 573ms
+     ✓ submits the trimmed question  380ms
+
+ Test Files  8 passed (8)
+      Tests  117 passed (117)
+   Start at  19:12:52
+   Duration  3.62s (transform 287ms, setup 1.15s, import 821ms, tests 1.76s, environment 5.14s)
+

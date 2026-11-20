@@ -1,0 +1,18 @@
+$ gh api .../actions/jobs/136502158010/logs vs .../136509375965/logs
+Lint warnings and test counts: origin/main 230f617 job 136502158010 vs PR head ce86ddf job 136509375965
+== fe-main.log ==
+Found 0 warnings and 0 errors.
+ Test Files  7 passed (7)
+      Tests  114 passed (114)
+✓ built in 782ms
+== fe-job.log ==
+Found 0 warnings and 0 errors.
+ Test Files  8 passed (8)
+      Tests  117 passed (117)
+✓ built in 729ms
+
+== per-file test counts: diff main -> PR (timings stripped) ==
+4a5
+>  ✓ src/components/ui/button.test.jsx (3 tests)
+(only addition: the new button.test.jsx; all 7 existing files same count, all passed)
+

@@ -1,0 +1,22 @@
+$ node /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/fe0f_classes.mjs
+RESULTS
+  PR head ce86ddf: AC1 assertions on <Button variant="clinical"> -> PASS; colours == default: true
+  origin/main (mutant = revert): AC1 assertions on <Button variant="clinical"> -> FAIL (missing bg-primary, missing text-primary-foreground, missing hover:bg-primary/90, contains emerald, contains teal, contains from-, contains to-, contains text-white); colours == default: false
+  call sites at PR head (cn() with caller className, as rendered):
+    HeroSearch.jsx:75 submit                 tokens kept, no palette class
+    IngestModal.jsx:90 Index Paper           tokens kept, no palette class
+    IngestModal.jsx:159 Ask                  tokens kept, no palette class
+    InfrastructureModal.jsx:139 Replay DLQ   tokens kept, no palette class
+LOGIC CHECK PASS (head passes, revert-to-main mutant is caught)
+
+DETAIL (full className at PR head)
+  HeroSearch.jsx:75 submit:
+    inline-flex items-center justify-center whitespace-nowrap text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 font-semibold shrink-0 gap-2 px-5 py-2.5 h-auto rounded-lg
+  IngestModal.jsx:90 Index Paper:
+    inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 font-semibold h-9 px-4 py-2 gap-2 shrink-0
+  IngestModal.jsx:159 Ask:
+    inline-flex items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 font-semibold h-8 rounded-md px-3 gap-1.5 text-xs
+  InfrastructureModal.jsx:139 Replay DLQ:
+    inline-flex items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 font-semibold rounded-md px-3 gap-1.5 text-xs h-8
+
+[exit code 0]

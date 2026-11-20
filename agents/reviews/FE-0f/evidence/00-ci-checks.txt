@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/ce86ddf.../check-runs
+gh api repos/MaheshPulivarthi18/ArxivLens/commits/ce86ddf115b5aa6b25fbdb55b44e7e1c59284688/check-runs
+name | status | conclusion | job id | completed
+DB (migrate twice, HNSW plan + recall)	completed	success	job 136509376745	2026-11-20T19:14:51Z
+Frontend (lint, test, build)	completed	success	job 136509375965	2026-11-20T19:13:00Z
+Go (vet, gofmt, test, build)	completed	success	job 136509375875	2026-11-20T19:13:42Z
+Python M0 unit tests	completed	success	job 136509375854	2026-11-20T19:14:03Z
+Agent ownership check	completed	success	job 136509375279	2026-11-20T19:12:51Z
+
