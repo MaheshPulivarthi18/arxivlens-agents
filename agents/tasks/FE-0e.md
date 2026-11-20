@@ -8,7 +8,7 @@
 | **Depends on** | FE-0 #69 merged (`54c4de8`), FE-1 #68 merged. No overlap with FE-3a or open PRs #70, #79, #81–#85 (checked via REST 2026-11-20) |
 | **Jira** | KAN-91 (epic KAN-5 "Research UI & citations"; labels `task-FE-0e`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: class swaps to existing tokens + one grep test; no new component, contract or dependency |
-| **Status** | In QA (branch `agent/frontend/FE-0e`, head `50ef4d5`; PR to be opened by the orchestrator) |
+| **Status** | In QA, rework r1 (PR #87 draft, branch `agent/frontend/FE-0e`, head `27953fd`) |
 
 ## Goal
 When FE-3b flips the default theme to "system", an OS-light visitor must not see hard-coded dark-palette text (emerald-400 ≈ 1.8–1.9:1 and red-300 on the
@@ -143,3 +143,16 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
     `npm run lint`, `npm test` and `npm run build` were **not run locally**; AC3/AC4 rest on CI. All 5 files parse with esbuild 0.x (`--loader:.jsx=jsx`).
     `.github/scripts/ownership-check.sh origin/main agent/frontend/FE-0e` → `Ownership OK for role=frontend (85 changed lines)`. No CI run on branch
     push (0 runs for the branch); CI starts when the PR opens. Lint warnings vs main: not verifiable locally, check the CI Frontend job's `Found N warnings`.
+- **2026-11-21 rework r1** (frontend-engineer; QA r1 FAIL, `agents/reviews/FE-0e/report.md`). Head `27953fd` on PR #87 (still draft). Only `frontend/src/test/tokens.test.js` changed.
+  - [x] **QA 1 [blocking]** guarded paths no longer use the template-literal URL plus `import.meta.url` form that Vite's assetImportMetaUrl plugin rewrites into an `import.meta.glob`.
+    The test now resolves `SRC_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')` and reads `path.join(SRC_DIR, rel)` with node `fs`/`path`/`url`.
+    CI Frontend job `136486858137`: `✓ src/test/tokens.test.js (5 tests)`.
+  - [x] **QA 2 [blocking]** CI Frontend job `136486858137` passed at `27953fd`: `Found 0 warnings and 0 errors.`, `Test Files 4 passed (4)`, `Tests 24 passed (24)`, `✓ built in 1.07s`.
+    Go and ownership-check also passed. DB and Python M0 were still running when I checked.
+  - [x] **QA 4 [nit]** a global copy `PALETTE_CLASS_ALL = new RegExp(PALETTE_CLASS.source, 'g')` with `line.matchAll` reports every hit on a line.
+    Node check: `'<p className="text-emerald-400 hover:bg-red-500/10">'` → 2 hits. 0 hits in the 4 guarded files.
+  - **Negative proof with real Vitest: not done.** CI only triggers on `pull_request` and on push to `main` (`.github/workflows/*.yml`), so a throwaway
+    `agent/frontend/FE-0e-neg` branch would run nothing. I didn't push it and didn't open a PR. The pattern-positive test (`pattern catches palette classes…`)
+    passes in CI, and the same logic in plain node finds the injected classes. I couldn't run Vitest locally because npm is blocked.
+  - Ownership: `ownership-check.sh origin/main agent/frontend/FE-0e` → `Ownership OK for role=frontend (92 changed lines)`.
+  - Findings 3, 5 and 6 go to pm-lead or a follow-up task; they aren't changed here.
