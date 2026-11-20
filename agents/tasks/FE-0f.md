@@ -6,7 +6,7 @@
 | **Priority** | P1 (WCAG 1.4.3 AA failure on the primary call-to-action buttons, in both themes; pre-existing) |
 | **PRD ref** | UI-1 (hero search), UI-3 (ingest modal), UI-4 (infrastructure modal); FE-0 design §4 + §6 (`clinical` deprecated, callers move to tokens; Navbar "Index Paper" already `clinical` → `default`); FE-0e QA r1 finding 3 / r2 finding 2 (`agents/reviews/FE-0e/report.md`) |
 | **Depends on** | FE-0 #69 merged (`54c4de8`, tokens). No open PR changes `frontend/src/components/ui/button.jsx` (#70 = six other `ui/` files, #86 = `ui/badge.jsx`; REST check 2026-11-21). Independent of FE-0e #87, FE-3a #86, FE-3b and FE-0d |
-| **Jira** | **needs Jira story** (epic KAN-5 "Research UI & citations"; labels `task-FE-0f`, `agent-frontend`, `arxivlens`) |
+| **Jira** | KAN-97 (epic KAN-5 "Research UI & citations"; labels `task-FE-0f`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: one variant string in an existing `ui/` file plus one new test file; no new component, contract or dependency |
 | **Status** | Ready (specced 2026-11-20 UTC by pm-lead at the FE-0e final review) |
 

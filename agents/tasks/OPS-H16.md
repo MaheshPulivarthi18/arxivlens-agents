@@ -6,7 +6,7 @@
 | **Priority** | P3 (harness) |
 | **PRD ref** | Technical PRD §10 Testing and evaluation (local test commands; no PRD row). Follow-up from the FE-1 QA/PM review; the CI half was done in OPS-H14 (#71), the Backlog line "Still open: `Makefile` `test-fe` has the same `grep -q` pattern" is this task |
 | **Depends on** | FE-1 (#68, merged `2410d2e`: `frontend/package.json` has `"test": "vitest run"`). No open PR touches `Makefile` (REST check 2026-11-20 18:00Z of #70, #79, #81, #82, #83, #84, #85, #86) |
-| **Jira** | needs story (epic for Technical PRD §10 harness; label `task-OPS-H16`) |
+| **Jira** | KAN-95 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H16`, `agent-backend-engineer`, `arxivlens`) |
 | **Design required** | no: one Makefile recipe; no production code, contract, CLI, table or service |
 | **Status** | Ready to merge (QA PASS r1 · PM APPROVE 2026-11-21; PR #89 raised, Mahesh merges) |
 

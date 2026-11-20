@@ -6,7 +6,7 @@
 | **Priority** | P3 (harness) |
 | **PRD ref** | Technical PRD §10 Testing and evaluation (CI harness; no PRD row). Follow-up from the OPS-H16 QA `[spec]` finding 2 (`agents/reviews/OPS-H16/report.md`, evidence `07-spec-ci-if-present`); original intent in the FE-1 QA/PM Backlog line ("replace the conditional with a plain `npm test` step") |
 | **Depends on** | FE-1 (#68, merged `2410d2e`: `frontend/package.json` `"test": "vitest run"`). Independent of OPS-H16 #89 (`Makefile` only) and OPS-H9b #88 (`db.yml`, `image-pins.yml`, `CONTRIBUTING.md`). No open PR touches `.github/workflows/ci.yml` (REST check 2026-11-21 of #70, #79, #81–#89) |
-| **Jira** | needs story (epic for Technical PRD §10 harness; label `task-OPS-H17`) |
+| **Jira** | KAN-96 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H17`, `agent-backend-engineer`, `arxivlens`) |
 | **Design required** | no: one CI step; no production code, contract, CLI, table or service |
 | **Status** | Ready to merge (PR #90 raised 2026-11-20 UTC; QA PASS r1, PM APPROVE) |
 

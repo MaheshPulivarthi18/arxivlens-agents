@@ -94,7 +94,10 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 ## frontend-engineer
 - [2026-11-19][FE-0] CI's oxlint 1.79 flags `setState` called synchronously inside `useEffect` ("cascading renders"). It isn't in `.oxlintrc.json`, and the sandbox can't run oxlint, so the first push added a warning versus main's 0 → derive values during render. Only set state from subscription callbacks (e.g. the `matchMedia` listener), never in the effect body. Also compare `Found N warnings` with main's latest CI Frontend job before calling AC1 done. (seen 1×)
 
+- [2026-11-20][FE-0e] A Vitest test that read source files with a template-literal `new URL(`../${rel}`, import.meta.url)` passed under a plain-Node stub but failed in CI: Vite rewrites that pattern into an `import.meta.glob` lookup (→ `undefined`). → Resolve paths with `fileURLToPath(import.meta.url)` + `node:path`; a stub run is a logic check only, the CI Vitest log is the pass/fail. (seen 2×: FE-0c, FE-0e)
+
 ## qa-reviewer
+- [2026-11-20][FE-0e] Developer's stand-in Vitest run hid a real CI failure → treat stub/shim test runs as logic checks only; require the CI Vitest log, and grep new tests for template-literal `new URL(…, import.meta.url)`. (seen 1×)
 - [2026-11-02][EVAL-1] Round-1 QA passed a gate whose PRD metric definition was pending ADR-0006 (flagged only as [spec]) → a gated metric that doesn't match the PRD definition is [blocking] until the ADR is Accepted. (seen 1×)
 - [2026-11-02][EVAL-1] A SQL "parity" test built from substring asserts passed with the vector arm's `ORDER BY … LIMIT` removed, because the same text sits inside `ROW_NUMBER() OVER (ORDER BY …)` → to check SQL mirroring, diff the normalised query text against the source of truth (QA r3 evidence 307) and mutate the ORDER BY/LIMIT clauses specifically. (seen 1×)
 - [2026-11-03][OPS-H5] A DB test's only guard ran in `plan_cache_mode=auto`, which the CI log showed was 100% generic plans, so the HNSW settings it claimed to guard never executed. Read the logged plan counts and modes to confirm the guarded branch really ran the feature before you accept an assertion as a regression test. (seen 1×)

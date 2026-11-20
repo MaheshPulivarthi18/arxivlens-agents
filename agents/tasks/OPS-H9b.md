@@ -6,7 +6,7 @@
 | **Priority** | P3 (harness) |
 | **PRD ref** | Technical PRD §10 Testing and evaluation (CI harness; no PRD row). Follow-up from the OPS-H9 QA/PM review: QA nits 5, 7, 8 and the PM note (`agents/reviews/OPS-H9/report.md:48`, `:109-111`, `:151`) |
 | **Depends on** | OPS-H9 (#66, merged `050904d`). No open PR touches `.github/workflows/db.yml`, `.github/workflows/image-pins.yml` or `CONTRIBUTING.md` (REST check 2026-11-20 18:00Z of #70, #79, #81, #82, #83, #84, #85, #86) |
-| **Jira** | needs story (epic for Technical PRD §10 harness; label `task-OPS-H9b`) |
+| **Jira** | KAN-94 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H9b`, `agent-backend-engineer`, `arxivlens`) |
 | **Design required** | no: CI shell checks and one doc line; no production code, contract, CLI, table or service |
 | **Status** | Ready to merge (QA PASS r1 · PM APPROVE 2026-11-21; PR #88 raised, Mahesh merges) |
 

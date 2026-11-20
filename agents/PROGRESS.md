@@ -807,3 +807,14 @@ Format:
 
 ## 2026-11-20 UTC: pm-lead, OPS-H17 #90 final review
 - **OPS-H17 #90** (needs Jira story, head `9dae472`): QA r1 PASS with no findings, then **PM APPROVE**. I opened all 5 evidence files (00–04 at `4adb852`) and each proves its AC. The diff is only `ci.yml` +1/-1. I rewrote the PR description with the Evidence section, CI results and both verdicts, and marked it ready for review, so it is now Ready to merge. Board row moved from In QA to Ready to merge, and backend WIP is now 0. No Jira edits.
+
+## 2026-11-20 18:00Z — cycle record (orchestrator, Step 8; session_01ATEBeUHm3hLaeUh4QMxhzc)
+- Took over the stale 14:59Z lock (the 15:00Z cycle took the lock and left no other commit or record). Push access to arxivlens-agents proven (dry-run + lock push). App `origin/main` = `c37d27c` (no merges since 13:00Z). No human reviews or untagged comments on any open agent PR (#70, #79, #81–#86).
+- **FE-3a** (KAN-88) #86: rework r1 (F4 test-only cases +36/−1, head `fa92c30`; F1 PR-body line by orchestrator; F2/F3 no change). QA r2 **PASS**, PM **APPROVE**, raised → Ready to merge. Rounds: QA 2 (FAIL r1), PM 1. Stale `qa-fail` label removed.
+- **FE-0e** (KAN-91) #87 (new, frontend; files disjoint from #70/#85/#86): QA r1 **FAIL** (guard test: Vite rewrites a template-literal `new URL(…, import.meta.url)` → ENOENT in CI), rework r1 `27953fd` (node `path` + `matchAll`), QA r2 **PASS**, PM **APPROVE** (AC2 wording clarified for `ui/` variant colours), raised. Follow-up **FE-0f** (KAN-97, `ui/button` clinical variant 3.77:1); FE-3b AC2 widened guard regex; inputs `border-input` → Backlog.
+- **OPS-H9b** (KAN-94) #88 (new, backend; `db.yml`, `image-pins.yml`, `CONTRIBUTING.md`, in no open PR): QA r1 PASS, PM APPROVE, raised. QA nits (^-anchor row, MinIO bullet) → Backlog, fold into ING-6c.
+- **OPS-H16** (KAN-95) #89 (new, backend; `Makefile` only): QA r1 PASS (AC3 by composition: CI vitest + local reach `vitest run`), PM APPROVE, raised. QA [spec] 2 → specced **OPS-H17**.
+- **OPS-H17** (KAN-96) #90 (new, backend; `ci.yml` 1 line, in no open PR, disjoint from #88/#89): QA r1 PASS, PM APPROVE, raised.
+- Not picked: ai-engineer has no unblocked task (#82 holds `tests/test_evals_data.py`; AI-5/EVAL-2 wait on ADR-0011/0012). Backend Ready tasks OPS-H7a2b/ING-6c/OPS-H7b/RET-1d wait on #83/#84 merging. FE-3a2/FE-0d/FE-3b wait on #86/#70 merging.
+- QA harness refused to write `report.md` for FE-0e r1, OPS-H9b, OPS-H16, OPS-H17; orchestrator saved the PR comments verbatim with provenance lines. Outbound filter still turns `![](…)` into backticked links in PR bodies/comments (images show as links).
+- Jira: created KAN-94/95/96 (epic KAN-3) and KAN-97 (epic KAN-5); KAN-88, KAN-91, KAN-94–96 → Ready to merge with `[pm-lead]` comments; KAN-91 PR link filled.
