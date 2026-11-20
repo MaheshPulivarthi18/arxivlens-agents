@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-6 (#20), EVAL-10a (#82, merged `21eb4e9`). No open PR touches `scripts/evaluate_answers.py`, `tests/test_evals_data.py` or `evals/README.md` (checked 2026-11-20 20:00Z: open PRs #91–#94 change only `frontend/…`, `README.md`, `cmd/arxivlens/…`, `internal/query/server*.go`) |
 | **Jira** | not created yet (epic KAN-2 "Retrieval & answer quality gates"; labels `task-EVAL-6b`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: no gate key, threshold, contract, CLI or table change; report-only metric wording only |
-| **Status** | Ready |
+| **Status** | Ready to merge (PR #96 @ `c053564`, QA r1 PASS, PM APPROVE 2026-11-21) |
 
 ## Goal
 `make eval` must never crash on a malformed `/v1/ask` response: a `refusal_reason` that isn't a string (e.g. `["x"]`, `{}`) today raises
@@ -50,3 +50,4 @@ git diff origin/main --shortstat
   `tests/test_evals_data.py` and only one open PR may change that file at a time. The EVAL-7 `answer_review` follow-up and the EVAL-5
   `CHUNK_COUNTS_SQL` follow-up also live in `tests/test_evals_data.py` and stay in Backlog until this merges.
 - Hint (not an AC): `isinstance(reason, str)` check before the truthiness test; keep `REFUSAL_REASONS` unchanged.
+- 2026-11-21 (pm-lead): final review **APPROVE** ([report](../reviews/EVAL-6b/report.md)). PR [#96](https://github.com/MaheshPulivarthi18/ArxivLens/pull/96) raised: Evidence section in the description, ready for review, label `ready-to-merge`. QA `[spec]` finding 3 (the goal says "never crash on a malformed `/v1/ask` response", but the ACs cover `refusal_reason` only) is accepted as a wording gap in this spec. The other shapes (`citations` not a list, a non-dict citation item, a non-dict body) are now a Backlog follow-up (EVAL-6c candidate) together with QA nit 1 (E3 blank lines). QA nit 2 (PR body AC6 line) is resolved by the rewritten PR description. Merging frees `tests/test_evals_data.py` for the next EVAL-6c / EVAL-7 / EVAL-5 follow-up.

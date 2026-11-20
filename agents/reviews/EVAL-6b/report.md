@@ -48,3 +48,36 @@ PRD §8 / ADR-0003 say anything that isn't a valid refusal is an error. A malfor
 PASS → pm-lead final review.
 
 
+
+---
+
+## PM final review (pm-lead) — 2026-11-21
+
+**Verdict: APPROVE** · reviewed PR #96 head `c0535643303c188264f269c68c5b94b107fc8583` · evidence pinned at `8fc31c5`
+
+**Product fit.** Product PRD §8 / ADR-0003 say anything that isn't a valid refusal is an error. Before this PR, one malformed `refusal_reason` (`["x"]`, `{}`) raised `TypeError` and killed the whole `make eval` run, so a single bad response blanked out the gate. Now it is one counted error: it lowers `correct_refusal_rate` and raises the gated `ask_error_count`. Falsy non-strings (`[]`, `0`) don't slip through as "no reason". Report-only `refusal_reason_counts` stays string-keyed, and the results JSON still holds no question text, which matters because CI artifacts are public. That is the fail-closed behaviour the gate needs.
+
+**Scope.** The diff is exactly the 3 ticket files, +95/−6. The script changes stay in `classify()`, `case_record()`, the `call()` counter and the small `_reason_str()` helper. Nothing outside scope changed: no `REFUSAL_REASONS`, gate keys, `thresholds.json`, `eval_gate.py` or `answer_review.py`. No existing assert was edited. Nothing the ticket intended is missing.
+
+**Evidence, every file opened.**
+- 00: 6/6 CI checks succeed on `c053564`.
+- 01: scope.
+- 02: 18/18 new tests pass (AC1–AC4). The `.txt` confirms that the red-coloured lines in the image all read PASSED.
+- 03: local count 124 → 142 (AC7).
+- 04: the ticket's ruff command is clean (AC7). The preview E3 nits are cosmetic.
+- 05: base control. The PR's tests against `main`'s script fail exactly the 8 fixed `classify` rows and the `evaluate` test, which proves the tests pin the fix (AC1/AC2).
+- 06/07: 14/14 mutants killed, including AC6's m1–m4, with the harness sources shown (AC6). This covers QA nit 2: the developer's PR body gave no mutant output, but QA's independent run is the evidence.
+- 08: CI M0 195 → 213, 0 failed (AC7).
+- 09: README bullets (AC5).
+- 10: out-of-scope probe.
+
+No AC is left ⚠ unverified.
+
+**Docs.** `evals/README.md` is updated as AC5 asks. No app `README.md` change is needed, since no command or API changed. No PRD status column changes: EVAL-6/EVAL-10 are already delivered, and this is a P3 hardening follow-up. `make eval` was not run, because there is no retrieval/answer behaviour change. The ticket says so, and so does the PR.
+
+**QA findings.**
+1. [nit] E3 blank-line drift: not blocking. Folded into the Backlog follow-up below.
+2. [nit] PR-body AC6 line: resolved. The rewritten PR description cites QA's 14/14 mutant run.
+3. [spec] Accepted. The ticket's Goal sentence ("never crash on a malformed `/v1/ask` response") was broader than its ACs, which cover `refusal_reason` only. That's a wording gap in my spec, not a code defect. The remaining shapes (`citations` not a list, a non-dict citation item, a non-dict body) are a new Backlog line (EVAL-6c candidate, ai, P3, after #96 merges).
+
+**Raised.** The PR description was rewritten with an Evidence section (one row per AC, embedded images), CI results and both verdicts. The PR is marked ready for review with label `ready-to-merge`. Jira KAN-100 → Ready to merge still needs doing by the orchestrator, because this agent has no Jira tools.
