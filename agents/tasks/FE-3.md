@@ -80,3 +80,4 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
 - 2026-11-20 (pm-lead, FE-0b final review): #70 is raised (Ready to merge). For the design: `Tooltip` wraps its Root in its own Provider (`delayDuration=300`),
   and the innermost Provider wins, so an app-level `<TooltipProvider>` does **not** change these tooltips' delay (FE-0b QA r1 N1; comment in `tooltip.jsx`).
   Don't add one expecting it to work. Tooltips stay supplementary: each chip keeps visible status text. Render tests for the primitives are FE-0d.
+- 2026-11-20 (frontend-engineer): design written, `docs/design/FE-3.md` (Draft), awaiting pm-lead review. Proposes a split: FE-3a (labels + refusal state, ~470 lines, no `ui/tooltip`, so it can start before #70 merges) and FE-3b (tokens, tooltip, theme flip, ~140 lines, after #70 + FE-3a). 6 open questions in the design. No app code written.
