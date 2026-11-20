@@ -25,3 +25,4 @@ React 19, Vite 8, Tailwind 3, Radix UI primitives (`src/components/ui/`), lucide
 - Always render refusals ("No indexed papers are relevant…") as a first-class state, not an error.
 - Show `supported: false` citations visibly flagged, never silently hidden (until ADR-0003 decides otherwise).
 - No new dependency without saying why in the PR.
+- Tests that read source files resolve paths with `fileURLToPath(import.meta.url)` + `node:path`, never a template-literal `new URL(`…${x}…`, import.meta.url)`: Vite rewrites that into an `import.meta.glob` lookup and the path becomes `undefined` under Vitest (FE-0c, FE-0e). A stub/shim run of a Vitest file is a logic check only; the CI Vitest log is the pass/fail.
