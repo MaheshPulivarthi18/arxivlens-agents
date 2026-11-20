@@ -1,0 +1,15 @@
+$ bash -c L=/tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/stack.log; grep -E 'HEAD is now' $L | cut -c30-; echo; sed -n '/=== short test summary info ===/,/ passed, /p' $L | cut -c30- > /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/summ.txt; echo "PASSED rows: $(grep -c '^PASSED' /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/summ.txt)"; echo 'test_m4 PASSED rows:'; grep 'test_m4' /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/summ.txt; echo; echo 'non-PASSED summary lines:'; grep -v '^PASSED' /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/summ.txt
+HEAD is now at 2ba4fab Merge 0fbf4e0d70466e9529a51b0ca7c6580cc4883b81 into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+
+PASSED rows: 237
+test_m4 PASSED rows:
+PASSED tests/test_m4_chaos.py::test_idempotency_duplicate_event_row_invariance
+PASSED tests/test_m4_chaos.py::test_corrupt_pdf_dlq_routing_and_diagnostic_payload
+PASSED tests/test_m4_chaos.py::test_redelivered_discovered_keeps_embedded_status
+
+non-PASSED summary lines:
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_evals_data.py:780: opt-in: needs DATABASE_URL with migrations/ applied
+237 passed, 1 skipped, 3 deselected, 5 warnings in 45.92s
+
+[exit code 0]
