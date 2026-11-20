@@ -1,0 +1,49 @@
+$ /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/h/ac1.sh /root/wt/qa-OPS-H14/.github/scripts/frontend-dist-report.sh
+== (pos) /root/wt/qa-OPS-H14/.github/scripts/frontend-dist-report.sh pos
+DIST woff2 files: 2
+DIST woff2: x.woff2
+DIST woff2: y.woff2
+DIST css @font-face rules: 2
+DIST css .font-serif: yes
+DIST css .prose: yes
+DIST google font hosts: 1
+DIST google font host files: index.html
+exit=0
+== (neg) /root/wt/qa-OPS-H14/.github/scripts/frontend-dist-report.sh neg
+DIST woff2 files: 0
+DIST css @font-face rules: 0
+DIST css .font-serif: no
+DIST css .prose: no
+DIST google font hosts: 0
+DIST google font host files: none
+exit=0
+== (c) missing dir
+exit=1
+== (c) dir without index.html
+exit=1
+== (c) no argument
+exit=1
+== trailing slash on pos
+DIST google font host files: index.html
+exit=0
+== fixture files (printed after results)
+--- ./neg/assets/b.css
+body{color:red}
+--- ./neg/index.html
+<html><body>hi</body></html>
+--- ./noidx/assets/c.css
+body{}
+--- ./pos/assets/a.css
+@font-face{font-family:A}
+@font-face{font-family:B}
+.font-serif{font-family:serif}
+.prose{max-width:65ch}
+--- ./pos/assets/x.woff2
+--- ./pos/assets/y.woff2
+--- ./pos/index.html
+<link href="https://fonts.googleapis.com/css2?family=Inter" rel="stylesheet">
+::error::dist directory '/tmp/tmp.9bbOJ71fjr/nonexistent' does not exist
+::error::'/tmp/tmp.9bbOJ71fjr/noidx' has no index.html
+/root/wt/qa-OPS-H14/.github/scripts/frontend-dist-report.sh: line 17: 1: dist directory, e.g. frontend/dist
+
+[exit code 0]

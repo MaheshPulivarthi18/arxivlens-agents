@@ -1,0 +1,9 @@
+$ bash -c echo '--- git grep font-serif|prose|@font-face in frontend/ at 4c7d327:'; git grep -n -E 'font-serif|prose|@font-face' 4c7d327 -- frontend/ ':!frontend/package-lock.json'; echo "git grep exit=$? (1 = no match)"; echo '--- woff2 files in frontend/ at 4c7d327:'; git ls-tree -r --name-only 4c7d327 -- frontend/ | grep -c 'woff2$'; echo '--- google font host occurrences in frontend/index.html at 4c7d327:'; git show 4c7d327:frontend/index.html | grep -oE 'fonts\.(googleapis|gstatic)\.com' | wc -l
+--- git grep font-serif|prose|@font-face in frontend/ at 4c7d327:
+git grep exit=1 (1 = no match)
+--- woff2 files in frontend/ at 4c7d327:
+0
+--- google font host occurrences in frontend/index.html at 4c7d327:
+3
+
+[exit code 0]

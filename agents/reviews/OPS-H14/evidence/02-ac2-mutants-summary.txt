@@ -1,0 +1,55 @@
+$ bash -c /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/h/mut.sh /root/wt/qa-OPS-H14/.github/scripts/frontend-dist-report.sh | grep -v '^        '
+== Mutants (KILLED = output or exit code differs from the unmutated script on that fixture)
+M1   gst   KILLED   AC2: count only fonts.googleapis.com (drop gstatic)
+M2   pos   KILLED   AC2: search only *.css for hosts
+M3   neg   KILLED   AC2: drop || true on @font-face count
+M4   neg   KILLED   AC2: drop || true on host count
+M5   neg   KILLED   AC2: drop || true on host file list
+M6   pos   KILLED   woff2 glob wrong
+M7   pos   KILLED   woff2 unsorted (find order)
+M8   pos   SURVIVED .font-serif hard-coded yes (pos has .font-serif: expect SURVIVED; M8b is the check)
+M8b  neg   KILLED   .font-serif hard-coded yes (pos has .font-serif: expect SURVIVED; M8b is the check)
+M9   neg   KILLED   .prose hard-coded yes
+M10  pos   KILLED   has() ignores its argument
+M11  js    KILLED   hosts: only index.html searched
+M12  gst   SURVIVED drop "none" default (gst has a host file: expect SURVIVED; M12b is the check)
+M12b neg   KILLED   drop "none" default (gst has a host file: expect SURVIVED; M12b is the check)
+M13  neg   SURVIVED drop index.html check (neg has one: expect SURVIVED)
+M14  pos   SURVIVED count files, not occurrences (pos: 1 file 1 hit, expect SURVIVED)
+M15  pos   KILLED   final exit non-zero
+
+== Extra probes on the unmutated script
+-- gst
+DIST google font hosts: 1
+exit=0
+-- css
+DIST google font hosts: 1
+exit=0
+-- js
+DIST google font hosts: 1
+exit=0
+-- .prose-sm only (substring match)
+DIST css .font-serif: yes
+DIST css .prose: yes
+exit=0
+-- no assets dir
+DIST woff2 files: 0
+DIST css @font-face rules: 0
+DIST css .font-serif: no
+DIST css .prose: no
+DIST google font hosts: 0
+DIST google font host files: none
+exit=0
+-- nested css (assets/sub/n.css, not top-level)
+DIST css @font-face rules: 0
+exit=0
+-- invoked as CI does: bash -e -c 'cd <parent>; ../script dist'
+DIST woff2 files: 0
+DIST css @font-face rules: 0
+DIST css .font-serif: no
+DIST css .prose: no
+DIST google font hosts: 1
+DIST google font host files: index.html
+exit=0
+
+[exit code 0]

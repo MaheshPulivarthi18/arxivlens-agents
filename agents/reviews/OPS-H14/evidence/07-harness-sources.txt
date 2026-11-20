@@ -1,0 +1,68 @@
+$ bash -c cd /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/h && find . -type f | sort | while read -r f; do echo "=== $f"; cat "$f"; done
+=== ./ac1.sh
+#!/usr/bin/env bash
+# AC1 fixture harness (QA). Usage: ac1.sh <script>
+S="$1"; T="$(mktemp -d)"
+mkdir -p "$T/pos/assets" "$T/neg/assets" "$T/noidx/assets" "$T/gst/assets"
+printf '<link href="https://fonts.googleapis.com/css2?family=Inter" rel="stylesheet">\n' > "$T/pos/index.html"
+printf '@font-face{font-family:A}\n@font-face{font-family:B}\n.font-serif{font-family:serif}\n.prose{max-width:65ch}\n' > "$T/pos/assets/a.css"
+: > "$T/pos/assets/x.woff2"; : > "$T/pos/assets/y.woff2"
+printf '<html><body>hi</body></html>\n' > "$T/neg/index.html"
+printf 'body{color:red}\n' > "$T/neg/assets/b.css"
+printf 'body{}\n' > "$T/noidx/assets/c.css"
+for d in pos neg; do echo "== (${d}) $S $d"; "$S" "$T/$d"; echo "exit=$?"; done
+echo "== (c) missing dir"; "$S" "$T/nonexistent"; echo "exit=$?"
+echo "== (c) dir without index.html"; "$S" "$T/noidx"; echo "exit=$?"
+echo "== (c) no argument"; "$S"; echo "exit=$?"
+echo "== trailing slash on pos"; "$S" "$T/pos/" | tail -1; echo "exit=$?"
+echo "== fixture files (printed after results)"; (cd "$T" && find . -type f | sort | while read -r f; do echo "--- $f"; cat "$f"; done)
+=== ./mut.sh
+#!/usr/bin/env bash
+# Mutation harness (QA). Usage: mut.sh <script>. Copies the script per mutant into a fresh mktemp dir, applies one
+# perl substitution, checks the file changed (else INVALID), runs the probe fixture, compares to the original's output.
+S="$1"; T="$(mktemp -d)"; F="$T/fx"
+mkdir -p "$F/pos/assets" "$F/neg/assets" "$F/gst/assets" "$F/css/assets" "$F/js/assets"
+printf '<link href="https://fonts.googleapis.com/css2?family=Inter" rel="stylesheet">\n' > "$F/pos/index.html"
+printf '@font-face{font-family:A}\n@font-face{font-family:B}\n.font-serif{font-family:serif}\n.prose{max-width:65ch}\n' > "$F/pos/assets/a.css"
+: > "$F/pos/assets/x.woff2"; : > "$F/pos/assets/y.woff2"
+printf '<html><body>hi</body></html>\n' > "$F/neg/index.html"; printf 'body{color:red}\n' > "$F/neg/assets/b.css"
+printf '<link rel="preconnect" href="https://fonts.gstatic.com">\n' > "$F/gst/index.html"
+printf '<html></html>\n' > "$F/css/index.html"; printf '@import url(https://fonts.googleapis.com/css2?family=X);\n' > "$F/css/assets/c.css"
+printf '<html></html>\n' > "$F/js/index.html"; printf 'const u="https://fonts.gstatic.com/s/x.woff2"\n' > "$F/js/assets/m.js"
+run() { local sc="$1" fx="$2"; local o; o="$("$sc" "$F/$fx" 2>&1)"; echo "$o"; echo "exit=$?"; }
+runx() { local sc="$1" fx="$2"; "$sc" "$F/$fx" >"$T/out" 2>&1; local e=$?; cat "$T/out"; echo "exit=$e"; }
+mutant() { # id, fixture, perl expr, description
+  local id="$1" fx="$2" expr="$3" desc="$4" d; d="$(mktemp -d)"; cp "$S" "$d/m.sh"; chmod +x "$d/m.sh"
+  perl -0pi -e "$expr" "$d/m.sh"
+  if cmp -s "$S" "$d/m.sh"; then printf '%-4s %-5s INVALID (no change)  %s\n' "$id" "$fx" "$desc"; return; fi
+  local a b; a="$(runx "$S" "$fx")"; b="$(runx "$d/m.sh" "$fx")"
+  if [ "$a" = "$b" ]; then v=SURVIVED; else v=KILLED; fi
+  printf '%-4s %-5s %-8s %s\n' "$id" "$fx" "$v" "$desc"
+  diff <(echo "$a") <(echo "$b") | grep '^[<>]' | sed 's/^/        /'
+}
+echo "== Mutants (KILLED = output or exit code differs from the unmutated script on that fixture)"
+mutant M1 gst 's/\(googleapis\|gstatic\)/googleapis/' 'AC2: count only fonts.googleapis.com (drop gstatic)'
+mutant M2 pos 's/grep -rEaoh -- "\$HOSTS" "\$DIST"/grep -rEaoh --include=*.css -- "\$HOSTS" "\$DIST"/; s/grep -rEal -- "\$HOSTS" \./grep -rEal --include=*.css -- "\$HOSTS" ./' 'AC2: search only *.css for hosts'
+mutant M3 neg 's/\{ grep -o .\@font-face. \|\| true; \}/grep -o "\@font-face"/' 'AC2: drop || true on @font-face count'
+mutant M4 neg 's/\{ grep -rEaoh -- "\$HOSTS" "\$DIST" \|\| true; \}/grep -rEaoh -- "\$HOSTS" "\$DIST"/' 'AC2: drop || true on host count'
+mutant M5 neg 's/\{ grep -rEal -- "\$HOSTS" \. \|\| true; \}/grep -rEal -- "\$HOSTS" ./' 'AC2: drop || true on host file list'
+mutant M6 pos 's/-name .\*\.woff2./-name "*.woff"/' 'woff2 glob wrong'
+mutant M7 pos 's/LC_ALL=C sort\)/cat)/' 'woff2 unsorted (find order)'
+mutant M8 pos 's/\$\(has .\.font-serif.\)/yes/' '.font-serif hard-coded yes (pos has .font-serif: expect SURVIVED; M8b is the check)'
+mutant M8b neg 's/\$\(has .\.font-serif.\)/yes/' '.font-serif hard-coded yes (pos has .font-serif: expect SURVIVED; M8b is the check)'
+mutant M9 neg 's/\$\(has .\.prose.\)/yes/' '.prose hard-coded yes'
+mutant M10 pos 's/grep -qF -- "\$1"/grep -qF -- "zzz"/' 'has() ignores its argument'
+mutant M11 js 's/grep -rEaoh -- "\$HOSTS" "\$DIST"/grep -rEaoh -- "\$HOSTS" "\$DIST\/index.html"/; s/grep -rEal -- "\$HOSTS" \./grep -rEal -- "\$HOSTS" index.html/' 'hosts: only index.html searched'
+mutant M12 gst 's/\$\{files:-none\}/\$files/' 'drop "none" default (gst has a host file: expect SURVIVED; M12b is the check)'
+mutant M12b neg 's/\$\{files:-none\}/\$files/' 'drop "none" default (gst has a host file: expect SURVIVED; M12b is the check)'
+mutant M13 neg 's/if \[ ! -f "\$DIST\/index.html" \]; then\n.*?fi\n//s' 'drop index.html check (neg has one: expect SURVIVED)'
+mutant M14 pos 's/grep -rEaoh/grep -rEalh/' 'count files, not occurrences (pos: 1 file 1 hit, expect SURVIVED)'
+mutant M15 pos 's/exit 0\n\z/exit 3\n/' 'final exit non-zero'
+echo; echo "== Extra probes on the unmutated script"
+for fx in gst css js; do echo "-- $fx"; runx "$S" "$fx" | grep -E 'hosts|exit'; done
+echo "-- .prose-sm only (substring match)"; mkdir -p "$F/sub/assets"; printf '<html></html>\n' > "$F/sub/index.html"; printf '.prose-sm{x:1}\n.font-serif-x{y:1}\n' > "$F/sub/assets/s.css"; runx "$S" sub | grep -E 'serif|prose|exit'
+echo "-- no assets dir"; mkdir -p "$F/noa"; printf '<html></html>\n' > "$F/noa/index.html"; runx "$S" noa
+echo "-- nested css (assets/sub/n.css, not top-level)"; mkdir -p "$F/nest/assets/sub"; printf '<html></html>\n' > "$F/nest/index.html"; printf '@font-face{}\n' > "$F/nest/assets/sub/n.css"; runx "$S" nest | grep -E 'font-face|exit'
+echo "-- invoked as CI does: bash -e -c 'cd <parent>; ../script dist'"; mkdir -p "$F/ci/frontend/dist/assets" "$F/ci/.github/scripts"; cp "$S" "$F/ci/.github/scripts/"; printf '<link href="https://fonts.googleapis.com/x">\n' > "$F/ci/frontend/dist/index.html"; (cd "$F/ci/frontend" && bash -e -c '../.github/scripts/frontend-dist-report.sh dist'; echo "exit=$?")
+
+[exit code 0]

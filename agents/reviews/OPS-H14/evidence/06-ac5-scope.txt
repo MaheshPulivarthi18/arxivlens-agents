@@ -1,0 +1,52 @@
+$ bash -c git diff --stat origin/main...HEAD; echo '--- ci.yml diff:'; git diff origin/main...HEAD -- .github/workflows/ci.yml; echo '--- job keys in ci.yml:'; grep -n '^  [a-z-]*:$' .github/workflows/ci.yml; echo '--- mode:'; git ls-files -s .github/scripts/frontend-dist-report.sh; bash -n .github/scripts/frontend-dist-report.sh && echo 'bash -n: OK'; command -v shellcheck || echo 'shellcheck: not installed in sandbox'; echo '--- ownership:'; .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H14 | tail -3; echo '--- script header:'; sed -n 1,14p .github/scripts/frontend-dist-report.sh
+ .github/scripts/frontend-dist-report.sh | 58 +++++++++++++++++++++++++++++++++
+ .github/workflows/ci.yml                |  6 ++--
+ 2 files changed, 62 insertions(+), 2 deletions(-)
+--- ci.yml diff:
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 4c4ad02..c9fbe66 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -66,9 +66,11 @@ jobs:
+           cache-dependency-path: frontend/package-lock.json
+       - run: npm ci
+       - run: npm run lint
+-      - name: Test (if FE-1 has added a test script)
+-        run: if npm run | grep -q " test"; then npm test; else echo "no frontend tests yet"; fi
++      - name: Test
++        run: npm run test --if-present
+       - run: npm run build
++      - name: dist/ report (fonts, CSS)
++        run: ../.github/scripts/frontend-dist-report.sh dist
+ 
+   agent-ownership:
+     name: Agent ownership check
+--- job keys in ci.yml:
+5:  push:
+13:  go:
+31:  python:
+54:  frontend:
+75:  agent-ownership:
+--- mode:
+100755 6af30b3c70f1dcae891ca061e6db54824f76f8fc 0	.github/scripts/frontend-dist-report.sh
+bash -n: OK
+shellcheck: not installed in sandbox
+--- ownership:
+Ownership OK for role=backend (64 changed lines)
+--- script header:
+#!/usr/bin/env bash
+# Frontend dist/ report: prints font and CSS facts about a built frontend into the CI job log.
+# It prints 7 kinds of line, always in this order:
+#   DIST woff2 files: <n>                  (.woff2 files under <dist>/assets)
+#   DIST woff2: <name>                     (one per .woff2, sorted; none when n = 0)
+#   DIST css @font-face rules: <n>         (occurrences across <dist>/assets/*.css)
+#   DIST css .font-serif: yes|no
+#   DIST css .prose: yes|no
+#   DIST google font hosts: <n>            (fonts.googleapis.com / fonts.gstatic.com in any file under <dist>)
+#   DIST google font host files: <paths>   (comma-separated, relative to <dist>, or "none")
+# Report-only: it exits 0 whatever the counts are, and non-zero only if <dist> or <dist>/index.html is missing.
+# Why: agent QA sandboxes can't run `npm run build`, so this puts the dist/ evidence (self-hosted fonts, no Google
+# font hosts, built CSS classes) where QA can read it (FE-0 design Q3). Turning it into a gate is a separate decision.
+# Usage: .github/scripts/frontend-dist-report.sh <dist-dir>
+
+[exit code 0]

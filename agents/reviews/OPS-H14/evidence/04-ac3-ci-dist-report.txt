@@ -1,0 +1,31 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/44665341877 --jq '"run \(.id) event=\(.event) head=\(.head_sha) branch=\(.head_branch)"'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136053135284 --jq '.steps[] | "step \(.number) \(.name): \(.conclusion)"'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136053135284/logs > /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/ci/fe2.log; grep -E 'HEAD is now at|dist/(index|assets)|frontend-dist-report|DIST ' /tmp/claude-0/-home-claude/0b3546de-61e9-58a9-96df-b7a92c6e2a01/scratchpad/ci/fe2.log; echo '--- base frontend/index.html google font lines (origin/main 4c7d327):'; git show 4c7d327:frontend/index.html | grep -n 'fonts\.'
+run 44665341877 event=pull_request head=84392b480343892cd59b498850f850b676b392ea branch=agent/backend/OPS-H14
+step 1 Set up job: success
+step 2 Run actions/checkout@v4: success
+step 3 Run actions/setup-node@v4: success
+step 4 Run npm ci: success
+step 5 Run npm run lint: success
+step 6 Test: success
+step 7 Run npm run build: success
+step 8 dist/ report (fonts, CSS): success
+step 15 Post Run actions/setup-node@v4: success
+step 16 Post Run actions/checkout@v4: success
+step 17 Complete job: success
+2026-11-20T03:05:48.8517802Z HEAD is now at d3029ac Merge 84392b480343892cd59b498850f850b676b392ea into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+2026-11-20T03:05:55.3119617Z dist/index.html                   0.96 kB │ gzip:  0.55 kB
+2026-11-20T03:05:55.3120364Z dist/assets/index-YvuE-zZd.css   28.52 kB │ gzip:  5.80 kB
+2026-11-20T03:05:55.3121377Z dist/assets/index-DaOETmkK.js   317.26 kB │ gzip: 99.20 kB
+2026-11-20T03:05:55.3684599Z ##[group]Run ../.github/scripts/frontend-dist-report.sh dist
+2026-11-20T03:05:55.3684962Z [36;1m../.github/scripts/frontend-dist-report.sh dist[0m
+2026-11-20T03:05:55.3864900Z DIST woff2 files: 0
+2026-11-20T03:05:55.3946625Z DIST css @font-face rules: 0
+2026-11-20T03:05:55.3967508Z DIST css .font-serif: no
+2026-11-20T03:05:55.3987909Z DIST css .prose: no
+2026-11-20T03:05:55.4021247Z DIST google font hosts: 3
+2026-11-20T03:05:55.4064972Z DIST google font host files: index.html
+--- base frontend/index.html google font lines (origin/main 4c7d327):
+8:    <link rel="preconnect" href="https://fonts.googleapis.com">
+9:    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+10:    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+
+[exit code 0]
