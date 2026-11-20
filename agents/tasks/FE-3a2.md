@@ -8,7 +8,7 @@
 | **Depends on** | **FE-3a #86 merged** (fixtures `earlyRefusal`, `refusalA/B/C`, `mixedAnswer`, `quotedAnswer`/`synthesizedAnswer` in `src/test/fixtures.js`, the refusal panel and `#references-heading`). Must not overlap any open PR's files (re-check via REST at start) |
 | **Jira** | KAN-93 |
 | **Design required** | no (design done: `docs/design/FE-3.md` §Test plan rows AC1, AC2, AC4, AC6, AC6 two-stage are the spec for this file) |
-| **Status** | Ready (FE-3a #86 merged `f95184b`, 2026-11-20; picked for cycle 2026-11-20T19:00Z) |
+| **Status** | In Progress → In QA once the orchestrator opens the draft PR (branch `agent/frontend/FE-3a2`, commit `e7dc3c0`; CI not yet run) |
 
 ## Goal
 Lock in, as CI regression tests on the real `<App>`, the behaviour QA r1 confirmed only by a one-off browser run for FE-3a: no "verified" claim anywhere on a
@@ -49,3 +49,24 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
 ## Notes
 - 2026-11-20 (pm-lead): specced from the FE-3a QA r1 FAIL (finding 1, option a). The developer's draft list in FE-3a Notes (2026-11-20 Build) and the
   design §Test plan rows are the source; the scratchpad draft is gone, recreate it. Expected size ~150 lines, one file.
+- 2026-11-20 (frontend-engineer, Build): `frontend/src/App.test.jsx` (new, 202 lines, 7 tests), commit `e7dc3c0` on `agent/frontend/FE-3a2` (from `230f617`).
+  No production code and no fixture changes (every fixture needed already existed). Open PRs re-checked via REST at start: none.
+  - Harness: `fetch` stubbed per test with `vi.stubGlobal` (restored by `vi.unstubAllGlobals` in `afterEach`), routed by URL and `/v1/ask` body
+    (`quick: true` vs full) and `/v1/papers/discover`; any other URL, or a stage a test didn't provide, is recorded and fails the test in `afterEach`.
+    `Toast` mocked with `vi.hoisted` + `vi.mock` (spy records props, renders nothing). No `new URL(…, import.meta.url)` in the file.
+  - AC1 refusal A / refusal C: two tests, unscoped `document.body.textContent` not `/verified/i` after the "No answer shown" status panel.
+  - AC2 refusal B: every Toast call has `message === ''` (and at least one call), no `role="alert"`, "Retrieved passages" heading visible, `fetch` called once.
+  - AC3 early refusal: explicit asserts (banner text, question in a `code`, button with today's label, no `article`, no "Clinical Literature Synthesis");
+    click → exactly one `POST /v1/papers/discover` with body `{ query: <question> }`; the re-run search shows the banner again.
+  - AC4 refusal A: Tab (bounded loop) to "Read the 2 retrieved passages", Enter → `document.activeElement` is `#references-heading`.
+  - AC5a/b two-stage: full held on a deferred promise; (a) quoted text + "Writing a summary…" then synthesized text, quoted and status gone;
+    (b) full → `refusalC`: quoted stays, no panel, no toast message.
+  - AC6 (reasoned, npm unavailable; QA to rerun as mutants): old hero sentence ("…mathematically verified…") → AC1 fails both; chip text "Unverified" → AC1 fails;
+    `showToast` on a refusal → AC2 toast assert fails; drop `if (!quick.synthesis_available) return` → AC2 `toHaveBeenCalledTimes(1)` fails (+ unexpected "ask full");
+    discover body `{ q: … }` or no POST → AC3 fails; early-refusal check removed → refusal-free path renders cards/no banner → AC3 fails;
+    `focusEvidence` a no-op → AC4 focus stays on the link → fails; never set 'writing' → AC5a/b WRITING `findByText` fails; drop the swap → AC5a synthesized text never
+    appears; drop the `answer_kind === 'synthesized'` guard → AC5b panel shows → fails.
+  - AC7 not verified locally: `npm ci` can't reach registry.npmjs.org (in `NO_PROXY`, DNS ENOTFOUND; via the agent proxy CONNECT 403), so no vitest/oxlint/vite run.
+    Local checks only: TypeScript `transpileModule` (JSX) 0 diagnostics; ESLint 9 `no-unused-vars`/`no-undef` clean. Main baseline (CI run 44797226987, job 136502158010
+    at `230f617`): `Found 0 warnings and 0 errors.`, `Test Files 7 passed (7)` → this PR should show 8 (FE-0f's button.test.jsx would add another if it merges first).
+    The CI Vitest log is the pass/fail.

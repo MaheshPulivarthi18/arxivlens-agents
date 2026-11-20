@@ -8,7 +8,7 @@
 | **Depends on** | **OPS-H7a2a = ArxivLens PR #83 merged** (`Manager.List`, `ListOptions{…, Snapshot}`, `Page{Next, Watermarks, Warnings}`, `ParseCursor`, missing-topic error). #65/#69 (root `README.md`) are merged. Must not run alongside ING-6c or OPS-H7b (both edit `cmd/arxivlens/main.go`; ING-6c also edits `README.md`) |
 | **Jira** | KAN-71 (the OPS-H7a2 story; a2b is its second PR) |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07), "Build notes (a1)" and "Build notes (a2a, PR #83)" |
-| **Status** | Ready (OPS-H7a2a #83 merged `a0b80fe`, 2026-11-20; picked for cycle 2026-11-20T19:00Z) |
+| **Status** | In Progress: built on `agent/backend/OPS-H7a2b` (`7788f17` skeleton, `0f99a63` build); draft PR to be opened by the orchestrator |
 
 ## Goal
 The operator half of OPS-H7a2: `arxivlens dlq list` pages to the start-time end of the topic and prints a resumable `P/O` cursor, and `dlq inspect`
@@ -63,3 +63,20 @@ KAFKA_BROKERS=localhost:9092 go test -tags integration -count=1 -v ./internal/dl
   Not startable this cycle: #83 is in QA round 2 and owns the `Manager.List` API this builds on.
 - Sequencing after #83 merges: OPS-H7a2b → OPS-H7b → OPS-H7c (all `main.go`/`manager.go`), with ING-6c (`main.go`, `README.md`) slotted between
   a2b and OPS-H7b if backend has a free slot. Never two of them at once.
+- 2026-11-21 (backend-engineer): built on `agent/backend/OPS-H7a2b` from `230f617`.
+  - **Size gate.** Skeleton commit `7788f17` stubs `main.go` and `dlq_test.go`: `cmd/arxivlens/dlq_test.go | 8`, `cmd/arxivlens/main.go | 13`, 21 insertions.
+    Final `git diff --stat origin/main` (`0f99a63`): `README.md | 9`, `cmd/arxivlens/dlq_test.go | 198`, `cmd/arxivlens/main.go | 188`; 348 insertions and 47 deletions, so **395 changed lines (< 400)**.
+    The first full draft measured 409. I got it under the gate by (a) dropping extra ` --partition P --page-size N` suffixes that I had added to the
+    `next page:` footer (the footer now matches the AC5 text exactly), (b) cutting a `Long` help string, (c) printing the `inspect` block with one `Fprintf`,
+    and (d) removing an `inspect` warnings loop that can't fire (inspect never passes a `From` below the snapshot's `Low`; it was surviving mutant M14).
+  - **Follow-up (pm-lead).** Because the footer is exact, `dlq list --partition 1` prints `next page: … --from 1/50` without `--partition 1`. Running that
+    command continues into the later partitions after partition 1. Should the footer repeat `--partition` / `--page-size`? That needs a spec change.
+  - **Shape.** `newDLQCmdWith(newReader func() (dlqReader, error))` with `dlqReader = dlq.Reader + Close()`. `withDLQManager` builds the reader,
+    `defer Close()`, then runs on `dlq.NewManager(nil, r)`. `list` and `inspect` only call `List` through it (AC7). `replay` is unchanged (`NewManager(cfg.KafkaBrokers, nil)`).
+    The default factory returns an untyped `nil` on a `NewKafkaReader` error. `--page-size` defaults to `dlq.DefaultPageSize` (kills M19). `--limit` is a hidden flag on the
+    same variable. `inspect` pages are 500 records. `N records` in the end footer counts the records listed in this run (README says so).
+  - **Local verification.** Go 1.25 is not available, so the real module can't build here: `go version` → `go: download go1.25.0 … dial tcp: lookup proxy.golang.org … no such host`,
+    and there is no module cache. As a **logic check only**, I used a scratch go1.24 module with the real `manager.go` `List` code, the real `kafka.go` types,
+    the real DLQ section of `main.go` and the real `dlq_test.go`, plus stubs for cobra/pflag and kerr. Results: `go vet` clean, `go test -race` → `TestDLQFlags` 18/18 PASS.
+    17 single-edit mutants: 16 killed, 1 survived, M17 (flag default `0` instead of `DefaultPageSize`). M17 is equivalent because `List` maps `<= 0` to 50.
+    `gofmt -l cmd/` is clean. CI is the source of truth for AC8/AC9 (Go job, DB job's real-Kafka step, Full stack `dlq list` lines).

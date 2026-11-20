@@ -8,7 +8,7 @@
 | **Depends on** | FE-0 #69 merged (`54c4de8`, tokens). No open PR changes `frontend/src/components/ui/button.jsx` (#70 = six other `ui/` files, #86 = `ui/badge.jsx`; REST check 2026-11-21). Independent of FE-0e #87, FE-3a #86, FE-3b and FE-0d |
 | **Jira** | KAN-97 (epic KAN-5 "Research UI & citations"; labels `task-FE-0f`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: one variant string in an existing `ui/` file plus one new test file; no new component, contract or dependency |
-| **Status** | Ready (specced 2026-11-20 UTC by pm-lead at the FE-0e final review; picked for cycle 2026-11-20T19:00Z) |
+| **Status** | In QA pending (built 2026-11-21 UTC by frontend-engineer, commit `ce86ddf` on `agent/frontend/FE-0f`; awaiting push + draft PR by orchestrator) |
 
 ## Goal
 `<Button variant="clinical">` draws white `text-sm`/`text-xs` text on an emerald-600 → teal-600 gradient: **3.77:1 / 3.74:1 in both themes**, below
@@ -45,3 +45,9 @@ The npm registry is blocked in agent sandboxes: the evidence for AC1, AC3 and AC
   prop changes in its files and FE-3b owns `HeroSearch.jsx`; the visual direction (ink primary instead of emerald gradients) is the one FE-0's approved
   design already applied to the Navbar's "Index Paper". Hint, not a requirement: if the test needs to read a source file, resolve it with
   `fileURLToPath(import.meta.url)` + `path`, never `new URL(\`…${x}\`, import.meta.url)` (Vite rewrites it under Vitest: FE-0c, FE-0e r1).
+- 2026-11-21 UTC (frontend-engineer): built on `agent/frontend/FE-0f` (`ce86ddf`, from `230f617`). `clinical` in `ui/button.jsx` is now
+  `bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 font-semibold` with a "Deprecated (FE-0 design §6)" comment (the comment
+  the spec asked to keep did not exist in `button.jsx` at `230f617`, so it was added). New `ui/button.test.jsx`: AC1 class contract, base focus
+  ring present, and clinical colour classes equal to `default` apart from `font-*`. Diff: 2 files, +42/-1; no caller touched (verified the four
+  call sites pass only layout/spacing `className`, no colour overrides). Not run locally: `npm ci` fails (`getaddrinfo ENOTFOUND
+  registry.npmjs.org`), so AC1/AC3/AC4 evidence is the PR's CI `Frontend (lint, test, build)` job; AC2 contrast numbers are QA's to compute.

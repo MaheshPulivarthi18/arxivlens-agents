@@ -8,7 +8,7 @@
 | **Depends on** | RET-1c (#84) **merged** (same files: `internal/query/server.go`, `server_test.go`) |
 | **Jira** | KAN-92 (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1d`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: unexported interfaces inside one package, no route, field, CLI, table, service or exported signature change |
-| **Status** | Ready (RET-1c #84 merged `110f6c7`, 2026-11-20; picked for cycle 2026-11-20T19:00Z) |
+| **Status** | In Progress (built on `agent/backend/RET-1d` commit `a5bf0f4`, awaiting draft PR + CI; 2026-11-21) |
 
 ## Goal
 RET-1c's `TestWriteJSON` covers the helper but not how the handlers call it. QA showed four call-site mutants survive both the unit test
@@ -65,3 +65,14 @@ make lint
 - 2026-11-20 (pm-lead, RET-1c PM review): created from RET-1c QA finding 1 (call-site mutants m–p survive) and finding 2 (log restore).
   QA's handler probe (`agents/reviews/RET-1c/evidence/09-harness-source.txt`, `qa_probe_test.go`) shows the shape of the test; it stubbed
   `db` at package level, which the real module can't do, hence the interfaces.
+- 2026-11-21 (backend-engineer, build): branch `agent/backend/RET-1d` @ `a5bf0f4` (base `230f617`), 2 files, +253/-8
+  (`internal/query/server.go`, `server_test.go`); `cmd/` untouched. Interfaces: `hybridSearcher`, `asker`, `statusStore`,
+  `paperIngester`; `SetIngester(nil)` stores a nil interface.
+  - **AC3 deviation (needs pm-lead/QA ack):** `*IngestResult` has only string/int fields, so `json.Marshal` cannot fail for it.
+    `/v1/papers/ingest` and `/v1/papers/discover` therefore have ok + error + 503 rows but no "unencodable" row, and their
+    route labels in the encode-failure log are unobservable. The db types (`PaperRecord`, `SystemStats`) have no floats; their
+    unencodable rows use a `time.Time` with year 10000 (`Time.MarshalJSON` error) instead of NaN.
+  - Local run: sandbox Go is 1.24.7 and the toolchain/module proxy is unreachable (`dial tcp: lookup proxy.golang.org ... no such host`),
+    so `go test` was run in a scratch copy with `go 1.24` in go.mod and throwaway local stubs for pgx/pgxpool/minio (not committed).
+    There: `go vet ./internal/query/` clean, `go test -race` on both tests PASS, full `./internal/query/` PASS, mutants m/n/o/p/q all
+    killed. `make test-unit`/`make lint`/stack.yml not run locally: CI is the source of truth.
