@@ -1,0 +1,270 @@
+$ bash -c for f in $(find /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/probe /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/smoke -maxdepth 1 -type f \( -name '*.mjs' -o -name '*.jsx' \) | sort); do echo "===== ${f#/tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/}"; cat $f; done
+===== probe/cssprobe.mjs
+// QA CSS probe (NOT a component render: radix/sonner are not installable here). It compiles Tailwind CSS from a
+// tailwind.config.js for the exact class strings in the PR's tooltip/popover/scroll-area files, applies them to plain
+// elements in headless Chromium, and reports computed styles. Engine: Tailwind 4.3.3 compile() with @config (v3 JS-config compat).
+// usage: node cssprobe.mjs <tailwind.config.js> <frontend dir> <out.png>
+import { compile } from "/opt/npm-tools/node_modules/tailwindcss/dist/lib.mjs";
+import { chromium } from "/opt/npm-tools/node_modules/playwright/index.mjs";
+import fs from "node:fs"; import path from "node:path"; import os from "node:os"; import { pathToFileURL } from "node:url";
+const [cfgPath, fe, png] = process.argv.slice(2);
+const ui = f => fs.readFileSync(path.join(fe, "src/components/ui", f), "utf8");
+// exact class strings, read from the PR files (not retyped)
+const tooltipCls = ui("tooltip.jsx").match(/"(z-50 [^"]*)"/)[1];
+const popoverCls = ui("popover.jsx").match(/"(z-50 [^"]*)"/)[1];
+const rootCls = ui("scroll-area.jsx").match(/cn\("(relative overflow-hidden)"/)[1];
+const viewportCls = ui("scroll-area.jsx").match(/Viewport className="([^"]*)"/)[1];
+const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tw-")), "cfg.mjs");
+fs.writeFileSync(tmp, fs.readFileSync(cfgPath, "utf8").replace(/import typography from "@tailwindcss\/typography"/, "const typography = () => {}"));
+const c = await compile(`@import "tailwindcss/theme.css" layer(theme);\n@config "./cfg.mjs";\n@tailwind utilities;`, {
+  base: path.dirname(tmp),
+  loadModule: async (id, base) => ({ module: (await import(pathToFileURL(path.resolve(base, id)).href)).default, base, path: id }),
+  loadStylesheet: async (id) => { const f = "/opt/npm-tools/node_modules/tailwindcss/theme.css"; if (id !== "tailwindcss/theme.css") throw new Error(id); return { content: fs.readFileSync(f, "utf8"), base: path.dirname(f), path: f }; },
+});
+const control = viewportCls.replace("focus-visible:ring-offset-2", "focus-visible:ring-inset");
+const css = c.build([tooltipCls, popoverCls, rootCls, viewportCls, control, "h-24", "w-64", "p-2", "m-6", "text-foreground", "bg-background"].join(" ").split(/\s+/));
+const rootVars = fs.readFileSync(path.join(fe, "src/index.css"), "utf8").match(/:root\s*\{[^}]*\}/)[0]; // the app's real token block
+const html = `<!doctype html><html><head><style>${rootVars}\n${css}\nbody{margin:0;font:14px sans-serif}</style></head>
+<body class="bg-background text-foreground p-2">
+<div style="position:relative;height:70px">Reading text under the floating content. Reading text under the floating content.
+<div id="tip" class="${tooltipCls}" style="position:absolute;top:0;left:20px">TooltipContent classes</div>
+<div id="pop" class="${popoverCls}" style="position:absolute;top:0;left:260px">PopoverContent classes</div></div>
+<div class="m-6 h-24 w-64 ${rootCls}" id="r1"><div id="vp" tabindex="0" class="${viewportCls}" style="overflow-y:scroll">PR viewport (Tab-focused)<br>1<br>2<br>3<br>4<br>5<br>6</div></div>
+<div class="m-6 h-24 w-64 ${rootCls}" id="r2"><div id="vp2" tabindex="0" class="${control}" style="overflow-y:scroll">control: ring-inset<br>1<br>2<br>3<br>4<br>5<br>6</div></div>
+</body></html>`;
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 640, height: 400 } });
+await p.setContent(html);
+const st = await p.evaluate(() => { const g = (id, k) => getComputedStyle(document.getElementById(id))[k];
+  return { tipBg: g("tip","backgroundColor"), tipColor: g("tip","color"), popBg: g("pop","backgroundColor"), popColor: g("pop","color"), bodyColor: getComputedStyle(document.body).color }; });
+await p.keyboard.press("Tab"); const f1 = await p.evaluate(() => [document.activeElement.id, getComputedStyle(document.activeElement).boxShadow]);
+await p.screenshot({ path: png }); await p.keyboard.press("Tab");
+await p.screenshot({ path: png.replace(/\.png$/, "-control-focused.png") });
+const f2 = await p.evaluate(() => [document.activeElement.id, getComputedStyle(document.activeElement).boxShadow]);
+await b.close();
+console.log(`config: ${cfgPath}`);
+console.log(`TooltipContent  background-color = ${st.tipBg}   color = ${st.tipColor}  (body color ${st.bodyColor})`);
+console.log(`PopoverContent  background-color = ${st.popBg}   color = ${st.popColor}`);
+console.log(`viewport focus (PR classes)       : active=${f1[0]} box-shadow=${f1[1]}`);
+console.log(`viewport focus (control ring-inset): active=${f2[0]} box-shadow=${f2[1]}`);
+console.log(`screenshot: ${png}`);
+===== probe/probe-list.mjs
+// QA probe (list mode, r2): same extraction and engine as probe.mjs; prints every class with its status.
+// QA probe: which classes used by the six FE-0b files does Tailwind generate under a given tailwind.config.js?
+// usage: node probe.mjs <tailwind.config.js> <ui dir>   (Tailwind 4.3.3 compile() with @config = v3 JS-config compat)
+import { compile } from "/opt/npm-tools/node_modules/tailwindcss/dist/lib.mjs";
+import fs from "node:fs"; import path from "node:path"; import os from "node:os"; import { pathToFileURL } from "node:url";
+const [cfgPath, uiDir] = process.argv.slice(2);
+// configs that import @tailwindcss/typography (not installed here): replace with an empty plugin
+let src = fs.readFileSync(cfgPath, "utf8").replace(/import typography from "@tailwindcss\/typography"/, "const typography = () => {}");
+const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tw-")), "cfg.mjs"); fs.writeFileSync(tmp, src);
+const files = ["tooltip","popover","collapsible","scroll-area","separator","sonner"].map(f => path.join(uiDir, f + ".jsx"));
+const classes = new Set();
+for (const f of files) for (const m of fs.readFileSync(f, "utf8").matchAll(/"([^"]*)"/g))
+  for (const t of m[1].split(/\s+/)) if (/^[a-z!-][\w\-\[\]\/:.()%]*$/.test(t) && /-|^(flex|relative|absolute|shrink-0|outline-none|select-none|touch-none)$/.test(t)) classes.add(t);
+const ignore = new Set(["bottom-right","--normal-bg","--normal-text","--normal-border","--border-radius","react-tooltip","react-popover","react-collapsible","react-scroll-area","react-separator"]);
+const list = [...classes].filter(c => !ignore.has(c) && !c.startsWith("@") && !c.startsWith("../") && !c.startsWith("hsl(") && !c.startsWith("var("));
+const mk = () => compile(`@import "tailwindcss/theme.css" layer(theme);\n@config "./cfg.mjs";\n@tailwind utilities;`, {
+  base: path.dirname(tmp),
+  loadModule: async (id, base) => ({ module: (await import(pathToFileURL(path.resolve(base, id)).href)).default, base, path: id }),
+  // default theme (spacing, text sizes, shadows) so v3 core utilities resolve as they do in v3
+  loadStylesheet: async (id) => { const f = "/opt/npm-tools/node_modules/tailwindcss/theme.css"; if (id !== "tailwindcss/theme.css") throw new Error(id); return { content: fs.readFileSync(f, "utf8"), base: path.dirname(f), path: f }; },
+});
+const esc = k => "." + k.replace(/[^a-zA-Z0-9_-]/g, ch => "\\" + ch);
+const gen = async k => { const css = (await mk()).build([k]); return css.includes(esc(k)) ? css : null; };
+const missing = [];
+for (const k of list.sort()) if (!(await gen(k))) missing.push(k);
+console.log(`config: ${cfgPath}`);
+console.log(`classes found in the six files: ${list.length}; generated: ${list.length - missing.length}; NOT generated: ${missing.length}`);
+const all = list.sort(); for (let j = 0; j < all.length; j += 3) console.log("  " + all.slice(j, j + 3).map(k => (missing.includes(k) ? "MISSING " : "ok      ") + k.padEnd(38)).join(""));
+===== probe/probe.mjs
+// QA probe: which classes used by the six FE-0b files does Tailwind generate under a given tailwind.config.js?
+// usage: node probe.mjs <tailwind.config.js> <ui dir>   (Tailwind 4.3.3 compile() with @config = v3 JS-config compat)
+import { compile } from "/opt/npm-tools/node_modules/tailwindcss/dist/lib.mjs";
+import fs from "node:fs"; import path from "node:path"; import os from "node:os"; import { pathToFileURL } from "node:url";
+const [cfgPath, uiDir] = process.argv.slice(2);
+// configs that import @tailwindcss/typography (not installed here): replace with an empty plugin
+let src = fs.readFileSync(cfgPath, "utf8").replace(/import typography from "@tailwindcss\/typography"/, "const typography = () => {}");
+const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tw-")), "cfg.mjs"); fs.writeFileSync(tmp, src);
+const files = ["tooltip","popover","collapsible","scroll-area","separator","sonner"].map(f => path.join(uiDir, f + ".jsx"));
+const classes = new Set();
+for (const f of files) for (const m of fs.readFileSync(f, "utf8").matchAll(/"([^"]*)"/g))
+  for (const t of m[1].split(/\s+/)) if (/^[a-z!-][\w\-\[\]\/:.()%]*$/.test(t) && /-|^(flex|relative|absolute|shrink-0|outline-none|select-none|touch-none)$/.test(t)) classes.add(t);
+const ignore = new Set(["bottom-right","--normal-bg","--normal-text","--normal-border","--border-radius","react-tooltip","react-popover","react-collapsible","react-scroll-area","react-separator"]);
+const list = [...classes].filter(c => !ignore.has(c) && !c.startsWith("@") && !c.startsWith("../") && !c.startsWith("hsl(") && !c.startsWith("var("));
+const mk = () => compile(`@import "tailwindcss/theme.css" layer(theme);\n@config "./cfg.mjs";\n@tailwind utilities;`, {
+  base: path.dirname(tmp),
+  loadModule: async (id, base) => ({ module: (await import(pathToFileURL(path.resolve(base, id)).href)).default, base, path: id }),
+  // default theme (spacing, text sizes, shadows) so v3 core utilities resolve as they do in v3
+  loadStylesheet: async (id) => { const f = "/opt/npm-tools/node_modules/tailwindcss/theme.css"; if (id !== "tailwindcss/theme.css") throw new Error(id); return { content: fs.readFileSync(f, "utf8"), base: path.dirname(f), path: f }; },
+});
+const esc = k => "." + k.replace(/[^a-zA-Z0-9_-]/g, ch => "\\" + ch);
+const gen = async k => { const css = (await mk()).build([k]); return css.includes(esc(k)) ? css : null; };
+const missing = [];
+for (const k of list.sort()) if (!(await gen(k))) missing.push(k);
+console.log(`config: ${cfgPath}`);
+console.log(`classes found in the six files: ${list.length}; generated: ${list.length - missing.length}; NOT generated: ${missing.length}`);
+for (const k of missing) console.log(`  NOT GENERATED: ${k}`);
+for (const k of ["bg-popover","text-popover-foreground","bg-border","border-border","ring-ring","bg-muted-foreground/50"]) {
+  const out = await gen(k); const css = (out || "").split("\n").filter(l => l.includes("background-color") || l.includes("color:") || l.includes("--tw-ring-color") || l.includes("border-color")).map(s=>s.trim()).join(" ");
+  console.log(`  ${k.padEnd(26)} -> ${css || "(no CSS)"}`);
+}
+===== smoke/build.mjs
+// QA smoke build: esbuild bundles smoke.jsx + the six real ui/*.jsx files against radix-ui/primitives main
+// (package versions == package-lock.json) and sonner v2.0.8 sources (git clones), react/react-dom/floating-ui/
+// aria-hidden/clsx/tailwind-merge from /opt/npm-tools (versions == lockfile). CSS: app index.css + Tailwind 4.3.3 compile() @config.
+import * as esbuild from "/opt/npm-tools/node_modules/esbuild/lib/main.js"
+import { compile } from "/opt/npm-tools/node_modules/tailwindcss/dist/lib.mjs"
+import fs from "node:fs"; import path from "node:path"; import { pathToFileURL } from "node:url"
+const [fe, deps, out] = process.argv.slice(2)
+const radix = path.join(deps, "radix/packages")
+const alias = {
+  name: "alias", setup(b) {
+    // internal build-time package (inlined into published radix tarballs): development flavour
+    b.onResolve({ filter: /^@radix-ui\/env-check\/is-development$/ }, () => ({ path: path.join(radix, "core/env-check/src/internal/is-development.true.ts") }))
+    b.onResolve({ filter: /^@radix-ui\// }, a => {
+      const n = a.path.slice(10); const p = fs.existsSync(path.join(radix, "react", n.replace(/^react-/, ""), "src/index.ts")) && n.startsWith("react-")
+        ? path.join(radix, "react", n.replace(/^react-/, ""), "src/index.ts") : path.join(radix, "core", n, "src/index.ts")
+      if (!fs.existsSync(p)) throw new Error("no radix pkg " + a.path); return { path: p }
+    })
+    b.onResolve({ filter: /^sonner$/ }, () => ({ path: path.join(deps, "sonner/src/index.tsx") }))
+    b.onResolve({ filter: /^react-remove-scroll$/ }, () => ({ path: path.resolve("remove-scroll-stub.jsx") }))
+    b.onResolve({ filter: /^@ui\// }, a => ({ path: path.join(fe, "src/components/ui", a.path.slice(4) + ".jsx") }))
+  }
+}
+fs.mkdirSync(out, { recursive: true })
+const r = await esbuild.build({ entryPoints: ["smoke.jsx"], bundle: true, outfile: path.join(out, "smoke.js"), jsx: "automatic", format: "esm",
+  nodePaths: ["/opt/npm-tools/node_modules"], plugins: [alias], define: { "process.env.NODE_ENV": '"development"' }, logLevel: "error", metafile: true })
+const inputs = Object.keys(r.metafile.inputs)
+console.log("bundled modules:", inputs.length, "| FE-0b ui files bundled:", inputs.filter(i => /components\/ui\/(tooltip|popover|collapsible|scroll-area|separator|sonner)\.jsx$/.test(i)).length)
+// Tailwind: config from the merged tree (typography plugin stubbed: not installed), candidates from smoke + ui sources
+const cfg = path.join(out, "cfg.mjs")
+fs.writeFileSync(cfg, fs.readFileSync(path.join(fe, "tailwind.config.js"), "utf8").replace(/import typography from "@tailwindcss\/typography"/, "const typography = () => {}"))
+const appCss = fs.readFileSync(path.join(fe, "src/index.css"), "utf8").replace(/^@tailwind (base|components|utilities);$/gm, "")
+const tw = await compile(`@import "tailwindcss/theme.css" layer(theme);\n@import "tailwindcss/preflight.css" layer(base);\n@config "./cfg.mjs";\n@tailwind utilities;\n${appCss}`, {
+  base: out,
+  loadModule: async (id, base) => ({ module: (await import(pathToFileURL(path.resolve(base, id)).href)).default, base, path: id }),
+  loadStylesheet: async (id) => { const f = "/opt/npm-tools/node_modules/tailwindcss/" + id.replace("tailwindcss/", ""); return { content: fs.readFileSync(f, "utf8"), base: path.dirname(f), path: f } },
+})
+const src = [fs.readFileSync("smoke.jsx", "utf8"), ...["tooltip","popover","collapsible","scroll-area","separator","sonner"].map(f => fs.readFileSync(path.join(fe, "src/components/ui", f + ".jsx"), "utf8"))].join(" ")
+const css = tw.build([...new Set(src.split(/[\s"'`{}()<>]+/).filter(Boolean))])
+fs.writeFileSync(path.join(out, "app.css"), css)
+fs.writeFileSync(path.join(out, "index.html"), `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="smoke.css"></head><body class="bg-background"><div id="root"></div><script type="module" src="smoke.js"></script></body></html>`)
+console.log("css bytes:", css.length, "| sonner css emitted:", fs.existsSync(path.join(out, "smoke.css")))
+===== smoke/remove-scroll-stub.jsx
+// QA stub: react-remove-scroll is not installable here. Radix Popover only renders RemoveScroll when modal=true;
+// this smoke page uses the default modal=false, so the stub throws if it is ever rendered.
+export const RemoveScroll = () => { throw new Error("RemoveScroll stub rendered (modal popover not covered)") }
+===== smoke/shoot.mjs
+// QA AC6 smoke render: serves out/ over http, renders the page in headless Chromium (light, then .dark on <html>),
+// prints DOM/computed-style facts, Tab-focuses the ScrollArea viewport, and writes screenshots.
+// usage: node shoot.mjs <out dir> <png prefix>
+import { chromium } from "/opt/npm-tools/node_modules/playwright/index.mjs"
+import http from "node:http"; import fs from "node:fs"; import path from "node:path"
+const [out, prefix] = process.argv.slice(2)
+const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" }
+const srv = http.createServer((q, s) => { const f = path.join(out, q.url === "/" ? "index.html" : q.url.split("?")[0]); if (!fs.existsSync(f)) { s.writeHead(404); return s.end() } s.writeHead(200, { "content-type": types[path.extname(f)] || "application/octet-stream" }); s.end(fs.readFileSync(f)) }).listen(0)
+const url = `http://127.0.0.1:${srv.address().port}/`
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 760, height: 520 } })
+const logs = []; p.on("console", m => { if (["error", "warning"].includes(m.type())) logs.push(`${m.type()}: ${m.text().slice(0, 160)}`) }); p.on("pageerror", e => logs.push("pageerror: " + e.message))
+await p.goto(url); await p.waitForSelector("#tip"); await p.waitForSelector("[data-sonner-toast]"); await p.waitForTimeout(800)
+const facts = () => p.evaluate(() => {
+  const cs = (el, k) => getComputedStyle(el)[k]; const q = s => document.querySelector(s); const R = window.__refs
+  const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).slice(0, 3).map(Number).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }); return 0.2126 * r + 0.7152 * g + 0.0722 * b }
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return ((x + 0.05) / (y + 0.05)).toFixed(2) }
+  const tip = q("#tip"), pop = q("#pop"), ol = q("[data-sonner-toaster]"), toastEl = q("[data-sonner-toast]")
+  return {
+    html_dark: document.documentElement.classList.contains("dark"),
+    body_bg: cs(document.body, "backgroundColor"),
+    tooltip: `in portal=${!q("#root").contains(tip)} bg=${cs(tip, "backgroundColor")} color=${cs(tip, "color")} font=${cs(tip, "fontFamily").split(",")[0]} z=${cs(tip, "zIndex")} ref=${R.tip === tip}`,
+    popover: `in portal=${!q("#root").contains(pop)} bg=${cs(pop, "backgroundColor")} color=${cs(pop, "color")} font=${cs(pop, "fontFamily").split(",")[0]} width=${cs(pop, "width")} ref=${R.pop === pop}`,
+    collapsible: `open: data-state=${q("#colOpen").dataset.state} | closed: data-state=${q("#colClosed").dataset.state} hiddenTextInDOM=${!!q("#hiddenText")}`,
+    scrollarea: (() => { const vp = q("#sa [data-radix-scroll-area-viewport]"); return `ref=${R.sa === q("#sa")} viewport tabindex=${vp.getAttribute("tabindex")} overflowY=${vp.style.overflowY} scrollHeight=${vp.scrollHeight} clientHeight=${vp.clientHeight} scrollbar=${!!q("#sa [data-orientation=vertical]")} thumb bg=${cs(q("#sa [data-orientation=vertical] > div"), "backgroundColor")}` })(),
+    separator: `H role=${q("#sepH").getAttribute("role")} h=${cs(q("#sepH"), "height")} bg=${cs(q("#sepH"), "backgroundColor")} ref=${R.sepH === q("#sepH")} | nondecorative role=${q("#sepND").getAttribute("role")} aria-orientation=${q("#sepND").getAttribute("aria-orientation")} | V w=${cs(q("#sepV"), "width")}`,
+    toaster: `ref=<${R.toaster?.tagName?.toLowerCase()} aria-label="${R.toaster?.getAttribute("aria-label")}"> contains toaster=${!!R.toaster?.contains(ol)} class=${ol.className} y=${ol.dataset.yPosition} x=${ol.dataset.xPosition} theme=${ol.dataset.sonnerTheme} --normal-bg(inline)=${ol.style.getPropertyValue("--normal-bg")} toast bg=${cs(toastEl, "backgroundColor")} toast color=${cs(toastEl, "color")} border=${cs(toastEl, "borderTopColor")} radius=${cs(toastEl, "borderTopLeftRadius")}`,
+    toast_text: (() => { const t = q("[data-sonner-toast] [data-title]"), d = q("[data-sonner-toast] [data-description]"), bg = cs(toastEl, "backgroundColor"); return `title ${cs(t, "color")} contrast=${ratio(cs(t, "color"), bg)}:1 | description ${cs(d, "color")} contrast=${ratio(cs(d, "color"), bg)}:1 (WCAG AA text >= 4.5)` })(),
+  }
+})
+const print = (t, f) => { console.log(`--- ${t}`); for (const [k, v] of Object.entries(f)) console.log(`${k.padEnd(12)} ${v}`) }
+print("LIGHT", await facts()); await p.screenshot({ path: `${prefix}-light.png` })
+await p.evaluate(() => document.documentElement.classList.add("dark")); await p.waitForTimeout(300)
+print("DARK (.dark on <html>)", await facts()); await p.screenshot({ path: `${prefix}-dark.png` })
+// keyboard focus on the ScrollArea viewport (F2). The forced-open non-modal Popover keeps Tab inside its content
+// (Radix FocusScope loop, nothing tabbable inside), so first click the non-focusable "ScrollArea (overflow)" label to
+// move the sequential-focus starting point, then press Tab until the viewport is active.
+await p.getByText("ScrollArea (overflow)").click()
+let hit = null; for (let i = 0; i < 20 && !hit; i++) { await p.keyboard.press("Tab"); hit = await p.evaluate(() => document.activeElement?.hasAttribute("data-radix-scroll-area-viewport") ? getComputedStyle(document.activeElement).boxShadow + " | focus-visible=" + document.activeElement.matches(":focus-visible") : null) }
+console.log(`--- ScrollArea viewport via Tab (dark): ${hit}`)
+const box = await p.locator("#sa").boundingBox(); await p.screenshot({ path: `${prefix}-dark-scrollarea-focused.png`, clip: { x: box.x - 12, y: box.y - 12, width: box.width + 24, height: box.height + 24 } })
+await p.evaluate(() => document.documentElement.classList.remove("dark")); await p.waitForTimeout(200)
+console.log(`--- ScrollArea viewport still focused (light): ${await p.evaluate(() => getComputedStyle(document.activeElement).boxShadow)}`)
+await p.screenshot({ path: `${prefix}-light-scrollarea-focused.png`, clip: { x: box.x - 12, y: box.y - 12, width: box.width + 24, height: box.height + 24 } })
+console.log(`--- console errors/warnings/pageerrors: ${logs.length}`); for (const l of logs) console.log("  " + l)
+await b.close(); srv.close()
+===== smoke/smoke.jsx
+// QA AC6 smoke page (uncommitted, scratch only). Imports the six REAL ui/*.jsx files from the merged worktree.
+import * as React from "react"
+import { createRoot } from "react-dom/client"
+import { toast } from "sonner"
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@ui/tooltip"
+import { Popover, PopoverTrigger, PopoverAnchor, PopoverContent } from "@ui/popover"
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@ui/collapsible"
+import { ScrollArea, ScrollBar } from "@ui/scroll-area"
+import { Separator } from "@ui/separator"
+import { Toaster } from "@ui/sonner"
+
+window.__refs = {}
+const r = k => el => { window.__refs[k] = el }
+const Row = ({ label, children }) => (
+  <div className="flex items-start gap-4 py-2"><div className="w-28 shrink-0 text-xs text-muted-foreground">{label}</div><div>{children}</div></div>
+)
+function Page() {
+  React.useEffect(() => { toast("Paper 2401.00001 ingested", { description: "toast() rendered by the FE-0b Toaster", duration: Infinity }) }, [])
+  return (
+    <div className="p-4 font-sans text-sm text-foreground">
+      <Row label="Tooltip (open)">
+        <TooltipProvider>
+          <Tooltip open>
+            <TooltipTrigger className="underline">supported</TooltipTrigger>
+            <TooltipContent id="tip" ref={r("tip")} side="right">2 of 2 claims supported by the cited passage</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </Row>
+      <Separator ref={r("sepH")} id="sepH" className="my-2" />
+      <Row label="Popover (open)">
+        <Popover open>
+          <PopoverTrigger className="underline">[1]</PopoverTrigger>
+          <PopoverContent id="pop" ref={r("pop")} side="bottom" align="start">Attention Is All You Need, p. 3. "The Transformer follows this overall architecture…"</PopoverContent>
+        </Popover>
+        <Popover>
+          <PopoverAnchor asChild><span id="anchor" className="ml-6 text-xs text-muted-foreground">PopoverAnchor (closed popover)</span></PopoverAnchor>
+          <PopoverTrigger className="ml-2 underline">[2]</PopoverTrigger>
+          <PopoverContent>unused</PopoverContent>
+        </Popover>
+      </Row>
+      <div className="h-28" />
+      <Separator ref={r("sepH2")} decorative={false} id="sepND" />
+      <div className="flex gap-6 py-2">
+        <Collapsible defaultOpen id="colOpen"><CollapsibleTrigger className="underline">Collapsible (open)</CollapsibleTrigger><CollapsibleContent><p className="text-xs">Passage text is visible.</p></CollapsibleContent></Collapsible>
+        <Separator orientation="vertical" ref={r("sepV")} id="sepV" className="h-8" />
+        <Collapsible id="colClosed"><CollapsibleTrigger className="underline">Collapsible (closed)</CollapsibleTrigger><CollapsibleContent><p id="hiddenText" className="text-xs">Hidden passage</p></CollapsibleContent></Collapsible>
+      </div>
+      <Row label="ScrollArea (overflow)">
+        <ScrollArea id="sa" ref={r("sa")} type="always" className="h-24 w-64 rounded-md border border-border">
+          <div className="p-2">{Array.from({ length: 12 }, (_, i) => <div key={i}>Passage line {i + 1}</div>)}</div>
+        </ScrollArea>
+      </Row>
+      <Toaster ref={r("toaster")} />
+    </div>
+  )
+}
+createRoot(document.getElementById("root")).render(<Page />)
+===== smoke/tabdbg.mjs
+import { chromium } from "/opt/npm-tools/node_modules/playwright/index.mjs"
+import http from "node:http"; import fs from "node:fs"; import path from "node:path"
+const out = process.argv[2]; const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" }
+const srv = http.createServer((q, s) => { const f = path.join(out, q.url === "/" ? "index.html" : q.url); s.writeHead(200, { "content-type": types[path.extname(f)] }); s.end(fs.readFileSync(f)) }).listen(0)
+const b = await chromium.launch(); console.log("chromium", b.version()); const p = await b.newPage(); await p.goto(`http://127.0.0.1:${srv.address().port}/`); await p.waitForSelector("#tip")
+for (let i = 0; i < 12; i++) { await p.keyboard.press("Tab"); console.log(i, await p.evaluate(() => { const a = document.activeElement; return a.tagName + "#" + a.id + " " + [...a.attributes].map(x => x.name).filter(n => n.startsWith("data-") || n === "tabindex").join(",") })) }
+await b.close(); srv.close()
+
+[exit code 0]

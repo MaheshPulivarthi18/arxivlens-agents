@@ -1,0 +1,37 @@
+$ bash -c 
+echo '# sonner v2.0.8 src/styles.css: description colour is hard-coded, and only data-sonner-theme=dark changes it'; grep -n -A3 -E "^\[data-sonner-toast\]\[data-styled='true'\] \[data-description\]|^\[data-sonner-toaster\]\[data-sonner-theme='dark'\] \[data-description\]" /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/deps/sonner/src/styles.css
+echo '# Toaster with no theme prop -> sonner default theme:'; grep -n "theme = 'light'" /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/deps/sonner/src/index.tsx | head -2
+echo; echo '# A. PR sonner.jsx (merged tree): toast_text lines from the smoke run'; grep -E '^(--- (LIGHT|DARK)|toast_text)' /home/claude/arxivlens-agents/agents/reviews/FE-0b/evidence/17-r2-ac6-smoke-facts.txt
+C=$(mktemp -d /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/fixctl-XXXX) && cp -r /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/wt/frontend/src /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/wt/frontend/tailwind.config.js $C/ && sed -i 's|    position="bottom-right"|    position="bottom-right"\n    toastOptions={{ classNames: { description: "!text-muted-foreground" } }}|' $C/src/components/ui/sonner.jsx
+echo; echo '# B. fix control: diff (< PR, > control)'; diff /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/wt/frontend/src/components/ui/sonner.jsx $C/src/components/ui/sonner.jsx | grep -E '^[<>]'
+cd /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/smoke && node build.mjs $C /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/deps $C/out >/dev/null && node shoot.mjs $C/out $C/shot | grep -E '^(--- (LIGHT|DARK)|toast_text|--- console)' && cp $C/shot-dark.png /home/claude/arxivlens-agents/agents/reviews/FE-0b/evidence/19-r2-f3-fix-control-dark.png && echo 'copied Chromium screenshot -> 19-r2-f3-fix-control-dark.png'
+
+# sonner v2.0.8 src/styles.css: description colour is hard-coded, and only data-sonner-theme=dark changes it
+127:[data-sonner-toast][data-styled='true'] [data-description] {
+128-  font-weight: 400;
+129-  line-height: 1.4;
+130-  color: #3f3f3f;
+--
+137:[data-sonner-toaster][data-sonner-theme='dark'] [data-description] {
+138-  color: hsl(0, 0%, 91%);
+139-}
+140-
+# Toaster with no theme prop -> sonner default theme:
+615:    theme = 'light',
+
+# A. PR sonner.jsx (merged tree): toast_text lines from the smoke run
+--- LIGHT
+toast_text   title rgb(26, 30, 40) contrast=16.66:1 | description rgb(63, 63, 63) contrast=10.53:1 (WCAG AA text >= 4.5)
+--- DARK (.dark on <html>)
+toast_text   title rgb(235, 231, 224) contrast=13.36:1 | description rgb(63, 63, 63) contrast=1.56:1 (WCAG AA text >= 4.5)
+
+# B. fix control: diff (< PR, > control)
+>     toastOptions={{ classNames: { description: "!text-muted-foreground" } }}
+--- LIGHT
+toast_text   title rgb(26, 30, 40) contrast=16.66:1 | description rgb(86, 92, 103) contrast=6.73:1 (WCAG AA text >= 4.5)
+--- DARK (.dark on <html>)
+toast_text   title rgb(235, 231, 224) contrast=13.36:1 | description rgb(171, 164, 156) contrast=6.68:1 (WCAG AA text >= 4.5)
+--- console errors/warnings/pageerrors: 0
+copied Chromium screenshot -> 19-r2-f3-fix-control-dark.png
+
+[exit code 0]

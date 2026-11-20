@@ -1,0 +1,60 @@
+$ bash -c 
+F='src/components/ui/tooltip.jsx src/components/ui/popover.jsx src/components/ui/collapsible.jsx src/components/ui/scroll-area.jsx src/components/ui/separator.jsx src/components/ui/sonner.jsx'
+echo '# package imports'; grep -nE 'from "(@radix-ui/react-(tooltip|popover|collapsible|scroll-area|separator)|sonner)"' $F
+echo; echo '# palette/motion grep (+transition|duration-) -> expect exit 1'; grep -nE '(slate|emerald|teal|zinc|gray|amber|clinical)-|animate-|fade-in|zoom-|transition|duration-' $F; echo "exit=$?"
+echo; echo '# exports'; grep -nE '^export ' $F
+echo; echo '# forwardRef / displayName / Portal / font-sans / FV ring / delayDuration / sonner vars / theme prop'; grep -nE 'forwardRef|displayName =|Portal|font-sans|focus-visible|delayDuration|--normal-|--border-radius|theme' $F
+
+# package imports
+src/components/ui/tooltip.jsx:2:import * as TooltipPrimitive from "@radix-ui/react-tooltip"
+src/components/ui/popover.jsx:2:import * as PopoverPrimitive from "@radix-ui/react-popover"
+src/components/ui/collapsible.jsx:1:import * as CollapsiblePrimitive from "@radix-ui/react-collapsible"
+src/components/ui/scroll-area.jsx:2:import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
+src/components/ui/separator.jsx:2:import * as SeparatorPrimitive from "@radix-ui/react-separator"
+src/components/ui/sonner.jsx:2:import { Toaster as Sonner } from "sonner"
+src/components/ui/sonner.jsx:6:// follow the theme with no `theme` prop. Callers use `import { toast } from "sonner"`.
+
+# palette/motion grep (+transition|duration-) -> expect exit 1
+exit=1
+
+# exports
+src/components/ui/tooltip.jsx:38:export { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent }
+src/components/ui/popover.jsx:28:export { Popover, PopoverTrigger, PopoverAnchor, PopoverContent }
+src/components/ui/collapsible.jsx:10:export { Collapsible, CollapsibleTrigger, CollapsibleContent }
+src/components/ui/scroll-area.jsx:38:export { ScrollArea, ScrollBar }
+src/components/ui/separator.jsx:22:export { Separator }
+src/components/ui/sonner.jsx:24:export { Toaster }
+
+# forwardRef / displayName / Portal / font-sans / FV ring / delayDuration / sonner vars / theme prop
+src/components/ui/tooltip.jsx:6:const TooltipProvider = ({ delayDuration = 300, ...props }) => (
+src/components/ui/tooltip.jsx:7:  <TooltipPrimitive.Provider delayDuration={delayDuration} {...props} />
+src/components/ui/tooltip.jsx:9:TooltipProvider.displayName = "TooltipProvider"
+src/components/ui/tooltip.jsx:13:const Tooltip = ({ delayDuration = 300, ...props }) => (
+src/components/ui/tooltip.jsx:14:  <TooltipPrimitive.Provider delayDuration={delayDuration}>
+src/components/ui/tooltip.jsx:18:Tooltip.displayName = TooltipPrimitive.Root.displayName
+src/components/ui/tooltip.jsx:23:const TooltipContent = React.forwardRef(({ className, sideOffset = 4, ...props }, ref) => (
+src/components/ui/tooltip.jsx:24:  <TooltipPrimitive.Portal>
+src/components/ui/tooltip.jsx:29:        "z-50 max-w-xs rounded-md border border-border bg-popover px-2.5 py-1.5 font-sans text-xs text-popover-foreground shadow-sm",
+src/components/ui/tooltip.jsx:34:  </TooltipPrimitive.Portal>
+src/components/ui/tooltip.jsx:36:TooltipContent.displayName = TooltipPrimitive.Content.displayName
+src/components/ui/popover.jsx:12:const PopoverContent = React.forwardRef(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+src/components/ui/popover.jsx:13:  <PopoverPrimitive.Portal>
+src/components/ui/popover.jsx:19:        "z-50 w-80 rounded-md border border-border bg-popover p-4 font-sans text-popover-foreground shadow-md outline-none",
+src/components/ui/popover.jsx:24:  </PopoverPrimitive.Portal>
+src/components/ui/popover.jsx:26:PopoverContent.displayName = PopoverPrimitive.Content.displayName
+src/components/ui/scroll-area.jsx:5:const ScrollBar = React.forwardRef(({ className, orientation = "vertical", ...props }, ref) => (
+src/components/ui/scroll-area.jsx:20:ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
+src/components/ui/scroll-area.jsx:22:const ScrollArea = React.forwardRef(({ className, children, ...props }, ref) => (
+src/components/ui/scroll-area.jsx:29:    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+src/components/ui/scroll-area.jsx:36:ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
+src/components/ui/separator.jsx:5:const Separator = React.forwardRef(
+src/components/ui/separator.jsx:20:Separator.displayName = SeparatorPrimitive.Root.displayName
+src/components/ui/sonner.jsx:6:// follow the theme with no `theme` prop. Callers use `import { toast } from "sonner"`.
+src/components/ui/sonner.jsx:7:const Toaster = React.forwardRef(({ className, style, ...props }, ref) => (
+src/components/ui/sonner.jsx:13:      "--normal-bg": "hsl(var(--popover))",
+src/components/ui/sonner.jsx:14:      "--normal-text": "hsl(var(--popover-foreground))",
+src/components/ui/sonner.jsx:15:      "--normal-border": "hsl(var(--border))",
+src/components/ui/sonner.jsx:16:      "--border-radius": "var(--radius)",
+src/components/ui/sonner.jsx:22:Toaster.displayName = "Toaster"
+
+[exit code 0]

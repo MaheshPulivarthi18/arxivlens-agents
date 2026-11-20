@@ -1,0 +1,41 @@
+$ bash -c 
+echo '# local merge commit (git merge origin/main into 25ee640, scratch worktree; not pushed) and its parents'; git log -1 --format='%h %s | parents: %p'; git log -1 --format='%p' | tr ' ' '\n' | xargs -I{} git log -1 --format='  {} = %H %s' {}
+echo '# merge-base(origin/main, PR head)'; git merge-base origin/main 25ee640
+echo '# conflict markers in tree:'; git grep -nE '^(<<<<<<<|>>>>>>>)' -- frontend | wc -l
+echo; echo '# git diff --name-status origin/main (merged tree vs current main)'; git diff --name-status origin/main; git diff --shortstat origin/main
+echo; echo '# r1 head 705b707 -> r2 head 25ee640'; git diff --stat 705b707 25ee640; git diff 705b707 25ee640 | grep -E '^[-+][^-+]'
+echo; echo '# lint config and lockfile changed between the head CI base 4c7d327 and main 3835dee? (empty = unchanged)'; git diff --stat 4c7d327 origin/main -- frontend/.oxlintrc.json frontend/package-lock.json
+echo '# files outside components/ui importing the six new files (empty = none; vite tree-shakes them, tests do not load them):'; grep -rlE 'ui/(tooltip|popover|collapsible|scroll-area|separator|sonner)' frontend/src | grep -v 'components/ui/' || true
+
+# local merge commit (git merge origin/main into 25ee640, scratch worktree; not pushed) and its parents
+ed7f516 Merge remote-tracking branch 'origin/main' into HEAD | parents: 25ee640 3835dee
+  25ee640 = 25ee64022edd7616113c5527e02c24ef86ffaf0e FE-0b: inset scroll-area focus ring; tooltip provider note (QA r1)
+  3835dee = 3835dee2375b28f1b66612b64d8c6f92f3e9fda4 AI-12b: tests for /internal/embed during an in-flight ingest and a failed embedder-worker build (#77)
+# merge-base(origin/main, PR head)
+4c7d3274a07137dd80808a2391c419b46ce09ae6
+# conflict markers in tree:
+0
+
+# git diff --name-status origin/main (merged tree vs current main)
+A	frontend/src/components/ui/collapsible.jsx
+A	frontend/src/components/ui/popover.jsx
+A	frontend/src/components/ui/scroll-area.jsx
+A	frontend/src/components/ui/separator.jsx
+A	frontend/src/components/ui/sonner.jsx
+A	frontend/src/components/ui/tooltip.jsx
+ 6 files changed, 160 insertions(+)
+
+# r1 head 705b707 -> r2 head 25ee640
+ frontend/src/components/ui/scroll-area.jsx | 4 ++--
+ frontend/src/components/ui/tooltip.jsx     | 1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+-    {/* The viewport is focusable for keyboard scrolling, so it gets the FV ring. */}
+-    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
++    {/* The viewport is focusable for keyboard scrolling, so it gets the FV ring. Inset, because Root's overflow-hidden clips an outset ring. */}
++    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
++// The innermost Provider wins, so a top-level TooltipProvider does not change these tooltips' delay.
+
+# lint config and lockfile changed between the head CI base 4c7d327 and main 3835dee? (empty = unchanged)
+# files outside components/ui importing the six new files (empty = none; vite tree-shakes them, tests do not load them):
+
+[exit code 0]

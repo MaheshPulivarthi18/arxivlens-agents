@@ -1,0 +1,20 @@
+$ bash -c 
+C=$(mktemp -d /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/r1ctl-XXXX) && cp -r /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/wt/frontend/src /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/wt/frontend/tailwind.config.js $C/ && git -C /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/wt show 705b707:frontend/src/components/ui/scroll-area.jsx > $C/src/components/ui/scroll-area.jsx
+echo '# control diff vs merged tree (< merged, > r1):'; diff /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/wt/frontend/src/components/ui/scroll-area.jsx $C/src/components/ui/scroll-area.jsx | grep -E '^[<>]'
+cd /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/smoke && node build.mjs $C /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-FE-0b-r2/deps $C/out && node shoot.mjs $C/out $C/shot | grep -E '^---' && cp $C/shot-light-scrollarea-focused.png /home/claude/arxivlens-agents/agents/reviews/FE-0b/evidence/18-r2-f2-r1-control-light-scrollarea-focused.png && echo 'copied Chromium screenshot -> 18-r2-f2-r1-control-light-scrollarea-focused.png'
+
+# control diff vs merged tree (< merged, > r1):
+<     {/* The viewport is focusable for keyboard scrolling, so it gets the FV ring. Inset, because Root's overflow-hidden clips an outset ring. */}
+<     <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+>     {/* The viewport is focusable for keyboard scrolling, so it gets the FV ring. */}
+>     <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+bundled modules: 90 | FE-0b ui files bundled: 6
+css bytes: 13043 | sonner css emitted: true
+--- LIGHT
+--- DARK (.dark on <html>)
+--- ScrollArea viewport via Tab (dark): rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(22, 20, 19) 0px 0px 0px 2px, rgb(132, 177, 235) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px | focus-visible=true
+--- ScrollArea viewport still focused (light): rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(249, 248, 246) 0px 0px 0px 2px, rgb(33, 72, 131) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px
+--- console errors/warnings/pageerrors: 0
+copied Chromium screenshot -> 18-r2-f2-r1-control-light-scrollarea-focused.png
+
+[exit code 0]

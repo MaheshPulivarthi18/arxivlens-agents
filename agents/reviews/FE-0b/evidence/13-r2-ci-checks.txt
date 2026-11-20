@@ -1,0 +1,43 @@
+$ bash -c 
+echo '# PR #70 state'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/70 --jq '"head=\(.head.sha) draft=\(.draft) merged=\(.merged) state=\(.state)"'
+echo; echo '# check runs on head 25ee64022edd7616113c5527e02c24ef86ffaf0e'; gh api repos/MaheshPulivarthi18/ArxivLens/commits/25ee64022edd7616113c5527e02c24ef86ffaf0e/check-runs --jq '.check_runs[] | "\(.name): \(.conclusion) (job \(.id))"'
+echo; echo '# Frontend job 135919189463 on the head: what it checked out, lint, tests, build'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/135919189463/logs | grep -E 'HEAD is now at|Found [0-9]+ warnings|Finished in|^[^ ]+ no frontend tests|Test Files|modules transformed|built in' | sed -E 's/^[0-9T:.Z-]+ //'
+echo; echo '# current main'; git log --oneline -1 origin/main
+echo '# check runs on main 3835dee'; gh api repos/MaheshPulivarthi18/ArxivLens/commits/3835dee/check-runs --jq '.check_runs[] | "\(.name): \(.conclusion) (job \(.id))"'
+echo; echo '# Frontend job 136184189786 on main 3835dee'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136184189786/logs | grep -E 'Found [0-9]+ warnings|Finished in|Test Files|Tests +[0-9]|modules transformed|built in' | sed -E 's/^[0-9T:.Z-]+ //'
+
+# PR #70 state
+head=25ee64022edd7616113c5527e02c24ef86ffaf0e draft=true merged=false state=open
+
+# check runs on head 25ee64022edd7616113c5527e02c24ef86ffaf0e
+DB (migrate twice, HNSW plan + recall): success (job 135919190199)
+Go (vet, gofmt, test, build): success (job 135919189732)
+Frontend (lint, test, build): success (job 135919189463)
+Agent ownership check: success (job 135919189384)
+Python M0 unit tests: success (job 135919189015)
+
+# Frontend job 135919189463 on the head: what it checked out, lint, tests, build
+HEAD is now at aabe5db Merge 25ee64022edd7616113c5527e02c24ef86ffaf0e into 4c7d3274a07137dd80808a2391c419b46ce09ae6
+Found 0 warnings and 0 errors.
+Finished in 22ms on 26 files with 104 rules using 4 threads.
+no frontend tests yet
+✓ 1880 modules transformed.
+[32m✓ built in 530ms[39m
+
+# current main
+3835dee AI-12b: tests for /internal/embed during an in-flight ingest and a failed embedder-worker build (#77)
+# check runs on main 3835dee
+Agent ownership check: skipped (job 136184191486)
+Go (vet, gofmt, test, build): success (job 136184190224)
+Python M0 unit tests: success (job 136184190114)
+Frontend (lint, test, build): success (job 136184189786)
+DB (migrate twice, HNSW plan + recall): success (job 136184187139)
+
+# Frontend job 136184189786 on main 3835dee
+Found 0 warnings and 0 errors.
+Finished in 27ms on 28 files with 104 rules using 4 threads.
+[2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+✓ 1923 modules transformed.
+[32m✓ built in 687ms[39m
+
+[exit code 0]
