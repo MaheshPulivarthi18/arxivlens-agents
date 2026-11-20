@@ -6,9 +6,9 @@
 | **Priority** | P3 |
 | **PRD ref** | Product PRD QA-8 (operators can tell why synthesis fell back, without server bytes leaking); follow-up from the LLM-1c QA/PM review (`agents/reviews/LLM-1c/report.md`, QA nit 1) |
 | **Depends on** | LLM-1c (#74, merged `929e908`). No open PR touches `internal/llm/` (checked 2026-11-20 05:00Z against #65, #66, #68, #69, #70 via REST) |
-| **Jira** | to create (epic KAN-1 "Grounded LLM answers"; labels `task-LLM-1d`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-82 (epic KAN-1 "Grounded LLM answers"; labels `task-LLM-1d`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one string literal in a test table |
-| **Status** | In QA — draft PR [#79](https://github.com/MaheshPulivarthi18/ArxivLens/pull/79) `fc6d79d` |
+| **Status** | Ready to merge — PR [#79](https://github.com/MaheshPulivarthi18/ArxivLens/pull/79) `fc6d79d` raised for Mahesh (QA PASS r1, PM APPROVE r1, 2026-11-20) |
 
 ## Goal
 In `TestTLSError`'s "handshake failed" row (`internal/llm/openai_test.go:585` on `e6cffba`), the `absent` list contains
@@ -58,3 +58,7 @@ test-only. `stack.yml` runs (`internal/**`) and has to be green apart from the d
   AC3 dev preview (QA runs the official one) in the same scratch harness, mutant `return "TLS handshake failed\r\n", nil`
   (openai.go:255): on head it FAILs with `openai_test.go:604: error "... TLS handshake failed\r\n after 1 attempt" contains "\r\n"`,
   and on `e6cffba` it PASSes. AC2 CI run ID: pending the orchestrator's push.
+- 2026-11-20 08:00Z cycle (pm-lead): QA PASS r1 (`agents/reviews/LLM-1d/report.md`). AC2 CI run 44679354389, job 136098767376,
+  log line 578 `--- PASS: TestTLSError/handshake_failed`. All 6 check runs on `fc6d79d` succeeded. PM **APPROVE** r1: the PR description
+  is rewritten with pinned evidence, the PR is marked ready for review, and it has label `ready-to-merge`. QA nit 1 (lone `\n`) is closed
+  with no follow-up (reason in report.md). PRD QA-8 status unchanged (test-only).
