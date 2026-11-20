@@ -1,0 +1,20 @@
+$ bash -c export GOFLAGS=-mod=mod GOPROXY=off GONOSUMDB='*' GOTOOLCHAIN=local; cd /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/head; go test -race -count=1 -v -run '^TestHandlersEncodeContract$/(never_set|set_nil)$' ./internal/query/ 2>&1 | grep -E -- '--- |^ok|^FAIL|^PASS'; echo; sed -n '/^func (s \*Server) SetIngester/,/^}/p' internal/query/server.go
+--- PASS: TestHandlersEncodeContract (0.00s)
+    --- PASS: TestHandlersEncodeContract/ingest_never_set (0.00s)
+    --- PASS: TestHandlersEncodeContract/ingest_set_nil (0.00s)
+    --- PASS: TestHandlersEncodeContract/discover_never_set (0.00s)
+    --- PASS: TestHandlersEncodeContract/discover_set_nil (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.018s
+
+func (s *Server) SetIngester(ingester *PaperIngester) {
+	// A nil *PaperIngester stored in the interface would not be == nil, and the
+	// handlers' 503 "not configured" check would be skipped.
+	if ingester == nil {
+		s.ingester = nil
+		return
+	}
+	s.ingester = ingester
+}
+
+[exit code 0]

@@ -1,0 +1,23 @@
+$ /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/mutate.sh
+id  verdict   mutant
+m   KILLED    ask passes "" as trace ID  [first failing row: ask_unencodable]
+n   KILLED    ingest error path status 200  [first failing row: ingest_error]
+o   KILLED    discover error path status 200  [first failing row: discover_error]
+p   KILLED    /v1/stats passes "/v1/search" as route  [first failing row: stats_unencodable]
+q   KILLED    SetIngester stores the nil pointer unconditionally (guard removed)  [first failing row: ingest_set_nil]
+q2  SURVIVED  SetIngester never stores a non-nil ingester
+r   KILLED    status passes "/v1/stats" as route  [first failing row: status_unencodable]
+s   KILLED    search passes "/v1/ask" as route  [first failing row: search_unencodable]
+t   KILLED    search ok wraps count len(hits)+1  [first failing row: search_ok]
+u   KILLED    ingest ok status 201  [first failing row: ingest_ok]
+v   KILLED    discover ok status 202  [first failing row: discover_ok]
+w   KILLED    ingest error key "error" -> "detail"  [first failing row: ingest_error]
+x   KILLED    ingest nil-ingester check removed  [first failing row: ingest_never_set]
+y   KILLED    discover nil-ingester 503 -> 500  [first failing row: discover_never_set]
+z   KILLED    ask unencodable: trace ID replaced by question  [first failing row: ask_unencodable]
+e1  SURVIVED  ingest error route label wrong (encode cannot fail: expected equivalent)
+e2  SURVIVED  search error path 500 -> 502 (http.Error path, outside AC)
+e3  SURVIVED  stats error path 500 -> 200 (http.Error path, outside AC)
+e4  SURVIVED  ask drops Quick option (argument passing, outside AC)
+
+[exit code 0]

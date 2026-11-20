@@ -1,0 +1,24 @@
+$ /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/verify.sh
+$ git diff --stat origin/main...HEAD
+ internal/query/server.go      |  35 ++++++-
+ internal/query/server_test.go | 226 +++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 253 insertions(+), 8 deletions(-)
+$ git diff --stat origin/main...HEAD -- cmd/ shared/ migrations/   (expect empty)
+$ gofmt -l internal/query/
+gofmt exit=0
+$ diff -r internal/query /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/verify-u0nM/internal/query (scratch copy identical to PR head)
+identical
+go version go1.24.7 linux/amd64
+$ go vet ./internal/query/
+vet-ok
+$ go test -race -count=1 -run ^(TestWriteJSON|TestHandlersEncodeContract)$ ./internal/query/
+ok  	arxivlens/internal/query	1.016s
+$ go test -race -count=1 ./internal/...
+ok  	arxivlens/internal/arxiv	2.569s
+ok  	arxivlens/internal/config	1.012s
+ok  	arxivlens/internal/db	1.018s
+ok  	arxivlens/internal/llm	2.051s
+ok  	arxivlens/internal/llm/llmtest	1.121s
+ok  	arxivlens/internal/query	1.496s
+
+[exit code 0]

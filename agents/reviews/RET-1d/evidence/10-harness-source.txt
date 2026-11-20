@@ -1,0 +1,160 @@
+$ /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/show-harness.sh
+# dependency clones (git clone --depth 1 --branch <tag>):
+crypto  v0.21.0
+pgpassfile  v1.0.0
+pgservicefile  091c0ba
+pgx  v5.6.0
+puddle  v2.2.1
+sync  v0.1.0
+text  v0.14.0
+
+# harness files:
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/mkmod.sh
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/mutants.txt
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/mutate.sh
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/show-harness.sh
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/verify.sh
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/github.com_davecgh_go-spew/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/github.com_kr_pretty/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/github.com_pmezard_go-difflib/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/github.com_stretchr_testify/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/golang.org_x_mod/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/golang.org_x_net/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/golang.org_x_sys/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/golang.org_x_term/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/golang.org_x_tools/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/gopkg.in_check.v1/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/gopkg.in_yaml.v3/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/minio/go.mod
+/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/minio/minio.go
+
+===== /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/mkmod.sh
+#!/usr/bin/env bash
+# mkmod.sh <app-src-dir> <out-dir>: scratch go1.24 module with the app's real internal/ packages
+# (query, db, arxiv, llm, config) and absolute replace paths to tag-pinned clones / stubs.
+set -euo pipefail
+H=/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1
+src=$1; out=$2
+mkdir -p "$out/internal"
+for p in query db arxiv llm config; do cp -r "$src/internal/$p" "$out/internal/"; done
+cp -r "$src/migrations" "$out/"
+cat > "$out/go.mod" <<MOD
+module arxivlens
+
+go 1.24
+
+require (
+	github.com/jackc/pgx/v5 v5.6.0
+	github.com/minio/minio-go/v7 v7.0.70
+)
+
+replace (
+	github.com/jackc/pgx/v5 => $H/deps/pgx
+	github.com/jackc/pgpassfile => $H/deps/pgpassfile
+	github.com/jackc/pgservicefile => $H/deps/pgservicefile
+	github.com/jackc/puddle/v2 => $H/deps/puddle
+	golang.org/x/crypto => $H/deps/crypto
+	golang.org/x/text => $H/deps/text
+	golang.org/x/sync => $H/deps/sync
+	github.com/minio/minio-go/v7 => $H/stubs/minio
+MOD
+for d in $H/stubs/*_*; do m=$(head -1 $d/go.mod | cut -d' ' -f2); echo "	$m => $d" >> "$out/go.mod"; done
+echo ")" >> "$out/go.mod"
+
+===== /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/mutants.txt
+m|ask passes "" as trace ID|s{writeJSON\(w, http.StatusOK, resp, "/v1/ask", resp.TraceID\)}{writeJSON(w, http.StatusOK, resp, "/v1/ask", "")}
+n|ingest error path status 200|s{(writeJSON\(w, )http.StatusInternalServerError(, map\[string\]string\{"error": err.Error\(\)\}, "/v1/papers/ingest")}{$1http.StatusOK$2}
+o|discover error path status 200|s{(writeJSON\(w, )http.StatusInternalServerError(, map\[string\]string\{"error": err.Error\(\)\}, "/v1/papers/discover")}{$1http.StatusOK$2}
+p|/v1/stats passes "/v1/search" as route|s{writeJSON\(w, http.StatusOK, stats, "/v1/stats", ""\)}{writeJSON(w, http.StatusOK, stats, "/v1/search", "")}
+q|SetIngester stores the nil pointer unconditionally (guard removed)|s{\tif ingester == nil \{\n\t\ts.ingester = nil\n\t\treturn\n\t\}\n}{}
+q2|SetIngester never stores a non-nil ingester|s#\t\}\n\ts\.ingester = ingester\n\}#\t}\n\t_ = ingester\n}#
+r|status passes "/v1/stats" as route|s{writeJSON\(w, http.StatusOK, paper, "/v1/papers/\{arxiv_id\}/status", ""\)}{writeJSON(w, http.StatusOK, paper, "/v1/stats", "")}
+s|search passes "/v1/ask" as route|s#\}, "/v1/search", ""\)#}, "/v1/ask", "")#
+t|search ok wraps count len(hits)+1|s{"count": len\(hits\),}{"count": len(hits) + 1,}
+u|ingest ok status 201|s{writeJSON\(w, http.StatusOK, res, "/v1/papers/ingest", ""\)}{writeJSON(w, http.StatusCreated, res, "/v1/papers/ingest", "")}
+v|discover ok status 202|s{writeJSON\(w, http.StatusOK, res, "/v1/papers/discover", ""\)}{writeJSON(w, http.StatusAccepted, res, "/v1/papers/discover", "")}
+w|ingest error key "error" -> "detail"|s{map\[string\]string\{"error": err.Error\(\)\}, "/v1/papers/ingest"}{map[string]string{"detail": err.Error()}, "/v1/papers/ingest"}
+x|ingest nil-ingester check removed|s{(\tif s.ingester == nil \{\n\t\thttp.Error\(w, "paper ingester not configured on server", http.StatusServiceUnavailable\)\n\t\treturn\n\t\}\n\n\tres, err := s.ingester.IngestPaper)}{\n\tres, err := s.ingester.IngestPaper}
+y|discover nil-ingester 503 -> 500|s{(http.Error\(w, "paper ingester not configured on server", )http.StatusServiceUnavailable(\)\n\t\treturn\n\t\}\n\n\tres, err := s.ingester.DiscoverAndIngest)}{$1http.StatusInternalServerError$2}
+z|ask unencodable: trace ID replaced by question|s{"/v1/ask", resp.TraceID\)}{"/v1/ask", req.Question)}
+e1|ingest error route label wrong (encode cannot fail: expected equivalent)|s{map\[string\]string\{"error": err.Error\(\)\}, "/v1/papers/ingest", ""\)}{map[string]string{"error": err.Error()}, "/v1/search", "")}
+e2|search error path 500 -> 502 (http.Error path, outside AC)|s{"search failed: %v", err\), http.StatusInternalServerError}{"search failed: %v", err), http.StatusBadGateway}
+e3|stats error path 500 -> 200 (http.Error path, outside AC)|s{"failed to get stats: %v", err\), http.StatusInternalServerError}{"failed to get stats: %v", err), http.StatusOK}
+e4|ask drops Quick option (argument passing, outside AC)|s{AskOptions\{Quick: req.Quick\}}{AskOptions{}}
+
+===== /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/mutate.sh
+#!/usr/bin/env bash
+# For each mutant: fresh module copy of the PR head, apply one anchored perl substitution to server.go,
+# check exactly the intended code changed, then run the AC6 command. Build failure => INVALID.
+H=/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1
+export GOFLAGS=-mod=mod GOPROXY=off GONOSUMDB='*' GOTOOLCHAIN=local
+SRC=${SRC:-/root/wt/qa-RET-1d}
+printf '%-3s %-9s %s\n' id verdict mutant
+while IFS='|' read -r id desc expr; do
+  d=$(mktemp -d "$H/mut-$id-XXXX"); $H/bin/mkmod.sh "$SRC" "$d"
+  f=$d/internal/query/server.go
+  perl -0pi -e "$expr" "$f"
+  if diff -q "$SRC/internal/query/server.go" "$f" >/dev/null; then printf '%-3s %-9s %s\n' "$id" NOT-APPLIED "$desc"; continue; fi
+  diff "$SRC/internal/query/server.go" "$f" > "$d/mutant.diff"
+  if ! (cd "$d" && go vet ./internal/query/ >"$d/build.log" 2>&1); then printf '%-3s %-9s %s\n' "$id" INVALID "$desc"; continue; fi
+  (cd "$d" && go test -count=1 -run '^(TestWriteJSON|TestHandlersEncodeContract)$' ./internal/query/ >"$d/test.log" 2>&1); rc=$?
+  if [ $rc -ne 0 ]; then v=KILLED; why=$(grep -m1 -- '--- FAIL: TestHandlersEncodeContract/' "$d/test.log" | sed 's/ (.*//;s/.*\///'); else v=SURVIVED; why=""; fi
+  printf '%-3s %-9s %s%s\n' "$id" "$v" "$desc" "${why:+  [first failing row: $why]}"
+done < $H/bin/mutants.txt
+
+===== /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/show-harness.sh
+#!/usr/bin/env bash
+H=/tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1
+echo "# dependency clones (git clone --depth 1 --branch <tag>):"; for d in $H/deps/*; do printf '%s  %s\n' "$(basename $d)" "$(git -C $d describe --tags --always 2>/dev/null)"; done
+echo; echo "# harness files:"; find $H/bin $H/stubs -type f | sort
+for f in $(find $H/bin $H/stubs/minio -type f | sort); do echo; echo "===== $f"; cat "$f"; done
+echo; echo "===== empty-go.mod stubs:"; for d in $H/stubs/*_*; do cat $d/go.mod; done
+
+===== /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/bin/verify.sh
+#!/usr/bin/env bash
+# run from the PR worktree
+echo '$ git diff --stat origin/main...HEAD'; git diff --stat origin/main...HEAD
+echo '$ git diff --stat origin/main...HEAD -- cmd/ shared/ migrations/   (expect empty)'; git diff --stat origin/main...HEAD -- cmd/ shared/ migrations/
+echo '$ gofmt -l internal/query/'; gofmt -l internal/query/; echo "gofmt exit=$?"
+export GOFLAGS=-mod=mod GOPROXY=off GONOSUMDB='*' GOTOOLCHAIN=local
+echo "$ diff -r internal/query /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/verify-u0nM/internal/query (scratch copy identical to PR head)"; diff -r internal/query /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/verify-u0nM/internal/query && echo identical
+cd /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/verify-u0nM; go version
+echo '$ go vet ./internal/query/'; go vet ./internal/query/ && echo vet-ok
+echo '$ go test -race -count=1 -run ^(TestWriteJSON|TestHandlersEncodeContract)$ ./internal/query/'; go test -race -count=1 -run '^(TestWriteJSON|TestHandlersEncodeContract)$' ./internal/query/
+echo '$ go test -race -count=1 ./internal/...'; go test -race -count=1 ./internal/... 2>&1
+
+===== /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/minio/go.mod
+module github.com/minio/minio-go/v7
+go 1.24
+
+===== /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/stubs/minio/minio.go
+// QA stub: only the names internal/query uses.
+package minio
+
+import (
+	"context"
+	"io"
+)
+
+type Client struct{}
+type PutObjectOptions struct{ ContentType string }
+type UploadInfo struct{}
+
+func (c *Client) PutObject(ctx context.Context, bucket, object string, r io.Reader, size int64, opts PutObjectOptions) (UploadInfo, error) {
+	return UploadInfo{}, nil
+}
+
+===== empty-go.mod stubs:
+module github.com/davecgh/go-spew
+module github.com/kr/pretty
+module github.com/pmezard/go-difflib
+module github.com/stretchr/testify
+module golang.org/x/mod
+module golang.org/x/net
+module golang.org/x/sys
+module golang.org/x/term
+module golang.org/x/tools
+module gopkg.in/check.v1
+module gopkg.in/yaml.v3
+
+[exit code 0]

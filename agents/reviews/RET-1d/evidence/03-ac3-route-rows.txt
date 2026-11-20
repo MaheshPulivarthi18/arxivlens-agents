@@ -1,0 +1,40 @@
+$ bash -c export GOFLAGS=-mod=mod GOPROXY=off GONOSUMDB='*' GOTOOLCHAIN=local; cd /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/head; go test -race -count=1 -v -run '^TestHandlersEncodeContract$/(_ok|_unencodable)$' ./internal/query/ 2>&1 | grep -E -- '--- |^ok|^FAIL|^PASS'; echo; echo '# route labels passed in server.go:'; grep -n 'writeJSON(w' internal/query/server.go; echo; echo '# IngestResult field types:'; sed -n '/^type IngestResult/,/^}/p' internal/query/ingester.go
+--- PASS: TestHandlersEncodeContract (0.01s)
+    --- PASS: TestHandlersEncodeContract/search_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/search_unencodable (0.00s)
+    --- PASS: TestHandlersEncodeContract/ask_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/ask_unencodable (0.00s)
+    --- PASS: TestHandlersEncodeContract/status_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/status_unencodable (0.00s)
+    --- PASS: TestHandlersEncodeContract/stats_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/stats_unencodable (0.00s)
+    --- PASS: TestHandlersEncodeContract/ingest_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/discover_ok (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.020s
+
+# route labels passed in server.go:
+126:func writeJSON(w http.ResponseWriter, status int, v any, route, traceID string) {
+142:	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"}, "/healthz", "")
+163:	writeJSON(w, http.StatusOK, map[string]interface{}{
+188:	writeJSON(w, http.StatusOK, resp, "/v1/ask", resp.TraceID)
+207:	writeJSON(w, http.StatusOK, paper, "/v1/papers/{arxiv_id}/status", "")
+217:	writeJSON(w, http.StatusOK, stats, "/v1/stats", "")
+243:		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()}, "/v1/papers/ingest", "")
+247:	writeJSON(w, http.StatusOK, res, "/v1/papers/ingest", "")
+274:		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()}, "/v1/papers/discover", "")
+278:	writeJSON(w, http.StatusOK, res, "/v1/papers/discover", "")
+
+# IngestResult field types:
+type IngestResult struct {
+	Status     string `json:"status"`
+	ArxivID    string `json:"arxiv_id"`
+	Version    int    `json:"version"`
+	Title      string `json:"title"`
+	Sections   int    `json:"sections"`
+	Chunks     int    `json:"chunks"`
+	Embeddings int    `json:"embeddings"`
+	Error      string `json:"error,omitempty"`
+}
+
+[exit code 0]

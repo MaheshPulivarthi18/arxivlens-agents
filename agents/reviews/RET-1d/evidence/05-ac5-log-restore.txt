@@ -1,0 +1,17 @@
+$ bash -c echo '$ grep -n os.Stderr internal/query/server_test.go'; grep -n 'os.Stderr' internal/query/server_test.go; echo "exit=$? (1 = no match)"; echo; sed -n '/^func redirectServerLog/,/^}/p' internal/query/server_test.go; echo; grep -n 'redirectServerLog(t)' internal/query/server_test.go
+$ grep -n os.Stderr internal/query/server_test.go
+exit=1 (1 = no match)
+
+func redirectServerLog(t *testing.T) *bytes.Buffer {
+	t.Helper()
+	var buf bytes.Buffer
+	prevOut, prevFlags := log.Writer(), log.Flags()
+	log.SetOutput(&buf)
+	t.Cleanup(func() { log.SetOutput(prevOut); log.SetFlags(prevFlags) })
+	return &buf
+}
+
+88:			logBuf := redirectServerLog(t)
+292:			logBuf := redirectServerLog(t)
+
+[exit code 0]

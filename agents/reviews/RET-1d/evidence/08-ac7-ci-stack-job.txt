@@ -1,0 +1,13 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136509406826/logs | (grep excerpt: ingest step, test-full, F1)
+2026-11-20T19:19:29.3067870Z [36;1mcode="$(curl -sS -m 360 -o ingest.json -w '%{http_code}' -X POST localhost:8080/v1/papers/ingest \[0m
+2026-11-20T19:19:29.3068328Z [36;1m  -H 'Content-Type: application/json' -d '{"arxiv_id":"2608.20331"}')"[0m
+2026-11-20T19:20:23.0096413Z {"status":"success","arxiv_id":"2608.20331","version":1,"title":"G-CARL: Grounded Checklist-Aligned Reward Learning for Patient-Oriented Medical Report Interpretation","sections":69,"chunks":53,"embeddings":53}
+2026-11-20T19:20:23.0224039Z [36;1mmake test-full PYTEST_ARGS="$(printf -- '--deselect %s ' "${f1[@]}")-rA" 2>&1 | tee test-full.log[0m
+2026-11-20T19:20:23.0511219Z python3 -m pytest -q tests/ --deselect tests/test_m3_query.py::test_rag_ask_with_groundedness_support --deselect tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query --deselect tests/test_m3_query.py::test_hybrid_searc
+2026-11-20T19:21:11.3449892Z PASSED tests/test_m3_query.py::test_query_service_health
+2026-11-20T19:21:11.3450367Z PASSED tests/test_m3_query.py::test_paper_status_endpoint
+2026-11-20T19:21:11.3479216Z 248 passed, 1 skipped, 3 deselected, 5 warnings in 47.80s
+2026-11-20T19:21:11.9045691Z python3 -m pytest -q tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank 
+2026-11-20T19:21:26.8584716Z ...                                                                      [100%]
+2026-11-20T19:21:26.8585116Z 3 passed in 14.78s
+

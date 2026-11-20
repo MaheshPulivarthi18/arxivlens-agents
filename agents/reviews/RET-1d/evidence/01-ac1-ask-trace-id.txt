@@ -1,0 +1,17 @@
+$ bash -c export GOFLAGS=-mod=mod GOPROXY=off GONOSUMDB='*' GOTOOLCHAIN=local; cd /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/head; go test -race -count=1 -v -run '^TestHandlersEncodeContract$/^ask' ./internal/query/ 2>&1 | grep -E -- '--- |^ok|^FAIL|^PASS'; echo; echo '# test rows:'; grep -n 'askNaN :=\|name: "ask unencodable"' -A2 internal/query/server_test.go
+--- PASS: TestHandlersEncodeContract (0.00s)
+    --- PASS: TestHandlersEncodeContract/ask_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/ask_unencodable (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.016s
+
+# test rows:
+195:	askNaN := &AskResponse{Answer: "x", TraceID: "t-ret1d", Citations: []Citation{{Marker: 1, Score: math.NaN()}}}
+196-	paperOK := &db.PaperRecord{ArxivID: "2401.00001", Title: "a<b", Status: "embedded", PublishedAt: goodTime, CreatedAt: goodTime}
+197-	paperBad := &db.PaperRecord{ArxivID: "2401.00001", PublishedAt: badTime}
+--
+249:		{name: "ask unencodable", server: withFake(&fakeDeps{ask: askNaN}), handler: ask, method: http.MethodPost, path: "/v1/ask",
+250-			body: `{"question":"q"}`, wantCode: http.StatusInternalServerError,
+251-			wantLogs: []string{"route=/v1/ask ", "trace_id=t-ret1d:"}},
+
+[exit code 0]

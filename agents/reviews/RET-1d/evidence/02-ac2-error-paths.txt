@@ -1,0 +1,30 @@
+$ bash -c export GOFLAGS=-mod=mod GOPROXY=off GONOSUMDB='*' GOTOOLCHAIN=local; cd /tmp/claude-0/-home-claude/5e719a67-b74f-583a-8173-6f00308d6e83/scratchpad/qa-RET-1d-r1/head; go test -race -count=1 -v -run '^TestHandlersEncodeContract$/_error$' ./internal/query/ 2>&1 | grep -E -- '--- |^ok|^FAIL|^PASS'; echo; grep -n 'name: "\(ingest\|discover\) error"' -A2 internal/query/server_test.go; echo; grep -n 'len(tc.wantLogs) == 0' -A5 internal/query/server_test.go
+--- PASS: TestHandlersEncodeContract (0.00s)
+    --- PASS: TestHandlersEncodeContract/ingest_error (0.00s)
+    --- PASS: TestHandlersEncodeContract/discover_error (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.016s
+
+270:		{name: "ingest error", server: withFake(&fakeDeps{err: boom}), handler: ingest, method: http.MethodPost,
+271-			path: "/v1/papers/ingest", body: `{"arxiv_id":"2401.00001"}`, wantCode: http.StatusInternalServerError,
+272-			wantJSON: map[string]string{"error": "boom"}, wantBody: "{\"error\":\"boom\"}\n"},
+--
+281:		{name: "discover error", server: withFake(&fakeDeps{err: boom}), handler: discover, method: http.MethodPost,
+282-			path: "/v1/papers/discover", body: `{"query":"q"}`, wantCode: http.StatusInternalServerError,
+283-			wantJSON: map[string]string{"error": "boom"}, wantBody: "{\"error\":\"boom\"}\n"},
+
+120:			if len(tc.wantLogs) == 0 {
+121-				if len(logLines) != 0 {
+122-					t.Errorf("unexpected log lines: %q", logLines)
+123-				}
+124-				return
+125-			}
+--
+335:			if len(tc.wantLogs) == 0 {
+336-				if len(logLines) != 0 {
+337-					t.Errorf("unexpected log lines: %q", logLines)
+338-				}
+339-				return
+340-			}
+
+[exit code 0]
