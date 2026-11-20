@@ -1,0 +1,14 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/80 --jq "{head:.head.sha, draft, mergeable, mergeable_state, base_at_open:.base.sha}"; echo "=== check-runs on head"; gh api repos/MaheshPulivarthi18/ArxivLens/commits/9df6944431bbe3224720caf97f7b15664922a4fa/check-runs --jq ".check_runs[] | \"\(.name) \(.status) \(.conclusion) job=\(.id)\""; echo "=== branch commits"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/80/commits --jq ".[] | \"\(.sha[0:7]) \(.commit.message|split(\"\n\")[0])\""
+{"base_at_open":"e6cffba66d677a655ade39588972abc03bc273aa","draft":true,"head":"9df6944431bbe3224720caf97f7b15664922a4fa","mergeable":true,"mergeable_state":"clean"}
+=== check-runs on head
+Agent ownership check completed success job=136169625051
+Python M0 unit tests completed success job=136169624788
+Frontend (lint, test, build) completed success job=136169624104
+Go (vet, gofmt, test, build) completed success job=136169622172
+DB (migrate twice, HNSW plan + recall) completed success job=136168682185
+=== branch commits
+6e1e9cd OPS-H15: run CI Go unit tests (make test-go) under the race detector
+d63caf9 OPS-H15: temporary racy probe test (AC2, will be reverted)
+9df6944 Revert "OPS-H15: temporary racy probe test (AC2, will be reverted)"
+
+[exit code 0]

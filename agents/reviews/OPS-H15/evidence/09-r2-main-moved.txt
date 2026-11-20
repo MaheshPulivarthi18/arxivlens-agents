@@ -1,0 +1,24 @@
+$ bash -c git fetch -q origin; git log --oneline e6cffba..origin/main; echo "=== .github/ changes on main since e6cffba"; git diff --stat e6cffba origin/main -- .github/; echo "=== ci.yml changes on main since e6cffba (empty = none)"; git diff --stat e6cffba origin/main -- .github/workflows/ci.yml; echo "=== Go files changed on main since e6cffba"; git diff --stat e6cffba origin/main -- "*.go"; echo "=== added goroutine/sync/chan lines in those Go changes (empty = none)"; git diff e6cffba origin/main -- "*.go" | grep -E "^\+.*(go func|sync\.|chan )" || true; echo "=== merge-tree of PR head onto origin/main (conflicts?)"; git merge-tree --write-tree origin/main HEAD && echo "clean merge"
+3835dee AI-12b: tests for /internal/embed during an in-flight ingest and a failed embedder-worker build (#77)
+2410d2e FE-1: Vitest harness + tests for answer, refusal and citation states (#68)
+54c4de8 FE-0: Classic research theme: tokens, self-hosted fonts, dark mode, theme toggle (#69)
+5355c53 OPS-H6c: pin quiet shutdown for a deadline-ended consumer ctx (test-only) (#76)
+cee2543 ING-11c: M2 start-page test reports a NULL page_number on its own (#78)
+050904d OPS-H9: real-Postgres eval-data CI step, pgvector >= 0.8 digest pin, image-pin check (#66)
+d121a68 AI-8b: claims[] and prompt_version in /v1/ask, README /v1/ask row (#65)
+=== .github/ changes on main since e6cffba
+ .github/workflows/db.yml         | 39 +++++++++++++++++-
+ .github/workflows/image-pins.yml | 85 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 123 insertions(+), 1 deletion(-)
+=== ci.yml changes on main since e6cffba (empty = none)
+=== Go files changed on main since e6cffba
+ internal/kafka/consumer_test.go |  37 +++++++++++
+ internal/query/rag.go           |  60 +++++++++++++++---
+ internal/query/rag_test.go      | 137 ++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 219 insertions(+), 15 deletions(-)
+=== added goroutine/sync/chan lines in those Go changes (empty = none)
+=== merge-tree of PR head onto origin/main (conflicts?)
+3f67de8f58745c2f3cee9bea49058217132fb7de
+clean merge
+
+[exit code 0]
