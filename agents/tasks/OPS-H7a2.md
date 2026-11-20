@@ -80,3 +80,17 @@ KAFKA_BROKERS=localhost:9092 go test -tags integration -count=1 -v ./internal/dl
   - Verified locally: `gofmt -l .` is clean. In a scratch module (stubs for `events.DLQPayload` + `kerr` only), `go vet` is clean and `go test -race` passes (4 tests, 15 subtests).
     8 hand mutants all fail the tests. `ownership-check.sh`: OK, 397 lines. Real `make test-unit`/`make lint`: CI only (Go 1.24.7 locally, no module proxy).
 
+  - **Rework round 1 (2026-11-20T08:00Z cycle, QA FAIL on `1ae23bd`, `agents/reviews/OPS-H7a2/report.md`)**. New head `9bcd07e` (PR #83, still draft):
+    - [x] F1 (blocking, untested cross-partition `Next`, mutants M01/M02): 6 new `TestListPagesToHighWatermark` rows. A page fills at a partition's end, then a
+      non-empty partition with Low 0 `{0:{0,3},1:{0,3}}` or Low 5 `{0:{0,3},1:{5,2}}`, or across an empty partition `{0:{0,2},1:{9,0},2:{4,3}}` page 2. Plus
+      `From == Low > 0` (no warning), `From` at a partition's High (goes on to later partitions), and `--partition` on an empty partition (one empty page, no Next).
+      No code change: the head code passes every row. QA's 33-mutant harness (go1.24 scratch module, real franz-go, `diff -r` identical to the PR) now gives
+      31 killed / 2 survived (was 28/5). **M01, M02 and M06 are KILLED.** The survivors are M19 (`DefaultPageSize`: a2b `TestDLQFlags`) and M28 (equivalent).
+      Coverage of `List`, `listPartitions`, `nextCursor` and `ParseCursor` is 100%.
+    - [x] F2 (nit, M06 false expiry when From == Low): killed by the `From at Low` and `Low 5` rows.
+    - [x] F3 (blocking, deviation not in design): `docs/design/OPS-H7.md` § "Build notes (a2a, PR #83)" (commit `6ad61c6`) records `ListOptions.Snapshot`, `Page{Next, Watermarks, Warnings}`,
+      `Read` on empty partitions, and the `NewManager(…, nil)` rule for a2b. **Flagged for pm-lead acknowledgement.** No shared contract changes.
+    - [x] F8 (nit, subtest count): the PR body was rebuilt from the template. It now says 4 tests / 20 subtests (13 + 7) and has a rework section.
+    - [ ] F4 (M19) and F6/F7 (spec): these are for OPS-H7a2b / pm-lead and were not done here. F5 (`ParseCursor` accepts `+3/5`, `03/007`) is optional and harmless, so it is left as is.
+    - CI on `9bcd07e`: all 6 check runs succeeded (Go 136202883013, DB with real Kafka 136202882278, where all 13 `TestListPagesToHighWatermark` subtests PASS, Full stack
+      136202882840, Python M0, Frontend, ownership). The size is now 409 changed lines: `ownership-check` passes with only the >400 warning, and the 12 extra lines are the requested test rows.
