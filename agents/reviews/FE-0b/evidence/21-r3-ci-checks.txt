@@ -1,0 +1,11 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/d10dc7f6d8a567330826b89b14118e23bcc2da1c/check-runs --jq '.check_runs[] | "\(.name) | \(.status) | \(.conclusion) | job \(.id) | \(.completed_at)"'; echo; echo 'PR #70:'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/70 --jq '"head=\(.head.sha) draft=\(.draft) mergeable_state=\(.mergeable_state) base_at_merge_ref=\(.base.sha)"'
+Python M0 unit tests | completed | success | job 136203251851 | 2026-11-20T09:32:00Z
+Go (vet, gofmt, test, build) | completed | success | job 136203251685 | 2026-11-20T09:31:16Z
+Frontend (lint, test, build) | completed | success | job 136203251672 | 2026-11-20T09:30:29Z
+DB (migrate twice, HNSW plan + recall) | completed | success | job 136203251310 | 2026-11-20T09:31:47Z
+Agent ownership check | completed | success | job 136203251274 | 2026-11-20T09:30:21Z
+
+PR #70:
+head=d10dc7f6d8a567330826b89b14118e23bcc2da1c draft=true mergeable_state=clean base_at_merge_ref=3835dee2375b28f1b66612b64d8c6f92f3e9fda4
+
+[exit code 0]

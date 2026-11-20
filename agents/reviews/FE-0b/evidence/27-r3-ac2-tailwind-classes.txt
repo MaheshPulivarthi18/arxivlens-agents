@@ -1,0 +1,20 @@
+$ bash -c cd /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r3/h/probe && node probe-list.mjs /root/wt/qa-FE-0b-r3/frontend/tailwind.config.js /root/wt/qa-FE-0b-r3/frontend/src/components/ui
+config: /root/wt/qa-FE-0b-r3/frontend/tailwind.config.js
+classes found in the six files: 43; generated: 43; NOT generated: 0
+  ok      !text-muted-foreground                ok      bg-border                             ok      bg-popover                            
+  ok      border-border                         ok      border-l                              ok      border-l-transparent                  
+  ok      border-t                              ok      border-t-transparent                  ok      flex                                  
+  ok      flex-1                                ok      flex-col                              ok      focus-visible:outline-none            
+  ok      focus-visible:ring-2                  ok      focus-visible:ring-inset              ok      focus-visible:ring-ring               
+  ok      font-sans                             ok      h-2.5                                 ok      h-full                                
+  ok      h-px                                  ok      hover:bg-muted-foreground/50          ok      max-w-xs                              
+  ok      outline-none                          ok      overflow-hidden                       ok      p-4                                   
+  ok      p-px                                  ok      px-2.5                                ok      py-1.5                                
+  ok      relative                              ok      rounded-[inherit]                     ok      rounded-full                          
+  ok      rounded-md                            ok      select-none                           ok      shadow-md                             
+  ok      shadow-sm                             ok      shrink-0                              ok      text-popover-foreground               
+  ok      text-xs                               ok      touch-none                            ok      w-2.5                                 
+  ok      w-80                                  ok      w-full                                ok      w-px                                  
+  ok      z-50                                  
+
+[exit code 0]

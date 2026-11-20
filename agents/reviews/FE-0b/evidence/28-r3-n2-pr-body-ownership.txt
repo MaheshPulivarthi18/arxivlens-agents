@@ -1,0 +1,19 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/70 --jq .body | grep -nE '169|159|inset|Deviation|1.56|3835dee|AC[1-6]:' ; echo; echo 'stale 159 mentions:' $(gh api repos/MaheshPulivarthi18/ArxivLens/pulls/70 --jq .body | grep -c 159); echo; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136203251274/logs | grep -E 'Ownership|role=' | sed -E 's/^[0-9T:.Z-]+ //'
+6:Six **new** files under `frontend/src/components/ui/` (169 lines, no existing file touched, no dependency change; every package is already in `package-lock.json`). The branch has `main` (3835dee, with FE-0's `popover` colour mapping in `tailwind.config.js`) merged in.
+10:- `scroll-area.jsx`: `ScrollArea`, `ScrollBar` (`orientation`, thumb `bg-border hover:bg-muted-foreground/50`). The focusable viewport has an **inset** focus ring (`focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring`).
+14:**Deviations from design §6** (recorded in the ticket Notes):
+15:1. ScrollArea viewport ring is inset, not outset with offset 2: the Root's `overflow-hidden` clipped the outset ring completely (WCAG 2.4.7; QA r1 F2).
+16:2. Toast description gets a token class: sonner hard-codes `#3f3f3f` for `[data-description]` unless its own theme is dark, so with no `theme` prop the description was 1.56:1 on the dark background (QA r2 F3). `!` is needed to beat sonner's (0,3,0) selector.
+23:- [ ] AC1: lint + build (+ FE-1's tests) pass in CI with 0 warnings, on a merge with current main. See check runs on this head.
+24:- [x] AC2: the import grep finds the six packages; the colour/motion grep finds nothing (exit 1); forwardRef + displayName on every styled DOM part; `cn()` merging; floating content in a Portal with `font-sans`; viewport has a visible (inset) FV ring.
+25:- [x] AC3: the four variables come from tokens, no `theme` prop; the description follows the theme via `!text-muted-foreground` (Tailwind probe against `frontend/tailwind.config.js`: `.\!text-muted-foreground { color: hsl(var(--muted-foreground)) !important; }`).
+26:- [x] AC4: only PascalCase component exports; `Tooltip` wraps Root in a Provider with `delayDuration=300`.
+27:- [x] AC5: `git diff --name-status origin/main` = 6 × `A` under `frontend/src/components/ui/`, 169 insertions. `ownership-check.sh`: `Ownership OK for role=frontend (169 changed lines)`.
+28:- [ ] AC6: smoke render in light and dark is QA's (round 2 ran it; round 3 re-runs it for the description contrast).
+36:| `.github/scripts/ownership-check.sh origin/main frontend` | OK, 169 changed lines |
+
+stale 159 mentions: 0
+
+Ownership OK for role=frontend (169 changed lines)
+
+[exit code 0]

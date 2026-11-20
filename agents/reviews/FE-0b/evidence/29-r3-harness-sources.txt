@@ -1,0 +1,52 @@
+$ bash -c cd /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r3/h; for f in probe/*.mjs smoke/build.mjs smoke/shoot.mjs smoke/smoke.jsx smoke/remove-scroll-stub.jsx; do sha256sum $f; done; echo; echo '===== smoke/classes.mjs (new in r3)'; cat smoke/classes.mjs; echo '===== diff smoke/smoke.jsx merge/smoke.jsx'; diff smoke/smoke.jsx merge/smoke.jsx; echo '===== radix-ui/primitives' $(git -C /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r3/deps/radix rev-parse --short HEAD) ', sonner' $(git -C /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r3/deps/sonner describe --tags); cd /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r3/deps; node -e 'const l=require(process.argv[1]).packages,fs=require("fs");for(const n of ["tooltip","popover","collapsible","scroll-area","separator"])console.log("@radix-ui/react-"+n,JSON.parse(fs.readFileSync("radix/packages/react/"+n+"/package.json")).version,"lock",l["node_modules/@radix-ui/react-"+n].version);console.log("sonner",JSON.parse(fs.readFileSync("sonner/package.json")).version,"lock",l["node_modules/sonner"].version);for(const n of ["react","react-dom","clsx","tailwind-merge"])console.log(n,JSON.parse(fs.readFileSync("/opt/npm-tools/node_modules/"+n+"/package.json")).version,"lock",l["node_modules/"+n].version)' /root/wt/qa-FE-0b-r3/frontend/package-lock.json
+cfc58b6248e4608837c232c7fd7aae9ea720c8840ff6043ab152ace28dda6081  probe/cssprobe.mjs
+eef3cc41edf6c9987886f366b8259d95bbe73c4dc783b27d61559cec0622d9f4  probe/probe-list.mjs
+6ccf749cc6d95489b466b0516fa69af0bced2cfae74b033c0913657283b3cb74  probe/probe.mjs
+4707cfe6dbecf95c940a03836db939d3d976939aad8e27383642c2c520fa9c78  smoke/build.mjs
+e53d15f099c6e5a81ba8fddf46876096e6be8c86e5647120d16492dcdec9c862  smoke/shoot.mjs
+d915c603c8e7f61c6cd8018e2976fadbcfea2d3b606a8e9c8e09a8917394d810  smoke/smoke.jsx
+648faeaced14265fb265c9bcd9d69370816aa705b9491dd9b3ff56457e6f79dd  smoke/remove-scroll-stub.jsx
+
+===== smoke/classes.mjs (new in r3)
+// QA r3: prints the toast title/description class lists and the description colour/contrast in light and dark.
+// usage: node classes.mjs <out dir> <label>
+import { chromium } from "/opt/npm-tools/node_modules/playwright/index.mjs"
+import http from "node:http"; import fs from "node:fs"; import path from "node:path"
+const [out, label] = process.argv.slice(2)
+const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" }
+const srv = http.createServer((q, s) => { const f = path.join(out, q.url === "/" ? "index.html" : q.url.split("?")[0]); if (!fs.existsSync(f)) { s.writeHead(404); return s.end() } s.writeHead(200, { "content-type": types[path.extname(f)] || "application/octet-stream" }); s.end(fs.readFileSync(f)) }).listen(0)
+const b = await chromium.launch(); const p = await b.newPage()
+const errs = []; p.on("pageerror", e => errs.push(e.message)); p.on("console", m => { if (m.type() === "error") errs.push(m.text().slice(0, 160)) })
+await p.goto(`http://127.0.0.1:${srv.address().port}/`); await p.waitForSelector("[data-sonner-toast] [data-description]"); await p.waitForTimeout(500)
+const facts = () => p.evaluate(() => {
+  const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).slice(0, 3).map(Number).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }); return 0.2126 * r + 0.7152 * g + 0.0722 * b }
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return ((x + 0.05) / (y + 0.05)).toFixed(2) }
+  const t = document.querySelector("[data-sonner-toast]"), ti = t.querySelector("[data-title]"), d = t.querySelector("[data-description]")
+  const bg = getComputedStyle(t).backgroundColor, dc = getComputedStyle(d).color
+  return `title class="${ti.className}" | description class="${d.className}" | description ${dc} on ${bg} contrast=${ratio(dc, bg)}:1`
+})
+console.log(`[${label}] light: ${await facts()}`)
+await p.evaluate(() => document.documentElement.classList.add("dark")); await p.waitForTimeout(300)
+console.log(`[${label}] dark : ${await facts()}`)
+console.log(`[${label}] page/console errors: ${errs.length}`); for (const e of errs) console.log("  " + e)
+await b.close(); srv.close()
+===== diff smoke/smoke.jsx merge/smoke.jsx
+0a1
+> // QA r3 variant: caller passes toastOptions.classNames (title + description) to check the merge in sonner.jsx.
+53c54
+<       <Toaster ref={r("toaster")} />
+---
+>       <Toaster ref={r("toaster")} toastOptions={{ classNames: { title: "qa-caller-title", description: "qa-caller-desc" } }} />
+===== radix-ui/primitives eb3a2b70 , sonner v2.0.8
+@radix-ui/react-tooltip 1.4.1 lock 1.4.1
+@radix-ui/react-popover 1.3.1 lock 1.3.1
+@radix-ui/react-collapsible 1.2.1 lock 1.2.1
+@radix-ui/react-scroll-area 1.4.0 lock 1.4.0
+@radix-ui/react-separator 1.2.0 lock 1.2.0
+sonner 2.0.8 lock 2.0.8
+react 19.2.8 lock 19.2.8
+react-dom 19.2.8 lock 19.2.8
+clsx 2.1.1 lock 2.1.1
+tailwind-merge 3.6.0 lock 3.6.0
+
+[exit code 0]

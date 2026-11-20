@@ -1,0 +1,28 @@
+$ bash -c cd /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r3/h/smoke && node build.mjs /root/wt/qa-FE-0b-r3/frontend /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r3/deps /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r3/out25 && node shoot.mjs /tmp/claude-0/-home-claude/59aa7a30-a33c-51e9-ae56-b831cdc934f3/scratchpad/r3/out25 /home/claude/arxivlens-agents/agents/reviews/FE-0b/evidence/25-r3-ac6-smoke
+bundled modules: 90 | FE-0b ui files bundled: 6
+css bytes: 12895 | sonner css emitted: true
+--- LIGHT
+html_dark    false
+body_bg      rgb(249, 248, 246)
+tooltip      in portal=true bg=rgb(255, 255, 255) color=rgb(26, 30, 40) font="Inter Variable" z=50 ref=true
+popover      in portal=true bg=rgb(255, 255, 255) color=rgb(26, 30, 40) font="Inter Variable" width=320px ref=true
+collapsible  open: data-state=open | closed: data-state=closed hiddenTextInDOM=false
+scrollarea   ref=true viewport tabindex=null overflowY=scroll scrollHeight=256 clientHeight=94 scrollbar=true thumb bg=rgb(221, 218, 213)
+separator    H role=none h=1px bg=rgb(221, 218, 213) ref=true | nondecorative role=separator aria-orientation=null | V w=1px
+toaster      ref=<section aria-label="Notifications alt+T"> contains toaster=true class=toaster y=bottom x=right theme=light --normal-bg(inline)=hsl(var(--popover)) toast bg=rgb(255, 255, 255) toast color=rgb(26, 30, 40) border=rgb(221, 218, 213) radius=6px
+toast_text   title rgb(26, 30, 40) contrast=16.66:1 | description rgb(86, 92, 103) contrast=6.73:1 (WCAG AA text >= 4.5)
+--- DARK (.dark on <html>)
+html_dark    true
+body_bg      rgb(22, 20, 19)
+tooltip      in portal=true bg=rgb(32, 31, 29) color=rgb(235, 231, 224) font="Inter Variable" z=50 ref=true
+popover      in portal=true bg=rgb(32, 31, 29) color=rgb(235, 231, 224) font="Inter Variable" width=320px ref=true
+collapsible  open: data-state=open | closed: data-state=closed hiddenTextInDOM=false
+scrollarea   ref=true viewport tabindex=null overflowY=scroll scrollHeight=256 clientHeight=94 scrollbar=true thumb bg=rgb(54, 51, 48)
+separator    H role=none h=1px bg=rgb(54, 51, 48) ref=true | nondecorative role=separator aria-orientation=null | V w=1px
+toaster      ref=<section aria-label="Notifications alt+T"> contains toaster=true class=toaster y=bottom x=right theme=light --normal-bg(inline)=hsl(var(--popover)) toast bg=rgb(32, 31, 29) toast color=rgb(235, 231, 224) border=rgb(54, 51, 48) radius=6px
+toast_text   title rgb(235, 231, 224) contrast=13.36:1 | description rgb(171, 164, 156) contrast=6.68:1 (WCAG AA text >= 4.5)
+--- ScrollArea viewport via Tab (dark): rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(132, 177, 235) 0px 0px 0px 2px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px | focus-visible=true
+--- ScrollArea viewport still focused (light): rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(33, 72, 131) 0px 0px 0px 2px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px
+--- console errors/warnings/pageerrors: 0
+
+[exit code 0]
