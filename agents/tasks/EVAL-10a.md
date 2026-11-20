@@ -6,7 +6,7 @@
 | **Priority** | P3 |
 | **PRD ref** | Product PRD §8 (answer metrics: method notes); follow-up from the EVAL-10 PM review (QA "Missing tests", 2026-11-19) |
 | **Depends on** | EVAL-10 (PR #61) **merged**. Same test file `tests/test_evals_data.py`, so don't start while another open PR changes it |
-| **Jira** | not created yet (orchestrator: story under epic "Retrieval & answer quality gates", labels `task-EVAL-10a`, `agent-ai`, `arxivlens`) |
+| **Jira** | KAN-85 |
 | **Design required** | no: tests only, no behaviour change |
 | **Status** | Ready once #61 merges (orchestrator: add to board backlog) |
 

@@ -6,7 +6,7 @@
 | **Priority** | P1 |
 | **PRD ref** | Product PRD OPS-2, §5.3; Technical PRD §5 (DLQ manager) |
 | **Depends on** | OPS-H7a1 = ArxivLens PR #62 **merged** (provides `Reader`, `Record`, `Watermark`, `KafkaReader`, `ErrPartitionStalled` in `internal/dlq/kafka.go`). Must not run alongside OPS-H7b (same files: `manager.go`, `main.go`) |
-| **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7a2`, `agent-backend`, `arxivlens`); parent work KAN-31, sibling KAN-70 |
+| **Jira** | KAN-71 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07) and its "Build notes (a1)" |
 | **Status** | Ready once #62 merges |
 
