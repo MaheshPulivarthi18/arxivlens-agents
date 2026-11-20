@@ -132,7 +132,7 @@ Status: ✅ done (verified against the code 2026-11-01, PM-1) · ◐ partial · 
 | ID | Requirement | Priority | Status | Acceptance / task |
 |---|---|---|---|---|
 | OPS-1 | Automatic retry (3× backoff) and dead-letter routing with full diagnostics | P0 | ✅ | — |
-| OPS-2 | CLI to list, inspect, and replay DLQ events (with dry-run and error-type filter) | P0 | ✅ | — |
+| OPS-2 | CLI to list, inspect, and replay DLQ events (with dry-run and error-type filter) | P0 | ◐ partial | `arxivlens dlq list/inspect/replay` exists with `--dry-run` and an error-type filter, but `dlq list` doesn't reach the end of the topic and `replay` repeats the head events. Remaining: [OPS-H7](../agents/tasks/OPS-H7.md), split into [OPS-H7f](../agents/tasks/OPS-H7f.md), [OPS-H7a](../agents/tasks/OPS-H7a.md), [OPS-H7b](../agents/tasks/OPS-H7b.md) and [OPS-H7c](../agents/tasks/OPS-H7c.md); back to ✅ when OPS-H7c merges ([design](design/OPS-H7.md), condition 7). |
 | OPS-3 | Reprocessing never creates duplicate rows or embeddings | P0 | ✅ | — |
 | OPS-4 | Per-paper status lookup (`discovered → downloaded → chunked → embedded`) | P0 | ✅ | — |
 | OPS-5 | End-to-end trace ID across all stages | P1 | ✅ (propagation) | — |
