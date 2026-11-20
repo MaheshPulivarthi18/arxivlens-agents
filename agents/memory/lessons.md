@@ -48,6 +48,8 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - [2026-11-19][OPS-H12] AC6 asked for the Risk 1 step's REST `conclusion: success` in the same ticket that added `continue-on-error: true` to that step. With `continue-on-error`, `conclusion` is always `success` (only `outcome` reflects failure), so that part of the AC proved nothing (QA [spec] finding 1) → for any step with `continue-on-error`, write the AC against the step's own output line (e.g. `RISK1 ORDER …`) plus the absence of its failure annotation, never `conclusion`. Before writing a step-status AC, grep the step for `continue-on-error`. (seen 1×)
 - 2026-11-20 (OPS-H14 QA [spec]): when an AC checks a script's output format that has conditional lines (e.g. per-file lines only when n ≥ 1), say "the line types that apply", not a fixed count.
 
+- [2026-11-20][GROOM] My `git add -A` in the shared workspace swept QA's uncommitted OPS-H7a2 r2 evidence (`r2-00`…`r2-04`, 10 files) into my grooming commit `fb60f4e` while QA was still running → pm-lead stages explicit paths only (`git add agents/board.md agents/tasks/<ids> agents/PROGRESS.md …`), never `-A`, when other agents may be writing to the tree. (seen 1×; QA's own lesson records the same hazard from the other side)
+
 ## ai-engineer
 - [2026-11-01][SETUP] Eval queries are hardcoded inside `scripts/evaluate_retrieval.py` → don't add more there; EVAL-1 moves them to `evals/`. (seen 1×)
 - [2026-11-01][EVAL-1] The first gate draft let failed /v1/ask calls drop out of the gated metrics, so a dead service could PASS → eval gates must fail closed: count errors, put failures into latency (timeouts at ≥ timeout), and add a test where some requests fail. (seen 1×)
