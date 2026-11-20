@@ -1,20 +1,19 @@
 # Board
 
-Last updated: 2026-11-20 pm-lead (LLM-1c #74 PM APPROVE, raised → Ready to merge). Before: 2026-11-20 04:10Z pm-lead (cycle 04:00Z grooming: LLM-1c, RET-1b specced; independent of every open PR). Before: 2026-11-20 03:30Z orchestrator (cycle 03:00Z: OPS-H14 #71, OPS-H6b #72, AI-12 #73 built, QA PASS r1, PM APPROVE, raised for Mahesh)
+Last updated: 2026-11-20 04:55Z by orchestrator (cycle 04:00Z: LLM-1c #74, RET-1b #75 built, QA PASS r1, PM APPROVE, raised for Mahesh). Before: 2026-11-20 04:10Z pm-lead (cycle 04:00Z grooming: LLM-1c, RET-1b specced; independent of every open PR). Before: 2026-11-20 03:30Z orchestrator (cycle 03:00Z: OPS-H14 #71, OPS-H6b #72, AI-12 #73 built, QA PASS r1, PM APPROVE, raised for Mahesh)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). **Open PRs and their files:**
 #65 AI-8b (`internal/query/rag.go`, `rag_test.go`, `tests/test_evals_data.py`, `README.md`) · #66 OPS-H9 (`.github/workflows/db.yml`, `image-pins.yml`, `CONTRIBUTING.md`, `docker-compose.yml`) ·
 #68 FE-1 (`frontend/package.json`, `vite.config.js`, `src/test/*`, `*.test.jsx`, `ReferencesStack.jsx`, `HeroSearch.jsx`, `frontend/README.md`) ·
 #69 FE-0 (`frontend/index.html`, `index.css`, `tailwind.config.js`, `main.jsx`, `Navbar.jsx`, `ThemeToggle.jsx`, `lib/theme.js`, `ui/button.jsx`, `ui/dropdown-menu.jsx`, root `README.md`) ·
-#70 FE-0b (six new `frontend/src/components/ui/*.jsx`) · #71 OPS-H14 (`.github/workflows/ci.yml` frontend job, new `.github/scripts/frontend-dist-report.sh`) · #72 OPS-H6b (`internal/kafka/consumer.go`, `consumer_test.go`) · #73 AI-12 (`services/embedder/api.py`, `worker.py`, `tests/test_verify.py`).
+#70 FE-0b (six new `frontend/src/components/ui/*.jsx`) · #71 OPS-H14 (`.github/workflows/ci.yml` frontend job, new `.github/scripts/frontend-dist-report.sh`) · #72 OPS-H6b (`internal/kafka/consumer.go`, `consumer_test.go`) · #73 AI-12 (`services/embedder/api.py`, `worker.py`, `tests/test_verify.py`) · #74 LLM-1c (`internal/llm/openai.go`, `openai_test.go`) · #75 RET-1b (`internal/query/search.go`, `search_test.go`).
 `rag.go` order (one file, one owner): AI-8b (#65) → AI-5 (if ADR-0011 is Accepted). Root `README.md` is touched by #65 and #69.
 Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; see the 2026-11-17 grooming notes.
 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 0d | [RET-1b](tasks/RET-1b.md) (KAN-78) (Jira: to create) | Rerank fallback: `context.Canceled` test row; ±Inf scores fall back like NaN | backend-engineer | P3 | RET-1 merged; no open PR touches `search.go`/`search_test.go` | **startable now**; independent of LLM-1c |
 | 0b | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl` CLI loop, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | **after #66 (OPS-H9) merges**; README also after #65/#69 | AC11 = ING-6b QA nits |
 | 5 | [FE-3](tasks/FE-3.md) (KAN-40) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 #68, FE-0 #69, FE-0b #70 merged | AC8: flip theme default to `system`; QA follow-ups folded in |
 | 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1 #68 + FE-0 #69 merged | |
@@ -47,6 +46,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | [OPS-H6b](tasks/OPS-H6b.md) (KAN-75) | Go consumer: no "Poll error" on its own clean shutdown | backend-engineer | [#72](https://github.com/MaheshPulivarthi18/ArxivLens/pull/72) `0fbf4e0` | QA PASS r1 · PM APPROVE |
 | [AI-12](tasks/AI-12.md) (KAN-76) | `/internal/ingest` reuses its workers + startup model | ai-engineer | [#73](https://github.com/MaheshPulivarthi18/ArxivLens/pull/73) `e34ebb9` | QA PASS r1 · PM APPROVE · eval not run (no retrieval change) |
 | [LLM-1c](tasks/LLM-1c.md) (KAN-77) | LLM client names TLS failures (`TLS certificate rejected` / `TLS handshake failed`) | backend-engineer | [#74](https://github.com/MaheshPulivarthi18/ArxivLens/pull/74) `de27269` | QA PASS r1 · PM APPROVE · eval not run (error string only) |
+| [RET-1b](tasks/RET-1b.md) (KAN-78) | Rerank fallback: `context.Canceled` row; ±Inf falls back like NaN | backend-engineer | [#75](https://github.com/MaheshPulivarthi18/ArxivLens/pull/75) `8469844` | QA PASS r1 · PM APPROVE · ±Inf choice is pm-lead's, Mahesh can override |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
