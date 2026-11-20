@@ -93,9 +93,16 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
   **Rework checklist r1** (QA round 2 checks each line):
   - [ ] F1 [blocking][spec] App-level tests: resolved by the AC amendment + [FE-3a2](FE-3a2.md). Developer: PR body gets a line "App-level tests (AC1 whole-tree, AC2 fetch/toast,
     AC4 explicit asserts + discover POST, AC6 focus + two-stage) → FE-3a2, after this PR merges". QA r2: accept component tests + r1 browser evidence [05] for those ACs.
-  - [ ] F2 [nit] `Info` instead of `CircleHelp`: **keep `Info`**; recorded as an accepted deviation in `docs/design/FE-3.md` (PM decision amendment). No code change.
-  - [ ] F3 [nit] chip tooltip as a `title` attribute: **accepted until FE-3b**; FE-3b AC1 now requires removing the `title` when `ui/tooltip` is wired. No code change here.
-  - [ ] F4 [nit] add to #86: `ReferencesStack` with `refusalB` ("Unsupported · 22.0%", "Not checked", "2 passages"); singular "1 passage" and "Read the 1 retrieved passage";
+  - [x] F2 [nit] `Info` instead of `CircleHelp`: **keep `Info`**; recorded as an accepted deviation in `docs/design/FE-3.md` (PM decision amendment). No code change.
+  - [x] F3 [nit] chip tooltip as a `title` attribute: **accepted until FE-3b**; FE-3b AC1 now requires removing the `title` when `ui/tooltip` is wired. No code change here.
+  - [x] F4 [nit] add to #86: `ReferencesStack` with `refusalB` ("Unsupported · 22.0%", "Not checked", "2 passages"); singular "1 passage" and "Read the 1 retrieved passage";
     answer-mode footer with `citations: []` → "0 of 0 citations supported". Test-only (~25 lines; PR stays under ~550).
   - [ ] Observation (light-mode passage text) → FE-3b AC5 now names that state explicitly; nothing in #86.
   Rework + QA round 2 next cycle (rework round 1 of 2 used).
+- 2026-11-20 (frontend-engineer, rework r1): head **fa92c30** on `agent/frontend/FE-3a` (#86). F4: test-only commit, +36/-1 in
+  `ReferencesStack.test.jsx` (refusal B "Unsupported · 22.0%" / "Not checked" / "2 passages"; one passage → "1 passage") and `SynthesisView.test.jsx`
+  (panel link "Read the 1 retrieved passage"; answer-mode `earlyRefusal` fixture, `citations: []` → "0 of 0 citations supported"). No product code change
+  was needed: the existing code already produced every string. CI Frontend (lint, test, build) on fa92c30: success, 0 lint warnings/errors, 70/70 tests
+  (was 66 on e90de79), build OK (job 136473216598). Ownership check: OK, 531 changed lines (under ~550). F2/F3: no code change, as decided. F1: the PR
+  body line is the orchestrator's job (left unticked). Not run locally: `npm ci` fails because registry.npmjs.org is unreachable (ENOTFOUND) and the
+  cache is incomplete. The changed test files parse-check OK with the TypeScript parser.
