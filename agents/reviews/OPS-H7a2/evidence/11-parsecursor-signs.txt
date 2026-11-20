@@ -1,0 +1,10 @@
+$ /tmp/claude-0/-home-claude/9a3edbb8-d9c1-5e2b-b81c-13f88f256fa1/scratchpad/qa-OPS-H7a2-r1/tools/cursor_probe.sh
+=== RUN   TestQAProbeParseCursorSigns
+    qa_cursor_probe_test.go:9: ParseCursor("+3/5") = 3/5 set=true err=<nil>
+    qa_cursor_probe_test.go:9: ParseCursor("3/+5") = 3/5 set=true err=<nil>
+    qa_cursor_probe_test.go:9: ParseCursor("3/-0") = 3/0 set=true err=<nil>
+    qa_cursor_probe_test.go:9: ParseCursor("03/007") = 3/7 set=true err=<nil>
+--- PASS: TestQAProbeParseCursorSigns (0.00s)
+ok  	arxivlens/internal/dlq	0.004s
+
+[exit code 0]
