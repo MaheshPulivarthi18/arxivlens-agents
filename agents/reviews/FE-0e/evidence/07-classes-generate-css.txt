@@ -1,0 +1,27 @@
+$ node /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r1/h/classes_qa.mjs /root/wt/qa-FE-0e /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r1/h/tw.config.mjs
+classes added by the diff and not present before: 14
+CSS   bg-accent
+CSS   bg-destructive/10
+CSS   bg-supported
+CSS   border-destructive/30
+CSS   border-primary
+CSS   border-primary/40
+CSS   focus:border-primary
+CSS   hover:bg-accent
+CSS   hover:text-accent-foreground
+CSS   text-accent-foreground
+CSS   text-muted-foreground
+CSS   text-primary
+CSS   text-supported-foreground
+CSS   text-unsupported-foreground
+NONE  bg-popoverx   (control)
+NONE  text-supportedx-foreground   (control)
+CSS   text-emerald-400   (control)
+=> 0 diff classes without CSS (controls: bg-popoverx/text-supportedx-foreground must be NONE; text-emerald-400 = default palette, CSS)
+
+Badge clinical + PapersLibrary className ->
+  inline-flex items-center rounded-full border px-2.5 py-0.5 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 font-medium gap-1 text-[11px] border-border bg-supported text-supported-foreground
+Button ghost sm + View PDF className ->
+  inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 rounded-md px-3 text-xs text-primary hover:text-accent-foreground hover:bg-accent gap-1.5 h-7
+
+[exit code 0]

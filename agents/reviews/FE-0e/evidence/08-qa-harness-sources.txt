@@ -1,0 +1,320 @@
+$ bash -c cd /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r1/h && for f in $(find . -type f | sort); do echo "=== $f"; cat $f; echo; done
+=== ./ac3_qa.sh
+#!/usr/bin/env bash
+# QA FE-0e r1 AC3: with every className="..." string blanked, are the 4 components byte-identical base vs head?
+WT=$1; rc=0
+for f in IngestModal InfrastructureModal PapersLibrary Toast; do
+  p=frontend/src/components/$f.jsx
+  a=$(git -C "$WT" show origin/main:$p | sed -E 's/className="[^"]*"/className=""/g')
+  b=$(git -C "$WT" show HEAD:$p | sed -E 's/className="[^"]*"/className=""/g')
+  if [ "$a" = "$b" ]; then echo "IDENTICAL outside className strings: $p ($(git -C "$WT" diff --numstat origin/main...HEAD -- $p | awk '{print "+"$1"/-"$2}'))"
+  else echo "DIFFERS outside className: $p"; diff <(echo "$a") <(echo "$b"); rc=1; fi
+done
+echo; echo "changed lines that are NOT className= lines (expect none in components):"
+git -C "$WT" diff -U0 origin/main...HEAD -- frontend/src/components | grep -E '^[+-][^+-]' | grep -v 'className=' || echo "  (none)"
+echo; echo "files changed (name-status):"; git -C "$WT" diff --name-status origin/main...HEAD
+echo; echo "ownership check:"; (cd "$WT" && bash .github/scripts/ownership-check.sh origin/main agent/frontend/FE-0e 2>&1 | tail -3)
+exit $rc
+
+=== ./classes_qa.mjs
+// QA FE-0e r1: does every class added by the diff generate CSS against the real tailwind.config.js
+// (typography plugin removed: not installed, irrelevant to colours)? Tailwind 4.3.3 compile() + @config.
+// Also: tailwind-merge 3.6.0 result for the merged Badge/Button class strings (cn = twMerge(clsx())).
+import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import path from 'node:path'
+const require = createRequire('/opt/npm-tools/node_modules/')
+const tw = require('tailwindcss'); const { twMerge } = require('tailwind-merge')
+const twDir = '/opt/npm-tools/node_modules/tailwindcss'
+const [wt, cfg] = process.argv.slice(2)
+const diff = execSync(`git -C ${wt} diff -U0 origin/main...HEAD -- frontend/src/components`, { encoding: 'utf8' })
+const added = new Set(), removed = new Set()
+for (const line of diff.split('\n')) {
+  if (!/^[+-][^+-]/.test(line)) continue
+  for (const m of line.matchAll(/className="([^"]+)"/g)) for (const c of m[1].split(/\s+/)) (line[0] === '+' ? added : removed).add(c)
+}
+const newOnly = [...added].filter(c => !removed.has(c)).sort()
+async function gen(classes, cfgPath) {
+  const css = `@import "tailwindcss/theme.css" layer(theme);\n@import "tailwindcss/utilities.css" layer(utilities);\n@config "${cfgPath}";\n`
+  const c = await tw.compile(css, { base: path.dirname(cfgPath), loadStylesheet: async (id, base) => {
+      const p = id.startsWith('tailwindcss/') ? path.join(twDir, id.slice(12)) : path.resolve(base, id)
+      return { path: p, base: path.dirname(p), content: readFileSync(p, 'utf8') } },
+    loadModule: async (id, base) => { const p = path.resolve(base, id); return { path: p, base: path.dirname(p), module: (await import(p)).default } } })
+  const out = c.build(classes)
+  return classes.map(k => [k, out.includes('.' + k.replace(/[:/.\[\]%]/g, m => '\\' + m) + ' ') || out.includes('.' + k.replace(/[:/.\[\]%]/g, m => '\\' + m) + ':') || out.includes('.' + k.replace(/[:/.\[\]%]/g, m => '\\' + m) + '{')])
+}
+const controls = ['bg-popoverx', 'text-supportedx-foreground', 'text-emerald-400']
+const res = await gen([...newOnly, ...controls], cfg)
+console.log(`classes added by the diff and not present before: ${newOnly.length}`)
+let miss = 0
+for (const [k, ok] of res) { const ctl = controls.includes(k); if (!ok && !ctl) miss++; console.log(`${ok ? 'CSS ' : 'NONE'}  ${k}${ctl ? '   (control)' : ''}`) }
+console.log(`=> ${miss} diff classes without CSS (controls: bg-popoverx/text-supportedx-foreground must be NONE; text-emerald-400 = default palette, CSS)`)
+// twMerge of the merged strings exactly as Badge/Button build them
+const badgeBase = 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'
+const clinical = 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-medium'
+console.log('\nBadge clinical + PapersLibrary className ->\n  ' + twMerge(badgeBase, clinical, 'gap-1 text-[11px] border-border bg-supported text-supported-foreground'))
+const btnBase = 'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
+console.log('Button ghost sm + View PDF className ->\n  ' + twMerge(btnBase, 'hover:bg-muted hover:text-foreground', 'h-8 rounded-md px-3 text-xs', 'text-xs text-primary hover:text-accent-foreground hover:bg-accent gap-1.5 h-7'))
+
+=== ./contrast_qa.py
+#!/usr/bin/env python3
+"""QA FE-0e r1: independent WCAG 2.1 contrast check (own HSL->sRGB per CSS Color 4, not colorsys).
+Usage: contrast_qa.py <index.css>. Tokens parsed from :root and .dark. Surface syntax:
+  tok            opaque token        tok/NN@SURF  token at NN% alpha composited over SURF (sRGB)
+  #rrggbb        literal palette     SURF may itself be a composite (right-assoc)."""
+import re, sys
+def hsl(h, s, l):  # CSS Color 4 hslToRgb
+    s, l = s / 100, l / 100
+    def f(n):
+        k = (n + h / 30) % 12; a = s * min(l, 1 - l)
+        return l - a * max(-1, min(k - 3, 9 - k, 1))
+    return (f(0), f(8), f(4))
+def lin(v): return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+def L(c): r, g, b = map(lin, c); return 0.2126 * r + 0.7152 * g + 0.0722 * b
+def cr(a, b): x, y = sorted((L(a), L(b)), reverse=True); return (x + 0.05) / (y + 0.05)
+css = open(sys.argv[1]).read()
+def block(sel):
+    body = re.search(re.escape(sel) + r"\s*\{([^}]*)\}", css).group(1)
+    return {k: tuple(float(v) for v in (h, s, l)) for k, h, s, l in
+            re.findall(r"--([a-z-]+):\s*([\d.]+)\s+([\d.]+)%\s+([\d.]+)%", body)}
+TH = {"light": block(":root")}; TH["dark"] = {**TH["light"], **block(".dark")}
+def C(t, spec):
+    if "@" in spec:
+        top, under = spec.split("@", 1); tok, a = top.split("/"); a = float(a) / 100
+        u = C(t, under); o = C(t, tok); return tuple(a * p + (1 - a) * q for p, q in zip(o, u))
+    if spec.startswith("#"): return tuple(int(spec[i:i+2], 16) / 255 for i in (1, 3, 5))
+    return hsl(*TH[t][spec])
+# (file, element, fg, bg, min). min 4.5 = text; 3.0 = icon / large text / non-text (WCAG 1.4.11)
+ROWS = [
+ ("Ingest", "header icon tile (DownloadCloud)",      "accent-foreground", "accent", 3.0),
+ ("Ingest", "DialogTitle / input text",               "foreground", "card", 4.5),
+ ("Ingest", "DialogDescription / label",              "muted-foreground", "card", 4.5),
+ ("Ingest", "input text on bg-background",            "foreground", "background", 4.5),
+ ("Ingest", "input placeholder on bg-background",     "muted-foreground", "background", 4.5),
+ ("Ingest", "input focus:border-primary (non-text)",  "primary", "background", 3.0),
+ ("Ingest", "loading spinner text-primary (icon)",    "primary", "muted/40@card", 3.0),
+ ("Ingest", "loading step text-foreground",           "foreground", "muted/40@card", 4.5),
+ ("Ingest", "loading hint text-muted-foreground",     "muted-foreground", "muted/40@card", 4.5),
+ ("Ingest", "error text + icon",                      "unsupported-foreground", "destructive/10@card", 4.5),
+ ("Ingest", "success heading + CheckCircle2",         "supported-foreground", "supported", 4.5),
+ ("Ingest", "result title text-foreground",           "foreground", "supported", 4.5),
+ ("Ingest", "stat labels muted on background/80",     "muted-foreground", "background/80@supported", 4.5),
+ ("Ingest", "stat values foreground",                 "foreground", "background/80@supported", 4.5),
+ ("Ingest", "Embeddings value text-primary",          "primary", "background/80@supported", 4.5),
+ ("Infra",  "header icon tile (Settings)",            "accent-foreground", "accent", 3.0),
+ ("Infra",  "TabsList inactive label",                "muted-foreground", "muted", 4.5),
+ ("Infra",  "DLQ AlertTriangle, tab inactive (icon)", "muted-foreground", "muted", 3.0),
+ ("Infra",  "DLQ AlertTriangle, tab active (icon)",   "muted-foreground", "card", 3.0),
+ ("Infra",  "active tab label",                       "foreground", "card", 4.5),
+ ("Infra",  "topology panel labels",                  "muted-foreground", "muted/40@card", 4.5),
+ ("Infra",  "topology panel heading",                 "foreground", "muted/40@card", 4.5),
+ ("Infra",  "topology nodes (bg-card)",               "muted-foreground", "card", 4.5),
+ ("Infra",  "pgvector node text-primary",             "primary", "card", 4.5),
+ ("Infra",  "pgvector node border-primary/40 (non-text, decorative)", "primary/40@card", "card", 1.0),
+ ("Infra",  "stat card labels (bg-card/70 on card)",  "muted-foreground", "card/70@card", 4.5),
+ ("Infra",  "stat card values foreground",            "foreground", "card/70@card", 4.5),
+ ("Infra",  "100% Embedded / QPS / ef_search primary","primary", "card/70@card", 4.5),
+ ("Infra",  "DLQ thead muted on muted/40",            "muted-foreground", "muted/40@card", 4.5),
+ ("Infra",  "DLQ FileDataError",                      "unsupported-foreground", "card", 4.5),
+ ("Infra",  "DLQ row muted cells",                    "muted-foreground", "card", 4.5),
+ ("Library","page heading on background",             "foreground", "background", 4.5),
+ ("Library","page subtitle on background",            "muted-foreground", "background", 4.5),
+ ("Library","filter input text on bg-card",           "foreground", "card", 4.5),
+ ("Library","filter placeholder / search icon",       "muted-foreground", "card", 4.5),
+ ("Library","filter focus:border-primary (non-text)", "primary", "background", 3.0),
+ ("Library","Back to Search (outline btn, inherits fg) on background", "foreground", "background", 4.5),
+ ("Library","thead muted on muted/40",                "muted-foreground", "muted/40@card", 4.5),
+ ("Library","loading spinner border-primary (non-text)","primary", "card", 3.0),
+ ("Library","loading/empty text",                     "muted-foreground", "card", 4.5),
+ ("Library","ID + (vN) muted, row idle",              "muted-foreground", "card", 4.5),
+ ("Library","ID + (vN) muted, row hover",             "muted-foreground", "muted/20@card", 4.5),
+ ("Library","title foreground, row hover",            "foreground", "muted/20@card", 4.5),
+ ("Library","status badge text + icon",               "supported-foreground", "supported", 4.5),
+ ("Library","View PDF text-primary, row idle",        "primary", "card", 4.5),
+ ("Library","View PDF text-primary, row hover",       "primary", "muted/20@card", 4.5),
+ ("Library","View PDF button hover",                  "accent-foreground", "accent", 4.5),
+ ("Toast",  "message text-foreground",                "foreground", "card", 4.5),
+ ("Toast",  "CheckCircle2 text-primary (icon)",       "primary", "card", 3.0),
+ # colours that come from ui/ variants rendered inside the four files (not class strings in the diff)
+ ("Ingest+Infra","ui/button clinical: white on emerald-600 (gradient start)", "#ffffff", "#059669", 4.5),
+ ("Ingest+Infra","ui/button clinical: white on teal-600 (gradient end)",      "#ffffff", "#0d9488", 4.5),
+ ("Ingest","ui/badge arxiv: cyan-400 on cyan-500/10 over supported panel", "#22d3ee", "#06b6d4/10@supported", 4.5),
+ ("Library","ui/badge arxiv: cyan-400 on cyan-500/10 over card",          "#22d3ee", "#06b6d4/10@card", 4.5),
+ ("BASE c37d27c","Library status badge clinical emerald-400 on emerald-500/10@card", "#34d399", "#10b981/10@card", 4.5),
+ ("BASE c37d27c","Ingest success heading emerald-400 on emerald-500/10@card", "#34d399", "#10b981/10@card", 4.5),
+ ("BASE c37d27c","Ingest error text red-300 on red-500/10@card",            "#fca5a5", "#ef4444/10@card", 4.5),
+]
+print(f"{'verdict':7} {'file':12} {'element':42} {'fg':22} {'bg':23} min  light  dark")
+bad = []
+for f, el, fg, bg, mn in ROWS:
+    r = [cr(C(t, fg), C(t, bg)) for t in ("light", "dark")]
+    ok = min(r) >= mn; v = "ok" if ok else "BELOW"
+    if not ok: bad.append((f, el))
+    print(f"{v:7} {f[:12]:12} {el[:42]:42} {fg[:22]:22} {bg[:23]:23} {mn:3.1f} {r[0]:6.2f} {r[1]:5.2f}")
+print(f"\n{len(ROWS)} rows, {len(bad)} below minimum:", *[f"{a}: {b}" for a, b in bad], sep="\n  ")
+print("\nREJECTED-option check (dev's deviation): destructive as text on card:",
+      " ".join(f"{t}={cr(C(t,'destructive'), C(t,'card')):.2f}" for t in ("light","dark")))
+
+=== ./guard_qa.sh
+#!/usr/bin/env bash
+# QA FE-0e r1: run the PR's tokens.test.js logic (vitest stub, plain Node) on head, base and mutant file sets.
+set -u
+WT=$1; STUB=$2; T=$(mktemp -d)
+setup() { rm -rf "$T/$1"; mkdir -p "$T/$1/frontend/node_modules"; cp -r "$WT/frontend/src" "$T/$1/frontend/src"; cp -r "$STUB" "$T/$1/frontend/node_modules/vitest"; }
+runit() { echo "--- $1"; (cd "$T/$1/frontend" && node --input-type=module -e "
+  const v = await import('vitest'); await import('./src/test/tokens.test.js');
+  for (const [s, n, e] of v.results) console.log(s, n, e ? '\n      ' + e.split('\n').join('\n      ') : '')
+  const f = v.results.filter(r => r[0] === 'FAIL').length; console.log('=>', v.results.length, 'tests,', f, 'failed')"); }
+setup head; runit head
+setup base; for f in IngestModal InfrastructureModal PapersLibrary Toast; do git -C "$WT" show origin/main:frontend/src/components/$f.jsx > "$T/base/frontend/src/components/$f.jsx"; done
+runit base
+echo "base palette-class hit counts per file (grep -cE, same regex):"
+for f in IngestModal InfrastructureModal PapersLibrary Toast; do printf '  %-22s %s\n' $f "$(grep -cE '\b([a-z-]+:)*(text|bg|border|ring|from|via|to|shadow)-(slate|emerald|amber|cyan|teal|red|green)-[0-9]' "$T/base/frontend/src/components/$f.jsx")"; done
+for m in "PapersLibrary:hover:text-accent-foreground:hover:text-emerald-300" "Toast:border-border:border-emerald-500/40" "InfrastructureModal:text-muted-foreground\" />:text-amber-400\" />" "IngestModal:bg-destructive/10:bg-red-500/10"; do
+  IFS=: read -r f a b <<<"$m"; [ "$f" = PapersLibrary ] && { a="hover:text-accent-foreground"; b="hover:text-emerald-300"; }
+  setup mut; python3 - "$T/mut/frontend/src/components/$f.jsx" "$a" "$b" <<'PY'
+import sys; p, a, b = sys.argv[1:]; s = open(p).read(); assert a in s, a; open(p, 'w').write(s.replace(a, b, 1))
+PY
+  echo "mutant: $f.jsx first '$a' -> '$b'  ($(diff "$WT/frontend/src/components/$f.jsx" "$T/mut/frontend/src/components/$f.jsx" | grep -c '^>') line changed)"
+  runit mut | grep -E "FAIL|=>"
+done
+
+=== ./tw.config.mjs
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: ["class"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        supported: {
+          DEFAULT: "hsl(var(--supported))",
+          foreground: "hsl(var(--supported-foreground))",
+        },
+        unsupported: {
+          DEFAULT: "hsl(var(--unsupported))",
+          foreground: "hsl(var(--unsupported-foreground))",
+        },
+        unchecked: {
+          DEFAULT: "hsl(var(--unchecked))",
+          foreground: "hsl(var(--unchecked-foreground))",
+        },
+        // deprecated: FE-2/3/4 move callers to tokens
+        clinical: {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
+          950: '#022c22',
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        // Self-hosted via fontsource (src/main.jsx); no Google Fonts.
+        sans: ['"Inter Variable"', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        serif: ['"Source Serif 4 Variable"', '"Source Serif Pro"', 'ui-serif', 'Georgia', 'Cambria', '"Times New Roman"', 'serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', '"Liberation Mono"', 'monospace'],
+        // deprecated: Outfit is no longer loaded (renders as Inter); FE-2/3/4 move callers to sans/serif
+        title: ['Outfit', '"Inter Variable"', 'sans-serif'],
+      },
+      // Token-mapped prose: follows .dark through the CSS variables, no prose-invert needed.
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: "70ch",
+            "--tw-prose-body": "hsl(var(--foreground))",
+            "--tw-prose-headings": "hsl(var(--foreground))",
+            "--tw-prose-lead": "hsl(var(--muted-foreground))",
+            "--tw-prose-links": "hsl(var(--primary))",
+            "--tw-prose-bold": "hsl(var(--foreground))",
+            "--tw-prose-counters": "hsl(var(--muted-foreground))",
+            "--tw-prose-bullets": "hsl(var(--border))",
+            "--tw-prose-hr": "hsl(var(--border))",
+            "--tw-prose-quotes": "hsl(var(--foreground))",
+            "--tw-prose-quote-borders": "hsl(var(--border))",
+            "--tw-prose-captions": "hsl(var(--muted-foreground))",
+            "--tw-prose-code": "hsl(var(--foreground))",
+            "--tw-prose-pre-code": "hsl(var(--foreground))",
+            "--tw-prose-pre-bg": "hsl(var(--muted))",
+            "--tw-prose-th-borders": "hsl(var(--border))",
+            "--tw-prose-td-borders": "hsl(var(--border))",
+            a: { textUnderlineOffset: "2px" },
+          },
+        },
+      },
+    },
+  },
+  plugins: [],
+}
+
+=== ./vitest-stub/index.js
+// QA FE-0e r1: minimal vitest API stub for running tokens.test.js under plain Node (no Vite transform!).
+// It answers "does the guard LOGIC detect palette classes"; it can NOT reproduce Vite's
+// new URL(`...${x}`, import.meta.url) rewrite that breaks the test in real vitest (see CI log).
+import { isDeepStrictEqual, inspect } from 'node:util'
+export const results = []
+const run = (name, fn, args) => { try { fn(...args); results.push(['PASS', name]) } catch (e) { results.push(['FAIL', name, e.message]) } }
+export const describe = (_n, fn) => fn()
+export const it = (name, fn) => run(name, fn, [])
+it.each = (rows) => (name, fn) => { for (const r of rows) run(name.replace('%s', r), fn, Array.isArray(r) ? r : [r]) }
+export const expect = (v) => {
+  const m = (neg) => ({
+    toMatch: (re) => { if (re.test(v) === neg) throw new Error(`${inspect(v)} ${neg ? 'matched' : 'did not match'} ${re}`) },
+    toBeGreaterThan: (n) => { if ((v > n) === neg) throw new Error(`${v} > ${n} is ${!neg}`) },
+    toEqual: (w) => { if (isDeepStrictEqual(v, w) === neg) throw new Error(`expected ${inspect(w)}, got ${inspect(v)}`) },
+  })
+  return { ...m(false), not: m(true) }
+}
+
+=== ./vitest-stub/package.json
+{"name":"vitest","type":"module","main":"index.js"}
+
+[exit code 0]

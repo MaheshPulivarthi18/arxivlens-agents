@@ -1,0 +1,63 @@
+$ /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r1/h/guard_qa.sh /root/wt/qa-FE-0e /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r1/h/vitest-stub
+--- head
+PASS pattern catches palette classes, with and without variants 
+PASS components/IngestModal.jsx uses theme tokens, not palette classes 
+PASS components/InfrastructureModal.jsx uses theme tokens, not palette classes 
+PASS components/PapersLibrary.jsx uses theme tokens, not palette classes 
+PASS components/Toast.jsx uses theme tokens, not palette classes 
+=> 5 tests, 0 failed
+--- base
+PASS pattern catches palette classes, with and without variants 
+FAIL components/IngestModal.jsx uses theme tokens, not palette classes 
+      expected [], got [
+        'components/IngestModal.jsx:62 bg-emerald-5',
+        'components/IngestModal.jsx:82 focus:border-emerald-5',
+        'components/IngestModal.jsx:114 text-emerald-4',
+        'components/IngestModal.jsx:121 bg-red-5',
+        'components/IngestModal.jsx:122 text-red-4',
+        'components/IngestModal.jsx:128 bg-emerald-5',
+        'components/IngestModal.jsx:130 text-emerald-4',
+        'components/IngestModal.jsx:152 text-emerald-4'
+      ]
+FAIL components/InfrastructureModal.jsx uses theme tokens, not palette classes 
+      expected [], got [
+        'components/InfrastructureModal.jsx:38 bg-emerald-5',
+        'components/InfrastructureModal.jsx:57 text-amber-4',
+        'components/InfrastructureModal.jsx:89 border-emerald-5',
+        'components/InfrastructureModal.jsx:102 text-emerald-4',
+        'components/InfrastructureModal.jsx:123 text-emerald-4',
+        'components/InfrastructureModal.jsx:126 text-emerald-4',
+        'components/InfrastructureModal.jsx:163 text-red-4'
+      ]
+FAIL components/PapersLibrary.jsx uses theme tokens, not palette classes 
+      expected [], got [
+        'components/PapersLibrary.jsx:53 focus:border-emerald-5',
+        'components/PapersLibrary.jsx:88 border-emerald-5',
+        'components/PapersLibrary.jsx:118 text-emerald-4',
+        'components/PapersLibrary.jsx:127 text-emerald-4'
+      ]
+FAIL components/Toast.jsx uses theme tokens, not palette classes 
+      expected [], got [
+        'components/Toast.jsx:8 border-emerald-5',
+        'components/Toast.jsx:9 text-emerald-4'
+      ]
+=> 5 tests, 4 failed
+base palette-class hit counts per file (grep -cE, same regex):
+  IngestModal            8
+  InfrastructureModal    7
+  PapersLibrary          4
+  Toast                  2
+mutant: PapersLibrary.jsx first 'hover:text-accent-foreground' -> 'hover:text-emerald-300'  (1 line changed)
+FAIL components/PapersLibrary.jsx uses theme tokens, not palette classes 
+=> 5 tests, 1 failed
+mutant: Toast.jsx first 'border-border' -> 'border-emerald-500/40'  (1 line changed)
+FAIL components/Toast.jsx uses theme tokens, not palette classes 
+=> 5 tests, 1 failed
+mutant: InfrastructureModal.jsx first 'text-muted-foreground" />' -> 'text-amber-400" />'  (1 line changed)
+FAIL components/InfrastructureModal.jsx uses theme tokens, not palette classes 
+=> 5 tests, 1 failed
+mutant: IngestModal.jsx first 'bg-destructive/10' -> 'bg-red-500/10'  (1 line changed)
+FAIL components/IngestModal.jsx uses theme tokens, not palette classes 
+=> 5 tests, 1 failed
+
+[exit code 0]

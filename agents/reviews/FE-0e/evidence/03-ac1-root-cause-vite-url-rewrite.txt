@@ -1,0 +1,68 @@
+$ bash -c echo '== PR test file, line 18:'; sed -n 18p frontend/src/test/tokens.test.js; echo; echo '== lockfile vite version:'; grep -A1 '"node_modules/vite"' frontend/package-lock.json | tail -1; echo; echo '== vite v8.2.2 (git clone --branch v8.2.2) packages/vite/src/node/plugins/assetImportMetaUrl.ts:'; git -C /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r1/h/../vite-src log -1 --format='commit %H %D'; sed -n '24,36p;78,93p;106,116p;182,198p' /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r1/h/../vite-src/packages/vite/src/node/plugins/assetImportMetaUrl.ts
+== PR test file, line 18:
+const read = (rel) => readFileSync(new URL(`../${rel}`, import.meta.url), 'utf8')
+
+== lockfile vite version:
+      "version": "8.2.2",
+
+== vite v8.2.2 (git clone --branch v8.2.2) packages/vite/src/node/plugins/assetImportMetaUrl.ts:
+commit de1111ab0be00879b404e7ed3b2a80e264edddc1 grafted, HEAD, tag: v8.2.2
+/**
+ * Convert `new URL('./foo.png', import.meta.url)` to its resolved built URL
+ *
+ * Supports template string with dynamic segments:
+ * ```
+ * new URL(`./dir/${name}.png`, import.meta.url)
+ * // transformed to
+ * import.meta.glob('./dir/**.png', { eager: true, import: 'default' })[`./dir/${name}.png`]
+ * ```
+ */
+export const assetImportMetaUrlRE: RegExp =
+  /\bnew\s+URL\s*\(\s*('[^']+'|"[^"]+"|`[^`]+`)\s*,\s*import\.meta\.url\s*(?:,\s*)?\)/dg
+
+
+          // potential dynamic template string
+          if (rawUrl[0] === '`' && rawUrl.includes('${')) {
+            const queryDelimiterIndex = getQueryDelimiterIndex(rawUrl)
+            const hasQueryDelimiter = queryDelimiterIndex !== -1
+            const pureUrl = hasQueryDelimiter
+              ? rawUrl.slice(0, queryDelimiterIndex) + '`'
+              : rawUrl
+            const queryString = hasQueryDelimiter
+              ? rawUrl.slice(queryDelimiterIndex, -1)
+              : ''
+            const ast = this.parse(pureUrl)
+            const templateLiteral = (ast as any).body[0].expression
+            if (templateLiteral.expressions.length) {
+              const pattern = buildGlobPattern(templateLiteral)
+              if (pattern[0] === '*') {
+                startIndex,
+                endIndex,
+                `new URL((import.meta.glob(${JSON.stringify(
+                  pattern,
+                )}, ${JSON.stringify(
+                  globOptions,
+                )}))[${pureUrl}], import.meta.url)`,
+              )
+              continue
+            }
+          }
+function buildGlobPattern(ast: any) {
+  let pattern = ''
+  let lastIsGlob = false
+  for (let i = 0; i < ast.quasis.length; i++) {
+    const str = ast.quasis[i].value.raw
+    if (str) {
+      pattern += str
+      lastIsGlob = false
+    }
+
+    if (ast.expressions[i] && !lastIsGlob) {
+      pattern += '*'
+      lastIsGlob = true
+    }
+  }
+  return pattern
+}
+
+[exit code 0]

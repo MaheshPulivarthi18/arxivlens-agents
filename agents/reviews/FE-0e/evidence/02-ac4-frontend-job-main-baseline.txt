@@ -1,0 +1,11 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136207398197/logs | sed 's/\x1b\[[0-9;]*m//g' | grep -nE 'HEAD is now at|Run npm|Found [0-9]+ warnings|Test Files|Tests  |built in|exit code'
+134:2026-11-20T09:38:58.3699469Z ##[group]Run npm ci
+153:2026-11-20T09:39:01.8757229Z ##[group]Run npm run lint
+161:2026-11-20T09:39:02.0299561Z Found 0 warnings and 0 errors.
+163:2026-11-20T09:39:02.0501824Z ##[group]Run npm run test --if-present
+179:2026-11-20T09:39:04.9334967Z  Test Files  3 passed (3)
+180:2026-11-20T09:39:04.9335865Z       Tests  19 passed (19)
+184:2026-11-20T09:39:04.9741865Z ##[group]Run npm run build
+220:2026-11-20T09:39:06.1531728Z ✓ built in 911ms
+
+[exit code 0]

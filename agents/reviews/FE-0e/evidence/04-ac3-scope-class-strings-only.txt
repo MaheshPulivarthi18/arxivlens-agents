@@ -1,0 +1,20 @@
+$ /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r1/h/ac3_qa.sh /root/wt/qa-FE-0e
+IDENTICAL outside className strings: frontend/src/components/IngestModal.jsx (+8/-8)
+IDENTICAL outside className strings: frontend/src/components/InfrastructureModal.jsx (+7/-7)
+IDENTICAL outside className strings: frontend/src/components/PapersLibrary.jsx (+6/-6)
+IDENTICAL outside className strings: frontend/src/components/Toast.jsx (+2/-2)
+
+changed lines that are NOT className= lines (expect none in components):
+  (none)
+
+files changed (name-status):
+M	frontend/src/components/InfrastructureModal.jsx
+M	frontend/src/components/IngestModal.jsx
+M	frontend/src/components/PapersLibrary.jsx
+M	frontend/src/components/Toast.jsx
+A	frontend/src/test/tokens.test.js
+
+ownership check:
+Ownership OK for role=frontend (85 changed lines)
+
+[exit code 0]

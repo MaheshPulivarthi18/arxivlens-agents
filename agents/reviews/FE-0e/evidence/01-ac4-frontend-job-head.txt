@@ -1,0 +1,38 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136475098430/logs | sed 's/\x1b\[[0-9;]*m//g' | grep -nE 'HEAD is now at|Run npm|Found [0-9]+ warnings|✓ src|❯ src|×|FAIL |Error: ENOENT|tokens.test.js:[0-9]+|Test Files|Tests  |built in|exit code' | head -40
+120:2026-11-20T18:09:27.3590625Z HEAD is now at bef7c5a Merge 50ef4d50cb38281e9aeda9f7d287836a04f597ea into c37d27c1b77756db6100f538f7aaabf5362d584b
+150:2026-11-20T18:09:28.7990072Z ##[group]Run npm ci
+169:2026-11-20T18:09:33.7266286Z ##[group]Run npm run lint
+177:2026-11-20T18:09:33.9240684Z Found 0 warnings and 0 errors.
+179:2026-11-20T18:09:33.9471872Z ##[group]Run npm run test --if-present
+190:2026-11-20T18:09:37.0223254Z  ✓ src/components/ReferencesStack.test.jsx (8 tests) 501ms
+192:2026-11-20T18:09:37.0661067Z  ✓ src/components/SynthesisView.test.jsx (6 tests) 545ms
+194:2026-11-20T18:09:37.5294426Z  ✓ src/components/HeroSearch.test.jsx (5 tests) 1030ms
+196:2026-11-20T18:09:38.2321551Z  ❯ src/test/tokens.test.js (5 tests | 4 failed) 11ms
+198:2026-11-20T18:09:38.2352071Z      × components/IngestModal.jsx uses theme tokens, not palette classes 4ms
+199:2026-11-20T18:09:38.2354234Z      × components/InfrastructureModal.jsx uses theme tokens, not palette classes 1ms
+200:2026-11-20T18:09:38.2356493Z      × components/PapersLibrary.jsx uses theme tokens, not palette classes 1ms
+201:2026-11-20T18:09:38.2358506Z      × components/Toast.jsx uses theme tokens, not palette classes 1ms
+205:2026-11-20T18:09:38.2461690Z  FAIL  src/test/tokens.test.js > palette-class guard > components/IngestModal.jsx uses theme tokens, not palette classes
+206:2026-11-20T18:09:38.2464318Z  FAIL  src/test/tokens.test.js > palette-class guard > components/InfrastructureModal.jsx uses theme tokens, not palette classes
+207:2026-11-20T18:09:38.2466913Z  FAIL  src/test/tokens.test.js > palette-class guard > components/PapersLibrary.jsx uses theme tokens, not palette classes
+208:2026-11-20T18:09:38.2469579Z  FAIL  src/test/tokens.test.js > palette-class guard > components/Toast.jsx uses theme tokens, not palette classes
+209:2026-11-20T18:09:38.2471950Z Error: ENOENT: no such file or directory, open '/home/runner/work/ArxivLens/ArxivLens/frontend/src/test/undefined'
+210:2026-11-20T18:09:38.2473526Z  ❯ read src/test/tokens.test.js:18:23
+217:2026-11-20T18:09:38.2530422Z  Test Files  1 failed | 3 passed (4)
+218:2026-11-20T18:09:38.2532078Z       Tests  4 failed | 20 passed (24)
+224:2026-11-20T18:09:38.2549643Z  ❯ src/test/tokens.test.js:31:19
+228:2026-11-20T18:09:38.2583949Z ##[error]Error: ENOENT: no such file or directory, open '/home/runner/work/ArxivLens/ArxivLens/frontend/src/test/undefined'
+229: ❯ read src/test/tokens.test.js:18:23
+230: ❯ src/test/tokens.test.js:31:19
+236:2026-11-20T18:09:38.2599913Z ##[error]Error: ENOENT: no such file or directory, open '/home/runner/work/ArxivLens/ArxivLens/frontend/src/test/undefined'
+237: ❯ read src/test/tokens.test.js:18:23
+238: ❯ src/test/tokens.test.js:31:19
+244:2026-11-20T18:09:38.2606126Z ##[error]Error: ENOENT: no such file or directory, open '/home/runner/work/ArxivLens/ArxivLens/frontend/src/test/undefined'
+245: ❯ read src/test/tokens.test.js:18:23
+246: ❯ src/test/tokens.test.js:31:19
+252:2026-11-20T18:09:38.2611255Z ##[error]Error: ENOENT: no such file or directory, open '/home/runner/work/ArxivLens/ArxivLens/frontend/src/test/undefined'
+253: ❯ read src/test/tokens.test.js:18:23
+254: ❯ src/test/tokens.test.js:31:19
+259:2026-11-20T18:09:38.2896253Z ##[error]Process completed with exit code 1.
+
+[exit code 0]

@@ -1,0 +1,71 @@
+$ python3 /tmp/claude-0/-home-claude/a2b9483d-cd17-536a-9d28-9b2b9b15c268/scratchpad/qa-FE-0e-r1/h/contrast_qa.py frontend/src/index.css
+verdict file         element                                    fg                     bg                      min  light  dark
+ok      Ingest       header icon tile (DownloadCloud)           accent-foreground      accent                  3.0   9.47  8.98
+ok      Ingest       DialogTitle / input text                   foreground             card                    4.5  16.63 13.79
+ok      Ingest       DialogDescription / label                  muted-foreground       card                    4.5   6.77  6.91
+ok      Ingest       input text on bg-background                foreground             background              4.5  15.66 14.88
+ok      Ingest       input placeholder on bg-background         muted-foreground       background              4.5   6.37  7.45
+ok      Ingest       input focus:border-primary (non-text)      primary                background              3.0   8.56  8.25
+ok      Ingest       loading spinner text-primary (icon)        primary                muted/40@card           3.0   8.57  7.21
+ok      Ingest       loading step text-foreground               foreground             muted/40@card           4.5  15.69 13.01
+ok      Ingest       loading hint text-muted-foreground         muted-foreground       muted/40@card           4.5   6.38  6.52
+ok      Ingest       error text + icon                          unsupported-foreground destructive/10@card     4.5   7.66  8.42
+ok      Ingest       success heading + CheckCircle2             supported-foreground   supported               4.5   7.23  8.41
+ok      Ingest       result title text-foreground               foreground             supported               4.5  14.03 11.27
+ok      Ingest       stat labels muted on background/80         muted-foreground       background/80@supported 4.5   6.23  7.13
+ok      Ingest       stat values foreground                     foreground             background/80@supported 4.5  15.32 14.25
+ok      Ingest       Embeddings value text-primary              primary                background/80@supported 4.5   8.37  7.90
+ok      Infra        header icon tile (Settings)                accent-foreground      accent                  3.0   9.47  8.98
+ok      Infra        TabsList inactive label                    muted-foreground       muted                   4.5   5.84  5.91
+ok      Infra        DLQ AlertTriangle, tab inactive (icon)     muted-foreground       muted                   3.0   5.84  5.91
+ok      Infra        DLQ AlertTriangle, tab active (icon)       muted-foreground       card                    3.0   6.77  6.91
+ok      Infra        active tab label                           foreground             card                    4.5  16.63 13.79
+ok      Infra        topology panel labels                      muted-foreground       muted/40@card           4.5   6.38  6.52
+ok      Infra        topology panel heading                     foreground             muted/40@card           4.5  15.69 13.01
+ok      Infra        topology nodes (bg-card)                   muted-foreground       card                    4.5   6.77  6.91
+ok      Infra        pgvector node text-primary                 primary                card                    4.5   9.09  7.65
+ok      Infra        pgvector node border-primary/40 (non-text, primary/40@card        card                    1.0   2.06  2.32
+ok      Infra        stat card labels (bg-card/70 on card)      muted-foreground       card/70@card            4.5   6.77  6.91
+ok      Infra        stat card values foreground                foreground             card/70@card            4.5  16.63 13.79
+ok      Infra        100% Embedded / QPS / ef_search primary    primary                card/70@card            4.5   9.09  7.65
+ok      Infra        DLQ thead muted on muted/40                muted-foreground       muted/40@card           4.5   6.38  6.52
+ok      Infra        DLQ FileDataError                          unsupported-foreground card                    4.5   9.02  8.94
+ok      Infra        DLQ row muted cells                        muted-foreground       card                    4.5   6.77  6.91
+ok      Library      page heading on background                 foreground             background              4.5  15.66 14.88
+ok      Library      page subtitle on background                muted-foreground       background              4.5   6.37  7.45
+ok      Library      filter input text on bg-card               foreground             card                    4.5  16.63 13.79
+ok      Library      filter placeholder / search icon           muted-foreground       card                    4.5   6.77  6.91
+ok      Library      filter focus:border-primary (non-text)     primary                background              3.0   8.56  8.25
+ok      Library      Back to Search (outline btn, inherits fg)  foreground             background              4.5  15.66 14.88
+ok      Library      thead muted on muted/40                    muted-foreground       muted/40@card           4.5   6.38  6.52
+ok      Library      loading spinner border-primary (non-text)  primary                card                    3.0   9.09  7.65
+ok      Library      loading/empty text                         muted-foreground       card                    4.5   6.77  6.91
+ok      Library      ID + (vN) muted, row idle                  muted-foreground       card                    4.5   6.77  6.91
+ok      Library      ID + (vN) muted, row hover                 muted-foreground       muted/20@card           4.5   6.57  6.71
+ok      Library      title foreground, row hover                foreground             muted/20@card           4.5  16.16 13.41
+ok      Library      status badge text + icon                   supported-foreground   supported               4.5   7.23  8.41
+ok      Library      View PDF text-primary, row idle            primary                card                    4.5   9.09  7.65
+ok      Library      View PDF text-primary, row hover           primary                muted/20@card           4.5   8.83  7.43
+ok      Library      View PDF button hover                      accent-foreground      accent                  4.5   9.47  8.98
+ok      Toast        message text-foreground                    foreground             card                    4.5  16.63 13.79
+ok      Toast        CheckCircle2 text-primary (icon)           primary                card                    3.0   9.09  7.65
+BELOW   Ingest+Infra ui/button clinical: white on emerald-600 ( #ffffff                #059669                 4.5   3.77  3.77
+BELOW   Ingest+Infra ui/button clinical: white on teal-600 (gra #ffffff                #0d9488                 4.5   3.74  3.74
+BELOW   Ingest       ui/badge arxiv: cyan-400 on cyan-500/10 ov #22d3ee                #06b6d4/10@supported    4.5   1.41  6.49
+BELOW   Library      ui/badge arxiv: cyan-400 on cyan-500/10 ov #22d3ee                #06b6d4/10@card         4.5   1.65  8.08
+BELOW   BASE c37d27c Library status badge clinical emerald-400  #34d399                #10b981/10@card         4.5   1.75  7.62
+BELOW   BASE c37d27c Ingest success heading emerald-400 on emer #34d399                #10b981/10@card         4.5   1.75  7.62
+BELOW   BASE c37d27c Ingest error text red-300 on red-500/10@ca #fca5a5                #ef4444/10@card         4.5   1.67  8.10
+
+56 rows, 7 below minimum:
+  Ingest+Infra: ui/button clinical: white on emerald-600 (gradient start)
+  Ingest+Infra: ui/button clinical: white on teal-600 (gradient end)
+  Ingest: ui/badge arxiv: cyan-400 on cyan-500/10 over supported panel
+  Library: ui/badge arxiv: cyan-400 on cyan-500/10 over card
+  BASE c37d27c: Library status badge clinical emerald-400 on emerald-500/10@card
+  BASE c37d27c: Ingest success heading emerald-400 on emerald-500/10@card
+  BASE c37d27c: Ingest error text red-300 on red-500/10@card
+
+REJECTED-option check (dev's deviation): destructive as text on card: light=7.01 dark=2.77
+
+[exit code 0]
