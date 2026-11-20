@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-20 19:00Z by pm-lead (cycle 19:00Z sync: Mahesh merged all 12 Ready-to-merge PRs #70, #79, #81–#90 at ~18:54Z → Done; FE-3a2, FE-0f, OPS-H7a2b, RET-1d picked; FE-0d, FE-3b unblocked → Ready; app `main` = `230f617`, no open agent PRs). Before: 2026-11-20 UTC by pm-lead (OPS-H17 #90 final review: APPROVE, raised → Ready to merge). Before: 2026-11-20 UTC by pm-lead (FE-0e #87 final review: APPROVE after QA r1 FAIL → r2 PASS; specced FE-0f; FE-3b AC2 widened).
+Last updated: 2026-11-21 UTC by pm-lead (FE-0f #92 final review: APPROVE, raised → Ready to merge; HeroSearch spinner nit folded into FE-3b). Before: 2026-11-20 19:00Z by pm-lead (cycle 19:00Z sync: Mahesh merged all 12 Ready-to-merge PRs #70, #79, #81–#90 at ~18:54Z → Done; FE-3a2, FE-0f, OPS-H7a2b, RET-1d picked; FE-0d, FE-3b unblocked → Ready; app `main` = `230f617`, no open agent PRs). Before: 2026-11-20 UTC by pm-lead (OPS-H17 #90 final review: APPROVE, raised → Ready to merge). Before: 2026-11-20 UTC by pm-lead (FE-0e #87 final review: APPROVE after QA r1 FAIL → r2 PASS; specced FE-0f; FE-3b AC2 widened).
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). **Open agent PRs:** none (REST, 2026-11-20 19:00Z; app `main` = `230f617`).
@@ -14,14 +14,13 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 |---|---|---|---|---|---|---|
 | 1 | [FE-3a2](tasks/FE-3a2.md) (KAN-93) | App-level regression tests for FE-3a (`App.test.jsx` only): whole-tree no "verified", refusal B no toast/one fetch, early refusal + discover POST, panel-link focus, two-stage | frontend-engineer | P0 | FE-3a #86 merged `f95184b` | **picked 2026-11-20 19:00Z**; unblocks FE-3b |
 | 2 | [OPS-H7a2b](tasks/OPS-H7a2b.md) (KAN-71) | `dlq list`/`inspect` CLI on `Manager.List`, flags, footers, README | backend-engineer | P1 | #83 merged `a0b80fe` | **picked 2026-11-20 19:00Z**; first in the `main.go` queue, unblocks ING-6c + OPS-H7b |
-| 3 | [FE-0f](tasks/FE-0f.md) (KAN-97) | `ui/button` `clinical` variant → `bg-primary text-primary-foreground` (white on emerald/teal is 3.77/3.74:1) + `ui/button.test.jsx` | frontend-engineer | P1 | FE-0 #69 merged | **picked 2026-11-20 19:00Z**; line refs re-checked on `230f617` |
-| 4 | [RET-1d](tasks/RET-1d.md) (KAN-92) | Handler-level contract test for the `writeJSON` call sites (+ log-restore nit) | backend-engineer | P2 | #84 merged `110f6c7` | **picked 2026-11-20 19:00Z** |
-| 5 | [FE-3b](tasks/FE-3b.md) (KAN-89) | Ask flow on tokens, status-chip tooltips, theme default → `system` (FE-3 part 2, AC8; design-required, design Approved) | frontend-engineer | P0 | #70, #86, #87 merged; **after FE-3a2 merges** (App-level asserts; FE WIP 2/2 this cycle) | AC2 widened guard (FE-0e QA `[spec]`) |
-| 6 | [FE-0d](tasks/FE-0d.md) (KAN-90) | Render tests for the six FE-0b ui primitives | frontend-engineer | P2 | #70 merged `4182485` | one new test file `ui/primitives.test.jsx`; FE WIP full this cycle |
-| 7 | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl-loop` CLI, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | **after OPS-H7a2b merges** (`main.go`, `README.md`) | AC11 = ING-6b QA nits; fold the OPS-H9b QA nit (Backlog) |
-| 8 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | after OPS-H7a2b merges | |
-| 9 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
-| 10 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | **after FE-3b** (`ReferencesStack.jsx`) | |
+| 3 | [RET-1d](tasks/RET-1d.md) (KAN-92) | Handler-level contract test for the `writeJSON` call sites (+ log-restore nit) | backend-engineer | P2 | #84 merged `110f6c7` | **picked 2026-11-20 19:00Z** |
+| 4 | [FE-3b](tasks/FE-3b.md) (KAN-89) | Ask flow on tokens, status-chip tooltips, theme default → `system` (FE-3 part 2, AC8; design-required, design Approved) | frontend-engineer | P0 | #70, #86, #87 merged; **after FE-3a2 merges** (App-level asserts; FE WIP 2/2 this cycle) | AC2 widened guard (FE-0e QA `[spec]`); AC2 also covers the `HeroSearch.jsx:81` spinner (FE-0f QA nit) |
+| 5 | [FE-0d](tasks/FE-0d.md) (KAN-90) | Render tests for the six FE-0b ui primitives | frontend-engineer | P2 | #70 merged `4182485` | one new test file `ui/primitives.test.jsx`; FE WIP full this cycle |
+| 6 | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl-loop` CLI, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | **after OPS-H7a2b merges** (`main.go`, `README.md`) | AC11 = ING-6b QA nits; fold the OPS-H9b QA nit (Backlog) |
+| 7 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | after OPS-H7a2b merges | |
+| 8 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
+| 9 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | **after FE-3b** (`ReferencesStack.jsx`) | |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -38,6 +37,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
+| [FE-0f](tasks/FE-0f.md) (KAN-97) | `ui/button` `clinical` variant on theme tokens (3.77:1 → ≥ 6.67:1, both themes) + `ui/button.test.jsx` | frontend-engineer | [#92](https://github.com/MaheshPulivarthi18/ArxivLens/pull/92) (`ce86ddf`, ready for review, `ready-to-merge`) | QA PASS r1 · PM APPROVE 2026-11-21 |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |

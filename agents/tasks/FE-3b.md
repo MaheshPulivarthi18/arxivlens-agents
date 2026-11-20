@@ -33,7 +33,8 @@ keyboard-reachable tooltip, and the default theme follows the OS.
   yellow lime green emerald teal cyan sky blue indigo violet purple fuchsia pink rose`), and `white`/`black` on every one of those utilities **except
   `shadow`** (`shadow-black/80` stays allowed: a shadow tint is not text or a surface). The self-test gains a positive sample for each new utility, a
   non-emerald palette (e.g. `bg-zinc-900`, `text-sky-400`) and `text-white`/`border-white/30`, and keeps the token and `shadow-black/80` negatives.
-  All eight guarded files have 0 hits at the PR head. Answer prose uses `prose font-serif`; markers, passages, active card, banner as design §2–§4.
+  All eight guarded files have 0 hits at the PR head. This includes the `HeroSearch.jsx:81` loading spinner (`border-white/30 border-t-white`, 2.22:1 on the
+  dark-theme `clinical` fill since FE-0f): swap it to `border-primary-foreground/30 border-t-primary-foreground` (or move the caller to `variant="default"`). Answer prose uses `prose font-serif`; markers, passages, active card, banner as design §2–§4.
 - [ ] AC3 — `DEFAULT_THEME === "system"` in `theme.js` and the same literal in `index.html` (FE-0c's drift guard, or an equivalent assert if #85 isn't merged).
 - [ ] AC4 — CI `frontend-dist-report.sh` output shows `.prose` in the built CSS.
 - [ ] AC5 — QA evidence: WCAG contrast ≥ 4.5:1 (text) and ≥ 3:1 (focus ring) on light **and** dark for the design's contrast table pairs, computed from the PR's
@@ -59,3 +60,7 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
   text-secondary-foreground` (13.73:1 light / 10.99:1 dark on any surface, pm-lead calc), fixing the ~1.4–1.65:1 cyan badge in the ingest panel and
   library (FE-0e QA r1 evidence 06). The `ui/button` `clinical` gradient (3.77/3.74:1, both themes, includes `HeroSearch.jsx:75`) is fixed by
   [FE-0f](FE-0f.md) in `button.jsx`, not here; it is theme-independent, so it doesn't block the flip.
+- 2026-11-21 UTC (pm-lead, FE-0f final review): AC2 now names the `HeroSearch.jsx:81` spinner swap (FE-0f QA r1 nit 1). Since FE-0f, `clinical` is
+  `bg-primary` (light blue in dark mode), so the white spinner is 2.22:1 there. It isn't a WCAG failure, because the button is disabled while
+  loading, but it is a visible regression. The widened guard already flags `border-white`, so this only spells out the target class. Also add
+  `primary-foreground` on `primary` (dark 8.11:1) to AC5's contrast table as the spinner pair.

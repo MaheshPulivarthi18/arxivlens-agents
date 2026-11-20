@@ -8,7 +8,7 @@
 | **Depends on** | FE-0 #69 merged (`54c4de8`, tokens). No open PR changes `frontend/src/components/ui/button.jsx` (#70 = six other `ui/` files, #86 = `ui/badge.jsx`; REST check 2026-11-21). Independent of FE-0e #87, FE-3a #86, FE-3b and FE-0d |
 | **Jira** | KAN-97 (epic KAN-5 "Research UI & citations"; labels `task-FE-0f`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: one variant string in an existing `ui/` file plus one new test file; no new component, contract or dependency |
-| **Status** | In QA pending (built 2026-11-21 UTC by frontend-engineer, commit `ce86ddf` on `agent/frontend/FE-0f`; awaiting push + draft PR by orchestrator) |
+| **Status** | Ready to merge (QA PASS r1, PM APPROVE 2026-11-21 UTC; PR #92 raised, head `ce86ddf`) |
 
 ## Goal
 `<Button variant="clinical">` draws white `text-sm`/`text-xs` text on an emerald-600 → teal-600 gradient: **3.77:1 / 3.74:1 in both themes**, below
@@ -26,12 +26,12 @@ modals. Retarget the variant itself to FE-0's ink primary so all four call sites
   (its `clinical` variant is overridden at its only caller by FE-0e, and FE-3a owns `badge.jsx`), `tailwind.config.js`'s `clinical` colour, copy, layout.
 
 ## Acceptance criteria
-- [ ] AC1 — The `clinical` variant contains no palette colour class and no `text-white`: a test in `ui/button.test.jsx` renders `<Button variant="clinical">`
+- [x] AC1 — The `clinical` variant contains no palette colour class and no `text-white`: a test in `ui/button.test.jsx` renders `<Button variant="clinical">`
   and asserts its `className` contains `bg-primary` and `text-primary-foreground` and matches none of `emerald`, `teal`, `from-`, `to-`, `text-white`.
-- [ ] AC2 — QA evidence: contrast of the variant's text on its fill, idle and hover (`primary/90` composited over `background` and `card`, the surfaces the
+- [x] AC2 — QA evidence: contrast of the variant's text on its fill, idle and hover (`primary/90` composited over `background` and `card`, the surfaces the
   four callers sit on), light and dark, ≥ 4.5:1, computed from the PR's `src/index.css` with FE-0's appendix functions. Focus ring unchanged (base class).
-- [ ] AC3 — No change outside the two files; existing tests pass unchanged.
-- [ ] AC4 — CI `frontend` job green (`npm ci && npm run lint && npm test && npm run build`), lint warnings not above main.
+- [x] AC3 — No change outside the two files; existing tests pass unchanged.
+- [x] AC4 — CI `frontend` job green (`npm ci && npm run lint && npm test && npm run build`), lint warnings not above main.
 
 ## Verification
 ```bash
@@ -51,3 +51,8 @@ The npm registry is blocked in agent sandboxes: the evidence for AC1, AC3 and AC
   ring present, and clinical colour classes equal to `default` apart from `font-*`. Diff: 2 files, +42/-1; no caller touched (verified the four
   call sites pass only layout/spacing `className`, no colour overrides). Not run locally: `npm ci` fails (`getaddrinfo ENOTFOUND
   registry.npmjs.org`), so AC1/AC3/AC4 evidence is the PR's CI `Frontend (lint, test, build)` job; AC2 contrast numbers are QA's to compute.
+- 2026-11-21 UTC (pm-lead, final review): **APPROVE**. Evidence 00–07 cover AC1–AC4: the CI Vitest log on the head, a revert-to-main
+  check, contrast ≥ 6.67:1 in every state over background, card and supported, and a 2-file scope. PR #92 description rewritten with the
+  Evidence section, marked ready for review, label `ready-to-merge`. QA nit 1 (dark-mode spinner `HeroSearch.jsx:81`, 2.22:1) is folded into
+  [FE-3b](FE-3b.md) AC2. QA `[spec]` 2 (AC2 listed `background`/`card`, but `IngestModal.jsx:159` sits on `bg-supported`) is recorded as a pm-lead
+  lesson; QA covered that surface too, so no rework is needed.
