@@ -1,0 +1,16 @@
+$ gh api .../actions/jobs/136098751090{,/logs} | grep ...
+CI job 136098751090 (run 44679349166) Full stack, head_sha 6b1e814a312837a4e5ebe09cd4ae9a259b815426, conclusion success
+HEAD is now at 1cbae83 Merge 6b1e814a312837a4e5ebe09cd4ae9a259b815426 into e6cffba66d677a655ade39588972abc03bc273aa
+--- step conclusions (non-success listed; Diagnostics is if: failure()):
+Diagnostics: skipped
+success steps: 33
+--- make test-full result + FAILED/ERROR test rows:
+[36;1m# Same image, network and env as the processor, but no worker inside: the old group-level probe passed here.[0m
+[36;1m  echo "::error::probe passed in a container that is not the group member"; exit 1[0m
+243 passed, 1 skipped, 3 deselected, 5 warnings in 59.05s
+3 passed in 20.96s
+test_m4 PASSED rows:
+PASSED tests/test_m4_chaos.py::test_idempotency_duplicate_event_row_invariance
+PASSED tests/test_m4_chaos.py::test_corrupt_pdf_dlq_routing_and_diagnostic_payload
+PASSED tests/test_m4_chaos.py::test_redelivered_discovered_keeps_embedded_status
+

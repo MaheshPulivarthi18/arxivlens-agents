@@ -1,0 +1,18 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/6b1e814a312837a4e5ebe09cd4ae9a259b815426/check-runs --jq '.check_runs[] | "\(.id) \(.name): \(.status) \(.conclusion)"'; echo; echo 'Ownership job 136098749832 log:'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136098749832/logs | grep -E 'HEAD is now|Ownership' | cut -c30-; echo; echo 'origin/main now:'; gh api repos/MaheshPulivarthi18/ArxivLens/commits/main --jq .sha; echo 'PR #76:'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/76 --jq '"merged=\(.merged) draft=\(.draft) state=\(.state) head=\(.head.sha)"'
+136098751090 Full stack (compose + make test-full): completed success
+136098750097 Python M0 unit tests: completed success
+136098750087 Go (vet, gofmt, test, build): completed success
+136098749997 Frontend (lint, test, build): completed success
+136098749832 Agent ownership check: completed success
+136098749236 DB (migrate twice, HNSW plan + recall): completed success
+
+Ownership job 136098749832 log:
+HEAD is now at 1cbae83 Merge 6b1e814a312837a4e5ebe09cd4ae9a259b815426 into e6cffba66d677a655ade39588972abc03bc273aa
+Ownership OK for role=backend (37 changed lines)
+
+origin/main now:
+e6cffba66d677a655ade39588972abc03bc273aa
+PR #76:
+merged=false draft=true state=open head=6b1e814a312837a4e5ebe09cd4ae9a259b815426
+
+[exit code 0]
