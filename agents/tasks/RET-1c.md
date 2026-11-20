@@ -8,7 +8,7 @@
 | **Depends on** | RET-1b (#75, merged `b81a66f`). No open PR touches `internal/query/server.go` or a `server_test.go` (checked 2026-11-20 13:00Z via REST against #70, #79, #81, #82, #83; #81 edits only `internal/query/search_integration_test.go`) |
 | **Jira** | needs Jira story (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one unexported helper in one file, no route, field, CLI, table or service change |
-| **Status** | Ready (specced 2026-11-20 13:00Z) |
+| **Status** | In QA: draft PR #84 |
 
 ## Goal
 Every handler in `internal/query/server.go` sets `Content-Type`, then calls `_ = json.NewEncoder(w).Encode(v)` (9 call sites on `c37d27c`:
@@ -62,3 +62,21 @@ make lint
   follows RET-1b; it is not a Product PRD row (`grep -n 'RET-1c' docs/PRD-*.md` is empty).
 - Why 500 and not 200 + partial: a client that sees 200 and `{}` or nothing renders "no results", which is the dishonest-empty-state the
   Product PRD §7 principles rule out. The status code of an encoding failure is not part of the documented API (README lists routes and fields only).
+- 2026-11-20 (backend-engineer, Build): draft PR [#84](https://github.com/MaheshPulivarthi18/ArxivLens/pull/84), branch `agent/backend/RET-1c`,
+  head `baa6fa06f2a1f0558ae869453225d98bee1e38b5` (base `c37d27c`). Files: `internal/query/server.go` (+29/-21, the `writeJSON` helper plus 9 call sites),
+  `internal/query/server_test.go` (new, 143 lines, `TestWriteJSON` with 4 rows). Ownership check: `Ownership OK for role=backend (193 changed lines)`.
+  - Local toolchain is go1.24.7 and `go.mod` needs 1.25 (proxy blocked), so the full package can't build locally. `gofmt -l internal/query/` printed nothing.
+    `go vet` + `go test -race -count=1 -v -run '^TestWriteJSON$'` ran in a scratch module holding the real `writeJSON` (awk-extracted verbatim from `server.go`)
+    and the real `server_test.go`: PASS with 4/4 subtests.
+  - AC1/AC2/AC3/AC4: the `TestWriteJSON` rows `unencodable` (NaN, `/v1/search`, `trace_id=-`), `unencodable with trace ID` (+Inf, `/v1/ask`, `trace_id=t-ret1c`),
+    `ok` (`a<b & c>d`, compared to `json.NewEncoder(&buf).Encode(sameValue)` at runtime, no log line) and `status passthrough` (500, `application/json`, `{"error":"boom"}\n`) all pass.
+  - AC5: `grep -c 'json.NewEncoder(w)' internal/query/server.go` gives `0`, and `grep -c 'writeJSON(' internal/query/server.go` gives `10`.
+  - AC6: local mutants in a scratch copy (never pushed), each run with `go test -count=1 -run '^TestWriteJSON$'`. All KILLED: (a) `if false` for the marshal error, which gave 200
+    with 0 log lines; (b) Content-Type+WriteHeader moved before the marshal, which gave 200 on unencodable; (b2) only WriteHeader moved, 200; (c) no `\n`, so `ok` and passthrough
+    bodies differ; (d) `WriteHeader(http.StatusOK)` makes passthrough return 200; (e) dropping route from the log fails the `route=` substring check; (f) no `-` default fails
+    `trace_id=-`. The full output is in the PR body.
+  - AC7: CI on `baa6fa0` is all green: Go (vet, gofmt, test, build; `GOFLAGS=-race`, `ok arxivlens/internal/query 1.583s`), Full stack (compose + make test-full:
+    `246 passed, 1 skipped, 3 deselected`, including `test_query_service_health` and `test_paper_status_endpoint` PASSED; the separate F1 run of the 3 M3 search/ask tests
+    gave `3 passed`), Python M0, DB, Frontend and Agent ownership check also passed.
+  - Docs: none, since only the error path changed. Unverified locally: the full-package build and `make test-unit`/`make lint` (no Go 1.25 or Docker), so CI covers those.
+  - Note: `/readyz` shares `handleHealth`, so it logs `route=/healthz`. Its payload is a constant map and can't fail to encode.
