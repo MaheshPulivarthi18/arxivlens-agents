@@ -1,6 +1,6 @@
 # Tech design — FE-3: Show refusals with their evidence, and stop labelling unchecked citations "Verified"
 
-**Author:** frontend-engineer · **Ticket:** `agents/tasks/FE-3.md` · **PRD:** Product PRD UI-1, QA-4, QA-5, §7 principles 1–3; ADR-0003 (Accepted), ADR-0014 (Accepted), ADR-0018 (Proposed) · **Status:** Draft
+**Author:** frontend-engineer · **Ticket:** `agents/tasks/FE-3.md` · **PRD:** Product PRD UI-1, QA-4, QA-5, §7 principles 1–3; ADR-0003 (Accepted), ADR-0014 (Accepted), ADR-0018 (Proposed) · **Status:** Approved with changes (pm-lead, 2026-11-20; see PM decision). Split into FE-3a + FE-3b
 
 All code references are to the app repo at `origin/main` `c37d27c` (`frontend/`). The tooltip API is from FE-0b PR #70 at `d10dc7f` (not merged yet).
 
@@ -241,4 +241,41 @@ tests and fixtures). FE-3b is ~140. In FE-3a the new chips already use the statu
    this design; it would only matter once Q3 makes C visible.
 
 ## PM decision
-_(pm-lead fills)_
+**Approved with changes** (pm-lead, 2026-11-20). Reviewed against `agents/tasks/FE-3.md` (AC1–AC8 + Notes), Product PRD UI-1/QA-4/QA-5/§7,
+ADR-0003, ADR-0014 / `docs/design/AI-8.md` (status enum, reserved statuses, `supported == (status == "supported")`), ADR-0018 (Proposed) and
+FE-0 design §6 + the FE-0b amendment. Code claims spot-checked at app `origin/main` `c37d27c`: the footer (`SynthesisView.jsx:115`), the export heading (`:50`),
+the `verification()` rule (`ReferencesStack.jsx:10-13`), `Progress` as the gauge (`:110`), `arxiv` badge callers (IngestModal, PapersLibrary, trace badge), the
+token colours in `tailwind.config.js` (`supported`/`unsupported`/`unchecked`/`accent`/`muted`/`popover` all mapped, `@tailwindcss/typography` loaded) and
+`SupportThreshold` now being NLI entailment (`rag.go:24`), so the "Cosine Semantic Support" label really is wrong. The status rule (§1) is the right
+conservative reading of ADR-0014: reserved/unknown statuses and `status`/`supported` disagreement can never say Supported. The test plan maps every AC to a CI test.
+
+**Required changes** (fold into the build; no re-review of this design needed, QA checks them):
+1. **AC1's whole-tree assert fails as designed.** `HeroSearch` is always rendered above the results (`App.jsx:166`), and its subtitle (`HeroSearch.jsx:58`)
+   says "Every claim is mathematically verified against underlying PostgreSQL vector embeddings", which matches `/verified/i` and is itself an untrue trust
+   claim (the check is NLI entailment / verbatim match, not embeddings; unchecked citations exist). FE-3a replaces that one sentence (copy only, no classes) with:
+   **"Ask research questions about the indexed arXiv papers. Every answer cites the passages it came from, and each citation is labelled supported, unsupported or not checked."**
+   Keep the App-level `document.body.textContent` assert unscoped. The tagline "…Sentence-Level Verification" stays (doesn't match, and per-claim checks do exist).
+2. **Theme flip waits for the secondary-screen sweep** (Q1, option b): FE-3b depends on the new **FE-0e** (token sweep of `IngestModal`, `InfrastructureModal`,
+   `PapersLibrary`, `Toast`) being merged. FE-0e creates `src/test/tokens.test.js` for its four files; FE-3b extends the same test with `SynthesisView.jsx`,
+   `ReferencesStack.jsx`, `App.jsx` and `HeroSearch.jsx` (one guard, not two).
+3. **Tooltip copy never names a method.** Keep the design's "a check found that this passage backs…" wording; don't use "entails", "NLI" or "cosine"
+   (the ticket Note's 2026-11-19 example "the passage entails this sentence" is superseded: the method may change, the meaning shouldn't). FE-3b's tooltip test
+   asserts the supported tooltip text exactly.
+4. **Test replacements listed in the PR body** (as the design says, §Risks): each removed/rewritten FE-1 assert next to its replacement, so QA can confirm none got weaker.
+   This is now an AC in FE-3a.
+5. **Size.** FE-3a is ~470 lines, over the 400 target, but ~295 are tests/fixtures and prod is ~175: accepted as one PR. If the build passes ~550, stop and split the
+   App-level tests (`App.test.jsx`) into a follow-up rather than trimming coverage.
+
+**Answers to the open questions**
+1. **Flip scope:** yes, HeroSearch's 3 class swaps go in FE-3b. Hold the flip until FE-0e merges (option b), not (a): an OS-light visitor would otherwise get
+   ~1.8–1.9:1 emerald/red text in the ingest modal, library and toast, a known WCAG 1.4.3 failure we'd ship knowingly. FE-0e is small and doesn't touch any FE-3a
+   file, so it runs in parallel with FE-3a and shouldn't delay FE-3b.
+2. **Export on a refusal:** hide both "Copy Synthesis" and "Export Note". There's no answer to export; exporting the passages is FE-2 (.bib), which will get its own refusal rule.
+3. **Full-stage `insufficient_evidence`:** keep today's rule (dropped; the quoted answer stays) for FE-3. Whether the user should also see that the writing stage
+   judged the passages insufficient is a product trade-off in Mahesh's two-stage design (ADR-0018, Proposed) → **open question for Mahesh**, recorded on the board.
+   No follow-up specced until he answers.
+4. **Split:** approved. FE-3a = AC1–AC7 + change 1 (no `ui/tooltip`, can start now). FE-3b = AC3 tooltip + AC8 tokens/flip + HeroSearch swaps, after #70, FE-3a and FE-0e merge.
+5. **Copy:** approved as written: the three panel bodies, "No answer shown", "Evidence only — no answer was shown", "Retrieved passages (no answer was shown)",
+   "n passages", chip texts `Supported · x%` / `Unsupported · x%` / `Not checked`, the three tooltips, the footer "n of m citations supported", the export
+   "• <chip text>" suffix, and "Referenced Studies & Evidence" → "References". Plus the hero sentence in change 1. The export title and toast texts stay (out of scope).
+6. **Discover on refusal C:** no, not in FE-3 (C can't reach users today). Revisit together with Q3 if Mahesh wants C visible.

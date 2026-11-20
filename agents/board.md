@@ -1,29 +1,29 @@
 # Board
 
-Last updated: 2026-11-20 by pm-lead (FE-0b #70 final review: APPROVE, raised → Ready to merge; specced FE-0d). Before: 2026-11-20 by pm-lead (PM review: OPS-H7a2 a2a #83 APPROVE → Ready to merge). Before: 2026-11-20 13:10Z by pm-lead (cycle 13:00Z sync + grooming: #65/#66/#68/#69/#76/#77/#78/#80 merged 08:46–09:38Z, and the earlier merges #51–#63, #71–#75 that the board never recorded, moved to Done; specced RET-1c, FE-0c, OPS-H7a2b; FE-3 picked for its design step). Before: 2026-11-20 08:10Z by pm-lead (cycle 08:00Z grooming: OPS-H15, OPS-H5b specced). Before: 2026-11-20 05:10Z by pm-lead (cycle 05:00Z grooming: OPS-H6c, AI-12b, ING-11c, LLM-1d specced)
+Last updated: 2026-11-20 by pm-lead (FE-3 design review: Approved with changes → split FE-3a Ready / FE-3b Blocked; specced FE-0e; FE-0c #85 and RET-1c #84 In QA). Before: 2026-11-20 by pm-lead (FE-0b #70 final review: APPROVE, raised → Ready to merge; specced FE-0d). Before: 2026-11-20 by pm-lead (PM review: OPS-H7a2 a2a #83 APPROVE → Ready to merge). Before: 2026-11-20 13:10Z by pm-lead (cycle 13:00Z sync + grooming: #65/#66/#68/#69/#76/#77/#78/#80 merged 08:46–09:38Z, and the earlier merges #51–#63, #71–#75 that the board never recorded, moved to Done; specced RET-1c, FE-0c, OPS-H7a2b; FE-3 picked for its design step). Before: 2026-11-20 08:10Z by pm-lead (cycle 08:00Z grooming: OPS-H15, OPS-H5b specced). Before: 2026-11-20 05:10Z by pm-lead (cycle 05:00Z grooming: OPS-H6c, AI-12b, ING-11c, LLM-1d specced)
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency). **Open PRs and their files** (REST, 2026-11-20 13:00Z; app `main` = `c37d27c`):
 #70 FE-0b (`frontend/src/components/ui/collapsible.jsx`, `popover.jsx`, `scroll-area.jsx`, `separator.jsx`, `sonner.jsx`, `tooltip.jsx`) ·
 #79 LLM-1d (`internal/llm/openai_test.go`) · #81 OPS-H5b (`internal/query/search_integration_test.go`) · #82 EVAL-10a (`tests/test_evals_data.py`) ·
-#83 OPS-H7a2a (`cmd/arxivlens/main.go`, `internal/dlq/kafka.go`, `kafka_integration_test.go`, `manager.go`, `manager_test.go`).
-Active (counts toward WIP): backend 0, frontend 0, ai 0. Ready to merge (doesn't count): #70, #79, #81, #82, #83.
+#83 OPS-H7a2a (`cmd/arxivlens/main.go`, `internal/dlq/kafka.go`, `kafka_integration_test.go`, `manager.go`, `manager_test.go`) ·
+#84 RET-1c draft (`internal/query/server.go`, `server_test.go`) · #85 FE-0c draft (`frontend/src/components/ThemeToggle.test.jsx`, `frontend/src/lib/theme.test.js`) (REST re-check 2026-11-20, FE-3 design review).
+Active (counts toward WIP): backend 1 (#84), frontend 1 (#85), ai 0. Ready to merge (doesn't count): #70, #79, #81, #82, #83.
 `cmd/arxivlens/main.go` order (one file, one PR at a time): OPS-H7a2a (#83) → OPS-H7a2b → ING-6c → OPS-H7b → OPS-H7c. `rag.go` is free (AI-8b merged); next is AI-5 if ADR-0011 is Accepted.
-`ReferencesStack.jsx`/`SynthesisView.jsx` order: FE-3 → FE-4 / FE-2. `tests/test_evals_data.py`: ai follow-ups (EVAL-6 `classify`, EVAL-7 `build_rows`, EVAL-10a README nit) wait for #82.
+`ReferencesStack.jsx`/`SynthesisView.jsx` order: FE-3a → FE-3b → FE-4 / FE-2. `tests/test_evals_data.py`: ai follow-ups (EVAL-6 `classify`, EVAL-7 `build_rows`, EVAL-10a README nit) wait for #82.
 Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; see the 2026-11-17 grooming notes.
 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 1 | [FE-3](tasks/FE-3.md) (KAN-40) | Refusal-with-evidence UI; no "Verified" on unchecked citations (design-required) | frontend-engineer | P0 | FE-1 #68, FE-0 #69 merged; **build after FE-0b #70 merges** | **picked 13:00Z for the design step only** (`docs/design/FE-3.md`, no app code); AC8 flips theme default to `system` |
-| 2 | [RET-1c](tasks/RET-1c.md) | Query API: marshal before writing; encode failure → logged 500, never an empty 200 | backend-engineer | P2 | RET-1b #75 merged | **picked 13:00Z**; `internal/query/server.go` + new `server_test.go`; independent of every open PR |
-| 3 | [FE-0c](tasks/FE-0c.md) | Theme tests: pre-paint/`theme.js` drift guard, ThemeToggle OS change + cross-tab | frontend-engineer | P2 | FE-1 #68, FE-0 #69 merged | **picked 13:00Z**; two new test files only; independent of #70 |
+| 1 | [FE-3a](tasks/FE-3a.md) (KAN-40, needs own Jira) | Refusal panel + honest chips (Supported / Unsupported / Not checked), no "Verified" anywhere (FE-3 part 1) | frontend-engineer | P0 | FE-1 #68, FE-0 #69 merged; **not** #70; no overlap with open PRs | design `docs/design/FE-3.md` **Approved with changes** 2026-11-20; takes frontend's 2nd WIP slot (with #85) |
+| 1b | [FE-0e](tasks/FE-0e.md) (needs Jira) | Secondary screens (ingest, infrastructure, library, toast) on theme tokens + palette-class guard | frontend-engineer | P1 | FE-0 #69 merged; independent of FE-3a | unblocks FE-3b's theme flip; start when a frontend slot frees |
 | 4 | [OPS-H7a2b](tasks/OPS-H7a2b.md) (KAN-71) | `dlq list`/`inspect` CLI on `Manager.List`, flags, footers, README | backend-engineer | P1 | **after #83 merges** | first in the `main.go` queue |
 | 5 | [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl-loop` CLI, advisory lock, `db.yml` integration tests, README | backend-engineer | P1 | **after #83 and OPS-H7a2b merge** (`main.go`, `README.md`) | AC11 = ING-6b QA nits |
-| 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1, FE-0 merged; **after FE-3** (`ReferencesStack.jsx`) | |
+| 6 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | FE-1, FE-0 merged; **after FE-3a + FE-3b** (`ReferencesStack.jsx`) | |
 | 7 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | after #83 + OPS-H7a2b merge | |
 | 8 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
-| 9 | [FE-0d](tasks/FE-0d.md) | Render tests for the six FE-0b ui primitives | frontend-engineer | P2 | **after #70 merges** | new from FE-0b PM review; one new test file; needs Jira story |
+| 9 | [FE-0d](tasks/FE-0d.md) (**needs Jira story**) | Render tests for the six FE-0b ui primitives | frontend-engineer | P2 | **after #70 merges** | new from FE-0b PM review (2026-11-20); one new test file `ui/primitives.test.jsx` |
 
 ## In progress
 | ID | Title | Owner | Branch |
@@ -32,6 +32,8 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
+| [FE-0c](tasks/FE-0c.md) | Theme tests: pre-paint drift guard, ThemeToggle OS change + cross-tab | frontend-engineer | [#85](https://github.com/MaheshPulivarthi18/ArxivLens/pull/85) (draft) |
+| [RET-1c](tasks/RET-1c.md) | Query API: marshal before writing; encode failure → logged 500 | backend-engineer | [#84](https://github.com/MaheshPulivarthi18/ArxivLens/pull/84) (draft) |
 
 ## PM review
 | ID | Title | Owner | PR |
@@ -49,7 +51,9 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Blocked
 | ID | Title | Owner | Waiting on |
 |---|---|---|---|
-| [FE-4](tasks/FE-4.md) (KAN-44) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | FE-3 merged, FE-0b #70 merged (AI-8b #65 merged) |
+| [FE-3b](tasks/FE-3b.md) (KAN-40, needs own Jira) | Ask flow on tokens, status-chip tooltips, theme default → `system` (FE-3 part 2, AC8) | frontend-engineer | FE-0b #70, FE-3a and FE-0e **merged** (P0) |
+| [FE-4](tasks/FE-4.md) (KAN-44) | Claim evidence panel, quote highlight, PDF page link (design-required) | frontend-engineer | FE-3a + FE-3b merged, FE-0b #70 merged (AI-8b #65 merged) |
+| FE-3 design Q3/Q6 | Should a full-stage `insufficient_evidence` (writing stage says the passages don't answer) be shown under the quoted answer, and offer "Search arXiv & Index"? | Mahesh | product decision on his two-stage flow (ADR-0018, Proposed); today the quoted answer stays and the refusal is dropped. No task until he answers |
 | [AI-10](tasks/AI-10.md) (KAN-51) | Configurable int8/`max_length` reranker (design-required) | ai-engineer | Mahesh's answer on ADR-0015 (premise changed: GPU is the reference hardware since #43/#47). AI-9 is merged (`d4b1cf3`) |
 | [EVAL-8](tasks/EVAL-8.md) (KAN-46) | First answer eval with a real LLM | backend + ai | Mahesh: is his local qwen2.5:3b run in #46 "option 3" (EVAL-8 done, commit the results JSON), or does he want CI/hosted runs (option 1/2)? |
 | [ING-8](tasks/ING-8.md) (KAN-32) | Measure PDF section-extraction quality (scorer on `agent/ai/ING-8` `d2ad9c5`, no PR) | ai-engineer | hand labels for `evals/extraction.jsonl` from someone with arxiv.org access (AC1, AC5) |
@@ -61,6 +65,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | ADR-0007..0009 | v2 multi-user scope · HNSW at scale · long-context embedder | Mahesh | human decision (block no Ready task) |
 
 ## Backlog (not yet specced — pm-lead grooms these)
+- From the FE-3 design review (pm-lead, `docs/` PR, P2): Product PRD QA-4 notes still describe the support check as cosine similarity ≥ 0.50; `rag.go:24` now uses NLI P(entailment) (`/internal/verify`) plus verbatim match. Rewrite the QA-4 note (keep status ◐ until FE-3a/FE-3b merge).
 - ~~specced as [LLM-1d](tasks/LLM-1d.md) (2026-11-20 05:00Z; raw-string nit only, hostname row stays not planned)~~ From the LLM-1c QA/PM review (backend, P3, fold into the next `internal/llm/openai_test.go` change): QA nit 1, in `TestTLSError`'s handshake row the `absent` entry `` `\r\n` `` is a raw-string (4 literal chars, not CR LF); use `"\r\n"` or drop it (`garbage` already pins the bytes). Optional: a hostname-mismatch TLS row once `Config` has a RootCAs hook (not planned)
 - From the OPS-H14 PM review (backend, P3, *Proposed* gate, Mahesh decides; after FE-0 #69 merges): fail the frontend job when `google font hosts` > 0 or `woff2 files` = 0; AC wording "the line types that apply" (per-file `DIST woff2:` only when n ≥ 1); match `.prose`/`.font-serif` as whole selectors. Also: a shellcheck step for `.github/scripts/*.sh` in CI (no sandbox has shellcheck)
 - ~~specced as [OPS-H6c](tasks/OPS-H6c.md) (2026-11-20 05:00Z)~~ From the OPS-H6b PM review (backend, P2, next `internal/kafka/consumer*` change): add a deadline-ctx row (`context.WithTimeout` → `DeadlineExceeded`) to `TestConsumerPollErrorAfterCancel` asserting no `Poll error` (QA mutant M9 survived)

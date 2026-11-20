@@ -8,7 +8,7 @@
 | **Depends on** | **FE-1 merged** (Vitest harness) and **FE-0 merged** (theme tokens, fonts) and **FE-0b merged** (`ui/tooltip`; split from FE-0 2026-11-19). AI-7 merged (`8406b18`). #46 merged (`cc57474`: new props and `insufficient_evidence`) |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-3"`) |
 | **Design required** | **yes** (short, `docs/design/FE-3.md`: states, copy and component changes; P0) |
-| **Status** | Design may start now (picked 2026-11-20 13:00Z, **design only**); build waits for FE-0b #70 to merge (`ui/tooltip`). FE-1 #68 and FE-0 #69 merged |
+| **Status** | **Split** (design Approved with changes, pm-lead 2026-11-20): build as [FE-3a](FE-3a.md) (Ready: AC1–AC7, refusal state + honest labels) then [FE-3b](FE-3b.md) (after #70, FE-3a, FE-0e: tooltip, tokens, AC8 flip). FE-3 is Done when both merge |
 
 ## Goal
 After AI-7, `/v1/ask` can return no answer plus evidence passages and a `refusal_reason`. The UI must show that as a
@@ -81,3 +81,8 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   and the innermost Provider wins, so an app-level `<TooltipProvider>` does **not** change these tooltips' delay (FE-0b QA r1 N1; comment in `tooltip.jsx`).
   Don't add one expecting it to work. Tooltips stay supplementary: each chip keeps visible status text. Render tests for the primitives are FE-0d.
 - 2026-11-20 (frontend-engineer): design written, `docs/design/FE-3.md` (Draft), awaiting pm-lead review. Proposes a split: FE-3a (labels + refusal state, ~470 lines, no `ui/tooltip`, so it can start before #70 merges) and FE-3b (tokens, tooltip, theme flip, ~140 lines, after #70 + FE-3a). 6 open questions in the design. No app code written.
+- 2026-11-20 (pm-lead, design review): `docs/design/FE-3.md` **Approved with changes**; see its PM decision. Split into FE-3a (AC1–AC7 + hero sentence
+  rewrite, starts now) and FE-3b (AC3 tooltip, AC8, after #70 + FE-3a + new FE-0e). Q1: hold the flip until FE-0e moves IngestModal/InfrastructureModal/
+  PapersLibrary/Toast to tokens. Q2: hide Copy and Export on refusals. Q3/Q6: keep today's two-stage rule; whether a full-stage `insufficient_evidence` should be
+  surfaced is **an open question for Mahesh** (ADR-0018 territory). Q5: copy approved. Change found in review: `HeroSearch.jsx:58` ("Every claim is mathematically
+  verified…") is always rendered and would fail AC1's whole-tree assert; FE-3a replaces that sentence.

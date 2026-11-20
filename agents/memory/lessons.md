@@ -49,6 +49,7 @@ A lesson seen ≥ 2× gets promoted into `AGENTS.md` or an agent definition via 
 - 2026-11-20 (OPS-H14 QA [spec]): when an AC checks a script's output format that has conditional lines (e.g. per-file lines only when n ≥ 1), say "the line types that apply", not a fixed count.
 
 - [2026-11-20][GROOM] My `git add -A` in the shared workspace swept QA's uncommitted OPS-H7a2 r2 evidence (`r2-00`…`r2-04`, 10 files) into my grooming commit `fb60f4e` while QA was still running → pm-lead stages explicit paths only (`git add agents/board.md agents/tasks/<ids> agents/PROGRESS.md …`), never `-A`, when other agents may be writing to the tree. (seen 1×; QA's own lesson records the same hazard from the other side)
+- [2026-11-20][FE-3] A "text X is absent from the whole rendered tree" AC must be checked against every always-rendered component, not only the ones in scope: `HeroSearch` (outside FE-3's file list) said "mathematically verified" and would have failed AC1 at build time. At design review, grep the app shell for the banned string before approving.
 
 ## ai-engineer
 - [2026-11-01][SETUP] Eval queries are hardcoded inside `scripts/evaluate_retrieval.py` → don't add more there; EVAL-1 moves them to `evals/`. (seen 1×)
