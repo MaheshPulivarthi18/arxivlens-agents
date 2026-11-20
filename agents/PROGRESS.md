@@ -735,3 +735,14 @@ Format:
   **LLM-1d** (backend, P3, `internal/llm/openai_test.go:585`: `"\r\n"` instead of the raw string; lowest value, droppable).
 - Not picked: EVAL-6 `classify()` and EVAL-7 `build_rows` tests (both test in `tests/test_evals_data.py`, open in #65); AI-12 `stack.yml` second-paper timing (backend-owned `stack.yml` + replay prefetch list, needs its own spec); `server.go` Encode-error logging (no handler seam checked yet; next pass); frontend items (after #68/#69/#70).
 - Review-load note: these add up to 4 more PRs to a Mahesh queue of 4 open Ready-to-merge PRs plus FE-0b; all are small test-only diffs.
+
+## 2026-11-20 05:00Z — orchestrator (scheduled cycle, session_01ATEBeRtcx1qAVnuseYBn9i) — interrupted by a usage limit
+- Sync: #71–#75 merged by Mahesh → Done (Jira KAN-74..78 → Done). No human reviews/comments on #65/#66/#68/#69/#70. #70 FE-0b still waits for #69 to merge before QA r2.
+- Built 4 independent test-only tasks in parallel (each one file, no overlap with open PRs or each other):
+  - **OPS-H6c** (KAN-79) → [#76](https://github.com/MaheshPulivarthi18/ArxivLens/pull/76) `6b1e814`: 1 attempt, QA PASS r1, PM APPROVE r1 (`agents/reviews/OPS-H6c/report.md`), raised (ready-to-merge).
+  - **AI-12b** (KAN-80) → [#77](https://github.com/MaheshPulivarthi18/ArxivLens/pull/77) `249ff5d`: 1 attempt, QA PASS r1, PM APPROVE r1 recorded (`c5d177e`), but pm-lead was cut off before marking the PR ready: #77 is still draft, Jira PM review.
+  - **ING-11c** (KAN-81) → [#78](https://github.com/MaheshPulivarthi18/ArxivLens/pull/78) `1f24fc9`: 1 attempt, QA PASS r1, PM APPROVE r1, raised (ready-to-merge).
+  - **LLM-1d** (KAN-82) → [#79](https://github.com/MaheshPulivarthi18/ArxivLens/pull/79) `fc6d79d`: 1 attempt, QA PASS r1; PM review cut off here, completed by the 08:00Z cycle (APPROVE, raised).
+- QA harness refused writing `report.md` for all four; orchestrator saved the PR comment bodies verbatim with a provenance line.
+- Interrupted ~05:30Z by the 5-hour usage limit mid-PM-review; the 08:00Z cycle took over the stale lock. The 08:00Z cycle recorded the OPS-H6c/ING-11c PM verdicts (`3f75a9e`); this entry was added at ~08:10Z; the lock now belongs to the 08:00Z cycle, so this cycle did not delete it. Left for that cycle: raise #77 (AI-12b) and move KAN-80; board columns and Jira Ready to merge for #76–#79.
+- Housekeeping: a push probe left an empty branch `agent/probe` (= main `e6cffba`) on ArxivLens; deleting it was refused by the sandbox's safety check. Mahesh can delete it.
