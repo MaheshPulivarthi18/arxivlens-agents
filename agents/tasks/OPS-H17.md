@@ -8,7 +8,7 @@
 | **Depends on** | FE-1 (#68, merged `2410d2e`: `frontend/package.json` `"test": "vitest run"`). Independent of OPS-H16 #89 (`Makefile` only) and OPS-H9b #88 (`db.yml`, `image-pins.yml`, `CONTRIBUTING.md`). No open PR touches `.github/workflows/ci.yml` (REST check 2026-11-21 of #70, #79, #81–#89) |
 | **Jira** | needs story (epic for Technical PRD §10 harness; label `task-OPS-H17`) |
 | **Design required** | no: one CI step; no production code, contract, CLI, table or service |
-| **Status** | In QA |
+| **Status** | Ready to merge (PR #90 raised 2026-11-20 UTC; QA PASS r1, PM APPROVE) |
 
 ## Goal
 The CI `frontend` job's Test step (`.github/workflows/ci.yml:72-73` on `c37d27c`) runs `npm run test --if-present`. With real npm,
@@ -60,3 +60,4 @@ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/<job>/logs | grep -nE 'Ru
   rc=1. Positive control with `"test":"echo ran-tests"`: `npm test` → `ran-tests`, rc=0. `frontend/package.json:11` has
   `"test": "vitest run"`. Not run: actionlint (not installed). AC2/AC4 (CI) are pending: `ci.yml` triggers only on `pull_request` and on
   push to `main`, so the branch push started no run (`actions/runs?head_sha=9dae472` total_count 0). Make/eval not run: no source change.
+- 2026-11-20 (pm-lead): final review **APPROVE** on head `9dae472` after QA r1 PASS with no findings. I opened all 5 evidence files (00–04 at `4adb852`) and each one proves its AC. The diff is only `ci.yml` +1/-1. I rewrote the PR #90 description with the Evidence section and marked it ready for review, so it is now Ready to merge for Mahesh. Jira: needs story (orchestrator).
