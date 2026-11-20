@@ -69,3 +69,14 @@ in retrieval or answering changes.
   `image-pins.yml:68`, tautological `case` at `image-pins.yml:78-79`, CONTRIBUTING row at `:33` says "Weekly" with no pause note. QA's
   extra observation that a two-part `0.8` reads as < 0.8.0 fails closed and stays as is.
 - Independent of OPS-H16 (groomed in the same pass, `Makefile` only).
+- 2026-11-20 (backend-engineer, build, status **In QA**): branch `agent/backend/OPS-H9b` head `9a6907c` (base `c37d27c`), 3 files,
+  +13/-9, ownership check OK (22 changed lines). `db.yml`: `version_ge` is `[[ $1 =~ ^[0-9]+(\.[0-9]+)*$ ]] && …sort -V…` (the `-n`
+  guard went), must-fail list adds `missing abc 0.8.0-dev`. `image-pins.yml`: per-image errors are buffered; if `${#resolved[@]}` is 0,
+  per-image `FAIL    <pin> (<err>)` lines (no `::error::`, no "Re-pin it") then one `::error::no pin resolved: check the tool/registry
+  before re-pinning (all N pins failed, FAIL lines above)`; otherwise each buffered `::error::Pinned image … Re-pin it: …` line is printed
+  after the loop (byte-identical to main's, `cmp` in harness; it now appears after the `ok` lines, not inline). Tautological `case` removed.
+  CONTRIBUTING row: no-pin-resolved message + "GitHub pauses the weekly schedule after 60 days without repo activity"; MinIO bullet left as is.
+  Local harness (step bodies extracted with PyYAML, `bash -e`, fake docker/psql): AC1 dry run all `(expected)`, stub extversion 0.8.7 →
+  `pgvector 0.8.7 >= 0.8.0: ok`; on main's step `missing` → `pgvector missing >= 0.8.0: ok` rc 0 (the bug); mutant without the regex →
+  `::error::self-test: 'missing' passed, want fail`. AC2 a/b/c and AC3 (accepts_all, zero_unauth) exit codes as specified.
+  Not run: actionlint/shellcheck (not in sandbox; CI job runs actionlint), real CI runs (AC1 DB job, AC4) pending the PR.
