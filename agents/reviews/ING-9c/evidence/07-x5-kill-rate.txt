@@ -1,0 +1,10 @@
+$ /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1/x5-rate.sh
+mutant copy: /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1/mut-x5-1tIi
+44,46d43
+< 	if err := ctx.Err(); err != nil {
+< 		return err
+< 	}
+TestIngestCancelledCtxSendsNoRequest$: killed 24/30
+TestFirstWaitIsImmediate$: killed 14/30
+
+[exit code 0]

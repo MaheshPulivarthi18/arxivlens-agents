@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/6afd06d871486563640a4e84a6244fdb1547d1b9/check-runs --jq .check_runs[] | "\(.id)  \(.name)  \(.status)  \(.conclusion)  \(.completed_at)"
+136652657721  DB (migrate twice, HNSW plan + recall)  completed  success  2026-11-21T00:12:32Z
+136652656673  Full stack (compose + make test-full)  completed  success  2026-11-21T00:21:52Z
+136652656390  Go (vet, gofmt, test, build)  completed  success  2026-11-21T00:12:06Z
+136652656121  Frontend (lint, test, build)  completed  success  2026-11-21T00:11:19Z
+136652656115  Agent ownership check  completed  success  2026-11-21T00:11:05Z
+136652655872  Python M0 unit tests  completed  success  2026-11-21T00:11:58Z
+
+[exit code 0]
