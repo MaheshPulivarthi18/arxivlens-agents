@@ -53,3 +53,9 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   (a) N3: a `ScrollArea` holding plain-text passages (no focusable children) gets `tabIndex={0}` and an `aria-label`; Radix sets no `tabindex` and Safari
   doesn't make scroll containers focusable. (b) If FE-4 shows toasts, a custom description colour in `toastOptions.classNames.description` needs `!`
   (the Toaster's `!text-muted-foreground` wins otherwise). Render tests for the primitives are FE-0d.
+- 2026-11-21 21:00Z cycle (pm-lead, grooming): ADR-0019 (Accepted 2026-11-22, merged in #120 `c2b3bd6`) changes the data FE-4 renders: in a
+  written answer (`answer_kind: synthesized`) every kept claim is `supported` and failed citations are removed from the answer markers, the claim's
+  `markers` and `citations`, so marker numbers can skip ("[1] … [3]"). Unsupported / `unverified` chips now appear only on quoted answers and
+  refusals. For the design: (a) AC1's per-status chips still need tests, but use quoted-answer fixtures for unsupported/unverified, and add one
+  synthesized fixture with skipped markers (each `[n]` still focuses its own card); (b) don't render a "hidden citations" count, the API doesn't
+  return one. Still waits on FE-3b (#104) merging.

@@ -39,3 +39,8 @@ must run once with a real model and report supported-citation rate, correct refu
   - AC3: token counts are in the `synthesis` log line; cost per answer is 0 (local model).
   If Mahesh confirms option 3: he attaches the JSON (to #46 or to this repo's `agents/reviews/EVAL-8/`; `evals/results/` is git-ignored), ai-engineer adds a
   "real LLM (reported)" section to `evals/BASELINE.md`, and this closes. The supported-citation number for the written stage stays an open finding.
+- 2026-11-21 21:00Z cycle (pm-lead, grooming): ADR-0019 and ADR-0020 (both Accepted 2026-11-22) record two more full local `make eval` runs with the
+  LLM on (reference Mac, MPS, `qwen2.5:3b-instruct`, main `391eceb` / `c2b3bd6`): supported citations 0.86 → 1.00 after ADR-0019 (written answers show
+  only verified citations), expected-paper hits 100%, refusals 100%, gated quick-stage `ask_p95_ms` 2.95 s PASS with fp16 (#121), written-answer
+  `ask_full_p95_ms` ~20 s report-only. The "supported ≥ 90% not shown" gap above is answered by these numbers (reported in ADR text, not re-measured).
+  Still no results JSON in either repo, and Mahesh's question (option 3 vs CI/hosted) is unanswered, so still Blocked.

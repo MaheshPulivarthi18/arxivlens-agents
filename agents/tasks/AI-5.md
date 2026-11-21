@@ -75,3 +75,9 @@ make eval   # when infra is available
   `synthesis_available`. `EarlyRefusalThreshold` still exists (`rag.go:21`). This ticket and AI-8 both edit `rag.go` and its tests, so they can't
   run in parallel. Whichever starts second rebases. No question beyond ADR-0011 itself.
 - 2026-11-20 13:00Z (pm-lead, sync): AI-8b (#65) merged, so `rag.go` no longer queues; the only blocker is ADR-0011 (still Proposed).
+- 2026-11-21 21:00Z cycle (pm-lead, grooming): re-checked after Mahesh's #119 (`391eceb`) and #120 (`c2b3bd6`). **Bug still there, and wider:**
+  `Ask` now fetches the whole rerank pool (`max(RerankPool, maxCitations)`, `rag.go:196`), runs `filterRelevantHits` on all of it (`rag.go:206`),
+  re-sorts by `poolRank` and applies the paper cap before the top-5 cut. `filterRelevantHits` (`rag.go:810`) still keeps `RerankScore == 0`
+  (`h.RerankScore > 0 && h.RerankScore < 0.45`), so during a reranker outage all ~20 pool hits survive and the top 5 by RRF order get answered.
+  When ADR-0011 is decided, re-spec AC1/AC2 against this flow (the refusal must happen on the pool, before `diversify`), and the AI-14 #115
+  boundary rows must merge first (same function). Still Blocked (needs ADR-0011, Proposed). ADR-0019/0020 don't decide it.
