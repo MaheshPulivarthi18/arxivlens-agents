@@ -1,0 +1,76 @@
+$ bash -c cd /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H18b-r1/harness && for f in $(find . -type f | sort); do echo "===== $f"; cat $f; done
+===== ./extract.py
+# Print the exact run: block of the guard step from a ci.yml file.
+import sys, yaml
+wf = yaml.safe_load(open(sys.argv[1]))
+job = wf["jobs"]["python"]
+assert "defaults" not in job and "defaults" not in wf, "unexpected defaults.run.shell"
+steps = [s for s in job["steps"] if s.get("name") == "Light tests without the ML stack (make test-py-light)"]
+assert len(steps) == 1 and "shell" not in steps[0], steps
+sys.stdout.write(steps[0]["run"])
+===== ./mutants.sh
+#!/usr/bin/env bash
+# Single-edit mutants of the head's guard block; each must make at least one scenario differ from the head's expected table.
+set -u
+H="$(cd "$(dirname "$0")" && pwd)"; APP="$1"
+M="$(mktemp -d)"; git -C "$APP" show HEAD:.github/workflows/ci.yml > "$M/ci.yml"; python3 "$H/extract.py" "$M/ci.yml" > "$M/orig.sh"
+expected="$("$H/run.sh" "$APP" HEAD | awk '{print $1,$2,$3,$4}')"
+mk() { # name perl-substitution
+  perl -pe "$2" "$M/orig.sh" > "$M/$1.sh"
+  d="$(diff "$M/orig.sh" "$M/$1.sh" | grep '^>' | head -1)"
+  if [ -z "$d" ]; then echo "$1 INVALID (substitution did not apply)"; return; fi
+  got="$(MUTANT="$M/$1.sh" "$H/run.sh" "$APP" HEAD | awk '{print $1,$2,$3,$4}')"
+  diffs="$(diff <(echo "$expected") <(echo "$got") | grep '^>' | sed 's/^> //' | awk '{print $1"("$2")"}' | paste -sd' ')"
+  if [ -n "$diffs" ]; then v="KILLED by: $diffs"; else v="SURVIVED"; fi
+  printf '%-22s %s\n    mutant line: %s\n' "$1" "$v" "$d"
+}
+echo "== summary (verdict first; mutant line shown below each) =="
+mk M1-no-exit-on-pipfail 's/(cannot check for the ML stack"; )exit 1; /$1/'
+mk M2-swallow-pip-error  's/pkgs="\$\(pip list\)"/pkgs="\$(pip list 2>\/dev\/null || true)"/'
+mk M3-export-masks-rc    's/^pkgs="\$\(pip list\)"/export pkgs="\$(pip list)"/'
+mk M4-grep-wrong-var     's/<<<"\$pkgs"/<<<"\$pkgz"/'
+mk M5-no-exit-on-ml      's/(before the light tests"; )exit 1/$1true/'
+mk M6-old-pipe-guard     's/^pkgs=.*$/:/; s/grep -iE (\x27[^\x27]*\x27) <<<"\$pkgs"/pip list 2>\/dev\/null | grep -iE $1/'
+mk E1-unquoted-assign    's/^pkgs="\$\(pip list\)"/pkgs=\$(pip list)/'
+echo "(E1 is an equivalent-mutant control: assignment does not word-split, so it is expected to SURVIVE)"
+===== ./run.sh
+#!/usr/bin/env bash
+# Usage: run.sh <app-worktree> <ref>   Runs the guard step's real run: block (extracted from <ref>:.github/workflows/ci.yml)
+# under `bash -e` (the runner's shell for this job) with stub python/pip/make on PATH, for each pip-list scenario.
+# Optional: MUTANT=<file> runs that block instead of the extracted one.
+set -u
+H="$(cd "$(dirname "$0")" && pwd)"; APP="$1"; REF="$2"
+W="$(mktemp -d)"; mkdir -p "$W/bin"
+if [ -n "${MUTANT:-}" ]; then cp "$MUTANT" "$W/step.sh"; else
+  git -C "$APP" show "$REF:.github/workflows/ci.yml" > "$W/ci.yml"; python3 "$H/extract.py" "$W/ci.yml" > "$W/step.sh"; fi
+cat > "$W/bin/python" <<'S'
+#!/bin/sh
+echo "STUB python $*"; exit 0
+S
+cat > "$W/bin/make" <<'S'
+#!/bin/sh
+echo "STUB make $* (light tests would run here)"; exit 0
+S
+cat > "$W/bin/pip" <<'S'
+#!/bin/sh
+case "$1" in
+  install) echo "STUB pip $*"; exit 0;;
+  list) case "$SCEN" in
+    fail)      echo "ERROR: pip list crashed" >&2; exit 2;;
+    torch)     printf 'Package Version\n------- -------\npytest  8.3.0\ntorch   2.4.0\n'; exit 0;;
+    light)     printf 'Package Version\n------- -------\npytest  8.3.0\nPyYAML  6.0.2\n'; exit 0;;
+    pymupdf)   printf 'Package Version\npymupdf 1.24.0\n'; exit 0;;
+    partial)   printf 'Package Version\npytest  8.3.0\n'; echo "ERROR: crash mid-list" >&2; exit 2;;
+    torchfail) printf 'Package Version\ntorch   2.4.0\n'; echo "ERROR: crash mid-list" >&2; exit 2;;
+  esac;;
+esac
+S
+chmod +x "$W/bin/"*
+for s in ${SCENARIOS:-fail torch light pymupdf partial torchfail}; do
+  out="$(cd "$W" && SCEN=$s PATH="$W/bin:$PATH" bash -e step.sh 2>&1)"; rc=$?
+  ml=$(grep -c 'STUB make test-py-light' <<<"$out"); err=$(grep -o '::error::[^;]*' <<<"$out" | head -1)
+  printf '%-10s exit=%d  reached_make_test-py-light=%s  error=%s\n' "$s" "$rc" "$([ "$ml" -gt 0 ] && echo yes || echo no)" "${err:-none}"
+  if [ -n "${VERBOSE:-}" ]; then sed "s/^/    | /" <<<"$out"; fi
+done
+
+[exit code 0]

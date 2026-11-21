@@ -1,0 +1,19 @@
+$ /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H18b-r1/harness/mutants.sh /root/wt/qa-app-OPS-H18b
+== summary (verdict first; mutant line shown below each) ==
+M1-no-exit-on-pipfail  KILLED by: fail(exit=0) partial(exit=0)
+    mutant line: > pkgs="$(pip list)" || { echo "::error::pip list failed; cannot check for the ML stack"; }
+M2-swallow-pip-error   KILLED by: fail(exit=0) partial(exit=0) torchfail(exit=1)
+    mutant line: > pkgs="$(pip list 2>/dev/null || true)" || { echo "::error::pip list failed; cannot check for the ML stack"; exit 1; }
+M3-export-masks-rc     KILLED by: fail(exit=0) partial(exit=0) torchfail(exit=1)
+    mutant line: > export pkgs="$(pip list)" || { echo "::error::pip list failed; cannot check for the ML stack"; exit 1; }
+M4-grep-wrong-var      KILLED by: torch(exit=0) pymupdf(exit=0)
+    mutant line: > if grep -iE 'torch|transformers|sentence|PyMuPDF' <<<"$pkgz"; then
+M5-no-exit-on-ml       KILLED by: torch(exit=0) pymupdf(exit=0)
+    mutant line: >   echo "::error::ML stack present before the light tests"; true
+M6-old-pipe-guard      KILLED by: fail(exit=0) partial(exit=0) torchfail(exit=1)
+    mutant line: > :
+E1-unquoted-assign     SURVIVED
+    mutant line: > pkgs=$(pip list) || { echo "::error::pip list failed; cannot check for the ML stack"; exit 1; }
+(E1 is an equivalent-mutant control: assignment does not word-split, so it is expected to SURVIVE)
+
+[exit code 0]

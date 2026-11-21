@@ -1,0 +1,40 @@
+$ bash -c git diff --stat origin/main...HEAD; git diff --numstat origin/main...HEAD; echo; bash .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H18b; echo rc=$?; echo; git diff origin/main...HEAD
+ .github/workflows/ci.yml | 4 +++-
+ Makefile                 | 2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+3	1	.github/workflows/ci.yml
+1	1	Makefile
+
+Ownership OK for role=backend (6 changed lines)
+rc=0
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index e107667..92d54fc 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -51,7 +51,9 @@ jobs:
+           python -m pip install --upgrade pip
+           pip install -r requirements-light.txt
+           echo "ML packages installed (must be none):"
+-          if pip list 2>/dev/null | grep -iE 'torch|transformers|sentence|PyMuPDF'; then
++          # Capture first: a failing `pip list` must fail the step, not read as "no ML packages".
++          pkgs="$(pip list)" || { echo "::error::pip list failed; cannot check for the ML stack"; exit 1; }
++          if grep -iE 'torch|transformers|sentence|PyMuPDF' <<<"$pkgs"; then
+             echo "::error::ML stack present before the light tests"; exit 1
+           fi
+           make test-py-light
+diff --git a/Makefile b/Makefile
+index 798744e..1770f33 100644
+--- a/Makefile
++++ b/Makefile
+@@ -40,7 +40,7 @@ lint-fe: ## oxlint on the frontend
+ 	cd frontend && npm run lint
+ 
+ # --- tests -------------------------------------------------------------------
+-test-unit: test-go test-py ## Fast tests, no infra (Go + M0 + eval data). Frontend tests: make test-fe
++test-unit: test-go test-py ## Fast tests, no infra (Go + test-py). Frontend tests: make test-fe
+ 
+ test-go: ## Go unit tests
+ 	go test ./...
+
+[exit code 0]

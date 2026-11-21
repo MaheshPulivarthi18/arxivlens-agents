@@ -1,0 +1,38 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136840015212 --jq '"head_sha=" + .head_sha + " conclusion=" + .conclusion, (.steps[] | "step \(.number) \(.name): \(.conclusion)")'; echo; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136840015212/logs | sed 's/\x1b\[[0-9;]*m//g' | grep -nE 'HEAD is now at|ML packages installed|shell: /usr/bin/bash|::error|test-py-light|passed' | grep -v '^.*\[36' | head -20; echo; echo '--- lines around the guard output ---'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136840015212/logs | sed 's/\x1b\[[0-9;]*m//g' | grep -n -A5 'Z ML packages installed (must be none):'
+head_sha=246d6d1dbea33501faccea3f8685ac4397d407e5 conclusion=success
+step 1 Set up job: success
+step 2 Run actions/checkout@v4: success
+step 3 Run actions/setup-python@v5: success
+step 4 Cache Hugging Face models: success
+step 5 Light tests without the ML stack (make test-py-light): success
+step 6 Install deps (CPU-only torch): success
+step 7 Run make test-py-ml: success
+step 8 Kafka client tests (commit-after-process, DLQ, shutdown; fakes only): success
+step 14 Post Cache Hugging Face models: success
+step 15 Post Run actions/setup-python@v5: success
+step 16 Post Run actions/checkout@v4: success
+step 17 Complete job: success
+
+121:2026-11-21T12:04:57.3904645Z HEAD is now at 8349c0f Merge 246d6d1dbea33501faccea3f8685ac4397d407e5 into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+181:2026-11-21T12:05:04.7265715Z echo "ML packages installed (must be none):"
+183:2026-11-21T12:05:04.7266344Z pkgs="$(pip list)" || { echo "::error::pip list failed; cannot check for the ML stack"; exit 1; }
+185:2026-11-21T12:05:04.7266911Z   echo "::error::ML stack present before the light tests"; exit 1
+187:2026-11-21T12:05:04.7267257Z make test-py-light
+188:2026-11-21T12:05:04.7298286Z shell: /usr/bin/bash -e {0}
+240:2026-11-21T12:05:09.1236007Z ML packages installed (must be none):
+245:2026-11-21T12:05:13.6212784Z 157 passed, 1 skipped in 4.11s
+248:2026-11-21T12:05:13.6589184Z shell: /usr/bin/bash -e {0}
+466:2026-11-21T12:05:45.3256143Z shell: /usr/bin/bash -e {0}
+501:2026-11-21T12:05:52.9419714Z 60 passed, 2 skipped, 3 warnings in 7.05s
+504:2026-11-21T12:05:53.7276425Z shell: /usr/bin/bash -e {0}
+558:2026-11-21T12:05:54.0748059Z ============================== 37 passed in 0.21s ==============================
+
+--- lines around the guard output ---
+240:2026-11-21T12:05:09.1236007Z ML packages installed (must be none):
+241-2026-11-21T12:05:09.2472430Z python3 -m pytest -q tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py
+242-2026-11-21T12:05:09.8830357Z ........................................................................ [ 45%]
+243-2026-11-21T12:05:09.9259739Z ...s.................................................................... [ 91%]
+244-2026-11-21T12:05:13.6212492Z ..............                                                           [100%]
+245-2026-11-21T12:05:13.6212784Z 157 passed, 1 skipped in 4.11s
+
+[exit code 0]

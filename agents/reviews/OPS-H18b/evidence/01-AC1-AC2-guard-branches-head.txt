@@ -1,0 +1,29 @@
+$ bash -c echo '== results =='; /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H18b-r1/harness/run.sh /root/wt/qa-app-OPS-H18b HEAD; echo; echo '== full outputs (fail, torch, light) =='; SCENARIOS='fail torch light' VERBOSE=1 /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H18b-r1/harness/run.sh /root/wt/qa-app-OPS-H18b HEAD
+== results ==
+fail       exit=1  reached_make_test-py-light=no  error=::error::pip list failed
+torch      exit=1  reached_make_test-py-light=no  error=::error::ML stack present before the light tests
+light      exit=0  reached_make_test-py-light=yes  error=none
+pymupdf    exit=1  reached_make_test-py-light=no  error=::error::ML stack present before the light tests
+partial    exit=1  reached_make_test-py-light=no  error=::error::pip list failed
+torchfail  exit=1  reached_make_test-py-light=no  error=::error::pip list failed
+
+== full outputs (fail, torch, light) ==
+fail       exit=1  reached_make_test-py-light=no  error=::error::pip list failed
+    | STUB python -m pip install --upgrade pip
+    | STUB pip install -r requirements-light.txt
+    | ML packages installed (must be none):
+    | ERROR: pip list crashed
+    | ::error::pip list failed; cannot check for the ML stack
+torch      exit=1  reached_make_test-py-light=no  error=::error::ML stack present before the light tests
+    | STUB python -m pip install --upgrade pip
+    | STUB pip install -r requirements-light.txt
+    | ML packages installed (must be none):
+    | torch   2.4.0
+    | ::error::ML stack present before the light tests
+light      exit=0  reached_make_test-py-light=yes  error=none
+    | STUB python -m pip install --upgrade pip
+    | STUB pip install -r requirements-light.txt
+    | ML packages installed (must be none):
+    | STUB make test-py-light (light tests would run here)
+
+[exit code 0]

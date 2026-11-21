@@ -1,0 +1,10 @@
+$ bash -c git rev-parse origin/main; /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H18b-r1/harness/run.sh /root/wt/qa-app-OPS-H18b origin/main
+11c4696f7c6830436ada00c54d8f75976ddf7b99
+fail       exit=0  reached_make_test-py-light=yes  error=none
+torch      exit=1  reached_make_test-py-light=no  error=::error::ML stack present before the light tests
+light      exit=0  reached_make_test-py-light=yes  error=none
+pymupdf    exit=1  reached_make_test-py-light=no  error=::error::ML stack present before the light tests
+partial    exit=0  reached_make_test-py-light=yes  error=none
+torchfail  exit=1  reached_make_test-py-light=no  error=::error::ML stack present before the light tests
+
+[exit code 0]
