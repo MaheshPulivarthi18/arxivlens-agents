@@ -1,0 +1,34 @@
+$ gh api .../actions/jobs/136652664685 + .../logs (excerpts by line no.)
+job 136652664685 run_id 44842072980 head_sha ffe4b45f43cc090b0b39772da7e2a6cd98de4a7a conclusion success
+  step 5 success 2026-11-21T00:11:16Z -> 2026-11-21T00:11:20Z Lint the harness (actionlint, compose config)
+  step 17 success 2026-11-21T00:16:41Z -> 2026-11-21T00:17:15Z Worker health follows this container, not the group
+  step 23 success 2026-11-21T00:20:41Z -> 2026-11-21T00:22:17Z AC4: make test-full
+  step 24 success 2026-11-21T00:22:17Z -> 2026-11-21T00:22:48Z Known failure F1 (CPU rerank latency, tracked)
+  step 29 success 2026-11-21T00:22:49Z -> 2026-11-21T00:22:54Z Teardown
+
+== checkout (merge with current main 230f617):
+2026-11-21T00:11:01.7931579Z HEAD is now at b75f7d1 Merge ffe4b45f43cc090b0b39772da7e2a6cd98de4a7a into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+
+== step 5 'Lint the harness' runs docker compose config --quiet (bash -e; step success):
+2026-11-21T00:11:16.6698341Z [36;1mdocker compose config --quiet[0m
+2026-11-21T00:11:16.6698706Z [36;1mdocker compose config --profiles | grep -qx workers[0m
+
+== step 17 'dc stop processor' (stack.yml:210):
+2026-11-21T00:16:41.5067601Z [36;1mdc stop processor[0m
+2026-11-21T00:16:45.2849614Z  Container arxivlens-processor Stopping 
+2026-11-21T00:16:46.8278676Z  Container arxivlens-processor Stopped 
+2026-11-21T00:16:50.9238083Z OK: probe fails in a processor container that isn't the member, while another consumer stays in processor-v1
+  dc stop processor: Stopping->Stopped = 1.543 s (grace 20 s)
+
+== step 23 make test-full result:
+2026-11-21T00:22:16.1366446Z 248 passed, 1 skipped, 3 deselected, 5 warnings in 93.52s (0:01:33)
+
+== step 24 Known failure F1 (tracked, continue-on-error by design):
+2026-11-21T00:22:48.1757661Z 3 failed in 30.54s
+
+== step 29 Teardown (compose down -v) worker stop times:
+2026-11-21T00:22:49.8751912Z  Container arxivlens-processor Stopping 
+2026-11-21T00:22:49.8753044Z  Container arxivlens-embedder-worker Stopping 
+2026-11-21T00:22:50.6991334Z  Container arxivlens-processor Stopped 
+2026-11-21T00:22:51.5706536Z  Container arxivlens-embedder-worker Stopped 
+

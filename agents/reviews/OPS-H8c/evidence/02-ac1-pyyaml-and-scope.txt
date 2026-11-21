@@ -1,0 +1,32 @@
+$ bash -c python3 -c "import yaml; s=yaml.safe_load(open(\"docker-compose.yml\"))[\"services\"]; print({k: v.get(\"stop_grace_period\") for k, v in s.items()})"; echo; echo "== git diff origin/main...HEAD --name-only:"; git diff origin/main...HEAD --name-only; echo; git diff origin/main...HEAD --stat; echo; git diff origin/main...HEAD
+{'postgres': None, 'kafka': None, 'kafka-init': None, 'minio-data-init': None, 'minio': None, 'minio-init': None, 'embedder-api': None, 'processor': '20s', 'embedder-worker': '20s'}
+
+== git diff origin/main...HEAD --name-only:
+docker-compose.yml
+
+ docker-compose.yml | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 2ae552e..cfdbe26 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -188,6 +188,8 @@ services:
+ 
+   processor:
+     <<: *worker
++    # > DELIVERY_TIMEOUT_S (12 s, services/common/kafka_client.py) + 1 s poll; Docker's 10 s default SIGKILLs mid-flush.
++    stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too
+     build:
+       context: .
+       dockerfile: services/processor/Dockerfile
+@@ -205,6 +207,7 @@ services:
+ 
+   embedder-worker:
+     <<: *worker
++    stop_grace_period: 20s # same bound as processor
+     build:
+       context: .
+       dockerfile: services/embedder/Dockerfile
+
+[exit code 0]

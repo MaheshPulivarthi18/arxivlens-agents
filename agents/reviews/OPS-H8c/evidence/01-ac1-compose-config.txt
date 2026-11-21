@@ -1,0 +1,39 @@
+$ bash -c echo "== services with stop_grace_period (profile workers):"; docker compose --profile workers config --format json | python3 -c "import json,sys; s=json.load(sys.stdin)[\"services\"]; [print(f\"  {k:18} {v.get(\"stop_grace_period\")}\") for k,v in sorted(s.items())]"; echo; echo "== same without profile:"; docker compose config --format json | python3 -c "import json,sys; s=json.load(sys.stdin)[\"services\"]; [print(f\"  {k:18} {v.get(\"stop_grace_period\")}\") for k,v in sorted(s.items())]"; echo; echo "== grep yaml output:"; docker compose --profile workers config | grep -n -B2 stop_grace_period; echo; echo "== docker compose config --quiet rc:"; docker compose config --quiet; echo rc=$?; docker compose --profile workers config --quiet; echo "rc(workers)=$?"
+== services with stop_grace_period (profile workers):
+  embedder-api       None
+  embedder-worker    20s
+  kafka              None
+  kafka-init         None
+  minio              None
+  minio-data-init    None
+  minio-init         None
+  postgres           None
+  processor          20s
+
+== same without profile:
+  kafka              None
+  kafka-init         None
+  minio              None
+  minio-data-init    None
+  minio-init         None
+  postgres           None
+
+== grep yaml output:
+65-    networks:
+66-      default: null
+67:    stop_grace_period: 20s
+--
+289-    networks:
+290-      default: null
+291:    stop_grace_period: 20s
+
+== docker compose config --quiet rc:
+rc=0
+rc(workers)=0
+time="2026-11-21T05:43:29+05:30" level=warning msg="/root/wt/qa-OPS-H8c/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2026-11-21T05:43:29+05:30" level=warning msg="/root/wt/qa-OPS-H8c/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2026-11-21T05:43:29+05:30" level=warning msg="/root/wt/qa-OPS-H8c/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2026-11-21T05:43:29+05:30" level=warning msg="/root/wt/qa-OPS-H8c/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2026-11-21T05:43:29+05:30" level=warning msg="/root/wt/qa-OPS-H8c/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+
+[exit code 0]

@@ -1,0 +1,18 @@
+$ bash -c grep -n "MESSAGE_TIMEOUT_MS =\|DELIVERY_TIMEOUT_S =" services/common/kafka_client.py; grep -n "timeout=1.0" services/common/kafka_client.py; echo; echo "== design bound (arxivlens-agents docs/design/OPS-H8.md:113,118):"; sed -n "113p;118p" /home/claude/arxivlens-agents/docs/design/OPS-H8.md | cut -c1-200; echo; python3 -c "g=20.0; d=12.0; p=1.0; print(f\"grace {g} s > flush {d} s + poll {p} s = {d+p} s : {g > d+p} (headroom {g-d-p} s)\")"; echo; echo "== Python files changed vs origin/main:"; git diff origin/main...HEAD --name-only -- "*.py" | wc -l; echo "== PR body AC2 line:"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/100 --jq .body | grep -n "12 s\|> 12"
+20:MESSAGE_TIMEOUT_MS = 10000
+21:DELIVERY_TIMEOUT_S = 12.0
+209:                msg = self.consumer.poll(timeout=1.0)
+
+== design bound (arxivlens-agents docs/design/OPS-H8.md:113,118):
+  - At the top of the poll loop. The `poll(timeout=1.0)` bound means an idle worker exits within about 1 s of SIGTERM, well inside Docker's 10 s grace.
+- **What can't be interrupted:** a handler call that is running, such as an embedding batch, and one `flush` (≤ 12 s). If Docker's grace (10 s) runs out first,
+
+grace 20.0 s > flush 12.0 s + poll 1.0 s = 13.0 s : True (headroom 7.0 s)
+
+== Python files changed vs origin/main:
+0
+== PR body AC2 line:
+6:- `docker-compose.yml`: `stop_grace_period: 20s` on `processor` and `embedder-worker`. 20 s > `DELIVERY_TIMEOUT_S` 12 s + 1 s poll, so Docker's 10 s default no longer SIGKILLs a mid-flush producer.
+11:- [x] AC2 20 s > 12 s + 1 s
+
+[exit code 0]

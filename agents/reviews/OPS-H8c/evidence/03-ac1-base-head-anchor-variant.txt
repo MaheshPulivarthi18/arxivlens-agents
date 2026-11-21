@@ -1,0 +1,24 @@
+$ bash /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-OPS-H8c-r1/variants.sh
+== base origin/main (230f617):
+  (none)
+== PR head (ffe4b45):
+  embedder-worker=20s, processor=20s
+== variant: key on x-worker anchor only (ticket Scope wording):
+    6a7
+    >   stop_grace_period: 20s
+    192d192
+    <     stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too
+    210d209
+    <     stop_grace_period: 20s # same bound as processor
+  embedder-api=20s, embedder-worker=20s, processor=20s
+== services merging <<: *worker:
+160-  embedder-api:
+161:    <<: *worker
+--
+189-  processor:
+190:    <<: *worker
+--
+208-  embedder-worker:
+209:    <<: *worker
+
+[exit code 0]

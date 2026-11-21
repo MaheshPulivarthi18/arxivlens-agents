@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/ffe4b45f43cc090b0b39772da7e2a6cd98de4a7a/check-runs
+136652664685  success  2026-11-21T00:10:59Z -> 2026-11-21T00:22:57Z  Full stack (compose + make test-full)
+136652664493  success  2026-11-21T00:10:59Z -> 2026-11-21T00:11:21Z  Frontend (lint, test, build)
+136652664452  success  2026-11-21T00:10:59Z -> 2026-11-21T00:11:05Z  Agent ownership check
+136652664431  success  2026-11-21T00:10:58Z -> 2026-11-21T00:11:11Z  Pinned digests resolve
+136652664413  success  2026-11-21T00:10:58Z -> 2026-11-21T00:12:08Z  Go (vet, gofmt, test, build)
+136652664253  success  2026-11-21T00:10:58Z -> 2026-11-21T00:12:57Z  DB (migrate twice, HNSW plan + recall)
+136652664176  success  2026-11-21T00:10:58Z -> 2026-11-21T00:12:10Z  Python M0 unit tests
+
