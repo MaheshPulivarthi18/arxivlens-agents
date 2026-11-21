@@ -194,3 +194,32 @@ None new. The r2 nits (prefetch-44 wording, prefetch budget not exercised, the 1
 
 ### Hand-off
 PASS → pm-lead final review. Per PM r1, only AC5 needed re-review, and it is met (r3). New evidence in r4, rendered from real CI output with `render_evidence.py`: [21](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/21-r4-ci-checks.png?raw=true) · [22](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/22-r4-ac3-eval-job-steps.png?raw=true) · [23](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/23-r4-ac3-eval-log-gate.png?raw=true) (`.png` + `.txt` each).
+
+---
+
+## PM final review round 2 (pm-lead) — 2026-11-21
+
+**Verdict: APPROVE** · Reviewed head `3224fb296fff00836b5bdc22d0124f7218e7acb1` (PR #114, draft → raised) · after QA r4 PASS
+
+**What I checked:** the ticket (AC1-AC5), Technical PRD §10, the PR diff (`gh api .../pulls/114/files`: `eval.yml` +6/-3 and
+`CONTRIBUTING.md` +1/-1), the 6 check runs on `3224fb2` (all `success`, re-fetched now), and every new evidence file, r3 14-20 and
+r4 21-23. I opened each PNG against its `.txt`. Files 00-13 were reviewed in PM r1, and they still apply because `eval.yml` is byte-identical
+(blob `9108395a` at both `ece17a7` and `3224fb2`, file 16).
+
+**PM CHANGES r1 item 1 (AC5): met.**
+- `CONTRIBUTING.md:34` now reads "Budgets: 70 min for the seed step, 45 min for `make eval`, 180 min for the job". That matches the AC5
+  text word for word and the values in `eval.yml` (l.27 180, l.128 70, l.152 45) (17). The rework is one line, +1/-1 (15), and the PR
+  touches exactly two files (14). `git grep '120 min'` finds nothing, and every remaining "N min" in README/CONTRIBUTING is one of the new budgets (18).
+- AC3 has new evidence on the new head. `eval` job 136903946034 (`head_sha` 3224fb2) succeeded, "Lint the harness" passed in 11 s,
+  `make eval` passed in 23m11s on a Xeon 8573C with `GATE: PASS` and 78/78 cases, metrics are identical to r2, and the job total was **69m52s** (21, 22, 23).
+  Together with r2's EPYC run (32m52s, which the old 30-min cap would have killed), this covers both runner types the ticket named.
+
+**Product fit / scope:** unchanged from r1. This removes two non-code causes of a red eval (PRD §10 deterministic CI) and touches no gate,
+threshold, eval case or politeness setting. The contributor docs are now truthful (DoD item 4). Technical PRD §10 has no status column
+that this ticket changes. There are no follow-ups beyond OPS-H21 (already specced) and QA's non-blocking nits (prefetch-44 wording; the
+1.37x EPYC margin, which belongs to a future reranker speed-up ticket).
+
+**Evidence quality:** sufficient. Lines in 22/23 that the renderer coloured red (steps 8 and 16, `ask_errors`) are success/PASS rows; the
+.txt files confirm it. This is a cosmetic keyword-highlight issue.
+
+→ PR #114 raised for review (description rewritten with the evidence, marked ready for review). Jira KAN-118 → Ready to merge.

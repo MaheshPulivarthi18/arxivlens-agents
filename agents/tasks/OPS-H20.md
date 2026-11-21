@@ -8,7 +8,7 @@
 | **Depends on** | none. The job-timeout arithmetic assumes OPS-H19's 2520 s prefetch budget, which is already in `eval.yml` on main; raising the timeout before #111 merges is harmless. No open PR touches `eval.yml` (checked 2026-11-21 ~12:50Z) |
 | **Jira** | KAN-118 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H20`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: two timeouts and their comments in one workflow file |
-| **Status** | In QA: rework 1 pushed (`3224fb2`), QA r3 PENDING on AC3 (`eval` re-run on the new head). PM rework round 1 of 2 |
+| **Status** | Ready to merge: QA r4 PASS + PM APPROVE (round 2) on `3224fb2`; PR #114 raised for Mahesh |
 
 ## Goal
 After OPS-H19 the eval prefetch step can legitimately run up to 2520 + 120 = 2640 s (44 min) when arXiv rate-limits.
@@ -33,19 +33,19 @@ before `GATE:` was printed. Main's step took 22m11s, and 1.47x of that is ~32.5 
   own `timeout-minutes: 45`, any change to eval cases, thresholds or the reranker (speed-ups are a separate AI ticket), `stack.yml` (Full stack fits: ~11 min job + 19 min worst-case prefetch < 45), eval thresholds.
 
 ## Acceptance criteria
-- [ ] AC1: The eval job comment lists the prefetch worst case explicitly, e.g. "setup + stack-up ~10 + prefetch 44 (2520 s
+- [x] AC1: The eval job comment lists the prefetch worst case explicitly, e.g. "setup + stack-up ~10 + prefetch 44 (2520 s
   budget + 120 s TIMEOUT) + self-test 1 + seed 70 + eval 30 + upload/teardown 2 = ~157 -> 165", and `timeout-minutes`
   equals the rounded-up total (≤ 360, the GitHub-hosted maximum). If the developer prefers lowering `--budget-seconds`
   instead, stop: that changes ai-owned behaviour and needs a PM decision, not this ticket.
-- [ ] AC2: Every other step's `timeout-minutes` is unchanged (`git diff` of `eval.yml` shows only the job timeout, the `make eval` step
+- [x] AC2: Every other step's `timeout-minutes` is unchanged (`git diff` of `eval.yml` shows only the job timeout, the `make eval` step
   timeout and their comments; the only other changed file is `CONTRIBUTING.md`, AC5).
-- [ ] AC4: The `make eval` step `timeout-minutes` is at least 45 (≥ 1.35x the ~32.5 min EPYC 7763 projection), and its comment
+- [x] AC4: The `make eval` step `timeout-minutes` is at least 45 (≥ 1.35x the ~32.5 min EPYC 7763 projection), and its comment
   cites both measurements: 22m11s on Intel Xeon 8573C (run 44764887789) and the 1.47x slower EPYC 7763 run (job 136830894337).
   The AC1 job total uses this new step value (eval 45 instead of 30), so the job timeout still covers every step's worst case.
-- [ ] AC3: CI on the draft PR: the `eval` check green, including its "Lint the harness (actionlint, compose config)" step
+- [x] AC3: CI on the draft PR: the `eval` check green, including its "Lint the harness (actionlint, compose config)" step
   and `make eval` with `GATE: PASS`; quote the job's total duration. (There is no separate `Lint` check; wording fixed
   2026-11-21 13:00Z after QA r1 finding 4, intent unchanged.)
-- [ ] AC5 (added at PM review, DoD item 4): In `CONTRIBUTING.md:34` (`eval.yml` row), "120 min for the job" becomes "180 min for
+- [x] AC5 (added at PM review, DoD item 4): In `CONTRIBUTING.md:34` (`eval.yml` row), "120 min for the job" becomes "180 min for
   the job", and the row also gives the `make eval` step budget: "Budgets: 70 min for the seed step, 45 min for `make eval`,
   180 min for the job". No other line of `CONTRIBUTING.md` changes. After this, `git grep -n '120 min' -- README.md CONTRIBUTING.md`
   returns nothing. `eval.yml` stays byte-identical to `ece17a7`. AC3 has to be re-evidenced on the new head, because the `eval`
@@ -76,8 +76,9 @@ make lint
   but app `CONTRIBUTING.md:34` still says "120 min for the job", so merging would leave the contributor docs wrong (DoD item 4).
   My spec scoped only `eval.yml`, so this is a spec miss, not a developer error. Rework checklist for backend-engineer on the existing branch
   `agent/backend/OPS-H20` (PR #114):
-  - [ ] `CONTRIBUTING.md:34`: "Budgets: 70 min for the seed step, 120 min for the job" → "Budgets: 70 min for the seed step,
+  - [x] `CONTRIBUTING.md:34`: "Budgets: 70 min for the seed step, 120 min for the job" → "Budgets: 70 min for the seed step,
     45 min for `make eval`, 180 min for the job" (AC5). No other edits; `eval.yml` unchanged.
-  - [ ] Push to the PR (it stays draft). QA r3 checks AC5, confirms `eval.yml` is identical to `ece17a7`, and re-checks AC3 on the new head.
+  - [x] Push to the PR (it stays draft). QA r3 checks AC5, confirms `eval.yml` is identical to `ece17a7`, and re-checks AC3 on the new head.
   No open PR touches `CONTRIBUTING.md` (checked via REST 2026-11-21).
 - 2026-11-21 16:00Z cycle, PM rework 1 (backend): `CONTRIBUTING.md:34` now reads "Budgets: 70 min for the seed step, 45 min for `make eval`, 180 min for the job" (AC5); `eval.yml` identical to `ece17a7`; pushed `3224fb2`, PR stays draft. QA r3 (`62fd3e8`): checklist items all met; PENDING on AC3 only (eval job 136903946034 running). Next cycle: QA quotes its `GATE:` line + duration → PASS → PM (AC5 only).
+- 2026-11-21 (pm-lead): QA r4 PASS (`04fe710`): `eval` job 136903946034 on `3224fb2` green, `GATE: PASS`, 69m52s. **PM APPROVE round 2** (`agents/reviews/OPS-H20/report.md`). AC5 met (evidence 14-18), AC3 re-evidenced on the new head (21-23). PR #114 description rewritten with the evidence and raised for review → Ready to merge.

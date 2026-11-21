@@ -1039,3 +1039,7 @@ Format:
 - New spec **AI-15** (ai, P3, test-only `tests/test_verify.py`): pins that `/internal/rerank` (cross-encoder and bi-encoder fallback) and `/internal/verify` return while an ingest holds `_ingest_lock`. Source: AI-12b's deferred rerank row, widened to verify because every answered `/v1/ask` calls it since NLI; AC4 folds in AI-12b QA nit 1. It has one mutant per case (m1-m4). It is not design-required, and no open PR touches the file. AI-13 (same file) now goes after it. → **Picked** (ai: 1 active).
 - Docs: raised arxivlens-agents [#17](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/17) (`docs/prd-rerank-inf`): the Technical PRD §7.1 rerank note now matches `search.go:214-258` (fused order ADR-0017, paper cap ADR-0016, fallback on error/timeout/cancel/count/NaN/±Inf). It closes two Backlog lines.
 - Jira (orchestrator, no Atlassian tools here): create the AI-15 Story under KAN-2, labels `task-AI-15`, `agent-ai`, `arxivlens`, status To Do. Then write the key into the ticket and the board row.
+
+## 2026-11-21 — pm-lead — OPS-H20 #114 final review round 2: APPROVE
+- QA r4 PASS on `3224fb2`. AC5 (`CONTRIBUTING.md:34` budgets 70/45/180) is met, `eval.yml` is byte-identical to `ece17a7`, and the `eval` check is green on the new head (`GATE: PASS`, job 69m52s). PM APPROVE was appended to `agents/reviews/OPS-H20/report.md`.
+- PR #114 description rewritten with the per-AC evidence and raised for review. Board: In QA → Ready to merge. Jira KAN-118 → Ready to merge (orchestrator).
