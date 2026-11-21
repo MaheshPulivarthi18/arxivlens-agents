@@ -991,3 +991,16 @@ Format:
 - PR #111 @ `5b4d6a2`: **APPROVE**, raised (ready for review, `ready-to-merge`). The `eval` check timed out in the `make eval` step (30 min) on
   an AMD EPYC 7763 runner (rerank 1.47x slower than main's Intel run). The retrieval metrics are identical to main and the prefetch took 0 s on a warm store,
   so the PR's code is not involved. Re-run 136850028681 pending. Evidence 13 added. OPS-H20 widened (AC4: `make eval` step timeout), dependency dropped → Ready.
+
+## 2026-11-21 12:00Z — orchestrator (cycle record; session_01ATEBeSaCT8MZpuyiJHJihL)
+- Setup: push dry-run OK; previous lock released by cycle 11:00Z; lock taken (`4b693a8`); app cloned at `11c4696`.
+- Sync: no merges since 04:52Z. Open agent PRs #104–#112; no review or untagged comment from Mahesh on any PR; no Jira intake; no ADR status change.
+- **OPS-H19** #111 (ai, KAN-113): `eval` check on `5b4d6a2` failed at 12:44Z — `make eval` step hit its own 30-min timeout on a slower EPYC 7763 runner (rerank 1.47× slower than main's run); prefetch 0 s (warm store), retrieval metrics identical to main, no `GATE:` reached. Orchestrator re-ran the job (136850028681, pending). PM APPROVE on merits (`1f15103`, evidence 13), raised; Jira → Ready to merge. QA rounds 1, PM rounds 2 (r1 HOLD).
+- New (pm-lead plan `1029fb7`; only one independent task at plan time):
+  - **OPS-H18b** (backend, P3, KAN-120): `.github/workflows/ci.yml` guard + `Makefile:43`; PR [#113](https://github.com/MaheshPulivarthi18/ArxivLens/pull/113) @ `246d6d1`, 1 attempt. CI 6/6 green. QA r1 PASS (6/6 mutants killed, base control reproduces fail-open; evidence `6cd7729`) → PM APPROVE (`26de417`), raised. Jira → Ready to merge.
+  - **OPS-H20** (backend, P2, KAN-118): became independent mid-cycle when pm-lead dropped its #111 dependency and widened it with AC4 (`make eval` step timeout). `.github/workflows/eval.yml` only; PR [#114](https://github.com/MaheshPulivarthi18/ArxivLens/pull/114) @ `ece17a7` draft, 1 attempt. QA r1 **PENDING** on AC3 (`eval` check queued behind the #111 re-run in `concurrency: eval`); AC1/AC2/AC4 evidenced (`8623246`). QA `[spec]` 2: a prefetch killed at its 45-min step limit never writes `saved=`, so the partial recording is lost → pm-lead to groom (ai, `scripts/arxiv_replay.py`). Jira → In QA.
+  - Independence: #113 (`ci.yml`, `Makefile`) and #114 (`eval.yml`) share no files with each other or with #104–#112; deps merged (OPS-H18 #103) / none.
+- Not picked: everything else in Ready waits on #104/#106/#107/#109/#111 merging (pm-lead list in `1029fb7`).
+- QA harness refused `report.md` again (both); orchestrator saved PR comments verbatim (`26059c3`, `2c74d4d`).
+- Retro: first-round QA pass 1/1 decided (1 PENDING on CI queue). New observation: eval runtime varies 1.47× by runner CPU; captured in OPS-H20. No new rules PR.
+- RUN_LOCK released in this commit.
