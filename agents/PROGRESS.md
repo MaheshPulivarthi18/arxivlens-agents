@@ -872,3 +872,9 @@ Format:
 - APPROVE: QA r1 PASS; all 12 evidence files at `bdea793` opened, each AC proven (AC6 = CI Frontend job 136652677439, 8 files / 118 tests vs main 7 / 114). PR #101 raised (ready for review, label `ready-to-merge`); board → Ready to merge.
 - QA [spec] #2 fixed: ticket PRD ref now points to `docs/design/FE-0.md` 107-108, 120-122 instead of Product PRD §7.
 - Backlog: repo-wide form-control border scan (incl. HeroSearch, `<textarea`/`<select`), after FE-3b.
+
+## 2026-11-21 pm-lead: OPS-H8c final review (PR #100)
+- APPROVE: QA r1 PASS; I opened all 7 evidence files at `fa3393e` and each AC is proven (AC1 compose config + PyYAML: only processor/embedder-worker = 20s; AC2 20 > 12 + 1 s; AC3 Full stack run 44842072980, `dc stop processor` 1.54 s; AC4 all 7 checks green on `ffe4b45`). PR #100 raised (ready for review, label `ready-to-merge`).
+- QA [spec] 1 fixed: ticket Scope now says per-service placement (`embedder-api` merges `x-worker`). [spec] 2 accepted (duplicate-not-loss, per the design). Design OPS-H8 item 6 got a "done in OPS-H8c" note.
+- Backlog: OPS-H8d (backend P3), a unit test guarding compose grace > `DELIVERY_TIMEOUT_S` + 1 s.
+- Note: the report/ticket/board edits landed inside FE-0h's commit `3978149` (shared working tree, swept by a parallel commit); lesson filed.

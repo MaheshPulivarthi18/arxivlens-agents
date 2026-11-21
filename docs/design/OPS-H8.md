@@ -296,6 +296,7 @@ Answers to the open questions (all within pm-lead authority; **none needs Mahesh
    envelope's value is already the header value when a header is present, so this only fills today's `None` case. The poison path stays header-only (no envelope).
 6. **Backlog: G5 is filed** (backend, P3). **G4 is filed** (ai, P3, low value: L3 already makes redelivery safe; fold into the next `services/embedder/worker.py` change).
    Also filed: compose `stop_grace_period` for the workers (backend, P3, from answer 2). All three are in `agents/board.md` Backlog.
+   *Update 2026-11-21 (pm-lead):* the compose `stop_grace_period` was done in OPS-H8c ([#100](https://github.com/MaheshPulivarthi18/ArxivLens/pull/100)): 20 s on `processor` and `embedder-worker` (per service, because `embedder-api` also merges `x-worker`).
 
 Binding conditions:
 1. **Sequencing.** No build this cycle. Cut `agent/backend/OPS-H8` from a fresh `origin/main` **only after ArxivLens #23 (LLM-1, changes `.github/workflows/ci.yml`) merges**.
