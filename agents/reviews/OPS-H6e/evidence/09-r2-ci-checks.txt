@@ -1,0 +1,10 @@
+$ bash -c git rev-parse HEAD; gh api repos/MaheshPulivarthi18/ArxivLens/commits/$(git rev-parse HEAD)/check-runs --jq '.check_runs[] | "\(.name) | \(.status) | \(.conclusion) | job=\(.id) | \(.completed_at)"'
+f1b156ec66ed0005003c8ce69304122172b43974
+Full stack (compose + make test-full) | completed | success | job=136768749810 | 2026-11-21T07:17:08Z
+Frontend (lint, test, build) | completed | success | job=136743707292 | 2026-11-21T05:21:53Z
+Go (vet, gofmt, test, build) | completed | success | job=136743707273 | 2026-11-21T05:22:19Z
+Agent ownership check | completed | success | job=136743707272 | 2026-11-21T05:21:32Z
+DB (migrate twice, HNSW plan + recall) | completed | success | job=136743707170 | 2026-11-21T05:23:08Z
+Python M0 unit tests | completed | success | job=136743707091 | 2026-11-21T05:22:39Z
+
+[exit code 0]

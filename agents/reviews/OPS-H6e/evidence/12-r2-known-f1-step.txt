@@ -1,0 +1,16 @@
+$ bash -c sed -n '/Known failure F1 (Mahesh/,+5p;/name: "Known failure F1/,+3p' .github/workflows/stack.yml; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136768749810/logs | grep -E 'FAILED tests/test_m3_query|[0-9]+ failed, [0-9]+ passed'
+      # Known failure F1 (Mahesh, 2026-11-04): CPU cross-encoder rerank makes /v1/ask take ~10 s, over M3's 10 s
+      # client timeout. Deselected from AC4 and run on their own, visibly, in "Known failure F1". Tracked in OPS-H1 Notes.
+      F1_TESTS: >-
+        tests/test_m3_query.py::test_rag_ask_with_groundedness_support
+        tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query
+        tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank
+      - name: "Known failure F1 (CPU rerank latency, tracked)"
+        if: ${{ !cancelled() && steps.seed.outcome == 'success' }}
+        continue-on-error: true
+        timeout-minutes: 5
+2026-11-21T07:16:59.8918431Z FAILED tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+2026-11-21T07:16:59.8919818Z FAILED tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank - requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=8080): Read timed out. (read timeout=10)
+2026-11-21T07:16:59.8920632Z 2 failed, 1 passed in 30.41s
+
+[exit code 0]
