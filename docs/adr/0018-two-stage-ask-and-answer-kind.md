@@ -1,6 +1,6 @@
 # ADR-0018: Record the `/v1/ask` contract changes made in ArxivLens #46 (two-stage answers, `answer_kind`, `insufficient_evidence`)
 
-- **Status:** Proposed
+- **Status:** Proposed (its latency row is put into effect by ADR-0019, Accepted 2026-11-22)
 - **Date:** 2026-11-17
 - **Deciders:** Mahesh Pulivarthi (only the human owner sets Accepted/Rejected)
 - **Blocks:** nothing is blocked. AI-8's design and FE-3/FE-4 build on the shape described here and need to know whether it is final.

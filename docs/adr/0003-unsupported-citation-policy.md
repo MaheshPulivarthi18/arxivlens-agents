@@ -1,6 +1,6 @@
 # ADR-0003: What to do with unsupported citations
 
-- **Status:** Accepted (Mahesh, 2026-11-07)
+- **Status:** Accepted (Mahesh, 2026-11-07); amended by ADR-0019 (2026-11-22): written answers hide failed citations instead of flagging them
 - **Date:** 2026-11-01
 - **Deciders:** Mahesh Pulivarthi
 - **Blocks:** follow-up after QA-8 (not QA-8 itself)
