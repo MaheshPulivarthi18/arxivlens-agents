@@ -68,7 +68,7 @@ reports) and return an ordered list of new tasks for this cycle, respecting:
 
 ## Step 4 — Design (only `design-required` tasks) → Build → open PR
 Run the selected tasks **in parallel**: one subagent per task, each in its own worktree
-(`git -C app worktree add "$HOME/wt/<TASK-ID>" -b agent/<role>/<TASK-ID> origin/main`, outside both repos), launched together and awaited
+(`git -C app worktree add "$HOME/wt/<TASK-ID>" -b agent/<role>/<TASK-ID> origin/main`, outside both repos; run `echo $HOME` first and write the **expanded absolute path** into every subagent prompt, since `$HOME` is not the workspace parent), launched together and awaited
 together. Rework items go first. QA and PM review for each PR also run in parallel. For each task:
 0. **Design gate.** If the ticket (or its Jira story) is `design-required` and there is no approved
    `docs/design/<TASK-ID>.md` yet: the owner writes it from `agents/templates/design.md` and commits it to this repo's
@@ -90,6 +90,7 @@ together. Rework items go first. QA and PM review for each PR also run in parall
    Jira: **In QA**; set `**PR:** #n` in the story description; comment `[<role>] PR #n opened → <link>`.
 
 ## Step 5 — QA (delegate to `qa-reviewer`, fresh context)
+Parallel QA and PM agents never share one `arxivlens-agents` checkout: give each its own (`git -C <workspace> worktree add --detach "$HOME/wt/agents-<role>-<TASK-ID>" origin/main`), and stage explicit paths only.
 For each PR queued for QA, invoke `qa-reviewer` with only: PR number, branch, head SHA, the ticket path, and the PRD
 rows, and the approved design doc if one exists. Do **not** pass the developer's self-report — QA judges from the spec,
 the PRD, the design, the diff and the evidence.
