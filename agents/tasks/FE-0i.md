@@ -8,7 +8,7 @@
 | **Depends on** | FE-0b (#70, merged). No ADR. Does **not** wait on FE-3b (#104): no shared file, see Notes |
 | **Jira** | KAN-111 |
 | **Design required** | no: one element tag in a ui primitive plus a test; no contract or dependency change |
-| **Status** | In Progress (branch `agent/frontend/FE-0i` pushed at `12484f8`; draft PR to be opened by orchestrator) |
+| **Status** | Ready to merge (PR [#109](https://github.com/MaheshPulivarthi18/ArxivLens/pull/109) @ `12484f8`; QA r1 PASS, PM APPROVE 2026-11-21; waiting on Mahesh) |
 
 ## Goal
 `Badge` is inline content (`inline-flex`) but renders a block element. Inside FE-3b's status-chip `<button>` that is invalid HTML (the
@@ -23,17 +23,17 @@ accessible name is fine, the markup is not). Render a `<span>` with the same cla
 - Size: ~40 lines.
 
 ## Acceptance criteria
-- [ ] AC1 — `render(<Badge>x</Badge>)` gives a `SPAN` element holding `x` with the `badgeVariants` default classes (`inline-flex`, `rounded-full`, `bg-primary`).
-- [ ] AC2 — A caller `className` is merged with the defaults, a named variant gets its classes (e.g. `variant="supported"` → `bg-supported`,
+- [x] AC1 — `render(<Badge>x</Badge>)` gives a `SPAN` element holding `x` with the `badgeVariants` default classes (`inline-flex`, `rounded-full`, `bg-primary`).
+- [x] AC2 — A caller `className` is merged with the defaults, a named variant gets its classes (e.g. `variant="supported"` → `bg-supported`,
   `text-supported-foreground`), and extra props are forwarded (`title`, `data-testid`).
-- [ ] AC3 — `render(<button><Badge>x</Badge></button>)`: `button.querySelector('div')` is `null`.
-- [ ] AC4 — Layout unchanged: the class string `badge.jsx` produces is byte-identical to `main` (diff shows only the tag). QA's browser harness
-  (evidence file) shows computed `display: inline-flex` and the same bounding-box width/height on `main` and on the branch for one badge from each
+- [x] AC3 — `render(<button><Badge>x</Badge></button>)`: `button.querySelector('div')` is `null`.
+- [x] AC4 — Layout unchanged: the class string `badge.jsx` produces is byte-identical to `main` (diff shows only the tag). QA's browser harness
+  (evidence file) shows the same computed `display` (`inline-flex`, or `flex` where a flex parent blockifies it; amended per QA r1 [spec] finding 2) and the same bounding-box width/height on `main` and on the branch for one badge from each
   calling component (SynthesisView, IngestModal result, PapersLibrary, ReferencesStack), both themes not required.
-- [ ] AC5 — **Mutation check:** the developer (if the sandbox can run Vitest) or QA's harness (evidence file) shows that reverting the tag to `div`
+- [x] AC5 — **Mutation check:** the developer (if the sandbox can run Vitest) or QA's harness (evidence file) shows that reverting the tag to `div`
   makes the AC1 and AC3 tests fail, and that they pass with the change restored.
-- [ ] AC6 — `npm run lint` (0 warnings) and `npm test` pass in the CI Frontend job on the draft PR; the file count in its Vitest summary is one higher than `main`.
-- [ ] Docs: none (no user-visible change).
+- [x] AC6 — `npm run lint` (0 warnings) and `npm test` pass in the CI Frontend job on the draft PR; the file count in its Vitest summary is one higher than `main`.
+- [x] Docs: none (no user-visible change).
 
 ## Verification
 ```bash
@@ -58,3 +58,6 @@ git diff origin/main -- frontend/src/components/ui/badge.jsx   # only the two ta
   Chrome: old `<div>` → 0 passed / 3 failed (`expected DIV toBe SPAN`; AC3 found the `<div>`), `<span>` → 3 passed / 0 failed (AC5 mutation, sandbox half).
   Grep: no test on main selects a badge by `div` tag. Pending for QA/CI: AC4 browser bounding boxes, AC6 CI Frontend job (lint 0 warnings,
   Vitest file count +1 vs main).
+- 2026-11-21 (pm-lead): final review **APPROVE** ([report](../reviews/FE-0i/report.md)), PR #109 raised (ready for review) → Ready to merge.
+  No file overlap with #104. QA [spec] finding 2 fixed in AC4 above (computed display compared per badge, because flex parents blockify the badge).
+  QA nit 1 (className precedence mutant M5) → follow-up [FE-0j](FE-0j.md), Backlog until #109 merges.
