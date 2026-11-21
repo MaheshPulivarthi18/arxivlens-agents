@@ -1,0 +1,45 @@
+$ bash -c python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k "case_record or case_records or malformed_citations or claims_and_citation or review or judgment" 2>&1 | grep -E "PASSED|FAILED|ERROR|passed|failed"; echo; echo "\$ grep -n fingerprint scripts/answer_review.py"; grep -n "fingerprint" scripts/answer_review.py; echo "\$ git diff origin/main --stat -- scripts/answer_review.py"; git diff origin/main --stat -- scripts/answer_review.py; echo "(empty = unchanged)"
+tests/test_evals_data.py::test_case_records_hold_ids_and_numbers_only PASSED [  2%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[5-[]] PASSED [  5%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case['s'-[]] PASSED [  8%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[{'k': 1}-[]] PASSED [ 11%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[{}-[]] PASSED [ 14%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[True-[]] PASSED [ 17%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[['str', {'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]-[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]] PASSED [ 20%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}, None]-[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]] PASSED [ 22%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]]-[]] PASSED [ 25%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[{'arxiv_id': 7, 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]-None] PASSED [ 28%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}, {'arxiv_id': ['1706.03762'], 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]-None] PASSED [ 31%]
+tests/test_evals_data.py::test_review_export_one_row_per_claim_citation_and_blind PASSED [ 34%]
+tests/test_evals_data.py::test_review_score_known_numbers_and_unjudged_excluded PASSED [ 37%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change0-False] PASSED [ 40%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change1-False] PASSED [ 42%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change2-False] PASSED [ 45%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change3-False] PASSED [ 48%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change4-False] PASSED [ 51%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change5-False] PASSED [ 54%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change6-True] PASSED [ 57%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change7-False] PASSED [ 60%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change8-False] PASSED [ 62%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change9-False] PASSED [ 65%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change10-False] PASSED [ 68%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change11-False] PASSED [ 71%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change12-True] PASSED [ 74%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change13-True] PASSED [ 77%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change14-True] PASSED [ 80%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change15-True] PASSED [ 82%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change16-True] PASSED [ 85%]
+tests/test_evals_data.py::test_review_load_rejects_conflicting_claim_labels_and_duplicates PASSED [ 88%]
+tests/test_evals_data.py::test_review_round_trip_export_score_save PASSED [ 91%]
+tests/test_evals_data.py::test_review_committed_judgments_hold_ids_and_labels_only PASSED [ 94%]
+tests/test_evals_data.py::test_claims_and_citation_fields_leave_eval_results_unchanged PASSED [ 97%]
+tests/test_evals_data.py::test_case_record_carries_answer_kind_and_citation_status PASSED [100%]
+====================== 35 passed, 251 deselected in 0.10s ======================
+
+$ grep -n fingerprint scripts/answer_review.py
+5:  re-asked; a case whose (marker, chunk_id, score, supported) fingerprint differs is skipped as drift. Writes a blind
+58:        if ea.classify(resp) != "answered" or want != got:  # fingerprint: same pairs, scores and verdicts
+$ git diff origin/main --stat -- scripts/answer_review.py
+(empty = unchanged)
+
+[exit code 0]

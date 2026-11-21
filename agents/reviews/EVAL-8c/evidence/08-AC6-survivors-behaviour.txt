@@ -1,0 +1,37 @@
+$ bash -c echo '=== m6a (if model and root -> if root): real-socket probe, row model-unset ==='; grep -n '    if root:' /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-EVAL-8c-r1/mutwork2.Aycf/mut06/scripts/eval_gate.py; timeout 120 python3 /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-EVAL-8c-r1/probe_real_server.py /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-EVAL-8c-r1/mutwork2.Aycf/mut06 2>&1 | grep -E 'model-unset' | cut -c1-330; echo; echo '=== same row on the unmutated PR head ==='; timeout 120 python3 /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-EVAL-8c-r1/probe_real_server.py /root/wt/qa-EVAL-8c 2>&1 | grep -E 'model-unset' | cut -c1-330; echo; echo '=== x1 (rate counts set==answer only): n003-style answered near-miss ==='; grep -n 'c.get("set") == "answer"' /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-EVAL-8c-r1/mutwork2.Aycf/mut08/scripts/eval_gate.py; python3 /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-EVAL-8c-r1/x1_probe.py scripts/eval_gate.py /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-EVAL-8c-r1/mutwork2.Aycf/mut08/scripts/eval_gate.py; echo; echo '=== the only no-probe test sets no LLM_BASE_URL ==='; grep -n -A3 'def test_no_probe_without_llm_model' tests/test_evals_data.py; echo; cat /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-EVAL-8c-r1/x1_probe.py
+=== m6a (if model and root -> if root): real-socket probe, row model-unset ===
+138:    if root:
+  model-unset          exit=1 t= 0.0s req=[('/api/version', 'Bearer sk-test-SECRET'), ('/api/tags', 'Bearer sk-test-SECRET')] leaks=none
+exit codes all equal: True {'ok': 1, 'ok-no-key': 1, 'refused': 1, '401': 1, 'model-missing': 1, 'non-json': 1, 'timeout(7s server)': 1, 'bad-url': 1, 'model-unset': 1}
+[model-unset] llm = {"model": null, "source": "env", "host": "127.0.0.1:44055", "ollama_version": "0.40.16", "digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "digest_short": "ffffffffffff", "synthesized_answer_rate": 1.0}
+
+=== same row on the unmutated PR head ===
+  model-unset          exit=1 t= 0.0s req=[] leaks=none
+exit codes all equal: True {'ok': 1, 'ok-no-key': 1, 'refused': 1, '401': 1, 'model-missing': 1, 'non-json': 1, 'timeout(7s server)': 1, 'bad-url': 1, 'model-unset': 1}
+[model-unset] llm = {"model": null, "source": "env", "host": "127.0.0.1:46661", "ollama_version": null, "digest": null, "digest_short": null, "synthesized_answer_rate": 1.0}
+
+=== x1 (rate counts set==answer only): n003-style answered near-miss ===
+147:    answered = [c for c in (answers or {}).get("cases") or [] if c.get("outcome") == "answered" and c.get("set") == "answer"]
+PR head    synthesized_answer_rate=(0.5, 1)  warnings(model unset)=["warning: 1 written answers came from an LLM the eval can't name; export LLM_MODEL for make eval too"]
+mutant x1  synthesized_answer_rate=(0.0, 0)  warnings(model unset)=[]
+
+=== the only no-probe test sets no LLM_BASE_URL ===
+1671:def test_no_probe_without_llm_model(monkeypatch, tmp_path):
+1672-    calls = _fake_ollama(monkeypatch)
+1673-    _, written = _gate_main(monkeypatch, tmp_path, {"LLM_API_KEY": "sk-test-SECRET"}, kind="quoted")
+1674-    assert calls == []
+
+"""QA EVAL-8c: does synthesized_answer_rate count an answered near-miss case (n003-style)? head vs mutant x1."""
+import importlib.util, sys
+def load(p):
+    s = importlib.util.spec_from_file_location("g", p); m = importlib.util.module_from_spec(s); s.loader.exec_module(m); return m
+answers = {"cases": [
+    {"id": "a1", "set": "answer", "outcome": "answered", "answer_kind": "quoted"},
+    {"id": "x1", "set": "refusal", "outcome": "refusal", "answer_kind": None},
+    {"id": "n003", "set": "near_miss", "outcome": "answered", "answer_kind": "synthesized"}]}
+for label, path in zip(("PR head", "mutant x1"), sys.argv[1:]):
+    g = load(path)
+    print(f"{label:10s} synthesized_answer_rate={g.synthesized_answer_rate(answers)}  "
+          f"warnings(model unset)={g.llm_warnings(None, g.synthesized_answer_rate(answers)[1])}")
+
+[exit code 0]

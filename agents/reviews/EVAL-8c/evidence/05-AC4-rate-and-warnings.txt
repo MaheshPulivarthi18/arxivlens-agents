@@ -1,0 +1,10 @@
+$ bash -c python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k "synthesized_answer_rate or llm_warnings or warning_goes" 2>&1 | grep -E "PASSED|FAILED|ERROR|passed|failed"
+tests/test_evals_data.py::test_synthesized_answer_rate_counts_answered_full_responses_only PASSED [ 16%]
+tests/test_evals_data.py::test_llm_warnings[None-0-None] PASSED          [ 33%]
+tests/test_evals_data.py::test_llm_warnings[None-2-can't name] PASSED    [ 50%]
+tests/test_evals_data.py::test_llm_warnings[qwen2.5:3b-instruct-0-0 answers were synthesized] PASSED [ 66%]
+tests/test_evals_data.py::test_llm_warnings[qwen2.5:3b-instruct-2-None] PASSED [ 83%]
+tests/test_evals_data.py::test_warning_goes_to_stderr_and_keeps_the_exit_code PASSED [100%]
+====================== 6 passed, 280 deselected in 0.07s =======================
+
+[exit code 0]

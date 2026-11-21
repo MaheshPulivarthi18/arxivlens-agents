@@ -1,0 +1,18 @@
+$ gh api .../commits/b91f78e.../check-runs; gh api .../actions/jobs/137004564072/logs
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/b91f78e6389eb64915bd25403a521f9408f6268d/check-runs
+Python M0 unit tests | completed | success | job 137004564072 | 2026-11-21T22:20:50Z
+Go (vet, gofmt, test, build) | completed | success | job 137004563980 | 2026-11-21T22:20:24Z
+Agent ownership check | completed | success | job 137004563941 | 2026-11-21T22:19:27Z
+DB (migrate twice, HNSW plan + recall) | completed | success | job 137004563781 | 2026-11-21T22:21:20Z
+Frontend (lint, test, build) | completed | success | job 137004563676 | 2026-11-21T22:19:45Z
+Full stack (compose + make test-full) | completed | success | job 137004563546 | 2026-11-21T22:28:50Z
+
+--- Python M0 unit tests (job 137004564072) log excerpts ---
+2026-11-21T22:19:25.8073854Z HEAD is now at c2f111a Merge b91f78e6389eb64915bd25403a521f9408f6268d into 53171d6579a90de027239255e98369e323416ad3
+2026-11-21T22:19:33.1653569Z [36;1mpkgs="$(pip list)" || { echo "::error::pip list failed; cannot check for the ML stack"; exit 1; }[0m
+2026-11-21T22:19:40.4489142Z python3 -m pytest -q tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py tests/test_rerank_precision.py
+2026-11-21T22:19:47.1714698Z 317 passed, 1 skipped in 6.30s
+2026-11-21T22:20:33.7265912Z python3 -m pytest -q tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py
+2026-11-21T22:20:46.6909264Z 73 passed, 2 skipped, 3 warnings in 12.20s
+2026-11-21T22:20:48.2600848Z ============================== 48 passed in 0.31s ==============================
+
