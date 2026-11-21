@@ -8,7 +8,7 @@
 | **Depends on** | the replay proxy (ArxivLens #45, merged `393bcf3`). No ADR. No open PR touches `scripts/arxiv_replay.py` or `tests/test_arxiv_replay.py` (checked 2026-11-21 11:00Z against #104–#110: #107 edits `scripts/evaluate_answers.py`, `tests/test_evals_data.py`, `evals/README.md`; #110 edits `tests/test_kafka_client.py`; #106 edits `tests/test_chunk_reprocess_db.py`, `tests/test_processor_pages.py`) |
 | **Jira** | needs creating: epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H19`, `agent-ai`, `arxivlens` |
 | **Design required** | no: one function's control flow in an existing CI script + unit tests; no CLI flag, table, service or contract change |
-| **Status** | Ready |
+| **Status** | In QA (PR pending) |
 
 ## Goal
 The Full stack job's "Prefetch arXiv responses into the replay store" step failed six times on 2026-11-21 (#105/#106/#107, two
@@ -79,3 +79,31 @@ git diff origin/main --name-only   # exactly scripts/arxiv_replay.py and tests/t
 - 2026-11-21 11:00Z (pm-lead): specced from the Backlog P1 item. Owner is ai-engineer, not backend, because the fix lives in
   `scripts/` (ai-owned); the backend-owned `stack.yml` already passes a 17-min budget the script doesn't use. The Backlog
   alternatives (pin responses in the repo: store contains PDFs; `main`-scoped cache: OPS-H13, waiting on Mahesh) stay open.
+- 2026-11-21 (ai-engineer): built on ArxivLens branch `agent/ai/OPS-H19`, commit `5b4d6a2` (not pushed; orchestrator opens
+  the draft PR). Diff: `scripts/arxiv_replay.py` +77/-21, `tests/test_arxiv_replay.py` +96/-2 (196 changed lines, ownership OK).
+  - Design: `Recorder(budget=)` holds the deadline; every fetch attempt, politeness gap, retry wait and the between-pass
+    cool-down goes through `Recorder.budget_allows(wait)`. A wait that would reach the deadline is **not taken** (rather
+    than slept up to the deadline then abandoned) and the fetch is reported `(time budget)`. That is stricter than "clipped",
+    and it doesn't waste wall time. Cool-down = `max(PASS_WAIT=60, largest Retry-After seen in the pass)`, not capped by `MAX_WAIT`.
+  - **Interpretation, for QA/PM:** the budget clock starts at the **first upstream request**, not at process start. The
+    unmodified `test_prefetch_budget_stops_early_and_reports_saved` feeds only two `0.0` clock readings before jumping to 100.
+    If the deadline were taken at start, a per-fetch deadline check (AC3) would skip that query's PDF and give `saved=1`,
+    not the pinned `saved=2`. Starting the clock lazily satisfies both ACs. Cost: the seconds spent reading cached hits
+    before the first miss aren't counted. The docstring states this next to the 1140 < 1200 s and 2640 < 2700 s sums.
+  - Tests (new): `test_prefetch_retries_only_failed_queries_until_they_succeed` (AC1 + AC4 saved=3 + 90 s cool-down
+    from Retry-After), `test_prefetch_without_budget_makes_one_pass` (AC2, request count 4),
+    `test_prefetch_never_requests_or_sleeps_past_the_deadline` (AC3, fake clock + recorded sleeps, real INTERVAL/RETRY_WAITS),
+    `test_prefetch_loop_fetches_only_through_recorder` (AC5). Fake `Upstream` gained exact-path scripts and an `on_request`
+    hook. The `env` fixture now has a sleep guard (raises after 100 sleeps, caps real sleeps at 0.05 s), so a looping mutant
+    fails instead of hanging. Without it, m4 hung the unmodified `test_prefetch_reports_failures` forever. No existing test body changed.
+  - Mutants (each applied to a copy of the file, then reverted, with `pytest -q tests/test_arxiv_replay.py`): m1 single pass → 2 failed (AC1, AC3
+    tests); m2 cool-down check removed → 2 failed (AC3 test + existing budget test); m3 `pending = queries` → 1 failed
+    (AC1 test: request order + `"hits": 0`); m4 drop `or rec.deadline is None` → 2 failed (AC2 test + guard on
+    `test_prefetch_reports_failures`). Restored: 13 passed. m3 note: B's saved feed is a hit when re-run, so the upstream log
+    alone can't see m3; the AC1 test also asserts `hits == 0` and the `retrying 1 queries` line.
+  - Verification run locally: `pytest -q tests/test_arxiv_replay.py` 13 passed; `pytest tests/test_evals_data.py
+    tests/test_arxiv_replay.py` 155 passed, 1 skipped. Not runnable here: `make test-py-light` (`confluent_kafka` is missing
+    and PyPI is blocked, so `test_worker_heartbeat.py` fails to collect); `make lint` (Go/oxlint only, nothing touched). `ruff check` on both
+    files reports the same 3 findings as origin/main (EXE001, BLE001, SIM115 on lines this change doesn't touch). AC7
+    (CI Lint, light job, Full stack prefetch log lines) is pending the draft PR. README/CONTRIBUTING: `grep -n prefetch` finds nothing, so unchanged.
+
