@@ -1,0 +1,47 @@
+$ bash -c for a in 1 2; do f=/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-OPS-H6e-r1/fullstack-attempt$a.log; echo "== attempt $a ($(gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/44870497705/attempts/$a/jobs --jq '.jobs[0].id')): merge commit, prefetch result, errors"; grep -E 'HEAD is now at|upstream 429|prefetch: |prefetch FAILED|##\[error\]' $f | cut -c1-200 | head -12; echo "   lines mentioning test_chunk_reprocess_db / 'AC4: make test-full' output: $(grep -c 'test_chunk_reprocess_db' $f)"; done; echo; echo '== steps of attempt 2 (job 136746049463)'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136746049463 --jq '.steps[] | select(.number>=10 and .number<=24) | "\(.number) \(.name): \(.conclusion)"'
+== attempt 1 (136743706973): merge commit, prefetch result, errors
+2026-11-21T05:21:28.6302925Z HEAD is now at c92184f Merge f1b156ec66ed0005003c8ce69304122172b43974 into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+2026-11-21T05:23:24.3945990Z [replay] upstream 429 for https://export.arxiv.org/api/query?id_list=2608.20331 (attempt 1)
+2026-11-21T05:24:10.9368355Z [replay] upstream 429 for https://export.arxiv.org/api/query?id_list=2608.20331 (attempt 2)
+2026-11-21T05:24:26.0681303Z [replay] upstream 429 for https://export.arxiv.org/api/query?id_list=2608.20331 (attempt 3)
+2026-11-21T05:26:13.7407555Z [replay] upstream 429 for https://export.arxiv.org/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (attempt 1)
+2026-11-21T05:26:18.9116195Z [replay] upstream 429 for https://export.arxiv.org/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (attempt 2)
+2026-11-21T05:26:43.6225017Z [replay] upstream 429 for https://export.arxiv.org/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (attempt 3)
+2026-11-21T05:27:50.0404569Z [replay] upstream 429 for https://export.arxiv.org/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (attempt 4)
+2026-11-21T05:27:50.0406890Z [replay] prefetch FAILED for 2: api?id_list=2608.20331 api?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (arXiv unreachable or r
+2026-11-21T05:27:50.0408322Z [replay] prefetch: 2 queries, stats={"hits": 0, "misses": 2, "upstream_fetches": 8, "upstream_failures": 8, "saved": 0}
+2026-11-21T05:27:50.0534554Z ##[error]Process completed with exit code 1.
+   lines mentioning test_chunk_reprocess_db / 'AC4: make test-full' output: 0
+== attempt 2 (136746049463): merge commit, prefetch result, errors
+2026-11-21T05:31:15.7395049Z HEAD is now at c92184f Merge f1b156ec66ed0005003c8ce69304122172b43974 into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+2026-11-21T05:33:07.1125291Z [replay] upstream 429 for https://export.arxiv.org/api/query?id_list=2608.20331 (attempt 1)
+2026-11-21T05:34:59.1506468Z [replay] upstream 429 for https://export.arxiv.org/api/query?id_list=2608.20331 (attempt 2)
+2026-11-21T05:35:14.2797908Z [replay] upstream 429 for https://export.arxiv.org/api/query?id_list=2608.20331 (attempt 3)
+2026-11-21T05:35:59.4191562Z [replay] upstream 429 for https://export.arxiv.org/api/query?id_list=2608.20331 (attempt 4)
+2026-11-21T05:36:33.2482624Z [replay] upstream 429 for https://export.arxiv.org/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (attempt 1)
+2026-11-21T05:36:53.8235945Z [replay] upstream 429 for https://export.arxiv.org/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (attempt 2)
+2026-11-21T05:37:39.9044392Z [replay] upstream 429 for https://export.arxiv.org/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (attempt 3)
+2026-11-21T05:38:25.0612060Z [replay] upstream 429 for https://export.arxiv.org/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (attempt 4)
+2026-11-21T05:38:25.0613252Z [replay] prefetch: 2 queries, stats={"hits": 0, "misses": 2, "upstream_fetches": 8, "upstream_failures": 8, "saved": 0}
+2026-11-21T05:38:25.0614687Z [replay] prefetch FAILED for 2: api?id_list=2608.20331 api?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (arXiv unreachable or r
+2026-11-21T05:38:25.0720486Z ##[error]Process completed with exit code 1.
+   lines mentioning test_chunk_reprocess_db / 'AC4: make test-full' output: 0
+
+== steps of attempt 2 (job 136746049463)
+10 Restore arXiv replay store: success
+11 Prefetch arXiv responses into the replay store: failure
+12 Save arXiv replay store: skipped
+13 ING-6 Risk 1: published order of recorded search feeds: success
+14 Start the arXiv replay proxy (replay-only): skipped
+15 AC1: plain docker compose up -d starts infra only: skipped
+16 AC2: make stack-up: skipped
+17 Worker health follows this container, not the group: skipped
+18 Migrate: skipped
+19 AC3: crawl 2 papers (before the downloader starts): skipped
+20 Start Go downloader and query service on the host: skipped
+21 AC3: wait until both crawled papers are embedded: skipped
+22 Seed the M3/M4 fixture (on-demand ingest of 2608.20331): skipped
+23 AC4: make test-full: skipped
+24 Known failure F1 (CPU rerank latency, tracked): skipped
+
+[exit code 0]

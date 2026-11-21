@@ -1,0 +1,32 @@
+$ bash -c PYTHONPATH=/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-OPS-H6e-r1/plug python3 /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-OPS-H6e-r1/sql_probe.py /root/wt/qa-app-OPS-H6e /tmp/qa-h6e-pg.RQ3J head 2>&1 | grep -vE '^    (INSERT INTO|BEGIN|ROLLBACK|SELECT|-----|  \?column|\(2 rows\)|$)'
+== head: tree /root/wt/qa-app-OPS-H6e
+-- statement for a 4-tuple: INSERT INTO chunk_embeddings (chunk_id, model, embedding) SELECT pc.id, 'm'::text, '[0.500000]'::halfvec FROM paper_chunks pc WHERE pc.id = 10 AND pc.content_hash = 'h0' FOR SHARE OF pc ON CONFLICT (chunk_id, model) DO UPDATE SET embedding = EXCLUDED.embedding, created_at = now();
+-- statement for a 3-tuple: INSERT INTO chunk_embeddings (chunk_id, model, embedding) VALUES (10, 'm', '[0.500000]'::halfvec) ON CONFLICT (chunk_id, model) DO UPDATE SET embedding = EXCLUDED.embedding, created_at = now();
+== single session (one transaction, rolled back at the end, like tests/test_chunk_reprocess_db.py)
+    INSERT 0 1
+    INSERT 0 1
+    INSERT 0 0
+    INSERT 0 0
+     txn-usable |       10 | m     | [0.250000]
+     txn-usable |       11 | m     | [kept]
+  OK   AC2 insert / AC2 update / AC3 stale / AC4 deleted -> command tags: got ['INSERT 0 1', 'INSERT 0 1', 'INSERT 0 0', 'INSERT 0 0'] want ['INSERT 0 1', 'INSERT 0 1', 'INSERT 0 0', 'INSERT 0 0']
+  OK   txn usable after AC4; rows = chunk10 updated, chunk11 untouched: got ['txn-usable |       10 | m     | [0.250000]', 'txn-usable |       11 | m     | [kept]'] want ['txn-usable |       10 | m     | [0.250000]', 'txn-usable |       11 | m     | [kept]']
+-- control, 3-tuple (unguarded) for the deleted chunk 12: ['psql:<stdin>:2: ERROR:  insert or update on table "chunk_embeddings" violates foreign key constraint "chunk_embeddings_chunk_id_fkey"', 'psql:<stdin>:3: ERROR:  current transaction is aborted, commands ignored until end of transaction block']
+== two sessions: processor commits a new hash / tail delete while the embedder's guarded insert runs
+  embedder waited 1.3s for the processor's transaction
+  OK   R1 concurrent UPDATE (new hash) -> embedder result: got ['INSERT 0 0'] want ['INSERT 0 0']
+  OK   R1 concurrent UPDATE (new hash) -> vectors for chunk 20 after both commit: got [] want []
+  embedder waited 1.3s for the processor's transaction
+  OK   R2 concurrent tail DELETE -> embedder result: got ['INSERT 0 0'] want ['INSERT 0 0']
+  OK   R2 concurrent tail DELETE -> vectors for chunk 20 after both commit: got [] want []
+  embedder waited 1.3s for the processor's transaction
+  OK   R3 concurrent UPDATE, hash unchanged -> embedder result: got ['INSERT 0 1'] want ['INSERT 0 1']
+  OK   R3 concurrent UPDATE, hash unchanged -> vectors for chunk 20 after both commit: got ['20|m|[0.500000]'] want ['20|m|[0.500000]']
+== residual race (processor-side, out of scope per ticket Notes): embedder insert lands between the processor's
+   stale-vector DELETE and its chunk UPSERT. Statements in save_sections_and_chunks order.
+  embedder: ['INSERT 0 1']
+  final: hb-new|m|[0.500000]
+  (a non-empty model/embedding here = old-text vector kept against hash hb-new: the documented residual race)
+== head: 8/8 expectations met
+
+[exit code 0]

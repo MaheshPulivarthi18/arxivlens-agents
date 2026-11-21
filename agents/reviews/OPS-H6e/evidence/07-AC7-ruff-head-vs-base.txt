@@ -1,0 +1,34 @@
+$ bash -c echo '== head f1b156e'; ruff check --isolated --select E,F,W --line-length 130 --output-format concise services/common/db.py tests/test_processor_pages.py tests/test_chunk_reprocess_db.py; d=$(mktemp -d); mkdir -p $d/services/common $d/tests; for f in services/common/db.py tests/test_processor_pages.py tests/test_chunk_reprocess_db.py; do git show origin/main:$f > $d/$f; done; echo; echo '== origin/main 11c4696'; (cd $d && ruff check --isolated --select E,F,W --line-length 130 --output-format concise services/common/db.py tests/test_processor_pages.py tests/test_chunk_reprocess_db.py); echo; echo '== added-line ranges (git diff -U0 origin/main...HEAD):'; git diff -U0 origin/main...HEAD | grep -E '^(\+\+\+|@@)'; echo; echo '== ruff on added lines only (+ lines piped through ruff as one stdin file would mis-parse; instead check each finding line):'; git diff -U0 origin/main...HEAD -- tests/test_processor_pages.py | grep -cE '^@@ -[0-9,]+ \+21[0-9]' | sed 's/^/hunks touching test_processor_pages.py:210-219 = /'; git diff -U0 origin/main...HEAD -- services/common/db.py | grep -E '^[-+]import json' | wc -l | sed 's/^/db.py line 1 (import json) changed in diff = /'
+== head f1b156e
+services/common/db.py:1:8: F401 [*] `json` imported but unused
+tests/test_processor_pages.py:212:131: E501 Line too long (134 > 130)
+Found 2 errors.
+[*] 1 fixable with the `--fix` option.
+
+== origin/main 11c4696
+services/common/db.py:1:8: F401 [*] `json` imported but unused
+tests/test_processor_pages.py:212:131: E501 Line too long (134 > 130)
+Found 2 errors.
+[*] 1 fixable with the `--fix` option.
+
+== added-line ranges (git diff -U0 origin/main...HEAD):
++++ b/services/common/db.py
+@@ -2 +2 @@ import json
+@@ -189,0 +190,23 @@ def get_chunks_for_embedding(
+@@ -192 +215 @@ def save_chunk_embeddings(
+@@ -195 +218,5 @@ def save_chunk_embeddings(
+@@ -196,0 +224 @@ def save_chunk_embeddings(
+@@ -198 +226,4 @@ def save_chunk_embeddings(
+@@ -201,11 +232,7 @@ def save_chunk_embeddings(
++++ b/tests/test_chunk_reprocess_db.py
+@@ -1,0 +2 @@
+@@ -8 +9 @@ import pytest
+@@ -134,0 +136,58 @@ def test_reprocess_drops_stale_vectors_and_tail(conn):
++++ b/tests/test_processor_pages.py
+@@ -253,0 +254,79 @@ def test_save_chunks_reprocess_deletes(indexes):
+
+== ruff on added lines only (+ lines piped through ruff as one stdin file would mis-parse; instead check each finding line):
+hunks touching test_processor_pages.py:210-219 = 0
+db.py line 1 (import json) changed in diff = 0
+
+[exit code 0]

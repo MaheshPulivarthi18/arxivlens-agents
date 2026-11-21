@@ -1,0 +1,16 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/f1b156ec66ed0005003c8ce69304122172b43974/check-runs --jq '.check_runs[] | "\(.id)  \(.name)  \(.status)  \(.conclusion)  \(.completed_at)"'; echo; echo '# Full stack attempts of run 44870497705:'; for a in 1 2; do gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/44870497705/attempts/$a/jobs --jq '.jobs[] | "attempt '$a': job \(.id) \(.name) \(.conclusion) head_sha=\(.head_sha)"'; done; echo; echo '# PR state:'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/106 --jq '"merged=\(.merged) draft=\(.draft) head=\(.head.sha) base=\(.base.sha)"'
+136746049463  Full stack (compose + make test-full)  completed  failure  2026-11-21T05:38:28Z
+136743707292  Frontend (lint, test, build)  completed  success  2026-11-21T05:21:53Z
+136743707273  Go (vet, gofmt, test, build)  completed  success  2026-11-21T05:22:19Z
+136743707272  Agent ownership check  completed  success  2026-11-21T05:21:32Z
+136743707170  DB (migrate twice, HNSW plan + recall)  completed  success  2026-11-21T05:23:08Z
+136743707091  Python M0 unit tests  completed  success  2026-11-21T05:22:39Z
+
+# Full stack attempts of run 44870497705:
+attempt 1: job 136743706973 Full stack (compose + make test-full) failure head_sha=f1b156ec66ed0005003c8ce69304122172b43974
+attempt 2: job 136746049463 Full stack (compose + make test-full) failure head_sha=f1b156ec66ed0005003c8ce69304122172b43974
+
+# PR state:
+merged=false draft=true head=f1b156ec66ed0005003c8ce69304122172b43974 base=11c4696f7c6830436ada00c54d8f75976ddf7b99
+
+[exit code 0]

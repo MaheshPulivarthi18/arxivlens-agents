@@ -1,0 +1,19 @@
+$ bash -c PYTHONPATH=/root/wt/qa-app-OPS-H6e:/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-OPS-H6e-r1/plug python3 -m pytest -p qa_h6e_stubs -p no:cacheprovider -q -rA tests/test_processor_pages.py -k 'save_embeddings or save_chunks' 2>&1 | grep -E 'PASSED|FAILED|ERROR|passed|failed'
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-set]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[missing]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[none]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows_use_each_returned_id
+PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[contiguous]
+PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[gaps]
+PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[single-not-zero]
+PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[empty]
+PASSED tests/test_processor_pages.py::test_save_embeddings_3tuple_unchanged
+PASSED tests/test_processor_pages.py::test_save_embeddings_4tuple_guarded[hash-matches-written]
+PASSED tests/test_processor_pages.py::test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped]
+PASSED tests/test_processor_pages.py::test_save_embeddings_mixed_batch_counts_only_written
+PASSED tests/test_processor_pages.py::test_save_embeddings_rejects_other_shapes[2-tuple]
+PASSED tests/test_processor_pages.py::test_save_embeddings_rejects_other_shapes[5-tuple]
+15 passed, 14 deselected in 0.07s
+
+[exit code 0]

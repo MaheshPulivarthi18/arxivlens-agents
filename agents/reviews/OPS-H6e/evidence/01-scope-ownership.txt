@@ -1,0 +1,14 @@
+$ bash -c git rev-parse HEAD origin/main; git diff --stat origin/main...HEAD; echo; echo '# CI Agent ownership check (job 136743707272):'; grep -E 'Ownership|ownership-check' /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-OPS-H6e-r1/ownership.log | cut -c30-
+f1b156ec66ed0005003c8ce69304122172b43974
+11c4696f7c6830436ada00c54d8f75976ddf7b99
+ services/common/db.py            | 57 +++++++++++++++++++++--------
+ tests/test_chunk_reprocess_db.py | 61 ++++++++++++++++++++++++++++++-
+ tests/test_processor_pages.py    | 79 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 181 insertions(+), 16 deletions(-)
+
+# CI Agent ownership check (job 136743707272):
+##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+[36;1m.github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"[0m
+Ownership OK for role=backend (197 changed lines)
+
+[exit code 0]

@@ -1,0 +1,78 @@
+$ bash -c python3 /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-OPS-H6e-r1/mutants.py /root/wt/qa-app-OPS-H6e /tmp/qa-h6e-pg.RQ3J 2>&1 | sed -E 's/ \| failing: /\n      failing: /; s/ \| DIFF: /\n      probe DIFF: /'
+mutant | what | verdict | unit tests (PR, -k save_embeddings) | real-PG SQL probe
+base | origin/main db.py + PR tests (control) | KILLED | 3 failed, 3 passed, 23 deselected in 0.12s
+      failing: test_save_embeddings_4tuple_guarded[hash-matches-written], test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped], test_save_embeddings_mixed_batch_counts_only_written | 2/8 expectations met
+      probe DIFF: AC2 insert / AC2 update / AC3 stale / AC4 deleted -> command tags; txn usable after AC4; rows = chunk10 updated, chunk11 untouched; R1 concurrent UPDATE (new hash) -> embedder result; R2 concurrent tail DELETE -> embedder result; R3 concurrent UPDATE, hash unchanged -> embedder result; R3 concurrent UPDATE, hash unchanged -> vectors for chunk 20 after both commit
+M1 | AC6: no hash condition | KILLED | 3 failed, 3 passed, 23 deselected in 0.13s
+      failing: test_save_embeddings_4tuple_guarded[hash-matches-written], test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped], test_save_embeddings_mixed_batch_counts_only_written | 4/8 expectations met
+      probe DIFF: AC2 insert / AC2 update / AC3 stale / AC4 deleted -> command tags; txn usable after AC4; rows = chunk10 updated, chunk11 untouched; R1 concurrent UPDATE (new hash) -> embedder result; R1 concurrent UPDATE (new hash) -> vectors for chunk 20 after both commit
+M2 | AC6: no existence condition (4-tuple -> plain VALUES upsert) | KILLED | 3 failed, 3 passed, 23 deselected in 0.13s
+      failing: test_save_embeddings_4tuple_guarded[hash-matches-written], test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped], test_save_embeddings_mixed_batch_counts_only_written | 3/8 expectations met
+      probe DIFF: AC2 insert / AC2 update / AC3 stale / AC4 deleted -> command tags; txn usable after AC4; rows = chunk10 updated, chunk11 untouched; R1 concurrent UPDATE (new hash) -> embedder result; R1 concurrent UPDATE (new hash) -> vectors for chunk 20 after both commit; R2 concurrent tail DELETE -> embedder result
+M3a | AC6: 3-tuples routed through the hash path (hash None) | KILLED | 2 failed, 4 passed, 23 deselected in 0.13s
+      failing: test_save_embeddings_3tuple_unchanged, test_save_embeddings_mixed_batch_counts_only_written | 8/8 expectations met
+M3b | AC6: 3-tuples rejected | KILLED | 2 failed, 4 passed, 23 deselected in 0.16s
+      failing: test_save_embeddings_3tuple_unchanged, test_save_embeddings_mixed_batch_counts_only_written | 8/8 expectations met
+M4 | count every 4-tuple (ignore rowcount) | KILLED | 2 failed, 4 passed, 23 deselected in 0.11s
+      failing: test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped], test_save_embeddings_mixed_batch_counts_only_written | 8/8 expectations met
+M5 | drop FOR SHARE OF pc | KILLED | 3 failed, 3 passed, 23 deselected in 0.14s
+      failing: test_save_embeddings_4tuple_guarded[hash-matches-written], test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped], test_save_embeddings_mixed_batch_counts_only_written | 5/8 expectations met
+      probe DIFF: R1 concurrent UPDATE (new hash) -> embedder result; R1 concurrent UPDATE (new hash) -> vectors for chunk 20 after both commit; R2 concurrent tail DELETE -> embedder result
+M6 | drop the 3/4-length check | KILLED | 2 failed, 4 passed, 23 deselected in 0.15s
+      failing: test_save_embeddings_rejects_other_shapes[2-tuple], test_save_embeddings_rejects_other_shapes[5-tuple] | 8/8 expectations met
+M7 | swap chunk_id / content_hash params | KILLED | 3 failed, 3 passed, 23 deselected in 0.15s
+      failing: test_save_embeddings_4tuple_guarded[hash-matches-written], test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped], test_save_embeddings_mixed_batch_counts_only_written | 2/8 expectations met
+      probe DIFF: AC2 insert / AC2 update / AC3 stale / AC4 deleted -> command tags; txn usable after AC4; rows = chunk10 updated, chunk11 untouched; R1 concurrent UPDATE (new hash) -> embedder result; R2 concurrent tail DELETE -> embedder result; R3 concurrent UPDATE, hash unchanged -> embedder result; R3 concurrent UPDATE, hash unchanged -> vectors for chunk 20 after both commit
+M8 | 3-tuple counted by rowcount | KILLED | 2 failed, 4 passed, 23 deselected in 0.13s
+      failing: test_save_embeddings_3tuple_unchanged, test_save_embeddings_mixed_batch_counts_only_written | 8/8 expectations met
+M9 | existence by hash only (drop pc.id = %s) | KILLED | 3 failed, 3 passed, 23 deselected in 0.14s
+      failing: test_save_embeddings_4tuple_guarded[hash-matches-written], test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped], test_save_embeddings_mixed_batch_counts_only_written | 8/8 expectations met
+M10 | ON CONFLICT DO NOTHING in the guarded statement (no update) | KILLED | 3 failed, 3 passed, 23 deselected in 0.15s
+      failing: test_save_embeddings_4tuple_guarded[hash-matches-written], test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped], test_save_embeddings_mixed_batch_counts_only_written | 6/8 expectations met
+      probe DIFF: AC2 insert / AC2 update / AC3 stale / AC4 deleted -> command tags; txn usable after AC4; rows = chunk10 updated, chunk11 untouched
+
+--- mutant diffs (db.py lines removed/added) ---
+[base] origin/main db.py + PR tests (control)
+   (whole file = origin/main)
+[M1] AC6: no hash condition
+   -    WHERE pc.id = %s AND pc.content_hash = %s
+   +    WHERE pc.id = %s
+   -                cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, chunk_id, item[3]))
+   +                cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, chunk_id))
+[M2] AC6: no existence condition (4-tuple -> plain VALUES upsert)
+   -                cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, chunk_id, item[3]))
+   +                cur.execute(_UPSERT_EMBEDDING_SQL, (chunk_id, model, vec_str))
+[M3a] AC6: 3-tuples routed through the hash path (hash None)
+   -            if len(item) == 3:
+   +            if False:
+   -                cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, chunk_id, item[3]))
+   +                cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, chunk_id, item[3] if len(item) == 4 else None))
+[M3b] AC6: 3-tuples rejected
+   -            if len(item) not in (3, 4):
+   +            if len(item) != 4:
+[M4] count every 4-tuple (ignore rowcount)
+   -                written += cur.rowcount
+   +                written += 1
+[M5] drop FOR SHARE OF pc
+   -    FOR SHARE OF pc
+[M6] drop the 3/4-length check
+   -            if len(item) not in (3, 4):
+   -                raise ValueError(f"expected (chunk_id, model, vec[, content_hash]), got {len(item)} elements")
+[M7] swap chunk_id / content_hash params
+   -                cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, chunk_id, item[3]))
+   +                cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, item[3], chunk_id))
+[M8] 3-tuple counted by rowcount
+   -                written += 1
+   +                written += cur.rowcount
+[M9] existence by hash only (drop pc.id = %s)
+   -    WHERE pc.id = %s AND pc.content_hash = %s
+   +    WHERE pc.content_hash = %s
+   -                cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, chunk_id, item[3]))
+   +                cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, item[3]))
+[M10] ON CONFLICT DO NOTHING in the guarded statement (no update)
+   -    ON CONFLICT (chunk_id, model) DO UPDATE
+   -    SET embedding = EXCLUDED.embedding,
+   -        created_at = now();
+   +    ON CONFLICT (chunk_id, model) DO NOTHING;
+
+[exit code 0]

@@ -1,0 +1,210 @@
+$ bash -c cd /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-OPS-H6e-r1 && for f in $(find plug sql_probe.py mutants.py -type f -name '*.py' | sort); do echo "===== $f"; cat $f; done
+===== mutants.py
+"""QA OPS-H6e mutants: each is one anchored edit of services/common/db.py in a fresh copy of the PR tree (mktemp -d,
+never pushed). Per mutant: the PR's unit tests (tests/test_processor_pages.py -k save_embeddings) and the real-PG SQL
+probe (sql_probe.py). 'base' = origin/main's db.py with the PR's tests (control). Summary table first, diffs after."""
+import difflib, os, re, shutil, subprocess, sys, tempfile
+APP, SOCK, H = sys.argv[1], sys.argv[2], os.path.dirname(os.path.abspath(__file__))
+SRC = open(f"{APP}/services/common/db.py").read()
+BASE = subprocess.run(["git", "-C", APP, "show", "origin/main:services/common/db.py"], capture_output=True, text=True, check=True).stdout
+
+def sub(old, new):
+    def f(s):
+        assert s.count(old) == 1, (old, s.count(old)); return s.replace(old, new)
+    return f
+M = [
+ ("base", "origin/main db.py + PR tests (control)", lambda s: BASE),
+ ("M1", "AC6: no hash condition", lambda s: sub("WHERE pc.id = %s AND pc.content_hash = %s", "WHERE pc.id = %s")(
+         sub("(model, vec_str, chunk_id, item[3])", "(model, vec_str, chunk_id)")(s))),
+ ("M2", "AC6: no existence condition (4-tuple -> plain VALUES upsert)",
+         sub("cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, chunk_id, item[3]))", "cur.execute(_UPSERT_EMBEDDING_SQL, (chunk_id, model, vec_str))")),
+ ("M3a", "AC6: 3-tuples routed through the hash path (hash None)", lambda s: sub("if len(item) == 3:\n", "if False:\n")(
+         sub("(model, vec_str, chunk_id, item[3])", "(model, vec_str, chunk_id, item[3] if len(item) == 4 else None)")(s))),
+ ("M3b", "AC6: 3-tuples rejected", sub("if len(item) not in (3, 4):", "if len(item) != 4:")),
+ ("M4", "count every 4-tuple (ignore rowcount)", sub("written += cur.rowcount", "written += 1")),
+ ("M5", "drop FOR SHARE OF pc", sub("    FOR SHARE OF pc\n", "")),
+ ("M6", "drop the 3/4-length check", sub("            if len(item) not in (3, 4):\n                raise ValueError(f\"expected (chunk_id, model, vec[, content_hash]), got {len(item)} elements\")\n", "")),
+ ("M7", "swap chunk_id / content_hash params", sub("(model, vec_str, chunk_id, item[3])", "(model, vec_str, item[3], chunk_id)")),
+ ("M8", "3-tuple counted by rowcount", lambda s: re.sub(r"(_UPSERT_EMBEDDING_SQL, \(chunk_id, model, vec_str\)\)\n\s+)written \+= 1", r"\1written += cur.rowcount", s, count=1)),
+ ("M9", "existence by hash only (drop pc.id = %s)", lambda s: sub("WHERE pc.id = %s AND pc.content_hash = %s", "WHERE pc.content_hash = %s")(
+         sub("(model, vec_str, chunk_id, item[3])", "(model, vec_str, item[3])")(s))),
+ ("M10", "ON CONFLICT DO NOTHING in the guarded statement (no update)", lambda s: s.replace(
+         "    FOR SHARE OF pc\n    ON CONFLICT (chunk_id, model) DO UPDATE\n    SET embedding = EXCLUDED.embedding,\n        created_at = now();",
+         "    FOR SHARE OF pc\n    ON CONFLICT (chunk_id, model) DO NOTHING;", 1)),
+]
+rows, diffs = [], []
+for mid, desc, fn in M:
+    d = tempfile.mkdtemp(prefix=f"qa-h6e-{mid}-")
+    for sub_ in ("services", "tests", "scripts", "migrations"):
+        shutil.copytree(f"{APP}/{sub_}", f"{d}/{sub_}", ignore=shutil.ignore_patterns("__pycache__"))
+    new = fn(SRC)
+    if new == SRC and mid != "base": rows.append((mid, desc, "INVALID (no change)", "", "")); continue
+    open(f"{d}/services/common/db.py", "w").write(new)
+    dl = [l for l in difflib.unified_diff(SRC.splitlines(), new.splitlines(), lineterm="", n=0) if l[:1] in "+-" and l[:3] not in ("+++", "---")]
+    diffs.append((mid, desc, dl if mid != "base" else ["(whole file = origin/main)"]))
+    env = dict(os.environ, PYTHONPATH=f"{d}:{H}/plug")
+    u = subprocess.run([sys.executable, "-m", "pytest", "-p", "qa_h6e_stubs", "-q", "-p", "no:cacheprovider", "tests/test_processor_pages.py", "-k", "save_embeddings"],
+                       cwd=d, env=env, capture_output=True, text=True)
+    ulast = [l for l in u.stdout.splitlines() if re.search(r"\d+ (passed|failed)", l)]
+    ufail = sorted({re.sub(r"^FAILED tests/test_processor_pages.py::", "", l).split(" - ")[0] for l in u.stdout.splitlines() if l.startswith("FAILED")})
+    p = subprocess.run([sys.executable, f"{H}/sql_probe.py", d, SOCK, mid], env=dict(os.environ, PYTHONPATH=f"{H}/plug"), capture_output=True, text=True, timeout=120)
+    plast = [l for l in p.stdout.splitlines() if "expectations met" in l] or [p.stderr.strip().splitlines()[-1] if p.stderr.strip() else "probe: no output"]
+    pdiff = [l.strip() for l in p.stdout.splitlines() if l.strip().startswith("DIFF")]
+    killed = "KILLED" if (u.returncode != 0 or pdiff) else "SURVIVED"
+    rows.append((mid, desc, killed, (ulast[-1] if ulast else "?") + (" | failing: " + ", ".join(ufail) if ufail else ""),
+                 ("PROBE-INFRA-ERROR " if "psql: error" in p.stdout else "") + plast[-1].split(": ", 1)[-1].split(";")[0] + ("" if not pdiff else " | DIFF: " + "; ".join(x[5:].split(":")[0] for x in pdiff))))
+print("mutant | what | verdict | unit tests (PR, -k save_embeddings) | real-PG SQL probe")
+for r in rows: print(" | ".join(r))
+print("\n--- mutant diffs (db.py lines removed/added) ---")
+for mid, desc, dl in diffs:
+    print(f"[{mid}] {desc}"); [print("   " + l) for l in dl]
+===== plug/qa_h6e_stubs.py
+"""QA OPS-H6e: stand-in modules for heavy deps absent from the sandbox (pymupdf, torch-backed chunker, psycopg, kafka...).
+Only unimportable top-level modules are replaced by MagicMock modules; services/common/db.py is the real PR file."""
+import importlib.abc, importlib.machinery, sys
+from unittest.mock import MagicMock
+
+STUB = {"pymupdf", "fitz", "psycopg", "torch", "transformers", "sentence_transformers", "kafka", "confluent_kafka",
+        "minio", "boto3", "ulid", "scripts.m0_skeleton", "services.processor.worker"}
+
+class _Loader(importlib.abc.Loader):
+    def create_module(self, spec):
+        m = MagicMock(name=spec.name); m.__path__ = []; m.__spec__ = spec; return m
+    def exec_module(self, module):
+        pass
+
+class _Finder(importlib.abc.MetaPathFinder):
+    def find_spec(self, name, path=None, target=None):
+        if name in STUB or any(name.startswith(s + ".") for s in STUB):
+            return importlib.machinery.ModuleSpec(name, _Loader(), is_package=True)
+        return None
+
+sys.meta_path.insert(0, _Finder())
+===== sql_probe.py
+"""QA OPS-H6e SQL probe: runs the save_chunk_embeddings statements of a given app tree against a real local PostgreSQL 16
+(one fresh DB per run), single-session (AC2-AC4) and two-session (concurrent processor UPDATE / tail DELETE).
+pgvector can't be built in this sandbox, so `halfvec` is a text DOMAIN; the vector type is not what is under test.
+Statements are taken from the tree's real services/common/db.py by calling save_chunk_embeddings with a recording cursor.
+usage: sql_probe.py <app_tree> <pg_socket_dir> <label>"""
+import importlib.util, subprocess, sys, threading, time
+
+app, sock, label = sys.argv[1], sys.argv[2], sys.argv[3]
+sys.path.insert(0, app)
+import qa_h6e_stubs  # noqa: F401  (psycopg stand-in so db.py imports)
+spec = importlib.util.spec_from_file_location("dbmod", f"{app}/services/common/db.py")
+db = importlib.util.module_from_spec(spec); spec.loader.exec_module(db)
+
+class Rec:
+    def __init__(self): self.calls, self.rowcount = [], 1
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def execute(self, sql, params=()): self.calls.append((sql, params))
+class RecConn:
+    def __init__(self): self.c = Rec()
+    def cursor(self, **k): return self.c
+    def commit(self): pass
+
+def lit(v):
+    if isinstance(v, int): return str(v)
+    return "'" + str(v).replace("'", "''") + "'"
+def render(item):
+    conn = RecConn()
+    try:
+        db.save_chunk_embeddings(conn, [item])
+    except Exception as e:  # noqa: BLE001
+        return f"-- save_chunk_embeddings raised {type(e).__name__}: {e}"
+    out = []
+    for sql, params in conn.c.calls:
+        s = sql
+        for p in params: s = s.replace("%s", lit(p), 1)
+        out.append(" ".join(s.split()))
+    return "\n".join(out)
+
+SCHEMA = open(f"{app}/migrations/000001_init_schema.up.sql").read().replace("CREATE EXTENSION IF NOT EXISTS vector;", "CREATE DOMAIN halfvec AS text;").replace("halfvec(768)", "halfvec")
+DBN = ("qa_h6e_" + label.replace("-", "_")).lower()
+
+def psql(sql, dbn=None, timeout=30):
+    r = subprocess.run(["psql", "-h", sock, "-U", "postgres", "-d", dbn or DBN, "-X", "-q", "-tA", "-v", "ON_ERROR_STOP=0", "-c" if False else "-f", "-"],
+                       input=sql, capture_output=True, text=True, timeout=timeout)
+    return (r.stdout + r.stderr).strip()
+def echo_psql(sql):
+    r = subprocess.run(["psql", "-h", sock, "-U", "postgres", "-d", DBN, "-X", "-a", "-v", "ON_ERROR_STOP=0", "-f", "-"],
+                       input=sql, capture_output=True, text=True, timeout=30)
+    return r.stdout + r.stderr
+
+subprocess.run(["psql", "-h", sock, "-U", "postgres", "-X", "-q", "-c", f"DROP DATABASE IF EXISTS {DBN};", "-c", f"CREATE DATABASE {DBN};"], check=True, capture_output=True)
+psql(SCHEMA)
+def setup():
+    return psql("""TRUNCATE papers CASCADE;
+INSERT INTO papers (id, arxiv_id) VALUES (1, 'qa-h6e');
+INSERT INTO paper_chunks (id, paper_id, chunk_index, content, content_hash) VALUES
+ (10, 1, 0, 'a0', 'h0'), (11, 1, 1, 'a1-new', 'h1-new'), (12, 1, 2, 'a2', 'h2');
+INSERT INTO chunk_embeddings (chunk_id, model, embedding, created_at) VALUES (11, 'm', '[kept]', '2020-01-02T03:04:05Z');
+DELETE FROM paper_chunks WHERE id = 12;  -- tail delete: chunk 12 is gone""")
+
+results = []
+def check(name, got, want):
+    ok = got == want
+    results.append((name, ok)); print(f"  {'OK  ' if ok else 'DIFF'} {name}: got {got!r} want {want!r}")
+
+print(f"== {label}: tree {app}")
+print("-- statement for a 4-tuple:", render((10, "m", [0.5], "h0")))
+print("-- statement for a 3-tuple:", render((10, "m", [0.5])))
+setup()
+print("== single session (one transaction, rolled back at the end, like tests/test_chunk_reprocess_db.py)")
+script = "\n".join([
+    "BEGIN;",
+    render((10, "m", [0.5], "h0")),            # AC2 insert
+    render((10, "m", [0.25], "h0")),           # AC2 update on conflict
+    render((11, "m", [0.75], "h1-old")),       # AC3 stale hash
+    render((12, "m", [0.5], "h2")),            # AC4 deleted chunk
+    "SELECT 'txn-usable', chunk_id, model, embedding FROM chunk_embeddings ORDER BY chunk_id, model;",
+    "ROLLBACK;"])
+out = echo_psql(script)
+print("\n".join("    " + l for l in out.strip().splitlines()))
+tags = [l for l in out.splitlines() if l.startswith("INSERT 0") or "ERROR:" in l or "save_chunk_embeddings raised" in l]
+check("AC2 insert / AC2 update / AC3 stale / AC4 deleted -> command tags", tags, ["INSERT 0 1", "INSERT 0 1", "INSERT 0 0", "INSERT 0 0"])
+rows = [l.strip() for l in out.splitlines() if l.strip().startswith("txn-usable")]
+check("txn usable after AC4; rows = chunk10 updated, chunk11 untouched", rows,
+      ["txn-usable |       10 | m     | [0.250000]", "txn-usable |       11 | m     | [kept]"])
+
+ctl = echo_psql("BEGIN;\n" + render((12, "m", [0.5])) + "\nSELECT 'txn-usable';\nROLLBACK;")
+print("-- control, 3-tuple (unguarded) for the deleted chunk 12:", [l for l in ctl.splitlines() if l.startswith("INSERT 0") or "ERROR:" in l])
+
+print("== two sessions: processor commits a new hash / tail delete while the embedder's guarded insert runs")
+def race(proc_sql, emb_item, name, want_tag, want_rows):
+    setup()
+    psql("INSERT INTO paper_chunks (id, paper_id, chunk_index, content, content_hash) VALUES (20, 1, 5, 'b', 'hb-old');")
+    box = {}
+    def processor():
+        box["p"] = psql(f"BEGIN; {proc_sql}; SELECT pg_sleep(2); COMMIT;")
+    t = threading.Thread(target=processor); t.start(); time.sleep(0.7)
+    t0 = time.time(); box["e"] = echo_psql(f"BEGIN;\n{render(emb_item)}\nCOMMIT;"); dt = time.time() - t0; t.join()
+    tag = [l for l in box["e"].splitlines() if l.startswith("INSERT 0") or "ERROR:" in l]
+    rows = psql("SELECT chunk_id, model, embedding FROM chunk_embeddings WHERE chunk_id = 20;").splitlines()
+    print(f"  embedder waited {dt:.1f}s for the processor's transaction")
+    check(name + " -> embedder result", tag, want_tag)
+    check(name + " -> vectors for chunk 20 after both commit", rows, want_rows)
+race("UPDATE paper_chunks SET content = 'b-new', content_hash = 'hb-new' WHERE id = 20", (20, "m", [0.5], "hb-old"),
+     "R1 concurrent UPDATE (new hash)", ["INSERT 0 0"], [])
+race("DELETE FROM paper_chunks WHERE id = 20", (20, "m", [0.5], "hb-old"), "R2 concurrent tail DELETE", ["INSERT 0 0"], [])
+race("UPDATE paper_chunks SET token_count = 9 WHERE id = 20", (20, "m", [0.5], "hb-old"),
+     "R3 concurrent UPDATE, hash unchanged", ["INSERT 0 1"], ["20|m|[0.500000]"])
+
+print("== residual race (processor-side, out of scope per ticket Notes): embedder insert lands between the processor's")
+print("   stale-vector DELETE and its chunk UPSERT. Statements in save_sections_and_chunks order.")
+setup(); psql("INSERT INTO paper_chunks (id, paper_id, chunk_index, content, content_hash) VALUES (20, 1, 5, 'b', 'hb-old');")
+box = {}
+def proc2():
+    box["p"] = psql("BEGIN; DELETE FROM chunk_embeddings ce USING paper_chunks pc WHERE ce.chunk_id = pc.id AND pc.paper_id = 1 AND pc.chunk_index = 5 AND pc.content_hash <> 'hb-new'; SELECT pg_sleep(1.5); "
+                    "INSERT INTO paper_chunks (paper_id, chunk_index, content, content_hash) VALUES (1, 5, 'b-new', 'hb-new') ON CONFLICT (paper_id, chunk_index) DO UPDATE SET content = EXCLUDED.content, content_hash = EXCLUDED.content_hash RETURNING id; COMMIT;")
+t = threading.Thread(target=proc2); t.start(); time.sleep(0.5)
+emb = echo_psql(f"BEGIN;\n{render((20, 'm', [0.5], 'hb-old'))}\nSELECT pg_sleep(2);\nCOMMIT;"); t.join()
+print("  embedder:", [l for l in emb.splitlines() if l.startswith("INSERT 0")])
+print("  final:", psql("SELECT pc.content_hash, ce.model, ce.embedding FROM paper_chunks pc LEFT JOIN chunk_embeddings ce ON ce.chunk_id = pc.id WHERE pc.id = 20;"))
+print("  (a non-empty model/embedding here = old-text vector kept against hash hb-new: the documented residual race)")
+
+bad = [n for n, ok in results if not ok]
+print(f"== {label}: {len(results) - len(bad)}/{len(results)} expectations met" + (f"; DIFF: {bad}" if bad else ""))
+
+[exit code 0]
