@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H8c (#100, merged `3c9b133`), OPS-H8 (merged). No ADR |
 | **Jira** | KAN-112 |
 | **Design required** | no: one unit test reading two existing files |
-| **Status** | In QA: branch `agent/ai/OPS-H8d` pushed (head `3cc94a7`), PR to be opened by the orchestrator; AC5 waits on CI |
+| **Status** | Ready to merge: QA r1 PASS, PM APPROVE (2026-11-21); PR #110 raised (ready for review, label `ready-to-merge`), head `3cc94a7`, awaiting Mahesh |
 
 ## Goal
 OPS-H8c set `stop_grace_period: 20s` on `processor` and `embedder-worker` (`docker-compose.yml:192,210`) because a worker inside a producer
@@ -72,3 +72,7 @@ git diff origin/main --name-only                   # exactly tests/test_kafka_cl
   - Gotcha hit: m1 changes `12.0` to `19.0` (same size), and the revert came within the same second, so Python reused the stale `.pyc` and later
     mutant runs still saw 19.0. Rerun with `__pycache__` cleared + `PYTHONDONTWRITEBYTECODE=1`; the results above come from that clean run.
   - First commit pushed with 3 ruff E501 lines (my commit chain didn't stop on ruff); fixed in `3cc94a7`, no force-push.
+- 2026-11-21 (pm-lead): final review **APPROVE** (`agents/reviews/OPS-H8d/report.md`). I opened all 8 evidence files, and CI is 6/6 green at `3cc94a7`.
+  PR #110 description rewritten with evidence pinned to `f5f4556`, marked ready for review, label `ready-to-merge`.
+  **Fold-in (no separate task):** QA nit x14. The full-match guard in `compose_duration_s` isn't pinned. The next task that edits
+  `tests/test_kafka_client.py` adds parsing rows `("20sec", None)` and `("1h foo", None)`. The risk is low because compose rejects such values itself.
