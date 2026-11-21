@@ -1,0 +1,23 @@
+$ bash -c /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/qa-OPS-H8d-r1/run.sh /root/wt/app-qa-OPS-H8d -v 2>&1 | grep -E 'stop_grace|compose_duration|passed|failed'; echo; echo '--- discovery + values the test sees:'; PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/root/wt/app-qa-OPS-H8d:/tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/qa-OPS-H8d-r1/stubs python3 -c 'import sys; sys.path.insert(0,"tests"); import test_kafka_client as t; s=t.compose_services(t.COMPOSE.read_text()); print("services:", sorted(s)); print("workers:", sorted(n for n,b in s.items() if any("*heartbeat_check" in l for l in b))); print("DELIVERY_TIMEOUT_S=", t.kc.DELIVERY_TIMEOUT_S, "POLL_S=", t.POLL_S); [print(n, [l for l in s[n] if "stop_grace" in l]) for n in ("processor","embedder-worker","embedder-api")]'
+tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush PASSED [ 79%]
+tests/test_kafka_client.py::test_compose_duration_parsing[20s-20.0] PASSED [ 81%]
+tests/test_kafka_client.py::test_compose_duration_parsing[1500ms-1.5] PASSED [ 83%]
+tests/test_kafka_client.py::test_compose_duration_parsing[1m30s-90.0] PASSED [ 85%]
+tests/test_kafka_client.py::test_compose_duration_parsing['2.5s'-2.5] PASSED [ 87%]
+tests/test_kafka_client.py::test_compose_duration_parsing[20-None] PASSED [ 89%]
+tests/test_kafka_client.py::test_compose_duration_parsing[-None] PASSED  [ 91%]
+tests/test_kafka_client.py::test_compose_duration_parsing[None-None] PASSED [ 93%]
+tests/test_kafka_client.py::test_compose_duration_parsing[s-None] PASSED [ 95%]
+tests/test_kafka_client.py::test_compose_duration_parsing[20 s-None] PASSED [ 97%]
+tests/test_kafka_client.py::test_compose_duration_parsing[10x-None] PASSED [100%]
+============================== 48 passed in 0.34s ==============================
+
+--- discovery + values the test sees:
+services: ['embedder-api', 'embedder-worker', 'kafka', 'kafka-init', 'minio', 'minio-data-init', 'minio-init', 'postgres', 'processor']
+workers: ['embedder-worker', 'processor']
+DELIVERY_TIMEOUT_S= 12.0 POLL_S= 1.0
+processor ['    stop_grace_period: 20s']
+embedder-worker ['    stop_grace_period: 20s']
+embedder-api []
+
+[exit code 0]

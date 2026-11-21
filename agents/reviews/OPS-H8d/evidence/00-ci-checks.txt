@@ -1,0 +1,11 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/3cc94a7c9c30cee46271478ad1831a225367b172/check-runs --jq '.check_runs[] | "\(.name) | \(.status) | \(.conclusion) | head_sha=\(.head_sha[0:7]) | job=\(.id)"'; echo; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/110 --jq '"PR #110 state=\(.state) merged=\(.merged) draft=\(.draft) head=\(.head.sha[0:7]) ref=\(.head.ref)"'
+Agent ownership check | completed | success | head_sha=3cc94a7 | job=136770341171
+Python M0 unit tests | completed | success | head_sha=3cc94a7 | job=136770341128
+Go (vet, gofmt, test, build) | completed | success | head_sha=3cc94a7 | job=136770341084
+Full stack (compose + make test-full) | completed | success | head_sha=3cc94a7 | job=136770340992
+Frontend (lint, test, build) | completed | success | head_sha=3cc94a7 | job=136770340880
+DB (migrate twice, HNSW plan + recall) | completed | success | head_sha=3cc94a7 | job=136770340795
+
+PR #110 state=open merged=false draft=true head=3cc94a7 ref=agent/ai/OPS-H8d
+
+[exit code 0]

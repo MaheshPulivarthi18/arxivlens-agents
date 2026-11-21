@@ -1,0 +1,5 @@
+$ bash -c ruff --version; ruff check --isolated --no-cache --select E,F,W --line-length 130 tests/test_kafka_client.py
+ruff 0.16.9
+All checks passed!
+
+[exit code 0]

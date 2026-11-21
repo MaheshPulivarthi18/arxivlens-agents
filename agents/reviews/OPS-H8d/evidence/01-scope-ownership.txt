@@ -1,0 +1,10 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; echo '--- PR files (REST):'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/110/files --jq '.[] | "\(.filename) +\(.additions) -\(.deletions)"'; echo; bash .github/scripts/ownership-check.sh origin/main agent/ai/OPS-H8d
+ tests/test_kafka_client.py | 53 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
+
+--- PR files (REST):
+tests/test_kafka_client.py +53 -0
+
+Ownership OK for role=ai (53 changed lines)
+
+[exit code 0]

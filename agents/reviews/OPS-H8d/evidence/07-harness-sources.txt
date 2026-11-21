@@ -1,0 +1,115 @@
+$ bash -c cd /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/qa-OPS-H8d-r1 && for f in $(find stubs run.sh mutate.py probe_x14.py -type f -not -name '*.pyc' | sort); do echo "=== $f"; cat $f; done
+=== mutate.py
+"""QA OPS-H8d mutation harness. Each mutant: fresh mktemp copy of the PR head (services/, shared/, tests/, docker-compose.yml),
+one anchored substitution (must match exactly once), diff printed, then tests/test_kafka_client.py run via run.sh with stub
+confluent_kafka/ulid. Verdict: KILLED (pytest exit 1 and the expected text in output), SURVIVED (exit 0), INVALID otherwise."""
+import difflib, pathlib, shutil, subprocess, sys, tempfile
+
+APP = pathlib.Path(sys.argv[1]); H = pathlib.Path(__file__).resolve().parent
+KC, DC, TF = "services/common/kafka_client.py", "docker-compose.yml", "tests/test_kafka_client.py"
+PROC = "    stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too\n"
+EW = "    stop_grace_period: 20s # same bound as processor\n"
+EW_HC = ("  embedder-worker:\n", "      test: [\"CMD\", \"python\", \"-c\", *heartbeat_check]\n")
+# (id, kind = target file or special edit, old, new, expected text in output, expect)  expect: "fail" = mutant must be killed, "pass" = must stay green
+M = [
+ ("m1 DELIVERY_TIMEOUT_S=19.0 (AC4)", KC, "DELIVERY_TIMEOUT_S = 12.0\n", "DELIVERY_TIMEOUT_S = 19.0\n", "<= DELIVERY_TIMEOUT_S 19.0s + 1.0s poll", "fail"),
+ ("m2 delete processor stop_grace_period (AC4)", DC, PROC, "", "processor: stop_grace_period missing or unparseable", "fail"),
+ ("m3 delete embedder-worker stop_grace_period (AC4)", DC, EW, "", "embedder-worker: stop_grace_period missing or unparseable", "fail"),
+ ("m4 embedder-worker 10s (AC4)", DC, EW, "    stop_grace_period: 10s\n", "embedder-worker: stop_grace_period 10.0s <= DELIVERY_TIMEOUT_S 12.0s + 1.0s poll", "fail"),
+ ("m5 drop embedder-worker *heartbeat_check (AC4)", "EWHC", None, None, None, "Kafka workers (healthcheck uses *heartbeat_check): ['processor']", "fail"),
+ ("x1 boundary DELIVERY_TIMEOUT_S=19.0001 -> fails", KC, "DELIVERY_TIMEOUT_S = 12.0\n", "DELIVERY_TIMEOUT_S = 19.0001\n", "<= DELIVERY_TIMEOUT_S 19.0001s", "fail"),
+ ("x2 boundary DELIVERY_TIMEOUT_S=18.9 -> still green", KC, "DELIVERY_TIMEOUT_S = 12.0\n", "DELIVERY_TIMEOUT_S = 18.9\n", "", "pass"),
+ ("x3 processor grace 13s (== 12+1)", DC, PROC, "    stop_grace_period: 13s\n", "processor: stop_grace_period 13.0s <= DELIVERY_TIMEOUT_S 12.0s", "fail"),
+ ("x4 processor grace 13100ms -> green", DC, PROC, "    stop_grace_period: 13100ms\n", "", "pass"),
+ ("x5 processor grace '1m' quoted -> green", DC, PROC, "    stop_grace_period: \"1m\"\n", "", "pass"),
+ ("x6 processor grace commented out", DC, PROC, "    # stop_grace_period: 20s\n", "processor: stop_grace_period missing or unparseable: []", "fail"),
+ ("x7 processor grace moved to x-worker anchor only", "MOVE", None, None, None, "processor: stop_grace_period missing or unparseable", "fail"),
+ ("x8 processor grace nested under healthcheck (6 sp)", "NEST", None, None, None, "processor: stop_grace_period missing or unparseable", "fail"),
+ ("x9 processor grace duplicated (20s + 5s)", DC, PROC, PROC + "    stop_grace_period: 5s\n", "processor: stop_grace_period missing or unparseable: ['20s', '5s']", "fail"),
+ ("x10 processor grace unparseable '20'", DC, PROC, "    stop_grace_period: 20\n", "processor: stop_grace_period missing or unparseable: ['20']", "fail"),
+ ("x11 embedder-api gains *heartbeat_check", DC, "          grep -q '\"reranker\":true'\n", "          grep -q '\"reranker\":true' # *heartbeat_check\n", "", "pass"),
+ ("x12 embedder-api healthcheck uses *heartbeat_check", "APIHC", None, None, None, "Kafka workers (healthcheck uses *heartbeat_check): ['embedder-api', 'embedder-worker', 'processor']", "fail"),
+ ("x13 new worker service with *heartbeat_check", "NEWSVC", None, None, None, "['embedder-worker', 'new-worker', 'processor']", "fail"),
+ ("x14 test: drop full-match check in compose_duration_s", TF, "    if not value or \"\".join(n + u for n, u in parts) != value:\n", "    if not value or not parts:\n", "test_compose_duration_parsing", "fail"),
+ ("x15 test: unit regex order (h|m|s|ms)", TF, "(ms|us|ns|h|m|s)\", value)", "(h|m|s|ms|us|ns)\", value)", "test_compose_duration_parsing", "fail"),
+ ("x16 test: drop ms unit -> 1500ms unparseable", TF, "\"ms\": 1e-3, ", "\"ms\": 1.0, ", "test_compose_duration_parsing[1500ms-1.5]", "fail"),
+]
+
+def apply(root, kind, old, new):
+    p = lambda rel: root / rel
+    if kind in (KC, DC, TF):
+        t = p(kind).read_text(); assert t.count(old) == 1, f"anchor count {t.count(old)}"; p(kind).write_text(t.replace(old, new)); return [kind]
+    t = p(DC).read_text()
+    if kind == "EWHC":
+        i = t.index(EW_HC[0]); j = t.index(EW_HC[1], i); t = t[:j] + "      test: [\"CMD\", \"true\"]\n" + t[j + len(EW_HC[1]):]
+    elif kind == "MOVE":
+        assert t.count(PROC) == 1; t = t.replace(PROC, "").replace("x-worker: &worker\n", "x-worker: &worker\n  stop_grace_period: 20s\n", 1)
+    elif kind == "NEST":
+        assert t.count(PROC) == 1; t = t.replace(PROC, "")
+        i = t.index("  processor:\n"); j = t.index("    healthcheck:\n", i) + len("    healthcheck:\n"); t = t[:j] + "      stop_grace_period: 20s\n" + t[j:]
+    elif kind == "APIHC":
+        i = t.index("  embedder-api:\n"); a = t.index("      test:\n        - CMD-SHELL\n", i); b = t.index("      interval:", a)
+        t = t[:a] + "      test: [\"CMD\", \"python\", \"-c\", *heartbeat_check]\n" + t[b:]
+    elif kind == "NEWSVC":
+        t = t.replace("\nvolumes:\n", "\n  new-worker:\n    <<: *worker\n    stop_grace_period: 20s\n    healthcheck:\n"
+                      "      test: [\"CMD\", \"python\", \"-c\", *heartbeat_check]\n\nvolumes:\n", 1)
+    p(DC).write_text(t); return [DC]
+
+ok = True
+for mid, kind, *rest in M:
+    old, new, want, expect = rest[-4:]  # special-edit rows carry an extra None
+    root = pathlib.Path(tempfile.mkdtemp(prefix="h8d-mut-"))
+    for d in ("services", "shared", "tests"): shutil.copytree(APP / d, root / d)
+    shutil.copy(APP / DC, root / DC)
+    try:
+        files = apply(root, kind, old, new)
+    except Exception as e:
+        print(f"INVALID  {mid}: {e}"); ok = False; continue
+    diff = [l.rstrip("\n") for rel in files for l in difflib.unified_diff((APP / rel).read_text().splitlines(True), (root / rel).read_text().splitlines(True), n=0)
+            if l[:1] in "+-" and not l.startswith(("+++", "---"))]
+    r = subprocess.run([str(H / "run.sh"), str(root), "-q", "-rf"], capture_output=True, text=True); out = r.stdout + r.stderr
+    fails = [l for l in out.splitlines() if l.startswith("FAILED")]
+    if not diff: v = "INVALID(no diff)"
+    elif expect == "fail": v = "KILLED" if r.returncode == 1 and want in out else ("SURVIVED" if r.returncode == 0 else f"INVALID(rc={r.returncode} or msg missing)")
+    else: v = "GREEN(ok)" if r.returncode == 0 else f"UNEXPECTED FAIL rc={r.returncode}"
+    ok &= v in ("KILLED", "GREEN(ok)")
+    print(f"{v:9} {mid}\n    diff: {diff}\n    pytest: {out.strip().splitlines()[-1]}")
+    for l in fails[:3]: print(f"    {l[:230]}")
+    for l in [l for l in out.splitlines() if l.startswith("E ") and "Error" in l][:1]: print(f"    msg: {l[1:].strip()[:230]}")
+print("ALL AS EXPECTED" if ok else "SOME MUTANTS NOT AS EXPECTED")
+=== probe_x14.py
+"""QA probe for survivor x14: does dropping the full-match check change compose_duration_s on partial-match inputs?
+Loads compose_duration_s from the PR head test file (original) and from a copy with the x14 edit (mutant)."""
+import pathlib, re, sys, types
+src = (pathlib.Path(sys.argv[1]) / "tests/test_kafka_client.py").read_text()
+fn = src[src.index("_DURATION_UNITS = "):src.index("def test_worker_stop_grace_period")]
+mut = fn.replace('    if not value or "".join(n + u for n, u in parts) != value:\n', "    if not value or not parts:\n")
+assert mut != fn
+for label, code in (("original", fn), ("mutant x14", mut)):
+    ns = {"re": re}; exec(code, ns)
+    print(label, {v: ns["compose_duration_s"](v) for v in ["20sec", "20s5x", "x20s", "1h foo", "20s"]})
+=== run.sh
+#!/bin/bash
+# QA harness: run tests/test_kafka_client.py in the given app tree with stub confluent_kafka/ulid modules.
+# usage: run.sh <app-dir> [pytest args...]
+H=$(cd "$(dirname "$0")" && pwd); APP=$1; shift
+cd "$APP" && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$APP:$H/stubs" python3 -m pytest -p no:cacheprovider "$@" tests/test_kafka_client.py
+=== stubs/confluent_kafka/__init__.py
+"""QA stub of confluent_kafka (PyPI unreachable in sandbox). Only names kafka_client imports; tests use fakes."""
+class KafkaException(Exception):
+    pass
+class KafkaError:
+    _PARTITION_EOF = -191
+class Message:
+    pass
+class Consumer:
+    def __init__(self, *a, **k): raise RuntimeError("stub Consumer: tests must inject fakes")
+class Producer:
+    def __init__(self, *a, **k): raise RuntimeError("stub Producer: tests must inject fakes")
+=== stubs/ulid/__init__.py
+"""QA stub of ulid (PyPI unreachable in sandbox)."""
+import uuid
+def new():
+    return uuid.uuid4().hex.upper()[:26]
+
+[exit code 0]

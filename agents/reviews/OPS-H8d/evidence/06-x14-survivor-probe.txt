@@ -1,0 +1,5 @@
+$ python3 -I /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/qa-OPS-H8d-r1/probe_x14.py /root/wt/app-qa-OPS-H8d
+original {'20sec': None, '20s5x': None, 'x20s': None, '1h foo': None, '20s': 20.0}
+mutant x14 {'20sec': 20.0, '20s5x': 20.0, 'x20s': 20.0, '1h foo': 3600.0, '20s': 20.0}
+
+[exit code 0]

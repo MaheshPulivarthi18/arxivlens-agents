@@ -1,0 +1,127 @@
+$ bash -c python3 -I /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/qa-OPS-H8d-r1/mutate.py /root/wt/app-qa-OPS-H8d > /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/qa-OPS-H8d-r1/mut.out 2>&1; echo '=== verdicts ==='; grep -E '^(KILLED|SURVIVED|GREEN|INVALID|UNEXPECTED|ALL|SOME)' /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/qa-OPS-H8d-r1/mut.out; echo; echo '=== control: unmutated head ==='; /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/qa-OPS-H8d-r1/run.sh /root/wt/app-qa-OPS-H8d -q 2>&1 | tail -1; echo; echo '=== detail (diff, pytest, failure msg) ==='; cat /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/qa-OPS-H8d-r1/mut.out
+=== verdicts ===
+KILLED    m1 DELIVERY_TIMEOUT_S=19.0 (AC4)
+KILLED    m2 delete processor stop_grace_period (AC4)
+KILLED    m3 delete embedder-worker stop_grace_period (AC4)
+KILLED    m4 embedder-worker 10s (AC4)
+KILLED    m5 drop embedder-worker *heartbeat_check (AC4)
+KILLED    x1 boundary DELIVERY_TIMEOUT_S=19.0001 -> fails
+GREEN(ok) x2 boundary DELIVERY_TIMEOUT_S=18.9 -> still green
+KILLED    x3 processor grace 13s (== 12+1)
+GREEN(ok) x4 processor grace 13100ms -> green
+GREEN(ok) x5 processor grace '1m' quoted -> green
+KILLED    x6 processor grace commented out
+KILLED    x7 processor grace moved to x-worker anchor only
+KILLED    x8 processor grace nested under healthcheck (6 sp)
+KILLED    x9 processor grace duplicated (20s + 5s)
+KILLED    x10 processor grace unparseable '20'
+GREEN(ok) x11 embedder-api gains *heartbeat_check
+KILLED    x12 embedder-api healthcheck uses *heartbeat_check
+KILLED    x13 new worker service with *heartbeat_check
+SURVIVED  x14 test: drop full-match check in compose_duration_s
+KILLED    x15 test: unit regex order (h|m|s|ms)
+KILLED    x16 test: drop ms unit -> 1500ms unparseable
+SOME MUTANTS NOT AS EXPECTED
+
+=== control: unmutated head ===
+48 passed in 0.26s
+
+=== detail (diff, pytest, failure msg) ===
+KILLED    m1 DELIVERY_TIMEOUT_S=19.0 (AC4)
+    diff: ['-DELIVERY_TIMEOUT_S = 12.0', '+DELIVERY_TIMEOUT_S = 19.0']
+    pytest: 1 failed, 47 passed in 0.28s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: embedder-worker: stop_grace_period 20.0s <= DELIVERY_TIMEOUT_S 19.0s + 1.0s poll
+KILLED    m2 delete processor stop_grace_period (AC4)
+    diff: ['-    stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too']
+    pytest: 1 failed, 47 passed in 0.33s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: processor: stop_grace_period missing or unparseable: []
+KILLED    m3 delete embedder-worker stop_grace_period (AC4)
+    diff: ['-    stop_grace_period: 20s # same bound as processor']
+    pytest: 1 failed, 47 passed in 0.34s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: embedder-worker: stop_grace_period missing or unparseable: []
+KILLED    m4 embedder-worker 10s (AC4)
+    diff: ['-    stop_grace_period: 20s # same bound as processor', '+    stop_grace_period: 10s']
+    pytest: 1 failed, 47 passed in 0.34s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: embedder-worker: stop_grace_period 10.0s <= DELIVERY_TIMEOUT_S 12.0s + 1.0s poll
+KILLED    m5 drop embedder-worker *heartbeat_check (AC4)
+    diff: ['-      test: ["CMD", "python", "-c", *heartbeat_check]', '+      test: ["CMD", "true"]']
+    pytest: 1 failed, 47 passed in 0.33s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: Kafka workers (healthcheck uses *heartbeat_check): ['processor']
+KILLED    x1 boundary DELIVERY_TIMEOUT_S=19.0001 -> fails
+    diff: ['-DELIVERY_TIMEOUT_S = 12.0', '+DELIVERY_TIMEOUT_S = 19.0001']
+    pytest: 1 failed, 47 passed in 0.29s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: embedder-worker: stop_grace_period 20.0s <= DELIVERY_TIMEOUT_S 19.0001s + 1.0s poll
+GREEN(ok) x2 boundary DELIVERY_TIMEOUT_S=18.9 -> still green
+    diff: ['-DELIVERY_TIMEOUT_S = 12.0', '+DELIVERY_TIMEOUT_S = 18.9']
+    pytest: 48 passed in 0.27s
+KILLED    x3 processor grace 13s (== 12+1)
+    diff: ['-    stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too', '+    stop_grace_period: 13s']
+    pytest: 1 failed, 47 passed in 0.28s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: processor: stop_grace_period 13.0s <= DELIVERY_TIMEOUT_S 12.0s + 1.0s poll
+GREEN(ok) x4 processor grace 13100ms -> green
+    diff: ['-    stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too', '+    stop_grace_period: 13100ms']
+    pytest: 48 passed in 0.32s
+GREEN(ok) x5 processor grace '1m' quoted -> green
+    diff: ['-    stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too', '+    stop_grace_period: "1m"']
+    pytest: 48 passed in 0.32s
+KILLED    x6 processor grace commented out
+    diff: ['-    stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too', '+    # stop_grace_period: 20s']
+    pytest: 1 failed, 47 passed in 0.25s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: processor: stop_grace_period missing or unparseable: []
+KILLED    x7 processor grace moved to x-worker anchor only
+    diff: ['+  stop_grace_period: 20s', '-    stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too']
+    pytest: 1 failed, 47 passed in 0.28s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: processor: stop_grace_period missing or unparseable: []
+KILLED    x8 processor grace nested under healthcheck (6 sp)
+    diff: ['-    stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too', '+      stop_grace_period: 20s']
+    pytest: 1 failed, 47 passed in 0.29s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: processor: stop_grace_period missing or unparseable: []
+KILLED    x9 processor grace duplicated (20s + 5s)
+    diff: ['+    stop_grace_period: 5s']
+    pytest: 1 failed, 47 passed in 0.27s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: processor: stop_grace_period missing or unparseable: ['20s', '5s']
+KILLED    x10 processor grace unparseable '20'
+    diff: ['-    stop_grace_period: 20s # not on x-worker: embedder-api merges that anchor too', '+    stop_grace_period: 20']
+    pytest: 1 failed, 47 passed in 0.32s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: processor: stop_grace_period missing or unparseable: ['20']
+GREEN(ok) x11 embedder-api gains *heartbeat_check
+    diff: ['-          grep -q \'"reranker":true\'', '+          grep -q \'"reranker":true\' # *heartbeat_check']
+    pytest: 48 passed in 0.27s
+KILLED    x12 embedder-api healthcheck uses *heartbeat_check
+    diff: ['-      test:', '-        - CMD-SHELL', '-        - >-', '-          curl -fsS http://localhost:8081/healthz |', '-          grep -q \'"reranker":true\'', '+      test: ["CMD", "python", "-c", *heartbeat_check]']
+    pytest: 1 failed, 47 passed in 0.32s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: Kafka workers (healthcheck uses *heartbeat_check): ['embedder-api', 'embedder-worker', 'processor']
+KILLED    x13 new worker service with *heartbeat_check
+    diff: ['+  new-worker:', '+    <<: *worker', '+    stop_grace_period: 20s', '+    healthcheck:', '+      test: ["CMD", "python", "-c", *heartbeat_check]', '+']
+    pytest: 1 failed, 47 passed in 0.27s
+    FAILED tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush
+    msg: AssertionError: Kafka workers (healthcheck uses *heartbeat_check): ['embedder-worker', 'new-worker', 'processor']
+SURVIVED  x14 test: drop full-match check in compose_duration_s
+    diff: ['-    if not value or "".join(n + u for n, u in parts) != value:', '+    if not value or not parts:']
+    pytest: 48 passed in 0.30s
+KILLED    x15 test: unit regex order (h|m|s|ms)
+    diff: ['-    parts = re.findall(r"(\\d+(?:\\.\\d+)?)(ms|us|ns|h|m|s)", value)', '+    parts = re.findall(r"(\\d+(?:\\.\\d+)?)(h|m|s|ms|us|ns)", value)']
+    pytest: 1 failed, 47 passed in 0.28s
+    FAILED tests/test_kafka_client.py::test_compose_duration_parsing[1500ms-1.5]
+    msg: AssertionError: assert None == 1.5
+KILLED    x16 test: drop ms unit -> 1500ms unparseable
+    diff: ['-_DURATION_UNITS = {"h": 3600.0, "m": 60.0, "s": 1.0, "ms": 1e-3, "us": 1e-6, "ns": 1e-9}', '+_DURATION_UNITS = {"h": 3600.0, "m": 60.0, "s": 1.0, "ms": 1.0, "us": 1e-6, "ns": 1e-9}']
+    pytest: 1 failed, 47 passed in 0.31s
+    FAILED tests/test_kafka_client.py::test_compose_duration_parsing[1500ms-1.5]
+    msg: AssertionError: assert 1500.0 == 1.5
+SOME MUTANTS NOT AS EXPECTED
+
+[exit code 0]

@@ -1,0 +1,18 @@
+$ gh api .../actions/jobs/136770341128/logs | grep (Python M0 unit tests, step Kafka client tests)
+job 136770341128 head_sha: 3cc94a7c9c30cee46271478ad1831a225367b172
+121:2026-11-21T07:12:19.6721299Z HEAD is now at 62e15a9 Merge 3cc94a7c9c30cee46271478ad1831a225367b172 into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+--- step 'Kafka client tests' (log lines 500-570):
+2026-11-21T07:13:24.3857571Z ##[group]Run python -m pytest -v tests/test_kafka_client.py
+2026-11-21T07:13:24.8421306Z tests/test_kafka_client.py::test_worker_stop_grace_period_outlasts_confirmed_flush PASSED [ 79%]
+2026-11-21T07:13:24.8426983Z tests/test_kafka_client.py::test_compose_duration_parsing[20s-20.0] PASSED [ 81%]
+2026-11-21T07:13:24.8432764Z tests/test_kafka_client.py::test_compose_duration_parsing[1500ms-1.5] PASSED [ 83%]
+2026-11-21T07:13:24.8438182Z tests/test_kafka_client.py::test_compose_duration_parsing[1m30s-90.0] PASSED [ 85%]
+2026-11-21T07:13:24.8443835Z tests/test_kafka_client.py::test_compose_duration_parsing['2.5s'-2.5] PASSED [ 87%]
+2026-11-21T07:13:24.8448960Z tests/test_kafka_client.py::test_compose_duration_parsing[20-None] PASSED [ 89%]
+2026-11-21T07:13:24.8457597Z tests/test_kafka_client.py::test_compose_duration_parsing[-None] PASSED  [ 91%]
+2026-11-21T07:13:24.8463315Z tests/test_kafka_client.py::test_compose_duration_parsing[None-None] PASSED [ 93%]
+2026-11-21T07:13:24.8468645Z tests/test_kafka_client.py::test_compose_duration_parsing[s-None] PASSED [ 95%]
+2026-11-21T07:13:24.8474212Z tests/test_kafka_client.py::test_compose_duration_parsing[20 s-None] PASSED [ 97%]
+2026-11-21T07:13:24.8674578Z tests/test_kafka_client.py::test_compose_duration_parsing[10x-None] PASSED [100%]
+2026-11-21T07:13:24.8675762Z ============================== 48 passed in 0.28s ==============================
+
