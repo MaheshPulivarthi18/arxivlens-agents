@@ -1,0 +1,29 @@
+$ bash -c export PATH=/usr/local/go1.25.1/bin:$PATH GOTOOLCHAIN=local; go version; out=$(go test -count=20 -race -v -run "TestCancelledCtxNeverTakesPermit" ./internal/arxiv/ 2>&1); echo "PASS lines: $(grep -c -- "^--- PASS: TestCancelledCtxNeverTakesPermit" <<<"$out")/20  FAIL lines: $(grep -c -- "^--- FAIL" <<<"$out")"; grep -v "^=== RUN" <<<"$out"; echo "--- go test -count=1 ./internal/arxiv/...:"; go test -count=1 ./internal/arxiv/...
+go version go1.25.1 linux/amd64
+PASS lines: 20/20  FAIL lines: 0
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+PASS
+ok  	arxivlens/internal/arxiv	1.021s
+--- go test -count=1 ./internal/arxiv/...:
+ok  	arxivlens/internal/arxiv	2.186s
+
+[exit code 0]

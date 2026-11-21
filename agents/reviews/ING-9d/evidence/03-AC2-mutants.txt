@@ -1,0 +1,14 @@
+$ /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/mutants.sh /root/wt/app-qa-ING-9d 30
+run=^TestCancelledCtxNeverTakesPermit$  count=30
+M0   control: unmutated PR head                                     FAIL 0/30  PASS 30/30
+x5   delete up-front ctx.Err() check (AC2)                          FAIL 30/30  PASS 0/30
+M2   up-front check sets l.last before returning err                FAIL 30/30  PASS 0/30
+M3   up-front check returns nil instead of ctx.Err()                FAIL 30/30  PASS 0/30
+M4   up-front check returns errors.New(err.Error()) (not Is)        FAIL 30/30  PASS 0/30
+M5   x5 + first select's ctx.Done case returns nil                  FAIL 30/30  PASS 0/30
+T1   x5 + test loops 1x instead of 50x (why the loop matters)       FAIL 11/30  PASS 19/30
+T2   x5 + test without l.last check (count=1, 15s timeout guard)    FAIL 1/1  PASS 0/1
+M0   control again: unmutated PR head                               FAIL 0/30  PASS 30/30
+workdir=/tmp/tmp.Y2AwZgWQrF
+
+[exit code 0]

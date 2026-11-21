@@ -1,0 +1,10 @@
+$ bash -c export PATH=/usr/local/go1.25.1/bin:$PATH GOTOOLCHAIN=local; for i in 1 2 3; do go test -count=1 -v -run "^TestCancelledCtxNeverTakesPermit$" ./internal/arxiv/ | grep -- "--- PASS"; done; echo "--- -race:"; go test -race -count=1 -v -run "^TestCancelledCtxNeverTakesPermit$" ./internal/arxiv/ | grep -- "--- PASS"; echo "--- 1000 runs wall time:"; go test -count=1000 -run "^TestCancelledCtxNeverTakesPermit$" ./internal/arxiv/
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- -race:
+--- PASS: TestCancelledCtxNeverTakesPermit (0.00s)
+--- 1000 runs wall time:
+ok  	arxivlens/internal/arxiv	0.056s
+
+[exit code 0]

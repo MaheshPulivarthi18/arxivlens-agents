@@ -1,0 +1,85 @@
+$ bash -c for f in /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/mutants.sh /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/control.sh; do echo "=== $f"; cat $f; done
+=== /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/mutants.sh
+#!/usr/bin/env bash
+# QA ING-9d mutation harness. Copies the app checkout (PR head) into a fresh temp dir, applies one
+# mutant at a time to internal/arxiv/limiter.go (or limiter_test.go), runs the test N times, counts FAILs.
+# Build failures are reported as INVALID, never KILLED. The PR checkout itself is never modified.
+set -u
+export PATH=/usr/local/go1.25.1/bin:$PATH GOTOOLCHAIN=local
+SRC=${1:?app dir}; N=${2:-30}; RUN=${3:-'^TestCancelledCtxNeverTakesPermit$'}
+W=$(mktemp -d); cp -r "$SRC"/. "$W"/; cd "$W"
+L=internal/arxiv/limiter.go; T=internal/arxiv/limiter_test.go
+cp $L /tmp/limiter.go.orig.$$; cp $T /tmp/limiter_test.go.orig.$$
+restore(){ cp /tmp/limiter.go.orig.$$ $L; cp /tmp/limiter_test.go.orig.$$ $T; }
+run(){ # name, description
+  if ! go vet ./internal/arxiv/ >/dev/null 2>&1; then printf '%-4s %-62s INVALID (build)\n' "$1" "$2"; return; fi
+  out=$(go test -count=$N -timeout ${TO:-120s} -run "$RUN" ./internal/arxiv/ 2>&1)
+  f=$(grep -c -- '^--- FAIL' <<<"$out"); p=$((N-f))
+  if grep -q 'panic: test timed out' <<<"$out"; then p="?"; f="$f+TIMEOUT"; fi
+  printf '%-4s %-62s FAIL %s/%s  PASS %s/%s\n' "$1" "$2" "$f" "$N" "$p" "$N"
+}
+echo "run=$RUN  count=$N"
+restore; run M0 "control: unmutated PR head"
+# x5: delete the up-front ctx.Err() check
+restore; python3 - $L <<'P'
+import sys;p=sys.argv[1];s=open(p).read();o="\tif err := ctx.Err(); err != nil {\n\t\treturn err\n\t}\n\tselect {";assert o in s;open(p,'w').write(s.replace(o,"\tselect {",1))
+P
+run x5 "delete up-front ctx.Err() check (AC2)"
+# M2: up-front check consumes a permit before returning
+restore; python3 - $L <<'P'
+import sys;p=sys.argv[1];s=open(p).read();o="\tif err := ctx.Err(); err != nil {\n\t\treturn err";assert o in s;open(p,'w').write(s.replace(o,"\tif err := ctx.Err(); err != nil {\n\t\tl.last = time.Now()\n\t\treturn err",1))
+P
+run M2 "up-front check sets l.last before returning err"
+# M3: up-front check swallows the error (returns nil, no permit)
+restore; python3 - $L <<'P'
+import sys;p=sys.argv[1];s=open(p).read();o="\tif err := ctx.Err(); err != nil {\n\t\treturn err";assert o in s;open(p,'w').write(s.replace(o,"\tif err := ctx.Err(); err != nil {\n\t\treturn nil",1))
+P
+run M3 "up-front check returns nil instead of ctx.Err()"
+# M4: up-front check returns a non-wrapping error
+restore; python3 - $L <<'P'
+import sys;p=sys.argv[1];s=open(p).read();o="\tif err := ctx.Err(); err != nil {\n\t\treturn err";assert o in s;s=s.replace(o,"\tif err := ctx.Err(); err != nil {\n\t\treturn errors.New(err.Error())",1);s=s.replace('import (\n','import (\n\t"errors"\n',1);open(p,'w').write(s)
+P
+run M4 "up-front check returns errors.New(err.Error()) (not Is)"
+# M5: x5 + select-path ctx.Done case returns nil
+restore; python3 - $L <<'P'
+import sys;p=sys.argv[1];s=open(p).read();o="\tif err := ctx.Err(); err != nil {\n\t\treturn err\n\t}\n\tselect {";assert o in s;s=s.replace(o,"\tselect {",1);o2="\tcase <-ctx.Done():\n\t\treturn ctx.Err()\n\t}\n\tdefer";assert o2 in s;open(p,'w').write(s.replace(o2,"\tcase <-ctx.Done():\n\t\treturn nil\n\t}\n\tdefer",1))
+P
+run M5 "x5 + first select's ctx.Done case returns nil"
+# T1: test mutant - loop once instead of 50 times (with x5 applied)
+restore; python3 - $L $T <<'P'
+import sys;p,t=sys.argv[1],sys.argv[2];s=open(p).read();o="\tif err := ctx.Err(); err != nil {\n\t\treturn err\n\t}\n\tselect {";s=s.replace(o,"\tselect {",1);open(p,'w').write(s)
+u=open(t).read();o="for i := 0; i < 50; i++ {";assert o in u;open(t,'w').write(u.replace(o,"for i := 0; i < 1; i++ {",1))
+P
+run T1 "x5 + test loops 1x instead of 50x (why the loop matters)"
+# T2: test mutant - drop the l.last check (with x5) - waitImmediate would block 1h
+restore; python3 - $L $T <<'P'
+import sys;p,t=sys.argv[1],sys.argv[2];s=open(p).read();o="\tif err := ctx.Err(); err != nil {\n\t\treturn err\n\t}\n\tselect {";s=s.replace(o,"\tselect {",1);open(p,'w').write(s)
+u=open(t).read();o='\t\tif !l.last.IsZero() {\n\t\t\tt.Fatalf("try %d: Wait(cancelled) took a permit (last = %s)", i, l.last)\n\t\t}\n';assert o in u;open(t,'w').write(u.replace(o,"",1))
+P
+N_SAVE=$N; N=1; TO=15s run T2 "x5 + test without l.last check (count=1, 15s timeout guard)"; N=$N_SAVE
+restore; run M0 "control again: unmutated PR head"
+echo "workdir=$W"
+=== /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/control.sh
+#!/usr/bin/env bash
+# Negative control: x5 applied, but with origin/main's limiter_test.go (no new test). Shows the
+# pre-existing internal/arxiv tests only catch x5 some of the time (the flakiness ING-9d removes).
+set -u
+export PATH=/usr/local/go1.25.1/bin:$PATH GOTOOLCHAIN=local
+SRC=${1:?app dir}; N=${2:-30}
+W=$(mktemp -d); cp -r "$SRC"/. "$W"/; cd "$W"
+git show origin/main:internal/arxiv/limiter_test.go > internal/arxiv/limiter_test.go
+grep -c TestCancelledCtxNeverTakesPermit internal/arxiv/limiter_test.go | sed 's/^/new test present in main test file: /'
+python3 - internal/arxiv/limiter.go <<'P'
+import sys;p=sys.argv[1];s=open(p).read();o="\tif err := ctx.Err(); err != nil {\n\t\treturn err\n\t}\n\tselect {";assert o in s;open(p,'w').write(s.replace(o,"\tselect {",1))
+P
+out=$(go test -count=$N -timeout 300s ./internal/arxiv/ 2>&1)
+echo "x5 vs main's tests, whole internal/arxiv package, count=$N:"
+grep -- '^--- FAIL' <<<"$out" | sed 's/ (.*//' | sort | uniq -c
+echo "package runs with >=1 FAIL out of $N: (go test -count runs all tests N times; per-test FAIL counts above)"
+tail -1 <<<"$out"
+echo "--- with x5 + PR head test file, -race, count=$N, -run new test:"
+cp "$SRC"/internal/arxiv/limiter_test.go internal/arxiv/limiter_test.go
+out=$(go test -race -count=$N -run '^TestCancelledCtxNeverTakesPermit$' ./internal/arxiv/ 2>&1)
+echo "FAIL $(grep -c -- '^--- FAIL' <<<"$out")/$N"
+
+[exit code 0]

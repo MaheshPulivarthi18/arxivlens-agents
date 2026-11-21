@@ -1,0 +1,10 @@
+$ /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/control.sh /root/wt/app-qa-ING-9d 30
+new test present in main test file: 0
+x5 vs main's tests, whole internal/arxiv package, count=30:
+     14 --- FAIL: TestFirstWaitIsImmediate
+package runs with >=1 FAIL out of 30: (go test -count runs all tests N times; per-test FAIL counts above)
+FAIL
+--- with x5 + PR head test file, -race, count=30, -run new test:
+FAIL 30/30
+
+[exit code 0]
