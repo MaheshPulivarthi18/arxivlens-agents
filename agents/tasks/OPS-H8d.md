@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H8c (#100, merged `3c9b133`), OPS-H8 (merged). No ADR |
 | **Jira** | KAN-112 |
 | **Design required** | no: one unit test reading two existing files |
-| **Status** | Ready (picked 2026-11-21 07:00Z) |
+| **Status** | In QA: branch `agent/ai/OPS-H8d` pushed (head `3cc94a7`), PR to be opened by the orchestrator; AC5 waits on CI |
 
 ## Goal
 OPS-H8c set `stop_grace_period: 20s` on `processor` and `embedder-worker` (`docker-compose.yml:192,210`) because a worker inside a producer
@@ -54,3 +54,21 @@ git diff origin/main --name-only                   # exactly tests/test_kafka_cl
   `tests/test_evals_data.py`, `scripts/evaluate_answers.py`, `evals/README.md`; #104/#105 touch no Python. Neither `docker-compose.yml` nor
   `kafka_client.py` is changed by any open PR.
 - All `<<: *worker` consumers on `11c4696` (OPS-H8c lesson): `embedder-api` (line 161), `processor` (190), `embedder-worker` (209).
+- 2026-11-21 (ai-engineer): built on `agent/ai/OPS-H8d` (`1a806c2` test, `3cc94a7` E501 wrap; head `3cc94a7`). `git diff origin/main --name-only`
+  = `tests/test_kafka_client.py` only, +53/-0; `ownership-check.sh origin/main agent/ai/OPS-H8d`: `Ownership OK for role=ai (53 changed lines)`.
+  New tests: `test_worker_stop_grace_period_outlasts_confirmed_flush` (AC1-AC3) and `test_compose_duration_parsing` (10 cases: `20s`, `1500ms`,
+  `1m30s`, quoted, plus bare `20`, empty, None, `s`, `20 s`, `10x` → unparseable). Stdlib-only line parser: top-level `services:` entries
+  are 2-space keys, only the service's own 4-space `stop_grace_period:` counts (exactly one must exist), comments stripped.
+  - Local runs use **stub `confluent_kafka`/`ulid` modules** in the scratchpad (sandbox has no PyPI), pytest run from `/tmp` with
+    `PYTHONDONTWRITEBYTECODE=1`. CI with the real packages is the source of truth (AC5 not yet verified: no PR/CI run yet).
+  - Unmutated: `48 passed`. AC6: `ruff check --isolated --select E,F,W --line-length 130 tests/test_kafka_client.py` → `All checks passed!`
+  - AC4 mutants (each applied alone, reverted with `git checkout`, control re-run `48 passed` after):
+    - m1 `DELIVERY_TIMEOUT_S = 19.0` → `embedder-worker: stop_grace_period 20.0s <= DELIVERY_TIMEOUT_S 19.0s + 1.0s poll` (1 failed)
+    - m2 delete processor's `stop_grace_period` → `processor: stop_grace_period missing or unparseable: []` (1 failed)
+    - m3 delete embedder-worker's → `embedder-worker: stop_grace_period missing or unparseable: []` (1 failed)
+    - m4 embedder-worker `10s` → `embedder-worker: stop_grace_period 10.0s <= DELIVERY_TIMEOUT_S 12.0s + 1.0s poll` (1 failed)
+    - m5 drop embedder-worker's `*heartbeat_check` healthcheck test line → `Kafka workers (healthcheck uses *heartbeat_check): ['processor']` (1 failed)
+  - m1 names embedder-worker because services are checked in sorted order and the loop stops at the first failure (processor fails too).
+  - Gotcha hit: m1 changes `12.0` to `19.0` (same size), and the revert came within the same second, so Python reused the stale `.pyc` and later
+    mutant runs still saw 19.0. Rerun with `__pycache__` cleared + `PYTHONDONTWRITEBYTECODE=1`; the results above come from that clean run.
+  - First commit pushed with 3 ruff E501 lines (my commit chain didn't stop on ruff); fixed in `3cc94a7`, no force-push.
