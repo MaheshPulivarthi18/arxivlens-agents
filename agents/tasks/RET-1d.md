@@ -8,7 +8,7 @@
 | **Depends on** | RET-1c (#84) **merged** (same files: `internal/query/server.go`, `server_test.go`) |
 | **Jira** | KAN-92 (epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1d`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: unexported interfaces inside one package, no route, field, CLI, table, service or exported signature change |
-| **Status** | Ready to merge (PR [#94](https://github.com/MaheshPulivarthi18/ArxivLens/pull/94) raised 2026-11-21 on `a5bf0f4`; QA PASS r1, PM APPROVE) |
+| **Status** | Done: ArxivLens [#94](https://github.com/MaheshPulivarthi18/ArxivLens/pull/94) merged by Mahesh 2026-11-21 as `29f6213` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 RET-1c's `TestWriteJSON` covers the helper but not how the handlers call it. QA showed four call-site mutants survive both the unit test

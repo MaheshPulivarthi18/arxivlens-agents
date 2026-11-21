@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H7a1 (ArxivLens #62) **and** OPS-H7a2 **merged** (same files `manager.go`/`main.go`; `Reader`) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7b`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Q1, Q5, Q6, Q7 + PM decision (approved 2026-11-07) |
-| **Status** | Waiting on OPS-H7a2a (#83, in QA) and [OPS-H7a2b](OPS-H7a2b.md) merging (same `manager.go`/`main.go`). OPS-H7a1 #62 merged `670108e` |
+| **Status** | Ready (OPS-H7a2a #83 and OPS-H7a2b #93 merged). Not picked 2026-11-21 05:00Z: `main.go` queue after ING-6c and OPS-H7a2c; `README.md` held by FE-3b this cycle |
 
 ## Goal
 Repeated `dlq replay --limit N` runs work through a DLQ of any size, each DLQ record resolved once, and records skipped by a filter stay eligible.

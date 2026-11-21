@@ -8,7 +8,7 @@
 | **Depends on** | FE-0b (#70) **merged**. FE-1 (#68, merged `2410d2e`: Vitest + jsdom + Testing Library). No dependency change needed |
 | **Jira** | KAN-90 (epic KAN-5 "Research UI & citations"; labels `task-FE-0d`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: tests only, no component, contract or dependency change |
-| **Status** | Ready to merge: [#95](https://github.com/MaheshPulivarthi18/ArxivLens/pull/95) @ `76b851c`, QA r1 PASS, PM APPROVE 2026-11-21 (picked cycle 2026-11-20 20:00Z) |
+| **Status** | Done: ArxivLens [#95](https://github.com/MaheshPulivarthi18/ArxivLens/pull/95) merged by Mahesh 2026-11-21 as `ae8de39` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 FE-0b's six primitives were proven only by QA's throwaway smoke harness (real Radix/sonner in headless Chromium). CI lints them but never

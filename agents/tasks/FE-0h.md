@@ -8,7 +8,7 @@
 | **Depends on** | FE-0e (#87, merged `1da13ee`), FE-0c (#85, merged `d7d35ab`). No open PR touches the files below (checked 2026-11-21 00:00Z: #91 `App.test.jsx`, #92 `ui/button.*`, #95 `ui/primitives.test.jsx`; no backend/ai PR is under `frontend/`) |
 | **Jira** | KAN-105 (epic KAN-5 "Research UI & citations"; labels `task-FE-0h`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: two class swaps, one small test file, one README line |
-| **Status** | Ready to merge: PR [#101](https://github.com/MaheshPulivarthi18/ArxivLens/pull/101) @ `2c84527` raised 2026-11-21 (QA r1 PASS, PM APPROVE; [report](../reviews/FE-0h/report.md)) |
+| **Status** | Done: ArxivLens [#101](https://github.com/MaheshPulivarthi18/ArxivLens/pull/101) merged by Mahesh 2026-11-21 as `d646d63` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 The two text inputs outside the ask flow still draw their outline with the decorative `border-border` token (1.31-1.46:1), so

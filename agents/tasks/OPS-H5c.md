@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H5b (#81, merged `36ceac0`). No open PR touches `internal/query/search_integration_test.go` (checked 2026-11-20 20:00Z: #94 changes `internal/query/server.go` + `server_test.go` only; #91–#93 are outside `internal/query/`) |
 | **Jira** | KAN-101 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H5c`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: test-only, one build-tagged test file |
-| **Status** | Ready to merge (PR [#97](https://github.com/MaheshPulivarthi18/ArxivLens/pull/97) @ `1d696c7`; QA r1 PASS, PM APPROVE 2026-11-21) |
+| **Status** | Done: ArxivLens [#97](https://github.com/MaheshPulivarthi18/ArxivLens/pull/97) merged by Mahesh 2026-11-21 as `0a68283` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 The guard that stops `TestHNSWVectorHits` from seeding a non-empty DB (`search_integration_test.go:77-83`: `others > 0` → `Fatalf` when `CI`

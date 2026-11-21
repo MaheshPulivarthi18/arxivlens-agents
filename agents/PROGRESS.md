@@ -936,3 +936,9 @@ Format:
 - Setup: push dry-run OK; no prior RUN_LOCK, lock taken (`d4cbbe7`); app cloned at `230f617` (unchanged).
 - Sync: no merges/closes since 2026-11-20 18:54Z; ArxivLens #91–#103 open, non-draft, heads unchanged since their QA/PM verdicts; no reviews, issue or inline comments from Mahesh without a role tag; workspace PRs #14/#15/#16 no human activity; Jira: no intake (newest KAN-107), no updates since 01:35Z. No rework, QA or PM queue.
 - New work: 0 — state identical to the 02:00Z grooming (every Ready item waits on an unmerged PR), so no re-groom. Retro: nothing new. RUN_LOCK released in this commit.
+
+## 2026-11-21 05:00Z — pm-lead (cycle grooming)
+- Sync: Mahesh merged #91–#103 at 04:50–04:52Z (app `main` `230f617` → `11c4696`); all 13 tickets → Status Done, board Done rows with merge SHAs, "Ready to merge" emptied. No open agent PRs, no human reviews, no ADR change.
+- Picked 4 pairwise-independent tasks (all deps merged, no ADR wait): **FE-3b** (frontend, P0, design Approved), **RET-1e** (backend, P2, KAN-99), **OPS-H6e** (backend, P2, unblocks the ai worker follow-up), **EVAL-6c** (ai, P3 harness, new spec from EVAL-6b QA finding 3 + nit 1).
+- Spec fixes at pick time: FE-3b Scope names the AC6 test files and the exact README line (`README.md:138-139`, "first visit starts in Dark"); RET-1e AC1 gains the two 503 rows (line list re-checked at `11c4696`); OPS-H6e test files fixed to `tests/test_processor_pages.py` (in `PY_ML_TESTS`) + `tests/test_chunk_reprocess_db.py` (test-full), so no `Makefile` change.
+- Not picked: ING-6c / OPS-H7a2c / OPS-H7b (each edits app `README.md`, which FE-3b also edits; ING-6c goes first once FE-3b merges); FE-0g, x5 limiter test, OPS-H8d (unblocked, but 4-task cap and lower priority); FE-3a2 Toast-mock follow-up and form-control scan (after FE-3b).

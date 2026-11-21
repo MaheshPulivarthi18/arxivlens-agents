@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H8 (merged), OPS-H1 (workers in compose, merged). No open PR touches `docker-compose.yml` (checked 2026-11-21 00:00Z: #91–#98 file lists) |
 | **Jira** | to be created by the orchestrator (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H8c`, `agent-backend`, `arxivlens`; link KAN-34) |
 | **Design required** | no: one compose key on the two worker services; the value comes from the approved OPS-H8 design |
-| **Status** | Ready to merge: PR [#100](https://github.com/MaheshPulivarthi18/ArxivLens/pull/100) @ `ffe4b45`, QA r1 PASS, PM APPROVE 2026-11-21 ([report](../reviews/OPS-H8c/report.md)) |
+| **Status** | Done: ArxivLens [#100](https://github.com/MaheshPulivarthi18/ArxivLens/pull/100) merged by Mahesh 2026-11-21 as `3c9b133` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 On `docker compose stop`, a worker that is inside a producer `flush` (up to `DELIVERY_TIMEOUT_S = 12.0`,

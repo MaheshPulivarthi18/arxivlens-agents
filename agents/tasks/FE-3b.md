@@ -8,7 +8,7 @@
 | **Depends on** | **FE-0b #70 merged** (`ui/tooltip`), **FE-3a #86 merged** (same files; FE-3a2 should merge first or FE-3b re-checks its App-level asserts still pass), **FE-0e merged** (secondary screens on tokens before the flip; PM decision Q1). FE-0c #85 merged preferred (its drift guard checks AC3 here) but not required |
 | **Jira** | KAN-89 (story under epic KAN-5; parent FE-3 KAN-40), labels `task-FE-3b`, `agent-frontend`, `arxivlens` |
 | **Design required** | yes, done: `docs/design/FE-3.md` Approved with changes (pm-lead 2026-11-20) |
-| **Status** | Ready (FE-0b #70, FE-3a #86, FE-0e #87 merged 2026-11-20); start after FE-3a2 merges (App-level asserts, board file order) |
+| **Status** | Ready, **picked cycle 2026-11-21T05:00Z** (FE-3a2 #91 `873c2f0`, FE-0f #92, FE-0d #95, FE-0h #101 merged 2026-11-21; app `main` = `11c4696`) |
 
 ## Goal
 Finish FE-3: the answer, refusal panel, references and early-refusal banner use FE-0's tokens and fonts, each status chip explains itself in a
@@ -19,6 +19,9 @@ keyboard-reachable tooltip, and the default theme follows the OS.
   `role="status"` on the banner), `frontend/src/components/HeroSearch.jsx` (3 class swaps, design §5), `frontend/src/lib/theme.js` + `frontend/index.html`
   (`DEFAULT_THEME = "system"`, reword the "interim" comments), `frontend/src/test/setup.js` (`ResizeObserver` stub), `frontend/src/test/tokens.test.js`
   (extend FE-0e's guard), `ReferencesStack.test.jsx` (tooltip test).
+- *Amended 2026-11-21 05:00Z (pm-lead, cycle pick):* also allowed, only where AC6 permits a class assert to follow a token: `frontend/src/App.test.jsx`
+  (FE-3a2, merged `873c2f0`), `SynthesisView.test.jsx`, `HeroSearch.test.jsx`. List every such edit in the PR body. Docs: app `README.md` lines 138-139
+  ("the first visit starts in Dark") → says the first visit follows the OS (System). No other README line.
 - Out of scope: copy changes (approved in FE-3a), new dependencies, an app-level `<TooltipProvider>` (it doesn't change the delay; FE-0b note).
 
 ## Acceptance criteria
@@ -43,7 +46,7 @@ keyboard-reachable tooltip, and the default theme follows the OS.
   in the light screenshots of the A-refusal and `mixedAnswer`.
 - [ ] AC6 — FE-1/FE-3a tests still pass unchanged except where a class assert must follow a token (listed in the PR body); AC4 early-refusal asserts unchanged.
 - [ ] AC7 — CI `frontend` job green (`npm ci && npm run lint && npm test && npm run build`), lint warnings not above main.
-- [ ] Docs: README screenshot/description updated if it mentions the dark default.
+- [ ] Docs: app `README.md:138-139` ("the first visit starts in Dark", at `11c4696`) says the first visit follows the OS setting (System); no other README change.
 
 ## Verification
 ```bash
@@ -64,3 +67,9 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
   `bg-primary` (light blue in dark mode), so the white spinner is 2.22:1 there. It isn't a WCAG failure, because the button is disabled while
   loading, but it is a visible regression. The widened guard already flags `border-white`, so this only spells out the target class. Also add
   `primary-foreground` on `primary` (dark 8.11:1) to AC5's contrast table as the spinner pair.
+- 2026-11-21 05:00Z (pm-lead, cycle pick): all dependencies merged. Re-checked paths at `11c4696`: `HeroSearch.jsx:81` still has
+  `border-white/30 border-t-white`; `theme.js:9` and `index.html:13` still say `"dark"`/`'dark'`; FE-0c's `theme.test.js:58-61` drift guard compares the
+  two literals without hard-coding the default, so AC3 needs no test edit there. No `ResizeObserver` stub is in `src/test/setup.js` yet
+  (`ui/primitives.test.jsx:16` stubs it locally; leave that file alone, FE-0g owns it next). Scope gains the existing test files AC6 allows and the exact
+  README line. The FE-3a2 Toast-mock nit (M19) is **not** folded in; it stays a Backlog item for after this merges. Because this PR edits `README.md`,
+  no `cmd/arxivlens/main.go` task (ING-6c, OPS-H7a2c, OPS-H7b all edit README) runs beside it this cycle.

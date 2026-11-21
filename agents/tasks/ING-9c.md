@@ -8,7 +8,7 @@
 | **Depends on** | ING-9 (#25, merged `2b71772`). No open PR touches the files below (checked 2026-11-21 00:00Z: #94 `internal/query/server.go` + `server_test.go`, #97 `internal/query/search_integration_test.go`, #93 `cmd/arxivlens/`; nothing under `internal/arxiv/`) |
 | **Jira** | KAN-103 (created by the orchestrator; epic KAN-4 "Continuous ingestion"; labels `task-ING-9c`, `agent-backend`, `arxivlens`; link KAN-48) |
 | **Design required** | no: test-only, two existing test files |
-| **Status** | Ready to merge (PR #99 @ `6afd06d` raised 2026-11-21; QA r1 PASS, PM APPROVE) |
+| **Status** | Done: ArxivLens [#99](https://github.com/MaheshPulivarthi18/ArxivLens/pull/99) merged by Mahesh 2026-11-21 as `b56739e` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 The ingester checks the limiter's error before each arXiv request, so a cancelled ingest (client gone, `INGEST_TIMEOUT`) never sends

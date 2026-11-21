@@ -6,9 +6,9 @@
 | **Priority** | P2 (narrow race; data correctness) |
 | **PRD ref** | Product PRD OPS-3 ("Reprocessing never creates duplicate rows or embeddings"); Technical PRD §8.1 L3 ("content hashing"); QA OPS-H6d r1 finding 3 `[spec]`; OPS-H6d ticket Notes "Known residual race" |
 | **Depends on** | OPS-H6d (ArxivLens #102) **merged**: same file, `services/common/db.py` |
-| **Jira** | to be created by the orchestrator when this moves to Ready (epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6e`, `agent-backend`, `arxivlens`) |
+| **Jira** | needs a story (orchestrator, cycle 2026-11-21T05:00Z) under epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6e`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py`, backward compatible, no schema/event/HTTP change |
-| **Status** | Backlog (waits for #102 to merge; then pm-lead re-checks open-PR overlap and moves it to Ready) |
+| **Status** | Ready, **picked cycle 2026-11-21T05:00Z** (OPS-H6d #102 merged `c629bd9`; app `main` = `11c4696`; no open PR) |
 
 ## Goal
 After OPS-H6d, a re-parse deletes the vectors of a changed chunk and deletes the chunks a shorter parse no longer has.
@@ -29,8 +29,11 @@ vector was computed from. Otherwise it skips the vector and reports how many it 
     when `paper_chunks` has a row with that `id` and that `content_hash` (for example `INSERT … SELECT … WHERE EXISTS
     (…)` or a locking read of the chunk row first; the developer picks and tests it). The return value is the number of
     vectors actually written. Still no commit (the caller's transaction).
-  - A new or existing test file under `tests/`: FakeConn unit tests for the statement and parameters, and a
-    real-Postgres test in the style of `tests/test_chunk_reprocess_db.py` (one connection, always rolled back).
+  - `tests/test_processor_pages.py`: FakeConn unit tests for the statement and parameters (reuse its `FakeConn`/`FakeCursor`).
+    *Amended 2026-11-21 05:00Z (pm-lead):* the unit tests go **in this existing file** because it is already in the `Makefile`'s
+    `PY_ML_TESTS` (`make test-py-ml`, CI `python` job). A new unit-test file would not run in CI without a `Makefile` list change.
+  - `tests/test_chunk_reprocess_db.py`: the real-Postgres test (one connection, always rolled back, as its module docstring says). It runs in
+    `make test-full` (`stack.yml` step "AC4: make test-full", `-rA`), not in `make test-py`.
 - Out of scope (separate ai-engineer follow-up, board Backlog): `services/embedder/worker.py` passing
   `c["content_hash"]` as the 4th element and logging the skipped count. Until that lands the new branch is unused, so
   this task must not change behaviour for 3-tuples.
@@ -52,10 +55,11 @@ vector was computed from. Otherwise it skips the vector and reports how many it 
 
 ## Verification
 ```bash
-python -m pytest -q tests/test_processor_pages.py <new unit test file>
-ruff check --isolated --select E,F,W --line-length 130 services/common/db.py <changed test files>
-# real DB: make infra-up && make migrate && python -m pytest -v <new DB test file>
-git diff origin/main --name-only
+cd app
+python -m pytest -q tests/test_processor_pages.py          # needs torch/PyMuPDF; else CI `make test-py-ml`
+ruff check --isolated --select E,F,W --line-length 130 services/common/db.py tests/test_processor_pages.py tests/test_chunk_reprocess_db.py
+# real DB: make infra-up && make migrate && python -m pytest -v tests/test_chunk_reprocess_db.py
+git diff origin/main --name-only   # exactly services/common/db.py, tests/test_processor_pages.py, tests/test_chunk_reprocess_db.py
 # CI: Full stack run on the draft PR -> `AC4: make test-full` step, -rA summary lines for the new DB test
 ```
 
@@ -63,3 +67,9 @@ git diff origin/main --name-only
 - 2026-11-21 (pm-lead): specced from QA OPS-H6d r1 finding 3 `[spec]` during the #102 PM review. Split into two tickets so
   each has one owner: backend makes `save_chunk_embeddings` hash-aware (backward compatible); ai then makes the worker pass
   the hash. The FK case (AC4) is new: it became reachable once OPS-H6d added the tail delete.
+- 2026-11-21 05:00Z (pm-lead, cycle pick): #102 merged as `c629bd9`. At `11c4696`, `save_chunk_embeddings` is `services/common/db.py:190-211`
+  (per-chunk `INSERT … ON CONFLICT (chunk_id, model) DO UPDATE`, returns `len(chunk_embeddings)`); its only caller is
+  `services/embedder/worker.py:76`, which passes 3-tuples, so AC1 is the whole production behaviour until the ai follow-up lands.
+  `get_chunks_for_embedding` already selects `pc.content_hash` (`db.py:177`), so the follow-up needs no query change. Test files fixed in Scope
+  (no new file, no `Makefile` change). Allowed files: `services/common/db.py`, `tests/test_processor_pages.py`, `tests/test_chunk_reprocess_db.py`.
+  AC6 mutants run locally, never pushed; output in the PR or in QA evidence.

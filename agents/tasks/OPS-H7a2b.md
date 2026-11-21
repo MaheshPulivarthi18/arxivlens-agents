@@ -8,7 +8,7 @@
 | **Depends on** | **OPS-H7a2a = ArxivLens PR #83 merged** (`Manager.List`, `ListOptions{…, Snapshot}`, `Page{Next, Watermarks, Warnings}`, `ParseCursor`, missing-topic error). #65/#69 (root `README.md`) are merged. Must not run alongside ING-6c or OPS-H7b (both edit `cmd/arxivlens/main.go`; ING-6c also edits `README.md`) |
 | **Jira** | KAN-71 (the OPS-H7a2 story; a2b is its second PR) |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Shape, Q2, Q3 + PM decision (approved 2026-11-07), "Build notes (a1)" and "Build notes (a2a, PR #83)" |
-| **Status** | **Ready to merge**: ArxivLens [#93](https://github.com/MaheshPulivarthi18/ArxivLens/pull/93) @ `0f99a63` raised for Mahesh 2026-11-21 (QA r1 PASS, PM APPROVE) |
+| **Status** | Done: ArxivLens [#93](https://github.com/MaheshPulivarthi18/ArxivLens/pull/93) merged by Mahesh 2026-11-21 as `f49efeb` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 The operator half of OPS-H7a2: `arxivlens dlq list` pages to the start-time end of the topic and prints a resumable `P/O` cursor, and `dlq inspect`

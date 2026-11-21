@@ -8,7 +8,7 @@
 | **Depends on** | ING-11c (#78, merged `cee2543`). No open PR touches `tests/test_m2_pipeline.py` (checked 2026-11-20 20:00Z against #91–#94) |
 | **Jira** | KAN-102 (epic KAN-4 "Continuous ingestion", same as ING-11c/KAN-81; labels `task-ING-11d`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: two lint fixes in a test file, no behaviour change |
-| **Status** | Ready to merge (PR #98, QA r1 PASS, PM APPROVE 2026-11-21) |
+| **Status** | Done: ArxivLens [#98](https://github.com/MaheshPulivarthi18/ArxivLens/pull/98) merged by Mahesh 2026-11-21 as `905efaf` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 `ruff check --isolated --select E,F,W --line-length 130 tests/test_m2_pipeline.py` reports 2 findings on `origin/main` `230f617`

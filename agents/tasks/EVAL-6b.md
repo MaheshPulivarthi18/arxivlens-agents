@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-6 (#20), EVAL-10a (#82, merged `21eb4e9`). No open PR touches `scripts/evaluate_answers.py`, `tests/test_evals_data.py` or `evals/README.md` (checked 2026-11-20 20:00Z: open PRs #91–#94 change only `frontend/…`, `README.md`, `cmd/arxivlens/…`, `internal/query/server*.go`) |
 | **Jira** | KAN-100 (epic KAN-2 "Retrieval & answer quality gates"; labels `task-EVAL-6b`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: no gate key, threshold, contract, CLI or table change; report-only metric wording only |
-| **Status** | Ready to merge (PR #96 @ `c053564`, QA r1 PASS, PM APPROVE 2026-11-21) |
+| **Status** | Done: ArxivLens [#96](https://github.com/MaheshPulivarthi18/ArxivLens/pull/96) merged by Mahesh 2026-11-21 as `cb5d833` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 `make eval` must never crash on a malformed `/v1/ask` response: a `refusal_reason` that isn't a string (e.g. `["x"]`, `{}`) today raises

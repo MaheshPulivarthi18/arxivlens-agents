@@ -8,7 +8,7 @@
 | **Depends on** | none open. No open PR touches `Makefile`, `.github/workflows/ci.yml`, `CONTRIBUTING.md` or `requirements*.txt` (checked 2026-11-21 01:00Z against the file lists of #91–#101). The app `README.md` doesn't mention `test-py`, so it is not in scope (it is held by #93 anyway) |
 | **Jira** | KAN-107 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H18`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: Makefile targets, one CI job's steps and a deps file; no product code, no contract |
-| **Status** | Ready to merge: PR [#103](https://github.com/MaheshPulivarthi18/ArxivLens/pull/103) @ `2242efe`, QA r1 PASS, PM APPROVE 2026-11-21, raised for review (label `ready-to-merge`) |
+| **Status** | Done: ArxivLens [#103](https://github.com/MaheshPulivarthi18/ArxivLens/pull/103) merged by Mahesh 2026-11-21 as `11c4696` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 Mahesh's approved 2026-11-03 external-review plan (PROGRESS 2026-11-03) asks for `make test-py` to be split so the eval-data tests still run when the ML stack

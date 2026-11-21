@@ -8,7 +8,7 @@
 | **Depends on** | FE-0 #69 merged (`54c4de8`, tokens). No open PR changes `frontend/src/components/ui/button.jsx` (#70 = six other `ui/` files, #86 = `ui/badge.jsx`; REST check 2026-11-21). Independent of FE-0e #87, FE-3a #86, FE-3b and FE-0d |
 | **Jira** | KAN-97 (epic KAN-5 "Research UI & citations"; labels `task-FE-0f`, `agent-frontend`, `arxivlens`) |
 | **Design required** | no: one variant string in an existing `ui/` file plus one new test file; no new component, contract or dependency |
-| **Status** | Ready to merge (QA PASS r1, PM APPROVE 2026-11-21 UTC; PR #92 raised, head `ce86ddf`) |
+| **Status** | Done: ArxivLens [#92](https://github.com/MaheshPulivarthi18/ArxivLens/pull/92) merged by Mahesh 2026-11-21 as `72965b5` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 `<Button variant="clinical">` draws white `text-sm`/`text-xs` text on an emerald-600 → teal-600 gradient: **3.77:1 / 3.74:1 in both themes**, below

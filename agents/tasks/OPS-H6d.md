@@ -8,7 +8,7 @@
 | **Depends on** | none open. OPS-H6 and ING-11 (`paper_chunk_pages`, migration 000003) are merged. No open PR touches `services/common/db.py`, `tests/test_processor_pages.py` or the new test file (checked 2026-11-21 01:00Z against the file lists of #91–#101) |
 | **Jira** | KAN-106 (epic KAN-4 "Continuous ingestion") |
 | **Design required** | no: one function in `services/common/db.py`, no schema, event or HTTP change, no new CLI/table/service |
-| **Status** | Ready to merge (ArxivLens [#102](https://github.com/MaheshPulivarthi18/ArxivLens/pull/102) @ `5ba967b`, raised for review 2026-11-21; QA r1 PASS · PM APPROVE) |
+| **Status** | Done: ArxivLens [#102](https://github.com/MaheshPulivarthi18/ArxivLens/pull/102) merged by Mahesh 2026-11-21 as `c629bd9` (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 When the processor re-parses a paper that is already chunked (a DLQ replay, a redelivered `papers.downloaded` with a new
