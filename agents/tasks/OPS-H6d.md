@@ -8,7 +8,7 @@
 | **Depends on** | none open. OPS-H6 and ING-11 (`paper_chunk_pages`, migration 000003) are merged. No open PR touches `services/common/db.py`, `tests/test_processor_pages.py` or the new test file (checked 2026-11-21 01:00Z against the file lists of #91–#101) |
 | **Jira** | to be created by the orchestrator (epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6d`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py`, no schema, event or HTTP change, no new CLI/table/service |
-| **Status** | Ready |
+| **Status** | In Progress (built on `agent/backend/OPS-H6d` @ 5ba967b; draft PR to be opened by the orchestrator) |
 
 ## Goal
 When the processor re-parses a paper that is already chunked (a DLQ replay, a redelivered `papers.downloaded` with a new
@@ -98,3 +98,20 @@ git diff origin/main --name-only   # exactly the three files in Scope
   processor's transaction committed can save the old vector after the delete. The next run then sees a vector and skips. Fixing
   that means making `save_chunk_embeddings` conditional on the chunk's `content_hash` still matching, which touches the
   ai-owned embedder worker too.
+- 2026-11-21 (backend-engineer): Built in worktree `/root/wt/OPS-H6d`, commit `5ba967b` (3 files, +193/-2; ownership check OK, 195 lines).
+  `db.py`: per chunk, before the upsert, `DELETE FROM chunk_embeddings ce USING paper_chunks pc WHERE ce.chunk_id = pc.id AND
+  pc.paper_id = %s AND pc.chunk_index = %s AND pc.content_hash <> %s` (all models); after the loop and before the status update,
+  `DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]))` with the new index list (explicit `int[]` cast,
+  so an empty list is typed; checked on PG16: it deletes every chunk of the paper). No commit.
+  Unit: existing ING-11 test re-indexed `calls[1]`→`calls[2]` and now also pins `calls[1]` = the vector delete; new
+  `test_save_chunks_reprocess_deletes[contiguous|gaps|single-not-zero|empty]` pins both statements' exact SQL and params, order, and
+  `commits == 0`. DB test: AC6 scenario plus two extra saves on the same rolled-back transaction: `[1]` only (kills a `chunk_index > max`
+  bound) and `[]` (empty list → no chunks); paper B compared after each step; vectors inserted with an explicit 2020 `created_at`.
+  Local runs (no psycopg/pymupdf/transformers, PyPI unreachable, no Docker daemon, no pgvector headers, Go 1.25 download blocked):
+  FakeConn tests under self-written import stubs → `9 passed`; the DB test on a throwaway local PG16 with migrations 000001/3/5
+  (`halfvec(768)` replaced by a text domain, 000002 HNSW skipped) through a self-written psql-backed psycopg test double → `1 passed`.
+  Mutants m1, m2, m3, m4, m5 (`> max`), m5 (extra kept index), m5 (last index dropped) each fail the DB test, and m1–m5 each fail the
+  unit tests (7/7/4/4/4 failures); `origin/main` `db.py` as a control fails the DB test. A pure-Python psycopg build from a tag clone
+  was refused by the sandbox's permission classifier, so the real-driver + pgvector run is CI-only (`stack.yml` `make test-full`).
+  ruff on the three files: two findings, both pre-existing on `origin/main` (`db.py:1` unused `json`, `test_processor_pages.py:212` E501); none on added lines.
+
