@@ -66,7 +66,10 @@ export function arxivLabel(cit)                    // → "arXiv:2401.01234v2", 
 Mode selection (top to bottom):
 1. `refusalReason` → FE-3 refusal panel, unchanged (no claims, no markers).
 2. `Array.isArray(claims) && claims.length > 0 && claims.every(c => typeof c?.text === 'string')` → **claims list** (new).
-3. otherwise → today's prose with regex `[n]` buttons, **byte-for-byte unchanged** (AC5).
+3. otherwise → today's prose with regex `[n]` buttons (AC5). The prose text, header, footer and Copy/Export are unchanged. Marker buttons keep
+   `type="button"`, the name `[n]` and their classes, and *gain only* `aria-controls`, the focus behaviour (§4) and the tooltip preview; a marker
+   with a card drops the old `title` hover hint, which the tooltip replaces (two hover popups otherwise). Every existing FE-1/FE-3
+   `SynthesisView`/`App` test passes unmodified (PM condition 1; updated in the FE-4a cycle 2026-11-21T21:59Z).
 
 Claims list layout (inside the existing `prose font-serif` container):
 ```
