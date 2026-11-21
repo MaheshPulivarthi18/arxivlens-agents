@@ -298,7 +298,7 @@ windows; `cross-encoder/nli-deberta-v3-small` by default, `ARXIVLENS_NLI_MODEL`)
 score outside [0, 1], the citation is `unverified` with score 0, never supported (fail closed, AI-2). An LLM claim whose
 model-given `quote` is not in the cited chunk is `unsupported`. Each citation carries its `status` (ADR-0014); each claim's
 status is `supported` if any of its citations is, else `unverified` if any is (or it has none), else `unsupported`.
-Refusals carry no `claims`, `answer_kind` or `prompt_version`; `quick`, `answer_kind` and `insufficient_evidence` are ADR-0018 (Proposed).
+In a written answer a kept claim lists only its verified citations (ADR-0019). Refusals carry no `claims`, `answer_kind` or `prompt_version`; `quick`, `answer_kind` and `insufficient_evidence` are ADR-0018 (Proposed).
 
 Constants are set in `internal/query/rag.go`: relevance cutoff `0.45`, auxiliary-section cutoff `0.70`, `SupportThreshold = 0.50`
 (NLI P(entailment); calibrate on the EVAL-7 human judgments before changing it).
@@ -348,7 +348,7 @@ Chaos tests (`tests/test_m4_chaos.py`) check two invariants: (a) redelivering an
 | Area | Requirement |
 |---|---|
 | **Throughput** | Horizontal scale up to 12 consumers per group (one per partition) |
-| **Latency** | `/v1/search` p95 < 1.5 s; `/v1/ask` p95 < 3 s, measured on the **reference GPU profile** below (see "Reference hardware"), with the full stack (infra + workers + query service + embedder API) on that one machine, a warm cache (models loaded, one warm-up query), and the `evals/` corpus indexed |
+| **Latency** | `/v1/search` p95 < 1.5 s; `/v1/ask` p95 < 3 s for the quick stage (`"quick": true`; the LLM-written answer is reported as `ask_full_p95_ms`, not gated, ADR-0019), measured on the **reference GPU profile** below (see "Reference hardware"), with the full stack (infra + workers + query service + embedder API) on that one machine, a warm cache (models loaded, one warm-up query), and the `evals/` corpus indexed |
 | **External politeness** | ≤ 1 arXiv API request / 3 s; identifying User-Agent |
 | **Durability** | PDFs in MinIO volume; Postgres and Kafka on named Docker volumes |
 | **Observability** | W3C `traceparent` on every event and DLQ record; `trace_id` returned from `/v1/ask` |
@@ -369,6 +369,11 @@ and Mac with GPU".) This adopts PM-1's proposal and adds CUDA to the gated profi
 *Rule:* report each latency number with the profile it was measured on. `scripts/eval_gate.py` reads the embedder's
 device from `GET /healthz`: `mps`/`cuda` is gated, `cpu` is reported as `INFO (cpu-only; not gated)`, and an unknown
 device is gated (fail closed). Quality gates apply on every profile, and thresholds are unchanged.
+
+*Reranker precision (ADR-0020, Accepted 2026-11-22, #121):* on `mps`/`cuda` the embedder runs `bge-reranker-base` in fp16
+(logits cast to fp32 before the sigmoid); on `cpu` it stays fp32. `EMBEDDER_RERANK_FP16=0` forces fp32; `GET /healthz` reports
+`reranker_dtype`. On the reference Mac this took the gated quick-stage p95 from 3.97 s (FAIL) to 2.95 s (PASS) with
+unchanged Recall@5/MRR/NDCG@5.
 
 *Consequences:* CI's CPU eval no longer fails on `ask_p95_ms`, but still records it. ADR-0015 (cutting CPU rerank
 latency) loses its product driver: it stays open only for M3's 10 s client timeout ("Known failure F1"), not for
