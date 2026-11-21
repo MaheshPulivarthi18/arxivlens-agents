@@ -1,0 +1,38 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/44870501649/attempts/3/jobs --jq .jobs[] | "job \(.id) \(.name) attempt \(.run_attempt) head \(.head_sha) conclusion \(.conclusion)", (.steps[] | "  \(.conclusion)  \(.name)")
+job 136768996544 Full stack (compose + make test-full) attempt 3 head 1f3bd3177bc7a83625f23a82042492a3e0436247 conclusion success
+  success  Set up job
+  success  Run actions/checkout@v4
+  success  Run actions/setup-go@v5
+  success  Run actions/setup-python@v5
+  success  Lint the harness (actionlint, compose config)
+  success  Cache Hugging Face models
+  success  Host Python deps (make setup-py, CPU torch)
+  success  Pre-fetch models into the shared HF cache
+  success  Build Go CLI
+  success  Restore arXiv replay store
+  success  Prefetch arXiv responses into the replay store
+  success  Save arXiv replay store
+  success  ING-6 Risk 1: published order of recorded search feeds
+  success  Start the arXiv replay proxy (replay-only)
+  success  AC1: plain docker compose up -d starts infra only
+  success  AC2: make stack-up
+  success  Worker health follows this container, not the group
+  success  Migrate
+  success  AC3: crawl 2 papers (before the downloader starts)
+  success  Start Go downloader and query service on the host
+  success  AC3: wait until both crawled papers are embedded
+  success  Seed the M3/M4 fixture (on-demand ingest of 2608.20331)
+  success  AC4: make test-full
+  success  Known failure F1 (CPU rerank latency, tracked)
+  success  Collect service logs
+  success  arXiv replay stats
+  skipped  Diagnostics
+  success  Upload logs
+  success  Teardown
+  success  Post Cache Hugging Face models
+  success  Post Run actions/setup-python@v5
+  success  Post Run actions/setup-go@v5
+  success  Post Run actions/checkout@v4
+  success  Complete job
+
+[exit code 0]

@@ -1,0 +1,12 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/pulls/107 --jq "\"PR head: \" + .head.sha + \"  base: \" + .base.sha + \"  draft: \" + (.draft|tostring)"; gh api repos/MaheshPulivarthi18/ArxivLens/commits/main --jq "\"main: \" + .sha"; gh api repos/MaheshPulivarthi18/ArxivLens/commits/1f3bd3177bc7a83625f23a82042492a3e0436247/check-runs --jq ".check_runs[] | \"\(.name) | \(.status) | \(.conclusion) | \(.completed_at) | job \(.id)\""; gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/44870501649 --jq "\"run 44870501649 attempt \(.run_attempt) head \(.head_sha) event \(.event) conclusion \(.conclusion)\""
+PR head: 1f3bd3177bc7a83625f23a82042492a3e0436247  base: 11c4696f7c6830436ada00c54d8f75976ddf7b99  draft: true
+main: 11c4696f7c6830436ada00c54d8f75976ddf7b99
+Full stack (compose + make test-full) | completed | success | 2026-11-21T07:15:40Z | job 136768996544
+Agent ownership check | completed | success | 2026-11-21T05:21:35Z | job 136743720756
+Go (vet, gofmt, test, build) | completed | success | 2026-11-21T05:22:22Z | job 136743720711
+Frontend (lint, test, build) | completed | success | 2026-11-21T05:21:52Z | job 136743720598
+Python M0 unit tests | completed | success | 2026-11-21T05:22:36Z | job 136743720411
+DB (migrate twice, HNSW plan + recall) | completed | success | 2026-11-21T05:23:41Z | job 136743720391
+run 44870501649 attempt 3 head 1f3bd3177bc7a83625f23a82042492a3e0436247 event pull_request conclusion success
+
+[exit code 0]

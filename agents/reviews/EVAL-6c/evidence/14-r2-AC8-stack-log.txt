@@ -1,0 +1,12 @@
+$ bash -c grep -nE 'HEAD is now at|prefetch: 2 queries, stats=.*upstream_failures": 0, "saved": 5|AC4 .make test-full|short test summary|[0-9]+ passed.* in [0-9.]+s' /tmp/claude-0/-home-claude/e51945d8-50f1-5ac4-8588-a685c3722a78/scratchpad/stack3.log | cut -c1-200; echo; echo -n 'PASSED tests/test_evals_data.py lines: '; grep -c 'PASSED tests/test_evals_data.py' /tmp/claude-0/-home-claude/e51945d8-50f1-5ac4-8588-a685c3722a78/scratchpad/stack3.log; echo -n 'FAILED/ERROR test lines: '; grep -cE '^.{29}(FAILED|ERROR) tests/' /tmp/claude-0/-home-claude/e51945d8-50f1-5ac4-8588-a685c3722a78/scratchpad/stack3.log
+128:2026-11-21T07:06:54.5103380Z HEAD is now at 264409b Merge 1f3bd3177bc7a83625f23a82042492a3e0436247 into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+683:2026-11-21T07:08:48.2012631Z [replay] prefetch: 2 queries, stats={"hits": 0, "misses": 5, "upstream_fetches": 5, "upstream_failures": 0, "saved": 5}
+2563:2026-11-21T07:14:23.7929927Z [36;1m  if grep -q 'short test summary info' test-full.log; then sed -n '/short test summary info/,$p' test-full.log | grep -v '^PASSED '; else tail -n 1 test-full.l
+2989:2026-11-21T07:15:13.0984294Z =========================== short test summary info ============================
+3381:2026-11-21T07:15:13.4274084Z 390 passed, 1 skipped, 3 deselected, 5 warnings in 48.98s
+3408:2026-11-21T07:15:30.6867016Z 3 passed in 16.23s
+
+PASSED tests/test_evals_data.py lines: 261
+FAILED/ERROR test lines: 0
+
+[exit code 1]
