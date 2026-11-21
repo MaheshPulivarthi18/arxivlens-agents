@@ -240,7 +240,7 @@ sequenceDiagram
     PG-->>Q: top max(20, limit) candidates by rrf_score (rerank pool)
     Q->>EA: POST /internal/rerank (query, all pool passages, one call)
     EA-->>Q: cross-encoder scores (bge-reranker-base)
-    Note over Q: stable sort by rerank_score desc (ties keep RRF order), truncate to limit.<br/>On rerank error, wrong score count or NaN: keep RRF order, log trace_id, no error to caller.
+    Note over Q: order by fused rerank + RRF rank (ADR-0017; ties keep RRF order), top-5 paper cap (ADR-0016), truncate to limit.<br/>On rerank error, timeout/cancel, wrong score count, or a NaN or ±Inf score (the first non-finite score by position names the reason): keep RRF order, log trace_id, no error to caller.
     Q-->>UI: hits[] {chunk, arxiv_id, title, section, rrf_score, rerank_score}
 ```
 
