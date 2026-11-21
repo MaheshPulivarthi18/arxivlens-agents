@@ -1,0 +1,29 @@
+$ gh api .../actions/jobs/136743720337/logs | grep
+Full stack job 136743720337 (head 1f3bd31): failing step and every step that ran
+128:2026-11-21T05:21:32.3059284Z HEAD is now at 264409b Merge 1f3bd3177bc7a83625f23a82042492a3e0436247 into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+676:2026-11-21T05:29:01.8762815Z [replay] prefetch: 2 queries, stats={"hits": 0, "misses": 2, "upstream_fetches": 8, "upstream_failures": 8, "saved": 0}
+677:2026-11-21T05:29:01.8764161Z [replay] prefetch FAILED for 2: api?id_list=2608.20331 api?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0 (arXiv unreachable or rate-limiting, and not in the cache)
+678:2026-11-21T05:29:01.8869279Z ##[error]Process completed with exit code 1.
+
+== steps (##[group]Run lines, cut at 120 cols) ==
+2:2026-11-21T05:21:30.2862380Z ##[group]Runner Image Provisioner
+16:2026-11-21T05:21:30.2870521Z ##[group]Runner Image
+37:2026-11-21T05:21:31.5581004Z ##[group]Run actions/checkout@v4
+132:2026-11-21T05:21:32.3374028Z ##[group]Run actions/setup-go@v5
+221:2026-11-21T05:21:41.1186972Z ##[group]Run actions/setup-python@v5
+254:2026-11-21T05:21:47.1855919Z ##[group]Run docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color .gi
+291:2026-11-21T05:21:57.4872897Z ##[group]Run actions/cache@v4
+329:2026-11-21T05:22:13.7119362Z ##[group]Run make setup-py
+579:2026-11-21T05:23:01.2942692Z ##[group]Run python - <<'EOF'
+611:2026-11-21T05:23:09.2879707Z ##[group]Run make build-go
+628:2026-11-21T05:23:10.8079564Z ##[group]Run actions/cache/restore@v4
+652:2026-11-21T05:23:11.0520698Z ##[group]Run python3 scripts/arxiv_replay.py prefetch --dir .arxiv-replay --search "cat
+679:2026-11-21T05:29:01.8942772Z ##[group]Run python3 -I - <<'PY' || echo "::warning::RISK1 probe exited non-zero"
+726:2026-11-21T05:29:01.9323009Z ##[group]Run mkdir -p stack-logs || true
+758:2026-11-21T05:29:02.0322749Z ##[group]Run stats="$(curl -fsS localhost:8099/stats || echo unavailable)"; echo "arXiv
+779:2026-11-21T05:29:02.0536987Z ##[group]Run mkdir -p stack-logs
+815:2026-11-21T05:29:02.2073422Z ##[group]Run actions/upload-artifact@v4
+856:2026-11-21T05:29:03.1230483Z ##[group]Run for p in downloader.pid query.pid; do
+
+lines matching 'make test-full' outside the job name, or a pytest 'passed': 0
+

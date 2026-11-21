@@ -1,0 +1,135 @@
+$ python3 /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-EVAL-6c-r1/harness/mutants.py /root/wt/qa-app-EVAL-6c 1f3bd3177bc7a83625f23a82042492a3e0436247
+id       verdict        pytest summary                                mutant
+control  PASS(control)  261 passed, 1 skipped in 0.35s                no change
+m1       KILLED         12 failed, 249 passed, 1 skipped in 0.85s     drop non-dict body check in call()
+m2       KILLED         7 failed, 254 passed, 1 skipped in 0.62s      drop 'citations not a list' check
+m3       KILLED         11 failed, 250 passed, 1 skipped in 0.92s     drop 'item not a dict' check
+m4       KILLED         9 failed, 252 passed, 1 skipped in 0.72s      drop non-string arxiv_id check
+m5       KILLED         13 failed, 248 passed, 1 skipped in 0.78s     count a non-dict (non-None) answer/refusal body in requests_ok
+m6       SURVIVED       261 passed, 1 skipped in 0.40s                _markers_ok accepts a string markers again
+m7       KILLED         3 failed, 258 passed, 1 skipped in 0.72s      case_record keeps non-dict citation items (no crash)
+x1       KILLED         10 failed, 251 passed, 1 skipped in 0.89s     classify: malformed-citations check after the reason check
+x2       KILLED         3 failed, 258 passed, 1 skipped in 0.83s      _citations_ok: null citations becomes malformed
+x3       KILLED         4 failed, 257 passed, 1 skipped in 0.56s      _citations_ok: null arxiv_id becomes malformed
+x4       KILLED         8 failed, 253 passed, 1 skipped in 0.95s      coverage_units: drop _is_int filter on citation markers
+x5       KILLED         7 failed, 254 passed, 1 skipped in 0.96s      _markers_ok: drop the all-ints check (list only)
+x6       KILLED         2 failed, 259 passed, 1 skipped in 0.58s      _is_int accepts bool
+x7       KILLED         3 failed, 258 passed, 1 skipped in 0.60s      coverage_units: non-string answer passed through
+x8       SURVIVED       261 passed, 1 skipped in 0.63s                coverage_units: in_range from raw citations (not _citation_items)
+x9       KILLED         1 failed, 260 passed, 1 skipped in 0.51s      _markers_ok: partial - keep int entries of a mixed list (not all-or-nothing)
+
+--- mutant edits (old -> new) and first failing tests ---
+[m1]
+-         if not isinstance(resp, dict):
+-             resp = None  #
++         if False:
++             resp = None  #
+   FAILED tests/test_evals_data.py::test_non_object_body_is_a_failed_request[['x']]
+   FAILED tests/test_evals_data.py::test_non_object_body_is_a_failed_request[[]]
+   FAILED tests/test_evals_data.py::test_non_object_body_is_a_failed_request['s']
+[m2]
+-     if not isinstance(cits, list):
+-         return False
+-     if not all
++     if not all
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[5-[]]
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[{}-[]]
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[True-[]]
+[m3]
+-     if not all(isinstance(c, dict) for c in cits):
+-         return False
+- 
++ 
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[['str', {'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]-[{'arxiv_id': '17
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}, None]-[{'arxiv_id': '170
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]]-[]]
+[m4]
+-     return all(c.get("arxiv_id") is None or isinstance(c.get("arxiv_id"), str) for c in cits)
++     return True
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[{'arxiv_id': 7, 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]-None]
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}, {'arxiv_id': ['1706.0376
+   FAILED tests/test_evals_data.py::test_evaluate_never_crashes_on_hostile_shapes[citations[0].arxiv_id-0]
+[m5]
+-         if not isinstance(resp, dict):
+-             resp = None  #
++         if not isinstance(resp, dict):
++             if resp is not None and case_set != 'near_miss':
++                 nonlocal ok
++                 ok += 1
++             resp = None  #
+   FAILED tests/test_evals_data.py::test_non_object_body_is_a_failed_request[['x']]
+   FAILED tests/test_evals_data.py::test_non_object_body_is_a_failed_request[[]]
+   FAILED tests/test_evals_data.py::test_non_object_body_is_a_failed_request['s']
+[m6]
+-     return isinstance(markers, list) and all(_is_int(m) for m in markers)
++     return isinstance(markers, str) or (isinstance(markers, list) and all(_is_int(m) for m in markers))
+[m7]
+-                       for c in _citation_items(r)],
++                       for c in _citation_items(r)] + [c for c in (r.get('citations') if isinstance(r.get('citations'), list) else []) if not isinstance(c, dict)],
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[['str', {'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]-[{'arxiv_id': '17
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}, None]-[{'arxiv_id': '170
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]]-[]]
+[x1]
+-     if not _citations_ok(resp):
+-         return "error"  # a malformed citations value fails closed (ADR-0003), never a refusal or an answer
+-     reason = resp.get("refusal_reason")
+-     if reason is not None and not isinstance(reason, str):
+-         return "error"  # a non-string reason (even a falsy [] or 0) fails closed, never "no reason"
+-     if reason:
+-         return REFUSAL_REASONS.get(reason, "error")
++     reason = resp.get("refusal_reason")
++     if reason is not None and not isinstance(reason, str):
++         return "error"
++     if reason:
++         return REFUSAL_REASONS.get(reason, "error")
++     if not _citations_ok(resp):
++         return "error"
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[5-[]]
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case['s'-[]]
+   FAILED tests/test_evals_data.py::test_malformed_citations_are_one_error_case[{'k': 1}-[]]
+[x2]
+-     if cits is None:
+-         return True
+- 
++ 
+   FAILED tests/test_evals_data.py::test_evaluate_never_crashes_on_hostile_shapes[body-{}]
+   FAILED tests/test_evals_data.py::test_evaluate_never_crashes_on_hostile_shapes[body-{'k': 1}]
+   FAILED tests/test_evals_data.py::test_evaluate_never_crashes_on_hostile_shapes[citations-None]
+[x3]
+- c.get("arxiv_id") is None or isinstance(
++ isinstance(
+   FAILED tests/test_evals_data.py::test_null_or_string_arxiv_id_is_well_formed[None]
+   FAILED tests/test_evals_data.py::test_evaluate_never_crashes_on_hostile_shapes[citations[0]-{}]
+   FAILED tests/test_evals_data.py::test_evaluate_never_crashes_on_hostile_shapes[citations[0]-{'k': 1}]
+[x4]
+- for c in _citation_items(resp) if _is_int(c.get("marker"))}
++ for c in _citation_items(resp)}
+   FAILED tests/test_evals_data.py::test_non_int_citation_marker_is_ignored[[1]]
+   FAILED tests/test_evals_data.py::test_non_int_citation_marker_is_ignored[{'k': 1}]
+   FAILED tests/test_evals_data.py::test_non_int_citation_marker_is_ignored[True]
+[x5]
+-     return isinstance(markers, list) and all(_is_int(m) for m in markers)
++     return isinstance(markers, list)
+   FAILED tests/test_evals_data.py::test_malformed_claims_count_as_uncited_units[claims3-0]
+   FAILED tests/test_evals_data.py::test_malformed_claims_count_as_uncited_units[claims4-0]
+   FAILED tests/test_evals_data.py::test_malformed_claims_count_as_uncited_units[claims5-0]
+[x6]
+-     return isinstance(x, int) and not isinstance(x, bool)
++     return isinstance(x, int)
+   FAILED tests/test_evals_data.py::test_malformed_claims_count_as_uncited_units[claims4-0]
+   FAILED tests/test_evals_data.py::test_non_int_citation_marker_is_ignored[True]
+[x7]
+- split_sentences(answer if isinstance(answer, str) else "")
++ split_sentences(answer or "")
+   FAILED tests/test_evals_data.py::test_non_string_answer_has_no_sentence_units[5]
+   FAILED tests/test_evals_data.py::test_non_string_answer_has_no_sentence_units[['X holds [1].']]
+   FAILED tests/test_evals_data.py::test_non_string_answer_has_no_sentence_units[{'k': 1}]
+[x8]
+- for c in _citation_items(resp) if _is_int(c.get("marker"))}
++ for c in resp.get("citations") or [] if _is_int(c.get("marker"))}
+[x9]
+-         marks = [set(c["markers"]) if isinstance(c, dict) and _markers_ok(c.get("markers")) else set() for c in claims]
++         marks = [{m for m in c["markers"] if _is_int(m)} if isinstance(c, dict) and isinstance(c.get("markers"), list) else set() for c in claims]
+   FAILED tests/test_evals_data.py::test_malformed_claims_count_as_uncited_units[claims5-0]
+
+[exit code 0]

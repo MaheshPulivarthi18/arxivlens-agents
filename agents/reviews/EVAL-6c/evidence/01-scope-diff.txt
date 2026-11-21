@@ -1,0 +1,12 @@
+$ bash -c git diff origin/main...HEAD --name-only; echo; git diff origin/main...HEAD --numstat; echo; git diff origin/main...HEAD --shortstat
+evals/README.md
+scripts/evaluate_answers.py
+tests/test_evals_data.py
+
+4	1	evals/README.md
+41	6	scripts/evaluate_answers.py
+125	2	tests/test_evals_data.py
+
+ 3 files changed, 170 insertions(+), 9 deletions(-)
+
+[exit code 0]

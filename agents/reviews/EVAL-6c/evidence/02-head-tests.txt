@@ -1,0 +1,19 @@
+$ bash -c python -m pytest -q -p no:cacheprovider tests/test_evals_data.py | tail -1; C=$(python -m pytest -q -p no:cacheprovider --collect-only tests/test_evals_data.py); echo "== EVAL-6c test ids by function =="; echo "$C" | grep -E "non_object_body|trip_could_not_run|malformed_citations|null_or_string_arxiv|malformed_claims|non_int_citation_marker|non_string_answer|hostile_shapes" | sed -E "s/\[.*//" | sort | uniq -c | awk "{s+=\$1; print} END {print \"  total EVAL-6c ids:\", s}"; echo "== EVAL-6b rows (NON_STRING_REASONS), unchanged and passing =="; echo "$C" | grep non_string_refusal | sed -E "s/\[.*//" | sort | uniq -c; python -m pytest -q -p no:cacheprovider tests/test_evals_data.py -k non_string_refusal | tail -1; git diff origin/main...HEAD -- tests/test_evals_data.py | grep -c "NON_STRING_REASONS" | sed "s/^/diff lines touching NON_STRING_REASONS: /"
+261 passed, 1 skipped in 0.23s
+== EVAL-6c test ids by function ==
+      1 tests/test_evals_data.py::test_all_non_object_bodies_trip_could_not_run
+     81 tests/test_evals_data.py::test_evaluate_never_crashes_on_hostile_shapes
+     10 tests/test_evals_data.py::test_malformed_citations_are_one_error_case
+     10 tests/test_evals_data.py::test_malformed_claims_count_as_uncited_units
+      6 tests/test_evals_data.py::test_non_int_citation_marker_is_ignored
+      6 tests/test_evals_data.py::test_non_object_body_is_a_failed_request
+      3 tests/test_evals_data.py::test_non_string_answer_has_no_sentence_units
+      2 tests/test_evals_data.py::test_null_or_string_arxiv_id_is_well_formed
+  total EVAL-6c ids: 119
+== EVAL-6b rows (NON_STRING_REASONS), unchanged and passing ==
+     12 tests/test_evals_data.py::test_classify_non_string_refusal_reason_is_error
+      1 tests/test_evals_data.py::test_evaluate_completes_on_non_string_refusal_reason
+13 passed, 249 deselected in 0.04s
+diff lines touching NON_STRING_REASONS: 1
+
+[exit code 0]

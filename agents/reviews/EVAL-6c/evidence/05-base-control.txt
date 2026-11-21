@@ -1,0 +1,23 @@
+$ /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-EVAL-6c-r1/harness/base_control.sh /root/wt/qa-app-EVAL-6c 1f3bd3177bc7a83625f23a82042492a3e0436247
+== collected test ids in tests/test_evals_data.py ==
+main 11c4696: 143 tests collected in 0.18s
+head 1f3bd31: 262 tests collected in 0.21s
+== result summary: head tests x main evaluate_answers.py ==
+64 failed, 197 passed, 1 skipped in 3.02s
+== failing tests grouped by test function ==
+     37 test_evaluate_never_crashes_on_hostile_shapes
+     10 test_malformed_citations_are_one_error_case
+      4 test_malformed_claims_count_as_uncited_units
+      4 test_non_int_citation_marker_is_ignored
+      6 test_non_object_body_is_a_failed_request
+      3 test_non_string_answer_has_no_sentence_units
+== failing tests that are NOT new in this PR (must be empty) ==
+(end)
+== exception types in failures ==
+      1 E           KeyError
+      8 E           TypeError
+     16 E       AssertionError
+     26 E       AttributeError
+      9 E       TypeError
+
+[exit code 0]

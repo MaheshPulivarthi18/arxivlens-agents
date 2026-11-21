@@ -1,0 +1,207 @@
+$ bash -c cd /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-EVAL-6c-r1/harness && for f in $(find . -type f | sort); do echo "===== $f"; cat $f; done
+===== ./base_control.sh
+#!/bin/bash
+# QA EVAL-6c base control: the PR's tests/test_evals_data.py run against origin/main's scripts/evaluate_answers.py,
+# plus collected test counts main file vs head file.  argv: <app checkout> <head rev>
+set -u; APP=$1; REV=$2
+B=$(mktemp -d); git -C $APP archive origin/main | tar -x -C $B
+git -C $APP show $REV:tests/test_evals_data.py > $B/tests/test_evals_data.py
+H=$(mktemp -d); git -C $APP archive $REV | tar -x -C $H
+M=$(mktemp -d); git -C $APP archive origin/main | tar -x -C $M
+echo "== collected test ids in tests/test_evals_data.py =="
+echo "main $(git -C $APP rev-parse --short origin/main): $(cd $M && python -m pytest -q -p no:cacheprovider --collect-only tests/test_evals_data.py | tail -1)"
+echo "head $(git -C $APP rev-parse --short $REV): $(cd $H && python -m pytest -q -p no:cacheprovider --collect-only tests/test_evals_data.py | tail -1)"
+echo "== result summary: head tests x main evaluate_answers.py =="
+(cd $B && python -m pytest -q -p no:cacheprovider tests/test_evals_data.py > out.txt 2>&1; tail -1 out.txt)
+echo "== failing tests grouped by test function =="
+grep '^FAILED' $B/out.txt | sed -E 's/^FAILED tests\/test_evals_data.py::([a-z_0-9]+).*/\1/' | sort | uniq -c
+echo "== failing tests that are NOT new in this PR (must be empty) =="
+git -C $APP diff origin/main...$REV -- tests/test_evals_data.py | grep -oE '^\+def (test_[a-z_0-9]+)' | sed 's/^+def //' | sort -u > $B/new.txt
+grep '^FAILED' $B/out.txt | sed -E 's/^FAILED tests\/test_evals_data.py::([a-z_0-9]+).*/\1/' | sort -u | comm -23 - $B/new.txt
+echo "(end)"
+echo "== exception types in failures =="
+grep -oE '^E +[A-Za-z]+(Error|Exception)' $B/out.txt | sort | uniq -c
+===== ./gate_reason.sh
+#!/bin/bash
+# QA EVAL-6c: which eval_gate exit-2 path does test_all_non_object_bodies_trip_could_not_run reach, head vs main?
+# Same fakes as the test (ask always returns [] ; embedder_device -> None), stderr printed.  argv: <app> <head rev>
+APP=$1; REV=$2
+for rev in origin/main $REV; do
+  D=$(mktemp -d); git -C $APP archive $rev | tar -x -C $D
+  echo "== $(git -C $APP rev-parse --short $rev) =="
+  (cd $D && python3 - <<'PY'
+import tempfile
+from scripts import eval_gate, evaluate_answers
+eval_gate.embedder_device = lambda url: None
+evaluate_answers.make_http_ask = lambda url, t, max_citations=5: (lambda q: ([], 5.0))
+import contextlib, io
+err = io.StringIO()
+with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+    rc = eval_gate.main(["--skip-retrieval", "--results-dir", tempfile.mkdtemp()])
+print("exit code:", rc)
+print("stderr   :", err.getvalue().strip())
+PY
+  )
+done
+===== ./mutants.py
+"""QA EVAL-6c mutant harness. Each mutant: fresh `git archive <rev>` copy, one anchored substitution in
+scripts/evaluate_answers.py (must match exactly once), then `python -m pytest -q tests/test_evals_data.py`.
+KILLED = pytest exit 1 with failures; SURVIVED = exit 0; INVALID = anchor not found / import error."""
+import subprocess, sys, tempfile, os, re
+APP, REV = sys.argv[1], sys.argv[2]
+F = "scripts/evaluate_answers.py"
+M = [
+ ("m1", "drop non-dict body check in call()",
+  "        if not isinstance(resp, dict):\n            resp = None  #", "        if False:\n            resp = None  #"),
+ ("m2", "drop 'citations not a list' check",
+  "    if not isinstance(cits, list):\n        return False\n    if not all", "    if not all"),
+ ("m3", "drop 'item not a dict' check",
+  "    if not all(isinstance(c, dict) for c in cits):\n        return False\n", ""),
+ ("m4", "drop non-string arxiv_id check",
+  "    return all(c.get(\"arxiv_id\") is None or isinstance(c.get(\"arxiv_id\"), str) for c in cits)", "    return True"),
+ ("m5", "count a non-dict (non-None) answer/refusal body in requests_ok",
+  "        if not isinstance(resp, dict):\n            resp = None  #",
+  "        if not isinstance(resp, dict):\n            if resp is not None and case_set != 'near_miss':\n                nonlocal ok\n                ok += 1\n            resp = None  #"),
+ ("m6", "_markers_ok accepts a string markers again",
+  "    return isinstance(markers, list) and all(_is_int(m) for m in markers)",
+  "    return isinstance(markers, str) or (isinstance(markers, list) and all(_is_int(m) for m in markers))"),
+ ("m7", "case_record keeps non-dict citation items (no crash)",
+  "                      for c in _citation_items(r)],",
+  "                      for c in _citation_items(r)] + [c for c in (r.get('citations') if isinstance(r.get('citations'), list) else []) if not isinstance(c, dict)],"),
+ ("x1", "classify: malformed-citations check after the reason check",
+  "    if not _citations_ok(resp):\n        return \"error\"  # a malformed citations value fails closed (ADR-0003), never a refusal or an answer\n    reason = resp.get(\"refusal_reason\")\n    if reason is not None and not isinstance(reason, str):\n        return \"error\"  # a non-string reason (even a falsy [] or 0) fails closed, never \"no reason\"\n    if reason:\n        return REFUSAL_REASONS.get(reason, \"error\")",
+  "    reason = resp.get(\"refusal_reason\")\n    if reason is not None and not isinstance(reason, str):\n        return \"error\"\n    if reason:\n        return REFUSAL_REASONS.get(reason, \"error\")\n    if not _citations_ok(resp):\n        return \"error\""),
+ ("x2", "_citations_ok: null citations becomes malformed",
+  "    if cits is None:\n        return True\n", ""),
+ ("x3", "_citations_ok: null arxiv_id becomes malformed",
+  "c.get(\"arxiv_id\") is None or isinstance(", "isinstance("),
+ ("x4", "coverage_units: drop _is_int filter on citation markers",
+  "for c in _citation_items(resp) if _is_int(c.get(\"marker\"))}", "for c in _citation_items(resp)}"),
+ ("x5", "_markers_ok: drop the all-ints check (list only)",
+  "    return isinstance(markers, list) and all(_is_int(m) for m in markers)", "    return isinstance(markers, list)"),
+ ("x6", "_is_int accepts bool",
+  "    return isinstance(x, int) and not isinstance(x, bool)", "    return isinstance(x, int)"),
+ ("x7", "coverage_units: non-string answer passed through",
+  "split_sentences(answer if isinstance(answer, str) else \"\")", "split_sentences(answer or \"\")"),
+ ("x8", "coverage_units: in_range from raw citations (not _citation_items)",
+  "for c in _citation_items(resp) if _is_int(c.get(\"marker\"))}", "for c in resp.get(\"citations\") or [] if _is_int(c.get(\"marker\"))}"),
+ ("x9", "_markers_ok: partial - keep int entries of a mixed list (not all-or-nothing)",
+  "        marks = [set(c[\"markers\"]) if isinstance(c, dict) and _markers_ok(c.get(\"markers\")) else set() for c in claims]",
+  "        marks = [{m for m in c[\"markers\"] if _is_int(m)} if isinstance(c, dict) and isinstance(c.get(\"markers\"), list) else set() for c in claims]"),
+]
+rows, diffs = [], []
+for mid, desc, old, new in ([("control", "no change", None, None)] + M):
+    d = tempfile.mkdtemp(prefix=f"qa6c-{mid}-")
+    subprocess.run(f"git -C {APP} archive {REV} | tar -x -C {d}", shell=True, check=True)
+    p = os.path.join(d, F)
+    src = open(p).read()
+    if old is not None:
+        n = src.count(old)
+        if n != 1:
+            rows.append((mid, desc, f"anchor x{n}", "INVALID")); continue
+        open(p, "w").write(src.replace(old, new))
+    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/test_evals_data.py"], cwd=d, capture_output=True, text=True)
+    last = (r.stdout.strip().splitlines() or ["?"])[-1]
+    if r.returncode == 0:
+        v = "PASS(control)" if old is None else "SURVIVED"
+    elif r.returncode == 1 and "failed" in last:
+        v = "KILLED"
+    else:
+        v = f"INVALID(rc={r.returncode})"
+    rows.append((mid, desc, last, v))
+    if old is not None:
+        ex = [l for l in r.stdout.splitlines() if l.startswith("FAILED")][:3]
+        diffs.append((mid, old, new, ex))
+print(f"{'id':8} {'verdict':14} {'pytest summary':45} mutant")
+for mid, desc, last, v in rows:
+    print(f"{mid:8} {v:14} {last[:45]:45} {desc}")
+print("\n--- mutant edits (old -> new) and first failing tests ---")
+for mid, old, new, ex in diffs:
+    print(f"[{mid}]\n- " + old.replace("\n", "\n- ") + "\n+ " + new.replace("\n", "\n+ "))
+    for e in ex:
+        print("   " + e[:200])
+===== ./probe.py
+"""QA EVAL-6c independent probes. argv: <head tree> <main tree>.
+P1 random hostile fuzz of evaluate() at head: no exception, outcome rules of AC1-AC3.
+P2 differential: well-formed random responses, head vs main evaluate() -> identical metrics JSON.
+P3 m6 / x8 equivalence: mutant vs head over random inputs."""
+import copy, importlib.util, json, random, sys
+def load(tree, name, patch=None):
+    src = open(f"{tree}/scripts/evaluate_answers.py").read()
+    if patch:
+        assert src.count(patch[0]) == 1, patch[0]; src = src.replace(*patch)
+    mod = type(sys)(name); mod.__file__ = f"{tree}/scripts/evaluate_answers.py"
+    sys.modules[name] = mod; exec(compile(src, mod.__file__, "exec"), mod.__dict__); return mod
+head, main = load(sys.argv[1], "head"), load(sys.argv[2], "main")
+R = random.Random(6)
+ATOMS = [None, 0, 5, -1, True, False, 1.0, "", "s", "1", "1706.03762", [], ["x"], [1], {}, {"k": 1}]
+def hostile(depth=0):
+    if depth > 2 or R.random() < 0.5: return copy.deepcopy(R.choice(ATOMS))
+    return R.choice([lambda: [hostile(depth+1) for _ in range(R.randint(0, 3))],
+                     lambda: {k: hostile(depth+1) for k in R.sample(["arxiv_id", "marker", "markers", "supported", "k"], R.randint(0, 3))}])()
+def cite(m): return {"arxiv_id": R.choice(["1706.03762", "1706.03762v3", "2001.00001"]), "chunk_id": R.randint(1, 9), "marker": m, "supported": R.choice([True, False]), "score": 0.5}
+def good():
+    k = R.randint(0, 3); cits = [cite(i + 1) for i in range(k)]
+    r = {"answer": " ".join(f"S{i} holds [{R.randint(1, 4)}]." for i in range(R.randint(0, 3))), "citations": cits}
+    if R.random() < 0.5: r["claims"] = [{"markers": [R.randint(1, 4) for _ in range(R.randint(0, 2))]} for _ in range(R.randint(0, 3))]
+    if R.random() < 0.3: r["refusal_reason"] = R.choice(["all_citations_unsupported", "verification_unavailable", "insufficient_evidence", "other"])
+    if R.random() < 0.2: r["citations"] = R.choice([None, []])
+    return r
+POS = ["body", "citations", "citations[0]", "citations[0].arxiv_id", "citations[0].marker", "claims", "claims[0]", "claims[0].markers", "claims[0].markers[0]", "answer"]
+def place(pos, v):
+    r = {"answer": "X holds [1].", "citations": [cite(1)], "claims": [{"markers": [1]}]}
+    if pos == "body": return v
+    path = pos.replace("[0]", ".0").split("."); t = r
+    for k in path[:-1]: t = t[int(k)] if k.isdigit() else t[k]
+    last = path[-1]; t[int(last) if last.isdigit() else last] = v; return r
+def expect(pos, v):
+    if pos == "body": return None if not isinstance(v, dict) else head.classify(v)
+    if pos == "citations": return "refusal" if v in (None, []) and not isinstance(v, bool) and v is not False else ("error" if not isinstance(v, list) or not all(isinstance(c, dict) for c in v) or not all(c.get("arxiv_id") is None or isinstance(c.get("arxiv_id"), str) for c in v) else ("answered" if v else "refusal"))
+    if pos == "citations[0]": return "answered" if isinstance(v, dict) and (v.get("arxiv_id") is None or isinstance(v.get("arxiv_id"), str)) else "error"
+    if pos == "citations[0].arxiv_id": return "answered" if v is None or isinstance(v, str) else "error"
+    return "answered"
+ANS = [{"id": "a1", "question": "qa", "expected_arxiv_ids": ["1706.03762"]}]; REF = [{"id": "x1", "question": "qr"}]; NM = [{"id": "n1", "question": "qn"}]
+crash = bad = 0; N = 4000
+for i in range(N):
+    pos, v = R.choice(POS), hostile()
+    resp = place(pos, v)
+    try:
+        m = head.evaluate(ANS, REF, lambda q: (copy.deepcopy(resp), 10.0), NM); json.dumps(m)
+    except Exception as e:
+        crash += 1; print("CRASH", pos, repr(v), type(e).__name__, e) if crash < 6 else None; continue
+    outs = [c["outcome"] for c in m["cases"]]; want = expect(pos, v)
+    ok_req = 0 if (pos == "body" and not isinstance(v, dict)) else 2
+    if want is None: want = "error"
+    if outs != [want] * 3 or m["requests_ok"] != ok_req or (want == "error" and m["error_case_ids"] != ["a1", "x1"]):
+        bad += 1; print("MISMATCH", pos, repr(v), outs, want, m["requests_ok"]) if bad < 6 else None
+print(f"P1 hostile fuzz: {N} runs, crashes={crash}, rule mismatches={bad}")
+diff = 0; N2 = 3000
+for i in range(N2):
+    a, x, n = good(), good(), good()
+    canned = {"qa": a, "qr": x, "qn": n}
+    mh = head.evaluate(ANS, REF, lambda q: (copy.deepcopy(canned[q]), 10.0), NM)
+    mm = main.evaluate(ANS, REF, lambda q: (copy.deepcopy(canned[q]), 10.0), NM)
+    if json.dumps(mh, sort_keys=True) != json.dumps(mm, sort_keys=True):
+        diff += 1; print("DIFF", a, x) if diff < 4 else None
+print(f"P2 well-formed differential head vs main: {N2} runs, metric JSON differences={diff}")
+m6 = load(sys.argv[1], "m6", ("    return isinstance(markers, list) and all(_is_int(m) for m in markers)",
+                                "    return isinstance(markers, str) or (isinstance(markers, list) and all(_is_int(m) for m in markers))"))
+x8 = load(sys.argv[1], "x8", ('for c in _citation_items(resp) if _is_int(c.get("marker"))}', 'for c in resp.get("citations") or [] if _is_int(c.get("marker"))}'))
+d6 = 0; N3 = 5000
+for i in range(N3):
+    r = {"answer": "X [1].", "citations": [cite(R.choice([1, 2, "1", "12", True, None]))], "claims": [{"markers": R.choice(["12", "1", "", "x", [1], [2], 5])} for _ in range(R.randint(1, 3))]}
+    if head.coverage_units(r) != m6.coverage_units(r): d6 += 1
+print(f"P3a m6 vs head coverage_units on {N3} random string/int markers x citation markers: differences={d6} (0 => equivalent: a str set never meets the int-only in_range set)")
+d8e = 0
+for i in range(N3):
+    pos, v = R.choice(POS), hostile(); resp = place(pos, v)
+    f = lambda mod: json.dumps(mod.evaluate(ANS, REF, lambda q: (copy.deepcopy(resp), 10.0), NM), sort_keys=True)
+    if f(head) != f(x8): d8e += 1
+print(f"P3b x8 vs head through evaluate() on {N3} hostile responses: differences={d8e}")
+for c in (5, ["str"], [None]):
+    r = {"answer": "X [1].", "citations": c}
+    try: x8r = x8.coverage_units(r)
+    except Exception as e: x8r = type(e).__name__
+    print(f"P3c direct coverage_units(citations={c!r}): head={head.coverage_units(r)} x8={x8r}  (classify={head.classify(r)!r}, so evaluate() never calls it)")
+
+[exit code 0]

@@ -1,0 +1,14 @@
+$ gh api .../actions/jobs/136743720411/logs ; .../136736533291/logs | grep
+== Python M0 unit tests, head job 136743720411 (merge onto main 11c4696) ==
+121:2026-11-21T05:21:31.8466255Z HEAD is now at 264409b Merge 1f3bd3177bc7a83625f23a82042492a3e0436247 into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+244:2026-11-21T05:21:50.0528513Z 276 passed, 1 skipped in 4.32s
+500:2026-11-21T05:22:32.6349456Z 60 passed, 2 skipped, 3 warnings in 8.19s
+557:2026-11-21T05:22:33.6983724Z ============================== 37 passed in 0.26s ==============================
+
+== Python M0 unit tests, main 11c4696 job 136736533291 ==
+227:2026-11-21T04:52:58.9652519Z 157 passed, 1 skipped in 4.23s
+484:2026-11-21T04:53:47.9867609Z 60 passed, 2 skipped, 3 warnings in 8.54s
+541:2026-11-21T04:53:49.2850733Z ============================== 37 passed in 0.37s ==============================
+
+light-step delta: 276 - 157 = 119
+

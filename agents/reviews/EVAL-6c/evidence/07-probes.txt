@@ -1,0 +1,10 @@
+$ python3 /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-EVAL-6c-r1/harness/probe.py /root/wt/qa-app-EVAL-6c /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-EVAL-6c-r1/main-tree-mQda
+P1 hostile fuzz: 4000 runs, crashes=0, rule mismatches=0
+P2 well-formed differential head vs main: 3000 runs, metric JSON differences=0
+P3a m6 vs head coverage_units on 5000 random string/int markers x citation markers: differences=0 (0 => equivalent: a str set never meets the int-only in_range set)
+P3b x8 vs head through evaluate() on 5000 hostile responses: differences=0
+P3c direct coverage_units(citations=5): head=(0, 1) x8=TypeError  (classify='error', so evaluate() never calls it)
+P3c direct coverage_units(citations=['str']): head=(0, 1) x8=AttributeError  (classify='error', so evaluate() never calls it)
+P3c direct coverage_units(citations=[None]): head=(0, 1) x8=AttributeError  (classify='error', so evaluate() never calls it)
+
+[exit code 0]

@@ -1,0 +1,9 @@
+$ /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-EVAL-6c-r1/harness/gate_reason.sh /root/wt/qa-app-EVAL-6c 1f3bd3177bc7a83625f23a82042492a3e0436247
+== 11c4696 ==
+exit code: 2
+stderr   : eval could not run: AttributeError: 'list' object has no attribute 'get'
+== 1f3bd31 ==
+exit code: 2
+stderr   : eval could not run: ConnectionError: every /v1/ask request to http://localhost:8080 failed
+
+[exit code 0]

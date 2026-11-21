@@ -1,0 +1,19 @@
+$ bash -c echo "== E,F,W head =="; ruff check --isolated --select E,F,W --line-length 130 scripts/evaluate_answers.py tests/test_evals_data.py; echo "== E3 preview, main 11c4696 =="; git show origin/main:tests/test_evals_data.py > /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-EVAL-6c-r1/main_test_evals_data.py; ruff check --isolated --preview --select E3 --line-length 130 --output-format concise /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-EVAL-6c-r1/main_test_evals_data.py | sed "s#.*/main_test_evals_data.py#main:tests/test_evals_data.py#"; echo "== E3 preview, head 1f3bd31 =="; ruff check --isolated --preview --select E3 --line-length 130 --output-format concise tests/test_evals_data.py
+== E,F,W head ==
+All checks passed!
+== E3 preview, main 11c4696 ==
+main:tests/test_evals_data.py:780:1: too-many-blank-lines: [*] Too many blank lines (3)
+main:tests/test_evals_data.py:811:1: blank-lines-top-level: [*] Expected 2 blank lines, found 1
+main:tests/test_evals_data.py:1058:1: too-many-blank-lines: [*] Too many blank lines (3)
+main:tests/test_evals_data.py:1130:1: blank-lines-after-function-or-class: [*] Expected 2 blank lines after class or function definition, found (1)
+main:tests/test_evals_data.py:1202:1: too-many-blank-lines: [*] Too many blank lines (3)
+main:tests/test_evals_data.py:1212:1: blank-lines-after-function-or-class: [*] Expected 2 blank lines after class or function definition, found (1)
+Found 6 errors.
+[*] 6 fixable with the `--fix` option.
+== E3 preview, head 1f3bd31 ==
+tests/test_evals_data.py:781:1: too-many-blank-lines: [*] Too many blank lines (3)
+tests/test_evals_data.py:812:1: blank-lines-top-level: [*] Expected 2 blank lines, found 1
+Found 2 errors.
+[*] 2 fixable with the `--fix` option.
+
+[exit code 1]
