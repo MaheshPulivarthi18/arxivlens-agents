@@ -986,3 +986,8 @@ Format:
 - Picked 1 task: **OPS-H18b** (backend, P3 harness, new spec from OPS-H18 QA findings 1+3): CI ML-absence guard (`ci.yml:54`) fails closed when `pip list` errors; `make help` text for `test-unit` (`Makefile:43`). Not design-required. Depends on #103 (merged). No open PR touches `Makefile` or `ci.yml`. Spec notes that `set -o pipefail` alone doesn't fix the fail-open (grep's exit 1 is the rightmost status; checked in bash).
 - Not picked (all wait on an open PR merging): OPS-H20 + OPS-H21 (#111), OPS-H6f + AI-13 (#106, `db.py`), FE-0j (#109), FE-2/FE-4 + FE-0h scan + FE-3a2 follow-up (#104 `App.jsx`/`HeroSearch.jsx`/`ReferencesStack.jsx`), ING-6c → OPS-H7a2c → OPS-H7b (`README.md` in #104), EVAL-6c nits / EVAL-7 `build_rows` / EVAL-5 `CHUNK_COUNTS_SQL` (`tests/test_evals_data.py` in #107). AI-2 counters split: premise stale since NLI, marked for re-grooming on the board. Frontend and ai have no independent item.
 - Jira: no Atlassian tools in this session; orchestrator to create OPS-H18b under KAN-3 and move it to In Progress.
+
+## 2026-11-21 ~12:55Z · pm-lead · OPS-H19 final review (HOLD resolved)
+- PR #111 @ `5b4d6a2`: **APPROVE**, raised (ready for review, `ready-to-merge`). The `eval` check timed out in the `make eval` step (30 min) on
+  an AMD EPYC 7763 runner (rerank 1.47x slower than main's Intel run). The retrieval metrics are identical to main and the prefetch took 0 s on a warm store,
+  so the PR's code is not involved. Re-run 136850028681 pending. Evidence 13 added. OPS-H20 widened (AC4: `make eval` step timeout), dependency dropped → Ready.

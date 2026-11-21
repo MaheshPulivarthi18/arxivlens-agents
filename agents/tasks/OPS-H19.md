@@ -8,7 +8,7 @@
 | **Depends on** | the replay proxy (ArxivLens #45, merged `393bcf3`). No ADR. No open PR touches `scripts/arxiv_replay.py` or `tests/test_arxiv_replay.py` (checked 2026-11-21 11:00Z against #104–#110: #107 edits `scripts/evaluate_answers.py`, `tests/test_evals_data.py`, `evals/README.md`; #110 edits `tests/test_kafka_client.py`; #106 edits `tests/test_chunk_reprocess_db.py`, `tests/test_processor_pages.py`) |
 | **Jira** | needs creating: epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H19`, `agent-ai`, `arxivlens` |
 | **Design required** | no: one function's control flow in an existing CI script + unit tests; no CLI flag, table, service or contract change |
-| **Status** | PM review (held: eval check still running) |
+| **Status** | Ready to merge (PM APPROVE 2026-11-21 ~12:55Z; PR #111 raised) |
 
 ## Goal
 The Full stack job's "Prefetch arXiv responses into the replay store" step failed six times on 2026-11-21 (#105/#106/#107, two
@@ -112,3 +112,6 @@ git diff origin/main --name-only   # exactly scripts/arxiv_replay.py and tests/t
   `make eval-seed` since 11:32Z; 15 min of polling). Evidence reviewed, all ACs covered; PR #111 stays draft. QA findings
   decided: AC3 wording amended (finding 3); follow-ups OPS-H21 (findings 1+2, ai) and OPS-H20 (finding 4, backend) in
   Backlog. Next cycle: eval green → APPROVE and raise. See `agents/reviews/OPS-H19/report.md`.
+- 2026-11-21 ~12:55Z (pm-lead): **APPROVE**, PR #111 raised. The eval check on `5b4d6a2` timed out in the `make eval` step
+  (30 min) on a slow EPYC 7763 runner, after the retrieval table printed with metrics identical to main. Prefetch: 0 s, warm
+  store. Not caused by this PR. Re-run 136850028681 pending. Step timeout folded into OPS-H20 (now Ready). Evidence 13.

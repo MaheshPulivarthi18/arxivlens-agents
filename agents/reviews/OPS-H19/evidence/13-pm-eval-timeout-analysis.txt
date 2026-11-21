@@ -1,0 +1,34 @@
+$ grep eval logs (PR job 136830894337 vs main run 44764887789)
+# PR #111 eval job 136830894337 (head 5b4d6a2, merge 7339519) vs main eval job of run 44764887789 (2026-11-20, GATE: PASS)
+
+## PR #111 run: prefetch, make eval start, retrieval table, timeout
+2356:2026-11-21T11:31:13.9394501Z [replay] prefetch: 31 queries, stats={"hits": 62, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+2483:2026-11-21T12:14:14.3392358Z [36;1m  lscpu | grep -E '^(Model name|CPU\(s\))'; free -g; echo "embedder /healthz: $(curl -fsS localhost:8081/healthz)"[0m
+2503:2026-11-21T12:14:14.3886492Z Model name:                              AMD EPYC 7763 64-Core Processor
+2511:2026-11-21T12:14:14.4143429Z [36;1mset +e; make eval 2>&1 | tee eval.log[0m
+2515:2026-11-21T12:14:14.4147613Z [36;1m  sed -n '/^=====/,/^GATE:/p' eval.log; if [ "$rc" = 2 ]; then tail -n 20 eval.log; fi[0m
+2546:2026-11-21T12:32:08.4032550Z Hybrid RRF + Rerank      | 0.9850   | 0.9765   | 0.9707   | 0.6333   | 13619.42
+2556:2026-11-21T12:32:08.4062701Z Cases evaluated: 78/78
+2557:2026-11-21T12:44:26.9341927Z ##[error]The action 'make eval' has timed out after 30 minutes.
+
+## main run 44764887789: same markers
+2515:2026-11-20T15:42:32.8823024Z [replay] prefetch: 31 queries, stats={"hits": 62, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+2642:2026-11-20T16:22:00.1583043Z [36;1m  lscpu | grep -E '^(Model name|CPU\(s\))'; free -g; echo "embedder /healthz: $(curl -fsS localhost:8081/healthz)"[0m
+2662:2026-11-20T16:22:00.5336210Z Model name:                              INTEL(R) XEON(R) PLATINUM 8573C
+2671:2026-11-20T16:22:00.5487417Z [36;1mset +e; make eval 2>&1 | tee eval.log[0m
+2675:2026-11-20T16:22:00.5490638Z [36;1m  sed -n '/^=====/,/^GATE:/p' eval.log; if [ "$rc" = 2 ]; then tail -n 20 eval.log; fi[0m
+2706:2026-11-20T16:34:12.6230277Z Hybrid RRF + Rerank      | 0.9850   | 0.9765   | 0.9707   | 0.6333   | 9271.75
+2716:2026-11-20T16:34:12.6239598Z Cases evaluated: 78/78
+2721:2026-11-20T16:44:11.2975693Z Answers citing expected  : 95.45% of 22
+2755:2026-11-20T16:44:11.2991295Z GATE: PASS
+
+## make eval step timeout at PR head (unchanged by the PR; diff is scripts/arxiv_replay.py + tests/test_arxiv_replay.py only)
+148:      - name: make eval
+149-        timeout-minutes: 30
+
+## Arithmetic
+main  : retrieval 16:22:00 -> 16:34:12 = 12m12s (rerank 9272 ms/q, Intel Xeon 8573C); answer phase 16:34:12 -> 16:44:11 = 9m59s; step 22m11s of 30m
+PR    : retrieval 12:14:14 -> 12:32:08 = 17m54s (rerank 13619 ms/q, AMD EPYC 7763) = 1.47x main; answer phase at 1.47x ~ 14m40s
+        -> projected step ~32m34s > 30m timeout; it timed out at 12:44:26 with the answer phase 12m18s in (no GATE: line)
+Retrieval metrics on the PR run equal main to 4 decimals: Rerank Recall@5 0.9850, MRR 0.9765, NDCG@5 0.9707
+
