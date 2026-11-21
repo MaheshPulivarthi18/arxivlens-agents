@@ -8,7 +8,7 @@
 | **Depends on** | ING-6b **merged**; #51 and #52 **merged** (README, `db.yml`); **OPS-H9 merged** (`db.yml`; AC8 documents its pgvector pin); no open PR on `cmd/arxivlens/main.go` (OPS-H7b also edits it), `.github/workflows/stack.yml`, `.github/workflows/db.yml` or `README.md` when the build starts. Approved design `docs/design/ING-6.md`, PM conditions 3, 6, 7, 9 and answer 3 |
 | **Jira** | KAN-66 (under KAN-18's epic KAN-4, `labels = "task-ING-6c"`) |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | In QA (PR pending). Built cycle 2026-11-21T21:59Z on `agent/backend/ING-6c` (`f193648`-amended, see Notes) |
+| **Status** | In QA (PR pending). Built cycle 2026-11-21T21:59Z on `agent/backend/ING-6c` (commit `dec6386`, see Notes) |
 
 ## Goal
 Ship the user-facing command and prove on the real stack the PRD row: a second run with no new papers emits zero `papers.discovered` events, and a
