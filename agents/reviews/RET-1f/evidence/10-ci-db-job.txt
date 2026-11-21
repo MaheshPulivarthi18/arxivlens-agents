@@ -1,0 +1,19 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136902191826/logs | grep -nE ...
+job 136902191826 (DB (migrate twice, HNSW plan + recall)) head_sha conclusion: 14346e4a23ad46694c70cd0771267939ceba2f4f success
+268:HEAD is now at 5f2730b Merge 14346e4a23ad46694c70cd0771267939ceba2f4f into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+539:go test -tags integration -count=1 -v -timeout 20m -run 'TestHNSW|TestSearchProvenance' ./internal/query/
+1645:--- PASS: TestHNSWVectorHits (41.03s)
+1656:--- PASS: TestHNSWGuard (0.00s)
+1657:    --- PASS: TestHNSWGuard/others=0/CI="" (0.00s)
+1658:    --- PASS: TestHNSWGuard/others=0/CI="true" (0.00s)
+1659:    --- PASS: TestHNSWGuard/others=0/CI="1" (0.00s)
+1660:    --- PASS: TestHNSWGuard/others=1/CI="" (0.00s)
+1661:    --- PASS: TestHNSWGuard/others=1/CI="true" (0.00s)
+1662:    --- PASS: TestHNSWGuard/others=1/CI="1" (0.00s)
+1663:    --- PASS: TestHNSWGuard/others=5/CI="" (0.00s)
+1664:    --- PASS: TestHNSWGuard/others=5/CI="true" (0.00s)
+1665:    --- PASS: TestHNSWGuard/others=5/CI="1" (0.00s)
+1668:--- PASS: TestHNSWSeedCleanup (0.02s)
+1673:--- PASS: TestSearchProvenance (0.04s)
+1675:ok  	arxivlens/internal/query	41.106s
+

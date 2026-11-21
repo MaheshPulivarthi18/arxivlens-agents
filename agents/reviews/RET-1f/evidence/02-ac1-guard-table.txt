@@ -1,0 +1,27 @@
+$ bash -c export PATH=/usr/local/go1.25.1/bin:$PATH GOPROXY=off GOFLAGS=-mod=mod GOSUMDB=off; unset DATABASE_URL; cd /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/head && echo 'harness: git archive of PR head + go.mod replace => tag-pinned GitHub clones (see 07)'; env | grep -c '^DATABASE_URL=' ; go test -race -tags integration -count=1 -v -run '^TestHNSWGuard$' ./internal/query/
+harness: git archive of PR head + go.mod replace => tag-pinned GitHub clones (see 07)
+0
+=== RUN   TestHNSWGuard
+=== RUN   TestHNSWGuard/others=0/CI=""
+=== RUN   TestHNSWGuard/others=0/CI="true"
+=== RUN   TestHNSWGuard/others=0/CI="1"
+=== RUN   TestHNSWGuard/others=1/CI=""
+=== RUN   TestHNSWGuard/others=1/CI="true"
+=== RUN   TestHNSWGuard/others=1/CI="1"
+=== RUN   TestHNSWGuard/others=5/CI=""
+=== RUN   TestHNSWGuard/others=5/CI="true"
+=== RUN   TestHNSWGuard/others=5/CI="1"
+--- PASS: TestHNSWGuard (0.00s)
+    --- PASS: TestHNSWGuard/others=0/CI="" (0.00s)
+    --- PASS: TestHNSWGuard/others=0/CI="true" (0.00s)
+    --- PASS: TestHNSWGuard/others=0/CI="1" (0.00s)
+    --- PASS: TestHNSWGuard/others=1/CI="" (0.00s)
+    --- PASS: TestHNSWGuard/others=1/CI="true" (0.00s)
+    --- PASS: TestHNSWGuard/others=1/CI="1" (0.00s)
+    --- PASS: TestHNSWGuard/others=5/CI="" (0.00s)
+    --- PASS: TestHNSWGuard/others=5/CI="true" (0.00s)
+    --- PASS: TestHNSWGuard/others=5/CI="1" (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.024s
+
+[exit code 0]

@@ -1,0 +1,42 @@
+$ bash -c grep -n 'applyHNSWGuard\|hnswGuard\|os.Getenv("CI")' internal/query/*.go; echo '--- head lines 70-80'; sed -n 70,80p internal/query/search_integration_test.go; echo '--- origin/main diff hunk'; git diff origin/main -- internal/query/search_integration_test.go | sed -n 1,20p
+internal/query/search_integration_test.go:77:	applyHNSWGuard(t, others, os.Getenv("CI"))
+internal/query/search_integration_test.go:261:// applyHNSWGuard refuses a DB that holds others non-synth papers: Fatalf when ciEnv (the raw CI env value) is
+internal/query/search_integration_test.go:264:func applyHNSWGuard(tb testing.TB, others int, ciEnv string) {
+internal/query/search_integration_test.go:277:// guardRecorder records the calls applyHNSWGuard makes instead of stopping the test. Every other way to fail or
+internal/query/search_integration_test.go:292:// TestHNSWGuard pins applyHNSWGuard for others x raw CI values; it needs no DATABASE_URL.
+internal/query/search_integration_test.go:305:			applyHNSWGuard(r, tc.others, tc.ci)
+--- head lines 70-80
+		t.Fatal(err)
+	}
+	t.Cleanup(d.Close) // registered first so it runs last, after the corpus cleanup (t.Cleanup is LIFO)
+	others, err := itPrepare(ctx, d.Pool)
+	if err != nil {
+		t.Fatalf("prepare: %v", err)
+	}
+	applyHNSWGuard(t, others, os.Getenv("CI"))
+	t.Cleanup(func() { // runs even when the test fails; FK cascades remove chunks, embeddings and pages
+		if _, err := d.Pool.Exec(ctx, itDeleteSynthSQL); err != nil {
+			t.Errorf("cleanup: %v", err)
+--- origin/main diff hunk
+diff --git a/internal/query/search_integration_test.go b/internal/query/search_integration_test.go
+index f4a5204..d1c5835 100644
+--- a/internal/query/search_integration_test.go
++++ b/internal/query/search_integration_test.go
+@@ -74,13 +74,7 @@ func TestHNSWVectorHits(t *testing.T) {
+ 	if err != nil {
+ 		t.Fatalf("prepare: %v", err)
+ 	}
+-	if skip, fatal := hnswGuard(others, os.Getenv("CI") != ""); fatal || skip {
+-		const why = "DB holds %d non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"
+-		if fatal { // never let a skip pass as green in db.yml
+-			t.Fatalf(why, others)
+-		}
+-		t.Skipf(why, others)
+-	}
++	applyHNSWGuard(t, others, os.Getenv("CI"))
+ 	t.Cleanup(func() { // runs even when the test fails; FK cascades remove chunks, embeddings and pages
+ 		if _, err := d.Pool.Exec(ctx, itDeleteSynthSQL); err != nil {
+ 			t.Errorf("cleanup: %v", err)
+@@ -264,32 +258,60 @@ func itPrepare(ctx context.Context, pool *pgxpool.Pool) (int, error) {
+
+[exit code 0]

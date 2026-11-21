@@ -1,0 +1,218 @@
+$ python3 -I harness/mutants.py
+id   verdict   pkg      -run     mutant
+c1   KILLED    FAIL     FAIL     AC4 c1 (fatal||skip -> fatal): act only when CI set
+c2   KILLED    FAIL     FAIL     AC4 c2 (if fatal -> if skip): swap Fatalf/Skipf branches
+c3   KILLED    FAIL     FAIL     AC4 c3 (CI != "" -> CI == "")
+q1   KILLED    FAIL     FAIL     QA: boundary others==0 -> others<=1
+q2   KILLED    FAIL     FAIL     QA: non-empty -> =="true" (CI=1 skips)
+q3   KILLED    FAIL     FAIL     QA: two Fatalf calls (exactly-one)
+q4   KILLED    FAIL     FAIL     QA: Fatalf -> Fatal (other stop call)
+q5   KILLED    FAIL     FAIL     QA: Skipf -> Logf (no skip)
+q6   KILLED    FAIL     FAIL     QA: message loses 'use an empty, migrated DB'
+q7   KILLED    FAIL     FAIL     QA: wrong count in message
+q8   SURVIVED  PASS     n/a      QA: call site drops CI value (needs dirty DB; DB job only)
+m4   SURVIVED  PASS     PASS     AC4 m4: Inf check before NaN check (expected SURVIVED)
+m5   KILLED    FAIL     FAIL     AC4 m5: IsInf -> Abs >= MaxFloat32
+q9   KILLED    FAIL     FAIL     QA: no break after NaN (last non-finite wins)
+q10  KILLED    FAIL     FAIL     QA: no break after Inf (last non-finite wins)
+q11  KILLED    FAIL     FAIL     QA: RerankScore not set
+b5   SURVIVED  PASS     PASS     base control: main tests vs m5
+b9   SURVIVED  PASS     PASS     base control: main tests vs q9
+b10  SURVIVED  PASS     PASS     base control: main tests vs q10
+bc1  SURVIVED  PASS     PASS     base control: unmodified main (TestHNSWGuard exists)
+
+(pkg = go test -tags integration ./internal/query/ without DATABASE_URL; -run = the AC's named test(s) only)
+
+### c1 AC4 c1 (fatal||skip -> fatal): act only when CI set
+-	if others == 0 {
++	if others == 0 || ciEnv == "" {
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf [], other []; want 0 Fatalf, 1 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=5/CI="" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf [], other []; want 0 Fatalf, 1 Skipf, no other call
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf [], other []; want 0 Fatalf, 1 Skipf, no other call
+
+### c2 AC4 c2 (if fatal -> if skip): swap Fatalf/Skipf branches
+-		tb.Fatalf(why, others)
+-	} else {
++	} else {
++		tb.Fatalf(why, others)
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="" (0.00s)
+        search_integration_test.go:307: Fatalf ["DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], Skipf [], other []; want 0 Fatalf, 1 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=1/CI="true" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf ["DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], other []; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=1/CI="1" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf ["DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], other []; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=5/CI="" (0.00s)
+
+### c3 AC4 c3 (CI != "" -> CI == "")
+-	if ciEnv != "" {
++	if ciEnv == "" {
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="" (0.00s)
+        search_integration_test.go:307: Fatalf ["DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], Skipf [], other []; want 0 Fatalf, 1 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=1/CI="true" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf ["DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], other []; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=1/CI="1" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf ["DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], other []; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=5/CI="" (0.00s)
+
+### q1 QA: boundary others==0 -> others<=1
+-	if others == 0 {
++	if others <= 1 {
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf [], other []; want 0 Fatalf, 1 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=1/CI="true" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf [], other []; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=1/CI="1" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf [], other []; want 1 Fatalf, 0 Skipf, no other call
+--- FAIL: TestHNSWGuard (0.00s)
+
+### q2 QA: non-empty -> =="true" (CI=1 skips)
+-	if ciEnv != "" {
++	if ciEnv == "true" {
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="1" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf ["DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], other []; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=5/CI="1" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf ["DB holds 5 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], other []; want 1 Fatalf, 0 Skipf, no other call
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="1" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf ["DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], other []; want 1 Fatalf, 0 Skipf, no other call
+
+### q3 QA: two Fatalf calls (exactly-one)
++		tb.Fatalf(why, others)
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="true" (0.00s)
+        search_integration_test.go:308: Fatalf ["DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB" "DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], Skipf [], other []; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=1/CI="1" (0.00s)
+        search_integration_test.go:308: Fatalf ["DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB" "DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], Skipf [], other []; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=5/CI="true" (0.00s)
+        search_integration_test.go:308: Fatalf ["DB holds 5 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB" "DB holds 5 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"], Skipf [], other []; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=5/CI="1" (0.00s)
+
+### q4 QA: Fatalf -> Fatal (other stop call)
+-		tb.Fatalf(why, others)
++		tb.Fatal(fmt.Sprintf(why, others))
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="true" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf [], other ["Fatal DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"]; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=1/CI="1" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf [], other ["Fatal DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"]; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=5/CI="true" (0.00s)
+        search_integration_test.go:307: Fatalf [], Skipf [], other ["Fatal DB holds 5 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"]; want 1 Fatalf, 0 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=5/CI="1" (0.00s)
+
+### q5 QA: Skipf -> Logf (no skip)
+-		tb.Skipf(why, others)
++		tb.Logf(why, others)
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="" (0.00s)
+        search_integration_test.go:273: DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB
+        search_integration_test.go:307: Fatalf [], Skipf [], other []; want 0 Fatalf, 1 Skipf, no other call
+    --- FAIL: TestHNSWGuard/others=5/CI="" (0.00s)
+        search_integration_test.go:273: DB holds 5 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB
+        search_integration_test.go:307: Fatalf [], Skipf [], other []; want 0 Fatalf, 1 Skipf, no other call
+--- FAIL: TestHNSWGuard (0.00s)
+
+### q6 QA: message loses 'use an empty, migrated DB'
+-	const why = "DB holds %d non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB"
++	const why = "DB holds %d non-synth papers; the seed adds synthetic chunks to every paper, so use a migrated DB"
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="" (0.00s)
+        search_integration_test.go:313: message "DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use a migrated DB" lacks the count 1 or "use an empty, migrated DB"
+    --- FAIL: TestHNSWGuard/others=1/CI="true" (0.00s)
+        search_integration_test.go:313: message "DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use a migrated DB" lacks the count 1 or "use an empty, migrated DB"
+    --- FAIL: TestHNSWGuard/others=1/CI="1" (0.00s)
+        search_integration_test.go:313: message "DB holds 1 non-synth papers; the seed adds synthetic chunks to every paper, so use a migrated DB" lacks the count 1 or "use an empty, migrated DB"
+    --- FAIL: TestHNSWGuard/others=5/CI="" (0.00s)
+
+### q7 QA: wrong count in message
+-		tb.Fatalf(why, others)
++		tb.Fatalf(why, others+1)
+--- FAIL: TestHNSWGuard (0.00s)
+    --- FAIL: TestHNSWGuard/others=1/CI="true" (0.00s)
+        search_integration_test.go:313: message "DB holds 2 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB" lacks the count 1 or "use an empty, migrated DB"
+    --- FAIL: TestHNSWGuard/others=1/CI="1" (0.00s)
+        search_integration_test.go:313: message "DB holds 2 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB" lacks the count 1 or "use an empty, migrated DB"
+    --- FAIL: TestHNSWGuard/others=5/CI="true" (0.00s)
+        search_integration_test.go:313: message "DB holds 6 non-synth papers; the seed adds synthetic chunks to every paper, so use an empty, migrated DB" lacks the count 5 or "use an empty, migrated DB"
+    --- FAIL: TestHNSWGuard/others=5/CI="1" (0.00s)
+
+### q8 QA: call site drops CI value (needs dirty DB; DB job only)
+-	applyHNSWGuard(t, others, os.Getenv("CI"))
++	applyHNSWGuard(t, others, "")
+
+
+### m4 AC4 m4: Inf check before NaN check (expected SURVIVED)
+-			if math.IsNaN(float64(sc)) {
+-				reason = "NaN score"
+-				break
+-			}
++			if math.IsNaN(float64(sc)) {
++				reason = "NaN score"
++				break
++			}
+
+
+### m5 AC4 m5: IsInf -> Abs >= MaxFloat32
+-			if math.IsInf(float64(sc), 0) {
++			if math.Abs(float64(sc)) >= math.MaxFloat32 {
+--- FAIL: TestHybridSearchRerankLargeFiniteScores (0.00s)
+    search_test.go:292: unexpected fallback: "[Query Service] rerank fallback trace_id=3237251a02e40b75984a69b737ecdc7f trace_id_source=generated reason=\"Inf score\" pool=20 scores=20\n"
+--- FAIL: TestHybridSearchRerankLargeFiniteScores (0.00s)
+    search_test.go:292: unexpected fallback: "[Query Service] rerank fallback trace_id=7aaf357d52367b8cbe4c77f1b62ed78b trace_id_source=generated reason=\"Inf score\" pool=20 scores=20\n"
+
+### q9 QA: no break after NaN (last non-finite wins)
+-				break
+--- FAIL: TestHybridSearchRerankFallback (0.00s)
+    --- FAIL: TestHybridSearchRerankFallback/NaN_at_2,_+Inf_at_3 (0.00s)
+        search_test.go:256: log "[Query Service] rerank fallback trace_id=0123456789abcdef0123456789abcdef trace_id_source=ctx reason=\"Inf score\" pool=20 scores=20\n" missing "reason=\"NaN score\""
+--- FAIL: TestHybridSearchRerankFallback (0.00s)
+    --- FAIL: TestHybridSearchRerankFallback/NaN_at_2,_+Inf_at_3 (0.00s)
+        search_test.go:256: log "[Query Service] rerank fallback trace_id=0123456789abcdef0123456789abcdef trace_id_source=ctx reason=\"Inf score\" pool=20 scores=20\n" missing "reason=\"NaN score\""
+
+### q10 QA: no break after Inf (last non-finite wins)
+-				break
+--- FAIL: TestHybridSearchRerankFallback (0.00s)
+    --- FAIL: TestHybridSearchRerankFallback/+Inf_at_2,_NaN_at_3 (0.00s)
+        search_test.go:256: log "[Query Service] rerank fallback trace_id=0123456789abcdef0123456789abcdef trace_id_source=ctx reason=\"NaN score\" pool=20 scores=20\n" missing "reason=\"Inf score\""
+--- FAIL: TestHybridSearchRerankFallback (0.00s)
+    --- FAIL: TestHybridSearchRerankFallback/+Inf_at_2,_NaN_at_3 (0.00s)
+        search_test.go:256: log "[Query Service] rerank fallback trace_id=0123456789abcdef0123456789abcdef trace_id_source=ctx reason=\"NaN score\" pool=20 scores=20\n" missing "reason=\"Inf score\""
+
+### q11 QA: RerankScore not set
+-		hits[i].RerankScore = float64(scores[i])
++		hits[i].RerankScore = 0
+--- FAIL: TestSearchHitProvenanceTravelsWithHit (0.00s)
+    --- FAIL: TestSearchHitProvenanceTravelsWithHit/rerank_reversed (0.00s)
+        search_provenance_test.go:111: order = [1 2 3 4 5], want [1 20 2 19 3]
+    --- FAIL: TestSearchHitProvenanceTravelsWithHit/rerank_rank_8_top_score (0.00s)
+        search_provenance_test.go:111: order = [1 2 3 4 5], want [1 2 3 8 4]
+--- FAIL: TestHybridSearchRerankOrdersByFusedRank (0.00s)
+    --- FAIL: TestHybridSearchRerankOrdersByFusedRank/rrf_rank_8_has_top_score (0.00s)
+        search_test.go:88: order = [1 2 3 4 5], want [1 2 3 8 4]
+
+### b5 base control: main tests vs m5
+-			if math.IsInf(float64(sc), 0) {
++			if math.Abs(float64(sc)) >= math.MaxFloat32 {
+
+
+### b9 base control: main tests vs q9
+-				break
+
+
+### b10 base control: main tests vs q10
+-				break
+
+
+### bc1 base control: unmodified main (TestHNSWGuard exists)
+
+
+
+

@@ -1,0 +1,27 @@
+$ bash -c cd /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1 && python3 -I harness/mutants.py > /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/mutants-r1.out 2>&1; sed -n 1,24p /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/mutants-r1.out
+id   verdict   pkg      -run     mutant
+c1   KILLED    FAIL     FAIL     AC4 c1 (fatal||skip -> fatal): act only when CI set
+c2   KILLED    FAIL     FAIL     AC4 c2 (if fatal -> if skip): swap Fatalf/Skipf branches
+c3   KILLED    FAIL     FAIL     AC4 c3 (CI != "" -> CI == "")
+q1   KILLED    FAIL     FAIL     QA: boundary others==0 -> others<=1
+q2   KILLED    FAIL     FAIL     QA: non-empty -> =="true" (CI=1 skips)
+q3   KILLED    FAIL     FAIL     QA: two Fatalf calls (exactly-one)
+q4   KILLED    FAIL     FAIL     QA: Fatalf -> Fatal (other stop call)
+q5   KILLED    FAIL     FAIL     QA: Skipf -> Logf (no skip)
+q6   KILLED    FAIL     FAIL     QA: message loses 'use an empty, migrated DB'
+q7   KILLED    FAIL     FAIL     QA: wrong count in message
+q8   SURVIVED  PASS     n/a      QA: call site drops CI value (needs dirty DB; DB job only)
+m4   SURVIVED  PASS     PASS     AC4 m4: Inf check before NaN check (expected SURVIVED)
+m5   KILLED    FAIL     FAIL     AC4 m5: IsInf -> Abs >= MaxFloat32
+q9   KILLED    FAIL     FAIL     QA: no break after NaN (last non-finite wins)
+q10  KILLED    FAIL     FAIL     QA: no break after Inf (last non-finite wins)
+q11  KILLED    FAIL     FAIL     QA: RerankScore not set
+b5   SURVIVED  PASS     PASS     base control: main tests vs m5
+b9   SURVIVED  PASS     PASS     base control: main tests vs q9
+b10  SURVIVED  PASS     PASS     base control: main tests vs q10
+bc1  SURVIVED  PASS     PASS     base control: unmodified main (TestHNSWGuard exists)
+
+(pkg = go test -tags integration ./internal/query/ without DATABASE_URL; -run = the AC's named test(s) only)
+
+
+[exit code 0]

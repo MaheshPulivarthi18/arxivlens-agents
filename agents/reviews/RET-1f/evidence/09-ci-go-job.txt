@@ -1,0 +1,31 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136902192402/logs | grep -nE ...
+job 136902192402 (Go (vet, gofmt, test, build)) head_sha conclusion: 14346e4a23ad46694c70cd0771267939ceba2f4f success
+34:Complete job name: Go (vet, gofmt, test, build)
+120:HEAD is now at 5f2730b Merge 14346e4a23ad46694c70cd0771267939ceba2f4f into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+207:##[group]Run make lint-go
+211:go vet ./...
+212:##[group]Run make test-go
+216:  GOFLAGS: -race
+218:go test ./...
+219:ok  	arxivlens/cmd/arxivlens	1.047s
+220:ok  	arxivlens/internal/arxiv	3.201s
+221:ok  	arxivlens/internal/config	1.018s
+222:ok  	arxivlens/internal/crawler	1.131s
+223:ok  	arxivlens/internal/db	1.021s
+224:ok  	arxivlens/internal/dlq	1.293s
+225:ok  	arxivlens/internal/downloader	1.121s
+226:ok  	arxivlens/internal/kafka	1.068s
+227:ok  	arxivlens/internal/llm	2.059s
+228:ok  	arxivlens/internal/llm/llmtest	1.118s
+229:ok  	arxivlens/internal/query	1.564s
+230:?   	arxivlens/internal/storage	[no test files]
+231:?   	arxivlens/internal/telemetry	[no test files]
+232:?   	arxivlens/shared/events	[no test files]
+234:go test -race -count=1 -v -coverprofile=c.out ./internal/kafka/ && go tool cover -func=c.out | grep consumer.go
+363:ok  	arxivlens/internal/kafka	1.071s	coverage: 63.7% of statements
+371:go test -race -count=1 -v -coverprofile=llm.out ./internal/llm/... && go tool cover -func=llm.out
+629:ok  	arxivlens/internal/llm	1.999s	coverage: 96.6% of statements
+646:ok  	arxivlens/internal/llm/llmtest	1.130s	coverage: 100.0% of statements
+692:##[group]Run make build-go
+696:go build -o bin/arxivlens ./cmd/arxivlens
+

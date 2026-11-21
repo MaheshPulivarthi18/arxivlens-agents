@@ -1,0 +1,13 @@
+$ bash -c git log -1 --format="head %H parent %P"; echo "--- git diff origin/main --name-only"; git diff origin/main --name-only; echo "--- stat"; git diff --stat origin/main...HEAD; echo "--- .github/scripts/ownership-check.sh origin/main agent/backend/RET-1f"; .github/scripts/ownership-check.sh origin/main agent/backend/RET-1f
+head 14346e4a23ad46694c70cd0771267939ceba2f4f parent 11c4696f7c6830436ada00c54d8f75976ddf7b99
+--- git diff origin/main --name-only
+internal/query/search_integration_test.go
+internal/query/search_test.go
+--- stat
+ internal/query/search_integration_test.go | 74 ++++++++++++++++++++-----------
+ internal/query/search_test.go             | 52 ++++++++++++++++++++++
+ 2 files changed, 100 insertions(+), 26 deletions(-)
+--- .github/scripts/ownership-check.sh origin/main agent/backend/RET-1f
+Ownership OK for role=backend (126 changed lines)
+
+[exit code 0]

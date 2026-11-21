@@ -1,0 +1,100 @@
+$ bash -c cd /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1 && find harness -maxdepth 1 -type f | sort; cat harness/mutants.py; echo '--- replace.txt'; cat replace.txt; echo '--- deps (git describe)'; for d in deps/*; do echo "$d $(git -C $d describe --tags --always 2>/dev/null)"; done; echo '--- deps/ini/go.mod (QA stub; v1.67.0 tag has none)'; cat deps/ini/go.mod
+harness/mutants.py
+# QA RET-1f r1 mutation harness: each mutant = one exact, code-anchored substitution in a fresh copy of a tree.
+import os, subprocess, sys, tempfile, shutil
+S = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ENV = dict(os.environ, PATH="/usr/local/go1.25.1/bin:" + os.environ["PATH"], GOPROXY="off", GOFLAGS="-mod=mod", GOSUMDB="off")
+ENV.pop("DATABASE_URL", None)
+IT = "internal/query/search_integration_test.go"; SG = "internal/query/search.go"; SL = "internal/query/search_integration_test.go"
+G1 = "\tif others == 0 {\n\t\treturn\n\t}\n"
+G2 = "\tif ciEnv != \"\" {\n\t\ttb.Fatalf(why, others)\n\t} else {\n\t\ttb.Skipf(why, others)\n\t}\n"
+NAN = "\t\t\tif math.IsNaN(float64(sc)) {\n\t\t\t\treason = \"NaN score\"\n\t\t\t\tbreak\n\t\t\t}\n"
+INF = "\t\t\tif math.IsInf(float64(sc), 0) {\n\t\t\t\treason = \"Inf score\"\n\t\t\t\tbreak\n\t\t\t}\n"
+GUARD_RUN = "^TestHNSWGuard$"; RR_RUN = "^(TestHybridSearchRerankFallback|TestHybridSearchRerankLargeFiniteScores)$"
+M = [  # id, tree, file, old, new, -run regex, description
+ ("c1", "head", IT, G1, "\tif others == 0 || ciEnv == \"\" {\n\t\treturn\n\t}\n", GUARD_RUN, "AC4 c1 (fatal||skip -> fatal): act only when CI set"),
+ ("c2", "head", IT, G2, "\tif ciEnv != \"\" {\n\t\ttb.Skipf(why, others)\n\t} else {\n\t\ttb.Fatalf(why, others)\n\t}\n", GUARD_RUN, "AC4 c2 (if fatal -> if skip): swap Fatalf/Skipf branches"),
+ ("c3", "head", IT, "\tif ciEnv != \"\" {\n", "\tif ciEnv == \"\" {\n", GUARD_RUN, "AC4 c3 (CI != \"\" -> CI == \"\")"),
+ ("q1", "head", IT, G1, "\tif others <= 1 {\n\t\treturn\n\t}\n", GUARD_RUN, "QA: boundary others==0 -> others<=1"),
+ ("q2", "head", IT, "\tif ciEnv != \"\" {\n", "\tif ciEnv == \"true\" {\n", GUARD_RUN, "QA: non-empty -> ==\"true\" (CI=1 skips)"),
+ ("q3", "head", IT, "\t\ttb.Fatalf(why, others)\n", "\t\ttb.Fatalf(why, others)\n\t\ttb.Fatalf(why, others)\n", GUARD_RUN, "QA: two Fatalf calls (exactly-one)"),
+ ("q4", "head", IT, "\t\ttb.Fatalf(why, others)\n", "\t\ttb.Fatal(fmt.Sprintf(why, others))\n", GUARD_RUN, "QA: Fatalf -> Fatal (other stop call)"),
+ ("q5", "head", IT, "\t\ttb.Skipf(why, others)\n", "\t\ttb.Logf(why, others)\n", GUARD_RUN, "QA: Skipf -> Logf (no skip)"),
+ ("q6", "head", IT, "so use an empty, migrated DB\"\n\tif", "so use a migrated DB\"\n\tif", GUARD_RUN, "QA: message loses 'use an empty, migrated DB'"),
+ ("q7", "head", IT, "\t\ttb.Fatalf(why, others)\n", "\t\ttb.Fatalf(why, others+1)\n", GUARD_RUN, "QA: wrong count in message"),
+ ("q8", "head", IT, "\tapplyHNSWGuard(t, others, os.Getenv(\"CI\"))\n", "\tapplyHNSWGuard(t, others, \"\")\n", "", "QA: call site drops CI value (needs dirty DB; DB job only)"),
+ ("m4", "head", SG, NAN + INF, INF + NAN, RR_RUN, "AC4 m4: Inf check before NaN check (expected SURVIVED)"),
+ ("m5", "head", SG, "\t\t\tif math.IsInf(float64(sc), 0) {\n", "\t\t\tif math.Abs(float64(sc)) >= math.MaxFloat32 {\n", RR_RUN, "AC4 m5: IsInf -> Abs >= MaxFloat32"),
+ ("q9", "head", SG, NAN, NAN.replace("\t\t\t\tbreak\n", ""), RR_RUN, "QA: no break after NaN (last non-finite wins)"),
+ ("q10", "head", SG, INF, INF.replace("\t\t\t\tbreak\n", ""), RR_RUN, "QA: no break after Inf (last non-finite wins)"),
+ ("q11", "head", SG, "\t\thits[i].RerankScore = float64(scores[i])\n", "\t\thits[i].RerankScore = 0\n", RR_RUN, "QA: RerankScore not set"),
+ ("b5", "base", SG, "\t\t\tif math.IsInf(float64(sc), 0) {\n", "\t\t\tif math.Abs(float64(sc)) >= math.MaxFloat32 {\n", RR_RUN, "base control: main tests vs m5"),
+ ("b9", "base", SG, NAN, NAN.replace("\t\t\t\tbreak\n", ""), RR_RUN, "base control: main tests vs q9"),
+ ("b10", "base", SG, INF, INF.replace("\t\t\t\tbreak\n", ""), RR_RUN, "base control: main tests vs q10"),
+ ("bc1", "base", "internal/query/search_integration_test.go", "\tif others > 0 {\n\t\treturn !ci, ci\n", "\tif others > 0 {\n\t\treturn !ci, ci\n", "^TestHNSWGuard$", "base control: unmodified main (TestHNSWGuard exists)"),
+]
+def gotest(tree, run):
+    args = ["go", "test", "-tags", "integration", "-count=1", "./internal/query/"] + (["-run", run] if run else [])
+    p = subprocess.run(args, cwd=tree, env=ENV, capture_output=True, text=True)
+    out = p.stdout + p.stderr
+    if "[build failed]" in out or "[setup failed]" in out: return "INVALID", out
+    return ("PASS" if p.returncode == 0 else "FAIL"), out
+rows, details = [], []
+for mid, base, f, old, new, run, desc in M:
+    src = os.path.join(S, base); d = tempfile.mkdtemp(prefix=mid + "-", dir=os.path.join(S, "harness"))
+    tree = os.path.join(d, "t"); shutil.copytree(src, tree)
+    p = os.path.join(tree, f); txt = open(p).read(); n = txt.count(old)
+    if n != 1: rows.append((mid, "INVALID(anchor x%d)" % n, "-", "-", desc)); continue
+    if old != new: open(p, "w").write(txt.replace(old, new))
+    diff = subprocess.run(["diff", "-u", os.path.join(src, f), p], capture_output=True, text=True).stdout
+    full, fo = gotest(tree, ""); one, oo = gotest(tree, run) if run else ("n/a", "")
+    v = "INVALID" if "INVALID" in (full, one) else ("KILLED" if "FAIL" in (full, one) else "SURVIVED")
+    rows.append((mid, v, full, one, desc))
+    fails = [l for l in (fo + oo).splitlines() if l.lstrip().startswith("--- FAIL") or "_test.go:" in l]
+    details.append("### %s %s\n%s\n%s\n" % (mid, desc, "\n".join(l for l in diff.splitlines()[2:] if l[:1] in "+-"), "\n".join(fails[:8])))
+print("%-4s %-9s %-8s %-8s %s" % ("id", "verdict", "pkg", "-run", "mutant"))
+for r in rows: print("%-4s %-9s %-8s %-8s %s" % r)
+print("\n(pkg = go test -tags integration ./internal/query/ without DATABASE_URL; -run = the AC's named test(s) only)\n")
+print("\n".join(details))
+--- replace.txt
+replace github.com/jackc/pgx/v5 => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/pgx
+replace github.com/jackc/pgpassfile => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/pgpassfile
+replace github.com/jackc/pgservicefile => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/pgservicefile
+replace github.com/jackc/puddle/v2 => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/puddle
+replace golang.org/x/crypto => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/crypto
+replace golang.org/x/text => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/text
+replace golang.org/x/sync => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/sync
+replace golang.org/x/net => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/net
+replace golang.org/x/sys => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/sys
+replace github.com/minio/minio-go/v7 => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/minio-go
+replace github.com/dustin/go-humanize => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/humanize
+replace github.com/goccy/go-json => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/gojson
+replace github.com/google/uuid => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/uuid
+replace github.com/klauspost/compress => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/compress
+replace github.com/klauspost/cpuid/v2 => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/cpuid
+replace github.com/minio/md5-simd => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/md5simd
+replace github.com/rs/xid => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/xid
+replace gopkg.in/ini.v1 => /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/deps/ini
+--- deps (git describe)
+deps/compress v1.17.6
+deps/cpuid v2.2.6
+deps/crypto v0.21.0
+deps/gojson v0.10.2
+deps/humanize v1.0.1
+deps/ini v1.67.0
+deps/md5simd v1.1.2
+deps/minio-go v7.0.70
+deps/net v0.23.0
+deps/pgpassfile v1.0.0
+deps/pgservicefile 091c0ba
+deps/pgx v5.6.0
+deps/puddle v2.2.1
+deps/sync v0.1.0
+deps/sys v0.47.0
+deps/text v0.14.0
+deps/uuid v1.6.0
+deps/xid v1.5.0
+--- deps/ini/go.mod (QA stub; v1.67.0 tag has none)
+module gopkg.in/ini.v1
+
+[exit code 0]

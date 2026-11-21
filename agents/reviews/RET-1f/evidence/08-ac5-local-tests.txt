@@ -1,0 +1,9 @@
+$ bash -c export PATH=/usr/local/go1.25.1/bin:$PATH GOPROXY=off GOFLAGS=-mod=mod GOSUMDB=off; unset DATABASE_URL; cd /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/qa-RET-1f-r1/head && go vet ./internal/query/ ./internal/db/ && go vet -tags integration ./internal/query/ && echo 'go vet: clean (default + integration tags)'; echo "gofmt -l: [$(gofmt -l internal/query/)]"; go test -race -count=1 ./internal/query/ ./internal/db/; go test -race -tags integration -count=1 ./internal/query/; echo '(cmd/, telemetry: otel modules unavailable offline -> not run locally; CI Go job covers go test ./...)'
+go vet: clean (default + integration tags)
+gofmt -l: []
+ok  	arxivlens/internal/query	1.575s
+ok  	arxivlens/internal/db	1.018s
+ok  	arxivlens/internal/query	1.597s
+(cmd/, telemetry: otel modules unavailable offline -> not run locally; CI Go job covers go test ./...)
+
+[exit code 0]
