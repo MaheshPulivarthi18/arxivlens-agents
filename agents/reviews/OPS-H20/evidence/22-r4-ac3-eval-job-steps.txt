@@ -1,0 +1,35 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136903946034 --jq '"job \(.id) head_sha=\(.head_sha) runner=\(.runner_name)", "status=\(.status) conclusion=\(.conclusion)", "started_at=\(.started_at) completed_at=\(.completed_at)", "job total: \(((.completed_at|fromdateiso8601)-(.started_at|fromdateiso8601)) as $s | "\($s) s = \($s/60|floor)m\($s%60)s")", "", (.steps[] | "\(.number) \(.name) | \(.conclusion) | \(if .completed_at and .started_at then ((.completed_at|fromdateiso8601)-(.started_at|fromdateiso8601)|tostring)+" s" else "-" end)")'
+job 136903946034 head_sha=3224fb296fff00836b5bdc22d0124f7218e7acb1 runner=GitHub Actions 1000002332
+status=completed conclusion=success
+started_at=2026-11-21T16:13:14Z completed_at=2026-11-21T17:23:06Z
+job total: 4192 s = 69m52s
+
+1 Set up job | success | 1 s
+2 Run actions/checkout@v4 | success | 1 s
+3 Run actions/setup-go@v5 | success | 11 s
+4 Run actions/setup-python@v5 | success | 5 s
+5 Lint the harness (actionlint, compose config) | success | 11 s
+6 Restore Hugging Face models | success | 17 s
+7 Host Python deps (make setup-py, CPU torch) | success | 53 s
+8 Pre-fetch models (offline on a cache hit, so a missing file fails instead of downloading) | success | 9 s
+9 Save Hugging Face models (before any container writes) | skipped | 0 s
+10 Build Go CLI, make stack-up, migrate | success | 255 s
+11 Restore arXiv replay store | success | 2 s
+12 Prefetch arXiv responses into the replay store | success | 0 s
+13 Save arXiv replay store | skipped | 0 s
+14 Start the arXiv replay proxy (replay-only) | success | 0 s
+15 Start the query service on the host | success | 3 s
+16 Self-test: eval-seed fails on an unreachable API (no arXiv request) | success | 49 s
+17 make eval-seed (31 corpus IDs, arXiv replayed from the cache) | success | 2373 s
+18 Machine profile | success | 0 s
+19 make eval | success | 1391 s
+20 Upload eval results | success | 1 s
+21 Collect stack logs | skipped | 0 s
+22 Upload stack logs | skipped | 0 s
+23 Teardown | success | 5 s
+44 Post Run actions/setup-python@v5 | success | 0 s
+45 Post Run actions/setup-go@v5 | success | 0 s
+46 Post Run actions/checkout@v4 | success | 0 s
+47 Complete job | success | 0 s
+
+[exit code 0]

@@ -1,0 +1,17 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136903946034/logs | grep -E 'Model name|Hybrid RRF \+ Rerank  |Cases evaluated|\| (PASS|FAIL|INFO)|GATE:|timed out' | cut -c1-160
+2026-11-21T16:59:45.4589131Z [36;1m  lscpu | grep -E '^(Model name|CPU\(s\))'; free -g; echo "embedder /healthz: $(curl -fsS localhost:8081/healthz)"[0m
+2026-11-21T16:59:45.5616892Z Model name:                              INTEL(R) XEON(R) PLATINUM 8573C
+2026-11-21T16:59:45.5766875Z [36;1m  sed -n '/^=====/,/^GATE:/p' eval.log; if [ "$rc" = 2 ]; then tail -n 20 eval.log; fi[0m
+2026-11-21T17:12:30.6798762Z Hybrid RRF + Rerank      | 0.9850   | 0.9765   | 0.9707   | 0.6333   | 9699.01
+2026-11-21T17:12:30.6837233Z Cases evaluated: 78/78
+2026-11-21T17:22:55.7888108Z rerank via production /internal/rerank           |    1.0000 |     == 1.0 | PASS
+2026-11-21T17:22:55.7888900Z retrieval_coverage                               |    1.0000 |     == 1.0 | PASS
+2026-11-21T17:22:55.7889683Z recall@5 (Hybrid RRF + Rerank)                   |    0.9850 |     >= 0.8 | PASS
+2026-11-21T17:22:55.7890477Z hybrid+rerank beats BM25 & dense (MRR, NDCG@5)   |    1.0000 |     == 1.0 | PASS
+2026-11-21T17:22:55.7891267Z supported_citation_rate                          |    1.0000 |     >= 0.9 | PASS
+2026-11-21T17:22:55.7892209Z correct_refusal_rate                             |    1.0000 |    >= 0.95 | PASS
+2026-11-21T17:22:55.7893320Z ask_p95_ms                                       | 13084.4244 |     < 3000 | INFO (cpu-only; not gated)
+2026-11-21T17:22:55.7894117Z ask_errors (answer + refusal sets)               |    0.0000 |       == 0 | PASS
+2026-11-21T17:22:55.7906118Z GATE: PASS
+
+[exit code 0]

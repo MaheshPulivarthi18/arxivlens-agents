@@ -1,0 +1,10 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/3224fb296fff00836b5bdc22d0124f7218e7acb1/check-runs --jq ".total_count as \$n | \"total_count=\(\$n)\", (.check_runs[] | \"\(.name) | \(.status) \(.conclusion) | \(.started_at) -> \(.completed_at) | id \(.id)\")"
+total_count=6
+eval | completed success | 2026-11-21T16:13:14Z -> 2026-11-21T17:23:06Z | id 136903946034
+Agent ownership check | completed success | 2026-11-21T16:10:26Z -> 2026-11-21T16:10:34Z | id 136903152121
+Go (vet, gofmt, test, build) | completed success | 2026-11-21T16:10:25Z -> 2026-11-21T16:11:16Z | id 136903151735
+Frontend (lint, test, build) | completed success | 2026-11-21T16:10:26Z -> 2026-11-21T16:10:49Z | id 136903151630
+DB (migrate twice, HNSW plan + recall) | completed success | 2026-11-21T16:10:25Z -> 2026-11-21T16:12:05Z | id 136903151496
+Python M0 unit tests | completed success | 2026-11-21T16:10:25Z -> 2026-11-21T16:11:31Z | id 136903151433
+
+[exit code 0]
