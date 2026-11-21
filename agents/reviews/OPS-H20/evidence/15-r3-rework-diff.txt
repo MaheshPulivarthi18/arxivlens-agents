@@ -1,0 +1,5 @@
+$ git diff --stat ece17a7 3224fb2
+ CONTRIBUTING.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+[exit code 0]

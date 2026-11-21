@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/3224fb2.../check-runs
+eval | in_progress | null | 2026-11-21T16:13:14Z -> null
+Agent ownership check | completed | success | 2026-11-21T16:10:26Z -> 2026-11-21T16:10:34Z
+Go (vet, gofmt, test, build) | completed | success | 2026-11-21T16:10:25Z -> 2026-11-21T16:11:16Z
+Frontend (lint, test, build) | completed | success | 2026-11-21T16:10:26Z -> 2026-11-21T16:10:49Z
+DB (migrate twice, HNSW plan + recall) | completed | success | 2026-11-21T16:10:25Z -> 2026-11-21T16:12:05Z
+Python M0 unit tests | completed | success | 2026-11-21T16:10:25Z -> 2026-11-21T16:11:31Z
+fetched 2026-11-21T16:23:44Z
+

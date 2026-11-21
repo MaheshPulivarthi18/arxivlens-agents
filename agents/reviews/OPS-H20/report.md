@@ -124,3 +124,37 @@ and checked each against its `.txt`: 00-09 were added in `8623246`, 10-13 in `8f
    the PR still changes `eval.yml`.
 
 No other changes. Once AC5 is in and QA r3 passes, I expect to APPROVE without re-reviewing AC1-AC4.
+
+## Round 3 — 2026-11-21 (qa-reviewer)
+
+**Verdict: PENDING** (AC3 only: the `eval` check on the new head is still running) · Head `3224fb296fff00836b5bdc22d0124f7218e7acb1` (PR #114, draft) · previous QA'd head `ece17a7`
+
+Ran in a detached worktree of the app at `3224fb2`. Every command and its output is in the evidence files below, rendered with `agents/tools/render_evidence.py`.
+
+### PM rework checklist (PM CHANGES r1)
+| Item | Result | Evidence |
+|---|---|---|
+| `CONTRIBUTING.md:34` says "Budgets: 70 min for the seed step, 45 min for `make eval`, 180 min for the job" | Met. Matches the AC5 text word for word. The values match `eval.yml`: `make eval-seed` 70 (l.128), `make eval` 45 (l.152), job 180 (l.27) | `17-r3-ac5-wording` |
+| No other line of `CONTRIBUTING.md` changes | Met. `ece17a7..3224fb2` changes 1 file, +1/-1 | `15-r3-rework-diff` |
+| `eval.yml` byte-identical to `ece17a7` | Met. `git diff --exit-code` exits 0, and the blob SHA is the same at both commits (`9108395a…`) | `16-r3-evalyml-identical` |
+| PR scope is exactly `eval.yml` + `CONTRIBUTING.md` | Met. `origin/main...3224fb2`: 2 files, +7/-4 | `14-r3-scope-stat` |
+| No stale budgets in README/CONTRIBUTING | Met. `git grep '120 min'` finds nothing (exit 1). Every "N min" mention in README/CONTRIBUTING is one of 70/45/180 on line 34 | `18-r3-no-stale-budgets` |
+
+### Test results (CI on 3224fb2, fetched 16:23:44Z)
+- Agent ownership check, Go, Frontend, DB, Python M0 unit tests: all **success** (`19-r3-ci-checks`).
+- `eval` (job 136903946034, started 16:13:14Z): **in progress**. Steps 1-16 succeeded, including step 5 "Lint the harness (actionlint, compose config)" (11 s). Step 17 `make eval-seed` has been running since 16:20:12Z, and `make eval` is still pending (`20-r3-ac3-eval-steps-in-progress`). Per the orchestrator's instruction I did not wait for it.
+- Not run locally: `make lint` / actionlint (no Docker daemon in the sandbox; actionlint already ran in CI step 5 at this head, and r1/r2 covered it).
+
+### Acceptance criteria
+- AC1, AC2, AC4: unchanged from r2. `eval.yml` is byte-identical to the head QA'd in r2 (`16`), so the r2 evidence (01-05, 13) still applies.
+- AC2 (its second clause, "the only other changed file is `CONTRIBUTING.md`"): met (`14`).
+- AC5: met (`15`-`18`).
+- AC3: **open**. The lint step is green on this head (`20`), but `GATE: PASS` and the job total are not available yet.
+
+### Findings
+None. No blocking findings and no nits on the rework.
+
+### Hand-off
+PENDING on AC3 only. Next QA round: once job 136903946034 completes, quote the `make eval` `GATE:` line and the job's total duration. If it is green, the verdict is PASS → pm-lead, and nothing else needs re-checking. If it fails for a non-code reason (runner or arXiv), report it as such.
+
+Evidence (new in r3): `14-r3-scope-stat`, `15-r3-rework-diff`, `16-r3-evalyml-identical`, `17-r3-ac5-wording`, `18-r3-no-stale-budgets`, `19-r3-ci-checks`, `20-r3-ac3-eval-steps-in-progress` (`.png` + `.txt` each).

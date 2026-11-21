@@ -1,0 +1,15 @@
+$ sh -c git diff -U0 ece17a7 3224fb2 -- CONTRIBUTING.md | grep -o -E "^[-+].{0,0}|Budgets: [^;]*" ; echo "--- eval.yml timeouts:"; grep -n -E "^    timeout-minutes|name: make eval|name: make eval-seed" -A1 .github/workflows/eval.yml | grep -E "timeout-minutes|name:"
+-
++
+-
+Budgets: 70 min for the seed step, 120 min for the job
++
+Budgets: 70 min for the seed step, 45 min for `make eval`, 180 min for the job
+--- eval.yml timeouts:
+27:    timeout-minutes: 180
+127:      - name: make eval-seed (31 corpus IDs, arXiv replayed from the cache)
+128-        timeout-minutes: 70
+151:      - name: make eval
+152-        timeout-minutes: 45
+
+[exit code 0]

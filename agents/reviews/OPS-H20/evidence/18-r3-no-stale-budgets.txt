@@ -1,0 +1,10 @@
+$ sh -c echo "\$ git grep -n \"120 min\" -- README.md CONTRIBUTING.md"; git grep -n "120 min" -- README.md CONTRIBUTING.md; echo "exit=$? (1 = no match)"; echo "\$ git grep -n -o -E \"[0-9]+[ -]min[^,;]*\" -- README.md CONTRIBUTING.md"; git grep -n -o -E "[0-9]+[ -]min[a-z ]*[^,;]{0,25}" -- README.md CONTRIBUTING.md
+$ git grep -n "120 min" -- README.md CONTRIBUTING.md
+exit=1 (1 = no match)
+$ git grep -n -o -E "[0-9]+[ -]min[^,;]*" -- README.md CONTRIBUTING.md
+CONTRIBUTING.md:34:70 min for the seed step
+CONTRIBUTING.md:34:45 min for `make eval`
+CONTRIBUTING.md:34:180 min for the job
+CONTRIBUTING.md:34:70-min step budget)` line (a warning annota
+
+[exit code 0]

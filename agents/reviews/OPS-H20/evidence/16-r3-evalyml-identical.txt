@@ -1,0 +1,6 @@
+$ sh -c git diff --exit-code ece17a7 3224fb2 -- .github/workflows/eval.yml; echo "git diff exit=$?"; git rev-parse ece17a7:.github/workflows/eval.yml 3224fb2:.github/workflows/eval.yml
+git diff exit=0
+9108395aec6fee8ed55870bffed6f4e81625196d
+9108395aec6fee8ed55870bffed6f4e81625196d
+
+[exit code 0]
