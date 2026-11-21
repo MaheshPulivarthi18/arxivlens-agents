@@ -1,0 +1,8 @@
+$ bash -c timeout 60 npm ci --offline --ignore-scripts 2>&1 | tail -3; echo "exit=$?"; timeout 20 npm view vitest version >/dev/null 2>&1; echo "npm view vitest: exit=$? (124 = timed out)"
+npm error code ENOTCACHED
+npm error request to https://registry.npmjs.org/xmlchars/-/xmlchars-2.2.0.tgz failed: cache mode is 'only-if-cached' but no cached response is available.
+npm error A complete log of this run can be found in: /home/claude/.npm/_logs/2026-11-21T07_20_54_511Z-debug-0.log
+exit=0
+npm view vitest: exit=124 (124 = timed out)
+
+[exit code 0]

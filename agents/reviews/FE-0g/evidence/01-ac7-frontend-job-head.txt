@@ -1,0 +1,86 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136770665327/logs
+job 136770665327 'Frontend (lint, test, build)' head_sha=35cecd3 (log fetched via gh api, ANSI stripped, lines 169-251 excerpt)
+##[group]Run npm run lint
+npm run lint
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+
+> frontend@0.0.0 lint
+> oxlint
+
+Found 0 warnings and 0 errors.
+Finished in 30ms on 43 files with 104 rules using 4 threads.
+##[group]Run npm test
+npm test
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+
+> frontend@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.12 /home/runner/work/ArxivLens/ArxivLens/frontend
+
+ ✓ src/lib/theme.test.js (35 tests) 63ms
+ ✓ src/components/ui/primitives.test.jsx (17 tests) 563ms
+ ✓ src/components/SynthesisView.test.jsx (17 tests) 633ms
+ ✓ src/components/ReferencesStack.test.jsx (13 tests) 551ms
+ ✓ src/lib/citations.test.js (35 tests) 23ms
+ ✓ src/App.test.jsx (7 tests) 3130ms
+     ✓ AC1: refusal A, the whole page never says "verified"  751ms
+     ✓ AC1: refusal C, the whole page never says "verified"  396ms
+     ✓ AC2: refusal B is calm: no toast, no alert, passages visible, no writing stage  418ms
+     ✓ AC3: early refusal renders as today and the discover button posts the question  397ms
+     ✓ AC4: the panel link (Tab, then Enter) moves focus to the passages heading  429ms
+     ✓ AC5a: quoted answer with a writing status, then swapped for the synthesized one  392ms
+     ✓ AC5b: a refused written answer keeps the quoted one, no panel, no toast  344ms
+ ✓ src/components/ThemeToggle.test.jsx (4 tests) 296ms
+ ✓ src/test/controls.test.js (4 tests) 8ms
+ ✓ src/test/tokens.test.js (5 tests) 12ms
+ ✓ src/components/ui/button.test.jsx (3 tests) 164ms
+ ✓ src/components/HeroSearch.test.jsx (5 tests) 573ms
+     ✓ submits the trimmed question  363ms
+
+ Test Files  11 passed (11)
+      Tests  145 passed (145)
+   Start at  07:13:49
+   Duration  7.96s (transform 779ms, setup 2.18s, import 2.06s, tests 6.02s, environment 9.36s)
+
+##[group]Run npm run build
+npm run build
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+
+> frontend@0.0.0 build
+> vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 1923 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                       1.54 kB │ gzip:   0.82 kB
+dist/assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2              10.25 kB
+dist/assets/inter-greek-ext-wght-normal-DlzME5K_.woff2               11.23 kB
+dist/assets/source-serif-4-vietnamese-wght-normal-BsaNuasd.woff2     13.50 kB
+dist/assets/source-serif-4-vietnamese-wght-italic-D3EGHrWW.woff2     13.92 kB
+dist/assets/source-serif-4-cyrillic-ext-wght-normal-DHTKMUil.woff2   18.11 kB
+dist/assets/source-serif-4-cyrillic-ext-wght-italic-y6hTrs-Y.woff2   18.35 kB
+dist/assets/inter-cyrillic-wght-normal-DqGufNeO.woff2                18.74 kB
+dist/assets/inter-greek-wght-normal-CkhJZR-_.woff2                   18.99 kB
+dist/assets/source-serif-4-greek-wght-normal-BpXpdlRW.woff2          20.18 kB
+dist/assets/source-serif-4-greek-wght-italic-CUp-f2uw.woff2          20.55 kB
+dist/assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2            25.96 kB
+dist/assets/source-serif-4-cyrillic-wght-italic-CRzqOTyj.woff2       34.97 kB
+dist/assets/source-serif-4-cyrillic-wght-normal-B1g8a0vD.woff2       36.50 kB
+dist/assets/source-serif-4-latin-ext-wght-normal-BVZ5su8S.woff2      42.21 kB
+dist/assets/source-serif-4-latin-ext-wght-italic-B_cmBfNX.woff2      44.42 kB
+dist/assets/inter-latin-wght-normal-Dx4kXJAl.woff2                   48.25 kB
+dist/assets/source-serif-4-latin-wght-normal-DMe4EKeb.woff2          50.93 kB
+dist/assets/source-serif-4-latin-wght-italic-B-rCj6ir.woff2          51.57 kB
+dist/assets/inter-latin-ext-wght-normal-DO1Apj_S.woff2               85.06 kB
+dist/assets/index-4iBjO05E.css                                       37.29 kB │ gzip:   7.37 kB
+dist/assets/index-BSyxyzal.js                                       408.56 kB │ gzip: 127.73 kB
+
+✓ built in 1.07s
+

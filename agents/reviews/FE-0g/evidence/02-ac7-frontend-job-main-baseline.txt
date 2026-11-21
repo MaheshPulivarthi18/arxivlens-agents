@@ -1,0 +1,17 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136736533187/logs
+job 136736533187 'Frontend (lint, test, build)' on main head_sha=11c4696 (= PR merge-base); ANSI stripped; summary lines
+Found 0 warnings and 0 errors.
+ ✓ src/lib/theme.test.js (35 tests) 64ms
+ ✓ src/components/ui/primitives.test.jsx (12 tests) 450ms
+ ✓ src/components/SynthesisView.test.jsx (17 tests) 510ms
+ ✓ src/components/ReferencesStack.test.jsx (13 tests) 543ms
+ ✓ src/lib/citations.test.js (35 tests) 12ms
+ ✓ src/App.test.jsx (7 tests) 2760ms
+ ✓ src/components/ThemeToggle.test.jsx (4 tests) 204ms
+ ✓ src/test/controls.test.js (4 tests) 6ms
+ ✓ src/test/tokens.test.js (5 tests) 7ms
+ ✓ src/components/ui/button.test.jsx (3 tests) 114ms
+ ✓ src/components/HeroSearch.test.jsx (5 tests) 494ms
+ Test Files  11 passed (11)
+      Tests  140 passed (140)
+

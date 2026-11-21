@@ -1,0 +1,6 @@
+$ bash -c git diff origin/main...HEAD --name-only; git diff origin/main...HEAD --shortstat; echo "merge-base: $(git merge-base HEAD origin/main)"
+frontend/src/components/ui/primitives.test.jsx
+ 1 file changed, 88 insertions(+), 2 deletions(-)
+merge-base: 11c4696f7c6830436ada00c54d8f75976ddf7b99
+
+[exit code 0]

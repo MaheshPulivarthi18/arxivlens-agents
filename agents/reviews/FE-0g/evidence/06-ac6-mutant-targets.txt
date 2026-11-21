@@ -1,0 +1,13 @@
+$ bash -c cd frontend/src/components/ui; echo "m1/m2 scroll-area.jsx:"; grep -n "orientation === \"horizontal\"\|^      className$" scroll-area.jsx; echo "m3 sonner.jsx:"; grep -n "position=" sonner.jsx; echo "m4 separator.jsx:"; grep -n "^        className$" separator.jsx; echo "m5/m6 tooltip.jsx:"; grep -n "const Tooltip = " tooltip.jsx; echo "--- PR worktree status (empty = clean):"; git status --porcelain --untracked-files=no
+m1/m2 scroll-area.jsx:
+12:      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent",
+13:      className
+m3 sonner.jsx:
+13:    position="bottom-right"
+m4 separator.jsx:
+14:        className
+m5/m6 tooltip.jsx:
+13:const Tooltip = ({ delayDuration = 300, ...props }) => (
+--- PR worktree status (empty = clean):
+
+[exit code 0]
