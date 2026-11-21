@@ -8,7 +8,7 @@
 | **Depends on** | RET-1d (PR #94) **merged** (same files, and it adds the fakes and `TestHandlersEncodeContract` this extends) |
 | **Jira** | KAN-99 (board, 2026-11-21; epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1e`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: test-only, one package, no route, field, status code, CLI, table, service or exported signature change |
-| **Status** | Ready to merge (PR #105 raised 2026-11-21 after QA r2 PASS + PM APPROVE; merge: Mahesh) |
+| **Status** | Done (PR #105 merged 2026-11-21 → `92bcf1a`) |
 
 ## Goal
 RET-1d locked the `writeJSON` call sites, but QA showed that the `http.Error` paths in `internal/query/server.go` are still unguarded.

@@ -8,7 +8,7 @@
 | **Depends on** | FE-0d (#95, merged `ae8de39`). FE-1 (Vitest, merged). No ADR |
 | **Jira** | KAN-110 |
 | **Design required** | no: tests only, no component, contract or dependency change |
-| **Status** | Ready to merge (QA r2 PASS, PM APPROVE 2026-11-21; PR #108 @ `35cecd3` raised, waiting on Mahesh) |
+| **Status** | Done (PR #108 merged 2026-11-21 → `f7c5875`) |
 
 ## Goal
 FE-0d's render tests leave five mutants of the `ui/` primitives alive (QA evidence `agents/reviews/FE-0d/evidence/06-mutants-all.png`).

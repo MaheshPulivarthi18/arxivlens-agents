@@ -8,7 +8,7 @@
 | **Depends on** | none (OPS-H5c #97 and RET-1b #75 merged). No open PR touches `internal/query/search_integration_test.go` or `internal/query/search_test.go` (checked 2026-11-21 13:10Z against #104-#114; #105 touches only `server_test.go`) |
 | **Jira** | KAN-122 (created 2026-11-21 13:00Z): epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1f`, `agent-backend`, `arxivlens` |
 | **Design required** | no: test files only |
-| **Status** | Ready to merge (QA r1 PASS, PM APPROVE 2026-11-21; PR #116 raised) |
+| **Status** | Done (PR #116 merged 2026-11-21 → `c384dbc`) |
 
 ## Goal
 Two small gaps in the query package's tests, both found by QA mutation checks:

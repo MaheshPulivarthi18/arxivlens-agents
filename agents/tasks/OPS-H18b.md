@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H18 (ArxivLens #103) **merged** `11c4696`. No open PR (#104–#112) touches `Makefile` or `.github/workflows/ci.yml` (checked 2026-11-21 12:00Z with `gh api .../pulls/<n>/files`) |
 | **Jira** | KAN-120 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H18b`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one CI step's shell and one Makefile help string; no product code, no contract, no new command |
-| **Status** | Ready to merge: QA r1 PASS + PM APPROVE on `246d6d1`; ArxivLens [#113](https://github.com/MaheshPulivarthi18/ArxivLens/pull/113) raised for review 2026-11-21 (waits on Mahesh) |
+| **Status** | Done (PR #113 merged 2026-11-21 → `54f6802`) |
 
 ## Goal
 The `python` CI job checks that no ML package is installed before `make test-py-light` runs, so the light tests really

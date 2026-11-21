@@ -8,7 +8,7 @@
 | **Depends on** | the replay proxy (ArxivLens #45, merged `393bcf3`). No ADR. No open PR touches `scripts/arxiv_replay.py` or `tests/test_arxiv_replay.py` (checked 2026-11-21 11:00Z against #104–#110: #107 edits `scripts/evaluate_answers.py`, `tests/test_evals_data.py`, `evals/README.md`; #110 edits `tests/test_kafka_client.py`; #106 edits `tests/test_chunk_reprocess_db.py`, `tests/test_processor_pages.py`) |
 | **Jira** | needs creating: epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H19`, `agent-ai`, `arxivlens` |
 | **Design required** | no: one function's control flow in an existing CI script + unit tests; no CLI flag, table, service or contract change |
-| **Status** | Ready to merge (PM APPROVE 2026-11-21 ~12:55Z; PR #111 raised) |
+| **Status** | Done (PR #111 merged 2026-11-21 → `1a3a7b9`) |
 
 ## Goal
 The Full stack job's "Prefetch arXiv responses into the replay store" step failed six times on 2026-11-21 (#105/#106/#107, two

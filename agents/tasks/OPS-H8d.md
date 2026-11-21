@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H8c (#100, merged `3c9b133`), OPS-H8 (merged). No ADR |
 | **Jira** | KAN-112 |
 | **Design required** | no: one unit test reading two existing files |
-| **Status** | Ready to merge: QA r1 PASS, PM APPROVE (2026-11-21); PR #110 raised (ready for review, label `ready-to-merge`), head `3cc94a7`, awaiting Mahesh |
+| **Status** | Done (PR #110 merged 2026-11-21 → `726eab3`) |
 
 ## Goal
 OPS-H8c set `stop_grace_period: 20s` on `processor` and `embedder-worker` (`docker-compose.yml:192,210`) because a worker inside a producer

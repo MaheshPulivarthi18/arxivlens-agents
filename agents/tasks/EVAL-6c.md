@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-6b (ArxivLens #96) **merged** as `cb5d833` (same files). No open PR on `scripts/evaluate_answers.py`, `tests/test_evals_data.py` or `evals/README.md` (checked 2026-11-21 05:00Z: no open ArxivLens PRs) |
 | **Jira** | needs a story (orchestrator) under epic KAN-2 "Retrieval & answer quality gates"; labels `task-EVAL-6c`, `agent-ai`, `arxivlens` |
 | **Design required** | no: no gate key, threshold, metric definition, contract, CLI or table change. A malformed response already counts as an error under ADR-0003; this makes the code do that instead of raising |
-| **Status** | Ready to merge (QA r2 PASS + PM APPROVE 2026-11-21; PR #107 raised for Mahesh's review at `1f3bd31`) |
+| **Status** | Done (PR #107 merged 2026-11-21 → `bf37354`) |
 
 ## Goal
 `make eval` must never crash on a malformed `/v1/ask` response. EVAL-6b fixed this for a non-string `refusal_reason`. QA's probe 10

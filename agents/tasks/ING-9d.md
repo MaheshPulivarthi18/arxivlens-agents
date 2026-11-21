@@ -8,7 +8,7 @@
 | **Depends on** | ING-9c (ArxivLens #99, merged `b56739e`). No ADR. No open PR touches `internal/arxiv/` (checked 2026-11-21 11:00Z against #104–#110; the only Go PR, #105, edits `internal/query/server_test.go`) |
 | **Jira** | KAN-114 (epic KAN-4 "Continuous ingestion"; labels `task-ING-9d`, `agent-backend`, `arxivlens`; link KAN-103 (ING-9c)) |
 | **Design required** | no: one new test in an existing test file |
-| **Status** | Ready to merge (PR #112 raised 2026-11-21; QA r1 PASS, PM APPROVE) |
+| **Status** | Done (PR #112 merged 2026-11-21 → `69a0240`) |
 
 ## Goal
 `Limiter.Wait` (`internal/arxiv/limiter.go`, on `origin/main` `11c4696`) starts with `if err := ctx.Err(); err != nil { return err }`.

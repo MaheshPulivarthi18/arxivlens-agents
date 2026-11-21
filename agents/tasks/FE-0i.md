@@ -8,7 +8,7 @@
 | **Depends on** | FE-0b (#70, merged). No ADR. Does **not** wait on FE-3b (#104): no shared file, see Notes |
 | **Jira** | KAN-111 |
 | **Design required** | no: one element tag in a ui primitive plus a test; no contract or dependency change |
-| **Status** | Ready to merge (PR [#109](https://github.com/MaheshPulivarthi18/ArxivLens/pull/109) @ `12484f8`; QA r1 PASS, PM APPROVE 2026-11-21; waiting on Mahesh) |
+| **Status** | Done (PR #109 merged 2026-11-21 → `8337086`) |
 
 ## Goal
 `Badge` is inline content (`inline-flex`) but renders a block element. Inside FE-3b's status-chip `<button>` that is invalid HTML (the

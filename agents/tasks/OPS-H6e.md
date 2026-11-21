@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6d (ArxivLens #102) **merged**: same file, `services/common/db.py` |
 | **Jira** | needs a story (orchestrator, cycle 2026-11-21T05:00Z) under epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6e`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py`, backward compatible, no schema/event/HTTP change |
-| **Status** | Ready to merge: ArxivLens [#106](https://github.com/MaheshPulivarthi18/ArxivLens/pull/106) @ `f1b156e`, QA r2 PASS + PM APPROVE (2026-11-21), raised for Mahesh's review |
+| **Status** | Done (PR #106 merged 2026-11-21 → `a4c0140`) |
 
 ## Goal
 After OPS-H6d, a re-parse deletes the vectors of a changed chunk and deletes the chunks a shorter parse no longer has.

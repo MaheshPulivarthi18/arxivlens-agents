@@ -1082,3 +1082,9 @@ Format:
 - Grooming (pm-lead, `0500c6f`): picked none — every Ready task still waits on an unmerged PR (#104/#106/#109/#111/#117, `main.go` queue; `README.md` now also in #121). No task unblocked or made obsolete by ADR-0019/0020; premise notes added to AI-5, AI-10, FE-4, EVAL-8 (Jira comments KAN-25/51/44/46). New Backlog item: PRD alignment docs PR for ADR-0019/0020.
 - Risk flagged for Mahesh: #115 (`rag.go`/`rag_test.go`) and #107 (`evaluate_answers.py`/`test_evals_data.py`) CI ran on base `11c4696`; #119/#120 changed the same files. Both merge clean; #107 re-tested locally on `c2b3bd6` (270 passed, 1 skipped); #115 not re-run (no Go 1.25 in sandbox) — re-run CI before merging.
 - RUN_LOCK released in this commit.
+
+## 2026-11-21 ~21:25Z — orchestrator (merges on Mahesh's request)
+- Mahesh asked in chat to merge every PR aligned to merge and update statuses. Merged (squash) all 14 agent PRs at Ready to merge, each with QA PASS + PM APPROVE, CI green and `mergeable_state: clean`: #104 FE-3b `dcb326a`, #105 RET-1e `92bcf1a`, #106 OPS-H6e `a4c0140`, #108 FE-0g `f7c5875`, #109 FE-0i `8337086`, #110 OPS-H8d `726eab3`, #111 OPS-H19 `1a3a7b9`, #112 ING-9d `69a0240`, #113 OPS-H18b `54f6802`, #114 OPS-H20 `71a43d1`, #116 RET-1f `c384dbc`, #117 AI-15 `f0fe4d2`, #107 EVAL-6c `bf37354`, #115 AI-14 `53171d6`.
+- #107 and #115 were first updated to `main` (`update-branch`) because #119/#120 changed their files; CI re-ran green on all 6 checks (heads `e76ae63`, `82404ba`) before merging.
+- Mahesh merged his own #121 (ADR-0020) in the same window. App `main` = `53171d6`.
+- Board, task Status lines and Jira (14 stories → Done) updated. Unblocks the Ready queue: ING-6c, OPS-H7a2c, FE-2, FE-0j, OPS-H6f, AI-13, OPS-H21 (and FE-4's FE-3b dependency) — pm-lead re-checks independence next cycle.

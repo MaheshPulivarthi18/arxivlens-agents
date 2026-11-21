@@ -8,7 +8,7 @@
 | **Depends on** | none. The job-timeout arithmetic assumes OPS-H19's 2520 s prefetch budget, which is already in `eval.yml` on main; raising the timeout before #111 merges is harmless. No open PR touches `eval.yml` (checked 2026-11-21 ~12:50Z) |
 | **Jira** | KAN-118 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H20`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: two timeouts and their comments in one workflow file |
-| **Status** | Ready to merge: QA r4 PASS + PM APPROVE (round 2) on `3224fb2`; PR #114 raised for Mahesh |
+| **Status** | Done (PR #114 merged 2026-11-21 → `71a43d1`) |
 
 ## Goal
 After OPS-H19 the eval prefetch step can legitimately run up to 2520 + 120 = 2640 s (44 min) when arXiv rate-limits.
