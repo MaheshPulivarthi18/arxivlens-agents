@@ -980,3 +980,9 @@ Format:
 - QA harness again refused `report.md` for ING-9d and OPS-H19; orchestrator saved the PR comments verbatim (`9e183a1`). PM PR-body image embeds again rewritten by the outbound filter (16×, lesson updated).
 - Retro: first-round QA pass 4/4; PENDING rounds this cycle were all infra (arXiv 429) or harness (FE-0g mutant runner), both now addressed (OPS-H19; harness ran). No new rules PR.
 - RUN_LOCK released in this commit.
+
+## 2026-11-21 12:00Z — pm-lead (cycle grooming)
+- Sync: no merges since 04:52Z (app `main` = `11c4696`). #104–#110, #112 Ready to merge (don't count toward WIP); #111 OPS-H19 draft, QA PASS, PM hold on `eval`. Active WIP: ai 1, backend 0, frontend 0. No human review, no ADR change, no Jira intake.
+- Picked 1 task: **OPS-H18b** (backend, P3 harness, new spec from OPS-H18 QA findings 1+3): CI ML-absence guard (`ci.yml:54`) fails closed when `pip list` errors; `make help` text for `test-unit` (`Makefile:43`). Not design-required. Depends on #103 (merged). No open PR touches `Makefile` or `ci.yml`. Spec notes that `set -o pipefail` alone doesn't fix the fail-open (grep's exit 1 is the rightmost status; checked in bash).
+- Not picked (all wait on an open PR merging): OPS-H20 + OPS-H21 (#111), OPS-H6f + AI-13 (#106, `db.py`), FE-0j (#109), FE-2/FE-4 + FE-0h scan + FE-3a2 follow-up (#104 `App.jsx`/`HeroSearch.jsx`/`ReferencesStack.jsx`), ING-6c → OPS-H7a2c → OPS-H7b (`README.md` in #104), EVAL-6c nits / EVAL-7 `build_rows` / EVAL-5 `CHUNK_COUNTS_SQL` (`tests/test_evals_data.py` in #107). AI-2 counters split: premise stale since NLI, marked for re-grooming on the board. Frontend and ai have no independent item.
+- Jira: no Atlassian tools in this session; orchestrator to create OPS-H18b under KAN-3 and move it to In Progress.
