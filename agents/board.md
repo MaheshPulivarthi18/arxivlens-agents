@@ -21,7 +21,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | 10 | [OPS-H6f](tasks/OPS-H6f.md) (KAN-116) | Processor locks chunk rows before deleting vectors; two-connection real-PG tests | backend-engineer | P2 | **after #106 merges** | from OPS-H6e QA `[spec]` |
 | 11 | [AI-13](tasks/AI-13.md) (KAN-117) | Embedder worker passes `content_hash`, logs skipped vectors | ai-engineer | P2 | **after #106 merges** | turns on #106's code path |
 | 13 | [OPS-H21](tasks/OPS-H21.md) (KAN-119) | Prefetch: no extra passes for permanent failures; `saved=` on first save; deadline-overrun test | ai-engineer | P2 | **after #111 merges** | from OPS-H19 QA nits 1–2 + OPS-H20 QA finding 2 (AC7) |
-| 14 | [AI-15](tasks/AI-15.md) (Jira: to create) | Tests: `/internal/rerank` (both paths) + `/internal/verify` not serialized behind an in-flight ingest | ai-engineer | P3 | none open (AI-12/AI-12b merged); `tests/test_verify.py` in no open PR | picked 2026-11-21 17:00Z; AI-13 (same file) goes after it |
+| 14 | [AI-15](tasks/AI-15.md) (KAN-123) | Tests: `/internal/rerank` (both paths) + `/internal/verify` not serialized behind an in-flight ingest | ai-engineer | P3 | none open (AI-12/AI-12b merged); `tests/test_verify.py` in no open PR | picked 2026-11-21 17:00Z; AI-13 (same file) goes after it |
 
 ## In progress
 | ID | Title | Owner | Branch |
