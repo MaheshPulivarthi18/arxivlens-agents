@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136675405937/logs | grep (lines 3611, test_chunk_reprocess_db, SKIPPED, 4220)
+# Full stack (compose + make test-full), run 44848933981, job 136675405937, head 5ba967b
+# step 'AC4: make test-full' command line:
+2026-11-21T01:21:48.2474346Z python3 -m pytest -q tests/ --deselect tests/test_m3_query.py::test_rag_ask_with_groundedness_support --deselect tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query --deselect tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank -rA
+# -rA summary lines for the new DB test and for the final count:
+3975:2026-11-21T01:22:49.3340963Z PASSED tests/test_chunk_reprocess_db.py::test_reprocess_drops_stale_vectors_and_tail
+4219:2026-11-21T01:22:49.6986403Z SKIPPED [1] tests/test_evals_data.py:780: opt-in: needs DATABASE_URL with migrations/ applied
+2026-11-21T01:22:49.6986695Z 253 passed, 1 skipped, 3 deselected, 5 warnings in 60.69s (0:01:00)
+

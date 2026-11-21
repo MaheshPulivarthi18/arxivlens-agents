@@ -1,0 +1,13 @@
+$ bash -c echo '# PG 16.15, schema = migrations 000001/000003/000005 with halfvec(768) -> text domain (no pgvector); psycopg = QA psql-backed stand-in'; echo '## head 5ba967b'; DATABASE_URL='postgresql://postgres@/arxivlens?host=/var/tmp/qa-ops-h6d-pg&port=55432' PYTHONPATH=/tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/harness/stubs:$PWD python3 -m pytest -p no:cacheprovider -q -rA tests/test_chunk_reprocess_db.py 2>&1 | tail -3; echo '## rows left behind after the test (rollback):'; psql -h /var/tmp/qa-ops-h6d-pg -p 55432 -U postgres -d arxivlens -tAc 'select count(*) from papers'; echo '## control: origin/main services/common/db.py, same test'; grep -n 'main-db.py-control' /tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/mutants.out
+# PG 16.15, schema = migrations 000001/000003/000005 with halfvec(768) -> text domain (no pgvector); psycopg = QA psql-backed stand-in
+## head 5ba967b
+=========================== short test summary info ============================
+PASSED tests/test_chunk_reprocess_db.py::test_reprocess_drops_stale_vectors_and_tail
+1 passed in 0.14s
+## rows left behind after the test (rollback):
+0
+## control: origin/main services/common/db.py, same test
+215:main-db.py-control                       | 8 failed, 1 passed, 14 deselected in 0.16s | 1 failed in 0.12s                  | -
+232:main-db.py-control                       | E       AssertionError: {'ops-h6d-model': ('[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0...,0,0,
+
+[exit code 0]

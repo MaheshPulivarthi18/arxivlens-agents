@@ -1,0 +1,10 @@
+$ bash -c git log --oneline -1; git diff --stat origin/main...HEAD; echo; bash .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H6d
+5ba967b OPS-H6d: drop stale vectors and stale tail chunks when a paper is re-saved
+ services/common/db.py            |  22 ++++++-
+ tests/test_chunk_reprocess_db.py | 134 +++++++++++++++++++++++++++++++++++++++
+ tests/test_processor_pages.py    |  39 +++++++++++-
+ 3 files changed, 193 insertions(+), 2 deletions(-)
+
+Ownership OK for role=backend (195 changed lines)
+
+[exit code 0]

@@ -1,0 +1,17 @@
+$ gh api .../actions/jobs/136675405937/logs and .../136675405871/logs | grep
+# Full stack job 136675405937 (run 44848933981): -rA lines for tests/test_processor_pages.py save_chunks tests
+4178:2026-11-21T01:22:49.6973596Z PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-set]
+4179:2026-11-21T01:22:49.6973921Z PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number]
+4180:2026-11-21T01:22:49.6974348Z PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[missing]
+4181:2026-11-21T01:22:49.6974621Z PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[none]
+4182:2026-11-21T01:22:49.6974906Z PASSED tests/test_processor_pages.py::test_save_chunks_page_rows_use_each_returned_id
+4183:2026-11-21T01:22:49.6975214Z PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[contiguous]
+4184:2026-11-21T01:22:49.6975514Z PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[gaps]
+4185:2026-11-21T01:22:49.6975821Z PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[single-not-zero]
+4186:2026-11-21T01:22:49.6976129Z PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[empty]
+
+# Python M0 unit tests job 136675405871 (run 44848933912): make test-py command + summary
+441:2026-11-21T01:15:22.4870650Z python3 -m pytest -q tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py tests/test_verify.py tests/test_arxiv_replay.py
+469:2026-11-21T01:15:37.6817777Z 199 passed, 3 skipped, 3 warnings in 13.64s
+526:2026-11-21T01:15:38.7854211Z ============================== 37 passed in 0.26s ==============================
+

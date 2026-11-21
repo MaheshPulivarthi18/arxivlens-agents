@@ -1,0 +1,236 @@
+$ bash -c psql -h /var/tmp/qa-ops-h6d-pg -p 55432 -U postgres -d arxivlens -qc 'delete from papers'; DATABASE_URL='postgresql://postgres@/arxivlens?host=/var/tmp/qa-ops-h6d-pg&port=55432' MAIN_DB=/tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/main_db.py python3 /tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/harness/mutants.py $PWD /tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/mut 2>&1
+===== m1-drop-AC1-vector-delete diff =====
+@@ -100,17 +100,6 @@
+             # them so the embedder's L3 check re-embeds the chunk. Must run before the upsert overwrites content_hash.
+             cur.execute(
+                 """
+-                DELETE FROM chunk_embeddings ce
+-                USING paper_chunks pc
+-                WHERE ce.chunk_id = pc.id
+-                  AND pc.paper_id = %s
+-                  AND pc.chunk_index = %s
+-                  AND pc.content_hash <> %s;
+-                """,
+-                (paper_id, chunk["chunk_index"], chunk["content_hash"]),
+-            )
+-            cur.execute(
+-                """
+                 INSERT INTO paper_chunks (
+                     paper_id, section_id, chunk_index, content,
+                     content_hash, page_number, token_count
+===== m2-vector-delete-ignores-hash diff =====
+@@ -104,10 +104,9 @@
+                 USING paper_chunks pc
+                 WHERE ce.chunk_id = pc.id
+                   AND pc.paper_id = %s
+-                  AND pc.chunk_index = %s
+-                  AND pc.content_hash <> %s;
++                  AND pc.chunk_index = %s;
+                 """,
+-                (paper_id, chunk["chunk_index"], chunk["content_hash"]),
++                (paper_id, chunk["chunk_index"]),
+             )
+             cur.execute(
+                 """
+===== m3-drop-tail-delete diff =====
+@@ -149,10 +149,6 @@
+ 
+         # 3. OPS-H6d: drop this paper's chunks that the new parse no longer has (a shorter re-parse). The FK cascades
+         # remove their vectors and page rows. An empty list matches nothing, so the paper is left with no chunks.
+-        cur.execute(
+-            "DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]));",
+-            (paper_id, [c["chunk_index"] for c in chunks]),
+-        )
+ 
+         # 4. Update status to 'chunked'
+         cur.execute(
+===== m4-tail-delete-not-scoped-to-paper diff =====
+@@ -150,8 +150,8 @@
+         # 3. OPS-H6d: drop this paper's chunks that the new parse no longer has (a shorter re-parse). The FK cascades
+         # remove their vectors and page rows. An empty list matches nothing, so the paper is left with no chunks.
+         cur.execute(
+-            "DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]));",
+-            (paper_id, [c["chunk_index"] for c in chunks]),
++            "DELETE FROM paper_chunks WHERE NOT (chunk_index = ANY(%s::int[]));",
++            ([c["chunk_index"] for c in chunks],),
+         )
+ 
+         # 4. Update status to 'chunked'
+===== m5a-tail-delete-index-gt-max diff =====
+@@ -150,8 +150,8 @@
+         # 3. OPS-H6d: drop this paper's chunks that the new parse no longer has (a shorter re-parse). The FK cascades
+         # remove their vectors and page rows. An empty list matches nothing, so the paper is left with no chunks.
+         cur.execute(
+-            "DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]));",
+-            (paper_id, [c["chunk_index"] for c in chunks]),
++            "DELETE FROM paper_chunks WHERE paper_id = %s AND chunk_index > %s;",
++            (paper_id, max([c["chunk_index"] for c in chunks], default=-1)),
+         )
+ 
+         # 4. Update status to 'chunked'
+===== m5b-tail-keeps-next-stale-index diff =====
+@@ -151,7 +151,7 @@
+         # remove their vectors and page rows. An empty list matches nothing, so the paper is left with no chunks.
+         cur.execute(
+             "DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]));",
+-            (paper_id, [c["chunk_index"] for c in chunks]),
++            (paper_id, [c["chunk_index"] for c in chunks] + [max([c["chunk_index"] for c in chunks], default=-1) + 1]),
+         )
+ 
+         # 4. Update status to 'chunked'
+===== m5c-tail-off-by-one-drops-last-kept diff =====
+@@ -151,7 +151,7 @@
+         # remove their vectors and page rows. An empty list matches nothing, so the paper is left with no chunks.
+         cur.execute(
+             "DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]));",
+-            (paper_id, [c["chunk_index"] for c in chunks]),
++            (paper_id, [c["chunk_index"] for c in chunks][:-1]),
+         )
+ 
+         # 4. Update status to 'chunked'
+===== x1-vector-delete-after-upsert diff =====
+@@ -100,17 +100,6 @@
+             # them so the embedder's L3 check re-embeds the chunk. Must run before the upsert overwrites content_hash.
+             cur.execute(
+                 """
+-                DELETE FROM chunk_embeddings ce
+-                USING paper_chunks pc
+-                WHERE ce.chunk_id = pc.id
+-                  AND pc.paper_id = %s
+-                  AND pc.chunk_index = %s
+-                  AND pc.content_hash <> %s;
+-                """,
+-                (paper_id, chunk["chunk_index"], chunk["content_hash"]),
+-            )
+-            cur.execute(
+-                """
+                 INSERT INTO paper_chunks (
+                     paper_id, section_id, chunk_index, content,
+                     content_hash, page_number, token_count
+@@ -135,6 +124,17 @@
+                 ),
+             )
+             chunk_id = cur.fetchone()[0]
++            cur.execute(
++                """
++                DELETE FROM chunk_embeddings ce
++                USING paper_chunks pc
++                WHERE ce.chunk_id = pc.id
++                  AND pc.paper_id = %s
++                  AND pc.chunk_index = %s
++                  AND pc.content_hash <> %s;
++                """,
++                (paper_id, chunk["chunk_index"], chunk["content_hash"]),
++            )
+             # ING-11: no row = page unknown. Same transaction as the chunk and the L2 ledger row.
+             if chunk.get("page_start") is not None:
+                 cur.execute(
+===== x2-vector-delete-not-scoped-to-paper diff =====
+@@ -103,11 +103,10 @@
+                 DELETE FROM chunk_embeddings ce
+                 USING paper_chunks pc
+                 WHERE ce.chunk_id = pc.id
+-                  AND pc.paper_id = %s
+                   AND pc.chunk_index = %s
+                   AND pc.content_hash <> %s;
+                 """,
+-                (paper_id, chunk["chunk_index"], chunk["content_hash"]),
++                (chunk["chunk_index"], chunk["content_hash"]),
+             )
+             cur.execute(
+                 """
+===== x3-vector-delete-one-model-only diff =====
+@@ -105,7 +105,7 @@
+                 WHERE ce.chunk_id = pc.id
+                   AND pc.paper_id = %s
+                   AND pc.chunk_index = %s
+-                  AND pc.content_hash <> %s;
++                  AND pc.content_hash <> %s AND ce.model = (SELECT min(model) FROM chunk_embeddings);
+                 """,
+                 (paper_id, chunk["chunk_index"], chunk["content_hash"]),
+             )
+===== x4-skip-tail-delete-on-empty-list diff =====
+@@ -149,10 +149,11 @@
+ 
+         # 3. OPS-H6d: drop this paper's chunks that the new parse no longer has (a shorter re-parse). The FK cascades
+         # remove their vectors and page rows. An empty list matches nothing, so the paper is left with no chunks.
+-        cur.execute(
+-            "DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]));",
+-            (paper_id, [c["chunk_index"] for c in chunks]),
+-        )
++        if chunks:
++            cur.execute(
++                "DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]));",
++                (paper_id, [c["chunk_index"] for c in chunks]),
++            )
+ 
+         # 4. Update status to 'chunked'
+         cur.execute(
+===== x5-tail-delete-after-status-update diff =====
+@@ -149,16 +149,15 @@
+ 
+         # 3. OPS-H6d: drop this paper's chunks that the new parse no longer has (a shorter re-parse). The FK cascades
+         # remove their vectors and page rows. An empty list matches nothing, so the paper is left with no chunks.
+-        cur.execute(
+-            "DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]));",
+-            (paper_id, [c["chunk_index"] for c in chunks]),
+-        )
+-
+         # 4. Update status to 'chunked'
+         cur.execute(
+             "UPDATE papers SET status = 'chunked', updated_at = now() WHERE id = %s;",
+             (paper_id,),
+         )
++        cur.execute(
++            "DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]));",
++            (paper_id, [c["chunk_index"] for c in chunks]),
++        )
+ 
+     return len(chunks)
+ 
+===== x6-commit-inside-function diff =====
+@@ -159,6 +159,7 @@
+             "UPDATE papers SET status = 'chunked', updated_at = now() WHERE id = %s;",
+             (paper_id,),
+         )
++        conn.commit()
+ 
+     return len(chunks)
+ 
+
+===== summary =====
+mutant                                   | unit (FakeConn, -k save_chunks)        | DB test (PG16 via psql stand-in)   | result
+head-control                             | 9 passed, 14 deselected in 0.09s       | 1 passed in 0.14s                  | -
+m1-drop-AC1-vector-delete                | 7 failed, 2 passed, 14 deselected in 0.15s | 1 failed in 0.13s                  | KILLED
+m2-vector-delete-ignores-hash            | 7 failed, 2 passed, 14 deselected in 0.16s | 1 failed in 0.15s                  | KILLED
+m3-drop-tail-delete                      | 4 failed, 5 passed, 14 deselected in 0.13s | 1 failed in 0.16s                  | KILLED
+m4-tail-delete-not-scoped-to-paper       | 4 failed, 5 passed, 14 deselected in 0.13s | 1 failed in 0.12s                  | KILLED
+m5a-tail-delete-index-gt-max             | 4 failed, 5 passed, 14 deselected in 0.13s | 1 failed in 0.13s                  | KILLED
+m5b-tail-keeps-next-stale-index          | 4 failed, 5 passed, 14 deselected in 0.13s | 1 failed in 0.14s                  | KILLED
+m5c-tail-off-by-one-drops-last-kept      | 3 failed, 6 passed, 14 deselected in 0.12s | 1 failed in 0.14s                  | KILLED
+x1-vector-delete-after-upsert            | 7 failed, 2 passed, 14 deselected in 0.15s | 1 failed in 0.14s                  | KILLED
+x2-vector-delete-not-scoped-to-paper     | 7 failed, 2 passed, 14 deselected in 0.16s | 1 failed in 0.13s                  | KILLED
+x3-vector-delete-one-model-only          | 7 failed, 2 passed, 14 deselected in 0.16s | 1 failed in 0.14s                  | KILLED
+x4-skip-tail-delete-on-empty-list        | 1 failed, 8 passed, 14 deselected in 0.10s | 1 failed in 0.16s                  | KILLED
+x5-tail-delete-after-status-update       | 8 failed, 1 passed, 14 deselected in 0.17s | 1 passed in 0.14s                  | KILLED
+main-db.py-control                       | 8 failed, 1 passed, 14 deselected in 0.16s | 1 failed in 0.13s                  | -
+x6-commit-inside-function                | 9 failed, 14 deselected in 0.17s       | 1 passed in 0.13s                  | KILLED
+
+===== DB test: first assertion line per run =====
+head-control                             | 
+m1-drop-AC1-vector-delete                | E       AssertionError: {'ops-h6d-model': ('[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0...,0,0,
+m2-vector-delete-ignores-hash            | E       AssertionError: ((293, 'hash-a0', 1, {'ops-h6d-model': ('[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,...0,0,0
+m3-drop-tail-delete                      | E       AssertionError: {0: 'ops-h6d-model', 1: None, 2: 'ops-h6d-model'}
+m4-tail-delete-not-scoped-to-paper       | E       AssertionError: {0: (305, 'hash-a0', 1, {'ops-h6d-model': ('[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0...,0,0,
+m5a-tail-delete-index-gt-max             | E           AssertionError: {0: (309, 'hash-a0', 1, {'ops-h6d-model': ('[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0...,
+m5b-tail-keeps-next-stale-index          | E       AssertionError: {0: 'ops-h6d-model', 1: None, 2: 'ops-h6d-model'}
+m5c-tail-off-by-one-drops-last-kept      | E       AssertionError: {0: (322, 'hash-a0', 1, {'ops-h6d-model': ('[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0...,0,0,
+x1-vector-delete-after-upsert            | E       AssertionError: {'ops-h6d-model': ('[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0...,0,0,
+x2-vector-delete-not-scoped-to-paper     | E       AssertionError: assert {0: (335, 'hash-b0', 1, {})} == {0: (335, 'ha...:05+05:30')})}
+x3-vector-delete-one-model-only          | E       AssertionError: {'ops-h6d-other-model': ('[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0...,0,0,
+x4-skip-tail-delete-on-empty-list        | E           AssertionError: assert {1: (345, 'ha...-new', 1, {})} == {}
+x5-tail-delete-after-status-update       | 
+main-db.py-control                       | E       AssertionError: {'ops-h6d-model': ('[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0...,0,0,
+x6-commit-inside-function                | 
+
+[exit code 0]

@@ -1,0 +1,16 @@
+$ bash -c echo '# stubs: pymupdf, scripts.m0_skeleton, services.processor.worker, psycopg (/tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/harness)'; PYTHONPATH=/tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/harness/stubs:/tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/harness:$PWD python3 -m pytest -p conftest_stubs -p no:cacheprovider -q -rA tests/test_processor_pages.py -k save_chunks 2>&1 | tail -12
+# stubs: pymupdf, scripts.m0_skeleton, services.processor.worker, psycopg (/tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/harness)
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-set]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[missing]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[none]
+PASSED tests/test_processor_pages.py::test_save_chunks_page_rows_use_each_returned_id
+PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[contiguous]
+PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[gaps]
+PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[single-not-zero]
+PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[empty]
+9 passed, 14 deselected in 0.09s
+
+[exit code 0]

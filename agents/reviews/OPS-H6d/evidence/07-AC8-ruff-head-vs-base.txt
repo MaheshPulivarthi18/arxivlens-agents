@@ -1,0 +1,13 @@
+$ bash -c echo '## head'; ruff check --isolated --select E,F,W --line-length 130 --output-format concise services/common/db.py tests/test_processor_pages.py tests/test_chunk_reprocess_db.py; echo '## origin/main versions'; cd /tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/basefiles && ruff check --isolated --select E,F,W --line-length 130 --output-format concise services/common/db.py tests/test_processor_pages.py
+## head
+services/common/db.py:1:8: F401 [*] `json` imported but unused
+tests/test_processor_pages.py:212:131: E501 Line too long (134 > 130)
+Found 2 errors.
+[*] 1 fixable with the `--fix` option.
+## origin/main versions
+services/common/db.py:1:8: F401 [*] `json` imported but unused
+tests/test_processor_pages.py:211:131: E501 Line too long (134 > 130)
+Found 2 errors.
+[*] 1 fixable with the `--fix` option.
+
+[exit code 1]

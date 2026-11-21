@@ -1,0 +1,23 @@
+$ bash -c awk 'NR>=66 && NR<=163' services/common/db.py | grep -n 'cur.execute\|DELETE\|INSERT\|UPDATE\|commit\|for chunk' ; echo; echo '# commit calls in function body:'; awk 'NR>=66 && NR<=163' services/common/db.py | grep -c 'commit()' || true
+15:            cur.execute(
+17:                INSERT INTO paper_sections (paper_id, title, level, position)
+19:                ON CONFLICT (paper_id, position) DO UPDATE
+30:        for chunk in chunks:
+36:            cur.execute(
+38:                DELETE FROM chunk_embeddings ce
+47:            cur.execute(
+49:                INSERT INTO paper_chunks (
+54:                ON CONFLICT (paper_id, chunk_index) DO UPDATE
+75:                cur.execute(
+77:                    INSERT INTO paper_chunk_pages (chunk_id, page_start) VALUES (%s, %s)
+78:                    ON CONFLICT (chunk_id) DO UPDATE SET page_start = EXCLUDED.page_start;
+83:                cur.execute("DELETE FROM paper_chunk_pages WHERE chunk_id = %s;", (chunk_id,))
+87:        cur.execute(
+88:            "DELETE FROM paper_chunks WHERE paper_id = %s AND NOT (chunk_index = ANY(%s::int[]));",
+93:        cur.execute(
+94:            "UPDATE papers SET status = 'chunked', updated_at = now() WHERE id = %s;",
+
+# commit calls in function body:
+0
+
+[exit code 0]
