@@ -6,9 +6,9 @@
 | **Priority** | P1 (data correctness) |
 | **PRD ref** | Product PRD OPS-3 ("Reprocessing never creates duplicate rows or embeddings", P0 ✅); Technical PRD §8.1 L3 row ("content hashing"); follow-up G2 from the approved OPS-H6 design (`docs/design/OPS-H6.md:100-101`, PM decision item 4) |
 | **Depends on** | none open. OPS-H6 and ING-11 (`paper_chunk_pages`, migration 000003) are merged. No open PR touches `services/common/db.py`, `tests/test_processor_pages.py` or the new test file (checked 2026-11-21 01:00Z against the file lists of #91–#101) |
-| **Jira** | to be created by the orchestrator (epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6d`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-106 (epic KAN-4 "Continuous ingestion") |
 | **Design required** | no: one function in `services/common/db.py`, no schema, event or HTTP change, no new CLI/table/service |
-| **Status** | In Progress (built on `agent/backend/OPS-H6d` @ 5ba967b; draft PR to be opened by the orchestrator) |
+| **Status** | Ready to merge (ArxivLens [#102](https://github.com/MaheshPulivarthi18/ArxivLens/pull/102) @ `5ba967b`, raised for review 2026-11-21; QA r1 PASS · PM APPROVE) |
 
 ## Goal
 When the processor re-parses a paper that is already chunked (a DLQ replay, a redelivered `papers.downloaded` with a new
@@ -43,20 +43,20 @@ and `paper_chunk_pages` both reference `paper_chunks(id) ON DELETE CASCADE` (`mi
 - Size: ~20 lines in `db.py`, ~60 unit-test lines, ~100 DB-test lines.
 
 ## Acceptance criteria
-- [ ] AC1 (changed text → vector dropped): when a chunk at an existing `(paper_id, chunk_index)` is saved with a different
+- [x] AC1 (changed text → vector dropped): when a chunk at an existing `(paper_id, chunk_index)` is saved with a different
   `content_hash`, every `chunk_embeddings` row for that chunk (all models) is deleted in the same transaction. Afterwards
   `get_chunks_for_embedding(conn, paper_id, model)` returns `existing_model = None` for that chunk.
-- [ ] AC2 (same text → vector kept): a chunk saved again with the **same** `content_hash` keeps its `chunk_embeddings` row
+- [x] AC2 (same text → vector kept): a chunk saved again with the **same** `content_hash` keeps its `chunk_embeddings` row
   unchanged (same `embedding` and `created_at`) and keeps its `paper_chunks.id`.
-- [ ] AC3 (stale tail removed): after the save, the paper has exactly the `chunk_index` values in the new `chunks` list.
+- [x] AC3 (stale tail removed): after the save, the paper has exactly the `chunk_index` values in the new `chunks` list.
   Rows with any other index are deleted, and the cascade removes their `chunk_embeddings` and `paper_chunk_pages` rows.
   Chunks of **other papers** are untouched. An empty `chunks` list leaves the paper with no chunks.
-- [ ] AC4 (transaction): `save_sections_and_chunks` still never commits (existing `conn.commits == 0` assertions keep
+- [x] AC4 (transaction): `save_sections_and_chunks` still never commits (existing `conn.commits == 0` assertions keep
   passing). The new statements run on the caller's cursor, before the `UPDATE papers SET status = 'chunked'`.
-- [ ] AC5 (unit tests, `tests/test_processor_pages.py`): the existing ING-11 tests keep their meaning (you may re-index
+- [x] AC5 (unit tests, `tests/test_processor_pages.py`): the existing ING-11 tests keep their meaning (you may re-index
   `calls[...]` if a new statement shifts positions, but don't drop or weaken an assertion). New tests pin the statements
   from AC1 and AC3, with their parameters (`paper_id`, the chunk's index and new hash, the kept index set).
-- [ ] AC6 (real Postgres, new `tests/test_chunk_reprocess_db.py`): on one connection with `autocommit=False`, insert two
+- [x] AC6 (real Postgres, new `tests/test_chunk_reprocess_db.py`): on one connection with `autocommit=False`, insert two
   synthetic papers (unique `arxiv_id`s such as `ops-h6d-a`/`ops-h6d-b`). Save 3 chunks for paper A and 1 for paper B, add a
   `chunk_embeddings` row (768-d `halfvec`) for each chunk, then save paper A again with chunk 0 unchanged, chunk 1 with new
   text and hash, and no chunk 2. Assert AC1-AC3 with SQL: chunk 0's row and vector are identical, chunk 1 has no vector and
@@ -64,14 +64,14 @@ and `paper_chunk_pages` both reference `paper_chunks(id) ON DELETE CASCADE` (`mi
   **Always roll back at the end** (`finally`), so the shared stack DB that `test_m2_pipeline.py`/`test_m3_query.py` count is
   left exactly as it was. Green in the draft PR's `Full stack` run: quote the `PASSED tests/test_chunk_reprocess_db.py::…`
   lines from the `-rA` summary of the `AC4: make test-full` step, with the run ID.
-- [ ] AC7 (mutants, one per case; developer or QA, with an evidence file): each of these must fail at least one test:
+- [x] AC7 (mutants, one per case; developer or QA, with an evidence file): each of these must fail at least one test:
   m1 drop the AC1 delete; m2 delete vectors even when the hash is unchanged; m3 drop the AC3 tail delete; m4 tail delete not
   scoped to `paper_id` (paper B loses its chunk); m5 tail delete keeps one stale index (for example a `chunk_index > max`
   bound instead of "not in the new set", with the AC6 data shaped so that it matters, or an off-by-one).
-- [ ] AC8: CI `Python M0 unit tests` (`make test-py`), `Go (vet, gofmt, test, build)`, `Agent ownership check` and `Full stack` are green on the draft PR. Lint for the
+- [x] AC8: CI `Python M0 unit tests` (`make test-py`), `Go (vet, gofmt, test, build)`, `Agent ownership check` and `Full stack` are green on the draft PR. Lint for the
   changed Python files: `ruff check --isolated --select E,F,W --line-length 130 services/common/db.py tests/test_processor_pages.py tests/test_chunk_reprocess_db.py`
   reports no findings on added lines.
-- [ ] Docs: none in the app repo (no command or API change). pm-lead updates the Technical PRD §8.1 L3 row after merge
+- [x] Docs: none in the app repo (no command or API change). pm-lead updates the Technical PRD §8.1 L3 row after merge
   (docs PR here).
 
 ## Verification
@@ -115,3 +115,4 @@ git diff origin/main --name-only   # exactly the three files in Scope
   was refused by the sandbox's permission classifier, so the real-driver + pgvector run is CI-only (`stack.yml` `make test-full`).
   ruff on the three files: two findings, both pre-existing on `origin/main` (`db.py:1` unused `json`, `test_processor_pages.py:212` E501); none on added lines.
 
+- 2026-11-21 (pm-lead): PM review of #102: **APPROVE** (`agents/reviews/OPS-H6d/report.md`). PR description rewritten with the Evidence section, marked ready for review, label `ready-to-merge`. QA `[spec]` finding 3 (the race above) → specced as [OPS-H6e](OPS-H6e.md) (backend, Backlog until #102 merges) + ai worker half in the board Backlog. After merge: Technical PRD §8.1 L3 note in the next pm-lead docs PR.

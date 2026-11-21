@@ -901,3 +901,8 @@ Format:
   **OPS-H18** (P2 harness, `Makefile`, new `requirements-light.txt`, `ci.yml` `python` job, `CONTRIBUTING.md`): Mahesh's #12-review split of `make test-py`; light tests run in CI before torch is installed. Earlier groomings had it held by #93's `README.md`, but README has no `test-py` mention.
 - Skipped: RET-1e (`server_test.go`, #94), OPS-H7a2c / ING-6c / OPS-H7b (`main.go`, #93), FE-3b → FE-2 / FE-4 (#91 first), FE-0g (#95), EVAL-6c / EVAL-7 / EVAL-5 follow-ups (`tests/test_evals_data.py`, #96), x5 limiter test (#99), OPS-H8d (needs #100), form-control scan (after FE-3b), hnswGuard single action (#97). Not picked as filler: RET-1b NaN+Inf/MaxFloat32 rows. ai-engineer and frontend have no unblocked item worth a PR.
 - Jira: no Atlassian tools in this session. For the orchestrator: OPS-H6d → epic KAN-4, OPS-H18 → epic KAN-3.
+
+## 2026-11-21 — pm-lead (OPS-H6d #102 final review)
+- **OPS-H6d** (backend, KAN-106): PR [#102](https://github.com/MaheshPulivarthi18/ArxivLens/pull/102) @ `5ba967b`, QA r1 PASS (13 mutants killed, CI Full stack run 44848933981 green incl. the real-Postgres test), PM **APPROVE** → PR description rewritten with the Evidence section, ready for review, label `ready-to-merge`. Jira KAN-106 → Ready to merge (orchestrator).
+- QA `[spec]` finding 3 (embedder saves an old-text vector after the processor's delete commits) → new spec [OPS-H6e](tasks/OPS-H6e.md) (backend, P2, Backlog until #102 merges) + ai worker half as a Backlog line. OPS-H6e also covers the FK failure when the new tail delete removes a chunk mid-embed.
+- Evidence nit: `06-AC7-mutants.png` is cut off before its kill table; AC7 accepted from the `.txt`. Lesson added for QA.
