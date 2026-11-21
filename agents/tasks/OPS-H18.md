@@ -4,14 +4,14 @@
 |---|---|
 | **Owner** | backend-engineer |
 | **Priority** | P2 (harness) |
-| **PRD ref** | Technical PRD §10 (Testing and evaluation) / `CONTRIBUTING.md` Commands table; Mahesh's review of ArxivLens #12 (recorded in PROGRESS 2026-11-03, board Backlog "From Mahesh's #12 review") |
+| **PRD ref** | Technical PRD §10 (Testing and evaluation) / `CONTRIBUTING.md` Commands table; the `make test-py` split item in the 2026-11-03 external-review plan that Mahesh approved (PROGRESS 2026-11-03 "pm-lead — external-review plan specced", Backlog bullet; board Backlog). *Not* a GitHub review of ArxivLens #12: #12 has no review or comment from Mahesh. The earlier "Mahesh's #12 review" label was pm-lead's shorthand (QA OPS-H18 r1 `[spec]` finding 4) |
 | **Depends on** | none open. No open PR touches `Makefile`, `.github/workflows/ci.yml`, `CONTRIBUTING.md` or `requirements*.txt` (checked 2026-11-21 01:00Z against the file lists of #91–#101). The app `README.md` doesn't mention `test-py`, so it is not in scope (it is held by #93 anyway) |
-| **Jira** | to be created by the orchestrator (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H18`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-107 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H18`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: Makefile targets, one CI job's steps and a deps file; no product code, no contract |
-| **Status** | In Progress (built on `agent/backend/OPS-H18` @ 2242efe; draft PR to be opened by the orchestrator) |
+| **Status** | Ready to merge: PR [#103](https://github.com/MaheshPulivarthi18/ArxivLens/pull/103) @ `2242efe`, QA r1 PASS, PM APPROVE 2026-11-21, raised for review (label `ready-to-merge`) |
 
 ## Goal
-Mahesh asked (review of #12) for `make test-py` to be split so the eval-data tests still run when the ML stack
+Mahesh's approved 2026-11-03 external-review plan (PROGRESS 2026-11-03) asks for `make test-py` to be split so the eval-data tests still run when the ML stack
 (torch / sentence-transformers) fails to install or import. Today one `pip install -r requirements-dev.txt` (torch, transformers,
 sentence-transformers, PyMuPDF) runs before any Python test, and `test-py` runs all six files in one pytest call. A torch install or
 import failure therefore hides the results of three test files that need none of it. The same split lets agent sandboxes and
@@ -85,3 +85,8 @@ git diff origin/main --name-only   # Makefile, requirements-light.txt, .github/w
   (an explicit `if`, because a `!`-negated pipeline doesn't trip `bash -e`), then `make test-py-light`, then the full install and `make test-py-ml`.
   AC3 baseline: the latest green `main` CI run 44797226987, job 136502157925 (`230f617`), `make test-py` → `195 passed, 3 skipped, 3 warnings`.
   AC2/AC3/AC5 are CI-only.
+- 2026-11-21 (pm-lead, final review): **APPROVE**. All 5 ACs + Docs checked off with CI evidence (pack @ `b5c9e81`). QA `[spec]` finding 4 fixed
+  above: the source is the Mahesh-approved 2026-11-03 external-review plan recorded in PROGRESS, not a GitHub review on #12. The PR description
+  says the same. QA nits 1 (guard fails open on a `pip list` error: add `set -o pipefail`) and 3 (stale `test-unit` help text) → board Backlog
+  (backend, P3, fold into the next Makefile/`ci.yml` change). Nit 2 (prerequisites stop at a light failure locally) is accepted as is. PR #103 raised.
+  Lesson: cite the PROGRESS entry for requests that came in through plans or attachments, not a PR number.
