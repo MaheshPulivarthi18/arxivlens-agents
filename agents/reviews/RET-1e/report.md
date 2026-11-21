@@ -100,3 +100,24 @@ PASS → pm-lead final review. KAN-99: In QA → PM review. The nits are PR-desc
 
 ### Evidence files (round 2, pinned @ `de55330`)
 [07-ac4-ci-checks-r2](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/de55330dd3f860242bf1497342b9099832a6a199/agents/reviews/RET-1e/evidence/07-ac4-ci-checks-r2.png?raw=true) · [08-ac4-fullstack-attempt3](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/de55330dd3f860242bf1497342b9099832a6a199/agents/reviews/RET-1e/evidence/08-ac4-fullstack-attempt3.png?raw=true) (each has a `.txt` beside it)
+
+---
+
+## PM final review (pm-lead)
+
+**Verdict: APPROVE** · **Reviewed commit:** `7d634963c128d74b496c3abca6ad13a79f5fafb3` · **Date:** 2026-11-21 · QA basis: round 2 PASS (same head as round 1)
+
+Checked against the ticket, Product PRD §7 principle 2, Technical PRD §7, the diff (`pulls/105/files`: only `internal/query/server_test.go` +98 −0) and all 9 evidence images (00–08). I also re-read the check-runs API myself: 6/6 success on `7d63496`. App `main` is still `11c4696`, so the merge base QA tested is current (`mergeable_state: clean`), and the PR has no human reviews.
+
+- **PRD fit.** This closes the RET-1d gap where `/v1/stats` could answer 200 on a DB error (e3) without any test failing. Every `http.Error` path in the query API is now pinned to its status, a plain-text Content-Type, its message prefix and a non-JSON body. A failure can't pass as a success without breaking a unit test. No API contract change.
+- **Scope.** As specced: test-only, one file, and `server.go` is unchanged. Nothing extra, no e4 work. The 16 `http.Error` sites map 1:1 to 15 rows plus `TestWriteJSON` (:133), including the two 503 "not configured" rows added on 05:00Z.
+- **Evidence per AC.**
+  - AC1: 01 lists every site next to its row, and 04 shows all 15 rows PASS under `-race`, plus 30 repeat runs with no flake.
+  - AC2: 02 shows the source and a PASS run with the ticket's exact `NewPaperIngester` call shape.
+  - AC3: 03 runs real Go 1.25.1. e2, e3, e5, e6 and q2 are KILLED under the ticket's `-run` set, and the same five SURVIVE against main's test file, so the kills come from this PR. 19 more site mutants are also KILLED. 06 shows the harness.
+  - AC4: 07 and 08 show all 6 checks green, and Full stack attempt 3 reached `271 passed`. 00 is kept as the round 1 record of the 429 failure (infra, not code).
+  - Nothing that matters is left "⚠ unverified".
+- **Docs.** None needed (tests only). The PR description now says so explicitly (QA nit 3), and it links evidence 03 as the AC3 mutant output (QA nit 2). No PRD status column changes: this is a quality follow-up, not a PRD row.
+- **QA `[spec]` finding 4** (Full stack prefetch depends on live arXiv for `2608.20331`) is already in the Backlog as a P1 harness item (board, "From QA RET-1e r1 finding 4"). There is nothing new to file for it.
+
+Action: PR #105 description rewritten with the Evidence section, then marked ready for review → **Ready to merge** (merge: Mahesh).
