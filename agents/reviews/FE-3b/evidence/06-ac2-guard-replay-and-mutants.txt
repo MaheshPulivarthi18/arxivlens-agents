@@ -1,0 +1,55 @@
+$ bash -c cd /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness && echo '== PR head, unmodified:' && node --import ./reg.mjs /root/wt/qa-app-FE-3b/frontend/src/test/tokens.test.js; echo; echo '== negative controls (one product-file change each, fresh copy of frontend/src):'; ./guard-mutants.sh /root/wt/qa-app-FE-3b
+== PR head, unmodified:
+palette-class guard
+  ok   pattern catches palette classes, with and without variants
+  ok   components/IngestModal.jsx uses theme tokens, not palette classes
+  ok   components/InfrastructureModal.jsx uses theme tokens, not palette classes
+  ok   components/PapersLibrary.jsx uses theme tokens, not palette classes
+  ok   components/Toast.jsx uses theme tokens, not palette classes
+  ok   components/SynthesisView.jsx uses theme tokens, not palette classes
+  ok   components/ReferencesStack.jsx uses theme tokens, not palette classes
+  ok   App.jsx uses theme tokens, not palette classes
+  ok   components/HeroSearch.jsx uses theme tokens, not palette classes
+
+9 passed, 0 failed
+
+== negative controls (one product-file change each, fresh copy of frontend/src):
+verdict  case                                                           guard hits
+MISSED   control: PR head unchanged (must be MISSED = 0 hits)           
+CAUGHT   HeroSearch.jsx:81 spinner back to border-white/30 border-t-white "components/HeroSearch.jsx:81 border-white" "components/HeroSearch.jsx:81 border-t-white" 
+CAUGHT   components/SynthesisView.jsx replaced by origin/main's version "components/SynthesisView.jsx:53 bg-emerald-5" "components/SynthesisView.jsx:53 border-emerald-5" "components/SynthesisView.jsx:53 text-emerald-3" "components/SynthesisView.jsx:53 hover:bg-emerald-5" "components/SynthesisView.jsx:53 hover:text-slate-9" "components/SynthesisView.jsx:80 from-emerald-5" "components/SynthesisView.jsx:80 via-teal-5" "components/SynthesisView.jsx:80 to-cyan-5" "componen
+CAUGHT   components/ReferencesStack.jsx replaced by origin/main's version "components/ReferencesStack.jsx:63 border-emerald-5" "components/ReferencesStack.jsx:63 ring-emerald-5" "components/ReferencesStack.jsx:63 shadow-emerald-9" "components/ReferencesStack.jsx:70 bg-emerald-6" "components/ReferencesStack.jsx:70 text-slate-9" "components/ReferencesStack.jsx:87 text-emerald-4" "components/ReferencesStack.jsx:94 text-slate-3" "components/ReferencesStack.jsx:94 border-eme
+CAUGHT   App.jsx replaced by origin/main's version                      "App.jsx:155 selection:bg-emerald-5" "App.jsx:155 selection:text-emerald-3" "App.jsx:169 bg-amber-5" "App.jsx:169 border-amber-5" "App.jsx:169 text-amber-2" "App.jsx:171 text-amber-4" "App.jsx:173 text-amber-3" "App.jsx:174 text-amber-2" "App.jsx:175 bg-amber-9" "App.jsx:175 text-amber-3" "App.jsx:180 border-amber-5" "App.jsx:186 from-emerald-6" "App.jsx:186 to-teal-6" "App.jsx:186 hover:from-emer
+CAUGHT   components/HeroSearch.jsx replaced by origin/main's version    "components/HeroSearch.jsx:49 bg-emerald-5" "components/HeroSearch.jsx:49 border-emerald-5" "components/HeroSearch.jsx:49 text-emerald-4" "components/HeroSearch.jsx:63 focus-within:border-emerald-5" "components/HeroSearch.jsx:63 focus-within:ring-emerald-5" "components/HeroSearch.jsx:81 border-white" "components/HeroSearch.jsx:81 border-t-white" "components/HeroSearch.jsx:103 hover:border-emerald-
+CAUGHT   App.jsx banner: text-foreground -> text-white                  "App.jsx:170 text-white" 
+CAUGHT   ReferencesStack.jsx chip: ring-offset-card -> ring-offset-slate-950 "components/ReferencesStack.jsx:84 focus-visible:ring-offset-slate-9" 
+CAUGHT   SynthesisView.jsx marker: text-primary -> text-sky-300         "components/SynthesisView.jsx:54 text-sky-3" 
+MISSED   HeroSearch.jsx: add shadow-black/80 (allowed: must be MISSED)  
+
+Extra regex probes (not in the PR's self-test), PALETTE_CLASS from the PR's tokens.test.js:
+ok   hit group-hover:text-white
+ok   hit !bg-white
+ok   hit [&>svg]:text-black
+ok   hit border-x-white
+ok   hit divide-y-gray-200
+ok   hit text-gray-50
+ok   hit bg-black
+ok   hit to-black/0
+ok   hit md:hover:bg-slate-50/50
+ok   hit dark:placeholder:text-neutral-400
+ok   hit ring-1 ring-white/10
+ok   hit border-b-emerald-500/40
+ok   allowed shadow-white
+ok   allowed bg-transparent
+ok   allowed text-current
+ok   allowed text-muted-foreground
+ok   allowed bg-unchecked
+ok   allowed text-unsupported-foreground
+ok   allowed border-input
+ok   allowed ring-offset-background
+ok   allowed bg-popover
+ok   allowed selection:bg-accent
+ok   allowed focus-within:ring-ring/30
+ok   allowed motion-safe:animate-pulse
+
+[exit code 0]

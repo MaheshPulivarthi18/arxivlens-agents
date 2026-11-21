@@ -1,0 +1,57 @@
+$ bash -c node /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/twbuild.mjs /root/wt/qa-app-FE-3b/frontend /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/out/app.css /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/typography.cjs && node /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/run.mjs /root/wt/qa-app-FE-3b /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/out/app.css /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/out/shots-final
+tailwind 4.3.3 compat build: 30 files, 2489 candidates -> /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/out/app.css (73150 bytes); .prose rule: yes; .font-serif: yes
+51 PASS, 0 FAIL
+
+PASS  mixedAnswer light: AC3 no stored choice (null) + prefers-color-scheme light -> <html> light
+PASS  mixedAnswer light: AC2 answer prose is .prose.font-serif (font-family "Source Serif 4 Variable", "Source Serif…)
+PASS  mixedAnswer light: AC5 answer prose text contrast 16.61:1 >= 4.5
+PASS  mixedAnswer light: AC5 [n] marker contrast 7.61:1 >= 4.5
+PASS  mixedAnswer light: AC5 passage text contrast 15.43, 15.39, 15.39 (all >= 4.5)
+PASS  mixedAnswer light: AC5 section line contrast 6.73:1 >= 4.5
+PASS  mixedAnswer light: AC1 chips are <button type=button> named by their text, no title; chip text contrast 7.21/7.52/7.72  — [["Supported · 87.3%",1,"button",null],["Unsupported · 12.0%",1,"button",null],["Not checked",1,"button",null]]
+PASS  mixedAnswer light: AC1 no chip/button inside a card has a title attribute
+PASS  mixedAnswer light: AC1 Tab x11 focuses the chip and opens role=tooltip with the exact supported text  — "Supported: a check found that this passage backs the sentence citing it (support score 87.3%)."
+PASS  mixedAnswer light: AC1 chip aria-describedby -> tooltip
+PASS  mixedAnswer light: AC5 visible tooltip text contrast 16.66:1 >= 4.5; focus ring box-shadow present
+PASS  mixedAnswer light: AC1 Escape closes the tooltip
+PASS  mixedAnswer light: no page errors / console errors
+PASS  refusalA light: AC3 no stored choice (null) + prefers-color-scheme light -> <html> light
+PASS  refusalA light: AC5 passage text contrast 15.43, 15.39 (all >= 4.5)
+PASS  refusalA light: AC5 refusal panel body contrast 14.39:1 >= 4.5
+PASS  refusalA light: AC1 chips "Unsupported · 31.0%" + "Not checked" are buttons
+PASS  refusalA light: no page errors / console errors
+PASS  earlyRefusal light: AC3 no stored choice (null) + prefers-color-scheme light -> <html> light
+PASS  earlyRefusal light: banner is role=status
+PASS  earlyRefusal light: AC5 heading/secondary/code/button contrast 14.39 / 5.81 / 13.74 / 8.69 (all >= 4.5)
+PASS  earlyRefusal light: discover button is ui/Button (bg-primary, h-auto override)
+PASS  earlyRefusal light: no article cards, no "Clinical Literature Synthesis"
+PASS  earlyRefusal light: no page errors / console errors
+PASS  mixedAnswer dark: AC3 no stored choice (null) + prefers-color-scheme dark -> <html> .dark
+PASS  mixedAnswer dark: AC2 answer prose is .prose.font-serif (font-family "Source Serif 4 Variable", "Source Serif…)
+PASS  mixedAnswer dark: AC5 answer prose text contrast 13.84:1 >= 4.5
+PASS  mixedAnswer dark: AC5 [n] marker contrast 5.86:1 >= 4.5
+PASS  mixedAnswer dark: AC5 passage text contrast 12.7, 12.76, 12.76 (all >= 4.5)
+PASS  mixedAnswer dark: AC5 section line contrast 6.89:1 >= 4.5
+PASS  mixedAnswer dark: AC1 chips are <button type=button> named by their text, no title; chip text contrast 8.41/8.01/8.79  — [["Supported · 87.3%",1,"button",null],["Unsupported · 12.0%",1,"button",null],["Not checked",1,"button",null]]
+PASS  mixedAnswer dark: AC1 no chip/button inside a card has a title attribute
+PASS  mixedAnswer dark: AC1 Tab x11 focuses the chip and opens role=tooltip with the exact supported text  — "Supported: a check found that this passage backs the sentence citing it (support score 87.3%)."
+PASS  mixedAnswer dark: AC1 chip aria-describedby -> tooltip
+PASS  mixedAnswer dark: AC5 visible tooltip text contrast 13.36:1 >= 4.5; focus ring box-shadow present
+PASS  mixedAnswer dark: AC1 Escape closes the tooltip
+PASS  mixedAnswer dark: no page errors / console errors
+PASS  refusalA dark: AC3 no stored choice (null) + prefers-color-scheme dark -> <html> .dark
+PASS  refusalA dark: AC5 passage text contrast 12.7, 12.76 (all >= 4.5)
+PASS  refusalA dark: AC5 refusal panel body contrast 11.76:1 >= 4.5
+PASS  refusalA dark: AC1 chips "Unsupported · 31.0%" + "Not checked" are buttons
+PASS  refusalA dark: no page errors / console errors
+PASS  earlyRefusal dark: AC3 no stored choice (null) + prefers-color-scheme dark -> <html> .dark
+PASS  earlyRefusal dark: banner is role=status
+PASS  earlyRefusal dark: AC5 heading/secondary/code/button contrast 11.76 / 5.88 / 10.97 / 8.1 (all >= 4.5)
+PASS  earlyRefusal dark: discover button is ui/Button (bg-primary, h-auto override)
+PASS  earlyRefusal dark: no article cards, no "Clinical Literature Synthesis"
+PASS  earlyRefusal dark: no page errors / console errors
+PASS  loading dark: AC3 no stored choice (null) + prefers-color-scheme dark -> <html> .dark
+PASS  loading dark: AC2 spinner border-top = button text colour (primary-foreground) rgb(17, 23, 34)  — button bg rgb(132, 177, 235), fg rgb(17, 23, 34)
+PASS  loading dark: no page errors / console errors
+
+[exit code 0]

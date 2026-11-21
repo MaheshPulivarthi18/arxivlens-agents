@@ -1,0 +1,19 @@
+$ bash -c echo "main tree: $(git rev-parse --short origin/main) via git archive -> /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/../main-11c4696.QLzh"; node /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/twbuild.mjs /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/../main-11c4696.QLzh/frontend /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/../main-11c4696.QLzh/app.css /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/typography.cjs >/dev/null && node /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/run.mjs /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/../main-11c4696.QLzh /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/../main-11c4696.QLzh/app.css /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/../main-11c4696.QLzh/shots 2>&1 | grep -E 'PASS,|^FAIL'
+main tree: 11c4696 via git archive -> /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/../main-11c4696.QLzh
+13 PASS, 14 FAIL
+FAIL  mixedAnswer light: AC3 no stored choice (null) + prefers-color-scheme light -> <html> .dark
+FAIL  mixedAnswer light: scenario aborted  — locator.evaluate: Timeout 5000ms exceeded.
+FAIL  refusalA light: AC3 no stored choice (null) + prefers-color-scheme light -> <html> .dark
+FAIL  refusalA light: AC5 passage text contrast  (all >= 4.5)
+FAIL  refusalA light: AC1 chips "Unsupported · 31.0%" + "Not checked" are buttons
+FAIL  earlyRefusal light: AC3 no stored choice (null) + prefers-color-scheme light -> <html> .dark
+FAIL  earlyRefusal light: banner is role=status
+FAIL  earlyRefusal light: scenario aborted  — locator.evaluate: Timeout 5000ms exceeded.
+FAIL  mixedAnswer dark: scenario aborted  — locator.evaluate: Timeout 5000ms exceeded.
+FAIL  refusalA dark: AC5 passage text contrast  (all >= 4.5)
+FAIL  refusalA dark: AC1 chips "Unsupported · 31.0%" + "Not checked" are buttons
+FAIL  earlyRefusal dark: banner is role=status
+FAIL  earlyRefusal dark: scenario aborted  — locator.evaluate: Timeout 5000ms exceeded.
+FAIL  loading dark: AC2 spinner border-top = button text colour (primary-foreground) rgb(255, 255, 255)  — button bg rgb(132, 177, 235), fg rgb(17, 23, 34)
+
+[exit code 0]

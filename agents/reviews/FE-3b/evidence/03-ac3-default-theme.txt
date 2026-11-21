@@ -1,0 +1,18 @@
+$ bash -c grep -n "DEFAULT_THEME =" frontend/src/lib/theme.js frontend/index.html; echo; sed -n 53,62p frontend/src/lib/theme.test.js; echo; grep -n "first visit" README.md
+frontend/src/lib/theme.js:9:export const DEFAULT_THEME = "system";
+frontend/index.html:13:        var DEFAULT_THEME = 'system'; // first visit follows the OS; same as DEFAULT_THEME in src/lib/theme.js
+
+describe('index.html pre-paint script vs theme.js (drift guard)', () => {
+  it('has an inline classic pre-paint script', () => {
+    expect(prePaint).toBeDefined();
+  });
+
+  it('uses the same DEFAULT_THEME as theme.js', () => {
+    const literal = prePaint.match(/\bDEFAULT_THEME\s*=\s*(['"])([^'"]*)\1/);
+    expect(literal).not.toBeNull();
+    expect(literal[2]).toBe(DEFAULT_THEME);
+  });
+
+139:browser (`localStorage`), and the first visit follows your OS setting (System).
+
+[exit code 0]

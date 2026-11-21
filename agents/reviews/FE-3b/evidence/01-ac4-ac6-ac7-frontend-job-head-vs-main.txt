@@ -1,0 +1,42 @@
+$ bash -c for j in 136736533187 136743684509; do echo "===== job $j: $(gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j --jq "\"head_sha=\(.head_sha) branch=\(.head_branch) conclusion=\(.conclusion)\"")"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j/logs | sed "s/\x1b\[[0-9;]*m//g" | cut -c30- | grep -E "HEAD is now|Found [0-9]+ warnings|✓ src/|Test Files|Tests +[0-9]|DIST css|built in"; done
+===== job 136736533187: head_sha=11c4696f7c6830436ada00c54d8f75976ddf7b99 branch=main conclusion=success
+Found 0 warnings and 0 errors.
+ ✓ src/lib/theme.test.js (35 tests) 64ms
+ ✓ src/components/ui/primitives.test.jsx (12 tests) 450ms
+ ✓ src/components/SynthesisView.test.jsx (17 tests) 510ms
+ ✓ src/components/ReferencesStack.test.jsx (13 tests) 543ms
+ ✓ src/lib/citations.test.js (35 tests) 12ms
+ ✓ src/App.test.jsx (7 tests) 2760ms
+ ✓ src/components/ThemeToggle.test.jsx (4 tests) 204ms
+ ✓ src/test/controls.test.js (4 tests) 6ms
+ ✓ src/test/tokens.test.js (5 tests) 7ms
+ ✓ src/components/ui/button.test.jsx (3 tests) 114ms
+ ✓ src/components/HeroSearch.test.jsx (5 tests) 494ms
+ Test Files  11 passed (11)
+      Tests  140 passed (140)
+✓ built in 778ms
+DIST css @font-face rules: 19
+DIST css .font-serif: yes
+DIST css .prose: no
+===== job 136743684509: head_sha=d9b2386e2d0ad73d4be25465b769efd67398281a branch=agent/frontend/FE-3b conclusion=success
+HEAD is now at 9d92e9e Merge d9b2386e2d0ad73d4be25465b769efd67398281a into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+Found 0 warnings and 0 errors.
+ ✓ src/components/ui/primitives.test.jsx (12 tests) 557ms
+ ✓ src/components/ReferencesStack.test.jsx (16 tests) 908ms
+ ✓ src/lib/theme.test.js (35 tests) 65ms
+ ✓ src/components/SynthesisView.test.jsx (17 tests) 577ms
+ ✓ src/lib/citations.test.js (35 tests) 18ms
+ ✓ src/App.test.jsx (7 tests) 3461ms
+ ✓ src/test/tokens.test.js (9 tests) 18ms
+ ✓ src/test/controls.test.js (4 tests) 8ms
+ ✓ src/components/ThemeToggle.test.jsx (4 tests) 274ms
+ ✓ src/components/ui/button.test.jsx (3 tests) 174ms
+ ✓ src/components/HeroSearch.test.jsx (5 tests) 712ms
+ Test Files  11 passed (11)
+      Tests  147 passed (147)
+✓ built in 1.18s
+DIST css @font-face rules: 19
+DIST css .font-serif: yes
+DIST css .prose: yes
+
+[exit code 0]

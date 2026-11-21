@@ -1,0 +1,30 @@
+$ bash -c git diff --numstat origin/main...HEAD; echo; echo "--- test files touched (added/deleted lines):"; git diff --numstat origin/main...HEAD -- "*.test.js" "*.test.jsx"; echo "--- deleted lines in any *.test.* file:"; git diff origin/main...HEAD -- "*.test.js" "*.test.jsx" | grep -c "^-[^-]" ; echo "--- App.test.jsx / SynthesisView.test.jsx / HeroSearch.test.jsx changed? (empty = no)"; git diff --name-only origin/main...HEAD -- frontend/src/App.test.jsx frontend/src/components/SynthesisView.test.jsx frontend/src/components/HeroSearch.test.jsx; echo "--- README.md diff"; git diff origin/main...HEAD -- README.md | tail -n +5
+1	1	README.md
+1	1	frontend/index.html
+12	10	frontend/src/App.jsx
+6	6	frontend/src/components/HeroSearch.jsx
+21	9	frontend/src/components/ReferencesStack.jsx
+32	0	frontend/src/components/ReferencesStack.test.jsx
+9	8	frontend/src/components/SynthesisView.jsx
+2	2	frontend/src/lib/theme.js
+17	0	frontend/src/test/setup.js
+29	5	frontend/src/test/tokens.test.js
+
+--- test files touched (added/deleted lines):
+32	0	frontend/src/components/ReferencesStack.test.jsx
+29	5	frontend/src/test/tokens.test.js
+--- deleted lines in any *.test.* file:
+5
+--- App.test.jsx / SynthesisView.test.jsx / HeroSearch.test.jsx changed? (empty = no)
+--- README.md diff
+@@ -136,7 +136,7 @@ cd frontend && npm install && npm run dev     # UI on http://localhost:5173 (pro
+ ```
+ 
+ The theme button in the navbar switches between Light, Dark and System (follows your OS); the choice is stored in your
+-browser (`localStorage`), and the first visit starts in Dark.
++browser (`localStorage`), and the first visit follows your OS setting (System).
+ 
+ ### Option: Python workers on the host (Apple-silicon MPS acceleration)
+ 
+
+[exit code 0]
