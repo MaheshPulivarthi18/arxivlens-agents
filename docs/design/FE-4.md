@@ -1,6 +1,6 @@
 # Tech design — FE-4: Claim evidence panel: each claim's status, its source passage and quote, one click to the PDF page
 
-**Author:** frontend-engineer · **Ticket:** `agents/tasks/FE-4.md` · **PRD:** Product PRD UI-1, QA-3, QA-4, §7 principles 1–3; ADR-0003 (Accepted), ADR-0014 (Accepted), ADR-0018 (Proposed), ADR-0019 (Accepted) · **Status:** Draft
+**Author:** frontend-engineer · **Ticket:** `agents/tasks/FE-4.md` · **PRD:** Product PRD UI-1, QA-3, QA-4, §7 principles 1–3; ADR-0003 (Accepted), ADR-0014 (Accepted), ADR-0018 (Proposed), ADR-0019 (Accepted) · **Status:** Approved with conditions (pm-lead, 2026-11-22; see PM decision). Built as FE-4a then FE-4b
 
 All code references are to the app repo at `origin/main` `53171d6` (`frontend/`, `internal/query/rag.go`, `README.md`).
 
@@ -257,4 +257,43 @@ For Mahesh: **none that block code.** ADR-0018 is still Proposed, but this desig
 absent is handled). If Mahesh rejects ADR-0018 Option 1, nothing here changes.
 
 ## PM decision
-_(pm-lead fills)_
+**APPROVED with conditions** — pm-lead, 2026-11-22, cycle 2026-11-21T21:59Z. Split approved: **FE-4a** (build now) then **FE-4b** (after FE-4a
+merges). The conditions below are build rules, not a redesign; QA checks them alongside the ACs. No item needs Mahesh.
+
+Checked against: ticket ACs 1–6 and Notes 2026-11-07 … 2026-11-22; Product PRD UI-1, QA-3, QA-4, §7 principles 1–3; ADR-0003, ADR-0014 (Accepted;
+"whitespace-normalised, case-sensitive" quote match), ADR-0018 (Proposed; design doesn't branch on it), ADR-0019 (Accepted; skipped markers, no hidden count);
+and the code at `53171d6`: `rag.go:42-104` (fields, positional `citations` comment), `rag.go:423-445` (`inlineRefRegex`, `spaceBeforePunct`, `normQuote`, `inPassage`),
+`App.jsx:22/95/113` (`useState(1)`, first marker set on load), `ReferencesStack.jsx:58-59` (`key`/`id` = marker, so repeats collide), `:100` (`Section: … 'General' • Chunk #`),
+`:106` (`max-h-36` scroll box), `ui/tooltip.jsx` ("supplementary only"), README `/v1/ask` row. The contract table is accurate. ING-10 is merged (`4c15275`), so `vN` labels are trustworthy (2026-11-07 Note).
+
+**Answers to the open questions**
+1. **`ui/tooltip` instead of `ui/popover`: approved.** The 2026-11-19 Note chose popover for "preview on hover/focus that must not trap focus"; that *is* the tooltip
+   pattern, and a popover would announce a dialog that never opens on activation. The preview stays supplementary (`ui/tooltip.jsx` rule): status text is also on the claim chip and card. The ticket Note is superseded.
+2. **AC3 "exact substring" = exact, case-sensitive match after the server's `normQuote`: approved.** That is ADR-0014's definition and what `inPassage` checks; a raw `indexOf`
+   would report "not located" for quotes the server verified. The highlight must still only cover raw text that equals the quote under that normalisation (condition 5).
+3. **`arXiv:2401.01234v2`: approved** (canonical arXiv form; satisfies AC4 "version shown as vN"). `paper_version` 0 → `arXiv:2401.01234`.
+4. **Split: approved, sequential** (shared `ReferencesStack.jsx` + `lib/citations.js`). FE-4a = AC1, AC2, AC5, AC6; FE-4b = AC3, AC4, AC6. FE-4 becomes the umbrella and closes when both merge. FE-2 now waits on **FE-4b**.
+5. **Copy: approved as listed**: "Supported" / "Unsupported" / "Not checked"; "Claims in this answer"; "Cited by claim n" ("Check n" when the positional check fails); "Open PDF at p. N ↗";
+   "Show full passage" / "Show less"; "Quoted text (not found in the passage shown above): “…”"; "No exact quote for this citation: the check compared the claim with the whole passage."
+   Dropping "Chunk #id" and the invented "General" section is approved (FE-4b).
+6. **Nothing active on load, in every mode: approved.** It closes the FE-3b PM review item. The ring means "you came here from a marker" (principle 3), and clearing it on the
+   quoted → written swap prevents a ring on the wrong passage. No existing test depends on the initial `1` (checked `*.test.jsx`).
+
+**Conditions**
+1. **AC5 wording (FE-4a).** §2 item 3 says the fallback is "byte-for-byte unchanged", but §2 also gives fallback markers `aria-controls`, card focus and the tooltip. That's
+   wanted (AC2 applies to every marker), so the rule is: in the fallback the prose text, header, footer and Copy/Export are unchanged; marker buttons keep `type`, name `[n]`
+   and classes and *gain only* `aria-controls`, the focus behaviour and the tooltip. **Every existing FE-1/FE-3 `SynthesisView`/`App` test passes unmodified**; the one replaced
+   assertion (`ReferencesStack.test.jsx:30`) belongs to FE-4b, not FE-4a. Update §2 item 3 in this file in the FE-4a PR's cycle.
+2. **FE-4a leaves the card body alone.** No change to the meta line (`ReferencesStack.jsx:100`), the passage box (`:106`) or the PDF link in FE-4a; those are FE-4b. The existing
+   non-focusable scroll box is out of FE-4a's scope (not a new instance of the N3 rule); FE-4b removes it.
+3. **Two counts, one view (FE-4a).** With grouping, a written answer citing [1] twice shows "2 cited" in the heading and "3 of 3 citations supported" in the footer. Accepted
+   (heading counts passages, footer counts checks), but pin both numbers for `synthesizedSkips` in a test so it's deliberate, and show it in a screenshot in the PR evidence.
+4. **Tooltip test in jsdom (FE-4a).** The AC2 "tooltip opens on focus and doesn't trap focus" test must assert `document.activeElement` is the card after Enter, not only that the
+   tooltip closed. If Radix Tooltip can't open under jsdom focus, say so in the PR and keep the focus assertion; don't drop it.
+5. **`locateQuote` mirrors RE2 exactly (FE-4b).** Go RE2 `\s` is ASCII (`[\t\n\f\r ]`), JS `\s` is Unicode. In the two regex steps (`inlineRefRegex`, `spaceBeforePunct`) use the
+   ASCII class explicitly; the collapse step mirrors `strings.Fields` (Unicode `unicode.IsSpace`). Same order as `normQuote`. Add the row that tells them apart: content `"…shown in [3, 4] that…"`. Go's `inlineRefRegex` does
+   *not* match `[3, 4]` (NBSP isn't RE2 `\s`), so the ref stays in the normalised text and a quote without it must return `null`. Mutant to kill: ASCII class → `\s`.
+   (Leading NBSP before a ref and NBSP before punctuation normalise the same either way, because `strings.Fields` runs before `spaceBeforePunct`.)
+6. **Highlight guard (FE-4b)**: `<mark>` only on entries whose `citationState` kind is `supported` (as designed); keep the mutant list in §Test plan for QA.
+
+**Size**: FE-4a ≈ 365 changed lines, FE-4b ≈ 250; both under 400. If FE-4a goes over 400, move the multi-entry "Cited by claim n" rows to FE-4b rather than growing the PR.

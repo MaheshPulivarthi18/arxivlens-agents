@@ -6,7 +6,7 @@
 | **Priority** | P2 |
 | **PRD ref** | UI-5 (per-citation BibTeX copy already exists in `ReferencesStack.jsx`; this completes the "export" half) |
 | **Depends on** | **FE-1 merged** (harness) and **FE-0 merged** (theme, `ui/dropdown-menu`) |
-| **Status** | Ready by deps (FE-3b #104 merged), but held behind FE-4 (P0, picked 2026-11-21T21:59Z): both edit `ReferencesStack.jsx`. Start after FE-4 merges |
+| **Status** | Ready by deps (FE-3b #104 merged), but held behind FE-4 (P0, picked 2026-11-21T21:59Z): both edit `ReferencesStack.jsx`. Start after FE-4 merges. 2026-11-22: FE-4 is split; FE-2 waits on **FE-4b** merged (the last `ReferencesStack.jsx` change) |
 
 ## Goal
 Priya (Product PRD persona) copies citations into a related-work draft. Let her take all of an answer's references at once.

@@ -8,7 +8,7 @@
 | **Depends on** | **AI-8 merged** (claims + provenance JSON; design stage now), **FE-3 merged** (same components), **FE-1 merged** (harness), **FE-0 merged** (theme) and **FE-0b merged** (`ui/popover`, `ui/collapsible`; split 2026-11-19). ADR-0014 Accepted. ING-11b for real `page` values (fixtures suffice for tests) |
 | **Jira** | KAN-44 under epic KAN-5 "Research UI & citations" (`labels = "task-FE-4"`) |
 | **Design required** | **yes** (`docs/design/FE-4.md`: layout, states, interaction; P0) |
-| **Status** | Ready (design stage). All deps merged: FE-3b #104 `dcb326a`, FE-0b #70, FE-0i #109, AI-8b #65, ADR-0019 #120. Picked cycle 2026-11-21T21:59Z: write `docs/design/FE-4.md` first; no code before pm-lead approves it |
+| **Status** | Umbrella (2026-11-22): design `docs/design/FE-4.md` **approved with conditions**; built as [FE-4a](FE-4a.md) (AC1, AC2, AC5, AC6; Ready, picked cycle 2026-11-21T21:59Z) then [FE-4b](FE-4b.md) (AC3, AC4, AC6; after FE-4a merges). Closes when both merge |
 
 ## Goal
 Let a researcher check any statement in an answer in one or two clicks: see whether it was supported, unsupported or
@@ -66,3 +66,6 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   and don't depend on `synthesis_available`; (c) **don't edit app `README.md`** this cycle, because ING-6c (picked at the same time) edits it. If a
   README line is needed, list it in the design and pm-lead sequences it. (d) Leave `ui/badge.test.jsx` alone: FE-0j (Ready, next) owns it.
   Size: if the design projects > 400 changed lines, name the split seam (e.g. FE-4a claims + marker focus, FE-4b quote highlight + PDF page link).
+- 2026-11-22 cycle 2026-11-21T21:59Z (pm-lead, design gate): design `ec9e9dc` approved with 6 conditions (see its PM decision). Answers: `ui/tooltip` replaces the
+  2026-11-19 popover Note; AC3 "exact substring" = exact after `normQuote` (ADR-0014); label `arXiv:2401.01234v2`; split FE-4a → FE-4b (sequential, shared files);
+  copy approved; nothing active on load in any mode (closes the FE-3b PM review item). No README line needed. No code lands under FE-4 itself.
