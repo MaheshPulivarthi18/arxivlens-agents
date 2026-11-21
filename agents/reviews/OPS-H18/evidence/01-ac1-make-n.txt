@@ -1,0 +1,19 @@
+$ bash -c for t in test-py-light test-py-ml test-py; do echo "\$ make -n $t"; make -n $t; echo; done; echo "--- set check: union(light, ml) vs origin/main test-py files"; L=$(make -n test-py-light | sed "s/.*-q //"); M=$(make -n test-py-ml | sed "s/.*-q //"); B=$(git show origin/main:Makefile | grep -A1 "^test-py:" | tail -1 | sed "s/.*-q //"); echo "light($(echo $L|wc -w)): $L"; echo "ml($(echo $M|wc -w)): $M"; echo "main test-py($(echo $B|wc -w)): $B"; diff <(echo $L $M | tr " " "\n" | sort) <(echo $B | tr " " "\n" | sort) && echo "IDENTICAL SETS (diff exit 0)"; echo "overlap light∩ml: $(comm -12 <(echo $L|tr " " "\n"|sort) <(echo $M|tr " " "\n"|sort) | wc -l)"
+$ make -n test-py-light
+python3 -m pytest -q tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py
+
+$ make -n test-py-ml
+python3 -m pytest -q tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py
+
+$ make -n test-py
+python3 -m pytest -q tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py
+python3 -m pytest -q tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py
+
+--- set check: union(light, ml) vs origin/main test-py files
+light(3): tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py
+ml(3): tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py
+main test-py(6): tests/test_m0.py tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_processor_pages.py tests/test_verify.py tests/test_arxiv_replay.py
+IDENTICAL SETS (diff exit 0)
+overlap light∩ml: 0
+
+[exit code 0]

@@ -1,0 +1,33 @@
+$ bash -c echo '--- job meta'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136675419985 --jq '"job \(.id) run \(.run_id) head_sha \(.head_sha) conclusion \(.conclusion)"'; echo '--- step order (jobs API)'; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136675419985 --jq '.steps[] | select(.number<=8) | "\(.number) \(.started_at) \(.conclusion)  \(.name)"'; echo '--- first log line mentioning torch/transformers/sentence/PyMuPDF (case-insensitive), excluding the guard command itself:'; grep -niE 'torch|transformers|sentence|pymupdf' /tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/ci/pr-python.log | grep -v 'grep -iE' | grep -v '::error::' | head -1 | cut -c1-140; echo '--- log lines 181-187, 238-246 (light step)'; sed -n '181,187p;238,246p' /tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/ci/pr-python.log | cut -c1-170
+--- job meta
+job 136675419985 run 44848938142 head_sha 2242efe71617b5396e204b6029d11ca700bab377 conclusion success
+--- step order (jobs API)
+1 2026-11-21T01:14:17Z success  Set up job
+2 2026-11-21T01:14:18Z success  Run actions/checkout@v4
+3 2026-11-21T01:14:19Z success  Run actions/setup-python@v5
+4 2026-11-21T01:14:26Z success  Cache Hugging Face models
+5 2026-11-21T01:14:30Z success  Light tests without the ML stack (make test-py-light)
+6 2026-11-21T01:14:41Z success  Install deps (CPU-only torch)
+7 2026-11-21T01:15:30Z success  Run make test-py-ml
+8 2026-11-21T01:15:42Z success  Kafka client tests (commit-after-process, DLQ, shutdown; fakes only)
+--- first log line mentioning torch/transformers/sentence/PyMuPDF (case-insensitive), excluding the guard command itself:
+246:2026-11-21T01:14:41.1910039Z ##[group]Run pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements-dev.txt
+--- log lines 181-187, 238-246 (light step)
+2026-11-21T01:14:30.2113442Z ##[group]Run python -m pip install --upgrade pip
+2026-11-21T01:14:30.2113929Z [36;1mpython -m pip install --upgrade pip[0m
+2026-11-21T01:14:30.2114312Z [36;1mpip install -r requirements-light.txt[0m
+2026-11-21T01:14:30.2114690Z [36;1mecho "ML packages installed (must be none):"[0m
+2026-11-21T01:14:30.2115182Z [36;1mif pip list 2>/dev/null | grep -iE 'torch|transformers|sentence|PyMuPDF'; then[0m
+2026-11-21T01:14:30.2115735Z [36;1m  echo "::error::ML stack present before the light tests"; exit 1[0m
+2026-11-21T01:14:30.2116135Z [36;1mfi[0m
+2026-11-21T01:14:32.7274384Z Installing collected packages: ulid-py, typing-extensions, pygments, pluggy, packaging, numpy, iniconfig, confluent-kafka, annotated-types, t
+2026-11-21T01:14:36.2692601Z 
+2026-11-21T01:14:36.2706791Z Successfully installed annotated-types-0.8.0 confluent-kafka-2.16.2 iniconfig-2.3.1 numpy-2.4.6 packaging-26.3 pluggy-1.7.0 pydantic-2.14.4 p
+2026-11-21T01:14:36.3588435Z ML packages installed (must be none):
+2026-11-21T01:14:36.5876297Z python3 -m pytest -q tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py
+2026-11-21T01:14:37.3791500Z ........................................................................ [ 51%]
+2026-11-21T01:14:41.1412091Z ...s................................................................     [100%]
+2026-11-21T01:14:41.1412637Z 139 passed, 1 skipped in 4.26s
+2026-11-21T01:14:41.1910039Z ##[group]Run pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements-dev.txt
+
+[exit code 0]

@@ -1,0 +1,26 @@
+$ bash -c make help
+  help           List targets
+  setup-py       Install Python deps into the active environment
+  setup-fe       Install frontend deps (exact lockfile)
+  build          Build Go CLI and frontend
+  build-go       Build bin/arxivlens
+  build-fe       Production build of the frontend
+  lint           All linters
+  lint-go        go vet + gofmt check
+  lint-fe        oxlint on the frontend
+  test-unit      Fast tests, no infra (Go + M0 + eval data). Frontend tests: make test-fe
+  test-go        Go unit tests
+  test-py        Python unit tests: test-py-light + test-py-ml
+  test-py-light  Python tests without torch: eval data, worker heartbeat, arXiv replay (pip install -r requirements-light.txt)
+  test-py-ml     Python tests needing torch/PyMuPDF: M0, verifier, processor pages (downloads BGE model on first run)
+  test-fe        Frontend tests (Vitest; run npm ci in frontend/ first)
+  test-full      All suites M0-M6 (needs make stack-up, make migrate, arxivlens download + query on the host). TESTS=<paths/node IDs>, PYTEST_ARGS=<extra args>
+  infra-up       Start Postgres+pgvector, Kafka (+topics), MinIO
+  infra-down     Stop infra (keeps volumes)
+  stack-up       Infra + processor, embedder worker, embedder API (:8081); waits until healthy
+  stack-down     Stop infra + workers (keeps volumes)
+  migrate        Apply DB schema
+  eval           Retrieval/answer eval; uses the gate from EVAL-1 when present
+  eval-seed      Ingest every evals/corpus.txt ID via the query API (EVAL_CORPUS=, ARXIVLENS_API_URL=); fails if any fails
+
+[exit code 0]

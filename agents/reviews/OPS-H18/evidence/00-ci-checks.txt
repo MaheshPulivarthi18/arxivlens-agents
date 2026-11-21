@@ -1,0 +1,9 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/2242efe71617b5396e204b6029d11ca700bab377/check-runs --jq '.check_runs[] | "\(.id)  \(.name)  \(.status)/\(.conclusion)  run \(.details_url | split("/")[7])"'
+136675420265  Go (vet, gofmt, test, build)  completed/success  run 44848938142
+136675419985  Python M0 unit tests  completed/success  run 44848938142
+136675419194  Full stack (compose + make test-full)  completed/success  run 44848938153
+136675419060  Agent ownership check  completed/success  run 44848938142
+136675418721  DB (migrate twice, HNSW plan + recall)  completed/success  run 44848938084
+136675418716  Frontend (lint, test, build)  completed/success  run 44848938142
+
+[exit code 0]

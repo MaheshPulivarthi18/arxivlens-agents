@@ -1,0 +1,19 @@
+$ bash -c echo "--- ML modules importable here?"; for m in torch transformers sentence_transformers fitz pymupdf confluent_kafka ulid; do python3 -c "import $m" 2>/dev/null && echo "$m: yes" || echo "$m: no"; done; echo "--- PyPI reachable?"; timeout 30 python3 -m pip download --no-deps -q -d $(mktemp -d) ulid-py 2>&1 | tail -1; echo "--- make test-py-light PY_LIGHT_TESTS=\"tests/test_evals_data.py tests/test_arxiv_replay.py\""; make test-py-light PY_LIGHT_TESTS="tests/test_evals_data.py tests/test_arxiv_replay.py" 2>&1 | tail -2; echo "--- tests/test_worker_heartbeat.py here (expected: needs confluent-kafka from requirements-light.txt):"; python3 -m pytest -q tests/test_worker_heartbeat.py 2>&1 | grep -E "ModuleNotFoundError|passed|error" | head -2
+--- ML modules importable here?
+torch: no
+transformers: no
+sentence_transformers: no
+fitz: no
+pymupdf: no
+confluent_kafka: no
+ulid: no
+--- PyPI reachable?
+ERROR: No matching distribution found for ulid-py
+--- make test-py-light PY_LIGHT_TESTS="tests/test_evals_data.py tests/test_arxiv_replay.py"
+...s..........................................................           [100%]
+133 passed, 1 skipped in 3.87s
+--- tests/test_worker_heartbeat.py here (expected: needs confluent-kafka from requirements-light.txt):
+E   ModuleNotFoundError: No module named 'confluent_kafka'
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+
+[exit code 0]

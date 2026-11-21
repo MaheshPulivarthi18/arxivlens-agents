@@ -1,0 +1,25 @@
+$ bash -c echo "--- git diff --stat origin/main...HEAD"; git diff --stat origin/main...HEAD; echo "--- ownership-check.sh"; bash .github/scripts/ownership-check.sh origin/main agent/backend/OPS-H18 2>&1 | tail -3; echo "--- CONTRIBUTING.md test rows"; grep -nE "make test-(unit|py)" CONTRIBUTING.md; echo "--- requirements-light.txt vs requirements.txt/-dev.txt (name: light | full)"; for p in $(grep -vE "^#|^$" requirements-light.txt | sed "s/ *#.*//"); do n=$(echo $p | sed -E "s/[<>=].*//"); f=$(grep -hiE "^$n([<>=\[ ]|$)" requirements.txt requirements-dev.txt | sed "s/ *#.*//"); echo "$p | $f"; done; echo "--- forbidden ML pkgs in requirements-light.txt:"; grep -ciE "^(torch|transformers|sentence|pymupdf)" requirements-light.txt; echo "--- grep test-py README.md:"; grep -c "test-py" README.md
+--- git diff --stat origin/main...HEAD
+ .github/workflows/ci.yml | 13 ++++++++++---
+ CONTRIBUTING.md          |  4 +++-
+ Makefile                 | 16 ++++++++++++----
+ requirements-light.txt   |  8 ++++++++
+ 4 files changed, 33 insertions(+), 8 deletions(-)
+--- ownership-check.sh
+Ownership OK for role=backend (41 changed lines)
+--- CONTRIBUTING.md test rows
+23:| `make test-unit` | Go tests + `make test-py` (= `make test-py-light` + `make test-py-ml`) | No |
+24:| `make test-py-light` | `pytest tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py`; no torch, needs only `pip install -r requirements-light.txt` | No |
+25:| `make test-py-ml` | `pytest tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py`; needs `make setup-py` (torch, PyMuPDF) and downloads the BGE model on first run | No |
+--- requirements-light.txt vs requirements.txt/-dev.txt (name: light | full)
+pytest>=8.0.0 | pytest>=8.0.0
+numpy>=1.24.0 | numpy>=1.24.0
+pydantic>=2.5.0 | pydantic>=2.5.0
+confluent-kafka>=2.3.0 | confluent-kafka>=2.3.0
+ulid-py | ulid-py
+--- forbidden ML pkgs in requirements-light.txt:
+0
+--- grep test-py README.md:
+0
+
+[exit code 1]

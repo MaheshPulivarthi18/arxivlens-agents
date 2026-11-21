@@ -1,0 +1,48 @@
+$ bash -c cat /tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/tools/guard_probe.sh | sed -n '1,3p'; /tmp/claude-0/-home-claude/c75d1d6e-71fd-5b46-aed4-18a8529c49a0/scratchpad/tools/guard_probe.sh
+#!/usr/bin/env bash
+# Runs the *real* run: block of the CI light step (parsed from .github/workflows/ci.yml at HEAD)
+# under `bash -e` (GitHub's default shell) with stub pip/python/make on PATH, for two fake `pip list` outputs.
+python job name: Python M0 unit tests
+  step 0: actions/checkout@v4
+  step 1: actions/setup-python@v5
+  step 2: Cache Hugging Face models
+  step 3: Light tests without the ML stack (make test-py-light)
+  step 4: Install deps (CPU-only torch)
+  step 5: make test-py-ml
+  step 6: Kafka client tests (commit-after-process, DLQ, shutdown; fakes only)
+
+### case: clean env (light deps only)
+ML packages installed (must be none):
+STUB make test-py-light reached
+### step exit code: 0
+
+### case: torch present
+ML packages installed (must be none):
+torch 2.15.0+cpu
+::error::ML stack present before the light tests
+### step exit code: 1
+
+### case: sentence-transformers present
+ML packages installed (must be none):
+sentence-transformers 6.3.0
+::error::ML stack present before the light tests
+### step exit code: 1
+
+### case: transformers present
+ML packages installed (must be none):
+transformers 5.23.0
+::error::ML stack present before the light tests
+### step exit code: 1
+
+### case: PyMuPDF present
+ML packages installed (must be none):
+PyMuPDF 2.1
+::error::ML stack present before the light tests
+### step exit code: 1
+
+### case: clean env, light tests fail
+ML packages installed (must be none):
+STUB make test-py-light reached
+### step exit code: 1
+
+[exit code 0]
