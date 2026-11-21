@@ -8,7 +8,7 @@
 | **Depends on** | **FE-0b #70 merged** (`ui/tooltip`), **FE-3a #86 merged** (same files; FE-3a2 should merge first or FE-3b re-checks its App-level asserts still pass), **FE-0e merged** (secondary screens on tokens before the flip; PM decision Q1). FE-0c #85 merged preferred (its drift guard checks AC3 here) but not required |
 | **Jira** | KAN-89 (story under epic KAN-5; parent FE-3 KAN-40), labels `task-FE-3b`, `agent-frontend`, `arxivlens` |
 | **Design required** | yes, done: `docs/design/FE-3.md` Approved with changes (pm-lead 2026-11-20) |
-| **Status** | In QA (draft PR opened cycle 2026-11-21T05:00Z) |
+| **Status** | Ready to merge (QA r1 PASS, PM APPROVE 2026-11-21; PR #104 raised for Mahesh) |
 
 ## Goal
 Finish FE-3: the answer, refusal panel, references and early-refusal banner use FE-0's tokens and fonts, each status chip explains itself in a
@@ -25,11 +25,11 @@ keyboard-reachable tooltip, and the default theme follows the OS.
 - Out of scope: copy changes (approved in FE-3a), new dependencies, an app-level `<TooltipProvider>` (it doesn't change the delay; FE-0b note).
 
 ## Acceptance criteria
-- [ ] AC1 — Each status chip is a `<button type="button">` wrapped in `Tooltip`/`TooltipTrigger asChild`/`TooltipContent`; its accessible name is the chip
+- [x] AC1 — Each status chip is a `<button type="button">` wrapped in `Tooltip`/`TooltipTrigger asChild`/`TooltipContent`; its accessible name is the chip
   text. Test: `user.tab()` to a supported chip, `findByRole('tooltip')` has exactly the design's supported text (fallback if flaky: `aria-describedby` on the
   trigger points at that text). Tooltip copy names no method ("entails"/"NLI"/"cosine" absent; test).
   The FE-3a interim `title` attribute is removed from every chip (test: no chip/button has a `title`), so the meaning isn't announced twice (FE-3a QA r1 finding 3).
-- [ ] AC2 — FE-0e's `tokens.test.js` guard is extended in two ways (amended 2026-11-20 by pm-lead from FE-0e QA r1 #5 / r2 #3):
+- [x] AC2 — FE-0e's `tokens.test.js` guard is extended in two ways (amended 2026-11-20 by pm-lead from FE-0e QA r1 #5 / r2 #3):
   (a) `GUARDED_FILES` also lists `SynthesisView.jsx`, `ReferencesStack.jsx`, `App.jsx`, `HeroSearch.jsx`;
   (b) `PALETTE_CLASS` also catches, with any variant prefix, the utilities `ring-offset`, `outline`, `divide`, `decoration`, `fill`, `stroke`, `placeholder`
   and `caret` (besides today's `text|bg|border|ring|from|via|to|shadow`), every Tailwind default palette (`slate gray zinc neutral stone red orange amber
@@ -38,15 +38,15 @@ keyboard-reachable tooltip, and the default theme follows the OS.
   non-emerald palette (e.g. `bg-zinc-900`, `text-sky-400`) and `text-white`/`border-white/30`, and keeps the token and `shadow-black/80` negatives.
   All eight guarded files have 0 hits at the PR head. This includes the `HeroSearch.jsx:81` loading spinner (`border-white/30 border-t-white`, 2.22:1 on the
   dark-theme `clinical` fill since FE-0f): swap it to `border-primary-foreground/30 border-t-primary-foreground` (or move the caller to `variant="default"`). Answer prose uses `prose font-serif`; markers, passages, active card, banner as design §2–§4.
-- [ ] AC3 — `DEFAULT_THEME === "system"` in `theme.js` and the same literal in `index.html` (FE-0c's drift guard, or an equivalent assert if #85 isn't merged).
-- [ ] AC4 — CI `frontend-dist-report.sh` output shows `.prose` in the built CSS.
-- [ ] AC5 — QA evidence: WCAG contrast ≥ 4.5:1 (text) and ≥ 3:1 (focus ring) on light **and** dark for the design's contrast table pairs, computed from the PR's
+- [x] AC3 — `DEFAULT_THEME === "system"` in `theme.js` and the same literal in `index.html` (FE-0c's drift guard, or an equivalent assert if #85 isn't merged).
+- [x] AC4 — CI `frontend-dist-report.sh` output shows `.prose` in the built CSS.
+- [x] AC5 — QA evidence: WCAG contrast ≥ 4.5:1 (text) and ≥ 3:1 (focus ring) on light **and** dark for the design's contrast table pairs, computed from the PR's
   `src/index.css`; light and dark screenshots of an answer, an A-refusal and the early refusal if QA can run a browser.
   The passage text (today `text-slate-300` on `bg-background/80`, nearly invisible in light mode per FE-3a QA r1 evidence 11/17) is in the contrast table and
   in the light screenshots of the A-refusal and `mixedAnswer`.
-- [ ] AC6 — FE-1/FE-3a tests still pass unchanged except where a class assert must follow a token (listed in the PR body); AC4 early-refusal asserts unchanged.
-- [ ] AC7 — CI `frontend` job green (`npm ci && npm run lint && npm test && npm run build`), lint warnings not above main.
-- [ ] Docs: app `README.md:138-139` ("the first visit starts in Dark", at `11c4696`) says the first visit follows the OS setting (System); no other README change.
+- [x] AC6 — FE-1/FE-3a tests still pass unchanged except where a class assert must follow a token (listed in the PR body); AC4 early-refusal asserts unchanged.
+- [x] AC7 — CI `frontend` job green (`npm ci && npm run lint && npm test && npm run build`), lint warnings not above main.
+- [x] Docs: app `README.md:138-139` ("the first visit starts in Dark", at `11c4696`) says the first visit follows the OS setting (System); no other README change.
 
 ## Verification
 ```bash
@@ -54,6 +54,7 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
 ```
 
 ## Notes
+- 2026-11-21 (pm-lead, final review): **APPROVE** of #104 @ `d9b2386` after QA r1 PASS ([report](../reviews/FE-3b/report.md), evidence `9081edf`). All ACs are met with evidence. Nits went to Backlog: the `ui/badge.jsx` `span` variant (a div inside the chip button), the hero focus halo `ring-ring/60`, and the refusal-mode active card. FE-3 is complete once this merges.
 - 2026-11-21 (frontend-engineer, cycle 05:00Z): built on `agent/frontend/FE-3b` @ `d9b2386` (10 files, +130/−42) → draft PR [#104](https://github.com/MaheshPulivarthi18/ArxivLens/pull/104). Answer, passages, active card, markers, early-refusal banner (`role="status"`, `<Button size="sm">`) and HeroSearch on tokens; answer prose `prose font-serif`; status chips are `<button type="button">` tooltip triggers (title removed); `DEFAULT_THEME = "system"` in `theme.js` + `index.html`; README:139 updated; `tokens.test.js` guards 8 files with the widened pattern (node replay: 0 hits at head, 51 on `11c4696`); `setup.js` stubs `ResizeObserver` (+ `DOMRect`). npm unreachable in the sandbox, so lint/test/build/`.prose` dist line rely on CI. Open for QA: `<div>` Badge inside chip button (needs `ui/badge.jsx` to fix); marker `title` kept per design §2; AC5 contrast/screenshots.
 - 2026-11-20 (pm-lead): split from FE-3 at the design review. Waits for FE-0e so an OS-light visitor never lands on ~1.8:1 emerald/red text in the
   ingest modal, library or toast after the flip.
