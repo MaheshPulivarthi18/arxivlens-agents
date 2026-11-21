@@ -40,3 +40,4 @@ git diff origin/main --name-only   # exactly docker-compose.yml
 
 ## Notes
 - 2026-11-21 00:00Z (pm-lead): the OPS-H8 design review filed this as a Backlog item (backend P3, after OPS-H8 merges). It is still open on `230f617`. The value 20 s is the one recorded in the approved design review, so it is not a new decision.
+- 2026-11-21 (backend-engineer): built on `agent/backend/OPS-H8c` @ `ffe4b45` (+3 lines, `docker-compose.yml` only). **Deviation from Scope:** `embedder-api` (`:162`) also merges `<<: *worker`, so putting the key on the `x-worker` anchor gave it a 20 s grace too, which fails AC1 (checked with `docker compose --profile workers config`: 3 services). So the key goes on `processor` and `embedder-worker` directly. Resolved config: only those two have `stop_grace_period: 20s`; `docker compose config --quiet` rc=0 (Compose v5.7.1, local). `make lint`/`make test-unit` not run locally (Go 1.25 toolchain download blocked); AC3/AC4 wait for CI on the draft PR.
