@@ -28,7 +28,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
-| [RET-1e](tasks/RET-1e.md) (KAN-99) | Handler tests for the query API's `http.Error` paths + `SetIngester(non-nil)` | backend-engineer | [#105](https://github.com/MaheshPulivarthi18/ArxivLens/pull/105) draft @ `7d63496` — QA r1 **PENDING** (AC1–AC3 met; AC4 Full stack red twice on arXiv 429 in replay prefetch, before tests) ([report](reviews/RET-1e/report.md)) |
+| [RET-1e](tasks/RET-1e.md) (KAN-99) | Handler tests for the query API's `http.Error` paths + `SetIngester(non-nil)` | backend-engineer | [#105](https://github.com/MaheshPulivarthi18/ArxivLens/pull/105) @ `7d63496`: **Ready to merge** (QA r2 PASS, PM APPROVE 2026-11-21; raised, waiting on Mahesh) ([report](reviews/RET-1e/report.md)) |
 | [OPS-H6e](tasks/OPS-H6e.md) (KAN-108) | `save_chunk_embeddings` writes a vector only if the chunk still has the embedded hash | backend-engineer | [#106](https://github.com/MaheshPulivarthi18/ArxivLens/pull/106) draft @ `f1b156e` — QA r1 **PENDING** (AC5 real-PG test needs Full stack; red twice on arXiv 429) ([report](reviews/OPS-H6e/report.md)) |
 | [EVAL-6c](tasks/EVAL-6c.md) (KAN-109) | Answer eval fails closed on every malformed `/v1/ask` shape | ai-engineer | [#107](https://github.com/MaheshPulivarthi18/ArxivLens/pull/107) draft @ `1f3bd31` — QA r1 **PENDING** (AC1–AC7 met; Full stack red twice on arXiv 429) ([report](reviews/EVAL-6c/report.md)) |
 
