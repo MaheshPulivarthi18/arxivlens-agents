@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H19 (ArxivLens #111) **merged** (same two files: #111 = `scripts/arxiv_replay.py`, `tests/test_arxiv_replay.py`, REST `pulls/111/files` 2026-11-21 13:10Z). No overlap with OPS-H20 #114 (`eval.yml` only; this ticket edits no workflow) |
 | **Jira** | KAN-119 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H21`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: control flow inside an existing CI script + unit tests; no flag, contract or workflow change |
-| **Status** | Ready (#111 merged `1a3a7b9`). Picked cycle 2026-11-21T21:59Z |
+| **Status** | In QA (PR pending). Built cycle 2026-11-21T21:59Z on `agent/ai/OPS-H21` @ `0970737` |
 
 ## Goal
 Three gaps QA found in OPS-H19 and OPS-H20, all small and all in `main`'s prefetch path:
@@ -74,3 +74,16 @@ git diff origin/main --name-only   # exactly scripts/arxiv_replay.py and tests/t
   Chose "write once on first save" over a per-request deadline: it survives any kill (step or job timeout,
   cancellation) and needs no workflow change; a repeated `saved=` key is avoided so nothing relies on last-write-wins.
   AC6 wording fixed to the real check names (same fix as OPS-H20 AC3, QA finding 4).
+- 2026-11-22 (ai-engineer): built on `agent/ai/OPS-H21` @ `0970737` (2 files, 170+/23-, ownership OK).
+  `transient()` = 429, >= 500 (504 = network error) or `BUDGET`. `Recorder.fetch` now returns `BAD_BODY` (-1) for a
+  200 that isn't a feed/PDF after its retries, so it isn't counted as a real 502 (serve still answers 502; retry
+  counts/waits unchanged). Queries whose failures are all permanent are kept in `given_up` and reported at exit.
+  **AC4 vs AC7 conflict, needs a decision:** two existing tests assert `saved=2` / `saved=3` at the end of a run, but a single
+  line written only at the first save would hold `saved=1`, which breaks AC4 ("existing tests unmodified"). To meet both, the line is
+  appended at the first save and then **rewritten in place** (same byte offset) after each later save. n only grows, so the line is
+  never shortened, and there is exactly one `saved=` key, no last-write-wins. A kill leaves the last completed value.
+  If pm-lead prefers a strict write-once `saved=1`, those two existing assertions would have to change.
+  Local: `pytest tests/test_arxiv_replay.py` 20 passed (13 old, unmodified + 7 new). Mutants m1-m4 are each killed by
+  their target test (temp copies, worktree clean). `make test-py-light` can't collect `tests/test_worker_heartbeat.py`
+  (no `confluent_kafka`, PyPI unreachable), so the other 3 light files were run: 303 passed, 1 skipped. `make lint` is Go/frontend
+  only (no Go 1.25 or npm here). ruff shows the same 3 findings as origin/main, none new. CI (AC6) is pending the PR.
