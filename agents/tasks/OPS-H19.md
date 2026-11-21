@@ -8,7 +8,7 @@
 | **Depends on** | the replay proxy (ArxivLens #45, merged `393bcf3`). No ADR. No open PR touches `scripts/arxiv_replay.py` or `tests/test_arxiv_replay.py` (checked 2026-11-21 11:00Z against #104–#110: #107 edits `scripts/evaluate_answers.py`, `tests/test_evals_data.py`, `evals/README.md`; #110 edits `tests/test_kafka_client.py`; #106 edits `tests/test_chunk_reprocess_db.py`, `tests/test_processor_pages.py`) |
 | **Jira** | needs creating: epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H19`, `agent-ai`, `arxivlens` |
 | **Design required** | no: one function's control flow in an existing CI script + unit tests; no CLI flag, table, service or contract change |
-| **Status** | In QA (PR pending) |
+| **Status** | PM review (held: eval check still running) |
 
 ## Goal
 The Full stack job's "Prefetch arXiv responses into the replay store" step failed six times on 2026-11-21 (#105/#106/#107, two
@@ -48,8 +48,10 @@ Checked on `origin/main` `11c4696`:
   failed query (not the query that already succeeded).
 - [ ] AC2: With `--budget-seconds 0` (no limit) behaviour is unchanged: exactly one pass, exit 1 on failure. The existing
   `test_prefetch_reports_failures` still passes unmodified, and a new assert pins the request count of that one pass.
-- [ ] AC3: No upstream request starts after the deadline, and no retry or cool-down sleep extends past it: sleeps are clipped to
-  the time left, and a fetch that would start after the deadline is skipped and reported as `(time budget)`. So worst-case wall
+- [ ] AC3: No upstream request starts after the deadline, and no retry or cool-down sleep extends past it: a wait (politeness
+  gap, retry wait or cool-down) that would reach the deadline is not taken, and the fetch it would have preceded, or any fetch
+  that would start after the deadline, is skipped and reported as `(time budget)`. *(Wording amended by pm-lead 2026-11-21 after QA
+  r1 `[spec]` finding 3: it said "sleeps are clipped to the time left"; skipping is stricter and wastes no wall time.)* So worst-case wall
   time is ≤ budget + `TIMEOUT` (one in-flight request): 1020 + 120 s < 20 min (stack.yml) and 2520 + 120 s < 45 min (eval.yml);
   state both sums in the docstring. Test with a fake clock (as `test_prefetch_budget_stops_early_and_reports_saved` does) and a
   recorded-sleep stub: every recorded sleep ends at or before the deadline, and no request is logged after it.
@@ -106,4 +108,7 @@ git diff origin/main --name-only   # exactly scripts/arxiv_replay.py and tests/t
     and PyPI is blocked, so `test_worker_heartbeat.py` fails to collect); `make lint` (Go/oxlint only, nothing touched). `ruff check` on both
     files reports the same 3 findings as origin/main (EXE001, BLE001, SIM115 on lines this change doesn't touch). AC7
     (CI Lint, light job, Full stack prefetch log lines) is pending the draft PR. README/CONTRIBUTING: `grep -n prefetch` finds nothing, so unchanged.
-
+- 2026-11-21 11:57Z (pm-lead): QA r1 PASS. **PM review held: eval check still running** (job 136830894337, in
+  `make eval-seed` since 11:32Z; 15 min of polling). Evidence reviewed, all ACs covered; PR #111 stays draft. QA findings
+  decided: AC3 wording amended (finding 3); follow-ups OPS-H21 (findings 1+2, ai) and OPS-H20 (finding 4, backend) in
+  Backlog. Next cycle: eval green → APPROVE and raise. See `agents/reviews/OPS-H19/report.md`.
