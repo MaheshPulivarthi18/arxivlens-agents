@@ -1,0 +1,14 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136652656390/logs | grep -nE '<job name|HEAD|make steps|GOFLAGS|go vet|go test|internal/(arxiv|query)|FAIL>'
+34:2026-11-21T00:11:00.6302233Z Complete job name: Go (vet, gofmt, test, build)
+120:2026-11-21T00:11:02.3708872Z HEAD is now at de2159b Merge 6afd06d871486563640a4e84a6244fdb1547d1b9 into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+182:2026-11-21T00:11:14.1547004Z GOFLAGS=''
+208:2026-11-21T00:11:14.1824289Z ##[group]Run make lint-go
+212:2026-11-21T00:11:14.2110674Z go vet ./...
+213:2026-11-21T00:11:15.5101740Z ##[group]Run make test-go
+217:2026-11-21T00:11:15.5132078Z   GOFLAGS: -race
+219:2026-11-21T00:11:15.5195777Z go test ./...
+221:2026-11-21T00:11:52.7188316Z ok  	arxivlens/internal/arxiv	3.197s
+230:2026-11-21T00:11:55.5464287Z ok  	arxivlens/internal/query	1.528s
+693:2026-11-21T00:12:01.7319368Z ##[group]Run make build-go
+720:2026-11-21T00:12:02.9945732Z Cleaning up orphan processes
+

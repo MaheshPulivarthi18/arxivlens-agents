@@ -1,0 +1,18 @@
+$ /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1/verify.sh
+go version go1.24.7 linux/amd64
+$ go test -count=1 -v -run TestConcurrentCallersAreSpaced ./internal/arxiv/
+--- PASS: TestConcurrentCallersAreSpaced (0.90s)
+ok  	arxivlens/internal/arxiv	0.907s
+$ go test -count=1 -v -run Cancel ./internal/query/
+--- PASS: TestIngestCancelledCtxSendsNoRequest (0.00s)
+--- PASS: TestIngestCancelledAfterAtomSendsNoPDFRequest (0.00s)
+ok  	arxivlens/internal/query	0.003s
+$ go test -count=10 -run TestConcurrentCallersAreSpaced$ ./internal/arxiv/
+ok  	arxivlens/internal/arxiv	9.036s
+$ go test -race -count=5 ./internal/arxiv/... ./internal/query/...
+ok  	arxivlens/internal/arxiv	11.924s
+ok  	arxivlens/internal/query	2.568s
+$ go test -count=20 -run Cancel ./internal/query/   (flakiness)
+ok  	arxivlens/internal/query	0.007s
+
+[exit code 0]

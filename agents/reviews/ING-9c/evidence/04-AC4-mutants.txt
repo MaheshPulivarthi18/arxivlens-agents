@@ -1,0 +1,74 @@
+$ /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1/mutate.sh
+=== m1: internal/arxiv/http.go
+  < 			if err := lim.Wait(ctx); err != nil {
+  < 				return err
+  < 			}
+  > 			_ = lim.Wait(ctx)
+  target  -run 'TestIngestCancelledCtxSendsNoRequest$': KILLED
+    --- FAIL: TestIngestCancelledCtxSendsNoRequest (0.00s)
+        ingester_test.go:193: discover=false: got 1 arXiv requests, want 0: [{at:{wall:14031059850643055662 ext:664173 loc:0xaf5400} url:http://export.arx
+        ingester_test.go:193: discover=true: got 2 arXiv requests, want 0: [{at:{wall:14031059850643118059 ext:726561 loc:0xaf5400} url:http://export.arxi
+  full    arxiv+query: KILLED
+    --- FAIL: TestIngestCancelledCtxSendsNoRequest (0.00s)
+=== m2: internal/query/ingester.go
+  < 		if err := ing.limiter.Wait(ctx); err != nil {
+  < 			return err
+  < 		}
+  > 		_ = ing.limiter.Wait(ctx)
+  target  -run 'TestIngestCancelledAfterAtomSendsNoPDFRequest$': KILLED
+    --- FAIL: TestIngestCancelledAfterAtomSendsNoPDFRequest (0.00s)
+        ingester_test.go:220: err = arxiv returned status 503, want context.Canceled
+        ingester_test.go:223: arXiv requests = [{at:{wall:14031059854292541456 ext:541571 loc:0xaf5400} url:http://export.arxiv.org/api/query?id_list=2307
+  full    arxiv+query: KILLED
+    --- FAIL: TestIngestCancelledAfterAtomSendsNoPDFRequest (0.00s)
+=== m3: internal/arxiv/limiter.go
+  < 	select {
+  < 	case l.turn <- struct{}{}:
+  < 	case <-ctx.Done():
+  < 		return ctx.Err()
+  < 	}
+  < 	defer func() { <-l.turn }()
+  target  -run 'TestConcurrentCallersAreSpaced$': KILLED
+    --- FAIL: TestConcurrentCallersAreSpaced (0.10s)
+        limiter_test.go:76: gap 2 = 28.363µs, want >= 100ms (slack 20ms)
+        limiter_test.go:76: gap 3 = 3.374µs, want >= 100ms (slack 20ms)
+        limiter_test.go:76: gap 4 = 1.008µs, want >= 100ms (slack 20ms)
+  full    arxiv+query: KILLED
+    --- FAIL: TestConcurrentCallersAreSpaced (0.10s)
+    --- FAIL: TestConcurrentIngestsShareOneLimiter (0.10s)
+=== m4: internal/arxiv/limiter.go
+  < 		if d := time.Until(l.last.Add(l.interval)); d > 0 {
+  > 		if d := time.Until(l.last.Add(l.interval / 2)); d > 0 {
+  target  -run 'TestConcurrentCallersAreSpaced$': KILLED
+    --- FAIL: TestConcurrentCallersAreSpaced (0.45s)
+        limiter_test.go:76: gap 1 = 50.254276ms, want >= 100ms (slack 20ms)
+        limiter_test.go:76: gap 2 = 50.206638ms, want >= 100ms (slack 20ms)
+        limiter_test.go:76: gap 3 = 50.301402ms, want >= 100ms (slack 20ms)
+  full    arxiv+query: KILLED
+    --- FAIL: TestSequentialWaits (0.08s)
+    --- FAIL: TestConcurrentCallersAreSpaced (0.45s)
+    --- FAIL: TestCancelledWaiter (0.08s)
+    --- FAIL: TestIngestSpacesArxivRequests (0.08s)
+    --- FAIL: TestConcurrentIngestsShareOneLimiter (0.08s)
+=== x5: internal/arxiv/limiter.go
+  < 	if err := ctx.Err(); err != nil {
+  < 		return err
+  < 	}
+  target  -run 'TestIngestCancelledCtxSendsNoRequest$': KILLED
+    --- FAIL: TestIngestCancelledCtxSendsNoRequest (0.00s)
+        ingester_test.go:193: discover=false: got 1 arXiv requests, want 0: [{at:{wall:14031059864010315323 ext:811950 loc:0xaf5400} url:http://export.arx
+  full    arxiv+query: KILLED
+    --- FAIL: TestIngestCancelledCtxSendsNoRequest (0.00s)
+=== x6: internal/arxiv/limiter.go
+  < 			case <-ctx.Done():
+  < 				return ctx.Err()
+  target  -run 'TestIngestCancelledAfterAtomSendsNoPDFRequest$': SURVIVED
+  full    arxiv+query: KILLED
+    --- FAIL: TestCancelledWaiter (0.15s)
+=== x7: internal/arxiv/http.go
+  < 		if err = attempt(); err == nil || i >= n || !Retryable(err) || ctx.Err() != nil {
+  > 		if err = attempt(); err == nil || i >= n || !Retryable(err) {
+  target  -run 'Cancel': SURVIVED
+  full    arxiv+query: SURVIVED
+
+[exit code 0]

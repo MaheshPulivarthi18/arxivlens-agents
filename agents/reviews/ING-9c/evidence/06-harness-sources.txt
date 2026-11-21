@@ -1,0 +1,137 @@
+$ /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1/show-harness.sh
+PR head: 6afd06d871486563640a4e84a6244fdb1547d1b9
+identical: internal/arxiv
+identical: internal/config
+identical: internal/query/ingester.go
+identical: internal/query/ingester_test.go
+===== ./basecontrol.sh
+#!/usr/bin/env bash
+# QA ING-9c AC3/AC4 base control: origin/main's limiter_test.go (d=30ms) vs the PR's (d=100ms),
+# each against the real limiter.go and against mutant m4 (interval/2). Also runtime of the test on each.
+H=/tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1
+export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod
+for side in main head; do for lim in real m4; do
+  d=$(mktemp -d "$H/base-$side-$lim-XXXX"); cp -r "$H/src/." "$d/"
+  [ $side = main ] && git -C /root/wt/qa-ING-9c show origin/main:internal/arxiv/limiter_test.go > "$d/internal/arxiv/limiter_test.go"
+  [ $lim = m4 ] && perl -pi -e 's/l\.last\.Add\(l\.interval\)\); d > 0/l.last.Add(l.interval \/ 2)); d > 0/' "$d/internal/arxiv/limiter.go"
+  const=$(grep -A1 "func TestConcurrentCallersAreSpaced" "$d/internal/arxiv/limiter_test.go" | tail -1 | sed "s/^[[:space:]]*//")
+  out=$(cd "$d" && go test -count=1 -v -run 'TestConcurrentCallersAreSpaced$' ./internal/arxiv/ 2>&1)
+  printf '%-5s test (%s) x %-4s limiter: %s\n' $side "$const" $lim "$(echo "$out" | grep -E -- '^--- ' | tr '\n' ' ')"
+  echo "$out" | grep -E 'limiter_test.go' | head -2 | sed 's/^/      /'
+done; done
+===== ./mutate.sh
+#!/usr/bin/env bash
+# QA ING-9c mutation harness. Each mutant: fresh copy of src/, one anchored perl edit, diff shown,
+# build failure => INVALID, else run (a) the AC's target test(s) and (b) the full package suites.
+H=/tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1
+export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod
+run() { # id file perl-expr target-regex target-pkg
+  id=$1 f=$2 expr=$3 re=$4 pkg=$5
+  d=$(mktemp -d "$H/mut-$id-XXXX"); cp -r "$H/src/." "$d/"
+  perl -0pi -e "$expr" "$d/$f"
+  echo "=== $id: $f"
+  if diff -q "$H/src/$f" "$d/$f" >/dev/null; then echo "  NOT APPLIED"; return; fi
+  diff "$H/src/$f" "$d/$f" | grep '^[<>]' | sed 's/^/  /'
+  if ! (cd "$d" && go vet "./$pkg" >/dev/null 2>"$d/build.err"); then echo "  INVALID (build):"; head -3 "$d/build.err"; return; fi
+  t=$(cd "$d" && go test -count=1 -run "$re" "./$pkg" 2>&1)
+  if echo "$t" | grep -q '^ok'; then echo "  target  -run '$re': SURVIVED"; else echo "  target  -run '$re': KILLED"; echo "$t" | grep -E -- '--- FAIL|_test.go:[0-9]+:' | head -4 | cut -c1-150 | sed "s/^/    /"; fi
+  t=$(cd "$d" && go test -count=1 ./internal/arxiv/ ./internal/query/ 2>&1)
+  if echo "$t" | grep -q '^FAIL'; then echo "  full    arxiv+query: KILLED"; echo "$t" | grep -E -- '--- FAIL' | head -6 | sed 's/^/    /'; else echo "  full    arxiv+query: SURVIVED"; fi
+}
+run m1 internal/arxiv/http.go 's/if err := lim\.Wait\(ctx\); err != nil \{\n\t+return err\n\t+\}/_ = lim.Wait(ctx)/' 'TestIngestCancelledCtxSendsNoRequest$' internal/query/
+run m2 internal/query/ingester.go 's/if err := ing\.limiter\.Wait\(ctx\); err != nil \{\n\t+return err\n\t+\}/_ = ing.limiter.Wait(ctx)/' 'TestIngestCancelledAfterAtomSendsNoPDFRequest$' internal/query/
+run m3 internal/arxiv/limiter.go 's/\tselect \{\n\tcase l\.turn <- struct\{\}\{\}:\n\tcase <-ctx\.Done\(\):\n\t\treturn ctx\.Err\(\)\n\t\}\n\tdefer func\(\) \{ <-l\.turn \}\(\)\n//' 'TestConcurrentCallersAreSpaced$' internal/arxiv/
+run m4 internal/arxiv/limiter.go 's/d := time\.Until\(l\.last\.Add\(l\.interval\)\); d > 0/d := time.Until(l.last.Add(l.interval \/ 2)); d > 0/' 'TestConcurrentCallersAreSpaced$' internal/arxiv/
+# extra (QA): other cancellation guards in the same path
+run x5 internal/arxiv/limiter.go 's/\tif err := ctx\.Err\(\); err != nil \{\n\t\treturn err\n\t\}\n\tselect \{\n\tcase l\.turn/\tselect {\n\tcase l.turn/' 'TestIngestCancelledCtxSendsNoRequest$' internal/query/
+run x6 internal/arxiv/limiter.go 's/\t\t\tcase <-t\.C:\n\t\t\tcase <-ctx\.Done\(\):\n\t\t\t\treturn ctx\.Err\(\)\n/\t\t\tcase <-t.C:\n/' 'TestIngestCancelledAfterAtomSendsNoPDFRequest$' internal/query/
+run x7 internal/arxiv/http.go 's/if err = attempt\(\); err == nil \|\| i >= n \|\| !Retryable\(err\) \|\| ctx\.Err\(\) != nil \{/if err = attempt(); err == nil || i >= n || !Retryable(err) {/' 'Cancel' internal/query/
+===== ./show-harness.sh
+#!/usr/bin/env bash
+# QA ING-9c harness: prove the copied package sources equal the PR head, then print every QA-written file.
+H=/tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1
+W=/root/wt/qa-ING-9c
+echo "PR head: $(git -C $W rev-parse HEAD)"
+for p in internal/arxiv internal/config; do diff -r -q $W/$p $H/src/$p && echo "identical: $p"; done
+for f in internal/query/ingester.go internal/query/ingester_test.go; do cmp $W/$f $H/src/$f && echo "identical: $f"; done
+cd $H && find . -type f -not -path './mut-*' -not -path './base-*' -not -path './ci/*' -not -path './src/internal/arxiv/*' -not -path './src/internal/config/*' -not -path './src/internal/query/*' | sort | while read f; do echo "===== $f"; cat "$f"; done
+===== ./src/go.mod
+module arxivlens
+
+go 1.24
+
+require github.com/minio/minio-go/v7 v7.0.70
+
+replace github.com/minio/minio-go/v7 => /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1/stubs/minio
+===== ./src/internal/db/db.go
+// QA stub: PaperRecord copied from the real internal/db/db.go:88; DB methods are no-ops.
+package db
+
+import (
+	"context"
+	"time"
+)
+
+type DB struct{}
+
+type PaperRecord struct {
+	ID            int64
+	ArxivID       string
+	Version       int
+	Title         string
+	Abstract      string
+	Authors       []string
+	Categories    []string
+	PublishedAt   time.Time
+	SourceURL     string
+	PDFStorageKey string
+	SHA256        string
+	Status        string
+	StatusError   string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
+func (d *DB) UpsertDiscoveredPaper(ctx context.Context, p *PaperRecord) (int64, error) { return 0, nil }
+func (d *DB) UpdatePaperDownloaded(ctx context.Context, arxivID string, version int, storageKey, sha256 string) error {
+	return nil
+}
+===== ./stubs/minio/go.mod
+module github.com/minio/minio-go/v7
+
+go 1.24
+===== ./stubs/minio/minio.go
+// QA stub: only the symbols internal/query/ingester*.go use.
+package minio
+
+import (
+	"context"
+	"io"
+)
+
+type Client struct{}
+type PutObjectOptions struct{ ContentType string }
+type UploadInfo struct{}
+
+func (c *Client) PutObject(ctx context.Context, bucket, object string, r io.Reader, size int64, opts PutObjectOptions) (UploadInfo, error) {
+	return UploadInfo{}, nil
+}
+===== ./verify.sh
+#!/usr/bin/env bash
+# QA ING-9c: ticket verification commands, run in the scratch module (real internal/arxiv, internal/config,
+# internal/query/ingester{,_test}.go from the PR head; stubbed internal/db + minio only).
+cd /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1/src
+export GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=mod
+go version
+echo '$ go test -count=1 -v -run TestConcurrentCallersAreSpaced ./internal/arxiv/'
+go test -count=1 -v -run 'TestConcurrentCallersAreSpaced' ./internal/arxiv/ 2>&1 | grep -E -- '^(--- |ok|FAIL)'
+echo '$ go test -count=1 -v -run Cancel ./internal/query/'
+go test -count=1 -v -run 'Cancel' ./internal/query/ 2>&1 | grep -E -- '^(--- |ok|FAIL)'
+echo '$ go test -count=10 -run TestConcurrentCallersAreSpaced$ ./internal/arxiv/'
+go test -count=10 -run 'TestConcurrentCallersAreSpaced$' ./internal/arxiv/ 2>&1
+echo '$ go test -race -count=5 ./internal/arxiv/... ./internal/query/...'
+go test -race -count=5 ./internal/arxiv/... ./internal/query/... 2>&1
+echo '$ go test -count=20 -run Cancel ./internal/query/   (flakiness)'
+go test -count=20 -run 'Cancel' ./internal/query/ 2>&1
+
+[exit code 0]

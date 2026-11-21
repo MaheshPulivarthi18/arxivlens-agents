@@ -1,0 +1,12 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; git diff origin/main...HEAD --name-only; echo; echo "gofmt -l on changed files:"; gofmt -l $(git diff origin/main...HEAD --name-only); echo "(empty = formatted)"
+ internal/arxiv/limiter_test.go  |  4 +++-
+ internal/query/ingester_test.go | 52 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+), 1 deletion(-)
+
+internal/arxiv/limiter_test.go
+internal/query/ingester_test.go
+
+gofmt -l on changed files:
+(empty = formatted)
+
+[exit code 0]

@@ -1,0 +1,9 @@
+$ /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-ING-9c-r1/basecontrol.sh
+main  test (const n, d = 10, 30 * time.Millisecond) x real limiter: --- PASS: TestConcurrentCallersAreSpaced (0.27s) 
+main  test (const n, d = 10, 30 * time.Millisecond) x m4   limiter: --- PASS: TestConcurrentCallersAreSpaced (0.14s) 
+head  test (const n, d = 10, 100 * time.Millisecond) x real limiter: --- PASS: TestConcurrentCallersAreSpaced (0.90s) 
+head  test (const n, d = 10, 100 * time.Millisecond) x m4   limiter: --- FAIL: TestConcurrentCallersAreSpaced (0.45s) 
+          limiter_test.go:76: gap 1 = 50.282652ms, want >= 100ms (slack 20ms)
+          limiter_test.go:76: gap 2 = 50.421423ms, want >= 100ms (slack 20ms)
+
+[exit code 0]
