@@ -963,3 +963,20 @@ Format:
 - Picked (new specs, pairwise disjoint, deps merged, no Proposed-ADR wait): **FE-0g** (frontend, `ui/primitives.test.jsx`: mutants M35–M39), **FE-0i** (frontend, `ui/badge.jsx` → `<span>` + new `ui/badge.test.jsx`; FE-3b QA nit 1), **OPS-H8d** (ai-engineer, `tests/test_kafka_client.py`: compose `stop_grace_period` > `DELIVERY_TIMEOUT_S` + 1 s; in the file CI already runs, so no Makefile change). Checked file lists of #104–#107: no overlap.
 - Not picked: Full stack arXiv-429 prefetch fix (P1, but `stack.yml` is backend-owned and backend is at WIP), ING-9c x5 limiter test (backend), `main.go` queue + FE-2/FE-4/FE-3a2 Toast follow-up/control scan/theme tests (wait for #104 to merge or share its files), EVAL-7/EVAL-5 test follow-ups (`tests/test_evals_data.py`, #107).
 - Jira sync skipped (no Atlassian tools in this session): orchestrator to create stories for FE-0g, FE-0i (epic KAN-5) and OPS-H8d (epic KAN-3).
+
+## 2026-11-21 11:00Z — orchestrator (cycle record; session_01ATEBeUeGL7pejudww1Kgz9)
+- Setup: push dry-run OK. RUN_LOCK from cycle 07:00Z (session_01ATEBeRgibGdhzLhUmFpK8T) was 4 h old and never released → treated as stale, replaced (`0106091`). That cycle's work was on main (QA FE-0g r1, FE-0i r1, OPS-H8d PR #110) but it left no record entry; this entry covers it.
+- Sync: no merges since 04:52Z (app `main` = `11c4696`). Open agent PRs #104–#110. No review or untagged comment from Mahesh on any PR; no Jira intake; no ADR status change.
+- **RET-1e** #105: QA r2 PASS (from 07:00Z) → PM APPROVE (`0162c8d`), raised. Jira KAN-99 → Ready to merge. QA rounds 2 (r1 PENDING infra), PM 1.
+- **OPS-H6e** #106: QA r2 PASS (Full stack green, new real-PG test in `-rA`; `845b2a2`) → PM APPROVE (`8598f3e`), raised. Follow-ups OPS-H6f (KAN-116), AI-13 (KAN-117). Jira KAN-108 → Ready to merge.
+- **EVAL-6c** #107: QA r2 PASS → PM APPROVE (`358e439`), raised. `make eval` not run (no stack; 3000-run head-vs-main 0 diffs). Jira KAN-109 → Ready to merge.
+- **FE-0g** #108: QA r2 PASS — AC6 mutants executed in the Chromium shim harness (7 killed at head, all survive vs main's tests; `2d57bdb`) → PM APPROVE (`eb1ae08`), raised. Jira KAN-110 → Ready to merge.
+- **FE-0i** #109: QA r1 PASS → PM APPROVE (`609ef86`), raised; follow-up FE-0j (KAN-115). Jira KAN-111 → Ready to merge.
+- **OPS-H8d** #110: QA r1 PASS (`d1399b4`; nit x14 folded into next `test_kafka_client.py` edit) → PM APPROVE (`803835a`), raised. Jira KAN-112 → Ready to merge.
+- New (pm-lead plan `fd9d76a`; only 2 independent tasks — everything else waits on #104/#106/#107/#109 merging or on Mahesh):
+  - **OPS-H19** (ai, P1 harness, KAN-113): `scripts/arxiv_replay.py` + `tests/test_arxiv_replay.py`; PR [#111](https://github.com/MaheshPulivarthi18/ArxivLens/pull/111) @ `5b4d6a2`, 1 attempt. QA r1 PASS (m1–m4 killed; 2 nits, 2 [spec]). PM **HOLD** (`5c66efc`): `eval` check still in `make eval-seed` after a 15-min wait; review otherwise complete. AC3 wording fixed; follow-ups OPS-H20 (KAN-118), OPS-H21 (KAN-119). Jira KAN-113 stays PM review.
+  - **ING-9d** (backend, P3, KAN-114): `internal/arxiv/limiter_test.go`; PR [#112](https://github.com/MaheshPulivarthi18/ArxivLens/pull/112) @ `ac9ba42`, 1 attempt. QA r1 PASS (x5 killed 30/30, was 14/30) → PM APPROVE (`5422d44`), raised; AC4 wording fixed (no "Lint" job). Jira → Ready to merge.
+  - Independence: OPS-H19 and ING-9d share no files with each other or with #104–#110; deps merged; no contract change.
+- QA harness again refused `report.md` for ING-9d and OPS-H19; orchestrator saved the PR comments verbatim (`9e183a1`). PM PR-body image embeds again rewritten by the outbound filter (16×, lesson updated).
+- Retro: first-round QA pass 4/4; PENDING rounds this cycle were all infra (arXiv 429) or harness (FE-0g mutant runner), both now addressed (OPS-H19; harness ran). No new rules PR.
+- RUN_LOCK released in this commit.
