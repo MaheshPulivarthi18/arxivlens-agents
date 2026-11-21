@@ -6,9 +6,9 @@
 | **Priority** | P3 (harness) |
 | **PRD ref** | Technical PRD §10 (Testing and evaluation) / `CONTRIBUTING.md` Commands table. Source: [QA OPS-H18 report](../reviews/OPS-H18/report.md) findings 1 and 3, carried as the board Backlog line "OPS-H18 QA nits" |
 | **Depends on** | OPS-H18 (ArxivLens #103) **merged** `11c4696`. No open PR (#104–#112) touches `Makefile` or `.github/workflows/ci.yml` (checked 2026-11-21 12:00Z with `gh api .../pulls/<n>/files`) |
-| **Jira** | to be created by the orchestrator (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H18b`, `agent-backend`, `arxivlens`) |
+| **Jira** | KAN-120 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H18b`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one CI step's shell and one Makefile help string; no product code, no contract, no new command |
-| **Status** | In Progress (picked 2026-11-21T12:00Z) |
+| **Status** | Ready to merge: QA r1 PASS + PM APPROVE on `246d6d1`; ArxivLens [#113](https://github.com/MaheshPulivarthi18/ArxivLens/pull/113) raised for review 2026-11-21 (waits on Mahesh) |
 
 ## Goal
 The `python` CI job checks that no ML package is installed before `make test-py-light` runs, so the light tests really
@@ -35,22 +35,22 @@ Checked on `origin/main` `11c4696`:
   `README.md`, other Makefile targets.
 
 ## Acceptance criteria
-- [ ] AC1 — The guard fails the step when `pip list` exits non-zero, with an `::error::` line that says `pip list`
+- [x] AC1 — The guard fails the step when `pip list` exits non-zero, with an `::error::` line that says `pip list`
   failed (wording free, but distinct from the "ML stack present" error). It still fails with the existing
   `::error::ML stack present before the light tests` when a listed package is installed, and passes when neither
   happens. Hint (not required wording): capture first, e.g. `pkgs="$(pip list)" || { echo "::error::pip list failed"; exit 1; }`
   then `grep -iE '…' <<<"$pkgs"`.
-- [ ] AC2 — Evidence for the three AC1 branches, from a local bash run of the step's exact `run:` block with `pip`
+- [x] AC2 — Evidence for the three AC1 branches, from a local bash run of the step's exact `run:` block with `pip`
   replaced by a stub function (exit 2 / prints `torch 2.x` / prints only light packages) → three outputs and exit codes
   pasted in the PR. The real CI run must show the step passing on the PR head.
-- [ ] AC3 — `make help` prints `test-unit` with text that names what it runs now, e.g.
+- [x] AC3 — `make help` prints `test-unit` with text that names what it runs now, e.g.
   `Fast tests, no infra (Go + test-py). Frontend tests: make test-fe`; paste the `make help | grep test-unit` line.
-- [ ] AC4 — CI on the PR head: check-runs `Python M0 unit tests`, `Go (vet, gofmt, test, build)`,
+- [x] AC4 — CI on the PR head: check-runs `Python M0 unit tests`, `Go (vet, gofmt, test, build)`,
   `Frontend (lint, test, build)` and `Agent ownership check` all `success` (names as `gh api .../commits/<sha>/check-runs`
   prints them). In `Python M0 unit tests`, the step `Light tests without the ML stack (make test-py-light)` logs
   `ML packages installed (must be none):` followed by no package line and then the `test-py-light` pytest summary.
-- [ ] AC5 — Diff touches only `.github/workflows/ci.yml` and `Makefile`; < 30 changed lines.
-- [ ] Docs: none needed (CONTRIBUTING:23 already correct; README has no `test-unit` description). Say so in the PR.
+- [x] AC5 — Diff touches only `.github/workflows/ci.yml` and `Makefile`; < 30 changed lines.
+- [x] Docs: none needed (CONTRIBUTING:23 already correct; README has no `test-unit` description). Say so in the PR.
 
 ## Verification
 ```bash
@@ -73,3 +73,7 @@ gh api repos/MaheshPulivarthi18/ArxivLens/commits/<head-sha>/check-runs --jq '.c
   prints only `pytest 8.3.0` → reaches `make test-py-light`, exit 0. Contrast: the old block with the same exit-2 stub → exit 0 (the bug).
   `make help | grep test-unit` prints the new text. `ownership-check.sh origin/main agent/backend/OPS-H18b` → OK (6 changed lines).
   Not run locally: shellcheck (not installed), the real CI (AC2 last sentence, AC4: needs the PR head). Docs: none needed (as the spec says).
+- 2026-11-21 pm-lead: final review **APPROVE** on `246d6d1` (QA r1 PASS; [report](../reviews/OPS-H18b/report.md), evidence at `6cd7729`).
+  QA nits: (1) AC2 raw outputs are now pasted in the PR body and evidence 01 is embedded; (2) stderr from `pip list` now visible: accepted;
+  (3) `torchfail` reports the pip error first: accepted (fails closed either way). No follow-ups. PR #113 description rewritten with
+  Evidence, marked ready for review, label `ready-to-merge`. Next: Mahesh reviews/merges.
