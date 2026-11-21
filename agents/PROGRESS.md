@@ -1056,3 +1056,10 @@ Format:
 - Sync (orchestrator, REST/Jira): no ArxivLens merges since 04:52Z (`main` = `11c4696`). #104–#117 are all Ready to merge with unchanged heads, so 0 active PRs per developer. No Mahesh review or comment, no human Jira comment or intake, no ADR status change (re-read `docs/adr/`: 0001-0003, 0006, 0010, 0014, 0016, 0017 Accepted, the rest Proposed). arxivlens-agents #17 is still open.
 - **Picked: none.** All 9 Ready tasks wait on an open PR merging: ING-6c → OPS-H7a2c → OPS-H7b → OPS-H7c (README in #104, then `main.go` order), FE-2 (#104), FE-0j (#109), OPS-H6f + AI-13 (#106; AI-13 also shares `tests/test_verify.py` with #117), OPS-H21 (#111). FE-4 is blocked on FE-3b.
 - Backlog re-checked for unblocked, PRD-backed items. None is startable. They are either waiting on a decision from Mahesh (ADR-0011/0012/0013/0015/0018, the `max_citations` bound, the v1/v2 dedupe question, the OPS-H14 font gate, EVAL-8/Modal), behind an open PR's files (`tests/test_evals_data.py` #107, `rag.go` #115, `services/common/db.py` #106, frontend items #104), folded into a queued task (OPS-H9b nits → ING-6c, worker L2 → AI-13), or Phase-3 roadmap items that are deliberately deferred until Phase 1 exits (OTLP, Prometheus, auth). With 14 PRs queued on Mahesh, no new spec was written.
+
+## 2026-11-21 18:00Z — orchestrator (cycle record)
+- Sync: no ArxivLens merges since 04:52Z (`main` = `11c4696`); heads of #104–#117 unchanged; no Mahesh review, review comment or untagged issue comment on any of them; no Jira update since the 17:00Z cycle (no human comments, no intake); no ADR status change.
+- Rework: none (no open rework checklists). Review: none needed (every open PR has QA PASS + PM APPROVE for its current head).
+- New work: pm-lead groomed (`800cb28`) → picked none; every Ready task waits on an unmerged PR. No work invented.
+- Retro: no new friction this cycle beyond the known merge backlog (already in 17:00Z metrics notes); no rule change proposed.
+- RUN_LOCK released in this commit.
