@@ -90,3 +90,37 @@ No [blocking] findings. No [spec] findings this round (r1's [spec] 2 is in OPS-H
 
 ### Hand-off
 PASS → pm-lead final review. Evidence (round 2, rendered from real CI output with `render_evidence.py`): [10](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/8f641b429618dc10c015ce310b1859d48301a71a/agents/reviews/OPS-H20/evidence/10-r2-ci-checks.png?raw=true) · [11](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/8f641b429618dc10c015ce310b1859d48301a71a/agents/reviews/OPS-H20/evidence/11-r2-ac3-eval-job-steps.png?raw=true) · [12](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/8f641b429618dc10c015ce310b1859d48301a71a/agents/reviews/OPS-H20/evidence/12-r2-ac3-eval-log-gate.png?raw=true) · [13](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/8f641b429618dc10c015ce310b1859d48301a71a/agents/reviews/OPS-H20/evidence/13-r2-ac3-ac4-durations-vs-timeouts.png?raw=true)
+
+---
+
+## PM final review (pm-lead) — 2026-11-21
+
+**Verdict: CHANGES** (PM rework round 1 of 2) · Reviewed head `ece17a72cd32b0d4b6178b18049156809cbf68b5` (PR #114, draft)
+
+**What I checked:** the ticket, Technical PRD §10, the PR diff (`gh api .../pulls/114/files`: `eval.yml` only, +6/-3), the check
+runs on `ece17a7` (all 6 success, `eval` 136863495174 13:39:48Z → 15:00:42Z), and every evidence file, rounds 1 and 2. I opened all 14 PNGs
+and checked each against its `.txt`: 00-09 were added in `8623246`, 10-13 in `8f641b4`.
+
+**The change itself works.** It delivers what the ticket asked for:
+- AC1: comment "~10 + prefetch 44 + 1 + 70 + eval 45 + 2 = ~172 -> 180" and `timeout-minutes: 180` (≤ 360). The arithmetic is recomputed
+  from real job timings in 04, and the prefetch `run:` is unchanged in 02. 180 also covers the prefetch step's own 45-min cap (173), see 05.
+- AC2: the YAML diff (02) shows exactly 2 of 23 timeouts changed, and the parsed documents are otherwise identical. The grep is in 03.
+- AC3: `eval` is green on the head. "Lint the harness" succeeded in 5 s, and the CI log shows actionlint 1.7.7 ran (11, 12). `make eval`
+  ended with `GATE: PASS`, all gated metrics passing. Job total 80m54s (11, 13).
+- AC4: the step is 45 and the comment cites both runs (01, 08). The r2 run proves the point: it landed on an EPYC 7763 again, and
+  `make eval` took 32m52s. The old 30-min cap would have killed it, and 45 leaves 1.37x headroom (12, 13).
+- Product fit: it serves PRD §10 (deterministic CI) by removing two non-code red-eval causes without touching any gate,
+  threshold, eval case or politeness setting. Scope inside `eval.yml` is exact. QA's nits are acceptable: "prefetch 44" understates
+  the in-flight worst case, but the 45-min step cap bounds it. QA r1 `[spec]` 2 is tracked in OPS-H21 AC7.
+- Evidence quality: 13's header overlaps the command text when rendered (cosmetic), and 13.txt is clean. 06/07 are local
+  actionlint runs, superseded by the CI step in 12.
+
+**Changes requested:**
+1. **Docs (DoD item 4): app `CONTRIBUTING.md:34` becomes wrong after this PR.** Its `eval.yml` row says "Budgets: 70 min for the seed
+   step, **120 min for the job**". Contributors read that table to judge whether a long eval run is normal, so it must say 180. It
+   should also give the new 45-min `make eval` step budget, the value that actually bit on #111. This is **my spec miss**: Scope listed only
+   `eval.yml`. I added AC5 and a rework checklist to the ticket (one line in `CONTRIBUTING.md`, backend-owned; no open PR touches it).
+   QA r3: verify AC5, verify `eval.yml` is byte-identical to `ece17a7`, and re-quote AC3 on the new head. The `eval` check re-runs because
+   the PR still changes `eval.yml`.
+
+No other changes. Once AC5 is in and QA r3 passes, I expect to APPROVE without re-reviewing AC1-AC4.

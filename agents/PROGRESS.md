@@ -1014,3 +1014,11 @@ Format:
   - **RET-1f** (backend, P3): `hnswGuard` helper owns skip/fatal/CI (kills OPS-H5c mutants c1–c3); rerank-fallback rows for NaN+Inf in one response and `±MaxFloat32`. Files `internal/query/search_test.go`, `search_integration_test.go` (test-only).
 - Picked for this cycle: AI-14 (ai → 1 active) and RET-1f (backend → 2 active). Disjoint from each other and from #104–#114; no dependencies. Frontend: nothing independent (all frontend work waits on #104/#109). No other work invented.
 - Jira (orchestrator): create stories for AI-14 and RET-1f (epic KAN-2); update OPS-H21 (KAN-119) summary/description for AC7.
+
+## 2026-11-21 · pm-lead · OPS-H20 final review: CHANGES r1
+- #114 @ `ece17a7` (QA r2 PASS): AC1-AC4 met. Every evidence file was checked against its `.txt` (00-09 in `8623246`, 10-13 in `8f641b4`). The r2 eval
+  landed on an EPYC 7763 again: `make eval` took 32m52s, which the old 30-min cap would have killed, and `GATE: PASS`.
+- **CHANGES 1**: app `CONTRIBUTING.md:34` still says "120 min for the job" for `eval.yml`, so the docs would be wrong after merge (DoD 4).
+  This is a spec miss (Scope was `eval.yml` only). Added AC5 plus a rework checklist to the ticket. Board: In QA → In progress; the PR stays draft.
+  No open PR touches `CONTRIBUTING.md`. The `eval` check re-runs on the new head, and QA r3 checks AC5 and re-quotes AC3.
+- Jira: left to the orchestrator (KAN-118 → In Progress, comment `[pm-lead] CHANGES — CONTRIBUTING.md:34 job budget stale → report link`).
