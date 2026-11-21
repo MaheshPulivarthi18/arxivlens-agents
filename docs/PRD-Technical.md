@@ -274,21 +274,34 @@ flowchart TD
     C -->|"rerank &lt; 0.45"| X[drop]
     C -->|"appendix/supplementary/table<br/>and rerank &lt; 0.70"| X
     C -->|pass| D{Any hits left?}
-    D -- No --> R["Refuse: No indexed papers<br/>are relevant to this question."]
-    D -- Yes --> E["Synthesize answer with #91;n#93; markers<br/>⚠ currently templated"]
-    E --> F["Split into sentences,<br/>extract #91;n#93; markers"]
-    F --> G{"1 ≤ n ≤ K?"}
-    G -- No --> X2[discard fabricated marker]
-    G -- Yes --> H[Embed sentence + cited chunk<br/>cosine similarity]
-    H --> I{"≥ 0.50?"}
-    I -- Yes --> S[supported = true]
-    I -- No --> U[supported = false]
-    S --> O[Answer + citations + trace_id]
-    U --> O
+    D -- No --> R["Answer: No indexed papers are relevant<br/>to this question. citations: [], no refusal_reason"]
+    D -- Yes --> L{"LLM configured<br/>and not quick?"}
+    L -- Yes --> M["LLM writes cited claims<br/>(prompt synthesis-v1)"]
+    M -->|"insufficient_evidence: true"| RI["Refuse: insufficient_evidence<br/>passages as unverified evidence"]
+    M -->|"claims"| V2[Verify each claim + cited passage]
+    V2 --> K{"Any claim with a<br/>supported citation?"}
+    K -- Yes --> OS["answer_kind = synthesized:<br/>kept claims[], citations, prompt_version"]
+    K -- No --> Q
+    M -->|"LLM error, timeout,<br/>unusable reply"| Q
+    L -- No --> Q["Quote the most relevant sentence<br/>of each of the top 3 hits, with #91;n#93;"]
+    Q --> V[Verify each sentence + cited passage]
+    V --> S{"Any citation supported?"}
+    S -- Yes --> OQ["answer_kind = quoted:<br/>claims[], citations"]
+    S -- No --> RF["Refuse with evidence (ADR-0003):<br/>verification_unavailable if any citation unverified,<br/>else all_citations_unsupported"]
 ```
 
-Constants are set in `internal/query/rag.go`: relevance cutoff `0.45`, auxiliary-section cutoff `0.70`, `SupportThreshold = 0.50`.
-Known gap (Product PRD QA-4 ◐ partial): the diagram shows the happy path. If the embedder call fails or the cited chunk has no embedding, `rag.go` currently sets `score = 0.75`, `supported = true` without verification. [AI-2](../agents/tasks/AI-2.md) changes this to fail closed (`supported = false`, `score = 0`).
+**Verify** (every pair, both paths): markers outside `1..K` are dropped. A sentence that is a verbatim quote of the cited chunk
+(after whitespace / inline-reference normalisation) is supported with score 1. Any other pair goes, in one batch, to the
+embedder's `POST /internal/verify`, which returns the NLI P(entailment) of the claim by the passage (max over sentence
+windows; `cross-encoder/nli-deberta-v3-small` by default, `ARXIVLENS_NLI_MODEL`). Score ≥ `SupportThreshold = 0.50` →
+`supported`, below → `unsupported`. If the verifier is unavailable (503), errors, returns the wrong number of scores or a
+score outside [0, 1], the citation is `unverified` with score 0, never supported (fail closed, AI-2). An LLM claim whose
+model-given `quote` is not in the cited chunk is `unsupported`. Each citation carries its `status` (ADR-0014); each claim's
+status is `supported` if any of its citations is, else `unverified` if any is (or it has none), else `unsupported`.
+Refusals carry no `claims`, `answer_kind` or `prompt_version`; `quick`, `answer_kind` and `insufficient_evidence` are ADR-0018 (Proposed).
+
+Constants are set in `internal/query/rag.go`: relevance cutoff `0.45`, auxiliary-section cutoff `0.70`, `SupportThreshold = 0.50`
+(NLI P(entailment); calibrate on the EVAL-7 human judgments before changing it).
 
 ### 7.3 On-demand ingest (`/v1/papers/ingest`, `/v1/papers/discover`)
 This path runs synchronously and skips Kafka, for an interactive experience:
@@ -383,7 +396,7 @@ the p95 target.
 
 | Priority | Item | Notes | Task |
 |---|---|---|---|
-| P0 | **LLM answer synthesis** | Replace the template in `rag.go` with prompted generation over reranked chunks. The citation validator already guards against fabricated markers. | [QA-8](../agents/tasks/QA-8.md) (Blocked: ADR-0001, ADR-0002) |
+| P0 | **LLM answer synthesis** | Done: `rag.go` prompts the configured LLM for cited claims over reranked chunks and verifies each claim (§7.2); without an LLM it quotes the passages. Real-LLM eval: [EVAL-8](../agents/tasks/EVAL-8.md) | [QA-8](../agents/tasks/QA-8.md) (Done, #46) |
 | P0 | Containerize processor + embedder in compose | Dockerfiles exist; add services and GPU/MPS notes | [OPS-H1](../agents/tasks/OPS-H1.md) |
 | P1 | Scheduled crawler | Cron/loop with a `since` watermark per category | [ING-6](../agents/tasks/ING-6.md) |
 | P1 | Unify Python deps | Add `minio`, `ulid-py`, `fastapi`, `uvicorn` to a single `requirements.txt` | [OPS-H2](../agents/tasks/OPS-H2.md) |
