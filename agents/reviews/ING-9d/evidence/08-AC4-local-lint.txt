@@ -1,0 +1,5 @@
+$ bash -c export PATH=/usr/local/go1.25.1/bin:$PATH GOTOOLCHAIN=local; echo "gofmt -l (empty = clean):"; gofmt -l internal/arxiv/; go vet ./internal/arxiv/ && echo "go vet ./internal/arxiv/: ok"
+gofmt -l (empty = clean):
+go vet ./internal/arxiv/: ok
+
+[exit code 0]

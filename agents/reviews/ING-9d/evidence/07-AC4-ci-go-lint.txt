@@ -1,0 +1,47 @@
+$ gh api .../actions/jobs/{136830906501,136830907363}[/logs] | grep/sed
+# Go job 136830906501 (head ac9ba42) - excerpt via grep/sed of fetched log
+head_sha=ac9ba424b1aaee49fae7ab5a10d34df9fb2e4efe conclusion=success steps:
+  Set up job: success
+  Run actions/checkout@v4: success
+  Run actions/setup-go@v5: success
+  Run make lint-go: success
+  Go unit tests (make test-go, race detector): success
+  Kafka consumer tests (verbose, race, coverage): success
+  LLM package tests (verbose, race, per-file coverage): success
+  Run make build-go: success
+  Post Run actions/setup-go@v5: success
+  Post Run actions/checkout@v4: success
+  Complete job: success
+HEAD is now at a46eb9d Merge ac9ba424b1aaee49fae7ab5a10d34df9fb2e4efe into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+##[group]Run make lint-go
+[36;1mmake lint-go[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+go vet ./...
+##[group]Run make test-go
+[36;1mmake test-go[0m
+shell: /usr/bin/bash -e {0}
+env:
+  GOFLAGS: -race
+##[endgroup]
+go test ./...
+ok  	arxivlens/cmd/arxivlens	1.037s
+ok  	arxivlens/internal/arxiv	3.195s
+ok  	arxivlens/internal/config	1.015s
+ok  	arxivlens/internal/crawler	1.122s
+ok  	arxivlens/internal/db	1.019s
+ok  	arxivlens/internal/dlq	1.284s
+ok  	arxivlens/internal/downloader	1.118s
+ok  	arxivlens/internal/kafka	1.067s
+ok  	arxivlens/internal/llm	1.965s
+ok  	arxivlens/internal/llm/llmtest	1.118s
+ok  	arxivlens/internal/query	1.528s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+--- FAIL lines in Go job log: 0
+
+# Frontend job 136830907363 (make lint = lint-go + lint-fe; lint-fe = npm run lint)
+head_sha=ac9ba424b1aaee49fae7ab5a10d34df9fb2e4efe conclusion=success
+  Run npm run lint: success
+
