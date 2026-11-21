@@ -28,6 +28,7 @@ must run once with a real model and report supported-citation rate, correct refu
 - [ ] AC3 — Token usage per answer reported (QA-8 log line), and the cost per answer for a hosted model.
 
 ## Notes
+- 2026-11-21 ~21:30Z (orchestrator, from Mahesh live in session_01ATEBeRawKzi1RDhbRiuzYB): Mahesh ran `make eval` locally with a real LLM: Ollama `0.40.16`, `qwen2.5:3b-instruct` @ `357c53fb659c`, M4. **GATE: PASS**: supported 100% (44), correct refusals 100% (22), quick p95 2423 ms, full p95 16786 ms (report-only), near-miss 93.33% (`n003` answered). Results JSON and observations: [reviews/EVAL-8/](../reviews/EVAL-8/README.md). He chose **CI on Modal running the same Ollama model** (not OpenRouter, which has no 3B Qwen2.5 and serves different weights). Next: an ADR (Proposed) for the real-LLM CI eval gate plus EVAL-8a (backend: `eval.yml` secrets, warm-up, model and digest in results) and EVAL-8b (ai: replayed `/v1/ask` fixtures). Mahesh does the Modal deploy and GitHub secrets himself.
 - 2026-11-07 (pm-lead): created so that QA-8's deferred LLM measurement has an owner (lesson 2026-11-03 RET-1). Not among the 15 started tasks.
 - 2026-11-17 (pm-lead, grooming): **Mahesh effectively ran option 3** in #46 (`cc57474`): local `qwen2.5:3b-instruct` on Ollama, Apple M4,
   31-paper corpus, `LLM_TIMEOUT=30s`. Reported, not re-measured (PR body numbers; no results JSON in either repo):
