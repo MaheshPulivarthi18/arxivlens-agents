@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-6c (#107, `bf37354`) and AI-14 (#115, `53171d6`) merged. **No ADR wait**: report-only metadata, no threshold, check or exit-code change (see Notes) |
 | **Jira** | needs a story (orchestrator) under epic KAN-2 "Retrieval & answer quality gates"; labels `task-EVAL-8c`, `agent-ai`, `arxivlens`; link KAN-46 (EVAL-8) |
 | **Design required** | no: report-only fields in an existing script's output; no CLI command, table, service or shared contract |
-| **Status** | Ready |
+| **Status** | In QA (PR pending) |
 
 ## Goal
 Mahesh's GATE-PASS real-LLM run (`agents/reviews/EVAL-8/`) can't prove from its JSON which model answered, or whether a
@@ -95,3 +95,16 @@ before quoting it (lesson ING-9d).
 - `answer_kind` per case answers EVAL-8 observation 1: if `n003`'s answer was `quoted`, its unsupported citation is the
   ADR-0003 flag (expected). If it was `synthesized`, that is an ADR-0019 bug ("written answers show only verified
   citations"). Triage that in the follow-up after this merges (Backlog), not here.
+- 2026-11-22 (ai-engineer, build): branch `agent/ai/EVAL-8c` commit `b91f78e` (local, not pushed; orchestrator opens the
+  draft PR). 5 files, 290 changed lines (over the ~150 target, under the 300 stop): `scripts/eval_gate.py`
+  (`llm_info`/`probe_ollama`/`synthesized_answer_rate`/`llm_warnings`, `llm:` line, `llm` block),
+  `scripts/evaluate_answers.py` (`answer_kind` + citation `status` in `case_record`), `tests/test_evals_data.py`
+  (+15 tests), `evals/README.md`, `evals/BASELINE.md`. Local: `pytest tests/test_evals_data.py` 285 passed / 1 skipped;
+  ruff clean; ownership check OK; mutants m1–m6 each killed. Three existing tests compared exact `case_record` dicts
+  (`test_case_records_hold_ids_and_numbers_only`, `test_malformed_citations_are_one_error_case`,
+  `test_claims_and_citation_fields_leave_eval_results_unchanged`); their expectations gained the two new keys (the AI-8b
+  one now compares records minus the EVAL-8c keys), no assertion removed. `test_gate_*` and `answer_review` tests
+  untouched. `llm.probe_error` is present only on a probe failure (absent when unprobed or successful), so AC1's
+  success block has exactly the 7 keys. Not run: `make test-py-light` locally (`confluent_kafka` not installable in the
+  sandbox, pre-existing; the other 3 light files pass), `make eval` (report-only metadata), Go tests (no Go change). AC8 is CI.
+
