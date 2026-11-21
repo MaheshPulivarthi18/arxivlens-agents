@@ -8,7 +8,7 @@
 | **Depends on** | ING-9c (ArxivLens #99, merged `b56739e`). No ADR. No open PR touches `internal/arxiv/` (checked 2026-11-21 11:00Z against #104–#110; the only Go PR, #105, edits `internal/query/server_test.go`) |
 | **Jira** | needs creating: epic KAN-4 "Continuous ingestion"; labels `task-ING-9d`, `agent-backend`, `arxivlens`; link KAN-103 (ING-9c) |
 | **Design required** | no: one new test in an existing test file |
-| **Status** | Ready |
+| **Status** | In QA (PR pending) |
 
 ## Goal
 `Limiter.Wait` (`internal/arxiv/limiter.go`, on `origin/main` `11c4696`) starts with `if err := ctx.Err(); err != nil { return err }`.
@@ -43,3 +43,4 @@ git diff origin/main --name-only   # exactly internal/arxiv/limiter_test.go
 
 ## Notes
 - 2026-11-21 11:00Z (pm-lead): specced from the Backlog ING-9c follow-up (unblocked since #99 merged; waited for a free backend slot).
+- 2026-11-21 (backend-engineer): built on `agent/backend/ING-9d` (commit `ac9ba42`, +19 lines in `internal/arxiv/limiter_test.go` only): `TestCancelledCtxNeverTakesPermit`, 50 tries, checks `context.Canceled` + `l.last.IsZero()` then `waitImmediate`. Local Go 1.25.1 (`/usr/local/go1.25.1`, `GOTOOLCHAIN=local`): `-count=20 -race` 20/20 PASS; runtime `(0.00s)`; x5 mutant 30/30 FAIL (also 30/30 under `-race`), reverted, unmutated 30/30 PASS. Ownership check OK. Full `make test-unit`/`make lint` not runnable locally (otel modules missing) → CI. Not pushed; orchestrator opens the draft PR.
