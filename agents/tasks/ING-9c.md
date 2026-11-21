@@ -46,3 +46,8 @@ git diff origin/main --name-only # exactly internal/query/ingester_test.go and i
 
 ## Notes
 - 2026-11-21 00:00Z (pm-lead): the ING-9 follow-ups were meant to "fold into the next `ingester.go`/`internal/arxiv` change", and none has come in 14 days. The two test-only items get their own ticket now. The wiring test and the redirect check stay in the Backlog line.
+- 2026-11-21 (backend-engineer): built on `agent/backend/ING-9c` commit `6afd06d` (2 test files, +55/-1). Sandbox has Go 1.24.7 and
+  the module proxy is blocked, so `internal/query` was **not run locally**. `internal/arxiv` (stdlib only) was run with a temporary
+  `go 1.24` modfile: new spacing test PASS (0.90 s, was 0.27 s), `-count=10` ok, `-race -count=5` ok. m3 (no `turn`) fails (gap 1.07 µs),
+  m4 (`interval/2`) fails at d=100 ms (gap 50.3 ms) and survives the old d=30 ms test. AC2 probe (Go 1.24.7): `http.Client` with a
+  custom Transport calls `RoundTrip` on an already-cancelled ctx (Timeout 0 and 5 s), so m1/m2 should die. QA/CI still has to run AC1/AC2 and m1/m2.
