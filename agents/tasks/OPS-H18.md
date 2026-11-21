@@ -8,7 +8,7 @@
 | **Depends on** | none open. No open PR touches `Makefile`, `.github/workflows/ci.yml`, `CONTRIBUTING.md` or `requirements*.txt` (checked 2026-11-21 01:00Z against the file lists of #91–#101). The app `README.md` doesn't mention `test-py`, so it is not in scope (it is held by #93 anyway) |
 | **Jira** | to be created by the orchestrator (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H18`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: Makefile targets, one CI job's steps and a deps file; no product code, no contract |
-| **Status** | Ready |
+| **Status** | In Progress (built on `agent/backend/OPS-H18` @ 2242efe; draft PR to be opened by the orchestrator) |
 
 ## Goal
 Mahesh asked (review of #12) for `make test-py` to be split so the eval-data tests still run when the ML stack
@@ -74,3 +74,14 @@ git diff origin/main --name-only   # Makefile, requirements-light.txt, .github/w
 - If `test_worker_heartbeat.py` turns out to need more than the listed light deps at import time, add exactly what it imports to
   `requirements-light.txt` (never torch or transformers). If one of the "light" files really needs the ML stack, move it to
   `test-py-ml` and say why in the PR.
+- 2026-11-21 (backend-engineer): Built in worktree `/root/wt/OPS-H18`, commit `2242efe` (4 files, +33/-8; ownership check OK, 41 lines).
+  `Makefile`: `PY_LIGHT_TESTS`/`PY_ML_TESTS` vars, `test-py-light`, `test-py-ml`, `test-py: test-py-light test-py-ml`, `.PHONY`; help
+  column widened 12→14 so `test-py-light` aligns. `requirements-light.txt`: pytest, **numpy**, pydantic, confluent-kafka, ulid-py.
+  numpy is needed because `scripts/evaluate_retrieval.py:386` imports it lazily in `run_retrieval_evaluation()`, and 8
+  `test_evals_data.py` tests call it (torch and psycopg are stubbed there, numpy isn't). Found by running the two light files with an import
+  blocker for torch/transformers/sentence_transformers/fitz/pymupdf/numpy/psycopg (8 failed, all `blocked: numpy`); with numpy
+  allowed: `133 passed, 1 skipped`. `test_worker_heartbeat.py` wasn't run locally (no confluent-kafka; PyPI DNS fails in the sandbox).
+  CI step: `pip install -r requirements-light.txt`, then `if pip list | grep -iE 'torch|transformers|sentence|PyMuPDF'; then exit 1`
+  (an explicit `if`, because a `!`-negated pipeline doesn't trip `bash -e`), then `make test-py-light`, then the full install and `make test-py-ml`.
+  AC3 baseline: the latest green `main` CI run 44797226987, job 136502157925 (`230f617`), `make test-py` → `195 passed, 3 skipped, 3 warnings`.
+  AC2/AC3/AC5 are CI-only.
