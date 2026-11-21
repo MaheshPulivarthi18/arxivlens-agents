@@ -878,3 +878,8 @@ Format:
 - QA [spec] 1 fixed: ticket Scope now says per-service placement (`embedder-api` merges `x-worker`). [spec] 2 accepted (duplicate-not-loss, per the design). Design OPS-H8 item 6 got a "done in OPS-H8c" note.
 - Backlog: OPS-H8d (backend P3), a unit test guarding compose grace > `DELIVERY_TIMEOUT_S` + 1 s.
 - Note: the report/ticket/board edits landed inside FE-0h's commit `3978149` (shared working tree, swept by a parallel commit); lesson filed.
+
+## 2026-11-21 · pm-lead · ING-9c (#99) final review
+- APPROVE after QA r1 PASS. Opened evidence 00-07 and the diff (+55/-1, 2 test files). Every AC is proven, including m1-m4 kills and the m4 base control. The PM decision is in `agents/reviews/ING-9c/report.md` (commit `726565e`).
+- PR #99 raised: description rewritten with the Evidence section (8 embeds pinned to `653f563`/`6fa3710`), ready for review (draft=false), label `ready-to-merge`. The outbound filter rewrote the embeds and footer again (lesson count 14×).
+- Board: ING-9c moved from Ready to Ready to merge. Backlog: x5 deterministic limiter test (backend P3).

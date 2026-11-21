@@ -6,9 +6,9 @@
 | **Priority** | P3 (harness) |
 | **PRD ref** | Technical PRD §9 "External politeness"; Product PRD ING-1 (~1 req / 3 s); follow-up from the ING-9 QA/PM review (QA r1 nits 3 and 5, `agents/reviews/ING-9/report.md:43,45`, PM decision `:144,146`) |
 | **Depends on** | ING-9 (#25, merged `2b71772`). No open PR touches the files below (checked 2026-11-21 00:00Z: #94 `internal/query/server.go` + `server_test.go`, #97 `internal/query/search_integration_test.go`, #93 `cmd/arxivlens/`; nothing under `internal/arxiv/`) |
-| **Jira** | to be created by the orchestrator (epic KAN-4 "Continuous ingestion"; labels `task-ING-9c`, `agent-backend`, `arxivlens`; link KAN-48) |
+| **Jira** | KAN-103 (created by the orchestrator; epic KAN-4 "Continuous ingestion"; labels `task-ING-9c`, `agent-backend`, `arxivlens`; link KAN-48) |
 | **Design required** | no: test-only, two existing test files |
-| **Status** | Ready (picked 2026-11-21 00:00Z) |
+| **Status** | Ready to merge (PR #99 @ `6afd06d` raised 2026-11-21; QA r1 PASS, PM APPROVE) |
 
 ## Goal
 The ingester checks the limiter's error before each arXiv request, so a cancelled ingest (client gone, `INGEST_TIMEOUT`) never sends
@@ -51,3 +51,4 @@ git diff origin/main --name-only # exactly internal/query/ingester_test.go and i
   `go 1.24` modfile: new spacing test PASS (0.90 s, was 0.27 s), `-count=10` ok, `-race -count=5` ok. m3 (no `turn`) fails (gap 1.07 µs),
   m4 (`interval/2`) fails at d=100 ms (gap 50.3 ms) and survives the old d=30 ms test. AC2 probe (Go 1.24.7): `http.Client` with a
   custom Transport calls `RoundTrip` on an already-cancelled ctx (Timeout 0 and 5 s), so m1/m2 should die. QA/CI still has to run AC1/AC2 and m1/m2.
+- 2026-11-21 (pm-lead): final review **APPROVE** ([report](../reviews/ING-9c/report.md#pm-decision)). All ACs [x] with evidence 00-07. QA confirmed AC2 on Go: `http.Client` calls `RoundTrip` on a cancelled ctx, so m2 dies and the fallback clause doesn't apply. PR #99 raised: description rewritten with the Evidence section, ready for review, label `ready-to-merge`. Follow-up: x5 deterministic limiter test → board Backlog.
