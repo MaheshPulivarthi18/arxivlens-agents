@@ -124,3 +124,28 @@ Unchanged from round 1. The tests now provably pin the ScrollBar, Toaster-positi
 
 ## Hand-off
 PASS → pm-lead final review (Jira KAN-110 → PM review, which the orchestrator handles; QA did not touch Jira this round). Labels unchanged.
+
+---
+
+## PM final review (pm-lead) · 2026-11-21
+
+**Verdict:** APPROVE · **Reviewed commit:** `35cecd32e27a56529d51162ffa83d8a3486526e0` · **Evidence:** all 14 images (round 1 `00`–`07`, round 2 `r2-00`–`r2-05`) opened
+
+| Check | Result |
+|---|---|
+| PRD / product fit | Meets the goal. It closes FE-0d's surviving mutants M35–M39 and nit 4, so a later edit to the `ScrollBar`, Toaster position, `Separator` className or Tooltip delay of the shared primitives behind Product PRD §7's readable, accessible UI now fails a test. Tests only, no user-visible change, so no PRD status column to update. |
+| Scope | Correct. One file, `frontend/src/components/ui/primitives.test.jsx`, +88/−2 (03; PR files API agrees). The −2 are import lines (`fireEvent`, `ScrollBar`), and the existing tests are untouched (04). No `ui/*.jsx`, `setup.js`, `package.json`, lockfile or `vite.config.js` change. No file overlap with the other open PRs: #104 (FE-3b: `setup.js`, `tokens.test.js`, `ReferencesStack*`, `App.jsx`, ...), #109 (FE-0i: `ui/badge.jsx`, `ui/badge.test.jsx`), #110 (`tests/test_kafka_client.py`). |
+| AC1 | Proven: the test asserts every class the AC lists, including the `not` cases (04), and passes in CI (01: `primitives.test.jsx (17 tests)`). m1 and m2 are killed (r2-03). |
+| AC2 | Proven: asserts the `<ol data-sonner-toaster>` has `data-y-position="bottom"` and `data-x-position="right"` (04), passes in CI (01), and m3 fails with "got top" (r2-03). |
+| AC3 | Proven (04, 01). m4 killed (r2-03). |
+| AC4 | Proven: no `delayDuration` prop, fake timers, closed at 250 ms and open at 350 ms, `vi.useRealTimers()` in `afterEach` (04). Passes in CI (01). `fireEvent.pointerMove` instead of `userEvent` fits the AC's "e.g." wording, and the attempt-1 hang under fake timers is explained in the test comment. m5 and m6 are killed (r2-03). |
+| AC5 | Proven: `t-position` / `d-position` are used only by the new test (05). |
+| AC6 | Proven by executed evidence, not reasoning: the harness control at head passes 17/17 (r2-02), m1–m6 plus FE-0d's M36 are 7 killed / 0 survived, each failing exactly the intended test (r2-03), and the negative control against main's test file leaves all 7 alive (r2-04). So the kills come from FE-0g's tests. The harness matches the lockfile versions and the PR worktree stayed clean (r2-05). The AC allows a QA harness result. The round-1 `[spec]` finding is resolved, so no ticket amendment is needed. This is a Chromium logic check, and CI stays the pass/fail record. |
+| AC7 | Proven: head lint 0 warnings, 145 tests / 11 files, build OK (01) vs main `11c4696` 140 / 11 (02). I re-checked: all 5 check runs on `35cecd3` are `completed/success` (00, r2-00). |
+| Docs | None needed (tests only). |
+| QA nits | 2: PR body said "+86/−1" and "`user.hover`". Fixed in the rewritten description (+88/−2, `fireEvent.pointerMove`). 3: AC4 depends on Radix opening on `pointermove`. If Radix changes that, the test fails loudly rather than passing silently, so it's acceptable. |
+| Note on this report | Round 1 was saved verbatim from a PR comment, and its evidence links are wrapped in stray backticks, so they won't render. The round-2 links and pinned folder links work. Left unedited as QA's record. |
+
+**Follow-ups:** none required. QA's optional extra tests (vertical `Separator` + caller `className`, horizontal `ScrollBar` without `className`) are outside FE-0g's mutant list and don't need a ticket.
+
+**Raised:** PR #108's description is rewritten with the per-AC Evidence section, and the PR is marked ready for review. Not merged; merging is Mahesh's call.

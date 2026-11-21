@@ -8,7 +8,7 @@
 | **Depends on** | FE-0d (#95, merged `ae8de39`). FE-1 (Vitest, merged). No ADR |
 | **Jira** | KAN-110 |
 | **Design required** | no: tests only, no component, contract or dependency change |
-| **Status** | In Progress (built 2026-11-21, branch `agent/frontend/FE-0g` @ `35cecd3`; attempt 2, awaiting CI + QA) |
+| **Status** | Ready to merge (QA r2 PASS, PM APPROVE 2026-11-21; PR #108 @ `35cecd3` raised, waiting on Mahesh) |
 
 ## Goal
 FE-0d's render tests leave five mutants of the `ui/` primitives alive (QA evidence `agents/reviews/FE-0d/evidence/06-mutants-all.png`).
@@ -21,23 +21,23 @@ Pin those behaviours so an edit to `scroll-area.jsx`, `sonner.jsx`, `separator.j
 - Size: ~80–120 test lines.
 
 ## Acceptance criteria
-- [ ] AC1 — **ScrollBar (M35, M36):** a `ScrollBar` rendered inside a scroll-area Root (import `ScrollBar` from `./scroll-area`; use the Root
+- [x] AC1 — **ScrollBar (M35, M36):** a `ScrollBar` rendered inside a scroll-area Root (import `ScrollBar` from `./scroll-area`; use the Root
   from `@radix-ui/react-scroll-area` or `ScrollArea` with `type="always"`, or `forceMount` on the scrollbar, whichever renders it in jsdom) with
   `orientation="horizontal"` and a caller `className="x-bar"` has `h-2.5`, `flex-col`, `border-t` and `x-bar` in its class list and **not** `w-2.5`
   or `border-l`. A default (vertical) `ScrollBar` has `h-full`, `w-2.5`, `border-l` and not `flex-col`.
-- [ ] AC2 — **Toaster position (M37):** once a toast is shown, the `<ol data-sonner-toaster>` list has `data-y-position="bottom"` and
+- [x] AC2 — **Toaster position (M37):** once a toast is shown, the `<ol data-sonner-toaster>` list has `data-y-position="bottom"` and
   `data-x-position="right"`. Note: sonner's own default is also `bottom-right`, so the mutant to kill is a *changed* value (see AC6), not a removed prop.
-- [ ] AC3 — **Separator className (M38):** `<Separator className="x-sep" />` has `x-sep` alongside `shrink-0`, `bg-border`, `h-px`, `w-full`.
-- [ ] AC4 — **Tooltip default delay (M39):** with no `delayDuration` prop, hovering the trigger does **not** show the content before 300 ms
+- [x] AC3 — **Separator className (M38):** `<Separator className="x-sep" />` has `x-sep` alongside `shrink-0`, `bg-border`, `h-px`, `w-full`.
+- [x] AC4 — **Tooltip default delay (M39):** with no `delayDuration` prop, hovering the trigger does **not** show the content before 300 ms
   (e.g. still absent at 250 ms) and does show it after 300 ms. Use fake timers (`vi.useFakeTimers()` + `userEvent.setup({ advanceTimers: vi.advanceTimersByTime })`)
   or real timers with `waitFor`; restore real timers in the test's cleanup so the other tests are unaffected.
-- [ ] AC5 — Any new toast test uses toast text no other test uses (FE-0d QA nit 4).
-- [ ] AC6 — **Mutation check, one mutant per case.** The developer (if the sandbox can run Vitest) or QA's harness (evidence file) shows each of these
+- [x] AC5 — Any new toast test uses toast text no other test uses (FE-0d QA nit 4).
+- [x] AC6 — **Mutation check, one mutant per case.** The developer (if the sandbox can run Vitest) or QA's harness (evidence file) shows each of these
   makes at least one new test fail, and that all tests pass with the source restored: (m1) drop `className` from `ScrollBar`'s `cn(...)`;
   (m2) delete the `orientation === "horizontal" && ...` line; (m3) `position="top-center"` in `sonner.jsx`; (m4) drop `className` from
   `Separator`'s `cn(...)`; (m5) `Tooltip` default `delayDuration = 0`; (m6) `Tooltip` default `delayDuration = 700`. Mutants are local only, never committed.
-- [ ] AC7 — `npm run lint` (0 warnings) and `npm test` pass in the CI Frontend job on the draft PR; the test count in its Vitest summary is higher than on `main` and the file count is unchanged.
-- [ ] Docs: none.
+- [x] AC7 — `npm run lint` (0 warnings) and `npm test` pass in the CI Frontend job on the draft PR; the test count in its Vitest summary is higher than on `main` and the file count is unchanged.
+- [x] Docs: none.
 
 ## Verification
 ```bash
@@ -71,3 +71,6 @@ git diff origin/main --shortstat
   uses `fireEvent.pointerMove(trigger, { pointerType: 'mouse' })`. That is act()-wrapped and has no awaits, so the test can't wait on a faked timer.
   Radix's `TooltipTrigger` opens from `onPointerMove` (not pointerenter), and the first open waits `delayDuration` because `isOpenDelayedRef` starts `true`.
   The assertions are unchanged: ref null and no `role="tooltip"` at 250 ms, both present at 350 ms. Still not run locally (npm blocked), so CI is the check.
+- 2026-11-21 (pm-lead): final review **APPROVE** on `35cecd3` (`agents/reviews/FE-0g/report.md`, "PM final review"). QA r2 executed AC6 in its
+  Chromium harness: m1–m6 all killed, and a negative control against main's tests leaves them all alive. So the round-1 `[spec]` finding about AC6 needs no
+  amendment. CI 5/5 green. PR #108's description was rewritten with the Evidence section (fixes QA nit 2: +88/−2, `fireEvent.pointerMove`), and the PR is marked ready for review.
