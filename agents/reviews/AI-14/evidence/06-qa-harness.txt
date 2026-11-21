@@ -1,0 +1,87 @@
+$ bash -c cat /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/tools/extract.go /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/run.sh /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/mutate.sh
+// extract copies named top-level decls verbatim from Go source files into a scratch package (QA-only harness).
+package main
+
+import (
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"os"
+	"strings"
+)
+
+func main() {
+	// usage: extract <out> <imports,comma> <file:name,name> ...
+	out, imports := os.Args[1], strings.Split(os.Args[2], ",")
+	var b strings.Builder
+	b.WriteString("// Code extracted verbatim by QA harness. DO NOT EDIT.\npackage query\n\nimport (\n")
+	for _, i := range imports {
+		fmt.Fprintf(&b, "\t%q\n", i)
+	}
+	b.WriteString(")\n\n")
+	for _, spec := range os.Args[3:] {
+		p := strings.SplitN(spec, ":", 2)
+		src, _ := os.ReadFile(p[0])
+		fs := token.NewFileSet()
+		f, err := parser.ParseFile(fs, p[0], src, parser.ParseComments)
+		if err != nil { panic(err) }
+		want := map[string]bool{}
+		for _, n := range strings.Split(p[1], ",") { want[n] = true }
+		found := map[string]bool{}
+		for _, d := range f.Decls {
+			name := ""
+			switch x := d.(type) {
+			case *ast.FuncDecl:
+				if x.Recv == nil { name = x.Name.Name }
+			case *ast.GenDecl:
+				for _, s := range x.Specs {
+					switch y := s.(type) {
+					case *ast.TypeSpec: if want[y.Name.Name] { name = y.Name.Name }
+					case *ast.ValueSpec: for _, nm := range y.Names { if want[nm.Name] { name = nm.Name } }
+					}
+				}
+			}
+			if name != "" && want[name] {
+				found[name] = true
+				fmt.Fprintf(&b, "// from %s\n%s\n\n", p[0], src[fs.Position(d.Pos()).Offset:fs.Position(d.End()).Offset])
+			}
+		}
+		for n := range want { if !found[n] { panic("not found: " + n) } }
+	}
+	os.WriteFile(out, []byte(b.String()), 0644)
+}
+#!/bin/bash
+# run.sh <rag.go path> : build scratch module from PR-head decls (rag.go may be a mutated copy) and run TestFilterRelevantHits
+set -e
+S=/tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad
+Q=/root/wt/qa-AI-14/internal/query
+M=$(mktemp -d $S/mod.XXXX)
+printf 'module scratch\n\ngo 1.24\n' > $M/go.mod
+mkdir -p $M/query
+$S/extract $M/query/rag.go regexp,strings "$1:filterRelevantHits,tableWordRegex,isAuxiliarySection" $Q/search.go:SearchHit
+$S/extract $M/query/rag_test.go fmt,reflect,testing $Q/rag_test.go:hitContent,ragHit,TestFilterRelevantHits
+cd $M && GOTOOLCHAIN=local go vet ./... && GOTOOLCHAIN=local go test ./query/ -run 'TestFilterRelevantHits' -v -count=1
+#!/bin/bash
+# mutate.sh: apply each AC4 mutation to a copy of the PR-head rag.go, show the diff, run TestFilterRelevantHits, report caught/survived.
+S=/tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad
+R=/root/wt/qa-AI-14/internal/query/rag.go
+mut() { # name sed-expr
+  C=$S/rag.$1.go; sed "$2" $R > $C
+  echo "================ $1 ================"
+  diff -u $R $C | sed -n '3,$p' | grep '^[-+]'
+  if cmp -s $R $C; then echo "MUTATION NOT APPLIED"; return; fi
+  out=$($S/run.sh $C 2>&1); rc=$?
+  echo "$out" | grep -E -- '--- FAIL|got \[|^(ok|FAIL)\b' 
+  [ $rc -ne 0 ] && echo "RESULT $1: CAUGHT (test exit $rc)" || echo "RESULT $1: SURVIVED"
+}
+echo "baseline (PR head, unmutated):"; $S/run.sh $R 2>&1 | grep -E '^(ok|FAIL|--- )'
+mut m1-substring-table 's/tableWordRegex.MatchString(title)/strings.Contains(lower, "table")/'
+mut m2-no-plural 's/tables?(\[/table([/'
+mut m3-case-sensitive 's/`(?i)(^|/`(^|/'
+mut m4-drop-appendix 's/ || strings.Contains(lower, "appendix")//'
+mut m5-drop-supplementary 's/strings.Contains(lower, "supplementary") || //'
+mut m6-no-left-boundary 's/`(?i)(^|\[^\\pL\])tables?/`(?i)tables?/'
+mut m7-no-right-boundary 's/tables?(\[^\\pL\]|\$)`/tables?`/'
+
+[exit code 0]

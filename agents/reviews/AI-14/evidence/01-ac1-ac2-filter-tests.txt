@@ -1,0 +1,45 @@
+$ /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/run.sh /root/wt/qa-AI-14/internal/query/rag.go
+=== RUN   TestFilterRelevantHits
+=== RUN   TestFilterRelevantHits/below_relevance_cutoff_dropped
+=== RUN   TestFilterRelevantHits/at_relevance_cutoff_kept
+=== RUN   TestFilterRelevantHits/zero_rerank_score_bypasses_relevance_cutoff
+=== RUN   TestFilterRelevantHits/appendix_below_aux_cutoff_dropped
+=== RUN   TestFilterRelevantHits/appendix_at_aux_cutoff_kept
+=== RUN   TestFilterRelevantHits/supplementary_case-insensitive_dropped
+=== RUN   TestFilterRelevantHits/table_section_dropped
+=== RUN   TestFilterRelevantHits/table_section_strongly_relevant_kept
+=== RUN   TestFilterRelevantHits/appendix_with_zero_rerank_dropped
+=== RUN   TestFilterRelevantHits/mixed_keeps_order_of_survivors
+=== RUN   TestFilterRelevantHits/empty_input
+=== RUN   TestFilterRelevantHits/word_containing_table_kept:_Notable
+=== RUN   TestFilterRelevantHits/word_containing_table_kept:_Stable
+=== RUN   TestFilterRelevantHits/word_containing_table_kept:_Suitable
+=== RUN   TestFilterRelevantHits/word_containing_table_kept:_Timetable
+=== RUN   TestFilterRelevantHits/tables_plural_section_dropped
+=== RUN   TestFilterRelevantHits/tables_as_last_word_dropped
+=== RUN   TestFilterRelevantHits/table_followed_by_hyphen_dropped
+=== RUN   TestFilterRelevantHits/supplementary_material_dropped
+--- PASS: TestFilterRelevantHits (0.00s)
+    --- PASS: TestFilterRelevantHits/below_relevance_cutoff_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/at_relevance_cutoff_kept (0.00s)
+    --- PASS: TestFilterRelevantHits/zero_rerank_score_bypasses_relevance_cutoff (0.00s)
+    --- PASS: TestFilterRelevantHits/appendix_below_aux_cutoff_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/appendix_at_aux_cutoff_kept (0.00s)
+    --- PASS: TestFilterRelevantHits/supplementary_case-insensitive_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/table_section_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/table_section_strongly_relevant_kept (0.00s)
+    --- PASS: TestFilterRelevantHits/appendix_with_zero_rerank_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/mixed_keeps_order_of_survivors (0.00s)
+    --- PASS: TestFilterRelevantHits/empty_input (0.00s)
+    --- PASS: TestFilterRelevantHits/word_containing_table_kept:_Notable (0.00s)
+    --- PASS: TestFilterRelevantHits/word_containing_table_kept:_Stable (0.00s)
+    --- PASS: TestFilterRelevantHits/word_containing_table_kept:_Suitable (0.00s)
+    --- PASS: TestFilterRelevantHits/word_containing_table_kept:_Timetable (0.00s)
+    --- PASS: TestFilterRelevantHits/tables_plural_section_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/tables_as_last_word_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/table_followed_by_hyphen_dropped (0.00s)
+    --- PASS: TestFilterRelevantHits/supplementary_material_dropped (0.00s)
+PASS
+ok  	scratch/query	0.003s
+
+[exit code 0]

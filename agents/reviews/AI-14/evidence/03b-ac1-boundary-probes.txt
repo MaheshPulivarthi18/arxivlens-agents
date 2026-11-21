@@ -1,0 +1,24 @@
+$ bash -c /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/mutate.sh | sed -n '/m6-no-left/,$p'
+================ m6-no-left-boundary ================
+-var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?([^\pL]|$)`)
++var tableWordRegex = regexp.MustCompile(`(?i)tables?([^\pL]|$)`)
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+--- FAIL: TestFilterRelevantHits (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Notable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Stable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Suitable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Timetable (0.00s)
+FAIL
+FAIL	scratch/query	0.003s
+FAIL
+RESULT m6-no-left-boundary: CAUGHT (test exit 1)
+================ m7-no-right-boundary ================
+-var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?([^\pL]|$)`)
++var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?`)
+ok  	scratch/query	0.003s
+RESULT m7-no-right-boundary: SURVIVED
+
+[exit code 0]

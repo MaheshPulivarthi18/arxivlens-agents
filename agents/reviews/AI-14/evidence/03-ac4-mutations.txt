@@ -1,0 +1,93 @@
+$ /tmp/claude-0/-home-claude/20bbfaba-337f-56e7-a34a-43af87e4fe09/scratchpad/mutate.sh
+baseline (PR head, unmutated):
+--- PASS: TestFilterRelevantHits (0.00s)
+ok  	scratch/query	0.002s
+================ m1-substring-table ================
+-	return strings.Contains(lower, "supplementary") || strings.Contains(lower, "appendix") || tableWordRegex.MatchString(title)
++	return strings.Contains(lower, "supplementary") || strings.Contains(lower, "appendix") || strings.Contains(lower, "table")
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+--- FAIL: TestFilterRelevantHits (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Notable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Stable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Suitable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Timetable (0.00s)
+FAIL
+FAIL	scratch/query	0.002s
+FAIL
+RESULT m1-substring-table: CAUGHT (test exit 1)
+================ m2-no-plural ================
+-var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?([^\pL]|$)`)
++var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])table([^\pL]|$)`)
+    rag_test.go:59: got [1], want []
+    rag_test.go:59: got [1], want []
+--- FAIL: TestFilterRelevantHits (0.00s)
+    --- FAIL: TestFilterRelevantHits/tables_plural_section_dropped (0.00s)
+    --- FAIL: TestFilterRelevantHits/tables_as_last_word_dropped (0.00s)
+FAIL
+FAIL	scratch/query	0.003s
+FAIL
+RESULT m2-no-plural: CAUGHT (test exit 1)
+================ m3-case-sensitive ================
+-var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?([^\pL]|$)`)
++var tableWordRegex = regexp.MustCompile(`(^|[^\pL])tables?([^\pL]|$)`)
+    rag_test.go:59: got [1], want []
+    rag_test.go:59: got [1], want []
+--- FAIL: TestFilterRelevantHits (0.00s)
+    --- FAIL: TestFilterRelevantHits/table_section_dropped (0.00s)
+    --- FAIL: TestFilterRelevantHits/tables_plural_section_dropped (0.00s)
+FAIL
+FAIL	scratch/query	0.002s
+FAIL
+RESULT m3-case-sensitive: CAUGHT (test exit 1)
+================ m4-drop-appendix ================
+-	return strings.Contains(lower, "supplementary") || strings.Contains(lower, "appendix") || tableWordRegex.MatchString(title)
++	return strings.Contains(lower, "supplementary") || tableWordRegex.MatchString(title)
+    rag_test.go:59: got [1], want []
+    rag_test.go:59: got [1], want []
+    rag_test.go:59: got [1 3 4], want [1 4]
+--- FAIL: TestFilterRelevantHits (0.00s)
+    --- FAIL: TestFilterRelevantHits/appendix_below_aux_cutoff_dropped (0.00s)
+    --- FAIL: TestFilterRelevantHits/appendix_with_zero_rerank_dropped (0.00s)
+    --- FAIL: TestFilterRelevantHits/mixed_keeps_order_of_survivors (0.00s)
+FAIL
+FAIL	scratch/query	0.003s
+FAIL
+RESULT m4-drop-appendix: CAUGHT (test exit 1)
+================ m5-drop-supplementary ================
+-	return strings.Contains(lower, "supplementary") || strings.Contains(lower, "appendix") || tableWordRegex.MatchString(title)
++	return strings.Contains(lower, "appendix") || tableWordRegex.MatchString(title)
+    rag_test.go:59: got [1], want []
+    rag_test.go:59: got [1], want []
+--- FAIL: TestFilterRelevantHits (0.00s)
+    --- FAIL: TestFilterRelevantHits/supplementary_case-insensitive_dropped (0.00s)
+    --- FAIL: TestFilterRelevantHits/supplementary_material_dropped (0.00s)
+FAIL
+FAIL	scratch/query	0.002s
+FAIL
+RESULT m5-drop-supplementary: CAUGHT (test exit 1)
+================ m6-no-left-boundary ================
+-var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?([^\pL]|$)`)
++var tableWordRegex = regexp.MustCompile(`(?i)tables?([^\pL]|$)`)
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+--- FAIL: TestFilterRelevantHits (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Notable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Stable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Suitable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Timetable (0.00s)
+FAIL
+FAIL	scratch/query	0.005s
+FAIL
+RESULT m6-no-left-boundary: CAUGHT (test exit 1)
+================ m7-no-right-boundary ================
+-var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?([^\pL]|$)`)
++var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?`)
+ok  	scratch/query	0.007s
+RESULT m7-no-right-boundary: SURVIVED
+
+[exit code 0]

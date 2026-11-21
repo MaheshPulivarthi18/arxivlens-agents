@@ -1,0 +1,8 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/f2337c3218cb315169a831ae990852e2d1698a94/check-runs
+DB (migrate twice, HNSW plan + recall) | completed | success | 2026-11-21T16:08:27Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44922767465/job/136902184595
+Python M0 unit tests | completed | success | 2026-11-21T16:08:17Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44922767327/job/136902184376
+Full stack (compose + make test-full) | completed | success | 2026-11-21T16:20:19Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44922767421/job/136902184347
+Frontend (lint, test, build) | completed | success | 2026-11-21T16:07:31Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44922767327/job/136902184346
+Agent ownership check | completed | success | 2026-11-21T16:07:04Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44922767327/job/136902184345
+Go (vet, gofmt, test, build) | completed | success | 2026-11-21T16:07:59Z | https://github.com/MaheshPulivarthi18/ArxivLens/actions/runs/44922767327/job/136902184318
+

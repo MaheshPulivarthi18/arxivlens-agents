@@ -1,0 +1,30 @@
+$ bash -c git diff -U1 origin/main...HEAD -- internal/query/rag.go | sed -n "1,20p"; echo ---; grep -n "return fallback(\"claims_unsupported\")\|errSynthesisNoClaims\|reasonAllUnsupported " internal/query/rag.go
+diff --git a/internal/query/rag.go b/internal/query/rag.go
+index a818d73..670a998 100644
+--- a/internal/query/rag.go
++++ b/internal/query/rag.go
+@@ -663,4 +663,5 @@ var (
+ // citation numbers (array or inline [n]) are dropped and counted; claims left empty or uncited are dropped and
+-// counted. If every claim is dropped the result has zero claims and a nil error (synthesize refuses with all_citations_unsupported: the model asserted things it could not cite, so the
+-// extractive answer must not paper over it).
++// counted. If every claim is dropped the result has zero claims and a nil error: finalizeClaims then keeps nothing
++// and synthesize falls back to the quoted answer (fallback reason claims_unsupported), which is verified on its own
++// terms and refuses by itself only if none of its citations is supported.
+ func parseSynthesis(raw string, k int) (synthesisResult, error) {
+@@ -784,2 +785,4 @@ func newCitation(marker int, hit SearchHit, score float64, status string) Citati
+ // auxiliary-section cutoff (appendix/supplementary/table sections need rerank >= 0.70).
++// A section is auxiliary if its title contains "appendix" or "supplementary" (substring,
++// case-insensitive) or the whole word "table"/"tables" (see isAuxiliarySection).
+ func filterRelevantHits(hits []SearchHit) []SearchHit {
+@@ -792,4 +795,3 @@ func filterRelevantHits(hits []SearchHit) []SearchHit {
+ 		// Penalize incidental supplementary/hardware table mentions unless score is high (>= 0.70)
+-		lowerSec := strings.ToLower(h.SectionTitle)
+---
+32:	reasonAllUnsupported          = "all_citations_unsupported"
+82:	// RefusalReason is set only when the answer is withheld (ADR-0003): reasonAllUnsupported or
+265:	case errors.Is(perr, errSynthesisNoClaims):
+287:	return fallback("claims_unsupported")
+658:	errSynthesisNoClaims  = errors.New("synthesis: no claims")       // claims empty and insufficient_evidence false
+691:		return synthesisResult{}, errSynthesisNoClaims
+
+[exit code 0]
