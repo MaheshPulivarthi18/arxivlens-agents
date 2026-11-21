@@ -1,0 +1,9 @@
+$ bash -c /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H20-r1/bin/actionlint -version | head -1; command -v shellcheck || echo 'shellcheck: not installed (CI docker image has it)'; echo '--- head ece17a7'; /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H20-r1/bin/actionlint -color=false .github/workflows/eval.yml; echo "exit=$?"; echo '--- origin/main'; git show origin/main:.github/workflows/eval.yml > /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H20-r1/eval-main.yml; cd $(mktemp -d) && mkdir -p .github/workflows && cp /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H20-r1/eval-main.yml .github/workflows/eval.yml && /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H20-r1/bin/actionlint -color=false .github/workflows/eval.yml; echo "exit=$?"
+v1.7.7+dirty
+shellcheck: not installed (CI docker image has it)
+--- head ece17a7
+exit=0
+--- origin/main
+exit=0
+
+[exit code 0]

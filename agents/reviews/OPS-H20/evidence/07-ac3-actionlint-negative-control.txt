@@ -1,0 +1,12 @@
+$ bash -c d=$(mktemp -d); mkdir -p $d/.github/workflows; sed 's/timeout-minutes: 180/timeout-minutes: one-eighty/' .github/workflows/eval.yml > $d/.github/workflows/eval.yml; diff .github/workflows/eval.yml $d/.github/workflows/eval.yml; cd $d && /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H20-r1/bin/actionlint -color=false .github/workflows/eval.yml; echo "exit=$?"
+27c27
+<     timeout-minutes: 180
+---
+>     timeout-minutes: one-eighty
+.github/workflows/eval.yml:27:22: expecting a single ${{...}} expression or float number literal, but found plain text node [syntax-check]
+   |
+27 |     timeout-minutes: one-eighty
+   |                      ^~~~~~~~~~
+exit=1
+
+[exit code 0]

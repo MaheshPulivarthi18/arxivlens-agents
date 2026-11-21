@@ -1,0 +1,8 @@
+$ python3 -I /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H20-r1/tools/prefetch_worst.py scripts/arxiv_replay.py
+constants: {'INTERVAL': 3.0, 'RETRY_WAITS': (5, 15, 45), 'MAX_WAIT': 60, 'TIMEOUT': 120}
+one URL, every attempt hangs to TIMEOUT, Retry-After >= MAX_WAIT: 4 x (3.0 + 120) + 3 x 60 = 672 s
+one id_list query (API feed + 1 PDF): 1344 s
+budget is checked only before each query, so the last query can start at ~2520 s and end at ~3864 s = 64.4 min
+the job comment counts 2520 + 120 = 44 min; the prefetch step's own cap is 45 min, so a job that reaches 'make eval' spent <= 45 min there: 10 + 45 + 1 + 70 + 45 + 2 = 173 <= 180
+
+[exit code 0]

@@ -1,0 +1,21 @@
+$ bash -c echo '# check-runs on ece17a7'; gh api repos/MaheshPulivarthi18/ArxivLens/commits/ece17a72cd32b0d4b6178b18049156809cbf68b5/check-runs --jq '.check_runs[] | "\(.name) | \(.status) | \(.conclusion) | \(.started_at) -> \(.completed_at)"'; echo; echo '# workflow runs on ece17a7'; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/runs?head_sha=ece17a72cd32b0d4b6178b18049156809cbf68b5' --jq '.workflow_runs[] | "\(.id) \(.name) \(.status) \(.conclusion)"'; echo; echo '# eval workflow queue (concurrency: eval)'; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/workflows/eval.yml/runs?per_page=3' --jq '.workflow_runs[] | "\(.id) \(.head_branch) \(.head_sha[0:7]) \(.status) \(.conclusion) attempt=\(.run_attempt) run_started=\(.run_started_at)"'; echo; date -u +'checked at %Y-%m-%dT%H:%M:%SZ'
+# check-runs on ece17a7
+Agent ownership check | completed | success | 2026-11-21T12:51:09Z -> 2026-11-21T12:51:12Z
+Go (vet, gofmt, test, build) | completed | success | 2026-11-21T12:51:08Z -> 2026-11-21T12:52:11Z
+Python M0 unit tests | completed | success | 2026-11-21T12:51:09Z -> 2026-11-21T12:52:26Z
+DB (migrate twice, HNSW plan + recall) | completed | success | 2026-11-21T12:51:09Z -> 2026-11-21T12:53:13Z
+Frontend (lint, test, build) | completed | success | 2026-11-21T12:51:08Z -> 2026-11-21T12:51:22Z
+
+# workflow runs on ece17a7
+44905935487 Eval pending null
+44905935458 CI completed success
+44905935455 DB completed success
+
+# eval workflow queue (concurrency: eval)
+44905935487 agent/backend/OPS-H20 ece17a7 pending null attempt=1 run_started=2026-11-21T12:51:06Z
+44899068259 agent/ai/OPS-H19 5b4d6a2 in_progress null attempt=2 run_started=2026-11-21T12:45:31Z
+44764887789 main c37d27c completed success attempt=1 run_started=2026-11-20T15:35:58Z
+
+checked at 2026-11-21T12:57:01Z
+
+[exit code 0]

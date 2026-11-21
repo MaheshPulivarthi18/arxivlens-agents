@@ -1,0 +1,32 @@
+$ python3 -I /tmp/claude-0/-home-claude/be5d8953-f6ec-5296-a362-dad24492ee07/scratchpad/qa-OPS-H20-r1/tools/yaml_timeouts.py origin/main HEAD
+                                                                                 main  head
+job eval                                                                          120   180  <-- CHANGED
+step  1 actions/checkout@v4                                                      None  None
+step  2 actions/setup-go@v5                                                      None  None
+step  3 actions/setup-python@v5                                                  None  None
+step  4 Lint the harness (actionlint, compose config)                               3     3
+step  5 Restore Hugging Face models                                              None  None
+step  6 Host Python deps (make setup-py, CPU torch)                                10    10
+step  7 Pre-fetch models (offline on a cache hit, so a missing file fails inst     10    10
+step  8 Save Hugging Face models (before any container writes)                      5     5
+step  9 Build Go CLI, make stack-up, migrate                                       32    32
+step 10 Restore arXiv replay store                                               None  None
+step 11 Prefetch arXiv responses into the replay store                             45    45
+step 12 Save arXiv replay store                                                     5     5
+step 13 Start the arXiv replay proxy (replay-only)                                  1     1
+step 14 Start the query service on the host                                         2     2
+step 15 Self-test: eval-seed fails on an unreachable API (no arXiv request)         2     2
+step 16 make eval-seed (31 corpus IDs, arXiv replayed from the cache)              70    70
+step 17 Machine profile                                                             1     1
+step 18 make eval                                                                  30    45  <-- CHANGED
+step 19 Upload eval results                                                      None  None
+step 20 Collect stack logs                                                          5     5
+step 21 Upload stack logs                                                        None  None
+step 22 Teardown                                                                    5     5
+
+entries: 23  changed: 2
+parsed YAML identical apart from timeout-minutes: True
+prefetch run unchanged: True | python3 scripts/arxiv_replay.py prefetch --dir .arxiv-replay --ids evals/corpus.txt --budget-seconds 2520
+sum of all step timeouts at head (if every step hit its cap): 241 min
+
+[exit code 0]

@@ -1,0 +1,50 @@
+$ grep -n -B1 timeout-minutes .github/workflows/eval.yml
+26-    # + upload/teardown 2 = ~172 -> 180. The prefetch only spends its budget on a cold, rate-limited replay store.
+27:    timeout-minutes: 180
+--
+46-      - name: Lint the harness (actionlint, compose config)
+47:        timeout-minutes: 3
+--
+58-      - name: Host Python deps (make setup-py, CPU torch)
+59:        timeout-minutes: 10
+--
+61-      - name: Pre-fetch models (offline on a cache hit, so a missing file fails instead of downloading)
+62:        timeout-minutes: 10
+--
+73-        if: steps.hf.outputs.cache-hit != 'true'
+74:        timeout-minutes: 5
+--
+79-      - name: Build Go CLI, make stack-up, migrate
+80:        timeout-minutes: 32
+--
+91-        id: prefetch
+92:        timeout-minutes: 45
+--
+97-        if: always() && steps.prefetch.outputs.saved != '' && steps.prefetch.outputs.saved != '0'
+98:        timeout-minutes: 5
+--
+103-      - name: Start the arXiv replay proxy (replay-only)
+104:        timeout-minutes: 1
+--
+109-      - name: Start the query service on the host
+110:        timeout-minutes: 2
+--
+115-      - name: "Self-test: eval-seed fails on an unreachable API (no arXiv request)"
+116:        timeout-minutes: 2
+--
+127-      - name: make eval-seed (31 corpus IDs, arXiv replayed from the cache)
+128:        timeout-minutes: 70
+--
+137-      - name: Machine profile
+138:        timeout-minutes: 1
+--
+151-      - name: make eval
+152:        timeout-minutes: 45
+--
+175-        if: failure()
+176:        timeout-minutes: 5
+--
+189-        if: always()
+190:        timeout-minutes: 5
+
+[exit code 0]

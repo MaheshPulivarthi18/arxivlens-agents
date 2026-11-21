@@ -1,0 +1,17 @@
+$ bash -c for j in 136386731578 136830894337; do echo "== job $j"; grep -E 'Model name:|hardware: embedder device=|Hybrid RRF \+ Rerank  |Cases evaluated|GATE: |timed out after|\[replay\] prefetch:' log-$j.txt | cut -c1-150; done
+== job 136386731578
+2026-11-20T15:42:32.8823024Z [replay] prefetch: 31 queries, stats={"hits": 62, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+2026-11-20T16:22:00.5336210Z Model name:                              INTEL(R) XEON(R) PLATINUM 8573C
+2026-11-20T16:22:00.6445240Z hardware: embedder device=cpu profile=cpu-only
+2026-11-20T16:34:12.6230277Z Hybrid RRF + Rerank      | 0.9850   | 0.9765   | 0.9707   | 0.6333   | 9271.75
+2026-11-20T16:34:12.6239598Z Cases evaluated: 78/78
+2026-11-20T16:44:11.2991295Z GATE: PASS
+== job 136830894337
+2026-11-21T11:31:13.9394501Z [replay] prefetch: 31 queries, stats={"hits": 62, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+2026-11-21T12:14:14.3886492Z Model name:                              AMD EPYC 7763 64-Core Processor
+2026-11-21T12:14:14.6037096Z hardware: embedder device=cpu profile=cpu-only
+2026-11-21T12:32:08.4032550Z Hybrid RRF + Rerank      | 0.9850   | 0.9765   | 0.9707   | 0.6333   | 13619.42
+2026-11-21T12:32:08.4062701Z Cases evaluated: 78/78
+2026-11-21T12:44:26.9341927Z ##[error]The action 'make eval' has timed out after 30 minutes.
+
+[exit code 0]

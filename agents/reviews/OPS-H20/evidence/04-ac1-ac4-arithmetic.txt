@@ -1,0 +1,25 @@
+$ python3 -I tools/budget.py
+== main 44764887789 job 136386731578
+  CPU: INTEL(R) XEON(R) PLATINUM 8573C
+  setup+stack-up (steps 1-10): 6m28s (6.5 min)   prefetch (12): 0m00s (0.0 min)  31 queries, stats={"hits": 62, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+  self-test (16): 0m49s (0.8 min)   eval-seed (17): 38m36s (38.6 min)
+  make eval (19): success 22m12s (22.2 min)   retrieval phase (log): 12m11s (12.2 min)
+  rerank avg ms/query: 9271.75   GATE line: GATE: PASS   timeout line: None
+  upload/teardown (20-23): 0m06s (0.1 min)   job total: 68m17s (68.3 min)
+== PR#111 run 44899068259 job 136830894337
+  CPU: AMD EPYC 7763 64-Core Processor
+  setup+stack-up (steps 1-10): 5m16s (5.3 min)   prefetch (12): 0m00s (0.0 min)  31 queries, stats={"hits": 62, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+  self-test (16): 0m49s (0.8 min)   eval-seed (17): 42m09s (42.1 min)
+  make eval (19): failure 30m12s (30.2 min)   retrieval phase (log): 17m53s (17.9 min)
+  rerank avg ms/query: 13619.42   GATE line: None   timeout line: ##[error]The action 'make eval' has timed out after 30 minutes.
+  upload/teardown (20-23): 0m17s (0.3 min)   job total: 78m49s (78.8 min)
+
+slowdown EPYC/Xeon: rerank ms 1.469x, retrieval wall 1.467x
+main make-eval step: REST 1332 s; cited 22m11s = 1331 s
+projection on EPYC: 1331 s x 1.47 = 32.61 min; x 1.35 headroom = 44.02 min -> AC4 needs >= 44.02; head sets 45
+(with the measured 1.4689x: 32.59 min, x1.35 = 43.99)
+
+job comment terms: {'setup_stackup': 10, 'prefetch': 44.0, 'selftest': 1, 'seed': 70, 'eval': 45, 'upload_teardown': 2} -> total 172 min; head timeout-minutes 180 (<= 360): True
+same with prefetch at its step cap (45 min): 173 min <= 180: True
+
+[exit code 0]
