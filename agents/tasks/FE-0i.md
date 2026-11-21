@@ -8,7 +8,7 @@
 | **Depends on** | FE-0b (#70, merged). No ADR. Does **not** wait on FE-3b (#104): no shared file, see Notes |
 | **Jira** | KAN-111 |
 | **Design required** | no: one element tag in a ui primitive plus a test; no contract or dependency change |
-| **Status** | Ready (picked 2026-11-21 07:00Z) |
+| **Status** | In Progress (branch `agent/frontend/FE-0i` pushed at `12484f8`; draft PR to be opened by orchestrator) |
 
 ## Goal
 `Badge` is inline content (`inline-flex`) but renders a block element. Inside FE-3b's status-chip `<button>` that is invalid HTML (the
@@ -49,3 +49,12 @@ git diff origin/main -- frontend/src/components/ui/badge.jsx   # only the two ta
 - 2026-11-21 07:00Z (pm-lead): specced from FE-3b QA r1 nit 1 (Backlog). The bug only bites inside a `<button>` (#104's chip) or `<p>`, but the
   fix lives in `ui/badge.jsx`, which #104 doesn't touch, so it can land in either order: with #104 merged first the chip becomes valid as soon as
   this merges. Independent of #105–#107 (no frontend files) and of FE-0g (`ui/primitives.test.jsx`, which doesn't import `Badge`).
+- 2026-11-21 07:15Z (frontend-engineer): built on `agent/frontend/FE-0i` off `11c4696`, head `12484f8`. Diff vs main is exactly
+  `ui/badge.jsx` (1 line: `<div` → `<span`, self-closing so only one tag token; class string untouched) and new `ui/badge.test.jsx`
+  (3 tests: AC1 tag+default classes, AC2 className merge / `variant="supported"` / `title` + `data-testid`, AC3 no `div` inside a `<button>`).
+  npm registry unreachable in the sandbox (`ENOTFOUND registry.npmjs.org`), so `npm ci`, lint, Vitest and build were **not run**.
+  Logic check only (per area-notes, not a pass/fail): esbuild bundle of the real `badge.test.jsx` + `badge.jsx` with lockfile-version
+  react/react-dom 19.2.8, cva 0.7.1, clsx 2.1.1, tailwind-merge 3.6.0 from `/opt/npm-tools`, small vitest/RTL/jest-dom shims, run in
+  Chrome: old `<div>` → 0 passed / 3 failed (`expected DIV toBe SPAN`; AC3 found the `<div>`), `<span>` → 3 passed / 0 failed (AC5 mutation, sandbox half).
+  Grep: no test on main selects a badge by `div` tag. Pending for QA/CI: AC4 browser bounding boxes, AC6 CI Frontend job (lint 0 warnings,
+  Vitest file count +1 vs main).
