@@ -1,0 +1,14 @@
+$ bash -c echo '--- npm ci (default config, registry in NO_PROXY):'; timeout 120 npm ci --no-audit --no-fund 2>&1 | tail -4; echo; echo '--- npm view via the agent proxy:'; NO_PROXY=localhost no_proxy=localhost npm_config_noproxy=localhost timeout 60 npm view vitest@4.1.12 version 2>&1 | head -2; echo; echo '--- worktree status after (empty = clean):'; git status --porcelain --untracked-files=no
+--- npm ci (default config, registry in NO_PROXY):
+npm error Exit handler never called!
+npm error This is an error with npm itself. Please report this error at:
+npm error   <https://github.com/npm/cli/issues>
+npm error A complete log of this run can be found in: /home/claude/.npm/_logs/2026-11-21T11_06_58_603Z-debug-0.log
+
+--- npm view via the agent proxy:
+npm error code E403
+npm error 403 403 Forbidden (agent proxy: no rule or network setting allows this host) - GET https://registry.npmjs.org/vitest
+
+--- worktree status after (empty = clean):
+
+[exit code 0]

@@ -1,0 +1,25 @@
+$ bash -c git show 11c4696:frontend/src/components/ui/primitives.test.jsx > /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/main-primitives.test.jsx && python3 /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/mutants.py $PWD/frontend/src /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/deps /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/main-primitives.test.jsx
+m1 (M35) ScrollBar: drop className from cn(...)
+   SURVIVED   12/12 passed, 0 failed
+      diff: -      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent", | -      className | +      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent"
+m2 (M36) ScrollBar: delete the orientation === "horizontal" line
+   SURVIVED   12/12 passed, 0 failed
+      diff: -      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent",
+m3 (M37) sonner: position="top-center"
+   SURVIVED   12/12 passed, 0 failed
+      diff: -    position="bottom-right" | +    position="top-center"
+m4 (M38) Separator: drop className from cn(...)
+   SURVIVED   12/12 passed, 0 failed
+      diff: -        orientation === "horizontal" ? "h-px w-full" : "h-full w-px", | -        className | +        orientation === "horizontal" ? "h-px w-full" : "h-full w-px"
+m5 (M39) Tooltip: default delayDuration = 0
+   SURVIVED   12/12 passed, 0 failed
+      diff: -const Tooltip = ({ delayDuration = 300, ...props }) => ( | +const Tooltip = ({ delayDuration = 0, ...props }) => (
+m6 (M39) Tooltip: default delayDuration = 700
+   SURVIVED   12/12 passed, 0 failed
+      diff: -const Tooltip = ({ delayDuration = 300, ...props }) => ( | +const Tooltip = ({ delayDuration = 700, ...props }) => (
+x1 (FE-0d M36) ScrollBar: horizontal gets vertical classes
+   SURVIVED   12/12 passed, 0 failed
+      diff: -      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent", | +      orientation === "horizontal" && "h-full w-2.5 border-t border-t-transparent",
+killed 0 / survived 7 / invalid 0
+
+[exit code 0]

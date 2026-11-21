@@ -1,0 +1,23 @@
+$ bash -c node /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/build.mjs $PWD/frontend/src /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/deps /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/control.js && node /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/run.mjs /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/control.js head-control
+built /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/control.js
+[head-control] 17/17 passed, 0 failed
+  PASS  Tooltip / Popover (AC1) > TooltipContent renders in a portal with the popover tokens, forwards its ref and merges className
+  PASS  Tooltip / Popover (AC1) > PopoverContent renders in a portal with the popover tokens, forwards its ref and merges className
+  PASS  Collapsible (AC2) > defaultOpen shows the content with data-state="open"
+  PASS  Collapsible (AC2) > closed keeps the content out of the document until the trigger is clicked
+  PASS  ScrollArea (AC3) > viewport has an inset focus ring (no ring-offset), Root ref forwards, children render inside the viewport
+  PASS  Separator (AC4) > is decorative and horizontal by default
+  PASS  Separator (AC4) > decorative={false} exposes role="separator"
+  PASS  Separator (AC4) > orientation="vertical" switches the size classes and sets aria-orientation when not decorative
+  PASS  Toaster (AC5) > points sonner variables at the tokens and lets a caller override one of them
+  PASS  Toaster (AC5) > defaults --normal-bg to the popover token
+  PASS  Toaster (AC5) > gives the description the muted token class
+  PASS  Toaster (AC5) > merges caller toastOptions.classNames with the muted description class (FE-0b F3)
+  PASS  ScrollBar orientation and className (FE-0g AC1) > horizontal gets the horizontal size/border classes plus the caller className
+  PASS  ScrollBar orientation and className (FE-0g AC1) > defaults to vertical with the vertical size/border classes
+  PASS  Toaster position (FE-0g AC2) > places the toast list bottom-right
+  PASS  Separator className (FE-0g AC3) > merges the caller className with the base and size classes
+  PASS  Tooltip default delay (FE-0g AC4) > opens on hover after the 300 ms default delay, not before
+[head-control] page errors: 0
+
+[exit code 0]

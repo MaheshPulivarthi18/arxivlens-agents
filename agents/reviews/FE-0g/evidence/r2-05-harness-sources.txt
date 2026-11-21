@@ -1,0 +1,223 @@
+$ bash -c cd /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h && F=$(find build.mjs run.mjs mutants.py shim -type f | sort); sha256sum $F; echo; echo radix $(git -C /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/deps/radix rev-parse --short HEAD) sonner $(git -C /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/deps/sonner describe --tags); node -e 'const l=require(process.argv[1]).packages,fs=require("fs"),D=process.argv[2];for(const n of ["tooltip","scroll-area","separator","popover","collapsible"])console.log("@radix-ui/react-"+n,JSON.parse(fs.readFileSync(D+"/radix/packages/react/"+n+"/package.json")).version,"lock",l["node_modules/@radix-ui/react-"+n].version);console.log("sonner",JSON.parse(fs.readFileSync(D+"/sonner/package.json")).version,"lock",l["node_modules/sonner"].version);for(const n of ["react","react-dom","clsx","tailwind-merge"])console.log(n,JSON.parse(fs.readFileSync("/opt/npm-tools/node_modules/"+n+"/package.json")).version,"lock",l["node_modules/"+n].version)' /root/wt/app-qa-FE-0g/frontend/package-lock.json /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/deps; echo; echo '--- PR worktree (mutants ran on copies; empty = clean):'; git -C /root/wt/app-qa-FE-0g status --porcelain --untracked-files=no; git -C /root/wt/app-qa-FE-0g rev-parse HEAD; echo; echo 'Differences from CI: Chromium not jsdom (ResizeObserver/DOMRect exist, so the stubs are skipped); vitest (incl. fake timers)/RTL/user-event/jest-dom are QA shims; react-remove-scroll stubbed. Logic check only; CI Vitest is pass/fail.'; for f in $F; do echo "===== $f"; cat $f; done
+ffe067bb894d4e399964da7a4c690d53162955068d8a8b98e7ede68586b1b10e  build.mjs
+1208bc5453de1449382280254e6c37d1629b39f61c0608d9e975cfcf94ee537e  mutants.py
+a342ce7e72c3c03e4c050c17c676e2ada6ccbcad035e92a3309286a838c5f956  run.mjs
+40f5db0ca4142be38d491ac9e4ed3ca6fbb399ab202684c46a83f74839f12c9a  shim/remove-scroll-stub.jsx
+42f9d4315a478726f29360c660f0e0b69e4c68bdce5ace903bc29d99b28fb357  shim/rtl.js
+ea73ec02bfa958863310d24f5dc1086a69cd2eaf4efd09dbe66d4e8b4c93fc0d  shim/vitest.js
+
+radix eb3a2b70 sonner v2.0.8
+@radix-ui/react-tooltip 1.4.1 lock 1.4.1
+@radix-ui/react-scroll-area 1.4.0 lock 1.4.0
+@radix-ui/react-separator 1.2.0 lock 1.2.0
+@radix-ui/react-popover 1.3.1 lock 1.3.1
+@radix-ui/react-collapsible 1.2.1 lock 1.2.1
+sonner 2.0.8 lock 2.0.8
+react 19.2.8 lock 19.2.8
+react-dom 19.2.8 lock 19.2.8
+clsx 2.1.1 lock 2.1.1
+tailwind-merge 3.6.0 lock 3.6.0
+
+--- PR worktree (mutants ran on copies; empty = clean):
+35cecd32e27a56529d51162ffa83d8a3486526e0
+
+Differences from CI: Chromium not jsdom (ResizeObserver/DOMRect exist, so the stubs are skipped); vitest (incl. fake timers)/RTL/user-event/jest-dom are QA shims; react-remove-scroll stubbed. Logic check only; CI Vitest is pass/fail.
+===== build.mjs
+// QA FE-0g harness (rebuilt from FE-0d/07): bundle <src>/components/ui/primitives.test.jsx with shims + real Radix/sonner sources.
+// usage: node build.mjs <src dir> <deps dir> <out.js>
+import * as esbuild from '/opt/npm-tools/node_modules/esbuild/lib/main.js';
+import path from 'node:path'; import fs from 'node:fs';
+import { createRequire } from 'node:module';
+const [src, deps, out] = process.argv.slice(2);
+const here = path.dirname(new URL(import.meta.url).pathname), T = '/opt/npm-tools/node_modules';
+const req = createRequire(T + '/'); const requireResolve = s => req.resolve(s);
+const radix = (n, dirs) => { for (const d of dirs) { const p = path.join(deps, 'radix/packages', d, n, 'src/index.ts'); if (fs.existsSync(p)) return p; if (fs.existsSync(p + 'x')) return p + 'x'; } throw new Error('no radix ' + n); };
+const plugin = { name: 'alias', setup(b) {
+  b.onResolve({ filter: /.*/ }, a => {
+    const s = a.path;
+    if (s === 'vitest') return { path: path.join(here, 'shim/vitest.js') };
+    if (s === '@testing-library/react' || s === '@testing-library/user-event') return { path: path.join(here, 'shim/rtl.js') };
+    if (s === 'sonner') return { path: path.join(deps, 'sonner/src/index.tsx') };
+    if (s === 'react-remove-scroll') return { path: path.join(here, 'shim/remove-scroll-stub.jsx') };
+    if (s === '@radix-ui/env-check/is-development') return { path: path.join(deps, 'radix/packages/core/env-check/src/internal/is-development.true.ts') };
+    let m = s.match(/^@radix-ui\/(?:react-)?(.+)$/); if (m) return { path: s.startsWith('@radix-ui/react-') ? radix(m[1], ['react']) : radix(m[1], ['core']) };
+    if (/^(react|react-dom|@floating-ui|aria-hidden|use-sync-external-store|clsx|tailwind-merge)(\/|$)/.test(s)) return { path: requireResolve(s) };
+    return undefined;
+  });
+} };
+const entry = `import { __run } from ${JSON.stringify(path.join(here, 'shim/vitest.js'))}; import ${JSON.stringify(path.join(src, 'components/ui/primitives.test.jsx'))}; window.__run = __run;`;
+await esbuild.build({ stdin: { contents: entry, resolveDir: src, loader: 'js' }, bundle: true, outfile: out, plugins: [plugin], jsx: 'automatic', loader: { '.css': 'empty', '.js': 'jsx' }, define: { 'process.env.NODE_ENV': '"development"' }, format: 'iife', logLevel: 'error' });
+console.log('built', out);
+===== mutants.py
+# QA FE-0g: AC6's six single-edit mutants (m1-m6, ticket wording) of the ui primitives, plus FE-0d's M36 variant.
+# usage: python3 mutants.py <frontend src> <deps> [<test file to use instead of src's primitives.test.jsx>]
+# Each copies <src> to a fresh dir (the PR worktree is never edited), applies one exact edit (INVALID if the text isn't
+# found exactly once or the bundle fails), builds, runs the test file in Chromium and prints the diff line + verdict.
+import os, shutil, subprocess, sys, tempfile
+SRC, DEPS, H = sys.argv[1], sys.argv[2], os.path.dirname(os.path.abspath(__file__))
+TEST = sys.argv[3] if len(sys.argv) > 3 else None
+M = [
+ ("m1 (M35) ScrollBar: drop className from cn(...)", "scroll-area.jsx", '      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent",\n      className\n', '      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent"\n'),
+ ("m2 (M36) ScrollBar: delete the orientation === \"horizontal\" line", "scroll-area.jsx", '      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent",\n', ''),
+ ("m3 (M37) sonner: position=\"top-center\"", "sonner.jsx", 'position="bottom-right"', 'position="top-center"'),
+ ("m4 (M38) Separator: drop className from cn(...)", "separator.jsx", '"h-px w-full" : "h-full w-px",\n        className\n', '"h-px w-full" : "h-full w-px"\n'),
+ ("m5 (M39) Tooltip: default delayDuration = 0", "tooltip.jsx", 'const Tooltip = ({ delayDuration = 300', 'const Tooltip = ({ delayDuration = 0'),
+ ("m6 (M39) Tooltip: default delayDuration = 700", "tooltip.jsx", 'const Tooltip = ({ delayDuration = 300', 'const Tooltip = ({ delayDuration = 700'),
+ ("x1 (FE-0d M36) ScrollBar: horizontal gets vertical classes", "scroll-area.jsx", 'orientation === "horizontal" && "h-2.5 flex-col', 'orientation === "horizontal" && "h-full w-2.5'),
+]
+summary = []
+for name, f, old, new in M:
+    d = tempfile.mkdtemp(prefix='mut-', dir=os.path.join(H, 'mut'))
+    shutil.copytree(SRC, os.path.join(d, 'src'))
+    if TEST: shutil.copyfile(TEST, os.path.join(d, 'src/components/ui/primitives.test.jsx'))
+    p = os.path.join(d, 'src/components/ui', f); s = open(p).read()
+    if s.count(old) != 1: summary.append((name, 'INVALID (text found %d×)' % s.count(old), '')); continue
+    s2 = s.replace(old, new); open(p, 'w').write(s2)
+    dl = subprocess.run(['diff', '-U0', os.path.join(SRC, 'components/ui', f), p], capture_output=True, text=True).stdout
+    diffl = ' | '.join(l.strip() for l in dl.splitlines() if l[:1] in '+-' and not l.startswith(('+++', '---')))
+    b = subprocess.run(['node', os.path.join(H, 'build.mjs'), os.path.join(d, 'src'), DEPS, os.path.join(d, 'out.js')], capture_output=True, text=True)
+    if b.returncode: summary.append((name, 'INVALID (build failed)', b.stderr.strip().splitlines()[0][:150])); continue
+    r = subprocess.run(['node', os.path.join(H, 'run.mjs'), os.path.join(d, 'out.js'), name.split()[0]], capture_output=True, text=True)
+    lines = r.stdout.splitlines(); head = lines[0] if lines else '(no output)'
+    fails = []
+    for i, l in enumerate(lines):
+        if l.strip().startswith('FAIL '): fails.append(l.strip()[6:].split(' > ')[-1][:70] + ' :: ' + (lines[i+1].strip()[:110] if i + 1 < len(lines) else ''))
+    v = 'KILLED (%d failing)' % len(fails) if fails else ('SURVIVED' if r.returncode == 0 and 'passed, 0 failed' in head else 'INVALID (run error: %s)' % (r.stderr.strip()[:120]))
+    summary.append((name, v + '   ' + head.split('] ')[-1], 'diff: ' + diffl + ''.join('\n      FAIL ' + x for x in fails)))
+for n, v, why in summary: print(f'{n}\n   {v}\n      {why}')
+print('killed %d / survived %d / invalid %d' % tuple(sum(v.startswith(k) for _, v, _ in summary) for k in ('KILLED', 'SURVIVED', 'INVALID')))
+===== run.mjs
+// QA FE-0g harness: run a bundle in headless Chromium and print per-test results. usage: node run.mjs <bundle.js> <label>
+import { chromium } from '/opt/npm-tools/node_modules/playwright/index.mjs'; import fs from 'node:fs';
+const [bundle, label] = process.argv.slice(2);
+const b = await chromium.launch(); const p = await b.newPage(); const errs = [];
+p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
+await p.setContent('<!doctype html><html><head></head><body></body></html>');
+await p.addScriptTag({ content: fs.readFileSync(bundle, 'utf8') });
+const res = await p.evaluate(() => window.__run());
+const fails = res.filter(r => !r.ok);
+console.log(`[${label}] ${res.length - fails.length}/${res.length} passed, ${fails.length} failed`);
+for (const r of res) console.log(`  ${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.ok ? '' : '\n        ' + r.err}`);
+console.log(`[${label}] page errors: ${errs.length}`); for (const e of errs.slice(0, 5)) console.log('  ' + e);
+await b.close();
+===== shim/remove-scroll-stub.jsx
+// QA harness stub: react-remove-scroll is only used by modal Popover; pass children through.
+import * as React from 'react';
+export const RemoveScroll = React.forwardRef(({ children, as: _as, allowPinchZoom: _a, enabled: _e, shards: _s, ...p }, ref) => React.Children.only(children));
+===== shim/rtl.js
+// QA FE-0g harness: minimal @testing-library/react + user-event shim (own-text getByText, simple getByRole/queryByRole,
+// getByTestId, act-wrapped fireEvent, waitFor, cleanup).
+import * as React from 'react';
+import { createRoot } from 'react-dom/client';
+import { __registerAfterEach } from 'vitest';
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+export const act = React.act;
+const mounted = [];
+export function render(ui) {
+  const container = document.body.appendChild(document.createElement('div'));
+  const root = createRoot(container);
+  React.act(() => root.render(ui));
+  mounted.push({ root, container });
+  return { container, unmount: () => React.act(() => root.unmount()) };
+}
+export function cleanup() { for (const { root, container } of mounted.splice(0)) { React.act(() => root.unmount()); container.remove(); } }
+__registerAfterEach(cleanup);
+const norm = s => s.replace(/\s+/g, ' ').trim();
+const ownText = n => Array.from(n.childNodes).filter(c => c.nodeType === 3).map(c => c.textContent).join('');
+const allByText = t => Array.from(document.body.querySelectorAll('*')).filter(e => !e.matches('script, style') && norm(ownText(e)) === t);
+const inaccessible = e => { for (let n = e; n && n.nodeType === 1; n = n.parentElement) { const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden' || n.hidden || n.getAttribute('aria-hidden') === 'true') return true; } return false; };
+const implicitRole = e => e.getAttribute('role') || ({ BUTTON: 'button', A: e.hasAttribute('href') ? 'link' : null, HR: 'separator' })[e.tagName] || null;
+const allByRole = (role, name) => Array.from(document.body.querySelectorAll('*')).filter(e => implicitRole(e) === role && !inaccessible(e) && (name === undefined || norm(e.getAttribute('aria-label') || e.textContent) === name));
+function one(list, what) { if (list.length === 0) throw new Error(`Unable to find ${what}`); if (list.length > 1) throw new Error(`Found multiple (${list.length}) ${what}`); return list[0]; }
+function maybe(list, what) { if (list.length > 1) throw new Error(`Found multiple (${list.length}) ${what}`); return list[0] || null; }
+export async function waitFor(fn, { timeout = 1000, interval = 50 } = {}) {
+  const t0 = performance.now(); let last;
+  for (;;) { try { let r; await React.act(async () => { r = fn(); }); return r; } catch (e) { last = e; } if (performance.now() - t0 > timeout) throw last; await new Promise(r => setTimeout(r, interval)); }
+}
+export const screen = {
+  getByText: t => one(allByText(t), `text "${t}"`),
+  queryByText: t => maybe(allByText(t), `text "${t}"`),
+  findByText: t => waitFor(() => one(allByText(t), `text "${t}"`)),
+  getByRole: (role, { name } = {}) => one(allByRole(role, name), `role ${role} name ${name}`),
+  queryByRole: (role, { name } = {}) => maybe(allByRole(role, name), `role ${role} name ${name}`),
+  getByTestId: id => one(Array.from(document.body.querySelectorAll(`[data-testid="${id}"]`)), `testid ${id}`),
+};
+// RTL's fireEvent.<name>: dispatch the DOM event (defaults bubbles/cancelable/composed) inside act().
+const EV = { pointerMove: [() => PointerEvent, 'pointermove'], pointerEnter: [() => PointerEvent, 'pointerenter'], pointerLeave: [() => PointerEvent, 'pointerleave'], click: [() => MouseEvent, 'click'] };
+export const fireEvent = Object.fromEntries(Object.entries(EV).map(([k, [C, type]]) => [k, (el, init = {}) => { let r; React.act(() => { r = el.dispatchEvent(new (C())(type, { bubbles: type !== 'pointerenter' && type !== 'pointerleave', cancelable: true, composed: true, ...init })); }); return r; }]));
+export default { setup: () => ({ async click(el) { await React.act(async () => { for (const [T, type] of [[PointerEvent, 'pointerdown'], [MouseEvent, 'mousedown'], [PointerEvent, 'pointerup'], [MouseEvent, 'mouseup'], [MouseEvent, 'click']]) el.dispatchEvent(new T(type, { bubbles: true, cancelable: true, button: 0, pointerType: 'mouse' })); }); } }) };
+===== shim/vitest.js
+// QA FE-0g harness: minimal vitest shim (describe/it/scoped hooks/expect/vi incl. fake timers) + jest-dom matchers, run in headless Chromium.
+const tests = [], hooks = { beforeAll: [], afterAll: [] }; let prefix = []; const scopedAfterEach = [];
+export function describe(name, fn) { prefix.push(name); fn(); prefix.pop(); }
+export function it(name, fn) { tests.push({ name: [...prefix, name].join(' > '), scope: [...prefix], fn }); }
+export const beforeAll = f => hooks.beforeAll.push(f), afterAll = f => hooks.afterAll.push(f);
+// afterEach is scoped to the describe it was declared in (Vitest semantics); inner hooks run before outer ones.
+export const afterEach = f => scopedAfterEach.push({ scope: [...prefix], f });
+let extraAfterEach = [];
+export function __registerAfterEach(f) { extraAfterEach.push(f); }
+const stubs = [];
+// Fake clock: replaces setTimeout/clearTimeout/setInterval/clearInterval/Date.now (Vitest's default toFake set, minus setImmediate which browsers lack).
+// React's scheduler captured the real timers at load, so it is unaffected (as with Vitest's fake timers).
+const real = { setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, setInterval: globalThis.setInterval, clearInterval: globalThis.clearInterval, now: Date.now };
+let clock = null;
+function install() {
+  clock = { now: 0, id: 1, q: new Map() };
+  const add = (fn, ms, args, every) => { const id = clock.id++; clock.q.set(id, { at: clock.now + Math.max(0, Number(ms) || 0), fn, args, every, seq: id }); return id; };
+  globalThis.setTimeout = (fn, ms, ...args) => add(fn, ms, args, null);
+  globalThis.setInterval = (fn, ms, ...args) => add(fn, ms, args, Math.max(1, Number(ms) || 0));
+  globalThis.clearTimeout = globalThis.clearInterval = id => { clock.q.delete(id); };
+  const base = real.now(); Date.now = () => base + clock.now;
+}
+export const vi = {
+  stubGlobal(n, v) { stubs.push([n, Object.getOwnPropertyDescriptor(globalThis, n)]); globalThis[n] = v; },
+  unstubAllGlobals() { for (const [n, d] of stubs.reverse()) d ? Object.defineProperty(globalThis, n, d) : delete globalThis[n]; stubs.length = 0; },
+  useFakeTimers() { if (!clock) install(); return vi; },
+  useRealTimers() { if (clock) { Object.assign(globalThis, { setTimeout: real.setTimeout, clearTimeout: real.clearTimeout, setInterval: real.setInterval, clearInterval: real.clearInterval }); Date.now = real.now; clock = null; } return vi; },
+  advanceTimersByTime(ms) {
+    if (!clock) throw new Error('advanceTimersByTime: timers are not faked');
+    const end = clock.now + ms;
+    for (;;) {
+      let next = null; for (const [id, t] of clock.q) if (t.at <= end && (!next || t.at < next[1].at || (t.at === next[1].at && t.seq < next[1].seq))) next = [id, t];
+      if (!next) break;
+      const [id, t] = next; clock.now = t.at;
+      if (t.every) { t.at += t.every; t.seq = clock.id++; } else clock.q.delete(id);
+      typeof t.fn === 'function' ? t.fn(...t.args) : null;
+    }
+    clock.now = end; return vi;
+  },
+};
+const fmt = v => v instanceof Element ? `<${v.tagName.toLowerCase()} class="${v.getAttribute('class') || ''}">` : JSON.stringify(v);
+function matchers(actual, neg) {
+  const check = (ok, msg) => { if (ok === neg) throw new Error((neg ? 'NOT ' : '') + msg); };
+  const m = {
+    toBe: e => check(Object.is(actual, e), `expected ${fmt(actual)} toBe ${fmt(e)}`),
+    toBeInstanceOf: c => check(actual instanceof c, `expected ${fmt(actual)} instanceof ${c && c.name}`),
+    toBeNull: () => check(actual === null, `expected ${fmt(actual)} toBeNull`),
+    toMatch: re => check(typeof actual === 'string' && re.test(actual), `expected ${fmt(actual)} toMatch ${re}`),
+    toHaveClass: (...cs) => { if (!(actual instanceof Element)) throw new Error('toHaveClass: not an element: ' + fmt(actual)); const have = new Set((actual.getAttribute('class') || '').split(/\s+/).filter(Boolean)); check(cs.every(c => have.has(c)), `expected ${fmt(actual)} toHaveClass ${cs.join(' ')}`); },
+    toHaveAttribute: (n, v) => { if (!(actual instanceof Element)) throw new Error('toHaveAttribute: not an element: ' + fmt(actual)); const ok = actual.hasAttribute(n) && (v === undefined || actual.getAttribute(n) === String(v)); check(ok, `expected ${fmt(actual)} toHaveAttribute ${n}=${v} (got ${actual.getAttribute(n)})`); },
+    // jest-dom: null/undefined is "not in the document" (passes with .not, fails without).
+    toBeInTheDocument: () => check(actual instanceof Element && actual.ownerDocument.documentElement.contains(actual), `expected ${fmt(actual)} toBeInTheDocument`),
+    toHaveTextContent: t => { if (!(actual instanceof Element)) throw new Error('toHaveTextContent: not an element'); const s = actual.textContent.replace(/\s+/g, ' ').trim(); check(s.includes(t), `expected text "${s}" to contain "${t}"`); },
+    toContainElement: el => { if (!(actual instanceof Element)) throw new Error('toContainElement: container not an element: ' + fmt(actual)); check(el instanceof Element && actual.contains(el), `expected ${fmt(actual)} toContainElement ${fmt(el)}`); },
+  };
+  return m;
+}
+export function expect(actual) { const m = matchers(actual, false); m.not = matchers(actual, true); return m; }
+const inScope = (hookScope, testScope) => hookScope.every((s, i) => testScope[i] === s);
+export async function __run() {
+  const out = [];
+  for (const h of hooks.beforeAll) await h();
+  for (const t of tests) {
+    let err = null;
+    try { await t.fn(); } catch (e) { err = e; }
+    const after = scopedAfterEach.filter(h => inScope(h.scope, t.scope)).sort((a, b) => b.scope.length - a.scope.length).map(h => h.f);
+    for (const h of [...after, ...extraAfterEach]) { try { await h(); } catch (e) { err = err || e; } }
+    out.push({ name: t.name, ok: !err, err: err ? String(err.message || err).split('\n')[0].slice(0, 220) : '' });
+  }
+  for (const h of hooks.afterAll) await h();
+  return out;
+}
+
+[exit code 0]

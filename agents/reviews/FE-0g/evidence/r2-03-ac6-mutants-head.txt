@@ -1,0 +1,32 @@
+$ bash -c python3 /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/h/mutants.py $PWD/frontend/src /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/deps
+m1 (M35) ScrollBar: drop className from cn(...)
+   KILLED (1 failing)   16/17 passed, 1 failed
+      diff: -      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent", | -      className | +      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent"
+      FAIL horizontal gets the horizontal size/border classes plus the caller cla :: expected <div class="flex touch-none select-none p-px h-2.5 flex-col border-t border-t-transparent"> toHaveCla
+m2 (M36) ScrollBar: delete the orientation === "horizontal" line
+   KILLED (1 failing)   16/17 passed, 1 failed
+      diff: -      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent",
+      FAIL horizontal gets the horizontal size/border classes plus the caller cla :: expected <div class="flex touch-none select-none p-px x-bar"> toHaveClass h-2.5 flex-col border-t x-bar
+m3 (M37) sonner: position="top-center"
+   KILLED (1 failing)   16/17 passed, 1 failed
+      diff: -    position="bottom-right" | +    position="top-center"
+      FAIL places the toast list bottom-right :: expected <ol class="toaster"> toHaveAttribute data-y-position=bottom (got top)
+m4 (M38) Separator: drop className from cn(...)
+   KILLED (1 failing)   16/17 passed, 1 failed
+      diff: -        orientation === "horizontal" ? "h-px w-full" : "h-full w-px", | -        className | +        orientation === "horizontal" ? "h-px w-full" : "h-full w-px"
+      FAIL merges the caller className with the base and size classes :: expected <div class="shrink-0 bg-border h-px w-full"> toHaveClass x-sep shrink-0 bg-border h-px w-full
+m5 (M39) Tooltip: default delayDuration = 0
+   KILLED (1 failing)   16/17 passed, 1 failed
+      diff: -const Tooltip = ({ delayDuration = 300, ...props }) => ( | +const Tooltip = ({ delayDuration = 0, ...props }) => (
+      FAIL opens on hover after the 300 ms default delay, not before :: expected <div class="z-50 max-w-xs rounded-md border border-border bg-popover px-2.5 py-1.5 font-sans text-xs 
+m6 (M39) Tooltip: default delayDuration = 700
+   KILLED (1 failing)   16/17 passed, 1 failed
+      diff: -const Tooltip = ({ delayDuration = 300, ...props }) => ( | +const Tooltip = ({ delayDuration = 700, ...props }) => (
+      FAIL opens on hover after the 300 ms default delay, not before :: expected null instanceof HTMLElement
+x1 (FE-0d M36) ScrollBar: horizontal gets vertical classes
+   KILLED (1 failing)   16/17 passed, 1 failed
+      diff: -      orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent", | +      orientation === "horizontal" && "h-full w-2.5 border-t border-t-transparent",
+      FAIL horizontal gets the horizontal size/border classes plus the caller cla :: expected <div class="flex touch-none select-none p-px h-full w-2.5 border-t border-t-transparent x-bar"> toHav
+killed 7 / survived 0 / invalid 0
+
+[exit code 0]
