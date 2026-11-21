@@ -1,0 +1,25 @@
+$ bash -c echo "## git diff origin/main...HEAD --name-only"; git diff origin/main...HEAD --name-only; echo; echo "## --numstat"; git diff --numstat origin/main...HEAD; echo; echo "## removed lines in tests/test_arxiv_replay.py (expect 0):"; git diff origin/main...HEAD -- tests/test_arxiv_replay.py | grep -c "^-[^-]"; echo; echo "## ruff at head"; ruff check --output-format concise scripts/arxiv_replay.py tests/test_arxiv_replay.py; echo; echo "## ruff at origin/main"; d=$(mktemp -d); git archive origin/main | tar -x -C $d; cd $d && ruff check --output-format concise scripts/arxiv_replay.py tests/test_arxiv_replay.py
+## git diff origin/main...HEAD --name-only
+scripts/arxiv_replay.py
+tests/test_arxiv_replay.py
+
+## --numstat
+57	23	scripts/arxiv_replay.py
+113	0	tests/test_arxiv_replay.py
+
+## removed lines in tests/test_arxiv_replay.py (expect 0):
+0
+
+## ruff at head
+scripts/arxiv_replay.py:1:1: EXE001 Shebang is present but file is not executable
+scripts/arxiv_replay.py:184:24: BLE001 Do not catch blind exception: `Exception`
+scripts/arxiv_replay.py:294:17: SIM115 Use a context manager for opening files
+Found 3 errors.
+
+## ruff at origin/main
+scripts/arxiv_replay.py:1:1: EXE001 Shebang is present but file is not executable
+scripts/arxiv_replay.py:152:24: BLE001 Do not catch blind exception: `Exception`
+scripts/arxiv_replay.py:261:17: SIM115 Use a context manager for opening files
+Found 3 errors.
+
+[exit code 1]

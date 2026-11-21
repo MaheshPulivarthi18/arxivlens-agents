@@ -1,0 +1,22 @@
+$ sed -n 23,41p scripts/arxiv_replay.py
+Prefetch time budget (--budget-seconds N > 0; the clock starts at the first upstream request): when a pass over the
+queries ends with failures, prefetch waits a cool-down (PASS_WAIT, or longer if arXiv sent a longer Retry-After) and
+runs another pass over only the queries that had a transient failure (what they already saved is a hit), until
+nothing transient is left or the budget is spent; it exits 0 only if nothing failed, else 1, naming what is missing.
+Transient: HTTP 429, 5xx, a network error/timeout, or a fetch skipped for the "(time budget)". Permanent: any other
+4xx (a 404 PDF), or a 200 whose body is not a feed/PDF after its retries; a query whose failures are all permanent
+is not retried, so a run where every failure is permanent exits 1 after one pass, without a cool-down. No upstream request starts after the
+deadline and no retry, politeness or cool-down sleep runs past it: a wait that would reach it is not taken, and the
+fetch it was for is reported as "(time budget)". So the worst case is the budget plus one in-flight request
+(TIMEOUT), plus the seconds spent reading cached hits before the first request: 1020 + 120 = 1140 s < 1200 s (the
+20-min step timeout in stack.yml) and 2520 + 120 = 2640 s < 2700 s (45 min, eval.yml). With no budget (0), prefetch
+makes exactly one pass.
+
+$GITHUB_OUTPUT (prefetch only; `serve` never writes it): CI saves the store when the step output `saved` is set and not
+0, even if the run fails, so recording converges across runs. Prefetch appends one `saved=<n>` line as soon as the
+first entry it adds is on disk, and rewrites that same line in place after each later save (n only grows, so the
+line is never shortened; no repeated key). A run killed mid-way (step timeout, cancellation) has already reported
+what it saved; a run that adds nothing writes no line.
+
+
+[exit code 0]

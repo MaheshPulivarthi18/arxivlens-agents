@@ -1,0 +1,24 @@
+$ bash -c python3 -m pytest -p no:cacheprovider -q -rA tests/test_arxiv_replay.py 2>&1 | grep -v "^\[replay\]" | grep -E "^(PASSED|FAILED|ERROR)|passed|failed" | sed "s/ - .*//"
+PASSED tests/test_arxiv_replay.py::test_record_then_replay_without_upstream
+PASSED tests/test_arxiv_replay.py::test_rate_limit_is_retried_and_bad_bodies_never_saved
+PASSED tests/test_arxiv_replay.py::test_upstream_failure_passes_status_through
+PASSED tests/test_arxiv_replay.py::test_rejects_bad_pdf_names
+PASSED tests/test_arxiv_replay.py::test_entry_pdf_names_match_go_fetch_urls
+PASSED tests/test_arxiv_replay.py::test_search_query_string_matches_go_crawler
+PASSED tests/test_arxiv_replay.py::test_prefetch_warms_store_then_serve_needs_no_upstream
+PASSED tests/test_arxiv_replay.py::test_prefetch_reports_failures
+PASSED tests/test_arxiv_replay.py::test_prefetch_budget_stops_early_and_reports_saved
+PASSED tests/test_arxiv_replay.py::test_prefetch_retries_only_failed_queries_until_they_succeed
+PASSED tests/test_arxiv_replay.py::test_prefetch_without_budget_makes_one_pass
+PASSED tests/test_arxiv_replay.py::test_prefetch_never_requests_or_sleeps_past_the_deadline
+PASSED tests/test_arxiv_replay.py::test_prefetch_loop_fetches_only_through_recorder
+PASSED tests/test_arxiv_replay.py::test_prefetch_permanent_failures_get_no_second_pass[pdf0-1]
+PASSED tests/test_arxiv_replay.py::test_prefetch_permanent_failures_get_no_second_pass[pdf1-4]
+PASSED tests/test_arxiv_replay.py::test_prefetch_mixed_failures_retry_only_the_transient_query
+PASSED tests/test_arxiv_replay.py::test_prefetch_no_request_after_a_request_that_overruns_the_deadline
+PASSED tests/test_arxiv_replay.py::test_prefetch_reports_saved_as_soon_as_the_first_entry_is_on_disk
+PASSED tests/test_arxiv_replay.py::test_prefetch_writes_one_saved_line_and_none_when_nothing_is_added
+PASSED tests/test_arxiv_replay.py::test_serve_record_never_writes_github_output
+20 passed in 8.85s
+
+[exit code 0]

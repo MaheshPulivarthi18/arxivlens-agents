@@ -1,0 +1,23 @@
+$ bash /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-OPS-H21-r1/probe.sh /root/wt/qa-OPS-H21 /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-OPS-H21-r1/work
+== head 0970737 (expect 3 passed)
+PASSED tests/test_qa_probe.py::test_probe_5xx_gets_another_pass
+PASSED tests/test_qa_probe.py::test_probe_network_error_gets_another_pass
+PASSED tests/test_qa_probe.py::test_probe_query_with_404_and_429_pdf_is_retried
+3 passed in 1.62s
+== mutant q7: >     return status in (BUDGET, 429) or status > 500
+PASSED tests/test_qa_probe.py::test_probe_5xx_gets_another_pass
+PASSED tests/test_qa_probe.py::test_probe_network_error_gets_another_pass
+PASSED tests/test_qa_probe.py::test_probe_query_with_404_and_429_pdf_is_retried
+3 passed in 1.62s
+== mutant q7b: >     return status in (BUDGET, 429) or status >= 505
+PASSED tests/test_qa_probe.py::test_probe_query_with_404_and_429_pdf_is_retried
+FAILED tests/test_qa_probe.py::test_probe_5xx_gets_another_pass
+FAILED tests/test_qa_probe.py::test_probe_network_error_gets_another_pass
+2 failed, 1 passed in 1.62s
+== mutant q13: >             if f and all(transient(s) for _, s in f):
+PASSED tests/test_qa_probe.py::test_probe_5xx_gets_another_pass
+PASSED tests/test_qa_probe.py::test_probe_network_error_gets_another_pass
+FAILED tests/test_qa_probe.py::test_probe_query_with_404_and_429_pdf_is_retried
+1 failed, 2 passed in 1.61s
+
+[exit code 0]
