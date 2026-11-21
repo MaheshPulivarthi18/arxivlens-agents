@@ -1,0 +1,15 @@
+$ node /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-FE-0h-r1/harness/probe.mjs /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-FE-0h-r1/harness/out
+compiled .border-input rule: .border-input { border-color: hsl(var(--input)); }
+light IngestModal   border rgb(131, 137, 149) (1px) vs fill   rgb(249, 248, 246) = 3.31:1 PASS
+light IngestModal   border rgb(131, 137, 149) (1px) vs parent rgb(255, 255, 255) = 3.51:1 PASS
+light PapersLibrary border rgb(131, 137, 149) (1px) vs fill   rgb(255, 255, 255) = 3.51:1 PASS
+light PapersLibrary border rgb(131, 137, 149) (1px) vs parent rgb(249, 248, 246) = 3.31:1 PASS
+light reference border-border rgb(221, 218, 213) vs card rgb(255, 255, 255) = 1.39:1 (pre-PR)
+dark  IngestModal   border rgb(112, 107, 102) (1px) vs fill   rgb(22, 20, 19)    = 3.48:1 PASS
+dark  IngestModal   border rgb(112, 107, 102) (1px) vs parent rgb(30, 28, 26)    = 3.22:1 PASS
+dark  PapersLibrary border rgb(112, 107, 102) (1px) vs fill   rgb(30, 28, 26)    = 3.22:1 PASS
+dark  PapersLibrary border rgb(112, 107, 102) (1px) vs parent rgb(22, 20, 19)    = 3.48:1 PASS
+dark  reference border-border rgb(54, 51, 48) vs card rgb(30, 28, 26) = 1.35:1 (pre-PR)
+RENDERED: ALL >= 3:1
+
+[exit code 0]

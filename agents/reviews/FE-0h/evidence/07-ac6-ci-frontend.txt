@@ -1,0 +1,27 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/{136652677439,136502158010}/logs | grep (ANSI stripped)
+### PR #101 Frontend job 136652677439 (head_sha 2c84527, conclusion success)
+2026-11-21T00:11:04.5262759Z HEAD is now at a874dc5 Merge 2c8452727b2273d057b80ffec36beef2adc3634e into 230f617210c7623951d4f9f24d5ec711e32c8d0e
+2026-11-21T00:11:07.5139161Z ##[group]Run npm ci
+2026-11-21T00:11:12.4087241Z ##[group]Run npm run lint
+2026-11-21T00:11:12.5840854Z Found 0 warnings and 0 errors.
+2026-11-21T00:11:12.6098529Z ##[group]Run npm test
+2026-11-21T00:11:14.4710031Z  ✓ src/lib/theme.test.js (35 tests) 48ms
+2026-11-21T00:11:15.1088016Z  ✓ src/components/SynthesisView.test.jsx (17 tests) 479ms
+2026-11-21T00:11:15.1116422Z  ✓ src/components/ReferencesStack.test.jsx (13 tests) 487ms
+2026-11-21T00:11:15.6022700Z  ✓ src/lib/citations.test.js (35 tests) 14ms
+2026-11-21T00:11:16.3736973Z  ✓ src/test/controls.test.js (4 tests) 11ms
+2026-11-21T00:11:16.7417566Z  ✓ src/components/ThemeToggle.test.jsx (4 tests) 299ms
+2026-11-21T00:11:16.7642991Z  ✓ src/test/tokens.test.js (5 tests) 5ms
+2026-11-21T00:11:17.7386845Z  ✓ src/components/HeroSearch.test.jsx (5 tests) 460ms
+2026-11-21T00:11:17.7426412Z  Test Files  8 passed (8)
+2026-11-21T00:11:17.7427133Z       Tests  118 passed (118)
+2026-11-21T00:11:17.8546117Z ##[group]Run npm run build
+2026-11-21T00:11:18.9736156Z ✓ 1923 modules transformed.
+2026-11-21T00:11:19.0624845Z ✓ built in 922ms
+
+### main 230f617 Frontend job 136502158010 (baseline)
+2026-11-20T18:59:32.7845011Z Found 0 warnings and 0 errors.
+2026-11-20T18:59:37.4960581Z  Test Files  7 passed (7)
+2026-11-20T18:59:37.4961158Z       Tests  114 passed (114)
+2026-11-20T18:59:38.5774389Z ✓ built in 782ms
+

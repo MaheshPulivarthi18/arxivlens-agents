@@ -1,0 +1,125 @@
+$ bash -c cd /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-FE-0h-r1/harness && for f in $(find . -type f -not -path './m.*' -not -path './out/*' -not -name tw.config.mjs | sort); do echo "===== $f"; cat $f; done
+===== ./contrast.py
+"""AC2: WCAG 2.x contrast of --input (and --border for reference) vs each call site's fill and parent, parsed from index.css."""
+import re, sys
+css = open(sys.argv[1]).read()
+def block(sel):
+    m = re.search(re.escape(sel) + r'\s*\{(.*?)\n  \}', css, re.S)
+    return dict(re.findall(r'--([\w-]+):\s*([\d.]+ [\d.]+% [\d.]+%);', m.group(1)))
+themes = {'light': block(':root'), 'dark': block('.dark')}
+def hsl2rgb(s):
+    h, sat, l = s.split(); h = float(h)/360; sat = float(sat[:-1])/100; l = float(l[:-1])/100
+    def f(n):
+        k = (n + h*12) % 12; a = sat*min(l, 1-l)
+        return l - a*max(-1, min(k-3, 9-k, 1))
+    return [f(0), f(8), f(4)]
+def lum(rgb):
+    c = [x/12.92 if x <= 0.04045 else ((x+0.055)/1.055)**2.4 for x in rgb]
+    return 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2]
+def ratio(a, b):
+    la, lb = sorted([lum(hsl2rgb(a)), lum(hsl2rgb(b))], reverse=True)
+    return (la+0.05)/(lb+0.05)
+sites = [('IngestModal arXiv ID input', 'background', 'fill'), ('IngestModal arXiv ID input', 'card', 'parent (DialogContent bg-card)'),
+         ('PapersLibrary filter input', 'card', 'fill'), ('PapersLibrary filter input', 'background', 'parent (App bg-background)')]
+ok = True
+print(f"{'theme':6} {'call site':28} {'surface':32} {'--input':>8} {'--border':>9}  >=3:1")
+for t, v in themes.items():
+    print(f"# {t}: --input = {v['input']}, --border = {v['border']}, --background = {v['background']}, --card = {v['card']}")
+    for site, surf, role in sites:
+        r = ratio(v['input'], v[surf]); rb = ratio(v['border'], v[surf]); ok &= r >= 3
+        print(f"{t:6} {site:28} {surf+' '+role:32} {r:8.2f} {rb:9.2f}  {'PASS' if r >= 3 else 'FAIL'}")
+print('ALL >= 3:1' if ok else 'SOME BELOW 3:1')
+===== ./mutants.sh
+#!/bin/bash
+# AC4 mutation run. Copies the PR head's frontend/src per mutant into a fresh dir; never edits the PR checkout.
+H=$(cd "$(dirname "$0")" && pwd); SRC=/root/wt/qa-FE-0h/frontend/src
+run() { # name, then a sed program applied to a file
+  local name=$1 file=$2 prog=$3 d; d=$(mktemp -d "$H/m.XXXX"); cp -r "$SRC" "$d/src"
+  [ -n "$file" ] && sed -i "$prog" "$d/src/$file"
+  echo "== $name"; [ -n "$file" ] && (diff <(cat "$SRC/$file") "$d/src/$file" | grep '^[<>]' | cut -c1-150 || echo "  (no diff: INVALID)")
+  node "$d/src/test/controls.test.js"; echo "  exit=$?"
+}
+run "M0 control (PR head, unmutated)" "" ""
+run "M1 IngestModal input back to border-border" components/IngestModal.jsx '82s/border border-input/border border-border/'
+run "M2 PapersLibrary input back to border-border" components/PapersLibrary.jsx '53s/border border-input/border border-border/'
+run "M3 IngestModal input: keep border-input, add border-border/80" components/IngestModal.jsx '82s/border border-input/border border-input border-border\/80/'
+run "M4 PapersLibrary input: border-input dropped (no outline token)" components/PapersLibrary.jsx '53s/border border-input /border /'
+run "M5 IngestModal input: focus:border-border added" components/IngestModal.jsx '82s/focus:border-primary/focus:border-border/'
+run "M6 point test at Toast.jsx (no <input), WITH non-empty assertion" test/controls.test.js "s#\['components/IngestModal.jsx', 'components/PapersLibrary.jsx'\]#['components/Toast.jsx']#"
+run "M7 point test at Toast.jsx, non-empty assertion DROPPED (vacuous pass expected)" test/controls.test.js "s#\['components/IngestModal.jsx', 'components/PapersLibrary.jsx'\]#['components/Toast.jsx']#; /no <input found/d"
+run "M8 IngestModal className moved to a template literal with interpolation" components/IngestModal.jsx '82s/className="\(.*\)"/className={`\1 ${""}`}/'
+===== ./node_modules/vitest/index.js
+// Minimal Vitest shim (logic check only; CI Vitest is the pass/fail). Prints one line per test.
+const tests = []; let prefix = []
+export function describe(name, fn) { prefix.push(name); fn(); prefix.pop() }
+export function it(name, fn) { tests.push([[...prefix, name].join(' > '), fn]) }
+it.each = (rows) => (name, fn) => rows.forEach((r) => it(name.replace('%s', r), () => fn(r)))
+const fmt = (v) => JSON.stringify(v)
+function matchers(actual, msg, neg) {
+  const chk = (pass, text) => { if (pass === neg) throw new Error((msg ? msg + ': ' : '') + (neg ? 'not ' : '') + text) }
+  return {
+    toMatch: (re) => chk(re.test(actual), `expected ${fmt(actual)} to match ${re}`),
+    toBeGreaterThan: (n) => chk(actual > n, `expected ${actual} > ${n}`),
+    toBeNull: () => chk(actual === null, `expected ${fmt(actual)} to be null`),
+    toEqual: (e) => chk(fmt(actual) === fmt(e), `expected ${fmt(actual)} to equal ${fmt(e)}`),
+  }
+}
+export function expect(actual, msg) { const m = matchers(actual, msg, false); m.not = matchers(actual, msg, true); return m }
+setTimeout(() => {
+  let fail = 0
+  for (const [n, fn] of tests) { try { fn(); console.log('  PASS ' + n) } catch (e) { fail++; console.log('  FAIL ' + n + '  -> ' + e.message) } }
+  console.log(`  Tests: ${tests.length - fail} passed, ${fail} failed (${tests.length})`)
+  process.exitCode = fail ? 1 : 0
+}, 0)
+===== ./node_modules/vitest/package.json
+{"name":"vitest","type":"module","main":"index.js"}
+===== ./package.json
+{"type":"module"}
+===== ./probe.mjs
+// AC1/AC2 render probe: compile the PR head's two <input> class strings with Tailwind (real tailwind.config.js
+// colors, typography plugin stripped) + the real index.css tokens, render them in headless Chromium on their
+// real fill/parent surfaces in both themes, read computed colors and compute WCAG ratios. Screenshot both themes.
+import { readFileSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+const require = createRequire('/opt/npm-tools/node_modules/')
+const { compile } = require('tailwindcss'); const { chromium } = require('playwright')
+const FE = '/root/wt/qa-FE-0h/frontend', OUT = process.argv[2]
+const cfgSrc = readFileSync(`${FE}/tailwind.config.js`, 'utf8').replace(/^import typography.*$/m, '').replace('plugins: [typography]', 'plugins: []')
+writeFileSync(`${process.cwd()}/tw.config.mjs`, cfgSrc)
+const cls = (f, line) => readFileSync(`${FE}/src/components/${f}`, 'utf8').split('\n')[line - 1].match(/className="([^"]*)"/)[1]
+const ingest = cls('IngestModal.jsx', 82), lib = cls('PapersLibrary.jsx', 53)
+const dialog = readFileSync(`${FE}/src/components/ui/dialog.jsx`, 'utf8').match(/"(fixed left-\[50%\][^"]*)"/)[1]
+const tokens = readFileSync(`${FE}/src/index.css`, 'utf8').match(/@layer base \{[\s\S]*?\n\}/)[0]
+const input = `@import "tailwindcss/theme.css" layer(theme);\n@import "tailwindcss/utilities.css" layer(utilities);\n@config "./tw.config.mjs";\n${tokens}`
+const c = await compile(input, { base: process.cwd(), loadStylesheet: async (id, base) => ({ path: id, base, content: readFileSync(require.resolve(id), 'utf8') }), loadModule: async (id, base) => ({ path: id, base, module: (await import(`${base}/${id.replace('./', '')}`)).default }) })
+const cands = [...new Set([...ingest.split(/\s+/), ...lib.split(/\s+/), 'bg-card', 'bg-background', 'p-6', 'p-4', 'm-0', 'text-foreground', 'text-xs', 'border'])]
+const css = c.build(cands)
+console.log('compiled .border-input rule:', (css.match(/\.border-input\s*\{[^}]*\}/) || ['MISSING'])[0].replace(/\s+/g, ' '))
+const html = (dark) => `<!doctype html><html class="${dark ? 'dark' : ''}"><head><style>@layer theme, base, components, utilities; @layer base { *{box-sizing:border-box;border-width:0;border-style:solid;border-color:hsl(var(--border))} } ${css}</style></head>
+<body class="bg-background text-foreground m-0 p-6" style="font-family:sans-serif;width:760px">
+<p class="text-xs">${dark ? 'dark' : 'light'} theme · PR head classes from IngestModal.jsx:82 and PapersLibrary.jsx:53</p>
+<div id="dlg" class="${dialog.replace(/fixed left-\[50%\] top-\[50%\]|translate-[xy]-\[-50%\]/g, '')}" style="position:static;transform:none;margin-bottom:16px">
+ <p class="text-xs">IngestModal (DialogContent bg-card)</p><div style="display:flex"><input id="ingest" class="${ingest}" placeholder="e.g. 2608.20154"/></div></div>
+<p class="text-xs">PapersLibrary (page bg-background)</p><div style="position:relative"><input id="lib" class="${lib}" placeholder="Filter by title or ID..."/></div>
+<p class="text-xs" style="margin-top:16px">Reference: same classes with border-border (pre-PR)</p>
+<div class="bg-card p-4"><input id="ref" class="${ingest.replace('border-input', 'border-border')}" placeholder="old"/></div></body></html>`
+const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 800, height: 420 } })
+const rgb = (s) => s.match(/[\d.]+/g).slice(0, 3).map(Number)
+const L = ([r, g, bb]) => { const f = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(bb) }
+const ratio = (a, b2) => { const [x, y] = [L(a), L(b2)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05) }
+let ok = true
+for (const dark of [false, true]) {
+  await pg.setContent(html(dark))
+  const s = await pg.evaluate(() => { const g = (id, p = 'borderTopColor') => getComputedStyle(document.getElementById(id))[p]
+    return { ingB: g('ingest'), ingW: g('ingest', 'borderTopWidth'), ingFill: g('ingest', 'backgroundColor'), dlg: g('dlg', 'backgroundColor'),
+      libB: g('lib'), libW: g('lib', 'borderTopWidth'), libFill: g('lib', 'backgroundColor'), body: getComputedStyle(document.body).backgroundColor, refB: g('ref') } })
+  const t = dark ? 'dark ' : 'light'
+  const rows = [['IngestModal', s.ingB, s.ingW, 'fill', s.ingFill], ['IngestModal', s.ingB, s.ingW, 'parent', s.dlg], ['PapersLibrary', s.libB, s.libW, 'fill', s.libFill], ['PapersLibrary', s.libB, s.libW, 'parent', s.body]]
+  for (const [site, bc, w, role, bg] of rows) { const r = ratio(rgb(bc), rgb(bg)); ok &&= r >= 3
+    console.log(`${t} ${site.padEnd(13)} border ${bc} (${w}) vs ${role.padEnd(6)} ${bg.padEnd(18)} = ${r.toFixed(2)}:1 ${r >= 3 ? 'PASS' : 'FAIL'}`) }
+  console.log(`${t} reference border-border ${s.refB} vs card ${s.dlg} = ${ratio(rgb(s.refB), rgb(s.dlg)).toFixed(2)}:1 (pre-PR)`)
+  await pg.screenshot({ path: `${OUT}/${dark ? '05b-render-dark' : '05a-render-light'}.png` })
+}
+console.log(ok ? 'RENDERED: ALL >= 3:1' : 'RENDERED: SOME BELOW 3:1'); await b.close()
+
+[exit code 0]

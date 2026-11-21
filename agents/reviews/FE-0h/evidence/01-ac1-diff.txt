@@ -1,0 +1,37 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; git diff -U0 origin/main...HEAD -- frontend/src/components/ | cut -c1-140; echo; echo "## grep at head"; grep -n "<input\|border-input\|border-border" frontend/src/components/IngestModal.jsx frontend/src/components/PapersLibrary.jsx | cut -c1-140
+ frontend/README.md                        |  2 +-
+ frontend/src/components/IngestModal.jsx   |  2 +-
+ frontend/src/components/PapersLibrary.jsx |  2 +-
+ frontend/src/test/controls.test.js        | 65 +++++++++++++++++++++++++++++++
+ 4 files changed, 68 insertions(+), 3 deletions(-)
+
+diff --git a/frontend/src/components/IngestModal.jsx b/frontend/src/components/IngestModal.jsx
+index c89b1ad..6795cd9 100644
+--- a/frontend/src/components/IngestModal.jsx
++++ b/frontend/src/components/IngestModal.jsx
+@@ -82 +82 @@ export default function IngestModal({ isOpen, onClose, onIngestSuccess, onAskAbo
+-                className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-fo
++                className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-for
+diff --git a/frontend/src/components/PapersLibrary.jsx b/frontend/src/components/PapersLibrary.jsx
+index ee3cd9f..282a987 100644
+--- a/frontend/src/components/PapersLibrary.jsx
++++ b/frontend/src/components/PapersLibrary.jsx
+@@ -53 +53 @@ export default function PapersLibrary({ onBackToSearch }) {
+-              className="bg-card border border-border rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted
++              className="bg-card border border-input rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-
+
+## grep at head
+frontend/src/components/IngestModal.jsx:80:              <input
+frontend/src/components/IngestModal.jsx:82:                className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm 
+frontend/src/components/IngestModal.jsx:113:            <div className="p-4 rounded-lg bg-muted/40 border border-border text-center space-y-
+frontend/src/components/IngestModal.jsx:128:            <div className="p-4 rounded-xl bg-supported border border-border space-y-3 animate-i
+frontend/src/components/IngestModal.jsx:142:                <div className="bg-background/80 p-2 rounded border border-border/80 text-center
+frontend/src/components/IngestModal.jsx:146:                <div className="bg-background/80 p-2 rounded border border-border/80 text-center
+frontend/src/components/IngestModal.jsx:150:                <div className="bg-background/80 p-2 rounded border border-border/80 text-center
+frontend/src/components/PapersLibrary.jsx:51:            <input
+frontend/src/components/PapersLibrary.jsx:53:              className="bg-card border border-input rounded-lg pl-9 pr-3 py-1.5 text-xs sm:tex
+frontend/src/components/PapersLibrary.jsx:72:      <Card className="border-border/80 bg-card overflow-hidden">
+frontend/src/components/PapersLibrary.jsx:76:              <tr className="border-b border-border/80 bg-muted/40 text-xs font-semibold upperc
+frontend/src/components/PapersLibrary.jsx:117:                      <Badge variant="clinical" className="gap-1 text-[11px] border-border bg-
+
+[exit code 0]

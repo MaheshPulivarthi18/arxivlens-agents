@@ -1,0 +1,81 @@
+$ /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-FE-0h-r1/harness/mutants.sh
+== M0 control (PR head, unmutated)
+  PASS form-control border guard > patterns match whole tokens only
+  PASS form-control border guard > extracts the className of each <input
+  PASS form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border
+  PASS form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border
+  Tests: 4 passed, 0 failed (4)
+  exit=0
+== M1 IngestModal input back to border-border
+<                 className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground o
+>                 className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground 
+  PASS form-control border guard > patterns match whole tokens only
+  PASS form-control border guard > extracts the className of each <input
+  FAIL form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border  -> components/IngestModal.jsx: <input className lacks border-input: expected "flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary font-mono" to match /(?:^|\s)border-input(?=\s|$)/
+  PASS form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border
+  Tests: 3 passed, 1 failed (4)
+  exit=1
+== M2 PapersLibrary input back to border-border
+<               className="bg-card border border-input rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foregroun
+>               className="bg-card border border-border rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foregrou
+  PASS form-control border guard > patterns match whole tokens only
+  PASS form-control border guard > extracts the className of each <input
+  PASS form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border
+  FAIL form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border  -> components/PapersLibrary.jsx: <input className lacks border-input: expected "bg-card border border-border rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary w-48 sm:w-64" to match /(?:^|\s)border-input(?=\s|$)/
+  Tests: 3 passed, 1 failed (4)
+  exit=1
+== M3 IngestModal input: keep border-input, add border-border/80
+<                 className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground o
+>                 className="flex-1 bg-background border border-input border-border/80 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-m
+  PASS form-control border guard > patterns match whole tokens only
+  PASS form-control border guard > extracts the className of each <input
+  FAIL form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border  -> components/IngestModal.jsx: <input className has border-border: not expected "flex-1 bg-background border border-input border-border/80 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary font-mono" to match /(?:^|\s)(?:[\w-]+:)*border-border(?:\/\d+)?(?=\s|$)/
+  PASS form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border
+  Tests: 3 passed, 1 failed (4)
+  exit=1
+== M4 PapersLibrary input: border-input dropped (no outline token)
+<               className="bg-card border border-input rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foregroun
+>               className="bg-card border rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground outline-non
+  PASS form-control border guard > patterns match whole tokens only
+  PASS form-control border guard > extracts the className of each <input
+  PASS form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border
+  FAIL form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border  -> components/PapersLibrary.jsx: <input className lacks border-input: expected "bg-card border rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary w-48 sm:w-64" to match /(?:^|\s)border-input(?=\s|$)/
+  Tests: 3 passed, 1 failed (4)
+  exit=1
+== M5 IngestModal input: focus:border-border added
+<                 className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground o
+>                 className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground o
+  PASS form-control border guard > patterns match whole tokens only
+  PASS form-control border guard > extracts the className of each <input
+  FAIL form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border  -> components/IngestModal.jsx: <input className has border-border: not expected "flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-border font-mono" to match /(?:^|\s)(?:[\w-]+:)*border-border(?:\/\d+)?(?=\s|$)/
+  PASS form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border
+  Tests: 3 passed, 1 failed (4)
+  exit=1
+== M6 point test at Toast.jsx (no <input), WITH non-empty assertion
+< export const CONTROL_FILES = ['components/IngestModal.jsx', 'components/PapersLibrary.jsx']
+> export const CONTROL_FILES = ['components/Toast.jsx']
+  PASS form-control border guard > patterns match whole tokens only
+  PASS form-control border guard > extracts the className of each <input
+  FAIL form-control border guard > components/Toast.jsx text inputs use border-input, not border-border  -> components/Toast.jsx: no <input found: expected 0 > 0
+  Tests: 2 passed, 1 failed (3)
+  exit=1
+== M7 point test at Toast.jsx, non-empty assertion DROPPED (vacuous pass expected)
+< export const CONTROL_FILES = ['components/IngestModal.jsx', 'components/PapersLibrary.jsx']
+> export const CONTROL_FILES = ['components/Toast.jsx']
+<     expect(classNames.length, `${rel}: no <input found`).toBeGreaterThan(0)
+  PASS form-control border guard > patterns match whole tokens only
+  PASS form-control border guard > extracts the className of each <input
+  PASS form-control border guard > components/Toast.jsx text inputs use border-input, not border-border
+  Tests: 3 passed, 0 failed (3)
+  exit=0
+== M8 IngestModal className moved to a template literal with interpolation
+<                 className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground o
+>                 className={`flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground 
+  PASS form-control border guard > patterns match whole tokens only
+  PASS form-control border guard > extracts the className of each <input
+  FAIL form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border  -> components/IngestModal.jsx: <input without a static className: not expected null to be null
+  PASS form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border
+  Tests: 3 passed, 1 failed (4)
+  exit=1
+
+[exit code 0]

@@ -1,0 +1,15 @@
+$ python3 /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-FE-0h-r1/harness/contrast.py frontend/src/index.css
+theme  call site                    surface                           --input  --border  >=3:1
+# light: --input = 220 8% 55%, --border = 40 10% 85%, --background = 40 23% 97%, --card = 0 0% 100%
+light  IngestModal arXiv ID input   background fill                      3.30      1.31  PASS
+light  IngestModal arXiv ID input   card parent (DialogContent bg-card)     3.50      1.40  PASS
+light  PapersLibrary filter input   card fill                            3.50      1.40  PASS
+light  PapersLibrary filter input   background parent (App bg-background)     3.30      1.31  PASS
+# dark: --input = 30 5% 42%, --border = 30 5% 20%, --background = 30 7% 8%, --card = 30 6% 11%
+dark   IngestModal arXiv ID input   background fill                      3.48      1.46  PASS
+dark   IngestModal arXiv ID input   card parent (DialogContent bg-card)     3.23      1.35  PASS
+dark   PapersLibrary filter input   card fill                            3.23      1.35  PASS
+dark   PapersLibrary filter input   background parent (App bg-background)     3.48      1.46  PASS
+ALL >= 3:1
+
+[exit code 0]

@@ -1,0 +1,28 @@
+$ bash -c /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-FE-0h-r1/harness/mutants.sh | grep -E '^==|Tests:|  FAIL|no diff' | sed -E 's/(  -> [^:]*: [^:]*):.*/\1/'
+== M0 control (PR head, unmutated)
+  Tests: 4 passed, 0 failed (4)
+== M1 IngestModal input back to border-border
+  FAIL form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border  -> components/IngestModal.jsx: <input className lacks border-input
+  Tests: 3 passed, 1 failed (4)
+== M2 PapersLibrary input back to border-border
+  FAIL form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border  -> components/PapersLibrary.jsx: <input className lacks border-input
+  Tests: 3 passed, 1 failed (4)
+== M3 IngestModal input: keep border-input, add border-border/80
+  FAIL form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border  -> components/IngestModal.jsx: <input className has border-border
+  Tests: 3 passed, 1 failed (4)
+== M4 PapersLibrary input: border-input dropped (no outline token)
+  FAIL form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border  -> components/PapersLibrary.jsx: <input className lacks border-input
+  Tests: 3 passed, 1 failed (4)
+== M5 IngestModal input: focus:border-border added
+  FAIL form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border  -> components/IngestModal.jsx: <input className has border-border
+  Tests: 3 passed, 1 failed (4)
+== M6 point test at Toast.jsx (no <input), WITH non-empty assertion
+  FAIL form-control border guard > components/Toast.jsx text inputs use border-input, not border-border  -> components/Toast.jsx: no <input found
+  Tests: 2 passed, 1 failed (3)
+== M7 point test at Toast.jsx, non-empty assertion DROPPED (vacuous pass expected)
+  Tests: 3 passed, 0 failed (3)
+== M8 IngestModal className moved to a template literal with interpolation
+  FAIL form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border  -> components/IngestModal.jsx: <input without a static className
+  Tests: 3 passed, 1 failed (4)
+
+[exit code 0]

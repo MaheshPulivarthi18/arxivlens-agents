@@ -1,0 +1,19 @@
+$ bash -c echo "## grep"; grep -n "fileURLToPath\|node:path\|new URL\|toBeGreaterThan(0)\|CONTROL_FILES =\|BORDER_BORDER =\|BORDER_INPUT =" frontend/src/test/controls.test.js; echo "new URL( occurrences: $(grep -c "new URL(" frontend/src/test/controls.test.js)"; echo; echo "## control run (Vitest shim, logic check only; CI Vitest is pass/fail)"; node /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-FE-0h-r1/harness/m.ctrl/src/test/controls.test.js 2>/dev/null || (d=$(mktemp -d /tmp/claude-0/-home-claude/d825f18c-eb7a-525c-a7d3-5110193ce3c5/scratchpad/qa-FE-0h-r1/harness/m.XXXX); cp -r frontend/src $d/src; node $d/src/test/controls.test.js)
+## grep
+5:import path from 'node:path'
+6:import { fileURLToPath } from 'node:url'
+10:export const CONTROL_FILES = ['components/IngestModal.jsx', 'components/PapersLibrary.jsx']
+14:const SRC_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+19:export const BORDER_BORDER = /(?:^|\s)(?:[\w-]+:)*border-border(?:\/\d+)?(?=\s|$)/
+20:export const BORDER_INPUT = /(?:^|\s)border-input(?=\s|$)/
+58:    expect(classNames.length, `${rel}: no <input found`).toBeGreaterThan(0)
+new URL( occurrences: 0
+
+## control run (Vitest shim, logic check only; CI Vitest is pass/fail)
+  PASS form-control border guard > patterns match whole tokens only
+  PASS form-control border guard > extracts the className of each <input
+  PASS form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border
+  PASS form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border
+  Tests: 4 passed, 0 failed (4)
+
+[exit code 0]
