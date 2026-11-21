@@ -158,3 +158,39 @@ None. No blocking findings and no nits on the rework.
 PENDING on AC3 only. Next QA round: once job 136903946034 completes, quote the `make eval` `GATE:` line and the job's total duration. If it is green, the verdict is PASS → pm-lead, and nothing else needs re-checking. If it fails for a non-code reason (runner or arXiv), report it as such.
 
 Evidence (new in r3): `14-r3-scope-stat`, `15-r3-rework-diff`, `16-r3-evalyml-identical`, `17-r3-ac5-wording`, `18-r3-no-stale-budgets`, `19-r3-ci-checks`, `20-r3-ac3-eval-steps-in-progress` (`.png` + `.txt` each).
+
+## Round 4 — 2026-11-21 (qa-reviewer)
+
+**Verdict: PASS** · Head `3224fb296fff00836b5bdc22d0124f7218e7acb1` (PR #114, draft, not merged; head unchanged since r3) · Evidence folder: https://github.com/MaheshPulivarthi18/arxivlens-agents/tree/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence
+
+This round closes the one open item from r3: AC3 on the new head. I polled job 136903946034 from 17:19:56Z, and it completed at 17:23:06Z.
+
+### Test results (CI on 3224fb2, all 6 check runs completed)
+| Check | Result |
+|---|---|
+| Agent ownership, Go, Frontend, DB, Python M0 | success ([21](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/21-r4-ci-checks.png?raw=true)) |
+| **eval** (job 136903946034, `head_sha` = 3224fb2, runner "GitHub Actions 1000002332", Intel Xeon Platinum 8573C) | **success**, 16:13:14Z → 17:23:06Z = **69m52s (4192 s)** ([22](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/22-r4-ac3-eval-job-steps.png?raw=true)) |
+| make test-unit / make lint | not run locally (no Go 1.25 / npm / Docker in the sandbox). The CI Go, Python M0 and Frontend jobs are green |
+| make eval | CI: `GATE: PASS`. Recall@5 (Hybrid RRF + Rerank) 0.9850 ≥ 0.8, supported_citation_rate 1.0 ≥ 0.9, correct_refusal_rate 1.0 ≥ 0.95, ask_errors 0, 78/78 cases. These match r2 exactly. No retrieval or answering code changed ([23](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/23-r4-ac3-eval-log-gate.png?raw=true)) |
+
+### Step timing vs timeouts (job 136903946034)
+| Step | Duration | timeout-minutes |
+|---|---|---|
+| 5 Lint the harness (actionlint, compose config) | 11 s, success | 3 |
+| 12 Prefetch arXiv responses | 0 s (replay store hit) | 45 |
+| 17 make eval-seed | 2373 s = 39m33s | 70 |
+| 19 make eval | 1391 s = 23m11s, success (Xeon 8573C, so close to the 22m11s baseline) | 45 |
+| job total | 69m52s | 180 |
+
+### Acceptance criteria
+| AC | Met? | Evidence |
+|---|---|---|
+| AC1, AC2, AC4 | ✅ | Unchanged since r3. `eval.yml` is byte-identical to the head QA'd in r2 (r3 `16`), so r1/r2 evidence 01-05 and 13 still apply |
+| AC3 | ✅ | `eval` check success on 3224fb2. Step 5 "Lint the harness (actionlint, compose config)" success. `make eval` success with `GATE: PASS`. Job total duration **69m52s** ([22](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/22-r4-ac3-eval-job-steps.png?raw=true), [23](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/23-r4-ac3-eval-log-gate.png?raw=true)) |
+| AC5 | ✅ | Unchanged since r3 (`15`-`18`) |
+
+### Findings
+None new. The r2 nits (prefetch-44 wording, prefetch budget not exercised, the 1.37x EPYC margin) still stand and are non-blocking. No [blocking] and no [spec] findings.
+
+### Hand-off
+PASS → pm-lead final review. Per PM r1, only AC5 needed re-review, and it is met (r3). New evidence in r4, rendered from real CI output with `render_evidence.py`: [21](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/21-r4-ci-checks.png?raw=true) · [22](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/22-r4-ac3-eval-job-steps.png?raw=true) · [23](https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/04fe71007d671ee358d99e7f250a40d9f868906d/agents/reviews/OPS-H20/evidence/23-r4-ac3-eval-log-gate.png?raw=true) (`.png` + `.txt` each).
