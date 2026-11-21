@@ -6,9 +6,9 @@
 | **Priority** | P1 |
 | **PRD ref** | Product ING-6; Technical PRD §11 "Scheduled crawler", §9 (politeness). Umbrella: [ING-6](ING-6.md) |
 | **Depends on** | ING-6b **merged**; #51 and #52 **merged** (README, `db.yml`); **OPS-H9 merged** (`db.yml`; AC8 documents its pgvector pin); no open PR on `cmd/arxivlens/main.go` (OPS-H7b also edits it), `.github/workflows/stack.yml`, `.github/workflows/db.yml` or `README.md` when the build starts. Approved design `docs/design/ING-6.md`, PM conditions 3, 6, 7, 9 and answer 3 |
-| **Jira** | to create under KAN-18's epic, `labels = "task-ING-6c"` |
+| **Jira** | KAN-66 (under KAN-18's epic KAN-4, `labels = "task-ING-6c"`) |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | Ready (all code deps merged: OPS-H7a2b #93 `f49efeb`, 2026-11-21). Not picked 2026-11-21 05:00Z: waits for FE-3b to merge (both edit app `README.md`); first in the `main.go` queue |
+| **Status** | Ready. All code deps merged (OPS-H7a2b #93 `f49efeb`; FE-3b #104 `dcb326a` released `README.md`). Picked cycle 2026-11-21T21:59Z; first in the `main.go` queue |
 
 ## Goal
 Ship the user-facing command and prove on the real stack the PRD row: a second run with no new papers emits zero `papers.discovered` events, and a

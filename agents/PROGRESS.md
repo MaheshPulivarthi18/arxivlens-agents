@@ -1088,3 +1088,11 @@ Format:
 - #107 and #115 were first updated to `main` (`update-branch`) because #119/#120 changed their files; CI re-ran green on all 6 checks (heads `e76ae63`, `82404ba`) before merging.
 - Mahesh merged his own #121 (ADR-0020) in the same window. App `main` = `53171d6`.
 - Board, task Status lines and Jira (14 stories → Done) updated. Unblocks the Ready queue: ING-6c, OPS-H7a2c, FE-2, FE-0j, OPS-H6f, AI-13, OPS-H21 (and FE-4's FE-3b dependency) — pm-lead re-checks independence next cycle.
+
+## 2026-11-22 ~22:10Z — pm-lead (cycle 2026-11-21T21:59Z grooming)
+- Checked `git -C app log origin/main` (`53171d6`): #104–#117 and #119–#121 merged, no open app PRs, so every "after #N" on Ready is met. Board Ready column rebuilt; FE-4 moved Blocked → Ready (design first); AI-5/AI-10 notes fixed (#115, #121 merged).
+- Mahesh's EVAL-8 direction (`3d8cab1`): wrote **ADR-0021** (Proposed) for a real-LLM CI eval on Modal. It asks: which runs call the LLM (rec. nightly + dispatch + `eval-llm` label), could-not-run rules R1–R4 (missing secret, warm-up, digest mismatch, 0 synthesized → exit 2), PR replay option (rec. LLM record/replay proxy) and the monthly budget. Thresholds unchanged.
+- Specs: **EVAL-8c** (ai, P1, Ready: results JSON records the LLM + per-case `answer_kind`/`status`, BASELINE real-LLM section; report-only, so no ADR wait; split out of Mahesh's "8a" because `scripts/eval_gate.py` is ai-owned), **EVAL-8a** (backend, design-required, Blocked on ADR-0021 + Modal/secrets), **EVAL-8b** (ai, Blocked on ADR-0021 Q3).
+- EVAL-8: option 3 answered. AC1 is met. AC2's numbers are met (supported 1.00, refusals 1.00, quick p95 2423 ms); the BASELINE write-up goes to EVAL-8c. AC3 (tokens) goes to EVAL-8a. It stays as the umbrella until EVAL-8c and EVAL-8a merge. The three evidence observations are now a Backlog item.
+- Raised arxivlens-agents #20 (`docs/adr-0019-0020-prd`): PRD wording for ADR-0019/0020, with §7.1 left to #17. The outbound filter swapped the 🤖 footer again; content otherwise intact.
+- **Picked (4, pairwise disjoint files):** EVAL-8c (ai), FE-4 (frontend, P0, design-required, no design yet), OPS-H21 (ai), ING-6c (backend). Not picked (cap): OPS-H6f, AI-13, FE-0j (all Ready, next slots); OPS-H7a2c/H7b/H7c (`main.go` queue behind ING-6c); FE-2 (behind FE-4).

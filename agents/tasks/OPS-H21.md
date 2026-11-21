@@ -6,9 +6,9 @@
 | **Priority** | P2 (harness quality; item 3 protects eval-store convergence) |
 | **PRD ref** | Technical PRD §9 "External politeness", §10 Testing and evaluation; QA OPS-H19 r1 findings 1 and 2 `[nit]` (`agents/reviews/OPS-H19/report.md`); QA OPS-H20 r1 finding 2 `[spec]` (`agents/reviews/OPS-H20/report.md`) |
 | **Depends on** | OPS-H19 (ArxivLens #111) **merged** (same two files: #111 = `scripts/arxiv_replay.py`, `tests/test_arxiv_replay.py`, REST `pulls/111/files` 2026-11-21 13:10Z). No overlap with OPS-H20 #114 (`eval.yml` only; this ticket edits no workflow) |
-| **Jira** | needs creating: epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H21`, `agent-ai`, `arxivlens` |
+| **Jira** | KAN-119 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H21`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: control flow inside an existing CI script + unit tests; no flag, contract or workflow change |
-| **Status** | Ready once #111 merges (Backlog until then; re-checked 2026-11-21 13:00Z: #111 still open) |
+| **Status** | Ready (#111 merged `1a3a7b9`). Picked cycle 2026-11-21T21:59Z |
 
 ## Goal
 Three gaps QA found in OPS-H19 and OPS-H20, all small and all in `main`'s prefetch path:

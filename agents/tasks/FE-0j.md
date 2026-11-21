@@ -6,9 +6,9 @@
 | **Priority** | P3 (test hardening) |
 | **PRD ref** | Product PRD §7 (readable, accessible UI); FE-0i QA r1 nit 1 + PM review (`agents/reviews/FE-0i/report.md`) |
 | **Depends on** | FE-0i (#109) **merged** (same file `ui/badge.test.jsx`). No ADR |
-| **Jira** | to create under the frontend epic (orchestrator) |
+| **Jira** | KAN-115 (frontend epic KAN-5) |
 | **Design required** | no: test-only, one primitive |
-| **Status** | Backlog (Ready once #109 merges) |
+| **Status** | Ready (#109 merged `8337086`). Not picked cycle 2026-11-21T21:59Z: 4-task cap, P3 (independent of FE-4: only `ui/badge.test.jsx`), next frontend slot |
 
 ## Goal
 `Badge` builds its classes with `cn(badgeVariants({ variant }), className)`, so a caller's class wins over a conflicting default.

@@ -6,9 +6,9 @@
 | **Priority** | P2 (narrow race; data correctness) |
 | **PRD ref** | Product PRD OPS-3 ("Reprocessing never creates duplicate rows or embeddings"); Technical PRD §8.1 L3 ("content hashing"); QA OPS-H6e r1 finding 2 / r2 finding 1 `[spec]` and nit 3 / r2 nit 2; OPS-H6e ticket Notes "Residual race" |
 | **Depends on** | OPS-H6e (ArxivLens #106) **merged**: same files `services/common/db.py`, `tests/test_chunk_reprocess_db.py` |
-| **Jira** | needs a story (orchestrator) under epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6f`, `agent-backend`, `arxivlens` |
+| **Jira** | KAN-116 (epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6f`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py` plus tests, no schema/event/HTTP change, no new CLI/table/service |
-| **Status** | Backlog (Ready once #106 merges) |
+| **Status** | Ready (#106 merged `a4c0140`). Not picked cycle 2026-11-21T21:59Z: 4-task cap (EVAL-8c human direction, FE-4 P0, ING-6c P1 took priority); next backend slot |
 
 ## Goal
 OPS-H6e made the embedder's save hash-aware: with a 4-tuple it locks the chunk row `FOR SHARE` and writes only if

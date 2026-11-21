@@ -6,9 +6,9 @@
 | **Priority** | P0 (Phase 1 item 8; Product PRD §7 principle 3 "one click to the source") |
 | **PRD ref** | Product PRD UI-1, QA-3, QA-4, §7 principles 1–3; ADR-0014 (Accepted 2026-11-07); ADR-0018 (Proposed: `answer_kind`) |
 | **Depends on** | **AI-8 merged** (claims + provenance JSON; design stage now), **FE-3 merged** (same components), **FE-1 merged** (harness), **FE-0 merged** (theme) and **FE-0b merged** (`ui/popover`, `ui/collapsible`; split 2026-11-19). ADR-0014 Accepted. ING-11b for real `page` values (fixtures suffice for tests) |
-| **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-4"`) |
+| **Jira** | KAN-44 under epic KAN-5 "Research UI & citations" (`labels = "task-FE-4"`) |
 | **Design required** | **yes** (`docs/design/FE-4.md`: layout, states, interaction; P0) |
-| **Status** | Waiting on FE-3 and FE-0b (#70). AI-8b #65, FE-1 #68, FE-0 #69 merged. Not ADR-blocked (ADR-0014 Accepted) |
+| **Status** | Ready (design stage). All deps merged: FE-3b #104 `dcb326a`, FE-0b #70, FE-0i #109, AI-8b #65, ADR-0019 #120. Picked cycle 2026-11-21T21:59Z: write `docs/design/FE-4.md` first; no code before pm-lead approves it |
 
 ## Goal
 Let a researcher check any statement in an answer in one or two clicks: see whether it was supported, unsupported or
@@ -59,3 +59,10 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   refusals. For the design: (a) AC1's per-status chips still need tests, but use quoted-answer fixtures for unsupported/unverified, and add one
   synthesized fixture with skipped markers (each `[n]` still focuses its own card); (b) don't render a "hidden citations" count, the API doesn't
   return one. Still waits on FE-3b (#104) merging.
+- 2026-11-22 cycle 2026-11-21T21:59Z (pm-lead, pick): unblocked, since FE-3b (#104) and FE-0i (#109, `Badge` is a `<span>`) are merged. Design first
+  (`docs/design/FE-4.md` from `agents/templates/design.md`); pm-lead approves before any code. For the design: (a) fold in the FE-3b PM review item:
+  in refusal mode card [1] still shows the active ring (`App.jsx` `useState(1)` and the first-citation marker set on load), and FE-4 owns marker
+  semantics, so say what is active in refusal mode; (b) ADR-0018 is still Proposed, so render `answer_kind` defensively (absent → treat as quoted)
+  and don't depend on `synthesis_available`; (c) **don't edit app `README.md`** this cycle, because ING-6c (picked at the same time) edits it. If a
+  README line is needed, list it in the design and pm-lead sequences it. (d) Leave `ui/badge.test.jsx` alone: FE-0j (Ready, next) owns it.
+  Size: if the design projects > 400 changed lines, name the split seam (e.g. FE-4a claims + marker focus, FE-4b quote highlight + PDF page link).
