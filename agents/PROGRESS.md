@@ -867,3 +867,8 @@ Format:
   **FE-0h** (frontend, P3: `IngestModal.jsx:82` + `PapersLibrary.jsx:53` `border-border` → `border-input` (pm-lead calc 3.23–3.50:1 vs 1.31–1.46:1), new `src/test/controls.test.js`, `frontend/README.md:14` glob `*.test.{js,jsx}`).
 - Rejected: OPS-H8 `PYTEST_ARGS=-rA` (already in `stack.yml:286`; Backlog line struck); FE-0c `theme.test.js` no-`matchMedia` tests (FE-3b, P0, edits `theme.js`); RET-1b NaN+Inf/MaxFloat32 rows (real, `search_test.go` free, but backend would exceed 2 new PRs); ING-9 wiring test (needs db/storage interfaces) and redirect check (needs network); ai-engineer has no unblocked item (`tests/test_evals_data.py` held by #96, `tests/test_m2_pipeline.py` by #98, AI-5/EVAL-2 on ADRs, the AI-2 counter split is stale after the NLI verifier); `make test-py` split (needs `README.md`, held by #93).
 - Jira not touched (orchestrator): suggested epics ING-9c → KAN-4, OPS-H8c → KAN-3, FE-0h → KAN-5.
+
+## 2026-11-21 pm-lead: FE-0h final review (PR #101)
+- APPROVE: QA r1 PASS; all 12 evidence files at `bdea793` opened, each AC proven (AC6 = CI Frontend job 136652677439, 8 files / 118 tests vs main 7 / 114). PR #101 raised (ready for review, label `ready-to-merge`); board → Ready to merge.
+- QA [spec] #2 fixed: ticket PRD ref now points to `docs/design/FE-0.md` 107-108, 120-122 instead of Product PRD §7.
+- Backlog: repo-wide form-control border scan (incl. HeroSearch, `<textarea`/`<select`), after FE-3b.

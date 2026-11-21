@@ -7,8 +7,8 @@
 | **PRD ref** | Product PRD OPS-1, OPS-3; Technical PRD §8.1 (L4 commit-after-process), §8.2; follow-up from the OPS-H8 design review (`docs/design/OPS-H8.md:118-119,288-289,298`, PM answer 2) |
 | **Depends on** | OPS-H8 (merged), OPS-H1 (workers in compose, merged). No open PR touches `docker-compose.yml` (checked 2026-11-21 00:00Z: #91–#98 file lists) |
 | **Jira** | to be created by the orchestrator (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H8c`, `agent-backend`, `arxivlens`; link KAN-34) |
-| **Design required** | no: one compose key on the existing `x-worker` anchor; the value comes from the approved OPS-H8 design |
-| **Status** | Ready (picked 2026-11-21 00:00Z) |
+| **Design required** | no: one compose key on the two worker services; the value comes from the approved OPS-H8 design |
+| **Status** | Ready to merge: PR [#100](https://github.com/MaheshPulivarthi18/ArxivLens/pull/100) @ `ffe4b45`, QA r1 PASS, PM APPROVE 2026-11-21 ([report](../reviews/OPS-H8c/report.md)) |
 
 ## Goal
 On `docker compose stop`, a worker that is inside a producer `flush` (up to `DELIVERY_TIMEOUT_S = 12.0`,
@@ -17,10 +17,10 @@ the record is redelivered as a duplicate. Give the processor and embedder worker
 shutdown path fits.
 
 Checked on `origin/main` `230f617`: `docker-compose.yml` has no `stop_grace_period` anywhere. `processor` (`:189`) and
-`embedder-worker` (`:205`) both merge `<<: *worker` (anchor `x-worker`, `:5-18`).
+`embedder-worker` (`:205`) both merge `<<: *worker` (anchor `x-worker`, `:5-18`), and so does `embedder-api` (`:160-161`).
 
 ## Scope
-- `docker-compose.yml`: add `stop_grace_period: 20s` to the `x-worker` anchor (with a one-line comment that cites `DELIVERY_TIMEOUT_S` 12 s and the 10 s default), so both workers inherit it.
+- `docker-compose.yml`: add `stop_grace_period: 20s` to the `processor` and `embedder-worker` services directly, **not** to the `x-worker` anchor, because `embedder-api` (`:160-161`) also merges `<<: *worker` and would inherit it, which breaks AC1. Add a one-line comment that cites `DELIVERY_TIMEOUT_S` 12 s and the 10 s default. *(Amended 2026-11-21 by pm-lead after QA [spec] finding 1; the original wording said the anchor.)*
 - Out of scope: `kafka_client.py` (timeouts unchanged), infra services, `embedder-api`, `stack.yml`, README/CONTRIBUTING (no command changes; README is held by #93 anyway).
 - Size: ~3 lines.
 
@@ -41,3 +41,4 @@ git diff origin/main --name-only   # exactly docker-compose.yml
 ## Notes
 - 2026-11-21 00:00Z (pm-lead): the OPS-H8 design review filed this as a Backlog item (backend P3, after OPS-H8 merges). It is still open on `230f617`. The value 20 s is the one recorded in the approved design review, so it is not a new decision.
 - 2026-11-21 (backend-engineer): built on `agent/backend/OPS-H8c` @ `ffe4b45` (+3 lines, `docker-compose.yml` only). **Deviation from Scope:** `embedder-api` (`:162`) also merges `<<: *worker`, so putting the key on the `x-worker` anchor gave it a 20 s grace too, which fails AC1 (checked with `docker compose --profile workers config`: 3 services). So the key goes on `processor` and `embedder-worker` directly. Resolved config: only those two have `stop_grace_period: 20s`; `docker compose config --quiet` rc=0 (Compose v5.7.1, local). `make lint`/`make test-unit` not run locally (Go 1.25 toolchain download blocked); AC3/AC4 wait for CI on the draft PR.
+- 2026-11-21 (pm-lead): final review **APPROVE** ([report](../reviews/OPS-H8c/report.md#pm-decision-pm-lead--2026-11-21)). Scope amended to match what ships (QA [spec] 1). QA [spec] 2 (handler time + flush > 20 s) accepted as the design's duplicate-not-loss case, no ticket. QA "Missing tests" → Backlog OPS-H8d. PR #100 raised: ready for review, label `ready-to-merge`.
