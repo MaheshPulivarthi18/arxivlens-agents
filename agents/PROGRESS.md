@@ -883,3 +883,13 @@ Format:
 - APPROVE after QA r1 PASS. Opened evidence 00-07 and the diff (+55/-1, 2 test files). Every AC is proven, including m1-m4 kills and the m4 base control. The PM decision is in `agents/reviews/ING-9c/report.md` (commit `726565e`).
 - PR #99 raised: description rewritten with the Evidence section (8 embeds pinned to `653f563`/`6fa3710`), ready for review (draft=false), label `ready-to-merge`. The outbound filter rewrote the embeds and footer again (lesson count 14×).
 - Board: ING-9c moved from Ready to Ready to merge. Backlog: x5 deterministic limiter test (backend P3).
+
+## 2026-11-21 00:00Z — orchestrator (cycle record; session_01ATEBeTermofaHXsLNayKoo)
+- Setup: push dry-run OK; RUN_LOCK taken (`42153d6`, no prior lock); app cloned at `230f617`. Note: the session's stale local `origin/main` pointed at an orphan `3fa20ff` ("cycle 00:00–02:00Z idle" commits not in origin's history); origin was `92c89e7`, lock pushed fast-forward on top. Nothing lost on origin.
+- Sync: no merges/closes since 20:00Z; #91–#98 Ready to merge with no human reviews or untagged comments; no Jira intake. No rework.
+- Grooming (pm-lead `21f8c96`): 3 new independent tasks (files disjoint from #91–#98 and each other, all `Depends on` merged at `230f617`); ai-engineer had no unblocked item; a 4th backend task would exceed WIP 2.
+- **ING-9c** (backend, KAN-103): PR [#99](https://github.com/MaheshPulivarthi18/ArxivLens/pull/99) @ `6afd06d`, 1 attempt, QA r1 PASS (m1–m4 killed), PM APPROVE → Ready to merge. Follow-up: deterministic cancelled-ctx limiter test (x5).
+- **OPS-H8c** (backend, KAN-104): PR [#100](https://github.com/MaheshPulivarthi18/ArxivLens/pull/100) @ `ffe4b45`, 1 attempt, QA r1 PASS (Full stack green), PM APPROVE; ticket Scope amended (key per service: `embedder-api` also merges `x-worker`). Follow-up OPS-H8d.
+- **FE-0h** (frontend, KAN-105): PR [#101](https://github.com/MaheshPulivarthi18/ArxivLens/pull/101) @ `2c84527`, 1 attempt, QA r1 PASS (≥ 3.23:1 both themes), PM APPROVE; PRD ref corrected. Follow-up: repo-wide form-control scan after FE-3b.
+- QA reports saved verbatim from PR comments by the orchestrator (`9e7884c`; QA harness still refuses `report.md`). Two parallel PM reviews shared the one arxivlens-agents checkout and `3978149` swept in the other's staged edits (content correct, attribution mixed): the rule is already proposed in [arxivlens-agents#15](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/15) (one checkout per parallel QA/PM agent). Outbound filter again un-embedded PR-body images.
+- RUN_LOCK released in this commit.
