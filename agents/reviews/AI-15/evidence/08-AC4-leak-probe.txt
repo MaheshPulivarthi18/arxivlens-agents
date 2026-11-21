@@ -1,0 +1,20 @@
+$ bash /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/harness/leak_probe.sh /root/wt/app-qa-AI-15
+== m1: diff ==
+<             scores, stats = score_pairs(reranker_tokenizer, reranker_model, req.query, req.passages)
+>             with _ingest_lock:
+>                 scores, stats = score_pairs(reranker_tokenizer, reranker_model, req.query, req.passages)
+[qa-threads] test_rerank_cross_encoder_is_not_serialized_behind_an_in_flight_ingest outcome_call=? alive_threads_after_teardown=0 []
+E         {'exits_at_return': 2} != {'exits_at_return': 0}
+E         {'locked_at_return': False} != {'locked_at_return': True}
+1 failed, 17 deselected in 1.27s
+wall=1.635s
+
+== hang (verify never returns): diff ==
+>         threading.Event().wait()
+[qa-threads] test_verify_is_not_serialized_behind_an_in_flight_ingest outcome_call=? alive_threads_after_teardown=1 ['Thread-2 (run_call)']
+E       AssertionError: endpoint call did not return: {}
+1 failed, 17 deselected in 5.28s
+wall=5.663s
+
+
+[exit code 0]

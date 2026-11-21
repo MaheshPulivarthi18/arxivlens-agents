@@ -1,0 +1,45 @@
+$ bash -c echo '== git diff origin/main --name-only =='; git diff origin/main --name-only; echo; git diff --stat origin/main...HEAD | tail -1; echo "merge-base: $(git merge-base origin/main HEAD)  origin/main: $(git rev-parse origin/main)"; echo; echo '== .github/scripts/ownership-check.sh origin/main agent/ai/AI-15 =='; bash .github/scripts/ownership-check.sh origin/main agent/ai/AI-15; echo "exit=$?"; echo; echo '== tests/test_verify.py top-level defs, origin/main vs HEAD (ast.dump) =='; python3 /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/harness/fn_compare.py
+== git diff origin/main --name-only ==
+tests/test_verify.py
+
+ 1 file changed, 127 insertions(+), 31 deletions(-)
+merge-base: 11c4696f7c6830436ada00c54d8f75976ddf7b99  origin/main: 11c4696f7c6830436ada00c54d8f75976ddf7b99
+
+== .github/scripts/ownership-check.sh origin/main agent/ai/AI-15 ==
+Ownership OK for role=ai (158 changed lines)
+exit=0
+
+== tests/test_verify.py top-level defs, origin/main vs HEAD (ast.dump) ==
+== CHANGED (1) ==
+  test_embed_is_not_serialized_behind_an_in_flight_ingest
+== added (6) ==
+  _call_during_ingest
+  _assert_served_during_ingest
+  _NoEmbedder
+  test_rerank_cross_encoder_is_not_serialized_behind_an_in_flight_ingest
+  test_rerank_bi_encoder_fallback_is_not_serialized_behind_an_in_flight_ingest
+  test_verify_is_not_serialized_behind_an_in_flight_ingest
+== removed (0) ==
+== unchanged (20) ==
+  test_strip_chunk_prefix
+  test_premise_windows
+  _Tok
+  _Model
+  test_verify_pairs_takes_max_over_windows_and_keeps_order
+  test_entailment_index_requires_label
+  test_verify_endpoint_fails_closed_without_model
+  _cached_nli
+  test_real_nli_separates_support_from_topicality
+  test_startup_handler_is_load_models_and_loads_verifier
+  _FakeCursor
+  _FakeConn
+  ingest
+  test_ingest_builds_each_worker_once
+  test_ingest_embedder_worker_gets_startup_model
+  test_ingest_embedder_worker_loads_own_model_without_startup_model
+  test_embedder_worker_uses_injected_model
+  test_ingest_concurrent_first_requests_build_once_and_do_not_overlap
+  test_ingest_failed_worker_construction_is_not_cached
+  test_ingest_failed_embedder_build_keeps_cached_processor
+
+[exit code 0]

@@ -1,0 +1,288 @@
+$ bash -c cd /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/harness && find . -type f -not -path '*__pycache__*' | sort | while read f; do echo "===== $f"; cat "$f"; done
+===== ./dotmap.py
+"""QA AI-15 r1: map CI `make test-py-ml` pytest -q outcome characters to test ids. Usage: dotmap.py <ci_job_log> <app_tree>
+Collects the exact CI command's test ids offline (qa_stubs plugin) at the checked-out commit, checks that the id count equals the
+log's outcome-character count, and prints each id with its character, new tests first."""
+import os, re, subprocess, sys
+
+LOG, APP = sys.argv[1], sys.argv[2]
+HARNESS = os.path.dirname(os.path.abspath(__file__))
+lines = open(LOG, encoding="utf-8", errors="replace").read().splitlines()
+i = next(n for n, l in enumerate(lines) if "python3 -m pytest -q tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py" in l)
+cmd_line, out_line = lines[i], lines[i + 1]
+chars = re.sub(r"\s*\[100%\]\s*$", "", out_line.split("Z ", 1)[1]).strip()
+summary = next(l for l in lines[i:] if re.search(r"\d+ passed", l))
+r = subprocess.run([sys.executable, "-m", "pytest", "-p", "qa_stubs", "-p", "no:cacheprovider", "--collect-only", "-q",
+                    "tests/test_m0.py", "tests/test_verify.py", "tests/test_processor_pages.py"], cwd=APP,
+                   capture_output=True, text=True, env={**os.environ, "PYTHONPATH": f"{HARNESS}:{APP}"})
+ids = [l for l in r.stdout.splitlines() if "::" in l]
+print(f"CI log line {i+1}: {cmd_line.split('Z ',1)[1]}")
+print(f"CI log line {i+2}: {chars}")
+print(f"CI summary: {summary.split('Z ',1)[1]}")
+print(f"outcome chars={len(chars)}  collected ids at {subprocess.run(['git','-C',APP,'rev-parse','--short','HEAD'],capture_output=True,text=True).stdout.strip()}={len(ids)}  "
+      f"match={'YES' if len(chars)==len(ids) else 'NO'}")
+new = [n for n, t in enumerate(ids) if "not_serialized" in t]
+print("\n== ids named *not_serialized* (AC7: new + refactored tests) ==")
+for n in new:
+    print(f"#{n+1:2d} '{chars[n] if n < len(chars) else '?'}'  {ids[n]}")
+print("\n== skipped ('s') positions ==")
+for n, c in enumerate(chars):
+    if c == "s":
+        print(f"#{n+1:2d} 's'  {ids[n] if n < len(ids) else '?'}")
+print("\n== full map ==")
+for n, t in enumerate(ids):
+    print(f"#{n+1:2d} '{chars[n] if n < len(chars) else '?'}'  {t}")
+===== ./fn_compare.py
+"""QA AI-15 r1: compare every top-level def/class of tests/test_verify.py between origin/main and HEAD by AST dump.
+Usage (inside the app tree): fn_compare.py"""
+import ast, subprocess
+
+def defs(src):
+    return {n.name: ast.dump(n, include_attributes=False) for n in ast.parse(src).body if isinstance(n, (ast.FunctionDef, ast.ClassDef))}
+
+main = defs(subprocess.run(["git", "show", "origin/main:tests/test_verify.py"], capture_output=True, text=True, check=True).stdout)
+head = defs(open("tests/test_verify.py").read())
+rows = {"unchanged": [], "CHANGED": [], "added": [], "removed": []}
+for k in main:
+    rows["unchanged" if head.get(k) == main[k] else ("removed" if k not in head else "CHANGED")].append(k)
+rows["added"] = [k for k in head if k not in main]
+for kind in ("CHANGED", "added", "removed", "unchanged"):
+    print(f"== {kind} ({len(rows[kind])}) ==")
+    for k in rows[kind]:
+        print(f"  {k}")
+===== ./leak_probe.sh
+#!/bin/bash
+# QA AI-15 r1 AC4 probe: on a mutated api.py copy, a failing *not_serialized* test must fail in bounded time and leave no
+# ingest thread (run_ingest) alive after teardown. m1 = cross-encoder branch takes _ingest_lock;
+# hang = verify_endpoint blocks forever before scoring (an endpoint that never returns).
+set -u
+APP=$1; H=$(dirname "$(readlink -f "$0")"); BASE=$(dirname "$H")/mutant-copies
+probe() {  # name, python edit expr, -k
+  d=$(mktemp -d "$BASE/leak-XXXX"); git -C "$APP" archive HEAD | tar -x -C "$d"
+  python3 - "$d/services/embedder/api.py" "$2" <<'PY'
+import sys
+p, kind = sys.argv[1], sys.argv[2]
+s = open(p).read()
+if kind == "m1":
+    old = "            scores, stats = score_pairs(reranker_tokenizer, reranker_model, req.query, req.passages)\n"
+    new = "            with _ingest_lock:\n                scores, stats = score_pairs(reranker_tokenizer, reranker_model, req.query, req.passages)\n"
+else:
+    old = "        scores, stats = nli.verify_pairs("
+    new = "        threading.Event().wait()\n        scores, stats = nli.verify_pairs("
+assert s.count(old) == 1, "anchor"
+open(p, "w").write(s.replace(old, new))
+PY
+  echo "== $1: diff =="; diff <(git -C "$APP" show HEAD:services/embedder/api.py) "$d/services/embedder/api.py" | grep -E '^[<>]'
+  start=$(date +%s.%N)
+  (cd "$d" && QA_THREADS=1 PYTHONPATH="$H:$d" timeout 60 python3 -m pytest -p qa_stubs -p no:cacheprovider -q -s -k "$3" tests/test_verify.py 2>&1 \
+     | grep -E 'qa-threads|^E .*(!=|did not return)|[0-9]+ (passed|failed)')
+  echo "wall=$(echo "$(date +%s.%N) - $start" | bc | cut -c1-5)s"; echo
+}
+probe "m1" m1 "rerank_cross_encoder_is_not_serialized"
+probe "hang (verify never returns)" hang "verify_is_not_serialized"
+===== ./mutants.py
+"""QA AI-15 r1 mutation runner. Usage: mutants.py <app_tree> <test_file_source: head|main>
+For each mutant: git-archive a fresh copy of the PR head into a new mktemp dir, apply the edit to
+services/embedder/api.py (exact-match, must occur once), optionally swap in main's tests/test_verify.py,
+run pytest -rA on tests/test_verify.py under the qa_stubs plugin, and report per-test outcomes + wall time.
+TORCH_ONLY tests fail under MagicMock torch on head and main alike and are excluded from the verdict."""
+import os, re, subprocess, sys, tempfile, time, difflib
+
+APP, SRC = sys.argv[1], sys.argv[2]
+HARNESS = os.path.dirname(os.path.abspath(__file__))
+TORCH_ONLY = {"test_verify_pairs_takes_max_over_windows_and_keeps_order", "test_real_nli_separates_support_from_topicality"}
+
+CE = '''        if reranker_model is not None and reranker_tokenizer is not None:
+            scores, stats = score_pairs(reranker_tokenizer, reranker_model, req.query, req.passages)
+            logger.info(f"rerank {_format_stats(stats)}")
+            return RerankResponse(scores=scores)
+'''
+FB = '''        elif embedder is not None:
+            q_vec = embedder.embed_texts([req.query], is_query=True)[0]
+            p_vecs = embedder.embed_texts(req.passages, is_query=False)
+            scores = [float(np.dot(q_vec, pv)) for pv in p_vecs]
+            return RerankResponse(scores=scores)
+'''
+VT = '''    try:
+        scores, stats = nli.verify_pairs(nli_tokenizer, nli_model, [(p.claim, p.passage) for p in req.pairs], nli_entail_idx)
+        logger.info("verify " + " ".join(f"{k}={v}" for k, v in stats.items()))
+        return VerifyResponse(scores=scores, model=NLI_MODEL)
+'''
+
+
+def wrap(block):
+    lines = block.splitlines(keepends=True)
+    head, body = lines[0], lines[1:]
+    ind = re.match(r"\s*", body[0]).group(0)
+    return head + ind + "with _ingest_lock:\n" + "".join("    " + l for l in body)
+
+
+def swap(ce, fb):
+    ce_l, fb_l = ce.splitlines(keepends=True), fb.splitlines(keepends=True)
+    new_fb_head = fb_l[0].replace("elif", "if", 1)
+    new_ce_head = ce_l[0].replace("if", "elif", 1)
+    return new_fb_head + "".join(fb_l[1:]) + new_ce_head + "".join(ce_l[1:])
+
+
+MUTANTS = {
+    "m1 (AC5) lock the cross-encoder branch": [(CE, wrap(CE))],
+    "m2 (AC5) lock only the bi-encoder fallback": [(FB, wrap(FB))],
+    "m3 (AC5) lock the try: body of verify_endpoint": [(VT, wrap(VT))],
+    "m4 (AC5) swap rerank branches (fallback first)": [(CE + FB, swap(CE, FB))],
+    "q5 (QA) verify refuses 503 while an ingest holds the lock": [(VT, '''    if _ingest_lock.locked():
+        raise HTTPException(status_code=503, detail="busy ingesting")
+''' + VT)],
+    "q6 (QA) rerank fallback locks only the passage embed": [(
+        "            p_vecs = embedder.embed_texts(req.passages, is_query=False)\n",
+        "            with _ingest_lock:\n                p_vecs = embedder.embed_texts(req.passages, is_query=False)\n")],
+}
+
+
+def run(name, edits):
+    d = tempfile.mkdtemp(prefix="mut-", dir=os.path.join(os.path.dirname(HARNESS), "mutant-copies"))
+    subprocess.run(f"git -C {APP} archive HEAD | tar -x -C {d}", shell=True, check=True)
+    if SRC == "main":
+        subprocess.run(f"git -C {APP} show origin/main:tests/test_verify.py > {d}/tests/test_verify.py", shell=True, check=True)
+    p = os.path.join(d, "services/embedder/api.py")
+    orig = open(p).read()
+    s = orig
+    for old, new in edits:
+        if s.count(old) != 1:
+            return name, "INVALID (anchor not found once)", [], 0.0, ""
+        s = s.replace(old, new)
+    open(p, "w").write(s)
+    diff = "".join(l for l in difflib.unified_diff(orig.splitlines(True), s.splitlines(True), n=0)
+                   if l[:1] in "+-" and not l.startswith(("+++", "---")))
+    t0 = time.monotonic()
+    r = subprocess.run([sys.executable, "-m", "pytest", "-p", "qa_stubs", "-p", "no:cacheprovider", "-q", "-rA",
+                        "tests/test_verify.py"], cwd=d, capture_output=True, text=True, timeout=120,
+                       env={**os.environ, "PYTHONPATH": f"{HARNESS}:{d}"})
+    wall = time.monotonic() - t0
+    fails = re.findall(r"^FAILED tests/test_verify.py::(\S+)", r.stdout, re.M)
+    passed = re.findall(r"^PASSED tests/test_verify.py::(\S+)", r.stdout, re.M)
+    errs = re.findall(r"^ERROR tests/test_verify.py::(\S+)", r.stdout, re.M)
+    real = [f for f in fails + errs if f not in TORCH_ONLY]
+    msgs = []
+    for f in real:
+        sec = re.search(r"_+ " + re.escape(f) + r" _+\n(.*?)(?=\n_+ test_|\n=+ )", r.stdout, re.S)
+        el = [l[1:].strip() for l in (sec.group(1).splitlines() if sec else [])
+              if l.startswith("E ") and ("!=" in l or "did not return" in l or "Error" in l)]
+        msgs.append(f"{f}: " + (" | ".join(el[:3])[:240] if el else "?"))
+    status = "KILLED" if real else "SURVIVED"
+    return name, f"{status}  passed={len(passed)} failed(non-torch)={len(real)} torch-only-fails={len([f for f in fails if f in TORCH_ONLY])} wall={wall:.1f}s", msgs, wall, diff
+
+
+results = [run(n, e) for n, e in (MUTANTS.items() if True else [])]
+control = None
+print(f"== SUMMARY (tests from {SRC}, api.py mutated in a git-archive copy of {subprocess.run(['git','-C',APP,'rev-parse','--short','HEAD'],capture_output=True,text=True).stdout.strip()}) ==")
+for name, verdict, msgs, wall, diff in results:
+    print(f"{name:58s} | {verdict}")
+    for m in msgs:
+        print(f"    fails: {m}")
+print("\n== MUTANT DIFFS ==")
+for name, verdict, msgs, wall, diff in results:
+    print(f"--- {name}\n{diff}")
+===== ./qa_stubs.py
+"""QA AI-15 r1 pytest plugin: stand-ins for modules the sandbox cannot install (torch, transformers, fastapi,
+psycopg, ulid, ...). fastapi is a minimal functional stub (decorators return the function unchanged, HTTPException
+is a real Exception); everything else unimportable becomes a MagicMock module. Logic check only, not a torch run."""
+import importlib.abc
+import importlib.machinery
+import importlib.util
+import sys
+import types
+import uuid
+from unittest.mock import MagicMock
+
+# fastapi: functional minimal stub
+fastapi = types.ModuleType("fastapi")
+
+
+class HTTPException(Exception):
+    def __init__(self, status_code, detail=None):
+        super().__init__(status_code, detail)
+        self.status_code, self.detail = status_code, detail
+
+
+class FastAPI:
+    def __init__(self, *a, **k):
+        self.router = types.SimpleNamespace(on_startup=[])
+
+    def _deco(self, *a, **k):
+        return lambda f: f
+
+    get = post = put = delete = _deco
+
+    def on_event(self, kind):
+        def reg(f):
+            if kind == "startup":
+                self.router.on_startup.append(f)
+            return f
+        return reg
+
+
+fastapi.FastAPI, fastapi.HTTPException = FastAPI, HTTPException
+sys.modules["fastapi"] = fastapi
+
+# ulid: ulid.new() -> str-able unique id
+ulid = types.ModuleType("ulid")
+ulid.new = lambda: uuid.uuid4().hex
+sys.modules["ulid"] = ulid
+
+STUB_ROOTS = {"torch", "transformers", "psycopg", "confluent_kafka", "fitz", "pymupdf", "minio", "boto3",
+              "tiktoken", "sentence_transformers", "uvicorn", "psycopg_pool", "pgvector", "tokenizers"}
+
+
+class _Loader(importlib.abc.Loader):
+    def create_module(self, spec):
+        m = MagicMock(name=spec.name)
+        m.__name__, m.__spec__, m.__path__ = spec.name, spec, []
+        return m
+
+    def exec_module(self, module):
+        pass
+
+
+class _Finder(importlib.abc.MetaPathFinder):
+    def find_spec(self, name, path, target=None):
+        root = name.split(".")[0]
+        if root not in STUB_ROOTS:
+            return None
+        if root == name and importlib.machinery.PathFinder.find_spec(name) is not None:
+            return None  # really installed: use it
+        return importlib.util.spec_from_loader(name, _Loader(), is_package=True)
+
+
+sys.meta_path.insert(0, _Finder())
+
+
+# Optional (QA_THREADS=1): after each test's teardown, print how many non-main threads are still alive (AC4 leak probe).
+import os as _os
+import threading as _threading
+
+if _os.environ.get("QA_THREADS"):
+    import pytest as _pytest
+
+    @_pytest.hookimpl(trylast=True)
+    def pytest_runtest_logreport(report):
+        if report.when == "teardown":
+            alive = [t.name for t in _threading.enumerate() if t is not _threading.main_thread()]
+            print(f"\n[qa-threads] {report.nodeid.split('::')[-1]} outcome_call={getattr(report, '_qa_call', '?')} "
+                  f"alive_threads_after_teardown={len(alive)} {alive}")
+===== ./stress.sh
+#!/bin/bash
+# QA AI-15 r1: run the 4 *not_serialized* tests 20x while N+2 busy-loop processes load the sandbox's N cores (timing-window flakiness).
+set -u
+APP=$1; H=$(dirname "$(readlink -f "$0")")
+N=$(nproc); L=$((N + 2)); pids=()
+for _ in $(seq $L); do python3 -c 'while True: pass' & pids+=($!); done
+echo "cores=$N busy_loops=$L commit=$(git -C "$APP" rev-parse --short HEAD)"
+pass=0; fail=0
+for i in $(seq 20); do
+  out=$(cd "$APP" && PYTHONPATH="$H:$APP" python3 -m pytest -p qa_stubs -p no:cacheprovider -q tests/test_verify.py -k not_serialized 2>&1 | tail -1)
+  echo "run $i: $out"; case "$out" in *"4 passed"*) pass=$((pass+1));; *) fail=$((fail+1));; esac
+done
+kill "${pids[@]}" 2>/dev/null; wait 2>/dev/null
+echo "TOTAL: $pass/20 runs with 4 passed, $fail runs otherwise"
+
+[exit code 0]

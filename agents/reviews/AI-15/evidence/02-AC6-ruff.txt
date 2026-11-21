@@ -1,0 +1,21 @@
+$ bash -c echo '== head 7699cca: tests/test_verify.py =='; ruff check --isolated --select E,F,W --line-length 130 --output-format concise tests/test_verify.py; echo "exit=$?"; echo; echo '== origin/main: tests/test_verify.py (git show, scratch copy) =='; git show origin/main:tests/test_verify.py > /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/harness/../main_test_verify.py; ruff check --isolated --select E,F,W --line-length 130 --output-format concise /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/harness/../main_test_verify.py; echo "exit=$?"; echo; echo '== findings on lines this PR added: line numbers of + lines in git diff -U0 =='; git diff -U0 origin/main...HEAD -- tests/test_verify.py | awk '/^@@/{split($3,a,",");n=substr(a[1],2);next} /^\+/{print n; n++}' > /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/harness/../added_lines.txt; wc -l < /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/harness/../added_lines.txt; echo 'head findings on added lines:'; ruff check --isolated --select E,F,W --line-length 130 --output-format concise tests/test_verify.py | grep -oE 'test_verify.py:[0-9]+' | cut -d: -f2 | grep -Fxf /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/harness/../added_lines.txt | wc -l
+== head 7699cca: tests/test_verify.py ==
+tests/test_verify.py:22:131: E501 Line too long (150 > 130)
+tests/test_verify.py:71:131: E501 Line too long (133 > 130)
+tests/test_verify.py:126:131: E501 Line too long (134 > 130)
+Found 3 errors.
+exit=1
+
+== origin/main: tests/test_verify.py (git show, scratch copy) ==
+/tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/main_test_verify.py:22:131: E501 Line too long (150 > 130)
+/tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/main_test_verify.py:71:131: E501 Line too long (133 > 130)
+/tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/main_test_verify.py:126:131: E501 Line too long (134 > 130)
+Found 3 errors.
+exit=1
+
+== findings on lines this PR added: line numbers of + lines in git diff -U0 ==
+128
+head findings on added lines:
+0
+
+[exit code 0]

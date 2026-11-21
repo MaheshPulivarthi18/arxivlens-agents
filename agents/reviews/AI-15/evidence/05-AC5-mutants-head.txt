@@ -1,0 +1,68 @@
+$ python3 /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/harness/mutants.py /root/wt/app-qa-AI-15 head
+== SUMMARY (tests from head, api.py mutated in a git-archive copy of 7699cca) ==
+m1 (AC5) lock the cross-encoder branch                     | KILLED  passed=15 failed(non-torch)=1 torch-only-fails=2 wall=5.1s
+    fails: test_rerank_cross_encoder_is_not_serialized_behind_an_in_flight_ingest: AssertionError: assert {'locked_at_r...at_return': 2} == {'locked_at_r...at_return': 0} | {'locked_at_return': False} != {'locked_at_return': True} | {'exits_at_return': 2} != {'exits_at_return': 0}
+m2 (AC5) lock only the bi-encoder fallback                 | KILLED  passed=15 failed(non-torch)=1 torch-only-fails=2 wall=5.1s
+    fails: test_rerank_bi_encoder_fallback_is_not_serialized_behind_an_in_flight_ingest: AssertionError: assert {'locked_at_r...at_return': 2} == {'locked_at_r...at_return': 0} | {'locked_at_return': False} != {'locked_at_return': True} | {'exits_at_return': 2} != {'exits_at_return': 0}
+m3 (AC5) lock the try: body of verify_endpoint             | KILLED  passed=15 failed(non-torch)=1 torch-only-fails=2 wall=5.1s
+    fails: test_verify_is_not_serialized_behind_an_in_flight_ingest: AssertionError: assert {'locked_at_r...at_return': 2} == {'locked_at_r...at_return': 0} | {'exits_at_return': 2} != {'exits_at_return': 0} | {'locked_at_return': False} != {'locked_at_return': True}
+m4 (AC5) swap rerank branches (fallback first)             | KILLED  passed=15 failed(non-torch)=1 torch-only-fails=2 wall=5.1s
+    fails: test_rerank_cross_encoder_is_not_serialized_behind_an_in_flight_ingest: AssertionError: endpoint call did not return: {'err': HTTPException(500, 'bi-encoder fallback must not run when the cross-encoder is loaded'), 'locked': True, 'exits': 0}
+q5 (QA) verify refuses 503 while an ingest holds the lock  | KILLED  passed=15 failed(non-torch)=1 torch-only-fails=2 wall=5.2s
+    fails: test_verify_is_not_serialized_behind_an_in_flight_ingest: AssertionError: endpoint call did not return: {'err': HTTPException(503, 'busy ingesting'), 'locked': True, 'exits': 0}
+q6 (QA) rerank fallback locks only the passage embed       | KILLED  passed=15 failed(non-torch)=1 torch-only-fails=2 wall=5.1s
+    fails: test_rerank_bi_encoder_fallback_is_not_serialized_behind_an_in_flight_ingest: AssertionError: assert {'locked_at_r...at_return': 2} == {'locked_at_r...at_return': 0} | {'locked_at_return': False} != {'locked_at_return': True} | {'exits_at_return': 2} != {'exits_at_return': 0}
+
+== MUTANT DIFFS ==
+--- m1 (AC5) lock the cross-encoder branch
+-            scores, stats = score_pairs(reranker_tokenizer, reranker_model, req.query, req.passages)
+-            logger.info(f"rerank {_format_stats(stats)}")
+-            return RerankResponse(scores=scores)
++            with _ingest_lock:
++                scores, stats = score_pairs(reranker_tokenizer, reranker_model, req.query, req.passages)
++                logger.info(f"rerank {_format_stats(stats)}")
++                return RerankResponse(scores=scores)
+
+--- m2 (AC5) lock only the bi-encoder fallback
+-            q_vec = embedder.embed_texts([req.query], is_query=True)[0]
+-            p_vecs = embedder.embed_texts(req.passages, is_query=False)
+-            scores = [float(np.dot(q_vec, pv)) for pv in p_vecs]
+-            return RerankResponse(scores=scores)
++            with _ingest_lock:
++                q_vec = embedder.embed_texts([req.query], is_query=True)[0]
++                p_vecs = embedder.embed_texts(req.passages, is_query=False)
++                scores = [float(np.dot(q_vec, pv)) for pv in p_vecs]
++                return RerankResponse(scores=scores)
+
+--- m3 (AC5) lock the try: body of verify_endpoint
+-        scores, stats = nli.verify_pairs(nli_tokenizer, nli_model, [(p.claim, p.passage) for p in req.pairs], nli_entail_idx)
+-        logger.info("verify " + " ".join(f"{k}={v}" for k, v in stats.items()))
+-        return VerifyResponse(scores=scores, model=NLI_MODEL)
++        with _ingest_lock:
++            scores, stats = nli.verify_pairs(nli_tokenizer, nli_model, [(p.claim, p.passage) for p in req.pairs], nli_entail_idx)
++            logger.info("verify " + " ".join(f"{k}={v}" for k, v in stats.items()))
++            return VerifyResponse(scores=scores, model=NLI_MODEL)
+
+--- m4 (AC5) swap rerank branches (fallback first)
+-        if reranker_model is not None and reranker_tokenizer is not None:
+-            scores, stats = score_pairs(reranker_tokenizer, reranker_model, req.query, req.passages)
+-            logger.info(f"rerank {_format_stats(stats)}")
+-            return RerankResponse(scores=scores)
+-        elif embedder is not None:
++        if embedder is not None:
++            return RerankResponse(scores=scores)
++        elif reranker_model is not None and reranker_tokenizer is not None:
++            scores, stats = score_pairs(reranker_tokenizer, reranker_model, req.query, req.passages)
++            logger.info(f"rerank {_format_stats(stats)}")
+
+--- q5 (QA) verify refuses 503 while an ingest holds the lock
++    if _ingest_lock.locked():
++        raise HTTPException(status_code=503, detail="busy ingesting")
+
+--- q6 (QA) rerank fallback locks only the passage embed
+-            p_vecs = embedder.embed_texts(req.passages, is_query=False)
++            with _ingest_lock:
++                p_vecs = embedder.embed_texts(req.passages, is_query=False)
+
+
+[exit code 0]

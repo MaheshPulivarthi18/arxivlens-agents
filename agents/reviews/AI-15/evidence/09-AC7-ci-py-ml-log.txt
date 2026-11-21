@@ -1,0 +1,20 @@
+$ bash -c echo '== head: job 136919861524 (PR #117) =='; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136919861524 --jq '"head_sha=\(.head_sha) conclusion=\(.conclusion)"'; grep -E 'HEAD is now at|Run make test-py-ml|pytest -q tests/test_m0.py' /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/py-m0.log | cut -c1-170; grep -A1 'pytest -q tests/test_m0.py' /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/py-m0.log | tail -1 | cut -c1-170; grep -E '[0-9]+ passed, [0-9]+ skipped, 3 warnings' /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/py-m0.log; echo; echo '== base: job 136736533291 (main 11c4696) =='; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136736533291 --jq '"head_sha=\(.head_sha) conclusion=\(.conclusion)"'; grep -E 'Run make test-py-ml|pytest -q tests/test_m0.py' /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/base-py-m0.log | cut -c1-170; grep -A1 'pytest -q tests/test_m0.py' /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/base-py-m0.log | tail -1 | cut -c1-170; grep -E '[0-9]+ passed, [0-9]+ skipped, 3 warnings' /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/base-py-m0.log; echo; echo '== failures/errors in head job log =='; grep -cE ' (FAILED|ERROR) |[0-9]+ failed' /tmp/claude-0/-home-claude/6bd17f89-834a-58e3-9e44-30ce91032a10/scratchpad/qa-AI-15-r1/py-m0.log
+== head: job 136919861524 (PR #117) ==
+head_sha=7699ccad5cc7283bde20037781fa4f0eea7e4dd9 conclusion=success
+2026-11-21T17:10:02.6942568Z HEAD is now at 8d32cdf Merge 7699ccad5cc7283bde20037781fa4f0eea7e4dd9 into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+2026-11-21T17:10:53.9139678Z ##[group]Run make test-py-ml
+2026-11-21T17:10:53.9208146Z python3 -m pytest -q tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py
+2026-11-21T17:11:05.0649270Z .................s...........s...................................        [100%]
+2026-11-21T17:11:05.0661507Z 63 passed, 2 skipped, 3 warnings in 10.68s
+
+== base: job 136736533291 (main 11c4696) ==
+head_sha=11c4696f7c6830436ada00c54d8f75976ddf7b99 conclusion=success
+2026-11-21T04:53:38.8521499Z ##[group]Run make test-py-ml
+2026-11-21T04:53:38.8600569Z python3 -m pytest -q tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py
+2026-11-21T04:53:47.9848894Z .................s...........s................................           [100%]
+2026-11-21T04:53:47.9867609Z 60 passed, 2 skipped, 3 warnings in 8.54s
+
+== failures/errors in head job log ==
+0
+
+[exit code 1]
