@@ -956,3 +956,10 @@ Format:
 - Human: Mahesh asked live how to run answer evals against a real model in CI (e.g. Modal). Answered in session with options (replay fixtures per PR; nightly real-LLM eval on a Modal OpenAI-compatible endpoint; ADR needed for a new gate). Offered pm-lead ADR + EVAL-8 specs; awaiting his reply. Logged in board Backlog.
 - Retro: first-round QA pass rate 1/1 decided (3 PENDING on infra). New lesson: Go 1.25.1 at `/usr/local/go1.25.1` (QA and backend). Recurring: QA `report.md` refusal, PR-body image filter. No new rules PR.
 - RUN_LOCK released in this commit.
+
+## 2026-11-21 07:00Z — pm-lead (cycle grooming)
+- Sync: no merges since 04:52Z (app `main` = `11c4696`); #104 FE-3b Ready to merge; #105/#106/#107 In QA (r1 PENDING, Full stack arXiv 429; orchestrator re-running). No human reviews/comments; no ADR status change.
+- WIP: backend 2 active (#105, #106) → no new backend task; ai 1 (#107) → 1 pick; frontend 0 (#104 Ready to merge doesn't count) → 2 picks.
+- Picked (new specs, pairwise disjoint, deps merged, no Proposed-ADR wait): **FE-0g** (frontend, `ui/primitives.test.jsx`: mutants M35–M39), **FE-0i** (frontend, `ui/badge.jsx` → `<span>` + new `ui/badge.test.jsx`; FE-3b QA nit 1), **OPS-H8d** (ai-engineer, `tests/test_kafka_client.py`: compose `stop_grace_period` > `DELIVERY_TIMEOUT_S` + 1 s; in the file CI already runs, so no Makefile change). Checked file lists of #104–#107: no overlap.
+- Not picked: Full stack arXiv-429 prefetch fix (P1, but `stack.yml` is backend-owned and backend is at WIP), ING-9c x5 limiter test (backend), `main.go` queue + FE-2/FE-4/FE-3a2 Toast follow-up/control scan/theme tests (wait for #104 to merge or share its files), EVAL-7/EVAL-5 test follow-ups (`tests/test_evals_data.py`, #107).
+- Jira sync skipped (no Atlassian tools in this session): orchestrator to create stories for FE-0g, FE-0i (epic KAN-5) and OPS-H8d (epic KAN-3).
