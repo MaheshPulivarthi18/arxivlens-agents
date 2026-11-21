@@ -8,7 +8,7 @@
 | **Depends on** | FE-0d (#95, merged `ae8de39`). FE-1 (Vitest, merged). No ADR |
 | **Jira** | KAN-110 |
 | **Design required** | no: tests only, no component, contract or dependency change |
-| **Status** | Ready (picked 2026-11-21 07:00Z) |
+| **Status** | In Progress (built 2026-11-21, branch `agent/frontend/FE-0g` @ `b171ba0`; awaiting draft PR + CI + QA) |
 
 ## Goal
 FE-0d's render tests leave five mutants of the `ui/` primitives alive (QA evidence `agents/reviews/FE-0d/evidence/06-mutants-all.png`).
@@ -55,3 +55,14 @@ git diff origin/main --shortstat
   #105–#107 touch no frontend file. FE-0i (same cycle) changes `ui/badge.jsx` + new `ui/badge.test.jsx`, which this file doesn't import.
 - jsdom: Radix's scrollbar may not mount without overflow; `type="always"` or `forceMount` is the usual way. `ResizeObserver`/`DOMRect` stubs
   are already in this file's `beforeAll`.
+- 2026-11-21 (frontend-engineer): built on `agent/frontend/FE-0g` @ `b171ba0`; diff is `primitives.test.jsx` only (+86/−1, the −1 is the
+  `./scroll-area` import line gaining `ScrollBar`, plus a new `@radix-ui/react-scroll-area` import). 5 new tests: ScrollBar horizontal + default
+  vertical (inside `ScrollAreaPrimitive.Root type="always"`, found by `data-testid`), Toaster `data-y-position`/`data-x-position` on the
+  `<ol data-sonner-toaster>` (toast text `t-position`/`d-position`, used nowhere else), Separator `x-sep`, Tooltip default delay (fake timers +
+  `userEvent.setup({ advanceTimers })`; ref null and no `role="tooltip"` at 250 ms, present at 350 ms; `vi.useRealTimers()` in that describe's `afterEach`).
+  Read against sources at the lockfile versions (sonner v2.0.8 tag; radix-ui/primitives main): sonner 2.0.8 takes `data-y/x-position` from
+  `position.split('-')` and renders the `<ol>` only once a toast exists; radix `type="always"` → `ScrollAreaScrollbarVisible` (no Presence);
+  tooltip `isOpenDelayedRef` starts `true`, so the first hover waits `delayDuration`. Expected kills: m1 (`x-bar`), m2 (`h-2.5`/`flex-col`),
+  m3 (`top`/`center`), m4 (`x-sep`), m5 (open at 250 ms), m6 (closed at 350 ms).
+  **Not run locally:** npm registry is unresolvable here (`npm ci`: ENOTFOUND registry.npmjs.org; `--offline`: ENOTCACHED), so no Vitest, oxlint
+  or mutation run in this sandbox. AC6 needs QA's harness (evidence file), and AC7 needs the CI Frontend job on the draft PR.
