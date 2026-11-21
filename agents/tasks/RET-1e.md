@@ -8,7 +8,7 @@
 | **Depends on** | RET-1d (PR #94) **merged** (same files, and it adds the fakes and `TestHandlersEncodeContract` this extends) |
 | **Jira** | KAN-99 (board, 2026-11-21; epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1e`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: test-only, one package, no route, field, status code, CLI, table, service or exported signature change |
-| **Status** | Ready, **picked cycle 2026-11-21T05:00Z** (RET-1d #94 merged `29f6213`; app `main` = `11c4696`) |
+| **Status** | In QA (draft PR opened cycle 2026-11-21T05:00Z) |
 
 ## Goal
 RET-1d locked the `writeJSON` call sites, but QA showed that the `http.Error` paths in `internal/query/server.go` are still unguarded.
@@ -53,6 +53,7 @@ make lint
 ```
 
 ## Notes
+- 2026-11-21 (backend-engineer, cycle 05:00Z): `TestHandlersErrorContract` in `internal/query/server_test.go` (+98, test-only) @ `7d63496` → draft PR [#105](https://github.com/MaheshPulivarthi18/ArxivLens/pull/105). 15 rows, one per `http.Error` path at `11c4696` (`:133` stays with `TestWriteJSON`): status, `text/plain; charset=utf-8`, body prefix, non-JSON body, no logs. `SetIngester non-nil` is a subtest so the AC3 `-run` pattern covers q2. Not compiled locally (no Go 1.25; golang.org/x and gopkg.in blocked for a 1.24 fallback); `gofmt -l` clean. Mutants e2/e3/e5/e6/q2 expected killed by reading; needs a Go 1.25 run. No `server.go` bug found.
 - 2026-11-21 (pm-lead, RET-1d PM review): created from RET-1d QA "Missing tests" (q2, e2, e3 SURVIVED in
   `agents/reviews/RET-1d/evidence/06-ac6-mutants.png`). The `http.Error` line list comes from `server.go` at `a5bf0f4` (lines 148–268).
   Re-check it against `main` after #94 merges.

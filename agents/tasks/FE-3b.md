@@ -8,7 +8,7 @@
 | **Depends on** | **FE-0b #70 merged** (`ui/tooltip`), **FE-3a #86 merged** (same files; FE-3a2 should merge first or FE-3b re-checks its App-level asserts still pass), **FE-0e merged** (secondary screens on tokens before the flip; PM decision Q1). FE-0c #85 merged preferred (its drift guard checks AC3 here) but not required |
 | **Jira** | KAN-89 (story under epic KAN-5; parent FE-3 KAN-40), labels `task-FE-3b`, `agent-frontend`, `arxivlens` |
 | **Design required** | yes, done: `docs/design/FE-3.md` Approved with changes (pm-lead 2026-11-20) |
-| **Status** | Ready, **picked cycle 2026-11-21T05:00Z** (FE-3a2 #91 `873c2f0`, FE-0f #92, FE-0d #95, FE-0h #101 merged 2026-11-21; app `main` = `11c4696`) |
+| **Status** | In QA (draft PR opened cycle 2026-11-21T05:00Z) |
 
 ## Goal
 Finish FE-3: the answer, refusal panel, references and early-refusal banner use FE-0's tokens and fonts, each status chip explains itself in a
@@ -54,6 +54,7 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
 ```
 
 ## Notes
+- 2026-11-21 (frontend-engineer, cycle 05:00Z): built on `agent/frontend/FE-3b` @ `d9b2386` (10 files, +130/−42) → draft PR [#104](https://github.com/MaheshPulivarthi18/ArxivLens/pull/104). Answer, passages, active card, markers, early-refusal banner (`role="status"`, `<Button size="sm">`) and HeroSearch on tokens; answer prose `prose font-serif`; status chips are `<button type="button">` tooltip triggers (title removed); `DEFAULT_THEME = "system"` in `theme.js` + `index.html`; README:139 updated; `tokens.test.js` guards 8 files with the widened pattern (node replay: 0 hits at head, 51 on `11c4696`); `setup.js` stubs `ResizeObserver` (+ `DOMRect`). npm unreachable in the sandbox, so lint/test/build/`.prose` dist line rely on CI. Open for QA: `<div>` Badge inside chip button (needs `ui/badge.jsx` to fix); marker `title` kept per design §2; AC5 contrast/screenshots.
 - 2026-11-20 (pm-lead): split from FE-3 at the design review. Waits for FE-0e so an OS-light visitor never lands on ~1.8:1 emerald/red text in the
   ingest modal, library or toast after the flip.
 - 2026-11-20 UTC (pm-lead, FE-0e final review): AC2 amended to widen the guard regex (FE-0e QA `[spec]` r1 #5 / r2 #3). pm-lead checked the widened

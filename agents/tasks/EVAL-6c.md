@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-6b (ArxivLens #96) **merged** as `cb5d833` (same files). No open PR on `scripts/evaluate_answers.py`, `tests/test_evals_data.py` or `evals/README.md` (checked 2026-11-21 05:00Z: no open ArxivLens PRs) |
 | **Jira** | needs a story (orchestrator) under epic KAN-2 "Retrieval & answer quality gates"; labels `task-EVAL-6c`, `agent-ai`, `arxivlens` |
 | **Design required** | no: no gate key, threshold, metric definition, contract, CLI or table change. A malformed response already counts as an error under ADR-0003; this makes the code do that instead of raising |
-| **Status** | Ready, **picked cycle 2026-11-21T05:00Z** |
+| **Status** | In QA (draft PR opened cycle 2026-11-21T05:00Z) |
 
 ## Goal
 `make eval` must never crash on a malformed `/v1/ask` response. EVAL-6b fixed this for a non-string `refusal_reason`. QA's probe 10
@@ -79,6 +79,7 @@ make test-unit                     # CI is the source of truth (test-py-ml needs
 ```
 
 ## Notes
+- 2026-11-21 (ai-engineer, cycle 05:00Z): `1f3bd31` on `agent/ai/EVAL-6c` → draft PR [#107](https://github.com/MaheshPulivarthi18/ArxivLens/pull/107) (3 files, +170/−9; ownership OK). Non-object body → failed request; `_citations_ok()` makes malformed `citations` an error; `_citation_items()` for `case_record`/`coverage_units`; malformed `claims`/`markers` (not a list of non-bool ints, all-or-nothing per claim) are uncited; non-int citation `marker` ignored; non-string `answer` has no units (beyond the listed positions). Local `tests/test_evals_data.py`: 142 → 261 passed (+119 incl. 81-case property test; new tests fail 64× on main's file). ruff E,F,W clean; E3 6 → 2 (the two pre-existing). Mutants m1–m5, m7 killed; m6 INVALID (equivalent). `make eval`/`test-unit`/`lint` not run (no infra / Go 1.25).
 - 2026-11-21 05:00Z (pm-lead): specced from the EVAL-6b final review Backlog line (QA finding 3 `[spec]`, probe 10, and nit 1). Code read at
   `11c4696`: `classify()` l.75-84 only guards `refusal_reason`; `call()` l.193-198 calls `_reason_str(resp or {})` and `case_record()`, both
   `.get` on the body; `gated_call()` l.206 calls `resp.get`; `case_record()` l.151-152 calls `c.get` on each citation item; `coverage_units()` l.135-140

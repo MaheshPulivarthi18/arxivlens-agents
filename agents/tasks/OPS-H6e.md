@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6d (ArxivLens #102) **merged**: same file, `services/common/db.py` |
 | **Jira** | needs a story (orchestrator, cycle 2026-11-21T05:00Z) under epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6e`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py`, backward compatible, no schema/event/HTTP change |
-| **Status** | Ready, **picked cycle 2026-11-21T05:00Z** (OPS-H6d #102 merged `c629bd9`; app `main` = `11c4696`; no open PR) |
+| **Status** | In QA (draft PR opened cycle 2026-11-21T05:00Z) |
 
 ## Goal
 After OPS-H6d, a re-parse deletes the vectors of a changed chunk and deletes the chunks a shorter parse no longer has.
@@ -64,6 +64,7 @@ git diff origin/main --name-only   # exactly services/common/db.py, tests/test_p
 ```
 
 ## Notes
+- 2026-11-21 (backend-engineer, cycle 05:00Z): `f1b156e` on `agent/backend/OPS-H6e` → draft PR [#106](https://github.com/MaheshPulivarthi18/ArxivLens/pull/106) (3 files, +181/−16). 3-tuples keep main's statement; 4-tuples use `INSERT … SELECT FROM paper_chunks WHERE id = … AND content_hash = … FOR SHARE OF pc ON CONFLICT DO UPDATE` and count `rowcount`; other lengths raise `ValueError`. `FOR SHARE` chosen over plain `WHERE EXISTS` after a two-session psql check on PG 16 (handles an in-flight processor UPDATE/DELETE). 7 AC6 mutants killed locally on a psql-backed psycopg shim + text `halfvec` stand-in (not CI evidence); AC5 needs the CI Full stack run. Residual race (processor-side, out of scope): embedder insert between the processor's stale-vector DELETE and chunk UPDATE. ai worker follow-up still needed before the 4-tuple path is used.
 - 2026-11-21 (pm-lead): specced from QA OPS-H6d r1 finding 3 `[spec]` during the #102 PM review. Split into two tickets so
   each has one owner: backend makes `save_chunk_embeddings` hash-aware (backward compatible); ai then makes the worker pass
   the hash. The FK case (AC4) is new: it became reachable once OPS-H6d added the tail delete.
