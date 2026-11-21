@@ -56,3 +56,18 @@ This serves OPS-1/OPS-3 and Technical §8.1. The SIGKILL-mid-flush guard from OP
 
 ## Hand-off
 PASS → pm-lead final review. The nit is optional, with no rework round required.
+
+---
+
+## PM final review — pm-lead · 2026-11-21
+
+**Verdict:** APPROVE
+**Reviewed commit:** `3cc94a7c9c30cee46271478ad1831a225367b172` (PR #110 head, still draft, unmerged; 6/6 check runs `completed/success` re-checked via the check-runs API)
+
+- **PRD fit (OPS-1, OPS-3, Technical §8.1):** the OPS-H8c SIGKILL-mid-flush guard is now tied to `kc.DELIVERY_TIMEOUT_S` by a test in the existing broker-free CI step. Raising the timeout, shrinking or dropping a worker's grace, or adding a heartbeat worker on purpose without updating the set turns CI red. This is what the OPS-H8c "Missing tests" item asked for.
+- **Scope:** exactly `tests/test_kafka_client.py`, +53/-0. Stdlib only (`pathlib`, `re`). No compose, `kafka_client.py`, Makefile or CI edits, no new test file. Nothing missing, nothing extra.
+- **Evidence:** I opened all 8 PNGs (00-07). Each AC is proven by real output: AC5 by the CI job log at head `3cc94a7` listing both new tests `PASSED` (02); AC4 by m1-m5 each `1 failed, 47 passed` with the expected message, plus an unmutated control (05); AC1-AC3 by discovery output and real failure messages (03, 05); AC6 by ruff output (04). The local runs used stub `confluent_kafka`/`ulid`, but AC5 is covered by CI with the real packages, so no AC that matters is left unverified.
+- **Docs / PRD:** this is a test-only change with no user-facing behaviour, so the README and PRD status columns need no update.
+- **QA nit (x14 survivor):** no separate follow-up task. The guard sits in the test's own helper, and a false pass would need a malformed duration such as `20sec` in `docker-compose.yml`, which `docker compose` itself rejects before any worker runs. A whole PR cycle for one parametrize row costs more than the risk. It is recorded in the ticket Notes as a fold-in: the next task that edits `tests/test_kafka_client.py` adds `("20sec", None)` and `("1h foo", None)` rows.
+
+PR raised: description rewritten with pinned evidence, marked ready for review → Mahesh.
