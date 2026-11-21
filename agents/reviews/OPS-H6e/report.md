@@ -111,3 +111,37 @@ Same as round 1: once the worker passes the hash, a vector computed from chunk t
 
 ## Hand-off
 PASS → pm-lead final review. The PR description should quote AC5's `-rA` line with run ID 44870497705 and list the two follow-ups (finding 1).
+
+---
+
+# PM review — OPS-H6e · PR #106 · pm-lead
+
+**Verdict: APPROVE** · 2026-11-21 · head `f1b156ec66ed0005003c8ce69304122172b43974` (QA r2 PASS at the same head)
+
+Checked: ticket `agents/tasks/OPS-H6e.md`, Product PRD OPS-3, Technical PRD §8.1 L3, the diff (`gh api …/pulls/106/files`:
+`services/common/db.py` +42/−15, `tests/test_chunk_reprocess_db.py` +60/−1, `tests/test_processor_pages.py` +79/−0), check runs on
+`f1b156e` (all 6 completed/success, Full stack job 136768749810 = run 44870497705 attempt 3), and all 13 evidence images (00-12).
+
+- **PRD fit.** Serves OPS-3 / L3: once the worker passes the hash, a vector computed from text that changed or was deleted
+  mid-run is dropped instead of being kept for good, and the tail-delete FK failure (which would fail or DLQ the whole
+  message) can't happen. Production today only sends 3-tuples, whose statement and count are pinned to main's (AC1), so
+  merging changes no live behaviour. PRD status unchanged: OPS-3 is already ✅; this hardens it.
+- **Scope.** Exactly the 3 allowed files (01), 197 changed lines, backend ownership OK. Nothing extra; the optional
+  set-based nit wasn't taken, which is fine. `ValueError` for 2-/5-tuples: main already raised `ValueError` on unpacking,
+  so no caller-visible change.
+- **Evidence per AC.** AC1: 03 (CI 60 → 66 = the 6 new tests), 04, 06 base control + M3a/M3b/M8. AC2-AC4: 05 (real PG16
+  probe incl. the unguarded FK-error control and two-session races) + 11 (CI real-PG test). AC5: 11, `PASSED
+  tests/test_chunk_reprocess_db.py::test_save_embeddings_only_for_current_chunk_text` (log l.3106), `278 passed, 1 skipped,
+  3 deselected`, run 44870497705. AC6: 06, 10 mutants + base, all killed (mutant code in 08). AC7: 09 + 10 (all checks
+  green), 07 (ruff findings identical on main, none on added lines). 02 and 00 are round-1 history (infra 429), superseded
+  by 09-11. 12 shows the tracked F1 step is the only red, and it doesn't touch this code. No `⚠ unverified` left.
+- **Docs.** None needed in the app repo (internal function, no command or API change).
+- **QA `[spec]` finding (r2 #1).** Follow-ups created, Backlog until #106 merges:
+  - [OPS-H6f](../../tasks/OPS-H6f.md) (backend, P2): processor locks the paper's chunk rows before deleting their vectors
+    (the residual race in 05's last block), plus QA nit 3 (two-connection test guarding `FOR SHARE`) and the duplicate-hash
+    fixture from "Missing tests".
+  - [AI-13](../../tasks/AI-13.md) (ai, P2): the embedder worker passes `content_hash` as the 4th element and logs the
+    skipped count, which activates this PR's path.
+  Both are listed in the PR body's "Follow-ups created".
+
+Next: PR #106 raised (ready for review) for Mahesh. Never merged by agents.

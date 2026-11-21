@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6d (ArxivLens #102) **merged**: same file, `services/common/db.py` |
 | **Jira** | needs a story (orchestrator, cycle 2026-11-21T05:00Z) under epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6e`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py`, backward compatible, no schema/event/HTTP change |
-| **Status** | In QA (draft PR opened cycle 2026-11-21T05:00Z) |
+| **Status** | Ready to merge: ArxivLens [#106](https://github.com/MaheshPulivarthi18/ArxivLens/pull/106) @ `f1b156e`, QA r2 PASS + PM APPROVE (2026-11-21), raised for Mahesh's review |
 
 ## Goal
 After OPS-H6d, a re-parse deletes the vectors of a changed chunk and deletes the chunks a shorter parse no longer has.
@@ -41,17 +41,17 @@ vector was computed from. Otherwise it skips the vector and reports how many it 
 - No schema change (a `content_hash` column on `chunk_embeddings` would change an existing table and need an ADR).
 
 ## Acceptance criteria
-- [ ] AC1: a 3-tuple call behaves exactly as on `main` (same SQL effect; the existing tests keep passing unchanged).
-- [ ] AC2: a 4-tuple whose `content_hash` matches the chunk row is written (insert, or update on conflict) and counted.
-- [ ] AC3: a 4-tuple whose `content_hash` no longer matches is not written, no error is raised, and it isn't counted.
+- [x] AC1: a 3-tuple call behaves exactly as on `main` (same SQL effect; the existing tests keep passing unchanged).
+- [x] AC2: a 4-tuple whose `content_hash` matches the chunk row is written (insert, or update on conflict) and counted.
+- [x] AC3: a 4-tuple whose `content_hash` no longer matches is not written, no error is raised, and it isn't counted.
   An existing vector for that chunk/model is left as it is (the processor already deleted it in the race above).
-- [ ] AC4: a 4-tuple whose `chunk_id` no longer exists is skipped without an FK error, and the transaction is still usable afterwards.
-- [ ] AC5: real-Postgres test covering AC2-AC4 on one rolled-back connection (shared stack DB left unchanged); green in the
+- [x] AC4: a 4-tuple whose `chunk_id` no longer exists is skipped without an FK error, and the transaction is still usable afterwards.
+- [x] AC5: real-Postgres test covering AC2-AC4 on one rolled-back connection (shared stack DB left unchanged); green in the
   draft PR's `Full stack` run, quoted from the `-rA` summary with the run ID.
-- [ ] AC6: mutants, each failing at least one test: no hash condition; no existence condition (FK error); 3-tuples routed through
+- [x] AC6: mutants, each failing at least one test: no hash condition; no existence condition (FK error); 3-tuples routed through
   the hash path (or rejected).
-- [ ] AC7: CI `Python M0 unit tests`, `Go`, `Agent ownership check` and `Full stack` green; ruff (E,F,W, line length 130) has no findings on added lines.
-- [ ] Docs: none in the app repo.
+- [x] AC7: CI `Python M0 unit tests`, `Go`, `Agent ownership check` and `Full stack` green; ruff (E,F,W, line length 130) has no findings on added lines.
+- [x] Docs: none in the app repo.
 
 ## Verification
 ```bash
@@ -64,6 +64,7 @@ git diff origin/main --name-only   # exactly services/common/db.py, tests/test_p
 ```
 
 ## Notes
+- 2026-11-21 (pm-lead, #106 final review): **APPROVE** after QA r1 PENDING (Full stack arXiv 429) → r2 PASS at `f1b156e`; all ACs evidenced (`agents/reviews/OPS-H6e/report.md`, evidence 00-12). Follow-ups created (Backlog until #106 merges): [OPS-H6f](OPS-H6f.md) (backend: processor locks chunk rows before deleting vectors, the residual race; two-connection `FOR SHARE` test; duplicate-hash fixture) and [AI-13](AI-13.md) (ai: worker passes `content_hash`, logs skipped count). PR raised (ready for review).
 - 2026-11-21 (backend-engineer, cycle 05:00Z): `f1b156e` on `agent/backend/OPS-H6e` → draft PR [#106](https://github.com/MaheshPulivarthi18/ArxivLens/pull/106) (3 files, +181/−16). 3-tuples keep main's statement; 4-tuples use `INSERT … SELECT FROM paper_chunks WHERE id = … AND content_hash = … FOR SHARE OF pc ON CONFLICT DO UPDATE` and count `rowcount`; other lengths raise `ValueError`. `FOR SHARE` chosen over plain `WHERE EXISTS` after a two-session psql check on PG 16 (handles an in-flight processor UPDATE/DELETE). 7 AC6 mutants killed locally on a psql-backed psycopg shim + text `halfvec` stand-in (not CI evidence); AC5 needs the CI Full stack run. Residual race (processor-side, out of scope): embedder insert between the processor's stale-vector DELETE and chunk UPDATE. ai worker follow-up still needed before the 4-tuple path is used.
 - 2026-11-21 (pm-lead): specced from QA OPS-H6d r1 finding 3 `[spec]` during the #102 PM review. Split into two tickets so
   each has one owner: backend makes `save_chunk_embeddings` hash-aware (backward compatible); ai then makes the worker pass
