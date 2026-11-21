@@ -1,0 +1,18 @@
+$ python3 -c 
+from datetime import datetime as D
+f=lambda a,b:(D.fromisoformat(b)-D.fromisoformat(a)).total_seconds()
+j=f("2026-11-21T13:39:48","2026-11-21T15:00:42"); e=f("2026-11-21T14:27:42","2026-11-21T15:00:34"); l=f("2026-11-21T13:40:03","2026-11-21T13:40:08"); p=f("2026-11-21T13:44:50","2026-11-21T13:44:50")
+print("job total   %ds = %.1f min  vs job timeout-minutes 180 (old 120)"%(j,j/60))
+print("make eval   %ds = %.1f min  vs step timeout-minutes 45 (old 30) -> old 30 would have killed it: %s"%(e,e/60,e/60>30))
+print("lint step   %ds  vs 3   prefetch %ds (cache hit)"%(l,p))
+print("eval step / Xeon 22m11s(1331s) = %.3fx"%(e/1331))
+import re;t=open(".github/workflows/eval.yml").read().splitlines()
+[print("eval.yml:%d %s"%(i+1,t[i].strip())) for i in (26,151)]
+job total   4854s = 80.9 min  vs job timeout-minutes 180 (old 120)
+make eval   1972s = 32.9 min  vs step timeout-minutes 45 (old 30) -> old 30 would have killed it: True
+lint step   5s  vs 3   prefetch 0s (cache hit)
+eval step / Xeon 22m11s(1331s) = 1.482x
+eval.yml:27 timeout-minutes: 180
+eval.yml:152 timeout-minutes: 45
+
+[exit code 0]

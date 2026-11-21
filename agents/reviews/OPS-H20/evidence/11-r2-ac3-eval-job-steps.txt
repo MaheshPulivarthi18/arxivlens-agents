@@ -1,0 +1,30 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136863495174
+job 136863495174 run 44905935487 head ece17a72cd32b0d4b6178b18049156809cbf68b5 success 2026-11-21T13:39:48Z -> 2026-11-21T15:00:42Z runner=GitHub Actions 1000002309
+1 | Set up job | success | 2026-11-21T13:39:48Z -> 2026-11-21T13:39:49Z
+2 | Run actions/checkout@v4 | success | 2026-11-21T13:39:49Z -> 2026-11-21T13:39:50Z
+3 | Run actions/setup-go@v5 | success | 2026-11-21T13:39:50Z -> 2026-11-21T13:40:00Z
+4 | Run actions/setup-python@v5 | success | 2026-11-21T13:40:00Z -> 2026-11-21T13:40:03Z
+5 | Lint the harness (actionlint, compose config) | success | 2026-11-21T13:40:03Z -> 2026-11-21T13:40:08Z
+6 | Restore Hugging Face models | success | 2026-11-21T13:40:08Z -> 2026-11-21T13:40:19Z
+7 | Host Python deps (make setup-py, CPU torch) | success | 2026-11-21T13:40:19Z -> 2026-11-21T13:41:10Z
+8 | Pre-fetch models (offline on a cache hit, so a missing file fails instead of downloading) | success | 2026-11-21T13:41:10Z -> 2026-11-21T13:41:18Z
+9 | Save Hugging Face models (before any container writes) | skipped | 2026-11-21T13:41:18Z -> 2026-11-21T13:41:18Z
+10 | Build Go CLI, make stack-up, migrate | success | 2026-11-21T13:41:18Z -> 2026-11-21T13:44:48Z
+11 | Restore arXiv replay store | success | 2026-11-21T13:44:48Z -> 2026-11-21T13:44:50Z
+12 | Prefetch arXiv responses into the replay store | success | 2026-11-21T13:44:50Z -> 2026-11-21T13:44:50Z
+13 | Save arXiv replay store | skipped | 2026-11-21T13:44:50Z -> 2026-11-21T13:44:50Z
+14 | Start the arXiv replay proxy (replay-only) | success | 2026-11-21T13:44:50Z -> 2026-11-21T13:44:50Z
+15 | Start the query service on the host | success | 2026-11-21T13:44:50Z -> 2026-11-21T13:44:52Z
+16 | Self-test: eval-seed fails on an unreachable API (no arXiv request) | success | 2026-11-21T13:44:52Z -> 2026-11-21T13:45:42Z
+17 | make eval-seed (31 corpus IDs, arXiv replayed from the cache) | success | 2026-11-21T13:45:42Z -> 2026-11-21T14:27:42Z
+18 | Machine profile | success | 2026-11-21T14:27:42Z -> 2026-11-21T14:27:42Z
+19 | make eval | success | 2026-11-21T14:27:42Z -> 2026-11-21T15:00:34Z
+20 | Upload eval results | success | 2026-11-21T15:00:34Z -> 2026-11-21T15:00:35Z
+21 | Collect stack logs | skipped | 2026-11-21T15:00:35Z -> 2026-11-21T15:00:35Z
+22 | Upload stack logs | skipped | 2026-11-21T15:00:35Z -> 2026-11-21T15:00:35Z
+23 | Teardown | success | 2026-11-21T15:00:35Z -> 2026-11-21T15:00:39Z
+44 | Post Run actions/setup-python@v5 | success | 2026-11-21T15:00:39Z -> 2026-11-21T15:00:39Z
+45 | Post Run actions/setup-go@v5 | success | 2026-11-21T15:00:39Z -> 2026-11-21T15:00:40Z
+46 | Post Run actions/checkout@v4 | success | 2026-11-21T15:00:40Z -> 2026-11-21T15:00:40Z
+47 | Complete job | success | 2026-11-21T15:00:40Z -> 2026-11-21T15:00:40Z
+

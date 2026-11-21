@@ -1,0 +1,44 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136863495174/logs (excerpt: sed/grep line ranges)
+2026-11-21T13:40:03.9233460Z ##[group]Run docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color .github/workflows/eval.yml
+2026-11-21T13:40:03.9234311Z [36;1mdocker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color .github/workflows/eval.yml[0m
+2026-11-21T13:40:03.9234839Z [36;1mdocker compose config --quiet[0m
+2026-11-21T13:40:04.0306289Z Unable to find image 'rhysd/actionlint:1.7.7' locally
+2026-11-21T13:40:05.1407927Z Digest: sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9
+2026-11-21T13:40:05.1409113Z Status: Downloaded newer image for rhysd/actionlint:1.7.7
+2026-11-21T13:40:08.0694213Z time="2026-11-21T13:40:08Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete,
+[... step 5 ends 13:40:08; next lines are step 6]
+2026-11-21T14:27:42.6431765Z Model name:                              AMD EPYC 7763 64-Core Processor
+2026-11-21T14:45:46.2915818Z Benchmark Results Summary Table (paper-level Recall@5 / MRR / NDCG@5; ChunkP@5 is diagnostic):
+2026-11-21T14:45:46.2917738Z Configuration            | Recall@5 | MRR      | NDCG@5   | ChunkP@5 | Avg ms
+2026-11-21T14:45:46.2919067Z --------------------------------------------------------------------------------
+2026-11-21T14:45:46.2932131Z BM25 Keyword             | 0.4573   | 0.4615   | 0.4520   | 0.3051   | 1.44
+2026-11-21T14:45:46.2932899Z Dense Vector             | 0.9060   | 0.9327   | 0.9032   | 0.8333   | 1.11
+2026-11-21T14:45:46.2933629Z Hybrid RRF               | 0.9231   | 0.9615   | 0.9319   | 0.8513   | 5.21
+2026-11-21T14:45:46.2934465Z Hybrid RRF + Rerank      | 0.9850   | 0.9765   | 0.9707   | 0.6333   | 13736.59
+2026-11-21T14:45:46.2935206Z ================================================================================
+2026-11-21T15:00:33.6225865Z 
+2026-11-21T15:00:33.6226020Z ==============================================================================
+2026-11-21T15:00:33.6226441Z Metric                                           |     Value |     Target | Result
+2026-11-21T15:00:33.6226890Z ------------------------------------------------------------------------------
+2026-11-21T15:00:33.6227391Z rerank via production /internal/rerank           |    1.0000 |     == 1.0 | PASS
+2026-11-21T15:00:33.6227902Z retrieval_coverage                               |    1.0000 |     == 1.0 | PASS
+2026-11-21T15:00:33.6228382Z recall@5 (Hybrid RRF + Rerank)                   |    0.9850 |     >= 0.8 | PASS
+2026-11-21T15:00:33.6228880Z hybrid+rerank beats BM25 & dense (MRR, NDCG@5)   |    1.0000 |     == 1.0 | PASS
+2026-11-21T15:00:33.6229374Z supported_citation_rate                          |    1.0000 |     >= 0.9 | PASS
+2026-11-21T15:00:33.6229842Z correct_refusal_rate                             |    1.0000 |    >= 0.95 | PASS
+2026-11-21T15:00:33.6230340Z ask_p95_ms                                       | 18099.7290 |     < 3000 | INFO (cpu-only; not gated)
+2026-11-21T15:00:33.6230849Z ask_errors (answer + refusal sets)               |    0.0000 |       == 0 | PASS
+2026-11-21T15:00:33.6231605Z (info, not gated) chunk_precision@5 (Hybrid RRF + Rerank) |    0.6333 |
+2026-11-21T15:00:33.6232074Z (info) expected_paper_hit_rate                   |    0.9545 |
+2026-11-21T15:00:33.6232482Z (info) ask_p50_ms                                |   14604.5 |
+2026-11-21T15:00:33.6232895Z ------------------------------------------------------------------------------
+2026-11-21T15:00:33.6233380Z report-only (EVAL-6; not gated, promoting one to a gate needs an ADR)
+2026-11-21T15:00:33.6233833Z (report-only) citation_coverage                  |    1.0000 |
+2026-11-21T15:00:33.6234258Z (report-only) near_miss_correct_refusal_rate     |    0.8000 |
+2026-11-21T15:00:33.6234684Z (report-only) verification_unavailable_count     |         0 |
+2026-11-21T15:00:33.6235087Z (report-only) refusal_reason_counts              | {}
+2026-11-21T15:00:33.6235458Z ==============================================================================
+2026-11-21T15:00:33.6243206Z results written to /home/runner/work/ArxivLens/ArxivLens/evals/results/20261121T150033Z.json
+2026-11-21T15:00:33.6243981Z GATE: PASS
+2026-11-21T15:00:34.3874694Z ##[group]Run actions/upload-artifact@v4
+
