@@ -96,3 +96,23 @@ No blocking findings. The round 1 nits 1 (could-not-run test only asserts exit 2
 
 ## Hand-off
 PASS → pm-lead final review. Jira: move to PM review.
+
+
+---
+
+## PM final review (pm-lead)
+
+**Verdict:** APPROVE
+**Reviewed:** PR #107 head `1f3bd3177bc7a83625f23a82042492a3e0436247` (base/main `11c4696`, unchanged) · QA r1 PENDING → r2 PASS at the same head · 2026-11-21
+
+- **PRD fit (Product PRD §8, ADR-0003):** a malformed `/v1/ask` response now counts as one `error` case instead of crashing `evaluate()` and blanking the whole answer gate. An all-malformed run reaches the honest "could not run" path, and `eval_gate` now names the right cause (`ConnectionError: every /v1/ask request … failed` instead of `AttributeError`, evidence 08). This is what the gate's users (Mahesh reading CI, the ai-engineer tuning RAG) need: one bad response means one error, not "no data".
+- **Scope:** exactly the 3 allowed files, +170/−9, below the 300-line stop (01). Production change +41/−6. One small addition beyond the listed positions: a non-string `answer` gives no sentence units. It sits inside AC3's "`coverage_units()` never raises" intent, is tested (3 rows, mutant x7 killed), and changes no metric for well-formed input. Accepted, not scope creep. No gate key, threshold, metric definition or results field changed, so no design or ADR was needed.
+- **Evidence:** I opened all 15 images (00-14) and their `.txt` files. Every AC has proof. AC1: 05, 06 m1/m5, 08. AC2: 05, 06 m2/m3/m4/m7/x1-x3. AC3: 06 x4-x6/x9, 07 P3a. AC4: 02 (81 ids), 05 (37 fail on main), 07 P1 fuzz. AC5: 04. AC6: 03 (E3 6 → 2, only the two pre-existing ones left). AC7: 06 (m6 INVALID, shown equivalent by 07 P3a). AC8: 09 (276 vs 157 = +119 = new ids), 12-14 (Full stack attempt 3 green on the merge ref, `make test-full` 390 passed, 261 `test_evals_data.py` PASSED lines). No "⚠ unverified" remains on anything that matters. The round 1 Full stack failure (00, 10) was upstream arXiv 429/503 in prefetch, with no test run, and it is superseded by 12-14.
+- **m6 INVALID:** I accept it. It is my spec's fault: m6 assumed `_markers_ok` would be the only guard, but the int-only `in_range` makes a string `markers` uncited either way. The AC3 behaviour (`"12"` → uncited) is still pinned by `test_malformed_claims_count_as_uncited_units`.
+- **DoD 3, `make eval`:** not run, because there is no stack in the sandbox. That is acceptable here: the change only affects malformed responses, and QA's 3000-run well-formed head-vs-main differential shows 0 metric differences (07 P2), so no gate value can move.
+- **DoD 2:** `make test-unit` / `make lint` come from CI (Go + Python M0 + Frontend + DB green at the head). I checked the check-runs API myself at review time: all 6 runs `completed/success`.
+- **Docs:** `evals/README.md` classification row and coverage note done (AC5). The app `README.md` needs no change (no CLI/API change). No PRD status column covers this item (it is a §8 harness follow-up with no ⏳ row), so no PRD edit.
+- **Follow-ups (already in board Backlog, ai, P3, after #107 merges):** QA nit 1 (`test_all_non_object_bodies_trip_could_not_run` should assert the "every /v1/ask request" stderr reason, because it also passes on main) and nit 2 (a direct `coverage_units` row with malformed `citations`, to cover mutant x8). Fold both into the EVAL-7 `build_rows` follow-up on `tests/test_evals_data.py`.
+- **Process note:** the round 1 links in this report wrap some URLs in backticks (a copy artifact from saving the comment verbatim), so those links don't click. The pinned URLs are still readable, and round 2 plus the PR description use clean links.
+
+→ Raise PR #107 (ready for review); Jira KAN-109 → Ready to merge (orchestrator).
