@@ -1,0 +1,25 @@
+$ bash -c for j in 136770333612 136736533187; do echo "===== job $j: $(gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j --jq '"\(.name) head_sha=\(.head_sha[0:7]) conclusion=\(.conclusion)"')"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j/logs | sed 's/\x1b\[[0-9;]*m//g' | grep -E 'HEAD is now at|Run npm|Found [0-9]+ warnings|badge.test|Test Files|      Tests |built in' | cut -c30-; echo; done
+===== job 136770333612: Frontend (lint, test, build) head_sha=12484f8 conclusion=success
+HEAD is now at c9933eb Merge 12484f89053e01944f515c8cf31de078ad10f1ea into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+##[group]Run npm ci
+##[group]Run npm run lint
+Found 0 warnings and 0 errors.
+##[group]Run npm test
+ ✓ src/components/ui/badge.test.jsx (3 tests) 194ms
+ Test Files  12 passed (12)
+      Tests  143 passed (143)
+##[group]Run npm run build
+✓ built in 1.19s
+
+===== job 136736533187: Frontend (lint, test, build) head_sha=11c4696 conclusion=success
+##[group]Run npm ci
+##[group]Run npm run lint
+Found 0 warnings and 0 errors.
+##[group]Run npm test
+ Test Files  11 passed (11)
+      Tests  140 passed (140)
+##[group]Run npm run build
+✓ built in 778ms
+
+
+[exit code 0]

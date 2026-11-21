@@ -1,0 +1,9 @@
+$ python3 -c 
+from PIL import Image, ImageChops
+a=Image.open('/root/wt/agents-qa-FE-0i/agents/reviews/FE-0i/evidence/08-screenshot-callers-main-light.png').convert('RGB'); b=Image.open('/root/wt/agents-qa-FE-0i/agents/reviews/FE-0i/evidence/07-screenshot-callers-head-light.png').convert('RGB')
+print('main', a.size, 'head', b.size); d=ImageChops.difference(a,b).getbbox(); print('differing-pixel bbox:', d); print('RESULT:', 'PIXEL-IDENTICAL' if d is None else 'DIFFERENT')
+main (1280, 1801) head (1280, 1801)
+differing-pixel bbox: None
+RESULT: PIXEL-IDENTICAL
+
+[exit code 0]

@@ -1,0 +1,28 @@
+$ bash -c echo "## files changed (origin/main...HEAD)"; git diff --stat origin/main...HEAD; echo; echo "## badge.jsx diff"; git diff origin/main...HEAD -- frontend/src/components/ui/badge.jsx; echo; echo "## main badge.jsx with <div -> <span substituted, diffed against head (empty = byte-identical apart from the tag)"; diff <(git show origin/main:frontend/src/components/ui/badge.jsx | sed "s/<div /<span /") frontend/src/components/ui/badge.jsx && echo "IDENTICAL"; echo; echo "## any test on main/head selecting by div tag (outside badge.test.jsx)"; grep -rnE "querySelector(All)?\(.div|tagName.*DIV|closest\(.div" frontend/src | grep -v badge.test || echo "none"
+## files changed (origin/main...HEAD)
+ frontend/src/components/ui/badge.jsx      |  2 +-
+ frontend/src/components/ui/badge.test.jsx | 39 +++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 1 deletion(-)
+
+## badge.jsx diff
+diff --git a/frontend/src/components/ui/badge.jsx b/frontend/src/components/ui/badge.jsx
+index 63df2a8..e2b31d6 100644
+--- a/frontend/src/components/ui/badge.jsx
++++ b/frontend/src/components/ui/badge.jsx
+@@ -34,7 +34,7 @@ const badgeVariants = cva(
+ 
+ function Badge({ className, variant, ...props }) {
+   return (
+-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
++    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   )
+ }
+ 
+
+## main badge.jsx with <div -> <span substituted, diffed against head (empty = byte-identical apart from the tag)
+IDENTICAL
+
+## any test on main/head selecting by div tag (outside badge.test.jsx)
+none
+
+[exit code 0]

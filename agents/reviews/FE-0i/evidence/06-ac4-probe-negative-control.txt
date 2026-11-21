@@ -1,0 +1,40 @@
+$ env QA_PAIRS=head:neg PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers timeout 300 node /tmp/claude-0/-home-claude/e51945d8-50f1-5ac4-8588-a685c3722a78/scratchpad/qa-FE-0i-r1/harness/layout.mjs
+RESULT: FAIL (26 differing badges; w/h/x/y/display/class string compared per badge)
+  head vs neg (light): 14 vs 14 badges
+  head vs neg (dark): 14 vs 14 badges
+
+== head vs neg (light): 14 vs 14 badges
+caller          parent tag(a->b)  display(a->b)            w x h (a)        w x h (b)        x,y same  text
+SynthesisView   DIV    SPAN->SPAN flex->flex               167.25x22.5      171.25x22.5      NO        DIFF Trace: trace-mixed-...
+ReferencesStack H3     SPAN->SPAN flex->flex               57.516x18        57.516x18        yes       3 cited
+ReferencesStack DIV    SPAN->SPAN flex->flex               127.625x22.5     131.625x22.5     yes       DIFF arXiv:2401.01234
+ReferencesStack DIV    SPAN->SPAN flex->flex               135.219x22.5     139.219x22.5     NO        DIFF Supported · 87.3%
+ReferencesStack DIV    SPAN->SPAN flex->flex               127.625x22.5     131.625x22.5     yes       DIFF arXiv:2402.05678
+ReferencesStack DIV    SPAN->SPAN flex->flex               148.5x22.5       152.5x22.5       NO        DIFF Unsupported · 12.0%
+ReferencesStack DIV    SPAN->SPAN flex->flex               127.625x22.5     131.625x22.5     yes       DIFF arXiv:2403.09999
+ReferencesStack DIV    SPAN->SPAN flex->flex               104.594x22.5     108.594x22.5     NO        DIFF Not checked
+PapersLibrary   DIV    SPAN->SPAN flex->flex               52.016x20.281    56.016x20.281    NO        DIFF cs.CL
+PapersLibrary   DIV    SPAN->SPAN flex->flex               52.016x20.281    56.016x20.281    NO        DIFF cs.IR
+PapersLibrary   TD     SPAN->SPAN inline-flex->inline-flex 79.578x21.703    83.578x21.703    NO        DIFF indexed
+Isolated        DIV    SPAN->SPAN inline-flex->inline-flex 62.828x22        66.828x22        yes       DIFF default
+Isolated        P      SPAN->SPAN inline-flex->inline-flex 52.875x22        56.875x22        yes       DIFF in a p
+IngestModal     DIV    SPAN->SPAN flex->flex               127.625x22.5     131.625x22.5     NO        DIFF arXiv:2608.20154
+
+== head vs neg (dark): 14 vs 14 badges
+caller          parent tag(a->b)  display(a->b)            w x h (a)        w x h (b)        x,y same  text
+SynthesisView   DIV    SPAN->SPAN flex->flex               167.25x22.5      171.25x22.5      NO        DIFF Trace: trace-mixed-...
+ReferencesStack H3     SPAN->SPAN flex->flex               57.516x18        57.516x18        yes       3 cited
+ReferencesStack DIV    SPAN->SPAN flex->flex               127.625x22.5     131.625x22.5     yes       DIFF arXiv:2401.01234
+ReferencesStack DIV    SPAN->SPAN flex->flex               135.219x22.5     139.219x22.5     NO        DIFF Supported · 87.3%
+ReferencesStack DIV    SPAN->SPAN flex->flex               127.625x22.5     131.625x22.5     yes       DIFF arXiv:2402.05678
+ReferencesStack DIV    SPAN->SPAN flex->flex               148.5x22.5       152.5x22.5       NO        DIFF Unsupported · 12.0%
+ReferencesStack DIV    SPAN->SPAN flex->flex               127.625x22.5     131.625x22.5     yes       DIFF arXiv:2403.09999
+ReferencesStack DIV    SPAN->SPAN flex->flex               104.594x22.5     108.594x22.5     NO        DIFF Not checked
+PapersLibrary   DIV    SPAN->SPAN flex->flex               52.016x20.281    56.016x20.281    NO        DIFF cs.CL
+PapersLibrary   DIV    SPAN->SPAN flex->flex               52.016x20.281    56.016x20.281    NO        DIFF cs.IR
+PapersLibrary   TD     SPAN->SPAN inline-flex->inline-flex 79.578x21.703    83.578x21.703    NO        DIFF indexed
+Isolated        DIV    SPAN->SPAN inline-flex->inline-flex 62.828x22        66.828x22        yes       DIFF default
+Isolated        P      SPAN->SPAN inline-flex->inline-flex 52.875x22        56.875x22        yes       DIFF in a p
+IngestModal     DIV    SPAN->SPAN flex->flex               127.625x22.5     131.625x22.5     NO        DIFF arXiv:2608.20154
+
+[exit code 0]

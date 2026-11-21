@@ -1,0 +1,308 @@
+$ bash -c cd /tmp/claude-0/-home-claude/e51945d8-50f1-5ac4-8588-a685c3722a78/scratchpad/qa-FE-0i-r1 && for f in $(find harness shims stubs -type f | sort); do echo "===== $f"; cat $f; done
+===== harness/build.mjs
+// esbuild bundle of harness/entry.jsx against one source tree; third-party UI libs replaced by stubs/.
+import * as esbuild from '/opt/npm-tools/node_modules/esbuild/lib/main.js';
+const [tree, out] = process.argv.slice(2);
+const S = new URL('..', import.meta.url).pathname;
+const alias = { 'lucide-react': S + 'stubs/lucide-react.jsx', '@radix-ui/react-slot': S + 'stubs/radix-slot.jsx',
+  '@radix-ui/react-dialog': S + 'stubs/radix-dialog.jsx', '@radix-ui/react-tooltip': S + 'stubs/radix-tooltip.jsx' };
+await esbuild.build({ entryPoints: [S + 'harness/entry.jsx'], bundle: true, outfile: out, format: 'iife',
+  jsx: 'automatic', loader: { '.js': 'jsx' }, nodePaths: ['/opt/npm-tools/node_modules'], logLevel: 'error',
+  define: { 'process.env.NODE_ENV': JSON.stringify(process.env.QA_NODE_ENV || 'production') },
+  plugins: [{ name: 'alias', setup(b) {
+    b.onResolve({ filter: /^@app\// }, (a) => ({ path: tree + '/frontend/src/' + a.path.slice(5) }));
+    b.onResolve({ filter: /^(lucide-react|@radix-ui\/react-(slot|dialog|tooltip))$/ }, (a) => ({ path: alias[a.path] }));
+  } }] });
+console.log('built', out);
+===== harness/css.mjs
+// Compile the tree's real index.css + tailwind.config.js colors/theme with Tailwind 4 (/opt/npm-tools, @config compat).
+// Only change: the typography plugin (not installed in the sandbox) is dropped; no badge sits in a `prose` block.
+import fs from 'node:fs'; import path from 'node:path';
+import { compile } from '/opt/npm-tools/node_modules/tailwindcss/dist/lib.mjs';
+const [tree, out] = process.argv.slice(2);
+const fe = tree + '/frontend';
+const cfgSrc = fs.readFileSync(fe + '/tailwind.config.js', 'utf8')
+  .replace(/^import typography.*$/m, '').replace(/plugins:\s*\[typography\]/, 'plugins: []');
+const cfgPath = fe + '/tailwind.qa.config.mjs'; fs.writeFileSync(cfgPath, cfgSrc);
+const css = fs.readFileSync(fe + '/src/index.css', 'utf8').replace(/@tailwind base;\s*@tailwind components;\s*@tailwind utilities;/,
+  '@import "tailwindcss/theme.css" layer(theme);\n@import "tailwindcss/preflight.css" layer(base);\n@import "tailwindcss/utilities.css" layer(utilities);\n@config "./tailwind.qa.config.mjs";');
+const tw = '/opt/npm-tools/node_modules/tailwindcss/';
+const c = await compile(css, { base: fe,
+  loadStylesheet: async (id, base) => { const p = id.startsWith('tailwindcss/') ? tw + id.slice(12) : path.resolve(base, id);
+    return { path: p, base: path.dirname(p), content: fs.readFileSync(p, 'utf8') }; },
+  loadModule: async (id, base) => { const p = path.resolve(base, id); return { path: p, base: path.dirname(p), module: (await import(p)).default }; } });
+const cands = new Set();
+const walk = (d) => { for (const f of fs.readdirSync(d)) { const p = d + '/' + f; if (fs.statSync(p).isDirectory()) walk(p);
+  else if (/\.(jsx?|html)$/.test(f)) for (const t of fs.readFileSync(p, 'utf8').split(/[\s"'`{}<>()=,;]+/)) if (t) cands.add(t); } };
+walk(fe + '/src');
+const outCss = c.build([...cands]); fs.writeFileSync(out, outCss);
+console.log('css bytes', outCss.length, 'has .bg-supported', outCss.includes('.bg-supported'), 'has .inline-flex', outCss.includes('.inline-flex'));
+===== harness/entry.jsx
+// QA FE-0i AC4 layout probe: renders the REAL caller components from one source tree (@app = <tree>/frontend/src)
+// and measures every Badge (elements carrying the badgeVariants base class string).
+import * as React from 'react';
+import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
+import SynthesisView from '@app/components/SynthesisView.jsx';
+import IngestModal from '@app/components/IngestModal.jsx';
+import PapersLibrary from '@app/components/PapersLibrary.jsx';
+import ReferencesStack from '@app/components/ReferencesStack.jsx';
+import { mixedAnswer } from '@app/test/fixtures.js';
+import { Badge } from '@app/components/ui/badge.jsx';
+
+const PAPERS = { papers: [{ ID: 1, ArxivID: '2401.01234', Version: 2, Title: 'Grounded Retrieval for Scientific QA',
+  Categories: ['cs.CL', 'cs.IR'], Status: 'indexed' }] };
+const INGEST = { arxiv_id: '2608.20154', title: 'A Test Paper', sections: 7, chunks: 42, pages: 12, status: 'indexed' };
+window.fetch = async (url) => ({ ok: true, json: async () => (String(url).includes('ingest') ? INGEST : PAPERS) });
+
+const BASE = 'inline-flex items-center rounded-full border'; // twMerge keeps this prefix for every caller
+const noop = () => {};
+function Section({ name, children }) {
+  return <section data-caller={name} style={{ width: 1100, margin: 16 }}>{children}</section>;
+}
+function Page() {
+  return (<div className="p-4">
+    <Section name="SynthesisView"><SynthesisView answer={mixedAnswer.answer} traceId={mixedAnswer.trace_id}
+      citations={mixedAnswer.citations} answerKind={mixedAnswer.answer_kind} refusalReason={mixedAnswer.refusal_reason}
+      writing={false} onCitationClick={noop} onCopy={noop} /></Section>
+    <Section name="ReferencesStack"><ReferencesStack citations={mixedAnswer.citations} activeMarker={null} onCopy={noop} /></Section>
+    <Section name="PapersLibrary"><PapersLibrary onBackToSearch={noop} /></Section>
+    <Section name="Isolated"><div>block parent: <Badge>default</Badge></div><p>paragraph parent: <Badge variant="supported">in a p</Badge></p></Section>
+    <Section name="IngestModal"><IngestModal isOpen onClose={noop} onIngestSuccess={noop} onAskAboutPaper={noop} /></Section>
+  </div>);
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+window.__run = async (theme) => {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+  const root = createRoot(document.getElementById('root'));
+  flushSync(() => root.render(<Page />));
+  await sleep(50);
+  // IngestModal: submit the form so the result state (with its arXiv badge) renders.
+  const form = document.querySelector('[data-caller="IngestModal"] form');
+  form.requestSubmit();
+  await sleep(200);
+  // the dialog is position:fixed; make it static so it is laid out in the page like the others
+  const dlg = document.querySelector('[data-caller="IngestModal"] [role="dialog"]');
+  dlg.style.position = 'static'; dlg.style.transform = 'none'; dlg.style.translate = 'none';
+  // let the dialog's enter transition (duration-200) and the result's animate-in settle before measuring
+  await sleep(1000);
+  const rows = [];
+  for (const el of document.querySelectorAll('[class]')) {
+    if (!el.className.includes || !el.className.includes(BASE)) continue;
+    const r = el.getBoundingClientRect(); const cs = getComputedStyle(el);
+    rows.push({ caller: el.closest('[data-caller]').dataset.caller, parent: el.parentElement.tagName,
+      tag: el.tagName, display: cs.display, w: +r.width.toFixed(3), h: +r.height.toFixed(3),
+      x: +r.left.toFixed(3), y: +r.top.toFixed(3), text: el.textContent.trim().slice(0, 32), cls: el.className });
+  }
+  return rows;
+};
+===== harness/layout.mjs
+// Load each bundle + its CSS in headless Chromium, measure every Badge, then compare main vs head (and FE-3b div vs span).
+import { chromium } from '/opt/npm-tools/node_modules/playwright/index.mjs';
+import fs from 'node:fs';
+const S = new URL('..', import.meta.url).pathname;
+const browser = await chromium.launch();
+async function measure(tree, theme) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const errs = []; page.on('pageerror', (e) => errs.push(String(e)));
+  await page.setContent(`<!doctype html><html><head><style>${fs.readFileSync(S + 'out-' + tree + '.css', 'utf8')}</style></head><body><div id="root"></div></body></html>`);
+  await page.addScriptTag({ content: fs.readFileSync(S + 'out-' + tree + '.js', 'utf8') });
+  const rows = await page.evaluate((t) => window.__run(t), theme);
+  if (tree === 'head' && theme === 'light') await page.screenshot({ path: S + 'shot-head.png', fullPage: true });
+  if (tree === 'main' && theme === 'light') await page.screenshot({ path: S + 'shot-main.png', fullPage: true });
+  await page.close(); if (errs.length) throw new Error(tree + ': ' + errs.join('; '));
+  return rows;
+}
+let bad = 0; const L = []; const log = (x) => L.push(x); const sums = [];
+for (const [a, b] of (process.env.QA_PAIRS ? process.env.QA_PAIRS.split(',').map((x) => x.split(':')) : [['main', 'head'], ['fe3b-div', 'fe3b-span']])) for (const theme of ['light', 'dark']) {
+  const A = await measure(a, theme), B = await measure(b, theme);
+  sums.push(`${a} vs ${b} (${theme}): ${A.length} vs ${B.length} badges`);
+  log(`\n== ${a} vs ${b} (${theme}): ${A.length} vs ${B.length} badges`);
+  log('caller          parent tag(a->b)  display(a->b)            w x h (a)        w x h (b)        x,y same  text');
+  if (A.length !== B.length) { bad++; log('BADGE COUNT DIFFERS'); }
+  for (let i = 0; i < Math.max(A.length, B.length); i++) {
+    const p = A[i], q = B[i];
+    const same = p.w === q.w && p.h === q.h && p.x === q.x && p.y === q.y && p.display === q.display && p.cls === q.cls;
+    if (!same) bad++;
+    log(`${p.caller.padEnd(15)} ${p.parent.padEnd(6)} ${(p.tag + '->' + q.tag).padEnd(10)} ${(p.display + '->' + q.display).padEnd(24)} ${(p.w + 'x' + p.h).padEnd(16)} ${(q.w + 'x' + q.h).padEnd(16)} ${(p.x === q.x && p.y === q.y ? 'yes' : 'NO').padEnd(9)} ${same ? '' : 'DIFF '}${p.text}`);
+  }
+}
+console.log(`RESULT: ${bad === 0 ? 'PASS' : 'FAIL'} (${bad} differing badges; w/h/x/y/display/class string compared per badge)`); for (const x of sums) console.log('  ' + x); for (const x of L) console.log(x);
+if (false) console.log(`\nRESULT: ${bad === 0 ? 'PASS' : 'FAIL'} (${bad} differing badges; class strings compared too)`);
+await browser.close();
+===== harness/mutants.py
+# AC5 mutation run: real badge.test.jsx x {head badge.jsx, main badge.jsx, single-edit mutants}, run in headless Chromium.
+import subprocess, sys, os, json, tempfile, difflib
+S = sys.argv[1]; head = S + '/trees/head/frontend/src'
+src = open(head + '/components/ui/badge.jsx').read()
+main_src = open(S + '/trees/main/frontend/src/components/ui/badge.jsx').read()
+LINE = '    <span className={cn(badgeVariants({ variant }), className)} {...props} />'
+assert src.count(LINE) == 1
+M = [('CONTROL head (span)', src),
+     ('M0 main badge.jsx (div)  [AC5]', main_src),
+     ('M1 span -> p', src.replace(LINE, LINE.replace('<span', '<p'))),
+     ('M2 drop caller className', src.replace(LINE, '    <span className={cn(badgeVariants({ variant }))} {...props} />')),
+     ('M3 ignore variant', src.replace(LINE, '    <span className={cn(badgeVariants({}), className)} {...props} />')),
+     ('M4 drop {...props}', src.replace(LINE, '    <span className={cn(badgeVariants({ variant }), className)} />')),
+     ('M5 caller className before defaults', src.replace(LINE, '    <span className={cn(className, badgeVariants({ variant }))} {...props} />')),
+     ('RESTORED head (span)', src)]
+os.environ['UTILS'] = head + '/lib/utils.js'
+out = []
+for name, code in M:
+    d = tempfile.mkdtemp(dir=S + '/mut'); bf = d + '/badge.src.jsx'; open(bf, 'w').write(code)
+    diff = [l for l in difflib.unified_diff(src.splitlines(), code.splitlines(), lineterm='', n=0) if l[:1] in '+-' and l[:3] not in ('+++', '---')]
+    b = subprocess.run(['node', S + '/shims/build.mjs', head + '/components/ui/badge.test.jsx', bf, d + '/w', d + '/t.js'], capture_output=True, text=True)
+    if b.returncode: out.append((name, 'INVALID (build failed)', [], diff)); continue
+    r = subprocess.run(['node', S + '/harness/run-tests.mjs', d + '/t.js'], capture_output=True, text=True, env={**os.environ, 'PLAYWRIGHT_BROWSERS_PATH': '/opt/pw-browsers'})
+    res = json.loads(r.stdout)
+    passed = sum(t['ok'] for t in res)
+    verdict = ('ok %d/3 pass' % passed) if name.startswith(('CONTROL', 'RESTORED')) else ('KILLED' if passed < len(res) else 'SURVIVED')
+    out.append((name, verdict + ' (%d passed / %d failed)' % (passed, len(res) - passed), res, diff))
+print('SUMMARY (real badge.test.jsx, shim vitest/RTL/jest-dom, real react-dom 19.2.8 + cva + tailwind-merge in Chromium)')
+for name, v, res, diff in out: print('  %-38s %s' % (name, v))
+print('\nPER TEST')
+for name, v, res, diff in out:
+    print('-- %s' % name); [print('   mutant diff: ' + l) for l in diff]
+    for t in res: print('   %s  %s%s' % ('PASS' if t['ok'] else 'FAIL', t['name'].split(' > ')[-1][:70], '' if t['ok'] else '\n         -> ' + t['err'][:110]))
+===== harness/nesting.mjs
+// AC3 (page level): React 19 dev-build DOM-nesting errors per tree, with the real caller components rendered.
+import { chromium } from '/opt/npm-tools/node_modules/playwright/index.mjs'; import fs from 'node:fs';
+const S = new URL('..', import.meta.url).pathname; const b = await chromium.launch();
+for (const t of ['main', 'head', 'fe3b-div', 'fe3b-span']) {
+  const p = await b.newPage(); const msgs = [];
+  const pend = [];
+  p.on('console', (m) => { if (m.type() === 'error' && /descendant|cannot contain|cannot be a child/i.test(m.text())) pend.push(Promise.all(m.args().map((a) => a.jsonValue().catch(() => '?'))).then((a) => { let i = 1; msgs.push(String(a[0]).replace(/%s/g, () => String(a[i++])).split('\n')[0]); })); });
+  await p.setContent(`<!doctype html><html><head><style>${fs.readFileSync(S + 'out-' + t + '.css', 'utf8')}</style></head><body><div id="root"></div></body></html>`);
+  await p.addScriptTag({ content: fs.readFileSync(S + 'dev-' + t + '.js', 'utf8') });
+  await p.evaluate(() => window.__run('light')); await Promise.all(pend);
+  const divInPhrasing = await p.evaluate(() => [...document.querySelectorAll('button div, p div, h3 div, span div')]
+    .filter((d) => d.className.includes('inline-flex items-center rounded-full border')).map((d) => d.parentElement.tagName + '>DIV.badge "' + d.textContent.trim().slice(0, 24) + '"'));
+  console.log(`== ${t}: ${msgs.length} React nesting error(s); badge <div>s inside button/p/h3/span: ${divInPhrasing.length}`);
+  for (const m of msgs) console.log('   console.error: ' + m.slice(0, 150));
+  for (const d of divInPhrasing) console.log('   ' + d);
+  await p.close();
+}
+await b.close();
+===== harness/run-tests.mjs
+import { chromium } from '/opt/npm-tools/node_modules/playwright/index.mjs'; import fs from 'node:fs';
+const b = await chromium.launch(); const p = await b.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
+await p.setContent('<!doctype html><html><body></body></html>');
+await p.addScriptTag({ content: fs.readFileSync(process.argv[2], 'utf8') });
+const r = await p.evaluate(() => window.__results); console.log(JSON.stringify(r)); await b.close();
+if (errs.length) { console.error(errs.join('\n')); process.exit(1); }
+===== harness/xy.mjs
+import { chromium } from '/opt/npm-tools/node_modules/playwright/index.mjs'; import fs from 'node:fs';
+const S = new URL('..', import.meta.url).pathname; const b = await chromium.launch();
+for (const t of process.argv.slice(2)) { const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
+  await p.setContent(`<!doctype html><html><head><style>${fs.readFileSync(S + 'out-' + t + '.css', 'utf8')}</style></head><body><div id="root"></div></body></html>`);
+  await p.addScriptTag({ content: fs.readFileSync(S + 'out-' + t + '.js', 'utf8') });
+  const r = await p.evaluate(() => window.__run('light'));
+  const d = await p.evaluate(() => { const x = document.querySelector('[role=dialog]'); const r = x.getBoundingClientRect(); return [r.x, r.y, r.width, r.height, x.scrollTop, x.scrollHeight]; });
+  console.log(t, JSON.stringify(r.filter((x) => x.caller === 'IngestModal').map((x) => [x.x, x.y])), 'dialog', JSON.stringify(d)); await p.close(); }
+await b.close();
+===== shims/build.mjs
+// Bundle the PR's REAL badge.test.jsx against a given badge.jsx (copied next to it as ./badge) with the shims.
+import * as esbuild from '/opt/npm-tools/node_modules/esbuild/lib/main.js'; import fs from 'node:fs';
+const [testFile, badgeFile, workDir, out] = process.argv.slice(2);
+fs.mkdirSync(workDir + '/components/ui', { recursive: true }); fs.mkdirSync(workDir + '/lib', { recursive: true });
+fs.copyFileSync(testFile, workDir + '/components/ui/badge.test.jsx'); fs.copyFileSync(badgeFile, workDir + '/components/ui/badge.jsx');
+fs.copyFileSync(process.env.UTILS, workDir + '/lib/utils.js');
+const S = new URL('.', import.meta.url).pathname;
+fs.writeFileSync(workDir + '/__test__.jsx', "import './components/ui/badge.test.jsx';");
+fs.copyFileSync(S + 'main.jsx', workDir + '/main.jsx');
+await esbuild.build({ entryPoints: [workDir + '/main.jsx'], bundle: true, outfile: out, format: 'iife', jsx: 'automatic',
+  nodePaths: ['/opt/npm-tools/node_modules'], logLevel: 'error', define: { 'process.env.NODE_ENV': '"development"' },
+  alias: { vitest: S + 'vitest.js', '@testing-library/react': S + 'rtl.js' } });
+===== shims/main.jsx
+import './__test__.jsx';
+import { runAll } from 'vitest'; import { cleanup } from '@testing-library/react';
+window.__results = runAll(cleanup);
+===== shims/rtl.js
+// QA shim of @testing-library/react render/screen (real react-dom/client + act). Logic check only.
+import { createRoot } from 'react-dom/client'; import { act } from 'react';
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+const mounted = [];
+export function render(ui) { const c = document.body.appendChild(document.createElement('div')); const r = createRoot(c);
+  act(() => r.render(ui)); mounted.push([r, c]); return { container: c }; }
+export function cleanup() { for (const [r, c] of mounted.splice(0)) { act(() => r.unmount()); c.remove(); } }
+const one = (els, what) => { if (els.length !== 1) throw new Error(`found ${els.length} elements for ${what}`); return els[0]; };
+// getByText: elements whose own text (default matcher: trimmed, whitespace-collapsed full textContent) equals the string,
+// ignoring <script>/<style>, matching DTL's default `ignore` and that it matches the deepest element via node text.
+const norm = (s) => s.replace(/\s+/g, ' ').trim();
+export const screen = {
+  getByText: (t) => one([...document.body.querySelectorAll('*')].filter((e) => !/^(SCRIPT|STYLE)$/.test(e.tagName)
+    && [...e.childNodes].some((n) => n.nodeType === 3) && norm([...e.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('')) === t), `text ${t}`),
+  getByTestId: (id) => one([...document.body.querySelectorAll(`[data-testid="${id}"]`)], `testid ${id}`),
+  getByRole: (role, { name } = {}) => { if (role !== 'button') throw new Error('shim supports role=button only');
+    return one([...document.body.querySelectorAll('button,[role="button"]')].filter((b) => name === undefined || norm(b.textContent) === name), `button ${name}`); },
+};
+===== shims/vitest.js
+// QA shim of the vitest API used by badge.test.jsx (describe/it/expect + jest-dom matchers). Logic check only.
+export const results = []; const tests = []; let prefix = [];
+export function describe(name, fn) { prefix.push(name); fn(); prefix.pop(); }
+export function it(name, fn) { tests.push({ name: [...prefix, name].join(' > '), fn }); }
+export const afterEach = (fn) => { afterEachFns.push(fn); }; const afterEachFns = [];
+export async function runAll(cleanup) {
+  for (const t of tests) { try { await t.fn(); results.push({ name: t.name, ok: true }); }
+    catch (e) { results.push({ name: t.name, ok: false, err: String(e.message || e).split('\n')[0] }); }
+    cleanup(); }
+  return results;
+}
+const fail = (m) => { throw new Error(m); };
+function matchers(v, neg) {
+  const chk = (cond, msg) => { if (neg ? cond : !cond) fail((neg ? 'NOT ' : '') + msg); };
+  return {
+    toBe: (e) => chk(Object.is(v, e), `expected ${String(v)} toBe ${String(e)}`),
+    toBeNull: () => chk(v === null, `expected ${v && v.outerHTML ? v.tagName : v} toBeNull`),
+    toHaveClass: (...cs) => chk(cs.every((c) => v.classList.contains(c)), `expected class(es) ${cs.join(' ')} on <${v.tagName.toLowerCase()} class="${v.className}">`),
+    toHaveAttribute: (a, val) => chk(v.hasAttribute(a) && (val === undefined || v.getAttribute(a) === val), `expected attribute ${a}=${val}, got ${v.getAttribute(a)}`),
+    toHaveTextContent: (t) => { const tc = (v ? v.textContent : '').replace(/\s+/g, ' ').trim(); chk(typeof t === 'string' ? tc.includes(t) : t.test(tc), `expected text "${t}", got "${tc}"`); },
+  };
+}
+export function expect(v) { if (v === null && false) {} const m = matchers(v, false); m.not = matchers(v, true); return m; }
+===== stubs/lucide-react.jsx
+// QA stub: lucide icons render a 24x24 <svg> with the caller's props (the real lib's default size).
+import * as React from 'react';
+const make = (name) => React.forwardRef((props, ref) =>
+  <svg ref={ref} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" strokeWidth="2" data-icon={name} {...props}
+       className={['lucide', props.className].filter(Boolean).join(' ')}><circle cx="12" cy="12" r="10" /></svg>);
+const names = ['FileText','Copy','Download','Info','DownloadCloud','CheckCircle2','AlertCircle','Loader2','ArrowRight',
+  'ExternalLink','ArrowLeft','Search','FileCode','ShieldCheck','ShieldAlert','BookOpen','X','Check','ChevronDown','ChevronUp',
+  'Sun','Moon','Monitor','Database','Server','Cpu','HelpCircle','ShieldQuestion','CircleHelp','Sparkles','Layers','Library'];
+const m = {}; for (const n of names) m[n] = make(n);
+export const { FileText, Copy, Download, Info, DownloadCloud, CheckCircle2, AlertCircle, Loader2, ArrowRight, ExternalLink,
+  ArrowLeft, Search, FileCode, ShieldCheck, ShieldAlert, BookOpen, X, Check, ChevronDown, ChevronUp, Sun, Moon, Monitor,
+  Database, Server, Cpu, HelpCircle, ShieldQuestion, CircleHelp, Sparkles, Layers, Library } = m;
+===== stubs/radix-dialog.jsx
+// QA stub: an always-inline dialog (no portal) so the real ui/dialog.jsx classes lay out the content.
+import * as React from 'react';
+const Ctx = React.createContext(false);
+export const Root = ({ open, children }) => <Ctx.Provider value={!!open}>{children}</Ctx.Provider>;
+export const Trigger = (p) => <button type="button" {...p} />;
+export const Portal = ({ children }) => (React.useContext(Ctx) ? <>{children}</> : null);
+export const Overlay = React.forwardRef((p, ref) => <div ref={ref} data-state="open" {...p} style={{ display: 'none' }} />);
+export const Content = React.forwardRef((p, ref) => <div ref={ref} role="dialog" data-state="open" {...p} />);
+export const Close = React.forwardRef((p, ref) => <button ref={ref} type="button" {...p} />);
+export const Title = React.forwardRef((p, ref) => <h2 ref={ref} {...p} />);
+export const Description = React.forwardRef((p, ref) => <p ref={ref} {...p} />);
+===== stubs/radix-slot.jsx
+// QA stub: Slot merges its props/className into its only child (what @radix-ui/react-slot does for asChild).
+import * as React from 'react';
+export const Slot = React.forwardRef(({ children, className, ...props }, ref) => {
+  const child = React.Children.only(children);
+  return React.cloneElement(child, { ...props, ...child.props, ref,
+    className: [className, child.props.className].filter(Boolean).join(' ') });
+});
+===== stubs/radix-tooltip.jsx
+// QA stub: tooltip trigger renders its child (asChild), content is not rendered (closed state).
+import * as React from 'react';
+import { Slot } from './radix-slot.jsx';
+export const Provider = ({ children }) => <>{children}</>;
+export const Root = ({ children }) => <>{children}</>;
+export const Trigger = React.forwardRef(({ asChild, ...p }, ref) => asChild ? <Slot ref={ref} {...p} /> : <button ref={ref} {...p} />);
+export const Portal = () => null;
+export const Content = () => null;
+export const Arrow = () => null;
+
+[exit code 0]

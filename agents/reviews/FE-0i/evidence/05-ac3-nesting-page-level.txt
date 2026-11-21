@@ -1,0 +1,18 @@
+$ env PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers timeout 300 node /tmp/claude-0/-home-claude/e51945d8-50f1-5ac4-8588-a685c3722a78/scratchpad/qa-FE-0i-r1/harness/nesting.mjs
+== main: 2 React nesting error(s); badge <div>s inside button/p/h3/span: 2
+   console.error: In HTML, <div> cannot be a descendant of <p>.
+   console.error: <p> cannot contain a nested <div>.
+   H3>DIV.badge "3 cited"
+   P>DIV.badge "in a p"
+== head: 0 React nesting error(s); badge <div>s inside button/p/h3/span: 0
+== fe3b-div: 2 React nesting error(s); badge <div>s inside button/p/h3/span: 5
+   console.error: In HTML, <div> cannot be a descendant of <p>.
+   console.error: <p> cannot contain a nested <div>.
+   H3>DIV.badge "3 cited"
+   BUTTON>DIV.badge "Supported · 87.3%"
+   BUTTON>DIV.badge "Unsupported · 12.0%"
+   BUTTON>DIV.badge "Not checked"
+   P>DIV.badge "in a p"
+== fe3b-span: 0 React nesting error(s); badge <div>s inside button/p/h3/span: 0
+
+[exit code 0]

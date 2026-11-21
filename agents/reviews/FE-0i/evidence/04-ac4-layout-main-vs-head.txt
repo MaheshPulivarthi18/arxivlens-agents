@@ -1,0 +1,76 @@
+$ env PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers timeout 300 node /tmp/claude-0/-home-claude/e51945d8-50f1-5ac4-8588-a685c3722a78/scratchpad/qa-FE-0i-r1/harness/layout.mjs
+RESULT: PASS (0 differing badges; w/h/x/y/display/class string compared per badge)
+  main vs head (light): 14 vs 14 badges
+  main vs head (dark): 14 vs 14 badges
+  fe3b-div vs fe3b-span (light): 14 vs 14 badges
+  fe3b-div vs fe3b-span (dark): 14 vs 14 badges
+
+== main vs head (light): 14 vs 14 badges
+caller          parent tag(a->b)  display(a->b)            w x h (a)        w x h (b)        x,y same  text
+SynthesisView   DIV    DIV->SPAN  flex->flex               167.25x22.5      167.25x22.5      yes       Trace: trace-mixed-...
+ReferencesStack H3     DIV->SPAN  flex->flex               57.516x18        57.516x18        yes       3 cited
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2401.01234
+ReferencesStack DIV    DIV->SPAN  flex->flex               135.219x22.5     135.219x22.5     yes       Supported · 87.3%
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2402.05678
+ReferencesStack DIV    DIV->SPAN  flex->flex               148.5x22.5       148.5x22.5       yes       Unsupported · 12.0%
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2403.09999
+ReferencesStack DIV    DIV->SPAN  flex->flex               104.594x22.5     104.594x22.5     yes       Not checked
+PapersLibrary   DIV    DIV->SPAN  flex->flex               52.016x20.281    52.016x20.281    yes       cs.CL
+PapersLibrary   DIV    DIV->SPAN  flex->flex               52.016x20.281    52.016x20.281    yes       cs.IR
+PapersLibrary   TD     DIV->SPAN  inline-flex->inline-flex 79.578x21.703    79.578x21.703    yes       indexed
+Isolated        DIV    DIV->SPAN  inline-flex->inline-flex 62.828x22        62.828x22        yes       default
+Isolated        P      DIV->SPAN  inline-flex->inline-flex 52.875x22        52.875x22        yes       in a p
+IngestModal     DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2608.20154
+
+== main vs head (dark): 14 vs 14 badges
+caller          parent tag(a->b)  display(a->b)            w x h (a)        w x h (b)        x,y same  text
+SynthesisView   DIV    DIV->SPAN  flex->flex               167.25x22.5      167.25x22.5      yes       Trace: trace-mixed-...
+ReferencesStack H3     DIV->SPAN  flex->flex               57.516x18        57.516x18        yes       3 cited
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2401.01234
+ReferencesStack DIV    DIV->SPAN  flex->flex               135.219x22.5     135.219x22.5     yes       Supported · 87.3%
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2402.05678
+ReferencesStack DIV    DIV->SPAN  flex->flex               148.5x22.5       148.5x22.5       yes       Unsupported · 12.0%
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2403.09999
+ReferencesStack DIV    DIV->SPAN  flex->flex               104.594x22.5     104.594x22.5     yes       Not checked
+PapersLibrary   DIV    DIV->SPAN  flex->flex               52.016x20.281    52.016x20.281    yes       cs.CL
+PapersLibrary   DIV    DIV->SPAN  flex->flex               52.016x20.281    52.016x20.281    yes       cs.IR
+PapersLibrary   TD     DIV->SPAN  inline-flex->inline-flex 79.578x21.703    79.578x21.703    yes       indexed
+Isolated        DIV    DIV->SPAN  inline-flex->inline-flex 62.828x22        62.828x22        yes       default
+Isolated        P      DIV->SPAN  inline-flex->inline-flex 52.875x22        52.875x22        yes       in a p
+IngestModal     DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2608.20154
+
+== fe3b-div vs fe3b-span (light): 14 vs 14 badges
+caller          parent tag(a->b)  display(a->b)            w x h (a)        w x h (b)        x,y same  text
+SynthesisView   DIV    DIV->SPAN  flex->flex               167.25x22.5      167.25x22.5      yes       Trace: trace-mixed-...
+ReferencesStack H3     DIV->SPAN  flex->flex               57.516x18        57.516x18        yes       3 cited
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2401.01234
+ReferencesStack BUTTON DIV->SPAN  inline-flex->inline-flex 135.219x22.5     135.219x22.5     yes       Supported · 87.3%
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2402.05678
+ReferencesStack BUTTON DIV->SPAN  inline-flex->inline-flex 148.5x22.5       148.5x22.5       yes       Unsupported · 12.0%
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2403.09999
+ReferencesStack BUTTON DIV->SPAN  inline-flex->inline-flex 104.594x22.5     104.594x22.5     yes       Not checked
+PapersLibrary   DIV    DIV->SPAN  flex->flex               52.016x20.281    52.016x20.281    yes       cs.CL
+PapersLibrary   DIV    DIV->SPAN  flex->flex               52.016x20.281    52.016x20.281    yes       cs.IR
+PapersLibrary   TD     DIV->SPAN  inline-flex->inline-flex 79.578x21.703    79.578x21.703    yes       indexed
+Isolated        DIV    DIV->SPAN  inline-flex->inline-flex 62.828x22        62.828x22        yes       default
+Isolated        P      DIV->SPAN  inline-flex->inline-flex 52.875x22        52.875x22        yes       in a p
+IngestModal     DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2608.20154
+
+== fe3b-div vs fe3b-span (dark): 14 vs 14 badges
+caller          parent tag(a->b)  display(a->b)            w x h (a)        w x h (b)        x,y same  text
+SynthesisView   DIV    DIV->SPAN  flex->flex               167.25x22.5      167.25x22.5      yes       Trace: trace-mixed-...
+ReferencesStack H3     DIV->SPAN  flex->flex               57.516x18        57.516x18        yes       3 cited
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2401.01234
+ReferencesStack BUTTON DIV->SPAN  inline-flex->inline-flex 135.219x22.5     135.219x22.5     yes       Supported · 87.3%
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2402.05678
+ReferencesStack BUTTON DIV->SPAN  inline-flex->inline-flex 148.5x22.5       148.5x22.5       yes       Unsupported · 12.0%
+ReferencesStack DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2403.09999
+ReferencesStack BUTTON DIV->SPAN  inline-flex->inline-flex 104.594x22.5     104.594x22.5     yes       Not checked
+PapersLibrary   DIV    DIV->SPAN  flex->flex               52.016x20.281    52.016x20.281    yes       cs.CL
+PapersLibrary   DIV    DIV->SPAN  flex->flex               52.016x20.281    52.016x20.281    yes       cs.IR
+PapersLibrary   TD     DIV->SPAN  inline-flex->inline-flex 79.578x21.703    79.578x21.703    yes       indexed
+Isolated        DIV    DIV->SPAN  inline-flex->inline-flex 62.828x22        62.828x22        yes       default
+Isolated        P      DIV->SPAN  inline-flex->inline-flex 52.875x22        52.875x22        yes       in a p
+IngestModal     DIV    DIV->SPAN  flex->flex               127.625x22.5     127.625x22.5     yes       arXiv:2608.20154
+
+[exit code 0]
