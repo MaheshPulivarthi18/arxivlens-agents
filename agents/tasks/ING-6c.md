@@ -8,7 +8,7 @@
 | **Depends on** | ING-6b **merged**; #51 and #52 **merged** (README, `db.yml`); **OPS-H9 merged** (`db.yml`; AC8 documents its pgvector pin); no open PR on `cmd/arxivlens/main.go` (OPS-H7b also edits it), `.github/workflows/stack.yml`, `.github/workflows/db.yml` or `README.md` when the build starts. Approved design `docs/design/ING-6.md`, PM conditions 3, 6, 7, 9 and answer 3 |
 | **Jira** | KAN-66 (under KAN-18's epic KAN-4, `labels = "task-ING-6c"`) |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | Ready. All code deps merged (OPS-H7a2b #93 `f49efeb`; FE-3b #104 `dcb326a` released `README.md`). Picked cycle 2026-11-21T21:59Z; first in the `main.go` queue |
+| **Status** | In QA (PR pending). Built cycle 2026-11-21T21:59Z on `agent/backend/ING-6c` (`f193648`-amended, see Notes) |
 
 ## Goal
 Ship the user-facing command and prove on the real stack the PRD row: a second run with no new papers emits zero `papers.discovered` events, and a
@@ -94,3 +94,16 @@ DATABASE_URL=postgres://... go test -tags integration -count=1 -v -run '^(TestAd
 - 2026-11-19 18:00Z (pm-lead, plan): AC8 gains OPS-H9's one-line README prerequisite (pgvector ≥ 0.8.0), so OPS-H9 can run beside AI-8b
   without touching README. This task already waits for OPS-H9 to merge (both edit `db.yml`). New dependency: OPS-H9 merged. ~+1 line.
 - 2026-11-20 13:00Z (pm-lead, sync): ING-6b (#60), #51, #52, OPS-H9 (#66) and the README PRs #65/#69 are merged; the only remaining blocker is the shared `cmd/arxivlens/main.go` with open #83, then OPS-H7a2b (README + main.go). Not startable this cycle.
+- 2026-11-22 (backend-engineer, build): branch `agent/backend/ING-6c` from `53171d6`, one commit, 406 changed lines (+388/−18; ownership
+  check OK with the >400 warning; under the design's 480 gate). `crawl-loop` in `main.go` (`newCrawlLoopCmdWith(run)` validates flags, then
+  `runCrawlLoop`: connect → `TryCrawlLoopLock` → Kafka → `NewArxivFeed` with one `DefaultInterval` limiter → `Loop.Run`); lock =
+  `pg_try_advisory_lock(hashtext('arxivlens:crawl-loop'))` on a held `pgxpool.Conn`; `TestCrawlLoopFlags`; `TestCrawlLoopLock` + AC10 (a)(b)(c)(d)
+  rows; `db.yml` step (vet + `-v` run, fails on `--- SKIP`/missing PASS, prints the `it-test.%` leftover count); `stack.yml` step
+  "ING-6: crawl-loop" after F1 (AC2 lock, AC3, AC4 (i)/(ii), AC5); README (CLI row, Scheduled crawl, pgvector ≥ 0.8.0). AC11: rows
+  `TestRunOnceCrossListed/cs.AI's publish of p14 fails` and `TestRunOnceCancelledAfterFirstCategory`; exact error string asserted in
+  `TestRunStopsOnCancel/Once returns the pass error`.
+  **Deviation (design condition 10, needs a build note in `docs/design/ING-6.md`):** walk errors lost their own `cat:` (`page start=N: …`,
+  `backlog exceeds --max-scan N; …`); `RunOnce` adds the single `cat:<c>: ` prefix, so the backlog error now reads `cat:cs.LG: backlog exceeds …`.
+  **Not run locally:** no Go module cache and proxy.golang.org is blocked here, so nothing compiled, no `go vet`/`go test`, and mutants M6/M8/M9
+  were not run (QA must run them; the M9 row's comment names the expected failure). Docker unavailable: the `stack.yml` script was only
+  run under `bash -n` and against stubbed docker/curl/arxivlens up to the kill -KILL part (stubs can't release a lock on SIGKILL). CI is the source of truth.
