@@ -56,3 +56,33 @@ Not done by QA: Jira KAN-122 comment/transition (no Jira tool in this QA session
 
 ## Hand-off
 PASS → pm-lead final review.
+
+---
+
+# PM review — RET-1f · PR #116 · head `14346e4`
+
+**Verdict:** APPROVE · **Date:** 2026-11-21 · **Reviewer:** pm-lead
+
+## What I checked
+- **Ticket vs diff:** the diff touches only `internal/query/search_integration_test.go` (+48 −26) and `internal/query/search_test.go` (+52), 126 changed lines, test-only. `search.go`, `db.yml` and other tests are untouched, as scoped. `applyHNSWGuard(tb, others, ciEnv)` is the helper the ticket suggested; `guardRecorder` embeds `testing.TB` and also records `Fatal`/`Skip`/`FailNow`/`SkipNow`, which goes slightly past the ticket and makes AC1's "exactly one" assertion stronger. Nothing missing, nothing outside scope.
+- **PRD fit:** no user-visible behaviour change. It protects the reliability guard on the HNSW DB job (Technical PRD §10) and pins the rerank fallback contract (Technical §7.1 / Product QA-2): the first non-finite score by position names the reason, and large finite scores are kept and still JSON-encode, so `/v1/search` never sends a 500 or bad JSON to a researcher. This supports Product PRD §7's reliability principle.
+- **Evidence (opened all 11 PNGs and their .txt sources):**
+  - AC1: 02 (9/9 local, `DATABASE_URL` unset) and 10 (9/9 in CI).
+  - AC2: 03 (line 77 is a single statement; the old block is removed in the hunk).
+  - AC3: 04 (both new rows pass, `TestHybridSearchRerankLargeFiniteScores` passes). The `reason=` assertions come from the diff, and 06 shows m5 failing with `reason="Inf score"`, so the "no fallback" assertion is live.
+  - AC4: 05 and 06. c1–c3 and m5 are KILLED, m4 SURVIVED as the ticket expects, and base controls b5/b9/b10 show the new rows are what kill these mutants.
+  - AC5: 01 (exactly the two files, ownership OK) and 08/09 (`go test ./...` with `-race` green in CI).
+  - AC6: 00 (6/6 checks green on `14346e4`) and 10 (`--- PASS: TestHNSWVectorHits (41.03s)`, not SKIP).
+  - The CI ran on merge `5f2730b` against the current main `11c4696`, so the result is not stale.
+  - No AC is left "⚠ unverified".
+- **Docs:** no app README/CONTRIBUTING change is needed (test-only). The PRD status columns don't change because QA-2 is already ✅.
+
+## QA findings: disposition
+1. **[spec], fixed.** The ticket's PRD ref now points to Product QA-2 (QA-5 was wrong). Technical PRD §7.1 still needs a text fix, which goes through a docs PR (PRD edits are PR-only). Follow-up text for `docs/PRD-Technical.md` line 243, the sequence-diagram note:
+   - from: `On rerank error, wrong score count or NaN: keep RRF order, log trace_id, no error to caller.`
+   - to: `On rerank error, timeout/cancel, wrong score count, or a NaN or ±Inf score (first non-finite by position names the reason): keep RRF order, log trace_id, no error to caller.`
+2. **[nit], accepted as residual.** Mutant q8 (call site passes `""`) can only be killed by a dirty-DB run. AC2 deliberately keeps the call site to one reviewable statement, and the CI DB job proves the guard runs on a clean DB. No follow-up ticket.
+3. **[nit], fixed** by renaming the PR title and heading to `applyHNSWGuard` when the PR was raised.
+
+## Hand-off
+APPROVE → PR #116 description rewritten with evidence, marked ready for review; Jira → Ready to merge (orchestrator).

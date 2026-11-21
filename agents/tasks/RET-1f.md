@@ -4,11 +4,11 @@
 |---|---|
 | **Owner** | backend-engineer (`internal/` except `rag.go`) |
 | **Priority** | P3 (test quality; no product behaviour change) |
-| **PRD ref** | Technical PRD §10 Testing and evaluation; Product PRD QA-5 (rerank fallback), Technical PRD §7.1 (`NaN or ±Inf` fallback). Sources: QA OPS-H5c finding 1 (`agents/reviews/OPS-H5c/report.md`, call-site mutants c1-c3) and QA RET-1b optional rows (board backlog) |
+| **PRD ref** | Technical PRD §10 Testing and evaluation; Product PRD QA-2 (cross-encoder reranking; fallback behaviour), Technical PRD §7.1 (rerank fallback; the diagram note says only "NaN", the ±Inf case from RET-1b is not yet in the PRD text, follow-up docs PR). Sources: QA OPS-H5c finding 1 (`agents/reviews/OPS-H5c/report.md`, call-site mutants c1-c3) and QA RET-1b optional rows (board backlog) |
 | **Depends on** | none (OPS-H5c #97 and RET-1b #75 merged). No open PR touches `internal/query/search_integration_test.go` or `internal/query/search_test.go` (checked 2026-11-21 13:10Z against #104-#114; #105 touches only `server_test.go`) |
 | **Jira** | needs creating: epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1f`, `agent-backend`, `arxivlens` |
 | **Design required** | no: test files only |
-| **Status** | Ready (groomed 2026-11-21 13:00Z) |
+| **Status** | Ready to merge (QA r1 PASS, PM APPROVE 2026-11-21; PR #116 raised) |
 
 ## Goal
 Two small gaps in the query package's tests, both found by QA mutation checks:
@@ -59,3 +59,7 @@ git diff origin/main --name-only   # exactly internal/query/search_integration_t
 - 2026-11-21 13:00Z (pm-lead): two "fold into the next change" backlog lines combined into one test-only ticket, since
   every Ready backend ticket waits on an open PR this cycle. AC4 (m4) is expected to survive: the two rows pin "first
   by position", not which check runs first, and that is the intended behaviour.
+- 2026-11-21 (pm-lead, final review): PRD ref corrected from Product QA-5 to QA-2 (QA r1 finding 1 [spec]; QA-5 is the
+  relevance-bar refusal). Technical PRD §7.1 line 243 still says "wrong score count or NaN"; proposed docs-PR text is
+  in `agents/reviews/RET-1f/report.md` (PM review). Residual q8 (call site passes `""`) is accepted: only a dirty-DB
+  run can kill it and AC2's one-statement form keeps it visible in review. PR title fixed to `applyHNSWGuard`.
