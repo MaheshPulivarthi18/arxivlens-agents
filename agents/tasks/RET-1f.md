@@ -6,7 +6,7 @@
 | **Priority** | P3 (test quality; no product behaviour change) |
 | **PRD ref** | Technical PRD §10 Testing and evaluation; Product PRD QA-2 (cross-encoder reranking; fallback behaviour), Technical PRD §7.1 (rerank fallback; the diagram note says only "NaN", the ±Inf case from RET-1b is not yet in the PRD text, follow-up docs PR). Sources: QA OPS-H5c finding 1 (`agents/reviews/OPS-H5c/report.md`, call-site mutants c1-c3) and QA RET-1b optional rows (board backlog) |
 | **Depends on** | none (OPS-H5c #97 and RET-1b #75 merged). No open PR touches `internal/query/search_integration_test.go` or `internal/query/search_test.go` (checked 2026-11-21 13:10Z against #104-#114; #105 touches only `server_test.go`) |
-| **Jira** | needs creating: epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1f`, `agent-backend`, `arxivlens` |
+| **Jira** | KAN-122 (created 2026-11-21 13:00Z): epic KAN-2 "Retrieval & answer quality gates"; labels `task-RET-1f`, `agent-backend`, `arxivlens` |
 | **Design required** | no: test files only |
 | **Status** | Ready to merge (QA r1 PASS, PM APPROVE 2026-11-21; PR #116 raised) |
 
@@ -63,3 +63,4 @@ git diff origin/main --name-only   # exactly internal/query/search_integration_t
   relevance-bar refusal). Technical PRD §7.1 line 243 still says "wrong score count or NaN"; proposed docs-PR text is
   in `agents/reviews/RET-1f/report.md` (PM review). Residual q8 (call site passes `""`) is accepted: only a dirty-DB
   run can kill it and AC2's one-statement form keeps it visible in review. PR title fixed to `applyHNSWGuard`.
+- 2026-11-21 16:00Z cycle (backend-engineer): built `14346e4` on `agent/backend/RET-1f`, PR [#116](https://github.com/MaheshPulivarthi18/ArxivLens/pull/116), test-only +100/−26. `hnswGuard` → `applyHNSWGuard(tb, others, ciEnv)`; 9-row `TestHNSWGuard` via `guardRecorder`; NaN+Inf rows and `TestHybridSearchRerankLargeFiniteScores`. Mutants c1–c3, x1–x3, m5 killed; m4 survives (expected). QA r1 PASS (`4633893`; DB job `TestHNSWVectorHits` PASS 41 s); nit q8 (call-site `""`) accepted as known gap.

@@ -8,7 +8,7 @@
 | **Depends on** | none. The job-timeout arithmetic assumes OPS-H19's 2520 s prefetch budget, which is already in `eval.yml` on main; raising the timeout before #111 merges is harmless. No open PR touches `eval.yml` (checked 2026-11-21 ~12:50Z) |
 | **Jira** | KAN-118 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H20`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: two timeouts and their comments in one workflow file |
-| **Status** | In Progress: rework after PM CHANGES r1 (2026-11-21; one-line `CONTRIBUTING.md` fix, AC5). PM rework round 1 of 2 |
+| **Status** | In QA: rework 1 pushed (`3224fb2`), QA r3 PENDING on AC3 (`eval` re-run on the new head). PM rework round 1 of 2 |
 
 ## Goal
 After OPS-H19 the eval prefetch step can legitimately run up to 2520 + 120 = 2640 s (44 min) when arXiv rate-limits.
@@ -80,3 +80,4 @@ make lint
     45 min for `make eval`, 180 min for the job" (AC5). No other edits; `eval.yml` unchanged.
   - [ ] Push to the PR (it stays draft). QA r3 checks AC5, confirms `eval.yml` is identical to `ece17a7`, and re-checks AC3 on the new head.
   No open PR touches `CONTRIBUTING.md` (checked via REST 2026-11-21).
+- 2026-11-21 16:00Z cycle, PM rework 1 (backend): `CONTRIBUTING.md:34` now reads "Budgets: 70 min for the seed step, 45 min for `make eval`, 180 min for the job" (AC5); `eval.yml` identical to `ece17a7`; pushed `3224fb2`, PR stays draft. QA r3 (`62fd3e8`): checklist items all met; PENDING on AC3 only (eval job 136903946034 running). Next cycle: QA quotes its `GATE:` line + duration → PASS → PM (AC5 only).

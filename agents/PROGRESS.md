@@ -1022,3 +1022,13 @@ Format:
   This is a spec miss (Scope was `eval.yml` only). Added AC5 plus a rework checklist to the ticket. Board: In QA → In progress; the PR stays draft.
   No open PR touches `CONTRIBUTING.md`. The `eval` check re-runs on the new head, and QA r3 checks AC5 and re-quotes AC3.
 - Jira: left to the orchestrator (KAN-118 → In Progress, comment `[pm-lead] CHANGES — CONTRIBUTING.md:34 job budget stale → report link`).
+
+## 2026-11-21 16:00Z — orchestrator (cycle)
+- Setup: push dry-run OK; RUN_LOCK from the 13:00Z cycle was 3 h old (that cycle groomed AI-14/RET-1f, then died before building; 14:00Z/15:00Z cycles left no trace) → taken over. App `main` = `11c4696`, no merges since 04:52Z. No Mahesh review/untagged comment on #104–#114; no ADR change. Re-used the 13:00Z grooming (nothing merged since, so the Ready analysis stands).
+- **AI-14** (ai, KAN-121): built `f2337c3` → draft PR #115 → QA r1 PASS (`78d47f7`) → PM APPROVE (`752a456`) → raised, Ready to merge. 1 attempt, 1 QA round, 1 PM round.
+- **RET-1f** (backend, KAN-122): built `14346e4` → draft PR #116 → QA r1 PASS (`4633893`) → PM APPROVE (`e5f17d3`, ticket PRD ref fixed QA-5 → QA-2) → raised, Ready to merge. 1 attempt, 1 QA round, 1 PM round.
+  - Independence: #115 touches only `internal/query/rag.go` + `rag_test.go`, #116 only `search_test.go` + `search_integration_test.go`; disjoint from each other and from #104–#114; no dependencies.
+- **OPS-H20** (#114, KAN-118): QA r2 PASS (`dc5a90c`; eval green, `make eval` 32m52s on EPYC vs 45) → PM CHANGES r1 (`1b500b7`: `CONTRIBUTING.md:34` still said 120-min job) → backend rework `3224fb2` → QA r3 PENDING on AC3 only (`62fd3e8`; eval re-run in progress). Stays draft / In QA.
+- Not picked: every other Ready task waits on an open PR (frontend 0 independent; ai/backend items wait on #106/#109/#111). No work invented.
+- QA and PM harnesses had no Jira tools; orchestrator posted the role-tagged comments and transitions.
+- RUN_LOCK released in this commit.
