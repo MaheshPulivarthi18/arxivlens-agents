@@ -1075,3 +1075,10 @@ Format:
 - Rework: none. Review: none needed (all open PRs have QA PASS + PM APPROVE for their current heads).
 - New work: none. #118 unblocks no Ready task (each still waits on #104/#106/#109/#111 or the `main.go` queue); pm-lead not re-run, no work invented.
 - RUN_LOCK released in this commit.
+
+## 2026-11-21 21:00Z — orchestrator (cycle record)
+- Sync: Mahesh merged his own PRs #119 (relevance cutoff before top-5: `rag.go`, `rag_test.go`, `search.go`) and #120 (ADR-0019: `rag.go`, `rag_test.go`, `synthesis_test.go`, `scripts/eval_gate.py`, `scripts/evaluate_answers.py`, `tests/test_evals_data.py`, READMEs); app `main` = `c2b3bd6`. He opened his own #121 (ADR-0020 fp16 reranker, `embedder/rerank-fp16`), not an agent branch. ADR-0019 and ADR-0020 now Accepted on this repo. Heads of #104–#117 unchanged, all `mergeable_state: clean`; no Mahesh review, inline or untagged comment; no Jira change in the last 2 h.
+- Rework: none. Review: none needed (all open agent PRs have QA PASS + PM APPROVE for their current heads).
+- Grooming (pm-lead, `0500c6f`): picked none — every Ready task still waits on an unmerged PR (#104/#106/#109/#111/#117, `main.go` queue; `README.md` now also in #121). No task unblocked or made obsolete by ADR-0019/0020; premise notes added to AI-5, AI-10, FE-4, EVAL-8 (Jira comments KAN-25/51/44/46). New Backlog item: PRD alignment docs PR for ADR-0019/0020.
+- Risk flagged for Mahesh: #115 (`rag.go`/`rag_test.go`) and #107 (`evaluate_answers.py`/`test_evals_data.py`) CI ran on base `11c4696`; #119/#120 changed the same files. Both merge clean; #107 re-tested locally on `c2b3bd6` (270 passed, 1 skipped); #115 not re-run (no Go 1.25 in sandbox) — re-run CI before merging.
+- RUN_LOCK released in this commit.
