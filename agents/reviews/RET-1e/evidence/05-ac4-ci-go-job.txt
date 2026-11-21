@@ -1,0 +1,26 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136743697877/logs | grep -nE 'HEAD is now at|make lint-go|go vet|make test-go|go test|ok/FAIL lines'
+120:2026-11-21T05:21:32.1459374Z HEAD is now at 794ba27 Merge 7d634963c128d74b496c3abca6ad13a79f5fafb3 into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+209:2026-11-21T05:21:41.5309671Z ##[group]Run make lint-go
+210:2026-11-21T05:21:41.5309962Z [36;1mmake lint-go[0m
+213:2026-11-21T05:21:41.5764604Z go vet ./...
+214:2026-11-21T05:21:42.5920594Z ##[group]Run make test-go
+215:2026-11-21T05:21:42.5920909Z [36;1mmake test-go[0m
+220:2026-11-21T05:21:42.5985306Z go test ./...
+221:2026-11-21T05:22:11.8347457Z ok  	arxivlens/cmd/arxivlens	1.028s
+222:2026-11-21T05:22:13.9965330Z ok  	arxivlens/internal/arxiv	3.190s
+223:2026-11-21T05:22:13.9966386Z ok  	arxivlens/internal/config	1.012s
+224:2026-11-21T05:22:13.9972540Z ok  	arxivlens/internal/crawler	1.113s
+225:2026-11-21T05:22:13.9973424Z ok  	arxivlens/internal/db	1.011s
+226:2026-11-21T05:22:13.9973900Z ok  	arxivlens/internal/dlq	1.280s
+227:2026-11-21T05:22:13.9974328Z ok  	arxivlens/internal/downloader	1.117s
+228:2026-11-21T05:22:14.7562740Z ok  	arxivlens/internal/kafka	1.063s
+229:2026-11-21T05:22:16.1200012Z ok  	arxivlens/internal/llm	1.945s
+230:2026-11-21T05:22:16.1200468Z ok  	arxivlens/internal/llm/llmtest	1.114s
+231:2026-11-21T05:22:16.8020334Z ok  	arxivlens/internal/query	1.485s
+232:2026-11-21T05:22:16.8025852Z ?   	arxivlens/internal/storage	[no test files]
+233:2026-11-21T05:22:17.4630457Z ?   	arxivlens/internal/telemetry	[no test files]
+234:2026-11-21T05:22:17.4630771Z ?   	arxivlens/shared/events	[no test files]
+365:2026-11-21T05:22:19.2152844Z ok  	arxivlens/internal/kafka	1.062s	coverage: 63.7% of statements
+631:2026-11-21T05:22:21.8856403Z ok  	arxivlens/internal/llm	1.908s	coverage: 96.6% of statements
+648:2026-11-21T05:22:21.8861609Z ok  	arxivlens/internal/llm/llmtest	1.113s	coverage: 100.0% of statements
+

@@ -1,0 +1,58 @@
+$ /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/verify.sh
+head: 7d634963c128d74b496c3abca6ad13a79f5fafb3  base(origin/main): 11c4696f7c6830436ada00c54d8f75976ddf7b99
+$ git diff --stat origin/main...HEAD
+ internal/query/server_test.go | 98 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 98 insertions(+)
+$ gofmt -l internal/query/
+gofmt exit=0 (empty list = clean)
+$ diff -r internal/query <scratch>/internal/query
+identical
+go version go1.25.1 linux/amd64
+$ go vet ./internal/query/
+vet-ok
+$ go test -race -count=1 -v -run ^(TestWriteJSON|TestHandlersEncodeContract|TestHandlersErrorContract)$ ./internal/query/  (RUN lines elided)
+--- PASS: TestWriteJSON (0.00s)
+    --- PASS: TestWriteJSON/unencodable (0.00s)
+    --- PASS: TestWriteJSON/unencodable_with_trace_ID (0.00s)
+    --- PASS: TestWriteJSON/ok (0.00s)
+    --- PASS: TestWriteJSON/status_passthrough (0.00s)
+--- PASS: TestHandlersEncodeContract (0.00s)
+    --- PASS: TestHandlersEncodeContract/search_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/search_unencodable (0.00s)
+    --- PASS: TestHandlersEncodeContract/ask_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/ask_unencodable (0.00s)
+    --- PASS: TestHandlersEncodeContract/status_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/status_unencodable (0.00s)
+    --- PASS: TestHandlersEncodeContract/stats_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/stats_unencodable (0.00s)
+    --- PASS: TestHandlersEncodeContract/ingest_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/ingest_error (0.00s)
+    --- PASS: TestHandlersEncodeContract/ingest_never_set (0.00s)
+    --- PASS: TestHandlersEncodeContract/ingest_set_nil (0.00s)
+    --- PASS: TestHandlersEncodeContract/discover_ok (0.00s)
+    --- PASS: TestHandlersEncodeContract/discover_error (0.00s)
+    --- PASS: TestHandlersEncodeContract/discover_never_set (0.00s)
+    --- PASS: TestHandlersEncodeContract/discover_set_nil (0.00s)
+--- PASS: TestHandlersErrorContract (0.00s)
+    --- PASS: TestHandlersErrorContract/search_bad_JSON (0.00s)
+    --- PASS: TestHandlersErrorContract/search_empty_query (0.00s)
+    --- PASS: TestHandlersErrorContract/search_error (0.00s)
+    --- PASS: TestHandlersErrorContract/ask_bad_JSON (0.00s)
+    --- PASS: TestHandlersErrorContract/ask_empty_question (0.00s)
+    --- PASS: TestHandlersErrorContract/ask_error (0.00s)
+    --- PASS: TestHandlersErrorContract/status_empty_arxiv_id (0.00s)
+    --- PASS: TestHandlersErrorContract/status_error (0.00s)
+    --- PASS: TestHandlersErrorContract/stats_error (0.00s)
+    --- PASS: TestHandlersErrorContract/ingest_bad_JSON (0.00s)
+    --- PASS: TestHandlersErrorContract/ingest_no_input (0.00s)
+    --- PASS: TestHandlersErrorContract/ingest_not_configured (0.00s)
+    --- PASS: TestHandlersErrorContract/discover_bad_JSON (0.00s)
+    --- PASS: TestHandlersErrorContract/discover_empty_query (0.00s)
+    --- PASS: TestHandlersErrorContract/discover_not_configured (0.00s)
+    --- PASS: TestHandlersErrorContract/SetIngester_non-nil (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.021s
+$ go test -race -count=30 -run ^TestHandlersErrorContract$ ./internal/query/  (flake check)
+ok  	arxivlens/internal/query	1.071s
+
+[exit code 0]

@@ -1,0 +1,49 @@
+$ /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ac1-rows.sh
+$ git diff --quiet origin/main...HEAD -- internal/query/server.go
+server.go unchanged by PR
+
+$ grep -n http.Error internal/query/server.go
+133: http.Error(w, "failed to encode response", http.StatusInternalServerError)
+148: http.Error(w, fmt.Sprintf("invalid request payload: %v", err), http.StatusBadRequest)
+153: http.Error(w, "query is required", http.StatusBadRequest)
+159: http.Error(w, fmt.Sprintf("search failed: %v", err), http.StatusInternalServerError)
+173: http.Error(w, fmt.Sprintf("invalid request payload: %v", err), http.StatusBadRequest)
+178: http.Error(w, "question is required", http.StatusBadRequest)
+184: http.Error(w, fmt.Sprintf("rag ask failed: %v", err), http.StatusInternalServerError)
+196: http.Error(w, "arxiv_id is required", http.StatusBadRequest)
+203: http.Error(w, fmt.Sprintf("paper not found: %v", err), http.StatusNotFound)
+213: http.Error(w, fmt.Sprintf("failed to get stats: %v", err), http.StatusInternalServerError)
+223: http.Error(w, "invalid JSON body", http.StatusBadRequest)
+232: http.Error(w, "arxiv_id or url is required", http.StatusBadRequest)
+237: http.Error(w, "paper ingester not configured on server", http.StatusServiceUnavailable)
+257: http.Error(w, "invalid JSON body", http.StatusBadRequest)
+263: http.Error(w, "query is required", http.StatusBadRequest)
+268: http.Error(w, "paper ingester not configured on server", http.StatusServiceUnavailable)
+
+# test rows {name, server, handler, method, path, body, wantCode, wantBody prefix} (15)
+{"search bad JSON", ok, search, post, "/v1/search", `{`, 400, "invalid request payload: "},
+{"search empty query", ok, search, post, "/v1/search", `{"query":""}`, 400, "query is required\n"},
+{"search error", failing, search, post, "/v1/search", `{"query":"q"}`, 500, "search failed: boom\n"},
+{"ask bad JSON", ok, ask, post, "/v1/ask", `{`, 400, "invalid request payload: "},
+{"ask empty question", ok, ask, post, "/v1/ask", `{"question":""}`, 400, "question is required\n"},
+{"ask error", failing, ask, post, "/v1/ask", `{"question":"q"}`, 500, "rag ask failed: boom\n"},
+{"status empty arxiv_id", ok, status, get, "/v1/papers/", "", 400, "arxiv_id is required\n"},
+{"status error", failing, status, get, "/v1/papers/2401.00001/status", "", 404, "paper not found: boom\n"},
+{"stats error", failing, stats, get, "/v1/stats", "", 500, "failed to get stats: boom\n"},
+{"ingest bad JSON", ok, ingest, post, "/v1/papers/ingest", `{`, 400, "invalid JSON body\n"},
+{"ingest no input", ok, ingest, post, "/v1/papers/ingest", `{"arxiv_id":" ","url":""}`, 400, "arxiv_id or url is required\n"},
+{"ingest not configured", noIngester, ingest, post, "/v1/papers/ingest", `{"arxiv_id":"2401.00001"}`, 503, notConfigured},
+{"discover bad JSON", ok, discover, post, "/v1/papers/discover", `{`, 400, "invalid JSON body\n"},
+{"discover empty query", ok, discover, post, "/v1/papers/discover", `{"query":"  "}`, 400, "query is required\n"},
+{"discover not configured", noIngester, discover, post, "/v1/papers/discover", `{"query":"q"}`, 503, notConfigured},
+
+# per-row assertions
+53:					if r := recover(); r != nil {
+63:			if rec.Code != tc.wantCode {
+66:			if ct := rec.Header().Get("Content-Type"); ct != "text/plain; charset=utf-8" {
+67:				t.Errorf("Content-Type = %q, want text/plain; charset=utf-8", ct)
+70:			if !strings.HasPrefix(body, tc.wantBody) {
+73:			if json.Valid([]byte(body)) {
+76:			if lines := nonEmptyLines(logBuf.String()); len(lines) != 0 {
+
+[exit code 0]

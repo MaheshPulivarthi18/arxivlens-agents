@@ -1,0 +1,27 @@
+$ /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ac2.sh
+# AC2 subtest source
+	// q2: a real *PaperIngester must be stored as-is. Nothing is called on it.
+	t.Run("SetIngester non-nil", func(t *testing.T) {
+		ing := NewPaperIngester(nil, nil, "bucket", "", 0)
+		s := NewServer(nil, nil, nil, 0)
+		s.SetIngester(ing)
+		if s.ingester == nil {
+			t.Fatal("SetIngester(non-nil) left s.ingester nil")
+		}
+		if got, isPI := s.ingester.(*PaperIngester); !isPI || got != ing {
+			t.Fatalf("s.ingester = %T %p, want the *PaperIngester passed in (%p)", s.ingester, s.ingester, ing)
+		}
+	})
+
+# ingester_test.go call shape
+132:	ing := NewPaperIngester(nil, nil, "bucket", "", 0)
+
+$ go test -race -count=1 -v -run ^TestHandlersErrorContract$/^SetIngester_non-nil$ ./internal/query/
+=== RUN   TestHandlersErrorContract
+=== RUN   TestHandlersErrorContract/SetIngester_non-nil
+--- PASS: TestHandlersErrorContract (0.00s)
+    --- PASS: TestHandlersErrorContract/SetIngester_non-nil (0.00s)
+PASS
+ok  	arxivlens/internal/query	1.018s
+
+[exit code 0]

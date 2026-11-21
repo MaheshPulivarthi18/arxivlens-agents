@@ -1,0 +1,177 @@
+$ /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/show-harness.sh
+# dependency clones (git clone --depth 1 --branch <tag> https://github.com/golang/<x> | go-ini/ini):
+crypto  v0.21.0
+ini  v1.67.0
+net  v0.23.0
+sync  v0.1.0
+sys  v0.18.0
+term  v0.18.0
+text  v0.14.0
+# note: deps/ini/go.mod added by QA (v1.67.0 ships none):
+module gopkg.in/ini.v1
+
+go 1.13
+# base-src = PR head go.mod/internal/shared/migrations with internal/query/server_test.go from origin/main (git show)
+
+# harness files:
+/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ac1-rows.sh
+/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ac2.sh
+/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ac3.sh
+/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ci-checks.sh
+/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/mkmod.sh
+/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/mutants-ac3.txt
+/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/mutants.txt
+/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/mutate.sh
+/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/show-harness.sh
+/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/verify.sh
+
+===== /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ac1-rows.sh
+#!/usr/bin/env bash
+# AC1: http.Error call sites in server.go at the PR head (== base 11c4696, server.go unchanged) vs the test rows.
+echo '$ git diff --quiet origin/main...HEAD -- internal/query/server.go'; git diff --quiet origin/main...HEAD -- internal/query/server.go && echo "server.go unchanged by PR"
+echo; echo '$ grep -n http.Error internal/query/server.go'; grep -n 'http.Error' internal/query/server.go | sed 's/^\([0-9]*\):\s*/\1: /'
+echo; echo "# test rows {name, server, handler, method, path, body, wantCode, wantBody prefix} (15)"
+awk '/^func TestHandlersErrorContract/,/^}/' internal/query/server_test.go | grep -E "^\s*\{\"" | sed -E "s/^\s+//"
+echo; echo "# per-row assertions"
+awk '/^func TestHandlersErrorContract/,/^}/' internal/query/server_test.go | grep -nE 'rec.Code != tc.wantCode|text/plain; charset=utf-8"|HasPrefix|json.Valid|nonEmptyLines|recover\(\)'
+
+===== /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ac2.sh
+#!/usr/bin/env bash
+H=/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1
+export PATH=/usr/local/go1.25.1/bin:$PATH GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off GOSUMDB=off
+echo "# AC2 subtest source"; awk '/q2: a real \*PaperIngester/,/^\t\}\)/' internal/query/server_test.go
+echo; echo "# ingester_test.go call shape"; grep -n 'NewPaperIngester(nil, nil, "bucket", "", 0)' internal/query/ingester_test.go
+d=$(mktemp -d $H/ac2-XXXX); $H/bin/mkmod.sh "$PWD" "$d"; cd $d
+echo; echo '$ go test -race -count=1 -v -run ^TestHandlersErrorContract$/^SetIngester_non-nil$ ./internal/query/'
+go test -race -count=1 -v -run '^TestHandlersErrorContract$/^SetIngester_non-nil$' ./internal/query/
+
+===== /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ac3.sh
+#!/usr/bin/env bash
+H=/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1
+echo "### PR head 7d63496 tests vs 24 server.go mutants (AC3 e2/e3/e5/e6/q2 + one per http.Error site)"
+echo "### KILLED = go test failed after a clean go vet; INVALID = build failure; AC3-run = ticket's -run set; pkg-full = go test ./internal/query/"
+SRC=/root/wt/qa-app-RET-1e OUT=$H/out-head $H/bin/mutate.sh
+echo; echo "### base control: main 11c4696 server_test.go (no TestHandlersErrorContract) vs the 5 AC3 mutants"
+SRC=$H/base-src OUT=$H/out-base MUTANTS=$H/bin/mutants-ac3.txt $H/bin/mutate.sh
+echo; echo "### mutant diffs (head run)"; cat $H/out-head/diffs.txt
+
+===== /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ci-checks.sh
+#!/usr/bin/env bash
+sha=7d634963c128d74b496c3abca6ad13a79f5fafb3
+echo "# check runs for $sha"
+gh api repos/MaheshPulivarthi18/ArxivLens/commits/$sha/check-runs --jq '.check_runs[] | "\(.conclusion)\t\(.name)\tjob=\(.id)\t\(.completed_at)"'
+echo; echo "# Full stack job: run/attempt/head_sha and step conclusions"
+j=$(gh api repos/MaheshPulivarthi18/ArxivLens/commits/$sha/check-runs --jq '.check_runs[]|select(.name|startswith("Full stack"))|.id')
+gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j --jq '"run=\(.run_id) attempt=\(.run_attempt) head_sha=\(.head_sha)", (.steps[]|select(.conclusion!="skipped")|"  \(.number) \(.conclusion) \(.name)")'
+echo; echo "# Full stack failure lines (job log)"
+gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j/logs | grep -E '\[replay\] (upstream|prefetch)|Cache (hit|restored)' | cut -c1-200
+
+===== /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/mkmod.sh
+#!/usr/bin/env bash
+# mkmod.sh <app-src-dir> <out-dir>: copy of the app's go.mod + internal/ (real sources, real deps) with
+# absolute replace paths for the golang.org/x + gopkg.in modules the sandbox module cache lacks (tag-pinned GitHub clones).
+set -euo pipefail
+H=/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1
+src=$1; out=$2
+mkdir -p "$out"
+cp "$src/go.mod" "$src/go.sum" "$out/"
+cp -r "$src/internal" "$src/shared" "$src/migrations" "$out/"
+cat >> "$out/go.mod" <<MOD
+
+replace (
+	golang.org/x/crypto => $H/deps/crypto
+	golang.org/x/text => $H/deps/text
+	golang.org/x/sync => $H/deps/sync
+	golang.org/x/net => $H/deps/net
+	golang.org/x/sys => $H/deps/sys
+	golang.org/x/term => $H/deps/term
+	gopkg.in/ini.v1 => $H/deps/ini
+)
+MOD
+
+===== /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/mutants-ac3.txt
+e2|AC3 search error 500 -> 502|s{("search failed: %v", err\), )http.StatusInternalServerError}{$1http.StatusBadGateway}
+e3|AC3 /v1/stats error 500 -> 200|s{("failed to get stats: %v", err\), )http.StatusInternalServerError}{$1http.StatusOK}
+e5|AC3 status not-found 404 -> 500|s{("paper not found: %v", err\), )http.StatusNotFound}{$1http.StatusInternalServerError}
+e6|AC3 ask empty-question 400 -> 500|s{("question is required", )http.StatusBadRequest}{$1http.StatusInternalServerError}
+q2|AC3 SetIngester never stores a non-nil ingester|s#\t\}\n\ts\.ingester = ingester\n\}#\t}\n\t_ = ingester\n}#
+
+===== /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/mutants.txt
+e2|AC3 search error 500 -> 502|s{("search failed: %v", err\), )http.StatusInternalServerError}{$1http.StatusBadGateway}
+e3|AC3 /v1/stats error 500 -> 200|s{("failed to get stats: %v", err\), )http.StatusInternalServerError}{$1http.StatusOK}
+e5|AC3 status not-found 404 -> 500|s{("paper not found: %v", err\), )http.StatusNotFound}{$1http.StatusInternalServerError}
+e6|AC3 ask empty-question 400 -> 500|s{("question is required", )http.StatusBadRequest}{$1http.StatusInternalServerError}
+q2|AC3 SetIngester never stores a non-nil ingester|s#\t\}\n\ts\.ingester = ingester\n\}#\t}\n\t_ = ingester\n}#
+x1|search bad JSON 400 -> 422 (:148)|s{(\tif err := json.NewDecoder\(r.Body\).Decode\(&req\); err != nil \{\n\t\thttp.Error\(w, fmt.Sprintf\("invalid request payload: %v", err\), )http.StatusBadRequest(\)\n\t\treturn\n\t\}\n\n\tif req.Query)}{$1http.StatusUnprocessableEntity$2}
+x2|search empty-query check removed (:152)|s{\tif req.Query == "" \{\n\t\thttp.Error\(w, "query is required", http.StatusBadRequest\)\n\t\treturn\n\t\}\n}{}
+x3|search error body drops err (:159)|s{fmt.Sprintf\("search failed: %v", err\)}{"search failed"}
+x4|ask bad JSON 400 -> 500 (:173)|s{(\tif err := json.NewDecoder\(r.Body\).Decode\(&req\); err != nil \{\n\t\thttp.Error\(w, fmt.Sprintf\("invalid request payload: %v", err\), )http.StatusBadRequest(\)\n\t\treturn\n\t\}\n\n\tif req.Question)}{$1http.StatusInternalServerError$2}
+x5|ask empty-question check removed (:177)|s{\tif req.Question == "" \{\n\t\thttp.Error\(w, "question is required", http.StatusBadRequest\)\n\t\treturn\n\t\}\n}{}
+x6|ask error 500 -> 200 (:184)|s{("rag ask failed: %v", err\), )http.StatusInternalServerError}{$1http.StatusOK}
+x7|status empty arxiv_id 400 -> 404 (:196)|s{("arxiv_id is required", )http.StatusBadRequest}{$1http.StatusNotFound}
+x8|status not-found 404 -> 200 (:203)|s{("paper not found: %v", err\), )http.StatusNotFound}{$1http.StatusOK}
+x9|stats error -> JSON error body via writeJSON (:213)|s{http.Error\(w, fmt.Sprintf\("failed to get stats: %v", err\), http.StatusInternalServerError\)}{writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()}, "/v1/stats", "")}
+x10|ingest bad JSON 400 -> 500 (:223)|s{(\tif err := json.NewDecoder\(r.Body\).Decode\(&req\); err != nil \{\n\t\thttp.Error\(w, "invalid JSON body", )http.StatusBadRequest(\)\n\t\treturn\n\t\}\n\n\tinput)}{$1http.StatusInternalServerError$2}
+x11|ingest no-input 400 -> 422 (:232)|s{("arxiv_id or url is required", )http.StatusBadRequest}{$1http.StatusUnprocessableEntity}
+x12|ingest arxiv_id TrimSpace dropped (:227)|s{input := strings.TrimSpace\(req.ArxivID\)}{input := req.ArxivID}
+x13|ingest not-configured 503 -> 500 (:237)|s{(http.Error\(w, "paper ingester not configured on server", )http.StatusServiceUnavailable(\)\n\t\treturn\n\t\}\n\n\tres, err := s.ingester.IngestPaper)}{$1http.StatusInternalServerError$2}
+x14|discover bad JSON 400 -> 500 (:257)|s{(\tif err := json.NewDecoder\(r.Body\).Decode\(&req\); err != nil \{\n\t\thttp.Error\(w, "invalid JSON body", )http.StatusBadRequest(\)\n\t\treturn\n\t\}\n\n\tquery)}{$1http.StatusInternalServerError$2}
+x15|discover empty query 400 -> 200 (:263)|s{(\tquery := strings.TrimSpace\(req.Query\)\n\tif query == "" \{\n\t\thttp.Error\(w, "query is required", )http.StatusBadRequest}{$1http.StatusOK}
+x16|discover TrimSpace dropped (:261)|s{query := strings.TrimSpace\(req.Query\)}{query := req.Query}
+x17|discover not-configured 503 -> 502 (:268)|s{(http.Error\(w, "paper ingester not configured on server", )http.StatusServiceUnavailable(\)\n\t\treturn\n\t\}\n\n\tres, err := s.ingester.DiscoverAndIngest)}{$1http.StatusBadGateway$2}
+x18|discover not-configured message changed (:268)|s{http.Error\(w, "paper ingester not configured on server"(, http.StatusServiceUnavailable\)\n\t\treturn\n\t\}\n\n\tres, err := s.ingester.DiscoverAndIngest)}{http.Error(w, "ingester unavailable"$1}
+x19|search bad-JSON message prefix changed (:148)|s{(\tif err := json.NewDecoder\(r.Body\).Decode\(&req\); err != nil \{\n\t\thttp.Error\(w, fmt.Sprintf\()"invalid request payload: %v"(, err\), http.StatusBadRequest\)\n\t\treturn\n\t\}\n\n\tif req.Query)}{$1"bad request: %v"$2}
+
+===== /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/mutate.sh
+#!/usr/bin/env bash
+# For each mutant: fresh module copy of the PR head (mkmod.sh), one anchored perl substitution on server.go,
+# check the diff is non-empty and touches code (printed in the diff file), go vet (failure => INVALID), then run
+# (A) the AC3 command and (B) the whole internal/query package. KILLED only if the test run failed after a clean build.
+H=/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1
+export PATH=/usr/local/go1.25.1/bin:$PATH GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off GOSUMDB=off
+SRC=${SRC:-/root/wt/qa-app-RET-1e}
+OUT=${OUT:-$H/mutants-out}; mkdir -p $OUT; : > $OUT/diffs.txt
+printf '%-4s %-12s %-12s %s\n' id "AC3-run" "pkg-full" mutant
+while IFS='|' read -r id desc expr; do
+  d=$(mktemp -d "$H/mut-$id-XXXX"); $H/bin/mkmod.sh "$SRC" "$d"
+  f=$d/internal/query/server.go
+  perl -0pi -e "$expr" "$f"
+  if diff -q "$SRC/internal/query/server.go" "$f" >/dev/null; then printf '%-4s %-12s %-12s %s\n' "$id" NOT-APPLIED - "$desc"; continue; fi
+  { echo "### $id: $desc"; diff "$SRC/internal/query/server.go" "$f"; echo; } >> $OUT/diffs.txt
+  if ! (cd "$d" && go vet ./internal/query/ >"$d/build.log" 2>&1); then printf '%-4s %-12s %-12s %s\n' "$id" INVALID INVALID "$desc"; continue; fi
+  (cd "$d" && go test -count=1 -run '^(TestWriteJSON|TestHandlersEncodeContract|TestHandlersErrorContract)$' ./internal/query/ >"$d/testA.log" 2>&1); a=$?
+  (cd "$d" && go test -count=1 ./internal/query/ >"$d/testB.log" 2>&1); b=$?
+  va=$([ $a -ne 0 ] && echo KILLED || echo SURVIVED); vb=$([ $b -ne 0 ] && echo KILLED || echo SURVIVED)
+  rows=$(grep -E -- '--- FAIL: TestHandlersErrorContract/' "$d/testA.log" | sed 's/ (.*//;s/.*TestHandlersErrorContract\///' | sort -u | paste -sd, -)
+  printf '%-4s %-12s %-12s %s%s\n' "$id" "$va" "$vb" "$desc" "${rows:+  [ErrorContract rows failing: $rows]}"
+done < ${MUTANTS:-$H/bin/mutants.txt}
+
+===== /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/show-harness.sh
+#!/usr/bin/env bash
+H=/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1
+echo "# dependency clones (git clone --depth 1 --branch <tag> https://github.com/golang/<x> | go-ini/ini):"
+for d in $H/deps/*; do printf '%s  %s\n' "$(basename $d)" "$(git -C $d describe --tags --always 2>/dev/null)"; done
+echo "# note: deps/ini/go.mod added by QA (v1.67.0 ships none):"; cat $H/deps/ini/go.mod
+echo "# base-src = PR head go.mod/internal/shared/migrations with internal/query/server_test.go from origin/main (git show)"
+echo; echo "# harness files:"; find $H/bin -type f | sort
+for f in $(find $H/bin -type f | sort); do echo; echo "===== $f"; cat "$f"; done
+
+===== /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/verify.sh
+#!/usr/bin/env bash
+# Ticket verification commands, run with Go 1.25.1 at the PR head (scratch copy of go.mod + internal/ with
+# x/ deps replaced by tag-pinned GitHub clones; see harness evidence).
+H=/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1
+export PATH=/usr/local/go1.25.1/bin:$PATH GOTOOLCHAIN=local GOFLAGS=-mod=mod GOPROXY=off GOSUMDB=off
+echo "head: $(git rev-parse HEAD)  base(origin/main): $(git rev-parse origin/main)"
+echo '$ git diff --stat origin/main...HEAD'; git diff --stat origin/main...HEAD
+echo '$ gofmt -l internal/query/'; gofmt -l internal/query/; echo "gofmt exit=$? (empty list = clean)"
+d=$(mktemp -d $H/verify-XXXX); $H/bin/mkmod.sh "$PWD" "$d"
+echo "$ diff -r internal/query <scratch>/internal/query"; diff -r internal/query $d/internal/query && echo identical
+cd $d; go version
+echo '$ go vet ./internal/query/'; go vet ./internal/query/ && echo vet-ok
+echo '$ go test -race -count=1 -v -run ^(TestWriteJSON|TestHandlersEncodeContract|TestHandlersErrorContract)$ ./internal/query/  (RUN lines elided)'
+go test -race -count=1 -v -run '^(TestWriteJSON|TestHandlersEncodeContract|TestHandlersErrorContract)$' ./internal/query/ 2>&1 | grep -v '^=== RUN'
+echo '$ go test -race -count=30 -run ^TestHandlersErrorContract$ ./internal/query/  (flake check)'
+go test -race -count=30 -run '^TestHandlersErrorContract$' ./internal/query/
+
+[exit code 0]

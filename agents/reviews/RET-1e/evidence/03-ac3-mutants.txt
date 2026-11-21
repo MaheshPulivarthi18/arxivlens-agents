@@ -1,0 +1,186 @@
+$ /tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-RET-1e-r1/bin/ac3.sh
+### PR head 7d63496 tests vs 24 server.go mutants (AC3 e2/e3/e5/e6/q2 + one per http.Error site)
+### KILLED = go test failed after a clean go vet; INVALID = build failure; AC3-run = ticket's -run set; pkg-full = go test ./internal/query/
+id   AC3-run      pkg-full     mutant
+e2   KILLED       KILLED       AC3 search error 500 -> 502  [ErrorContract rows failing: search_error]
+e3   KILLED       KILLED       AC3 /v1/stats error 500 -> 200  [ErrorContract rows failing: stats_error]
+e5   KILLED       KILLED       AC3 status not-found 404 -> 500  [ErrorContract rows failing: status_error]
+e6   KILLED       KILLED       AC3 ask empty-question 400 -> 500  [ErrorContract rows failing: ask_empty_question]
+q2   KILLED       KILLED       AC3 SetIngester never stores a non-nil ingester  [ErrorContract rows failing: SetIngester_non-nil]
+x1   KILLED       KILLED       search bad JSON 400 -> 422 (:148)  [ErrorContract rows failing: search_bad_JSON]
+x2   KILLED       KILLED       search empty-query check removed (:152)  [ErrorContract rows failing: search_empty_query]
+x3   KILLED       KILLED       search error body drops err (:159)  [ErrorContract rows failing: search_error]
+x4   KILLED       KILLED       ask bad JSON 400 -> 500 (:173)  [ErrorContract rows failing: ask_bad_JSON]
+x5   KILLED       KILLED       ask empty-question check removed (:177)  [ErrorContract rows failing: ask_empty_question]
+x6   KILLED       KILLED       ask error 500 -> 200 (:184)  [ErrorContract rows failing: ask_error]
+x7   KILLED       KILLED       status empty arxiv_id 400 -> 404 (:196)  [ErrorContract rows failing: status_empty_arxiv_id]
+x8   KILLED       KILLED       status not-found 404 -> 200 (:203)  [ErrorContract rows failing: status_error]
+x9   KILLED       KILLED       stats error -> JSON error body via writeJSON (:213)  [ErrorContract rows failing: stats_error]
+x10  KILLED       KILLED       ingest bad JSON 400 -> 500 (:223)  [ErrorContract rows failing: ingest_bad_JSON]
+x11  KILLED       KILLED       ingest no-input 400 -> 422 (:232)  [ErrorContract rows failing: ingest_no_input]
+x12  KILLED       KILLED       ingest arxiv_id TrimSpace dropped (:227)  [ErrorContract rows failing: ingest_no_input]
+x13  KILLED       KILLED       ingest not-configured 503 -> 500 (:237)  [ErrorContract rows failing: ingest_not_configured]
+x14  KILLED       KILLED       discover bad JSON 400 -> 500 (:257)  [ErrorContract rows failing: discover_bad_JSON]
+x15  KILLED       KILLED       discover empty query 400 -> 200 (:263)  [ErrorContract rows failing: discover_empty_query]
+x16  KILLED       KILLED       discover TrimSpace dropped (:261)  [ErrorContract rows failing: discover_empty_query]
+x17  KILLED       KILLED       discover not-configured 503 -> 502 (:268)  [ErrorContract rows failing: discover_not_configured]
+x18  KILLED       KILLED       discover not-configured message changed (:268)  [ErrorContract rows failing: discover_not_configured]
+x19  KILLED       KILLED       search bad-JSON message prefix changed (:148)  [ErrorContract rows failing: search_bad_JSON]
+
+### base control: main 11c4696 server_test.go (no TestHandlersErrorContract) vs the 5 AC3 mutants
+id   AC3-run      pkg-full     mutant
+e2   SURVIVED     SURVIVED     AC3 search error 500 -> 502
+e3   SURVIVED     SURVIVED     AC3 /v1/stats error 500 -> 200
+e5   SURVIVED     SURVIVED     AC3 status not-found 404 -> 500
+e6   SURVIVED     SURVIVED     AC3 ask empty-question 400 -> 500
+q2   SURVIVED     SURVIVED     AC3 SetIngester never stores a non-nil ingester
+
+### mutant diffs (head run)
+### e2: AC3 search error 500 -> 502
+159c159
+< 		http.Error(w, fmt.Sprintf("search failed: %v", err), http.StatusInternalServerError)
+---
+> 		http.Error(w, fmt.Sprintf("search failed: %v", err), http.StatusBadGateway)
+
+### e3: AC3 /v1/stats error 500 -> 200
+213c213
+< 		http.Error(w, fmt.Sprintf("failed to get stats: %v", err), http.StatusInternalServerError)
+---
+> 		http.Error(w, fmt.Sprintf("failed to get stats: %v", err), http.StatusOK)
+
+### e5: AC3 status not-found 404 -> 500
+203c203
+< 		http.Error(w, fmt.Sprintf("paper not found: %v", err), http.StatusNotFound)
+---
+> 		http.Error(w, fmt.Sprintf("paper not found: %v", err), http.StatusInternalServerError)
+
+### e6: AC3 ask empty-question 400 -> 500
+178c178
+< 		http.Error(w, "question is required", http.StatusBadRequest)
+---
+> 		http.Error(w, "question is required", http.StatusInternalServerError)
+
+### q2: AC3 SetIngester never stores a non-nil ingester
+66c66
+< 	s.ingester = ingester
+---
+> 	_ = ingester
+
+### x1: search bad JSON 400 -> 422 (:148)
+148c148
+< 		http.Error(w, fmt.Sprintf("invalid request payload: %v", err), http.StatusBadRequest)
+---
+> 		http.Error(w, fmt.Sprintf("invalid request payload: %v", err), http.StatusUnprocessableEntity)
+
+### x2: search empty-query check removed (:152)
+152,155d151
+< 	if req.Query == "" {
+< 		http.Error(w, "query is required", http.StatusBadRequest)
+< 		return
+< 	}
+
+### x3: search error body drops err (:159)
+159c159
+< 		http.Error(w, fmt.Sprintf("search failed: %v", err), http.StatusInternalServerError)
+---
+> 		http.Error(w, "search failed", http.StatusInternalServerError)
+
+### x4: ask bad JSON 400 -> 500 (:173)
+173c173
+< 		http.Error(w, fmt.Sprintf("invalid request payload: %v", err), http.StatusBadRequest)
+---
+> 		http.Error(w, fmt.Sprintf("invalid request payload: %v", err), http.StatusInternalServerError)
+
+### x5: ask empty-question check removed (:177)
+177,180d176
+< 	if req.Question == "" {
+< 		http.Error(w, "question is required", http.StatusBadRequest)
+< 		return
+< 	}
+
+### x6: ask error 500 -> 200 (:184)
+184c184
+< 		http.Error(w, fmt.Sprintf("rag ask failed: %v", err), http.StatusInternalServerError)
+---
+> 		http.Error(w, fmt.Sprintf("rag ask failed: %v", err), http.StatusOK)
+
+### x7: status empty arxiv_id 400 -> 404 (:196)
+196c196
+< 		http.Error(w, "arxiv_id is required", http.StatusBadRequest)
+---
+> 		http.Error(w, "arxiv_id is required", http.StatusNotFound)
+
+### x8: status not-found 404 -> 200 (:203)
+203c203
+< 		http.Error(w, fmt.Sprintf("paper not found: %v", err), http.StatusNotFound)
+---
+> 		http.Error(w, fmt.Sprintf("paper not found: %v", err), http.StatusOK)
+
+### x9: stats error -> JSON error body via writeJSON (:213)
+213c213
+< 		http.Error(w, fmt.Sprintf("failed to get stats: %v", err), http.StatusInternalServerError)
+---
+> 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()}, "/v1/stats", "")
+
+### x10: ingest bad JSON 400 -> 500 (:223)
+223c223
+< 		http.Error(w, "invalid JSON body", http.StatusBadRequest)
+---
+> 		http.Error(w, "invalid JSON body", http.StatusInternalServerError)
+
+### x11: ingest no-input 400 -> 422 (:232)
+232c232
+< 		http.Error(w, "arxiv_id or url is required", http.StatusBadRequest)
+---
+> 		http.Error(w, "arxiv_id or url is required", http.StatusUnprocessableEntity)
+
+### x12: ingest arxiv_id TrimSpace dropped (:227)
+227c227
+< 	input := strings.TrimSpace(req.ArxivID)
+---
+> 	input := req.ArxivID
+
+### x13: ingest not-configured 503 -> 500 (:237)
+237c237
+< 		http.Error(w, "paper ingester not configured on server", http.StatusServiceUnavailable)
+---
+> 		http.Error(w, "paper ingester not configured on server", http.StatusInternalServerError)
+
+### x14: discover bad JSON 400 -> 500 (:257)
+257c257
+< 		http.Error(w, "invalid JSON body", http.StatusBadRequest)
+---
+> 		http.Error(w, "invalid JSON body", http.StatusInternalServerError)
+
+### x15: discover empty query 400 -> 200 (:263)
+263c263
+< 		http.Error(w, "query is required", http.StatusBadRequest)
+---
+> 		http.Error(w, "query is required", http.StatusOK)
+
+### x16: discover TrimSpace dropped (:261)
+261c261
+< 	query := strings.TrimSpace(req.Query)
+---
+> 	query := req.Query
+
+### x17: discover not-configured 503 -> 502 (:268)
+268c268
+< 		http.Error(w, "paper ingester not configured on server", http.StatusServiceUnavailable)
+---
+> 		http.Error(w, "paper ingester not configured on server", http.StatusBadGateway)
+
+### x18: discover not-configured message changed (:268)
+268c268
+< 		http.Error(w, "paper ingester not configured on server", http.StatusServiceUnavailable)
+---
+> 		http.Error(w, "ingester unavailable", http.StatusServiceUnavailable)
+
+### x19: search bad-JSON message prefix changed (:148)
+148c148
+< 		http.Error(w, fmt.Sprintf("invalid request payload: %v", err), http.StatusBadRequest)
+---
+> 		http.Error(w, fmt.Sprintf("bad request: %v", err), http.StatusBadRequest)
+
+
+[exit code 0]
