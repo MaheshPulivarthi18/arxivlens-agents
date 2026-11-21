@@ -1,0 +1,17 @@
+$ bash -c echo "PR head: $(gh api repos/MaheshPulivarthi18/ArxivLens/pulls/105 --jq .head.sha)"; echo "PR commits: $(gh api repos/MaheshPulivarthi18/ArxivLens/pulls/105/commits --jq "[.[].sha]|join(\",\")")"; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/105/files --jq ".[] | \"file: \(.filename) +\(.additions) -\(.deletions)\""; echo; gh api repos/MaheshPulivarthi18/ArxivLens/commits/7d634963c128d74b496c3abca6ad13a79f5fafb3/check-runs --jq ".check_runs[] | \"\(.id)  \(.name)  \(.status)/\(.conclusion)  \(.completed_at)\""; echo; echo "run 44870494789:"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/44870494789 --jq "\"attempt=\(.run_attempt) head_sha=\(.head_sha) event=\(.event) conclusion=\(.conclusion)\""; gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/44870494789/attempts/3/jobs --jq ".jobs[] | \"attempt3 job \(.id) \(.name) \(.conclusion) \(.completed_at)\""
+PR head: 7d634963c128d74b496c3abca6ad13a79f5fafb3
+PR commits: 7d634963c128d74b496c3abca6ad13a79f5fafb3
+file: internal/query/server_test.go +98 -0
+
+136767672609  Full stack (compose + make test-full)  completed/success  2026-11-21T07:11:17Z
+136743697877  Go (vet, gofmt, test, build)  completed/success  2026-11-21T05:22:26Z
+136743697851  Agent ownership check  completed/success  2026-11-21T05:21:29Z
+136743697834  Python M0 unit tests  completed/success  2026-11-21T05:22:41Z
+136743697640  Frontend (lint, test, build)  completed/success  2026-11-21T05:21:48Z
+136743697539  DB (migrate twice, HNSW plan + recall)  completed/success  2026-11-21T05:23:27Z
+
+run 44870494789:
+attempt=3 head_sha=7d634963c128d74b496c3abca6ad13a79f5fafb3 event=pull_request conclusion=success
+attempt3 job 136767672609 Full stack (compose + make test-full) success 2026-11-21T07:11:17Z
+
+[exit code 0]

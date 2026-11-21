@@ -1,0 +1,45 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136767672609 --jq ".steps[] | \"step \(.number) \(.name): \(.conclusion)\""; echo "--- job log excerpts ---"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136767672609/logs > /tmp/claude-0/-home-claude/e51945d8-50f1-5ac4-8588-a685c3722a78/scratchpad/fs3.log; grep -E "HEAD is now at|\[replay\] prefetch: 2 queries|\"status\":\"success\",\"arxiv_id\":\"2608.20331\"|SKIPPED \[|[0-9]+ passed" /tmp/claude-0/-home-claude/e51945d8-50f1-5ac4-8588-a685c3722a78/scratchpad/fs3.log | grep -v "ARXIV_API_URL" | tail -n 8 | cut -c1-220
+step 1 Set up job: success
+step 2 Run actions/checkout@v4: success
+step 3 Run actions/setup-go@v5: success
+step 4 Run actions/setup-python@v5: success
+step 5 Lint the harness (actionlint, compose config): success
+step 6 Cache Hugging Face models: success
+step 7 Host Python deps (make setup-py, CPU torch): success
+step 8 Pre-fetch models into the shared HF cache: success
+step 9 Build Go CLI: success
+step 10 Restore arXiv replay store: success
+step 11 Prefetch arXiv responses into the replay store: success
+step 12 Save arXiv replay store: success
+step 13 ING-6 Risk 1: published order of recorded search feeds: success
+step 14 Start the arXiv replay proxy (replay-only): success
+step 15 AC1: plain docker compose up -d starts infra only: success
+step 16 AC2: make stack-up: success
+step 17 Worker health follows this container, not the group: success
+step 18 Migrate: success
+step 19 AC3: crawl 2 papers (before the downloader starts): success
+step 20 Start Go downloader and query service on the host: success
+step 21 AC3: wait until both crawled papers are embedded: success
+step 22 Seed the M3/M4 fixture (on-demand ingest of 2608.20331): success
+step 23 AC4: make test-full: success
+step 24 Known failure F1 (CPU rerank latency, tracked): success
+step 25 Collect service logs: success
+step 26 arXiv replay stats: success
+step 27 Diagnostics: skipped
+step 28 Upload logs: success
+step 29 Teardown: success
+step 55 Post Cache Hugging Face models: success
+step 56 Post Run actions/setup-python@v5: success
+step 57 Post Run actions/setup-go@v5: success
+step 58 Post Run actions/checkout@v4: success
+step 59 Complete job: success
+--- job log excerpts ---
+2026-11-21T07:01:24.8791930Z HEAD is now at 794ba27 Merge 7d634963c128d74b496c3abca6ad13a79f5fafb3 into 11c4696f7c6830436ada00c54d8f75976ddf7b99
+2026-11-21T07:03:03.7902649Z [replay] prefetch: 2 queries, stats={"hits": 3, "misses": 2, "upstream_fetches": 2, "upstream_failures": 0, "saved": 2}
+2026-11-21T07:09:47.5473383Z {"status":"success","arxiv_id":"2608.20331","version":1,"title":"G-CARL: Grounded Checklist-Aligned Reward Learning for Patient-Oriented Medical Report Interpretation","sections":69,"chunks":
+2026-11-21T07:10:46.9074098Z [replay] prefetch: 2 queries, stats={"hits": 2, "misses": 4, "upstream_fetches": 4, "upstream_failures": 0, "saved": 4}
+2026-11-21T07:10:47.3195989Z SKIPPED [1] tests/test_evals_data.py:780: opt-in: needs DATABASE_URL with migrations/ applied
+2026-11-21T07:10:47.3196519Z 271 passed, 1 skipped, 3 deselected, 5 warnings in 59.02s
+2026-11-21T07:11:09.8295330Z 3 passed in 21.37s
+
+[exit code 0]
