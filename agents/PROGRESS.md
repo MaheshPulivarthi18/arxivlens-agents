@@ -1069,3 +1069,9 @@ Format:
 - Rework: none. Review: none needed (all open PRs have QA PASS + PM APPROVE for their current heads).
 - New work: none. Inputs identical to the 18:00Z grooming (`800cb28`), so every Ready task still waits on an unmerged PR; pm-lead not re-run, no work invented.
 - RUN_LOCK released in this commit.
+
+## 2026-11-21 19:59Z — orchestrator (cycle record)
+- Sync: one ArxivLens merge since the last cycle — Mahesh's own PR #118 (`ops/make-uses-venv`, not an agent branch; `main` = `d8f791b`, merged 19:29Z): `Makefile`, `scripts/eval_gate.py`, `tests/test_evals_data.py`. Overlaps open #113 (`Makefile`) and #107 (`tests/test_evals_data.py`); GitHub reports both `mergeable_state: clean`, heads unchanged, so their QA/PM verdicts stand. Heads of #104–#117 unchanged; no Mahesh review, inline comment or untagged comment on any of them; no Jira update since 17:33Z (no human comments, no intake); no ADR status change.
+- Rework: none. Review: none needed (all open PRs have QA PASS + PM APPROVE for their current heads).
+- New work: none. #118 unblocks no Ready task (each still waits on #104/#106/#109/#111 or the `main.go` queue); pm-lead not re-run, no work invented.
+- RUN_LOCK released in this commit.
