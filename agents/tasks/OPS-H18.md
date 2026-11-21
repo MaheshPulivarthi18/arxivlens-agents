@@ -1,0 +1,76 @@
+# OPS-H18: Split `make test-py` so the non-ML Python tests run without torch, first in CI
+
+| | |
+|---|---|
+| **Owner** | backend-engineer |
+| **Priority** | P2 (harness) |
+| **PRD ref** | Technical PRD §10 (Testing and evaluation) / `CONTRIBUTING.md` Commands table; Mahesh's review of ArxivLens #12 (recorded in PROGRESS 2026-11-03, board Backlog "From Mahesh's #12 review") |
+| **Depends on** | none open. No open PR touches `Makefile`, `.github/workflows/ci.yml`, `CONTRIBUTING.md` or `requirements*.txt` (checked 2026-11-21 01:00Z against the file lists of #91–#101). The app `README.md` doesn't mention `test-py`, so it is not in scope (it is held by #93 anyway) |
+| **Jira** | to be created by the orchestrator (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H18`, `agent-backend`, `arxivlens`) |
+| **Design required** | no: Makefile targets, one CI job's steps and a deps file; no product code, no contract |
+| **Status** | Ready |
+
+## Goal
+Mahesh asked (review of #12) for `make test-py` to be split so the eval-data tests still run when the ML stack
+(torch / sentence-transformers) fails to install or import. Today one `pip install -r requirements-dev.txt` (torch, transformers,
+sentence-transformers, PyMuPDF) runs before any Python test, and `test-py` runs all six files in one pytest call. A torch install or
+import failure therefore hides the results of three test files that need none of it. The same split lets agent sandboxes and
+contributors without the ML stack, the BGE download or Hugging Face access run those three files locally.
+
+Checked on `origin/main` `230f617`, top-level imports per file:
+- **ML** (torch / transformers / PyMuPDF / BGE download): `tests/test_m0.py` (torch, `scripts.m0_skeleton`), `tests/test_verify.py`
+  (torch, `services.embedder.verify`), `tests/test_processor_pages.py` (pymupdf, `TokenChunker`, `ProcessorWorker`).
+- **Light**: `tests/test_evals_data.py` (stdlib scripts; `psycopg` only through `importorskip`), `tests/test_worker_heartbeat.py`
+  (`services.common.kafka_client`: confluent-kafka, ulid-py, pydantic), `tests/test_arxiv_replay.py` (stdlib).
+
+The names differ from Mahesh's `test-m0` / `test-evals-data` because the list has grown from two files to six. Each new target
+covers a group, not one file. If he prefers other names he can say so on the PR.
+
+## Scope
+- `Makefile`: new `test-py-light` (the three light files) and `test-py-ml` (the three ML files), each with a `##` help line.
+  `test-py` runs both (prerequisites or two pytest calls) and still covers exactly the same six files. `test-unit` is unchanged.
+  Add the targets to `.PHONY`.
+- New `requirements-light.txt`: the minimal deps for `test-py-light` (pytest plus the runtime subset it imports, e.g. pydantic,
+  confluent-kafka, ulid-py). Use the same lower bounds as `requirements.txt` / `requirements-dev.txt`, with a header comment saying
+  it is a subset and must stay in sync. No torch, transformers, sentence-transformers or PyMuPDF.
+- `.github/workflows/ci.yml`, `python` job only (keep the job id and its name `Python M0 unit tests`): before the full install,
+  add a step that installs `requirements-light.txt`, prints `pip list` filtered for `torch|transformers|sentence|PyMuPDF`
+  (it must print nothing, so the log proves they're absent), and runs `make test-py-light`. Then the existing full install and
+  `make test-py-ml`, replacing `make test-py`. The `test_kafka_client.py` step stays as it is.
+- `CONTRIBUTING.md`: the `make test-unit` row (`:23`) and two new rows for `make test-py-light` (needs only
+  `pip install -r requirements-light.txt`) and `make test-py-ml`.
+- Out of scope: `README.md`, `stack.yml`, moving tests between files, adding new test files to `test-py` (e.g. ING-8's scorer
+  tests, which aren't on `main`), `test_kafka_client.py` (it stays in its own step).
+- Size: ~30-40 lines.
+
+## Acceptance criteria
+- [ ] AC1: `make test-py-light` runs exactly `tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py`,
+  `make test-py-ml` runs exactly `tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py`, and `make test-py`
+  runs all six. Show `make -n` for each of the three targets in an evidence file.
+- [ ] AC2 (isolation, CI): in the draft PR's CI `Python M0 unit tests` job, the light step runs **before** any torch install. The
+  `pip list` filter step prints no `torch`/`transformers`/`sentence-transformers`/`PyMuPDF` line, and `make test-py-light`
+  passes. Quote its pytest summary line (`N passed …`) and the run/job ID.
+- [ ] AC3 (no lost coverage): the sum of the passed and skipped counts of `make test-py-light` + `make test-py-ml` in that job
+  equals the `make test-py` counts on the latest green `main` run of the same job (quote both runs' summary lines and IDs).
+  If they differ, explain each test that is missing.
+- [ ] AC4: `make help` lists `test-py-light` and `test-py-ml` with their descriptions (evidence: `make help` output).
+- [ ] AC5: all other CI jobs are green on the draft PR (`Go (vet, gofmt, test, build)`, `Frontend (lint, test, build)`, `Agent ownership check`, and `Full stack`, which
+  the `Makefile` and `requirements*.txt` path filters trigger).
+- [ ] Docs: the `CONTRIBUTING.md` Commands table matches the new targets (AC1 file lists, and "No" in *Needs infra?*).
+
+## Verification
+```bash
+make -n test-py-light; make -n test-py-ml; make -n test-py; make help | grep test-py
+python3 -m venv /tmp/light && /tmp/light/bin/pip install -r requirements-light.txt && PY=/tmp/light/bin/python make test-py-light   # if the sandbox reaches PyPI; else CI (AC2)
+git diff origin/main --name-only   # Makefile, requirements-light.txt, .github/workflows/ci.yml, CONTRIBUTING.md
+# CI: Python M0 unit tests job on the draft PR (AC2/AC3), compared with the latest green main run of that job
+```
+
+## Notes
+- 2026-11-21 01:00Z (pm-lead): Backlog since Mahesh's #12 review. Earlier groomings left it because they assumed the app `README.md`
+  Testing block mentions `test-py`. It doesn't (`grep test-py README.md` is empty on `230f617`), so the task is independent of #93.
+  The job name stays `Python M0 unit tests` so the history and any check names stay comparable (`main` has no branch protection
+  today, so renaming wouldn't break a required check, but there is no reason to rename it).
+- If `test_worker_heartbeat.py` turns out to need more than the listed light deps at import time, add exactly what it imports to
+  `requirements-light.txt` (never torch or transformers). If one of the "light" files really needs the ML stack, move it to
+  `test-py-ml` and say why in the PR.

@@ -893,3 +893,11 @@ Format:
 - **FE-0h** (frontend, KAN-105): PR [#101](https://github.com/MaheshPulivarthi18/ArxivLens/pull/101) @ `2c84527`, 1 attempt, QA r1 PASS (≥ 3.23:1 both themes), PM APPROVE; PRD ref corrected. Follow-up: repo-wide form-control scan after FE-3b.
 - QA reports saved verbatim from PR comments by the orchestrator (`9e7884c`; QA harness still refuses `report.md`). Two parallel PM reviews shared the one arxivlens-agents checkout and `3978149` swept in the other's staged edits (content correct, attribution mixed): the rule is already proposed in [arxivlens-agents#15](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/15) (one checkout per parallel QA/PM agent). Outbound filter again un-embedded PR-body images.
 - RUN_LOCK released in this commit.
+
+## 2026-11-21 01:00Z — pm-lead (cycle 01:00Z grooming)
+- Sync (orchestrator): no merges since 2026-11-20 18:54Z; app `main` = `230f617`; #91–#101 all Ready to merge, no human reviews or Jira intake; WIP 0 for every developer. Open-PR file lists re-checked via REST.
+- Picked 2 new backend specs (no `Depends on` open; files disjoint from each other and from #91–#101):
+  **OPS-H6d** (P1, `services/common/db.py` `save_sections_and_chunks`, `tests/test_processor_pages.py`, new `tests/test_chunk_reprocess_db.py`): a reprocess with changed chunk text keeps the old vector (L3 keys on model only, OPS-H6 design G2), and stale tail chunks survive a shorter parse. Both break OPS-3. Deletes only, existing cascades, no schema change.
+  **OPS-H18** (P2 harness, `Makefile`, new `requirements-light.txt`, `ci.yml` `python` job, `CONTRIBUTING.md`): Mahesh's #12-review split of `make test-py`; light tests run in CI before torch is installed. Earlier groomings had it held by #93's `README.md`, but README has no `test-py` mention.
+- Skipped: RET-1e (`server_test.go`, #94), OPS-H7a2c / ING-6c / OPS-H7b (`main.go`, #93), FE-3b → FE-2 / FE-4 (#91 first), FE-0g (#95), EVAL-6c / EVAL-7 / EVAL-5 follow-ups (`tests/test_evals_data.py`, #96), x5 limiter test (#99), OPS-H8d (needs #100), form-control scan (after FE-3b), hnswGuard single action (#97). Not picked as filler: RET-1b NaN+Inf/MaxFloat32 rows. ai-engineer and frontend have no unblocked item worth a PR.
+- Jira: no Atlassian tools in this session. For the orchestrator: OPS-H6d → epic KAN-4, OPS-H18 → epic KAN-3.
