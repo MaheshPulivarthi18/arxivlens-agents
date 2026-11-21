@@ -8,7 +8,7 @@
 | **Depends on** | FE-0d (#95, merged `ae8de39`). FE-1 (Vitest, merged). No ADR |
 | **Jira** | KAN-110 |
 | **Design required** | no: tests only, no component, contract or dependency change |
-| **Status** | In Progress (built 2026-11-21, branch `agent/frontend/FE-0g` @ `b171ba0`; awaiting draft PR + CI + QA) |
+| **Status** | In Progress (built 2026-11-21, branch `agent/frontend/FE-0g` @ `35cecd3`; attempt 2, awaiting CI + QA) |
 
 ## Goal
 FE-0d's render tests leave five mutants of the `ui/` primitives alive (QA evidence `agents/reviews/FE-0d/evidence/06-mutants-all.png`).
@@ -66,3 +66,8 @@ git diff origin/main --shortstat
   m3 (`top`/`center`), m4 (`x-sep`), m5 (open at 250 ms), m6 (closed at 350 ms).
   **Not run locally:** npm registry is unresolvable here (`npm ci`: ENOTFOUND registry.npmjs.org; `--offline`: ENOTCACHED), so no Vitest, oxlint
   or mutation run in this sandbox. AC6 needs QA's harness (evidence file), and AC7 needs the CI Frontend job on the draft PR.
+- 2026-11-21 (frontend-engineer, attempt 2): CI Frontend job on PR #108 @ `b171ba0` gave 144 passed and 1 failed. The failure was the AC4 Tooltip test,
+  "Test timed out in 5000ms": `await user.hover(...)` under `vi.useFakeTimers()` never resolved. Fix @ `35cecd3`: the test is now synchronous and
+  uses `fireEvent.pointerMove(trigger, { pointerType: 'mouse' })`. That is act()-wrapped and has no awaits, so the test can't wait on a faked timer.
+  Radix's `TooltipTrigger` opens from `onPointerMove` (not pointerenter), and the first open waits `delayDuration` because `isOpenDelayedRef` starts `true`.
+  The assertions are unchanged: ref null and no `role="tooltip"` at 250 ms, both present at 350 ms. Still not run locally (npm blocked), so CI is the check.
