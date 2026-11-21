@@ -858,3 +858,12 @@ Format:
 - QA reports saved verbatim from PR comments by the orchestrator (`cdfdb14`; harness still blocks subagent writes of `report.md`). Board: the ING-11d row was left in Ready by a parallel-commit overlap; fixed in this record.
 - Retro: worktree-path and shared-checkout lessons recurred → rules PR [arxivlens-agents#15](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/15) on `sprint.md` (Mahesh to merge).
 - RUN_LOCK released in this commit.
+
+## 2026-11-21 00:00Z — pm-lead (cycle 00:00Z grooming)
+- Sync (orchestrator): no merges/closes since 20:00Z; app `main` = `230f617`; #91–#98 all Ready to merge, no human reviews or Jira intake; ADRs unchanged; WIP 0 for every developer. Every existing Ready task waits on an unmerged PR.
+- Picked 3 new specs from Backlog follow-ups (every `Depends on` merged at `230f617`; files disjoint from each other and from #91–#98):
+  **ING-9c** (backend, P3, test-only: `internal/query/ingester_test.go`, `internal/arxiv/limiter_test.go`; ING-9 QA nits 3 and 5: cancelled ctx → no arXiv request, limiter spacing d ≥ 100 ms),
+  **OPS-H8c** (backend, P3: `docker-compose.yml` `stop_grace_period: 20s` on `x-worker`; OPS-H8 design follow-up, 12 s flush > 10 s default grace),
+  **FE-0h** (frontend, P3: `IngestModal.jsx:82` + `PapersLibrary.jsx:53` `border-border` → `border-input` (pm-lead calc 3.23–3.50:1 vs 1.31–1.46:1), new `src/test/controls.test.js`, `frontend/README.md:14` glob `*.test.{js,jsx}`).
+- Rejected: OPS-H8 `PYTEST_ARGS=-rA` (already in `stack.yml:286`; Backlog line struck); FE-0c `theme.test.js` no-`matchMedia` tests (FE-3b, P0, edits `theme.js`); RET-1b NaN+Inf/MaxFloat32 rows (real, `search_test.go` free, but backend would exceed 2 new PRs); ING-9 wiring test (needs db/storage interfaces) and redirect check (needs network); ai-engineer has no unblocked item (`tests/test_evals_data.py` held by #96, `tests/test_m2_pipeline.py` by #98, AI-5/EVAL-2 on ADRs, the AI-2 counter split is stale after the NLI verifier); `make test-py` split (needs `README.md`, held by #93).
+- Jira not touched (orchestrator): suggested epics ING-9c → KAN-4, OPS-H8c → KAN-3, FE-0h → KAN-5.
