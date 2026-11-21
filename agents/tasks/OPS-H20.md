@@ -40,7 +40,9 @@ before `GATE:` was printed. Main's step took 22m11s, and 1.47x of that is ~32.5 
 - [ ] AC4: The `make eval` step `timeout-minutes` is at least 45 (≥ 1.35x the ~32.5 min EPYC 7763 projection), and its comment
   cites both measurements: 22m11s on Intel Xeon 8573C (run 44764887789) and the 1.47x slower EPYC 7763 run (job 136830894337).
   The AC1 job total uses this new step value (eval 45 instead of 30), so the job timeout still covers every step's worst case.
-- [ ] AC3: CI on the draft PR: `Lint` (actionlint runs in the harness-lint step) and `eval` green; quote the job's total duration.
+- [ ] AC3: CI on the draft PR: the `eval` check green, including its "Lint the harness (actionlint, compose config)" step
+  and `make eval` with `GATE: PASS`; quote the job's total duration. (There is no separate `Lint` check; wording fixed
+  2026-11-21 13:00Z after QA r1 finding 4, intent unchanged.)
 
 ## Verification
 ```bash
@@ -59,3 +61,6 @@ make lint
   The `make eval` step went from 30 to 45. Its comment cites 22m11s on Xeon 8573C (run 44764887789) and the 1.47x slower EPYC 7763 run (job 136830894337): 1331 s x 1.47 = 32.6 min, and x 1.35 = 44.0, so 45.
   No other `timeout-minutes` changed (checked with grep -B1), the YAML parses, and the ownership check passes. actionlint did not run locally: there is no Docker daemon, and the sandbox denied downloading the binary.
   AC1/AC2/AC4 are met in the diff. AC3 is still open: it needs the PR's CI `Lint` and `eval` runs, plus the job's total duration.
+- 2026-11-21 13:00Z (pm-lead): QA r1 `[spec]` findings handled. 4: AC3 names the real check (above). 2: the lost
+  partial recording on a killed prefetch is folded into OPS-H21 (AC7, ai-owned `scripts/arxiv_replay.py`), not this
+  ticket. 3: no change (AC4's total follows the ticket's own formula; QA requested none).

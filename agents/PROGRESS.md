@@ -1004,3 +1004,13 @@ Format:
 - QA harness refused `report.md` again (both); orchestrator saved PR comments verbatim (`26059c3`, `2c74d4d`).
 - Retro: first-round QA pass 1/1 decided (1 PENDING on CI queue). New observation: eval runtime varies 1.47× by runner CPU; captured in OPS-H20. No new rules PR.
 - RUN_LOCK released in this commit.
+
+## 2026-11-21 13:00Z — pm-lead (cycle grooming)
+- Sync: no ArxivLens merges since 04:52Z (`main` = `11c4696`). #104–#113 Ready to merge; #114 OPS-H20 draft, QA r1 PENDING on `eval` (run 44905935487 queued behind the #111 re-run). No Mahesh review or untagged comment, no Jira intake, no ADR status change (`git log docs/adr` unchanged since the FE-0g notes commit). WIP: ai 0, backend 1 (OPS-H20), frontend 0.
+- Re-checked every Ready task against the open PRs' file lists (REST `pulls/<n>/files`): ING-6c, OPS-H7a2c, FE-2 (README/`ReferencesStack.jsx` in #104), OPS-H7b/c (queue), FE-0j (#109), OPS-H6f + AI-13 (#106), OPS-H21 (#111) all still wait. EVAL-7 follow-up (`answer_review.py` tests) also waits: its tests live in `tests/test_evals_data.py` (#107), and a new test file needs `Makefile`'s `PY_LIGHT_TESTS` (#113).
+- OPS-H20 QA `[spec]` findings: 2 (killed prefetch never writes `saved=`, partial recording lost) folded into **OPS-H21** as item 3 / AC7-AC8 (same file `scripts/arxiv_replay.py`, owner ai and dependency #111 as OPS-H21; write `saved=` once on the first save, no workflow change). 4 (`Lint` check doesn't exist) fixed in OPS-H20 AC3 and OPS-H21 AC6 wording, intent unchanged. 3: no change.
+- New specs from existing backlog lines (no new requirements):
+  - **AI-14** (ai, P2, QA-6): aux-section cutoff matches `table`/`tables` as whole words ("Notable"/"Stable" no longer need rerank ≥ 0.70); `parseSynthesis` comment fixed. Files `internal/query/rag.go`, `rag_test.go`. Goes before AI-5 (Blocked on ADR-0011), which rebases.
+  - **RET-1f** (backend, P3): `hnswGuard` helper owns skip/fatal/CI (kills OPS-H5c mutants c1–c3); rerank-fallback rows for NaN+Inf in one response and `±MaxFloat32`. Files `internal/query/search_test.go`, `search_integration_test.go` (test-only).
+- Picked for this cycle: AI-14 (ai → 1 active) and RET-1f (backend → 2 active). Disjoint from each other and from #104–#114; no dependencies. Frontend: nothing independent (all frontend work waits on #104/#109). No other work invented.
+- Jira (orchestrator): create stories for AI-14 and RET-1f (epic KAN-2); update OPS-H21 (KAN-119) summary/description for AC7.

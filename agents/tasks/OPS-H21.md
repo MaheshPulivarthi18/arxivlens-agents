@@ -1,17 +1,17 @@
-# OPS-H21: prefetch stops early on permanent failures, and pin the in-flight overrun guard with a test
+# OPS-H21: prefetch stops early on permanent failures, reports `saved=` as soon as it records, and pin the in-flight overrun guard with a test
 
 | | |
 |---|---|
 | **Owner** | ai-engineer (`scripts/`, `tests/`) |
-| **Priority** | P2 (harness quality) |
-| **PRD ref** | Technical PRD §9 "External politeness", §10 Testing and evaluation; QA OPS-H19 r1 findings 1 and 2 `[nit]` (`agents/reviews/OPS-H19/report.md`) |
-| **Depends on** | OPS-H19 (ArxivLens #111) **merged** (same two files) |
+| **Priority** | P2 (harness quality; item 3 protects eval-store convergence) |
+| **PRD ref** | Technical PRD §9 "External politeness", §10 Testing and evaluation; QA OPS-H19 r1 findings 1 and 2 `[nit]` (`agents/reviews/OPS-H19/report.md`); QA OPS-H20 r1 finding 2 `[spec]` (`agents/reviews/OPS-H20/report.md`) |
+| **Depends on** | OPS-H19 (ArxivLens #111) **merged** (same two files: #111 = `scripts/arxiv_replay.py`, `tests/test_arxiv_replay.py`, REST `pulls/111/files` 2026-11-21 13:10Z). No overlap with OPS-H20 #114 (`eval.yml` only; this ticket edits no workflow) |
 | **Jira** | needs creating: epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H21`, `agent-ai`, `arxivlens` |
 | **Design required** | no: control flow inside an existing CI script + unit tests; no flag, contract or workflow change |
-| **Status** | Backlog (waits on OPS-H19 merge) |
+| **Status** | Ready once #111 merges (Backlog until then; re-checked 2026-11-21 13:00Z: #111 still open) |
 
 ## Goal
-Two gaps QA found in OPS-H19, both small:
+Three gaps QA found in OPS-H19 and OPS-H20, all small and all in `main`'s prefetch path:
 1. A **permanent** failure (a 404 PDF, or a 200 whose body is not a feed/PDF that persists) is re-tried every ≥ 60 s until the
    budget is spent, so the CI step exits 1 after ~17/42 min instead of seconds, and keeps asking arXiv for something that
    won't appear. Extra passes should run only while at least one failure is transient (429, 5xx, network error, or the
@@ -20,11 +20,17 @@ Two gaps QA found in OPS-H19, both small:
    survives the suite because in the AC3 test a politeness gap always precedes the next request. On CI, a PDF download
    that runs past the deadline leaves no gap. QA's scenario (`agents/reviews/OPS-H19/evidence/04-ac3-overrun-scenario.txt`)
    shows the code is right; it should be a committed test.
+3. (OPS-H20 QA finding 2) `saved=<n>` goes to `$GITHUB_OUTPUT` only at the very end of `main` (`arxiv_replay.py:328-330`
+   @ #111 head `5b4d6a2`). If the step is killed at its `timeout-minutes: 45` (possible: the budget is checked only between
+   queries, and one query can run ~22 min in flight), `saved` is never written, "Save arXiv replay store" is skipped
+   (`if: always() && steps.prefetch.outputs.saved != '' && ... != '0'`) and that run's partial recording is lost, which
+   breaks convergence in exactly the slow, rate-limited case. Report it as soon as the store gains its first entry.
 
 ## Scope
 - `scripts/arxiv_replay.py`: `main`'s prefetch pass loop (and whatever minimal status plumbing it needs from `prefetch_query`).
 - `tests/test_arxiv_replay.py`: new tests.
-- Out of scope: retry counts/waits inside `Recorder.fetch`, `INTERVAL`, User-Agent, `serve`, workflows (`.github/`), `PASS_WAIT`.
+- Out of scope: retry counts/waits inside `Recorder.fetch`, `INTERVAL`, User-Agent, `serve` behaviour, workflows (`.github/`:
+  the existing `saved != '' && saved != '0'` conditions already work with item 3), `PASS_WAIT`, a per-request deadline.
 
 ## Acceptance criteria
 - [ ] AC1: With a budget, if every failure in a pass is permanent (HTTP 4xx other than 429, or a non-feed/non-PDF 200 after
@@ -39,8 +45,18 @@ Two gaps QA found in OPS-H19, both small:
 - [ ] AC5: Mutation check (output in an evidence file, revert each): (m1) treat all failures as transient → AC1 fails;
   (m2) remove the `now >= self.deadline` check before a request (QA's q2) → AC3 fails; (m3) treat all failures as
   permanent → AC2 fails.
-- [ ] AC6: CI on the draft PR: `Lint`, the light Python job and `Full stack` green.
-- [ ] Docs: the module docstring says which failures trigger another pass.
+- [ ] AC7 (item 3): `prefetch` writes exactly one `saved=` line to `$GITHUB_OUTPUT`, right after the first entry it adds
+  to the store is on disk; it writes none if it adds nothing (the step output stays `''`, the save step is skipped as
+  today). The final `saved=<count>` write at exit is removed (no repeated key). `serve --record` never writes
+  `$GITHUB_OUTPUT`. The stats line still prints the full count. Tests (with `GITHUB_OUTPUT` pointed at a tmp file):
+  (a) first query saves, second query's fetch raises (simulating a kill): the file already holds `saved=1`;
+  (b) a run that saves 3 entries writes exactly one `saved=` line; (c) an all-hit run writes none;
+  (d) `serve --record` saving an entry writes none.
+- [ ] AC8: Mutation (same evidence file as AC5): (m4) move the write back to the end of `main` → AC7(a) fails.
+- [ ] AC6: CI on the draft PR: `Python M0 unit tests` (runs `make test-py-light`), `Full stack (compose + make test-full)`
+  and `eval` (triggered by `scripts/arxiv_replay.py`; its "Lint the harness" step runs actionlint) green. There is no
+  separate `Lint` check.
+- [ ] Docs: the module docstring says which failures trigger another pass and when `saved=` is written.
 
 ## Verification
 ```bash
@@ -53,3 +69,8 @@ git diff origin/main --name-only   # exactly scripts/arxiv_replay.py and tests/t
 ## Notes
 - 2026-11-21 (pm-lead): created from QA OPS-H19 r1 findings 1 and 2. Treating `(time budget)` skips as transient keeps
   OPS-H19 AC1 behaviour for queries cut off by the deadline.
+- 2026-11-21 13:00Z (pm-lead): folded QA OPS-H20 r1 finding 2 `[spec]` in as item 3 / AC7-AC8 instead of a new ticket:
+  same file, same owner, same dependency (#111), and a second ticket would have to queue behind this one anyway.
+  Chose "write once on first save" over a per-request deadline: it survives any kill (step or job timeout,
+  cancellation) and needs no workflow change; a repeated `saved=` key is avoided so nothing relies on last-write-wins.
+  AC6 wording fixed to the real check names (same fix as OPS-H20 AC3, QA finding 4).
