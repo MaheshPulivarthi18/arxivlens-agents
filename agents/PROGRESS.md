@@ -1043,3 +1043,11 @@ Format:
 ## 2026-11-21 — pm-lead — OPS-H20 #114 final review round 2: APPROVE
 - QA r4 PASS on `3224fb2`. AC5 (`CONTRIBUTING.md:34` budgets 70/45/180) is met, `eval.yml` is byte-identical to `ece17a7`, and the `eval` check is green on the new head (`GATE: PASS`, job 69m52s). PM APPROVE was appended to `agents/reviews/OPS-H20/report.md`.
 - PR #114 description rewritten with the per-AC evidence and raised for review. Board: In QA → Ready to merge. Jira KAN-118 → Ready to merge (orchestrator).
+
+## 2026-11-21 17:00Z — orchestrator (cycle record)
+- Sync: no ArxivLens merges since 04:52Z (`main` = `11c4696`); no human reviews or untagged comments on #104–#116; no human Jira comments; no ADR status change.
+- **OPS-H20** (#114, KAN-118): QA r4 PASS (`01e2c20`; eval job 136903946034 green, `GATE: PASS`, job 69m52s, `make eval` 23m11s / 45) → PM r2 APPROVE (`5ea0dc5`) → raised, Ready to merge. Attempts 2, QA rounds 4 (2 PENDING), PM rounds 2 (1 CHANGES).
+- **AI-15** (#117, KAN-123, new): specced by pm-lead, built by ai-engineer (`7699cca`, `tests/test_verify.py` +127/−31) → QA r1 PASS (`fd4b8f1`; mutants m1–m4 + q5/q6 each killed by own test; CI 6/6) → PM APPROVE (`bdb369f`) → raised, Ready to merge. Attempts 1, QA 1, PM 1. Independent: no open PR touches `tests/test_verify.py` or `services/embedder/`; deps AI-12/AI-12b merged.
+- Not picked: every other Ready task still waits on an open PR (see pm-lead 17:00Z entry). No work invented.
+- QA's harness refused writing `agents/reviews/AI-15/report.md`; orchestrator saved the PR comment body verbatim with a provenance line (`cbe0b9e`). QA/PM harnesses had no Jira tools; orchestrator posted role-tagged comments and transitions.
+- RUN_LOCK released in this commit.
