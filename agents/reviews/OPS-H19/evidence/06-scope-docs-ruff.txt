@@ -1,0 +1,18 @@
+$ sh -c git diff --stat origin/main...HEAD; echo '--- grep -n prefetch README.md CONTRIBUTING.md:'; grep -n prefetch README.md CONTRIBUTING.md; echo "(grep exit $?)"; echo '--- ruff check (PR head):'; ruff check scripts/arxiv_replay.py tests/test_arxiv_replay.py --output-format concise; echo '--- ruff check (origin/main copies in /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/main-copy):'; ruff check /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/main-copy --output-format concise
+ scripts/arxiv_replay.py    | 98 ++++++++++++++++++++++++++++++++++++----------
+ tests/test_arxiv_replay.py | 98 +++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 173 insertions(+), 23 deletions(-)
+--- grep -n prefetch README.md CONTRIBUTING.md:
+(grep exit 1)
+--- ruff check (PR head):
+scripts/arxiv_replay.py:1:1: EXE001 Shebang is present but file is not executable
+scripts/arxiv_replay.py:152:24: BLE001 Do not catch blind exception: `Exception`
+scripts/arxiv_replay.py:261:17: SIM115 Use a context manager for opening files
+Found 3 errors.
+--- ruff check (origin/main copies in /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/main-copy):
+/tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/main-copy/arxiv_replay.py:1:1: EXE001 Shebang is present but file is not executable
+/tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/main-copy/arxiv_replay.py:122:24: BLE001 Do not catch blind exception: `Exception`
+/tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/main-copy/arxiv_replay.py:222:17: SIM115 Use a context manager for opening files
+Found 3 errors.
+
+[exit code 1]

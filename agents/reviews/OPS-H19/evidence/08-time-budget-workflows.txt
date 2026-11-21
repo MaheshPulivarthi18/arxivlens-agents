@@ -1,0 +1,19 @@
+$ sh -c grep -n -B1 'timeout-minutes: 45\|timeout-minutes: 120\|budget-seconds' .github/workflows/stack.yml .github/workflows/eval.yml; echo '--- docstring sums:'; grep -n '1140\|2640\|clock starts' scripts/arxiv_replay.py
+.github/workflows/stack.yml-38-    runs-on: ubuntu-latest
+.github/workflows/stack.yml:39:    timeout-minutes: 45
+--
+.github/workflows/stack.yml-108-        timeout-minutes: 20
+.github/workflows/stack.yml:109:        run: python3 scripts/arxiv_replay.py prefetch --dir .arxiv-replay --search "cat:cs.LG" --limit 2 --id 2608.20331 --budget-seconds 1020
+--
+.github/workflows/eval.yml-25-    # Setup + stack-up ~10 + self-test 1 + seed 70 + eval 30 + upload/teardown 2 = ~113 -> 120.
+.github/workflows/eval.yml:26:    timeout-minutes: 120
+--
+.github/workflows/eval.yml-90-        id: prefetch
+.github/workflows/eval.yml:91:        timeout-minutes: 45
+.github/workflows/eval.yml:92:        run: python3 scripts/arxiv_replay.py prefetch --dir .arxiv-replay --ids evals/corpus.txt --budget-seconds 2520
+--- docstring sums:
+23:Prefetch time budget (--budget-seconds N > 0; the clock starts at the first upstream request): when a pass over the
+29:(TIMEOUT), plus the seconds spent reading cached hits before the first request: 1020 + 120 = 1140 s < 1200 s (the
+30:20-min step timeout in stack.yml) and 2520 + 120 = 2640 s < 2700 s (45 min, eval.yml). With no budget (0), prefetch
+
+[exit code 0]

@@ -1,0 +1,30 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/44899068259/jobs --jq .jobs[] | "JOB \(.name) \(.status) \(.started_at)", (.steps[] | "  \(.status) \(.conclusion) \(.started_at) \(.completed_at) \(.name)")
+JOB eval in_progress 2026-11-21T11:25:54Z
+  completed success 2026-11-21T11:25:55Z 2026-11-21T11:25:56Z Set up job
+  completed success 2026-11-21T11:25:56Z 2026-11-21T11:25:57Z Run actions/checkout@v4
+  completed success 2026-11-21T11:25:57Z 2026-11-21T11:26:08Z Run actions/setup-go@v5
+  completed success 2026-11-21T11:26:08Z 2026-11-21T11:26:13Z Run actions/setup-python@v5
+  completed success 2026-11-21T11:26:13Z 2026-11-21T11:26:17Z Lint the harness (actionlint, compose config)
+  completed success 2026-11-21T11:26:17Z 2026-11-21T11:26:32Z Restore Hugging Face models
+  completed success 2026-11-21T11:26:32Z 2026-11-21T11:27:24Z Host Python deps (make setup-py, CPU torch)
+  completed success 2026-11-21T11:27:24Z 2026-11-21T11:27:32Z Pre-fetch models (offline on a cache hit, so a missing file fails instead of downloading)
+  completed skipped 2026-11-21T11:27:32Z 2026-11-21T11:27:32Z Save Hugging Face models (before any container writes)
+  completed success 2026-11-21T11:27:32Z 2026-11-21T11:31:11Z Build Go CLI, make stack-up, migrate
+  completed success 2026-11-21T11:31:11Z 2026-11-21T11:31:13Z Restore arXiv replay store
+  completed success 2026-11-21T11:31:13Z 2026-11-21T11:31:13Z Prefetch arXiv responses into the replay store
+  completed skipped 2026-11-21T11:31:13Z 2026-11-21T11:31:13Z Save arXiv replay store
+  completed success 2026-11-21T11:31:13Z 2026-11-21T11:31:14Z Start the arXiv replay proxy (replay-only)
+  completed success 2026-11-21T11:31:14Z 2026-11-21T11:31:16Z Start the query service on the host
+  completed success 2026-11-21T11:31:16Z 2026-11-21T11:32:05Z Self-test: eval-seed fails on an unreachable API (no arXiv request)
+  in_progress null 2026-11-21T11:32:05Z null make eval-seed (31 corpus IDs, arXiv replayed from the cache)
+  pending null null null Machine profile
+  pending null null null make eval
+  pending null null null Upload eval results
+  pending null null null Collect stack logs
+  pending null null null Upload stack logs
+  pending null null null Teardown
+  pending null null null Post Run actions/setup-python@v5
+  pending null null null Post Run actions/setup-go@v5
+  pending null null null Post Run actions/checkout@v4
+
+[exit code 0]

@@ -1,0 +1,60 @@
+$ python3 /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/mutants.py
+== baseline (unmutated PR head)
+   result: 13 passed in 5.32s (exit 0)
+== m1 one pass only (old behaviour)
+   result: 2 failed, 11 passed in 5.31s (exit 1)
+   FAILED tests/test_arxiv_replay.py::test_prefetch_retries_only_failed_queries_until_they_succeed
+   FAILED tests/test_arxiv_replay.py::test_prefetch_never_requests_or_sleeps_past_the_deadline
+   verdict: KILLED
+== m2 cool-down not checked against the deadline
+   result: 2 failed, 11 passed in 5.32s (exit 1)
+   FAILED tests/test_arxiv_replay.py::test_prefetch_budget_stops_early_and_reports_saved
+   FAILED tests/test_arxiv_replay.py::test_prefetch_never_requests_or_sleeps_past_the_deadline
+   verdict: KILLED
+== m3 later passes re-run every query
+   result: 1 failed, 12 passed in 5.33s (exit 1)
+   FAILED tests/test_arxiv_replay.py::test_prefetch_retries_only_failed_queries_until_they_succeed
+   verdict: KILLED
+== m4 extra passes also without a budget
+   result: 2 failed, 11 passed in 7.44s (exit 1)
+   FAILED tests/test_arxiv_replay.py::test_prefetch_reports_failures - RuntimeEr...
+   FAILED tests/test_arxiv_replay.py::test_prefetch_without_budget_makes_one_pass
+   verdict: KILLED
+== q1 retry wait not checked against the deadline
+   result: 1 failed, 12 passed in 5.31s (exit 1)
+   FAILED tests/test_arxiv_replay.py::test_prefetch_never_requests_or_sleeps_past_the_deadline
+   verdict: KILLED
+== q2 no deadline check before starting a request
+   result: 13 passed in 5.32s (exit 0)
+   verdict: SURVIVED
+== q3 politeness gap not checked against the deadline
+   result: 13 passed in 5.33s (exit 0)
+   verdict: SURVIVED
+== q4 Retry-After ignored for the cool-down
+   result: 1 failed, 12 passed in 5.33s (exit 1)
+   FAILED tests/test_arxiv_replay.py::test_prefetch_retries_only_failed_queries_until_they_succeed
+   verdict: KILLED
+== q5 '(time budget)' suffix dropped
+   result: 1 failed, 12 passed in 5.34s (exit 1)
+   FAILED tests/test_arxiv_replay.py::test_prefetch_never_requests_or_sleeps_past_the_deadline
+   verdict: KILLED
+== q6 failed query not queued for retry
+   result: 2 failed, 11 passed in 5.30s (exit 1)
+   FAILED tests/test_arxiv_replay.py::test_prefetch_retries_only_failed_queries_until_they_succeed
+   FAILED tests/test_arxiv_replay.py::test_prefetch_never_requests_or_sleeps_past_the_deadline
+   verdict: KILLED
+== q7 between-query budget check removed
+   result: 13 passed in 4.86s (exit 0)
+   verdict: SURVIVED
+== q8 deadline fixed at process start (not first request)
+   result: 1 failed, 12 passed in 5.32s (exit 1)
+   FAILED tests/test_arxiv_replay.py::test_prefetch_budget_stops_early_and_reports_saved
+   verdict: KILLED
+== q9 cool-down skipped (no sleep between passes)
+   result: 2 failed, 11 passed in 5.32s (exit 1)
+   FAILED tests/test_arxiv_replay.py::test_prefetch_retries_only_failed_queries_until_they_succeed
+   FAILED tests/test_arxiv_replay.py::test_prefetch_never_requests_or_sleeps_past_the_deadline
+   verdict: KILLED
+PR checkout untouched: clean
+
+[exit code 0]

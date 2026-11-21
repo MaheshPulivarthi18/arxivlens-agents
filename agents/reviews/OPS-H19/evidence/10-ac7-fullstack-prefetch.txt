@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136830894396/logs | sed 's/\x1b\[[0-9;]*m//g' | sed -n '661,663p;678,679p;3519p;3546p'
+2026-11-21T11:27:59.8826479Z Cache not found for input keys: arxiv-replay-Linux-stack-v1-44899068303, arxiv-replay-Linux-stack-v1-
+2026-11-21T11:27:59.8920771Z ##[group]Run python3 scripts/arxiv_replay.py prefetch --dir .arxiv-replay --search "cat:cs.LG" --limit 2 --id 2608.20331 --budget-seconds 1020
+2026-11-21T11:27:59.8922366Z python3 scripts/arxiv_replay.py prefetch --dir .arxiv-replay --search "cat:cs.LG" --limit 2 --id 2608.20331 --budget-seconds 1020
+2026-11-21T11:28:12.4655111Z [replay] prefetch: 2 queries, stats={"hits": 0, "misses": 5, "upstream_fetches": 5, "upstream_failures": 0, "saved": 5}
+2026-11-21T11:28:12.5248499Z ##[group]Run actions/cache/save@v4
+2026-11-21T11:36:14.1379750Z 275 passed, 1 skipped, 3 deselected, 5 warnings in 58.74s
+2026-11-21T11:36:35.3117504Z 3 passed in 19.92s
+

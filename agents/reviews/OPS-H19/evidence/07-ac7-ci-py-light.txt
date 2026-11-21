@@ -1,0 +1,69 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136830894751/logs | sed -n 180,246p | sed 's/\x1b\[[0-9;]*m//g'
+2026-11-21T11:26:06.8822500Z ##[group]Run python -m pip install --upgrade pip
+2026-11-21T11:26:06.8823061Z python -m pip install --upgrade pip
+2026-11-21T11:26:06.8823468Z pip install -r requirements-light.txt
+2026-11-21T11:26:06.8823860Z echo "ML packages installed (must be none):"
+2026-11-21T11:26:06.8824550Z if pip list 2>/dev/null | grep -iE 'torch|transformers|sentence|PyMuPDF'; then
+2026-11-21T11:26:06.8825411Z   echo "::error::ML stack present before the light tests"; exit 1
+2026-11-21T11:26:06.8825921Z fi
+2026-11-21T11:26:06.8826194Z make test-py-light
+2026-11-21T11:26:06.8852040Z shell: /usr/bin/bash -e {0}
+2026-11-21T11:26:06.8852548Z env:
+2026-11-21T11:26:06.8852966Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-21T11:26:06.8853692Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-21T11:26:06.8854600Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-21T11:26:06.8855221Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-21T11:26:06.8855945Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-21T11:26:06.8856605Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-21T11:26:06.8856985Z ##[endgroup]
+2026-11-21T11:26:07.3268190Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages (26.3)
+2026-11-21T11:26:07.7886019Z Collecting pytest>=8.0.0 (from -r requirements-light.txt (line 4))
+2026-11-21T11:26:07.7902164Z   Using cached pytest-9.2.0-py3-none-any.whl.metadata (7.9 kB)
+2026-11-21T11:26:07.9598888Z Collecting numpy>=1.24.0 (from -r requirements-light.txt (line 5))
+2026-11-21T11:26:07.9616852Z   Using cached numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+2026-11-21T11:26:08.0411907Z Collecting pydantic>=2.5.0 (from -r requirements-light.txt (line 6))
+2026-11-21T11:26:08.0428268Z   Using cached pydantic-2.14.4-py3-none-any.whl.metadata (143 kB)
+2026-11-21T11:26:08.1318798Z Collecting confluent-kafka>=2.3.0 (from -r requirements-light.txt (line 7))
+2026-11-21T11:26:08.1336980Z   Using cached confluent_kafka-2.16.2-cp311-cp311-manylinux_2_28_x86_64.whl.metadata (38 kB)
+2026-11-21T11:26:08.1701908Z Collecting ulid-py (from -r requirements-light.txt (line 8))
+2026-11-21T11:26:08.1716950Z   Using cached ulid_py-1.1.0-py2.py3-none-any.whl.metadata (9.8 kB)
+2026-11-21T11:26:08.1832793Z Collecting iniconfig>=2 (from pytest>=8.0.0->-r requirements-light.txt (line 4))
+2026-11-21T11:26:08.1847369Z   Using cached iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+2026-11-21T11:26:08.2102962Z Collecting packaging>=24 (from pytest>=8.0.0->-r requirements-light.txt (line 4))
+2026-11-21T11:26:08.2117593Z   Using cached packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+2026-11-21T11:26:08.2212688Z Collecting pluggy<2,>=1.6 (from pytest>=8.0.0->-r requirements-light.txt (line 4))
+2026-11-21T11:26:08.2225365Z   Using cached pluggy-1.7.0-py3-none-any.whl.metadata (5.0 kB)
+2026-11-21T11:26:08.2354297Z Collecting pygments>=2.15 (from pytest>=8.0.0->-r requirements-light.txt (line 4))
+2026-11-21T11:26:08.2367499Z   Using cached pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+2026-11-21T11:26:08.2457545Z Collecting annotated-types>=0.6.0 (from pydantic>=2.5.0->-r requirements-light.txt (line 6))
+2026-11-21T11:26:08.2469792Z   Using cached annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+2026-11-21T11:26:08.7934112Z Collecting pydantic-core==2.50.5 (from pydantic>=2.5.0->-r requirements-light.txt (line 6))
+2026-11-21T11:26:08.7949883Z   Using cached pydantic_core-2.50.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (6.6 kB)
+2026-11-21T11:26:08.8080060Z Collecting typing-extensions>=4.16.0 (from pydantic>=2.5.0->-r requirements-light.txt (line 6))
+2026-11-21T11:26:08.8096078Z   Using cached typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+2026-11-21T11:26:08.8177459Z Collecting typing-inspection>=0.4.4 (from pydantic>=2.5.0->-r requirements-light.txt (line 6))
+2026-11-21T11:26:08.8191834Z   Using cached typing_inspection-0.4.5-py3-none-any.whl.metadata (2.6 kB)
+2026-11-21T11:26:08.8255521Z Using cached pytest-9.2.0-py3-none-any.whl (411 kB)
+2026-11-21T11:26:08.8270308Z Using cached pluggy-1.7.0-py3-none-any.whl (27 kB)
+2026-11-21T11:26:08.8284186Z Using cached numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.9 MB)
+2026-11-21T11:26:08.8361864Z Using cached pydantic-2.14.4-py3-none-any.whl (494 kB)
+2026-11-21T11:26:08.8378286Z Using cached pydantic_core-2.50.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.3 MB)
+2026-11-21T11:26:08.8399487Z Using cached confluent_kafka-2.16.2-cp311-cp311-manylinux_2_28_x86_64.whl (5.0 MB)
+2026-11-21T11:26:08.8431283Z Using cached ulid_py-1.1.0-py2.py3-none-any.whl (25 kB)
+2026-11-21T11:26:08.8445158Z Using cached annotated_types-0.8.0-py3-none-any.whl (13 kB)
+2026-11-21T11:26:08.8461196Z Using cached iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+2026-11-21T11:26:08.8474050Z Using cached packaging-26.3-py3-none-any.whl (129 kB)
+2026-11-21T11:26:08.8487766Z Using cached pygments-2.21.0-py3-none-any.whl (1.3 MB)
+2026-11-21T11:26:08.8506079Z Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+2026-11-21T11:26:08.8519476Z Using cached typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+2026-11-21T11:26:08.9610827Z Installing collected packages: ulid-py, typing-extensions, pygments, pluggy, packaging, numpy, iniconfig, confluent-kafka, annotated-types, typing-inspection, pytest, pydantic-core, pydantic
+2026-11-21T11:26:12.0467201Z 
+2026-11-21T11:26:12.0480797Z Successfully installed annotated-types-0.8.0 confluent-kafka-2.16.2 iniconfig-2.3.1 numpy-2.4.6 packaging-26.3 pluggy-1.7.0 pydantic-2.14.4 pydantic-core-2.50.5 pygments-2.21.0 pytest-9.2.0 typing-extensions-4.16.0 typing-inspection-0.4.5 ulid-py-1.1.0
+2026-11-21T11:26:12.1548753Z ML packages installed (must be none):
+2026-11-21T11:26:12.4182444Z python3 -m pytest -q tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py
+2026-11-21T11:26:14.1015771Z ........................................................................ [ 44%]
+2026-11-21T11:26:14.1650003Z ...s.................................................................... [ 88%]
+2026-11-21T11:26:19.4397329Z ..................                                                       [100%]
+2026-11-21T11:26:19.4399839Z 161 passed, 1 skipped in 6.06s
+2026-11-21T11:26:19.4929463Z ##[group]Run pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements-dev.txt
+

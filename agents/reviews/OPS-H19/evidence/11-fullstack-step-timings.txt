@@ -1,0 +1,38 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/136830894396 --jq "JOB \(.name) \(.started_at) -> \(.completed_at) \(.conclusion)", (.steps[] | "  \(.started_at) \(.completed_at) \(.conclusion) \(.name)")
+JOB Full stack (compose + make test-full) 2026-11-21T11:25:55Z -> 2026-11-21T11:36:45Z success
+  2026-11-21T11:25:56Z 2026-11-21T11:25:57Z success Set up job
+  2026-11-21T11:25:57Z 2026-11-21T11:25:58Z success Run actions/checkout@v4
+  2026-11-21T11:25:58Z 2026-11-21T11:26:09Z success Run actions/setup-go@v5
+  2026-11-21T11:26:09Z 2026-11-21T11:26:15Z success Run actions/setup-python@v5
+  2026-11-21T11:26:15Z 2026-11-21T11:26:29Z success Lint the harness (actionlint, compose config)
+  2026-11-21T11:26:29Z 2026-11-21T11:26:55Z success Cache Hugging Face models
+  2026-11-21T11:26:55Z 2026-11-21T11:27:47Z success Host Python deps (make setup-py, CPU torch)
+  2026-11-21T11:27:47Z 2026-11-21T11:27:57Z success Pre-fetch models into the shared HF cache
+  2026-11-21T11:27:57Z 2026-11-21T11:27:59Z success Build Go CLI
+  2026-11-21T11:27:59Z 2026-11-21T11:27:59Z success Restore arXiv replay store
+  2026-11-21T11:27:59Z 2026-11-21T11:28:12Z success Prefetch arXiv responses into the replay store
+  2026-11-21T11:28:12Z 2026-11-21T11:28:13Z success Save arXiv replay store
+  2026-11-21T11:28:13Z 2026-11-21T11:28:14Z success ING-6 Risk 1: published order of recorded search feeds
+  2026-11-21T11:28:14Z 2026-11-21T11:28:14Z success Start the arXiv replay proxy (replay-only)
+  2026-11-21T11:28:14Z 2026-11-21T11:28:38Z success AC1: plain docker compose up -d starts infra only
+  2026-11-21T11:28:38Z 2026-11-21T11:32:25Z success AC2: make stack-up
+  2026-11-21T11:32:25Z 2026-11-21T11:32:56Z success Worker health follows this container, not the group
+  2026-11-21T11:32:56Z 2026-11-21T11:32:58Z success Migrate
+  2026-11-21T11:32:58Z 2026-11-21T11:33:02Z success AC3: crawl 2 papers (before the downloader starts)
+  2026-11-21T11:33:02Z 2026-11-21T11:33:04Z success Start Go downloader and query service on the host
+  2026-11-21T11:33:04Z 2026-11-21T11:34:12Z success AC3: wait until both crawled papers are embedded
+  2026-11-21T11:34:12Z 2026-11-21T11:35:14Z success Seed the M3/M4 fixture (on-demand ingest of 2608.20331)
+  2026-11-21T11:35:14Z 2026-11-21T11:36:15Z success AC4: make test-full
+  2026-11-21T11:36:15Z 2026-11-21T11:36:35Z success Known failure F1 (CPU rerank latency, tracked)
+  2026-11-21T11:36:35Z 2026-11-21T11:36:35Z success Collect service logs
+  2026-11-21T11:36:35Z 2026-11-21T11:36:35Z success arXiv replay stats
+  2026-11-21T11:36:35Z 2026-11-21T11:36:35Z skipped Diagnostics
+  2026-11-21T11:36:35Z 2026-11-21T11:36:36Z success Upload logs
+  2026-11-21T11:36:36Z 2026-11-21T11:36:41Z success Teardown
+  2026-11-21T11:36:41Z 2026-11-21T11:36:41Z success Post Cache Hugging Face models
+  2026-11-21T11:36:41Z 2026-11-21T11:36:41Z success Post Run actions/setup-python@v5
+  2026-11-21T11:36:41Z 2026-11-21T11:36:42Z success Post Run actions/setup-go@v5
+  2026-11-21T11:36:42Z 2026-11-21T11:36:42Z success Post Run actions/checkout@v4
+  2026-11-21T11:36:42Z 2026-11-21T11:36:42Z success Complete job
+
+[exit code 0]

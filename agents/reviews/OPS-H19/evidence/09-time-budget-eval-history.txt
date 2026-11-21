@@ -1,0 +1,31 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/runs/44764887789/jobs --jq .jobs[] | "JOB \(.name) \(.started_at) -> \(.completed_at)", (.steps[] | "  \(.started_at) \(.completed_at) \(.name)")
+JOB eval 2026-11-20T15:36:01Z -> 2026-11-20T16:44:22Z
+  2026-11-20T15:36:02Z 2026-11-20T15:36:04Z Set up job
+  2026-11-20T15:36:04Z 2026-11-20T15:36:05Z Run actions/checkout@v4
+  2026-11-20T15:36:05Z 2026-11-20T15:36:17Z Run actions/setup-go@v5
+  2026-11-20T15:36:17Z 2026-11-20T15:36:27Z Run actions/setup-python@v5
+  2026-11-20T15:36:27Z 2026-11-20T15:36:39Z Lint the harness (actionlint, compose config)
+  2026-11-20T15:36:39Z 2026-11-20T15:37:22Z Restore Hugging Face models
+  2026-11-20T15:37:22Z 2026-11-20T15:38:18Z Host Python deps (make setup-py, CPU torch)
+  2026-11-20T15:38:18Z 2026-11-20T15:38:28Z Pre-fetch models (offline on a cache hit, so a missing file fails instead of downloading)
+  2026-11-20T15:38:28Z 2026-11-20T15:38:28Z Save Hugging Face models (before any container writes)
+  2026-11-20T15:38:28Z 2026-11-20T15:42:30Z Build Go CLI, make stack-up, migrate
+  2026-11-20T15:42:30Z 2026-11-20T15:42:32Z Restore arXiv replay store
+  2026-11-20T15:42:32Z 2026-11-20T15:42:32Z Prefetch arXiv responses into the replay store
+  2026-11-20T15:42:32Z 2026-11-20T15:42:32Z Save arXiv replay store
+  2026-11-20T15:42:32Z 2026-11-20T15:42:33Z Start the arXiv replay proxy (replay-only)
+  2026-11-20T15:42:33Z 2026-11-20T15:42:35Z Start the query service on the host
+  2026-11-20T15:42:35Z 2026-11-20T15:43:24Z Self-test: eval-seed fails on an unreachable API (no arXiv request)
+  2026-11-20T15:43:24Z 2026-11-20T16:22:00Z make eval-seed (31 corpus IDs, arXiv replayed from the cache)
+  2026-11-20T16:22:00Z 2026-11-20T16:22:00Z Machine profile
+  2026-11-20T16:22:00Z 2026-11-20T16:44:12Z make eval
+  2026-11-20T16:44:12Z 2026-11-20T16:44:13Z Upload eval results
+  2026-11-20T16:44:13Z 2026-11-20T16:44:13Z Collect stack logs
+  2026-11-20T16:44:13Z 2026-11-20T16:44:13Z Upload stack logs
+  2026-11-20T16:44:13Z 2026-11-20T16:44:18Z Teardown
+  2026-11-20T16:44:18Z 2026-11-20T16:44:18Z Post Run actions/setup-python@v5
+  2026-11-20T16:44:18Z 2026-11-20T16:44:18Z Post Run actions/setup-go@v5
+  2026-11-20T16:44:18Z 2026-11-20T16:44:19Z Post Run actions/checkout@v4
+  2026-11-20T16:44:19Z 2026-11-20T16:44:19Z Complete job
+
+[exit code 0]

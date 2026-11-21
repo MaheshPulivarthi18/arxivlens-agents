@@ -1,0 +1,24 @@
+$ sh -c grep -n 'urllib\|urlopen\|USER_AGENT\|INTERVAL\|rec.fetch\|time.sleep' scripts/arxiv_replay.py; echo '--- origin/main:'; git show origin/main:scripts/arxiv_replay.py | grep -n 'urlopen\|User-Agent'
+48:import urllib.error
+49:import urllib.parse
+50:import urllib.request
+56:USER_AGENT = "ArxivLens/1.0 (CI record proxy; mailto:contact@arxivlens.local)"
+57:INTERVAL = 3.0             # arXiv politeness: one request per 3 s
+67:    canon = urllib.parse.urlencode(sorted(urllib.parse.parse_qsl(query, keep_blank_values=True)))
+130:                gap = INTERVAL - (now - self.last)
+134:                    time.sleep(gap)
+142:                    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+143:                    with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+145:                except urllib.error.HTTPError as e:
+166:            time.sleep(wait)
+191:        status, body = self.rec.fetch(upstream_url, valid)
+198:        u = urllib.parse.urlsplit(self.path)
+235:    status, body = rec.fetch(url, valid)
+270:    return urllib.parse.urlencode(sorted({"search_query": query, "start": "0", "max_results": str(limit),
+324:        time.sleep(wait)
+--- origin/main:
+11:  - miss with --record: fetched once from arXiv (serialized, >= 3 s apart, identifying User-Agent, retried on
+113:                    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+114:                    with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+
+[exit code 0]

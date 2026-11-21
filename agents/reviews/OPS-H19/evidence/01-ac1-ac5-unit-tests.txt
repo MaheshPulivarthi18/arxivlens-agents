@@ -1,0 +1,24 @@
+$ python3 -m pytest -v -p no:cacheprovider tests/test_arxiv_replay.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+rootdir: /root/wt/app-qa-OPS-H19
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 13 items
+
+tests/test_arxiv_replay.py::test_record_then_replay_without_upstream PASSED [  7%]
+tests/test_arxiv_replay.py::test_rate_limit_is_retried_and_bad_bodies_never_saved PASSED [ 15%]
+tests/test_arxiv_replay.py::test_upstream_failure_passes_status_through PASSED [ 23%]
+tests/test_arxiv_replay.py::test_rejects_bad_pdf_names PASSED            [ 30%]
+tests/test_arxiv_replay.py::test_entry_pdf_names_match_go_fetch_urls PASSED [ 38%]
+tests/test_arxiv_replay.py::test_search_query_string_matches_go_crawler PASSED [ 46%]
+tests/test_arxiv_replay.py::test_prefetch_warms_store_then_serve_needs_no_upstream PASSED [ 53%]
+tests/test_arxiv_replay.py::test_prefetch_reports_failures PASSED        [ 61%]
+tests/test_arxiv_replay.py::test_prefetch_budget_stops_early_and_reports_saved PASSED [ 69%]
+tests/test_arxiv_replay.py::test_prefetch_retries_only_failed_queries_until_they_succeed PASSED [ 76%]
+tests/test_arxiv_replay.py::test_prefetch_without_budget_makes_one_pass PASSED [ 84%]
+tests/test_arxiv_replay.py::test_prefetch_never_requests_or_sleeps_past_the_deadline PASSED [ 92%]
+tests/test_arxiv_replay.py::test_prefetch_loop_fetches_only_through_recorder PASSED [100%]
+
+============================== 13 passed in 5.33s ==============================
+
+[exit code 0]

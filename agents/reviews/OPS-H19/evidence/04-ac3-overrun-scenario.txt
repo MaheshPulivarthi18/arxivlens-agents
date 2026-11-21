@@ -1,0 +1,42 @@
+$ sh -c cat /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/test_qa_overrun.py; echo; sh /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/qa_overrun.sh
+# QA-only scenario test (not part of the PR): an in-flight request that runs past the deadline must not be
+# followed by another request, even when INTERVAL has already elapsed (gap <= 0, so no politeness sleep happens).
+from tests.test_arxiv_replay import env, Clock, PDF  # noqa: F401  (reuse the PR's fixture and fake clock)
+from scripts import arxiv_replay as rp
+
+FEED3 = (b'<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">'
+         b'<entry><id>p1</id></entry><entry><id>p2</id></entry></feed>')
+
+
+def test_no_request_after_an_overrunning_request(env, tmp_path, monkeypatch, capsys):
+    up, _ = env
+    up.script = {"api": [(200, FEED3, {})], "pdf": [(200, PDF, {})]}
+    monkeypatch.setattr(rp, "INTERVAL", 3.0)
+    clock = Clock(monkeypatch, up)
+    slow = clock.request
+
+    def request(path):  # p1.pdf takes 150 s, crossing the 100 s deadline
+        slow(path)
+        if path.endswith("p1.pdf"):
+            clock.t += 148.0
+    up.on_request = request
+    assert rp.main(["prefetch", "--dir", str(tmp_path / "s"), "--id", "2401.00001", "--budget-seconds", "100"]) == 1
+    paths = [p for p, _ in up.requests]
+    print("requests:", clock.request_times)
+    assert paths == ["/api/query?id_list=2401.00001", "/pdf/p1.pdf"], paths
+    assert all(t < 100 for t, _ in clock.request_times)
+    assert "prefetch FAILED for 1: p2.pdf (time budget)" in capsys.readouterr().err
+
+== pr-head
+.                                                                        [100%]
+1 passed in 0.59s
+== q2-mutant
+tests/test_qa_overrun.py:22: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[replay] prefetch: 1 queries, stats={"hits": 0, "misses": 3, "upstream_fetches": 3, "upstream_failures": 0, "saved": 3}
+=========================== short test summary info ============================
+FAILED tests/test_qa_overrun.py::test_no_request_after_an_overrunning_request
+1 failed in 0.60s
+PR checkout status: 0 changed files
+
+[exit code 0]

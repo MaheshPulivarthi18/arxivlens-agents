@@ -1,0 +1,46 @@
+$ cat /tmp/claude-0/-home-claude/9eea0923-7545-52d6-ac36-a6fd37bd8336/scratchpad/mutants.py
+"""QA mutant runner: copy scripts/ + tests/ of the cwd checkout to a temp dir, apply one textual mutant, run pytest."""
+import os, shutil, subprocess, sys, tempfile
+SRC = "scripts/arxiv_replay.py"
+MUTANTS = [
+ ("m1 one pass only (old behaviour)", "        if not failed or rec.deadline is None:\n", "        if True:\n"),
+ ("m2 cool-down not checked against the deadline", "        if not rec.budget_allows(wait):  # the next pass could not start before the deadline\n            break\n", "        if False:\n            break\n"),
+ ("m3 later passes re-run every query", "        pending = retry\n", "        pending = queries\n"),
+ ("m4 extra passes also without a budget", "        if not failed or rec.deadline is None:\n", "        if not failed:\n"),
+ ("q1 retry wait not checked against the deadline", "            if not self.budget_allows(wait):\n                return BUDGET, b\"\"\n            time.sleep(wait)\n", "            time.sleep(wait)\n"),
+ ("q2 no deadline check before starting a request", "                if self.deadline is not None and now >= self.deadline:\n                    return BUDGET, b\"\"\n", ""),
+ ("q3 politeness gap not checked against the deadline", "                    if not self.budget_allows(gap):\n                        return BUDGET, b\"\"\n", ""),
+ ("q4 Retry-After ignored for the cool-down", "                    self.retry_after = max(self.retry_after, retry_after)\n", ""),
+ ("q5 '(time budget)' suffix dropped", "    return name + (\" (time budget)\" if status == BUDGET else \"\")\n", "    return name\n"),
+ ("q6 failed query not queued for retry", "                retry.append(q)\n", "                pass\n"),
+ ("q7 between-query budget check removed", "            if not rec.budget_allows(0):\n", "            if False:\n"),
+ ("q8 deadline fixed at process start (not first request)", "    rec = Recorder(args.dir, True, max(args.budget_seconds, 0))\n", "    rec = Recorder(args.dir, True, max(args.budget_seconds, 0))\n    rec.deadline = time.monotonic() + rec.budget if rec.budget > 0 else None\n"),
+ ("q9 cool-down skipped (no sleep between passes)", "        time.sleep(wait)\n        pending = retry\n", "        pending = retry\n"),
+]
+orig = open(SRC).read()
+def run(tag, d):
+    p = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--timeout=60", "tests/test_arxiv_replay.py"],
+                       cwd=d, capture_output=True, text=True)
+    if "unrecognized arguments: --timeout" in p.stderr:
+        p = subprocess.run(["timeout", "120", sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/test_arxiv_replay.py"],
+                           cwd=d, capture_output=True, text=True)
+    lines = (p.stdout + p.stderr).splitlines()
+    fails = [l for l in lines if l.startswith("FAILED") or l.startswith("ERROR")]
+    summary = lines[-1] if lines else "(no output)"
+    print(f"== {tag}\n   result: {summary.strip()} (exit {p.returncode})")
+    for l in fails:
+        print("   " + l[:150])
+    return p.returncode
+with tempfile.TemporaryDirectory() as base:
+    for name, old, new in [("baseline (unmutated PR head)", None, None)] + MUTANTS:
+        d = os.path.join(base, str(abs(hash(name))))
+        shutil.copytree("scripts", os.path.join(d, "scripts")); shutil.copytree("tests", os.path.join(d, "tests"))
+        if old is not None:
+            assert orig.count(old) == 1, f"mutant anchor not unique/found: {name}"
+            open(os.path.join(d, SRC), "w").write(orig.replace(old, new))
+        rc = run(name, d)
+        if old is not None:
+            print("   verdict:", "KILLED" if rc != 0 else "SURVIVED")
+print("PR checkout untouched:", subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True).stdout.strip() or "clean")
+
+[exit code 0]
