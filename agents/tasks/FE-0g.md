@@ -6,7 +6,7 @@
 | **Priority** | P3 (harness/quality) |
 | **PRD ref** | Product PRD §7 (readable, accessible UI via FE-3/FE-4); FE-0d QA r1 "Missing tests" M35–M39 and nit 4 (`agents/reviews/FE-0d/report.md`, "Missing tests" and finding 4) |
 | **Depends on** | FE-0d (#95, merged `ae8de39`). FE-1 (Vitest, merged). No ADR |
-| **Jira** | needs creating (epic KAN-5 "Research UI & citations"; labels `task-FE-0g`, `agent-frontend`, `arxivlens`) |
+| **Jira** | KAN-110 |
 | **Design required** | no: tests only, no component, contract or dependency change |
 | **Status** | Ready (picked 2026-11-21 07:00Z) |
 

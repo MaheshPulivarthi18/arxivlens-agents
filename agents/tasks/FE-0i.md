@@ -6,7 +6,7 @@
 | **Priority** | P3 (quality / a11y hygiene) |
 | **PRD ref** | Product PRD §7 (readable, accessible UI); FE-3b QA r1 nit 1 (`agents/reviews/FE-3b/report.md`): FE-3b's status chip `<button>` wraps `Badge`, which renders a `<div>` (non-phrasing content in a button) |
 | **Depends on** | FE-0b (#70, merged). No ADR. Does **not** wait on FE-3b (#104): no shared file, see Notes |
-| **Jira** | needs creating (epic KAN-5 "Research UI & citations"; labels `task-FE-0i`, `agent-frontend`, `arxivlens`) |
+| **Jira** | KAN-111 |
 | **Design required** | no: one element tag in a ui primitive plus a test; no contract or dependency change |
 | **Status** | Ready (picked 2026-11-21 07:00Z) |
 

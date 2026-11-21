@@ -6,7 +6,7 @@
 | **Priority** | P3 (harness/reliability) |
 | **PRD ref** | Product PRD OPS-1, OPS-3; Technical PRD §8.1 (L4 commit-after-process); OPS-H8c QA r1 "Missing tests" (`agents/reviews/OPS-H8c/report.md`) |
 | **Depends on** | OPS-H8c (#100, merged `3c9b133`), OPS-H8 (merged). No ADR |
-| **Jira** | needs creating (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H8d`, `agent-ai`, `arxivlens`; link KAN-104) |
+| **Jira** | KAN-112 |
 | **Design required** | no: one unit test reading two existing files |
 | **Status** | Ready (picked 2026-11-21 07:00Z) |
 
