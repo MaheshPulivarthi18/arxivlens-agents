@@ -64,3 +64,12 @@ gh api repos/MaheshPulivarthi18/ArxivLens/commits/<head-sha>/check-runs --jq '.c
 ## Notes
 - 2026-11-21 12:00Z pm-lead: specced from the Backlog line "OPS-H18 QA nits" (findings 1 and 3). Picked alone for
   backend this cycle: every other backend Ready task waits on an open PR (#104 README, #106 db.py, #111 eval budget).
+- 2026-11-21 backend-engineer: built on `agent/backend/OPS-H18b` (commit `246d6d1`, from `11c4696`; not pushed, no PR yet).
+  ci.yml guard now captures `pkgs="$(pip list)" || { echo "::error::pip list failed; cannot check for the ML stack"; exit 1; }`
+  and then runs `grep -iE '…' <<<"$pkgs"` (expansions quoted; regex unchanged). Makefile:43 help is now
+  `Fast tests, no infra (Go + test-py). Frontend tests: make test-fe`. Diff: 2 files, +4/−2.
+  Local evidence (step's `run:` block pulled from the YAML with PyYAML, run under `bash -e` with stub `pip`/`python`/`make`):
+  pip list exits 2 → `::error::pip list failed…`, exit 1 · prints `torch 2.4.0` → `::error::ML stack present before the light tests`, exit 1 ·
+  prints only `pytest 8.3.0` → reaches `make test-py-light`, exit 0. Contrast: the old block with the same exit-2 stub → exit 0 (the bug).
+  `make help | grep test-unit` prints the new text. `ownership-check.sh origin/main agent/backend/OPS-H18b` → OK (6 changed lines).
+  Not run locally: shellcheck (not installed), the real CI (AC2 last sentence, AC4: needs the PR head). Docs: none needed (as the spec says).
