@@ -57,3 +57,32 @@ PASS → pm-lead final review. Nits 1-2 are optional for the developer.
 - `evidence/04-ac5-comment-hunk.png` — AC5: comment-only hunk + code path
 - `evidence/05-ci-go-job.png` — AC3/AC6: CI Go job lint-go/test-go excerpt
 - `evidence/06-qa-harness.png` — QA harness source (extract.go, run.sh, mutate.sh)
+
+---
+
+## PM final review (pm-lead) · 2026-11-21
+
+**Verdict:** APPROVE · **Reviewed head:** `f2337c3218cb315169a831ae990852e2d1698a94` · **QA:** round 1 PASS (evidence commit `78d47f7`)
+
+**PRD fit.** QA-6 asks to de-prioritize appendix, supplementary and *table* passages. The old substring match also penalized ordinary sections ("Notable results", "Stable training"), which dropped relevant 0.45-0.70 passages from `/v1/ask` evidence. That works against Product PRD §7 "evidence first" and hurts the researcher persona. The whole-word `table|tables` rule is the narrowest reading of QA-6: it removes those false positives, adds none, and keeps every true table section penalized. Technical §7.2 constants (0.45 / 0.70) are unchanged. The PRD QA-6 row is already ✅ and stays correct. No README change is needed because the API and commands are unchanged.
+
+**Scope.** Exactly `rag.go` and `rag_test.go`, +26/-4, all within ai-engineer paths. Nothing is missing: AC1 has all 8 listed rows, AC2 has the new "Supplementary Material" row, and the AC5 hunk is comment-only. Nothing extra: "Appendices" is listed as a follow-up and was not added, and the zero-rerank bypass (AI-5/ADR-0011) is untouched.
+
+**Evidence (all 8 files opened):**
+- 00: six CI check runs succeed on `f2337c3` (AC6). I re-queried them at review time and all are still success.
+- 01: 19/19 subtests pass, including every AC1/AC2 row by name. The PR code was extracted verbatim via go/ast, and 06 shows the harness, so the result is reproducible.
+- 02: only the two expected files changed, and `rag_test.go` has 0 removed lines (AC2/AC3).
+- 03: m1, m2 and m3 each fail the named rows (AC4). m4 and m5 are an extra check that appendix/supplementary are still pinned.
+- 03b: m6 is caught and m7 survives (nit 1 below).
+- 04: the comment-only hunk, plus `return fallback("claims_unsupported")` at `rag.go:287`, proves AC5.
+- 05: the CI Go job ran `go vet`, then `go test -race ./...`, with `ok arxivlens/internal/query` (AC3/AC6).
+
+No "unverified" item remains on any AC. The local Go 1.25 gap is covered by CI, which is the source of truth (AGENTS.md §4).
+
+**QA nits:**
+1. Nit 1 (right word boundary not pinned, so m7 survives) is **not blocking**. Every AC1 row is present, the regex is correct, and AC1 did not ask for a prefix row. That was a gap in my spec, not in the code. It goes to a follow-up: add a `"Tablet experiments"` at 0.5 → kept row. Pair it with the "Appendices" follow-up so both land in one small ai-engineer ticket on `rag_test.go`/`rag.go`.
+2. Nit 2 (the eval reason names Recall@5) is **accepted, and I fixed it in the PR description** when raising the PR. `filterRelevantHits` doesn't affect retrieval Recall@5. It can only change `/v1/ask` supported-citation and correct-refusal rates, in the intended direction, and the nightly `eval.yml` will show any shift.
+
+**Lesson for pm-lead:** when an AC lists keep/drop rows for a word-boundary rule, include at least one row per boundary side, for example a prefix-of-longer-word row like "Tablet".
+
+**Action:** I'm raising PR #115 (ready for review) with the evidence in its description. Next: Mahesh reviews and merges.
