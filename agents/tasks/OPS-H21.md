@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H19 (ArxivLens #111) **merged** (same two files: #111 = `scripts/arxiv_replay.py`, `tests/test_arxiv_replay.py`, REST `pulls/111/files` 2026-11-21 13:10Z). No overlap with OPS-H20 #114 (`eval.yml` only; this ticket edits no workflow) |
 | **Jira** | KAN-119 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H21`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: control flow inside an existing CI script + unit tests; no flag, contract or workflow change |
-| **Status** | In QA (PR pending). Built cycle 2026-11-21T21:59Z on `agent/ai/OPS-H21` @ `0970737` |
+| **Status** | Ready to merge: ArxivLens #123 @ `0970737` raised for review 2026-11-22 (QA r1 PASS, PM APPROVE) |
 
 ## Goal
 Three gaps QA found in OPS-H19 and OPS-H20, all small and all in `main`'s prefetch path:
@@ -33,30 +33,31 @@ Three gaps QA found in OPS-H19 and OPS-H20, all small and all in `main`'s prefet
   the existing `saved != '' && saved != '0'` conditions already work with item 3), `PASS_WAIT`, a per-request deadline.
 
 ## Acceptance criteria
-- [ ] AC1: With a budget, if every failure in a pass is permanent (HTTP 4xx other than 429, or a non-feed/non-PDF 200 after
+- [x] AC1: With a budget, if every failure in a pass is permanent (HTTP 4xx other than 429, or a non-feed/non-PDF 200 after
   its retries), prefetch does not start another pass: it exits 1 at once with the existing `prefetch FAILED for N: ...` line.
   Test: upstream scripted 404 for a PDF, `--budget-seconds 1000`, fake clock: exit 1, no cool-down sleep recorded,
   exactly one request for that PDF.
-- [ ] AC2: A pass with mixed failures (one 404 PDF + one 429 feed) still retries, and the next pass includes only the queries
+- [x] AC2: A pass with mixed failures (one 404 PDF + one 429 feed) still retries, and the next pass includes only the queries
   with a transient failure. Test asserts the upstream log of pass 2.
-- [ ] AC3: New test from QA's scenario: feed with 2 PDFs, `p1.pdf` takes 150 s against a 100 s budget, `INTERVAL` 3 s:
+- [x] AC3: New test from QA's scenario: feed with 2 PDFs, `p1.pdf` takes 150 s against a 100 s budget, `INTERVAL` 3 s:
   `p2.pdf` is never requested, every request starts before the deadline, and `p2.pdf (time budget)` is reported.
-- [ ] AC4: All existing tests in `tests/test_arxiv_replay.py` pass unmodified.
-- [ ] AC5: Mutation check (output in an evidence file, revert each): (m1) treat all failures as transient → AC1 fails;
+- [x] AC4: All existing tests in `tests/test_arxiv_replay.py` pass unmodified.
+- [x] AC5: Mutation check (output in an evidence file, revert each): (m1) treat all failures as transient → AC1 fails;
   (m2) remove the `now >= self.deadline` check before a request (QA's q2) → AC3 fails; (m3) treat all failures as
   permanent → AC2 fails.
-- [ ] AC7 (item 3): `prefetch` writes exactly one `saved=` line to `$GITHUB_OUTPUT`, right after the first entry it adds
-  to the store is on disk; it writes none if it adds nothing (the step output stays `''`, the save step is skipped as
-  today). The final `saved=<count>` write at exit is removed (no repeated key). `serve --record` never writes
-  `$GITHUB_OUTPUT`. The stats line still prints the full count. Tests (with `GITHUB_OUTPUT` pointed at a tmp file):
-  (a) first query saves, second query's fetch raises (simulating a kill): the file already holds `saved=1`;
-  (b) a run that saves 3 entries writes exactly one `saved=` line; (c) an all-hit run writes none;
-  (d) `serve --record` saving an entry writes none.
-- [ ] AC8: Mutation (same evidence file as AC5): (m4) move the write back to the end of `main` → AC7(a) fails.
-- [ ] AC6: CI on the draft PR: `Python M0 unit tests` (runs `make test-py-light`), `Full stack (compose + make test-full)`
+- [x] AC7 (item 3): `prefetch` keeps exactly **one** `saved=<n>` line in `$GITHUB_OUTPUT`: it is appended right after
+  the first entry it adds to the store is on disk, and rewritten in place (same offset, never a second `saved=` key)
+  after each later save, so at any moment it holds the count saved so far. It writes none if it adds nothing (the step
+  output stays `''`, the save step is skipped as today). No separate final `saved=<count>` append at exit.
+  `serve --record` never writes `$GITHUB_OUTPUT`. The stats line still prints the full count. Tests (with
+  `GITHUB_OUTPUT` pointed at a tmp file): (a) first query saves, second query's fetch raises (simulating a kill): the
+  file already holds `saved=1`; (b) a run that saves 3 entries leaves exactly one `saved=` line, `saved=3`; (c) an
+  all-hit run writes none; (d) `serve --record` saving an entry writes none. *(Reworded 2026-11-22, see Notes.)*
+- [x] AC8: Mutation (same evidence file as AC5): (m4) move the write back to the end of `main` → AC7(a) fails.
+- [x] AC6: CI on the draft PR: `Python M0 unit tests` (runs `make test-py-light`), `Full stack (compose + make test-full)`
   and `eval` (triggered by `scripts/arxiv_replay.py`; its "Lint the harness" step runs actionlint) green. There is no
   separate `Lint` check.
-- [ ] Docs: the module docstring says which failures trigger another pass and when `saved=` is written.
+- [x] Docs: the module docstring says which failures trigger another pass and when `saved=` is written.
 
 ## Verification
 ```bash
@@ -87,3 +88,14 @@ git diff origin/main --name-only   # exactly scripts/arxiv_replay.py and tests/t
   their target test (temp copies, worktree clean). `make test-py-light` can't collect `tests/test_worker_heartbeat.py`
   (no `confluent_kafka`, PyPI unreachable), so the other 3 light files were run: 303 passed, 1 skipped. `make lint` is Go/frontend
   only (no Go 1.25 or npm here). ruff shows the same 3 findings as origin/main, none new. CI (AC6) is pending the PR.
+- 2026-11-22 (pm-lead): **AC7 reworded** (QA OPS-H21 r1 finding 3 `[spec]`). The intended reading is the one the PR
+  implements: a single `saved=` line created at the first save and kept current in place. The old text ("writes exactly
+  one `saved=` line ... right after the first entry") read as write-once `saved=1`, which contradicted AC4 (existing
+  tests assert `saved=2` / `saved=3` at the end) and the goal (the save step only needs `!= ''`/`!= '0'`, but the value
+  should be truthful). The rewrite never shortens the line (n only grows) and nothing else writes to the step's
+  `$GITHUB_OUTPUT` after it, so it is safe; QA probe 05 covers the 9 -> 12 digit growth.
+- 2026-11-22 (pm-lead): QA findings 1 and 2 `[nit]` (no committed test for 5xx/network-error = transient, mutant x5; no
+  test for one query with a 404 and a 429 PDF, mutant x6) -> follow-up **OPS-H22** (ai-engineer, P2, tests only,
+  depends on this PR merged). QA's side note (pass 2 re-requests the permanent PDF of a query that is retried) is
+  accepted as-is: bounded by the pass count, and AC2 retries per query by design; no per-name skip set.
+  Finding 4 (equivalent BUDGET mutants): no action. PM verdict APPROVE in `agents/reviews/OPS-H21/report.md`.
