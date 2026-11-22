@@ -1,0 +1,264 @@
+$ python3 -I mutants.py (source in 07-harness.txt); local copies only, never pushed
+mutant                                           | suite   | result
+CONTROL (unmutated head)                         | it      | PASS
+CONTROL (unmutated head)                         | crawler | PASS
+CONTROL (unmutated head)                         | cmd     | PASS
+M6 Watermark: read error -> (zero,false,nil)     | it      | FAIL TestAdvanceWatermarkMonotonic
+M8 AdvanceWatermark: Exec error swallowed        | it      | FAIL TestAdvanceWatermarkMonotonic
+M7 updated_at not bumped on conflict             | it      | FAIL TestAdvanceWatermarkMonotonic
+L1 lock: release does not unlock                 | it      | FAIL TestCrawlLoopLock
+L2 lock: ok ignored (always true)                | it      | FAIL TIMEOUT(hang: pool Close waits on a held conn)
+L3 lock: xact-level lock (released at once)      | it      | FAIL TIMEOUT(hang: pool Close waits on a held conn)
+L4 lock: on ok=false, connection not released    | it      | FAIL TIMEOUT(hang: pool Close waits on a held conn)
+M9 acked set before Publish                      | crawler | FAIL TestRunOnceCrossListed,TestRunOnceCrossListed/cs.AI's_publish_of_p14_fails:_cs.LG_publishes_it
+M9 acked set before Publish                      | cross   | FAIL TestRunOnceCrossListed,TestRunOnceCrossListed/cs.AI's_publish_of_p14_fails:_cs.LG_publishes_it
+P1 double cat: prefix (walk re-adds it)          | crawler | FAIL TestRunStopsOnCancel,TestRunStopsOnCancel/Once_returns_the_pass_error
+C1 RunOnce: no ctx check between categories      | crawler | PASS  => SURVIVED
+C1 RunOnce: no ctx check between categories      | cancel  | PASS  => SURVIVED
+F1 flags: --interval check dropped               | cmd     | FAIL TestCrawlLoopFlags,TestCrawlLoopFlags/interval_30s
+F2 flags: --interval < 1s (boundary)             | cmd     | FAIL TestCrawlLoopFlags,TestCrawlLoopFlags/interval_30s
+F3 flags: --limit-per-run < 0                    | cmd     | FAIL TestCrawlLoopFlags,TestCrawlLoopFlags/limit-per-run_0
+F4 flags: --max-scan <= check                    | cmd     | FAIL TestCrawlLoopFlags,TestCrawlLoopFlags/max-scan_<_limit-per-run
+F5 flags: categories error ignored               | cmd     | FAIL TestCrawlLoopFlags,TestCrawlLoopFlags/bad_categories_(query_injection),TestCrawlLoopFlags/empty_categories
+F6 flags: run before validation                  | cmd     | FAIL TestCrawlLoopFlags,TestCrawlLoopFlags/bad_categories_(query_injection),TestCrawlLoopFlags/empty_categories,TestCrawlLoopFlags/interval_30s,TestCrawlLoopFlags/limit-per-run_0,TestCrawlLoopFlags/max-scan_<_limit-per-run
+F7 default --max-scan 1000                       | cmd     | FAIL TestCrawlLoopFlags,TestCrawlLoopFlags/defaults
+
+suites: {'it': 'go test -tags integration -count=1 -timeout=45s -run ^(TestAdvanceWatermarkMonotonic|TestCrawlLoopLock)$ ./internal/db/', 'crawler': 'go test -count=1 ./internal/crawler/', 'cross': 'go test -count=1 -run ^TestRunOnceCrossListed$ ./internal/crawler/', 'cancel': 'go test -count=1 -run ^TestRunOnceCancelledAfterFirstCategory$ ./internal/crawler/', 'cmd': 'go test -count=1 -run ^TestCrawlLoopFlags$ ./cmd/arxivlens/'}
+
+==== mutant diffs (local copies only, never pushed) ====
+M6 Watermark: read error -> (zero,false,nil)
+--- /root/wt/app-qa-ING-6c/internal/db/watermarks.go	2026-11-22 07:32:28.104527026 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-r95n3r6a/internal/db/watermarks.go	2026-11-22 07:45:43.082883884 +0530
+@@ -27,7 +27,7 @@
+ 		return time.Time{}, false, nil
+ 	}
+ 	if err != nil {
+-		return time.Time{}, false, fmt.Errorf("failed to read crawl watermark for %s: %w", category, err)
++		return time.Time{}, false, nil
+ 	}
+ 	return t, true, nil
+ }
+
+M8 AdvanceWatermark: Exec error swallowed
+--- /root/wt/app-qa-ING-6c/internal/db/watermarks.go	2026-11-22 07:32:28.104527026 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-1700sgso/internal/db/watermarks.go	2026-11-22 07:45:43.717782743 +0530
+@@ -35,7 +35,7 @@
+ // AdvanceWatermark sets category's watermark to t unless the stored one is already later.
+ func (d *DB) AdvanceWatermark(ctx context.Context, category string, t time.Time) error {
+ 	if _, err := d.Pool.Exec(ctx, advanceWatermarkSQL, category, t); err != nil {
+-		return fmt.Errorf("failed to advance crawl watermark for %s: %w", category, err)
++		return nil
+ 	}
+ 	return nil
+ }
+
+M7 updated_at not bumped on conflict
+--- /root/wt/app-qa-ING-6c/internal/db/watermarks.go	2026-11-22 07:32:28.104527026 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-62frf182/internal/db/watermarks.go	2026-11-22 07:45:44.312540622 +0530
+@@ -15,8 +15,7 @@
+ 	INSERT INTO crawl_watermarks (category, last_published_at, updated_at)
+ 	VALUES ($1, $2, now())
+ 	ON CONFLICT (category) DO UPDATE SET
+-		last_published_at = GREATEST(crawl_watermarks.last_published_at, EXCLUDED.last_published_at),
+-		updated_at = now()`
++		last_published_at = GREATEST(crawl_watermarks.last_published_at, EXCLUDED.last_published_at)`
+ 
+ // Watermark returns the crawl watermark of category. ok is false when the category has none yet (first run);
+ // a read error is returned as such and must never be treated as "no watermark".
+
+L1 lock: release does not unlock
+--- /root/wt/app-qa-ING-6c/internal/db/watermarks.go	2026-11-22 07:32:28.104527026 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-vg3af7rr/internal/db/watermarks.go	2026-11-22 07:45:44.933380673 +0530
+@@ -62,7 +62,7 @@
+ 	return func() {
+ 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+ 		defer cancel()
+-		if _, err := conn.Exec(ctx, `SELECT pg_advisory_unlock(`+crawlLoopLockKeySQL+`)`); err != nil {
++		if false {
+ 			_ = conn.Conn().Close(ctx) // closing the session releases the lock; the pool drops the closed connection
+ 		}
+ 		conn.Release()
+
+L2 lock: ok ignored (always true)
+--- /root/wt/app-qa-ING-6c/internal/db/watermarks.go	2026-11-22 07:32:28.104527026 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-cbs_cf8e/internal/db/watermarks.go	2026-11-22 07:45:45.563781893 +0530
+@@ -52,7 +52,7 @@
+ 	if err != nil {
+ 		return nil, false, fmt.Errorf("crawl-loop lock: acquire connection: %w", err)
+ 	}
+-	if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(`+crawlLoopLockKeySQL+`)`).Scan(&ok); err != nil || !ok {
++	if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(`+crawlLoopLockKeySQL+`)`).Scan(&ok); err != nil {
+ 		conn.Release()
+ 		if err != nil {
+ 			return nil, false, fmt.Errorf("crawl-loop lock: %w", err)
+
+L3 lock: xact-level lock (released at once)
+--- /root/wt/app-qa-ING-6c/internal/db/watermarks.go	2026-11-22 07:32:28.104527026 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-t97vzsai/internal/db/watermarks.go	2026-11-22 07:46:31.203715857 +0530
+@@ -52,7 +52,7 @@
+ 	if err != nil {
+ 		return nil, false, fmt.Errorf("crawl-loop lock: acquire connection: %w", err)
+ 	}
+-	if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(`+crawlLoopLockKeySQL+`)`).Scan(&ok); err != nil || !ok {
++	if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_xact_lock(`+crawlLoopLockKeySQL+`)`).Scan(&ok); err != nil || !ok {
+ 		conn.Release()
+ 		if err != nil {
+ 			return nil, false, fmt.Errorf("crawl-loop lock: %w", err)
+
+L4 lock: on ok=false, connection not released
+--- /root/wt/app-qa-ING-6c/internal/db/watermarks.go	2026-11-22 07:32:28.104527026 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-199513x_/internal/db/watermarks.go	2026-11-22 07:47:16.928237645 +0530
+@@ -53,7 +53,6 @@
+ 		return nil, false, fmt.Errorf("crawl-loop lock: acquire connection: %w", err)
+ 	}
+ 	if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(`+crawlLoopLockKeySQL+`)`).Scan(&ok); err != nil || !ok {
+-		conn.Release()
+ 		if err != nil {
+ 			return nil, false, fmt.Errorf("crawl-loop lock: %w", err)
+ 		}
+
+M9 acked set before Publish
+--- /root/wt/app-qa-ING-6c/internal/crawler/loop.go	2026-11-22 07:32:28.104269338 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-awfcfpye/internal/crawler/loop.go	2026-11-22 07:48:02.632794926 +0530
+@@ -262,10 +262,10 @@
+ 		return fmt.Errorf("upsert %s: %w", key, err)
+ 	}
+ 	e := events.NewEventEnvelope(events.TopicPapersDiscovered, p.ArxivID, p.Version, discoveredPayload(p))
++	acked[key] = true
+ 	if err := l.pub.Publish(ctx, events.TopicPapersDiscovered, e); err != nil {
+ 		return fmt.Errorf("publish %s: %w", key, err)
+ 	}
+-	acked[key] = true
+ 	return nil
+ }
+ 
+
+P1 double cat: prefix (walk re-adds it)
+--- /root/wt/app-qa-ING-6c/internal/crawler/loop.go	2026-11-22 07:32:28.104269338 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-aq5pcxxj/internal/crawler/loop.go	2026-11-22 07:48:04.342951047 +0530
+@@ -82,7 +82,7 @@
+ 		}
+ 		page, err := f.Page(ctx, "cat:"+category, start, n)
+ 		if err != nil {
+-			return nil, st, fmt.Errorf("page start=%d: %w", start, err) // RunOnce adds "cat:<category>: "
++			return nil, st, fmt.Errorf("cat:%s page start=%d: %w", category, start, err) // RunOnce adds "cat:<category>: "
+ 		}
+ 		st.Pages++
+ 		st.Scanned += len(page)
+
+C1 RunOnce: no ctx check between categories
+--- /root/wt/app-qa-ING-6c/internal/crawler/loop.go	2026-11-22 07:32:28.104269338 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-ma7732m1/internal/crawler/loop.go	2026-11-22 07:48:05.452712987 +0530
+@@ -189,10 +189,6 @@
+ 	acked := map[string]bool{}
+ 	var errs []error
+ 	for _, c := range l.cfg.Categories {
+-		if ctx.Err() != nil {
+-			errs = append(errs, ctx.Err())
+-			break
+-		}
+ 		if err := l.runCategory(ctx, c, acked); err != nil {
+ 			errs = append(errs, fmt.Errorf("cat:%s: %w", c, err))
+ 		}
+
+F1 flags: --interval check dropped
+--- /root/wt/app-qa-ING-6c/cmd/arxivlens/main.go	2026-11-22 07:32:28.101290178 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-e8n9si_e/cmd/arxivlens/main.go	2026-11-22 07:48:07.333035034 +0530
+@@ -162,7 +162,7 @@
+ 				return fmt.Errorf("--categories: %w", err)
+ 			}
+ 			switch {
+-			case lc.Interval < time.Minute:
++			case false:
+ 				return fmt.Errorf("--interval %v: must be at least 1m", lc.Interval)
+ 			case lc.LimitPerRun <= 0:
+ 				return fmt.Errorf("--limit-per-run %d: must be > 0", lc.LimitPerRun)
+
+F2 flags: --interval < 1s (boundary)
+--- /root/wt/app-qa-ING-6c/cmd/arxivlens/main.go	2026-11-22 07:32:28.101290178 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-6subj3hs/cmd/arxivlens/main.go	2026-11-22 07:48:09.220263590 +0530
+@@ -162,7 +162,7 @@
+ 				return fmt.Errorf("--categories: %w", err)
+ 			}
+ 			switch {
+-			case lc.Interval < time.Minute:
++			case lc.Interval < time.Second:
+ 				return fmt.Errorf("--interval %v: must be at least 1m", lc.Interval)
+ 			case lc.LimitPerRun <= 0:
+ 				return fmt.Errorf("--limit-per-run %d: must be > 0", lc.LimitPerRun)
+
+F3 flags: --limit-per-run < 0
+--- /root/wt/app-qa-ING-6c/cmd/arxivlens/main.go	2026-11-22 07:32:28.101290178 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-cknyqaxh/cmd/arxivlens/main.go	2026-11-22 07:48:11.058812221 +0530
+@@ -164,7 +164,7 @@
+ 			switch {
+ 			case lc.Interval < time.Minute:
+ 				return fmt.Errorf("--interval %v: must be at least 1m", lc.Interval)
+-			case lc.LimitPerRun <= 0:
++			case lc.LimitPerRun < 0:
+ 				return fmt.Errorf("--limit-per-run %d: must be > 0", lc.LimitPerRun)
+ 			case lc.MaxScan < lc.LimitPerRun:
+ 				return fmt.Errorf("--max-scan %d: must be >= --limit-per-run %d", lc.MaxScan, lc.LimitPerRun)
+
+F4 flags: --max-scan <= check
+--- /root/wt/app-qa-ING-6c/cmd/arxivlens/main.go	2026-11-22 07:32:28.101290178 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-lzftk8yi/cmd/arxivlens/main.go	2026-11-22 07:48:12.793144415 +0530
+@@ -166,7 +166,7 @@
+ 				return fmt.Errorf("--interval %v: must be at least 1m", lc.Interval)
+ 			case lc.LimitPerRun <= 0:
+ 				return fmt.Errorf("--limit-per-run %d: must be > 0", lc.LimitPerRun)
+-			case lc.MaxScan < lc.LimitPerRun:
++			case lc.MaxScan < lc.LimitPerRun-1:
+ 				return fmt.Errorf("--max-scan %d: must be >= --limit-per-run %d", lc.MaxScan, lc.LimitPerRun)
+ 			}
+ 			cmd.SilenceUsage = true // flags are fine: a runtime error needs no usage text
+
+F5 flags: categories error ignored
+--- /root/wt/app-qa-ING-6c/cmd/arxivlens/main.go	2026-11-22 07:32:28.101290178 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-t11u8_yg/cmd/arxivlens/main.go	2026-11-22 07:48:14.569929061 +0530
+@@ -158,7 +158,7 @@
+ 			"A first run takes only the newest --limit-per-run papers. One instance per database (advisory lock).",
+ 		RunE: func(cmd *cobra.Command, args []string) error {
+ 			var err error
+-			if lc.Categories, err = crawler.ParseCategories(categories); err != nil {
++			if lc.Categories, err = crawler.ParseCategories(categories); false {
+ 				return fmt.Errorf("--categories: %w", err)
+ 			}
+ 			switch {
+
+F6 flags: run before validation
+--- /root/wt/app-qa-ING-6c/cmd/arxivlens/main.go	2026-11-22 07:32:28.101290178 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-z29ihmoh/cmd/arxivlens/main.go	2026-11-22 07:48:16.480019497 +0530
+@@ -157,6 +157,7 @@
+ 			"crawl_watermarks, emit at most --limit-per-run papers oldest-first, then advance the watermark past what Kafka acked.\n" +
+ 			"A first run takes only the newest --limit-per-run papers. One instance per database (advisory lock).",
+ 		RunE: func(cmd *cobra.Command, args []string) error {
++			_ = run(context.Background(), lc)
+ 			var err error
+ 			if lc.Categories, err = crawler.ParseCategories(categories); err != nil {
+ 				return fmt.Errorf("--categories: %w", err)
+
+F7 default --max-scan 1000
+--- /root/wt/app-qa-ING-6c/cmd/arxivlens/main.go	2026-11-22 07:32:28.101290178 +0530
++++ /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-f0x74t64/cmd/arxivlens/main.go	2026-11-22 07:48:18.303455671 +0530
+@@ -178,7 +178,7 @@
+ 	cmd.Flags().StringVar(&categories, "categories", "cs.AI,cs.LG", "Comma-separated arXiv categories, one watermark each")
+ 	cmd.Flags().DurationVar(&lc.Interval, "interval", 6*time.Hour, "Time from the end of one pass to the start of the next (>= 1m)")
+ 	cmd.Flags().IntVar(&lc.LimitPerRun, "limit-per-run", 100, "Max papers emitted per category per pass (the rest wait for the next pass)")
+-	cmd.Flags().IntVar(&lc.MaxScan, "max-scan", 2000, "Max feed entries scanned per category looking for the watermark (>= --limit-per-run)")
++	cmd.Flags().IntVar(&lc.MaxScan, "max-scan", 1000, "Max feed entries scanned per category looking for the watermark (>= --limit-per-run)")
+ 	cmd.Flags().BoolVar(&lc.Once, "once", false, "Run one pass and exit; non-zero exit if any category failed")
+ 	return cmd
+ }
+
+== C1 behaviour probe: TestRunOnceCancelledAfterFirstCategory -v, head vs C1 mutant (log lines)
+-- /root/wt/app-qa-ING-6c
+[CrawlLoop] cat=cs.AI pages=1 scanned=3 candidates=2 emitted=2 backlog=0 out_of_order=0 watermark=2026-11-16T09:14:00Z (advanced)
+--- PASS: TestRunOnceCancelledAfterFirstCategory (0.00s)
+PASS
+-- /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mut3/m-ma7732m1
+[CrawlLoop] cat=cs.AI pages=1 scanned=3 candidates=2 emitted=2 backlog=0 out_of_order=0 watermark=2026-11-16T09:14:00Z (advanced)
+[CrawlLoop] cat=cs.LG pages=0 scanned=0 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-16T09:10:00Z (unchanged) error=context canceled
+--- PASS: TestRunOnceCancelledAfterFirstCategory (0.00s)
+PASS
+

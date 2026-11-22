@@ -1,0 +1,17 @@
+$ bash -c git diff --stat origin/main...HEAD; echo; git log --oneline origin/main..HEAD; echo; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/124 --jq '"draft=\(.draft) merged=\(.merged) base=\(.base.ref)@\(.base.sha[0:7]) head=\(.head.sha[0:7])"'
+ .github/workflows/db.yml                   | 12 +++++
+ .github/workflows/stack.yml                | 71 ++++++++++++++++++++++++++
+ README.md                                  | 17 +++++++
+ cmd/arxivlens/main.go                      | 74 +++++++++++++++++++++++++++
+ cmd/arxivlens/main_test.go                 | 59 +++++++++++++++++++++
+ internal/crawler/loop.go                   |  9 ++--
+ internal/crawler/loop_test.go              | 53 ++++++++++++++++---
+ internal/db/watermarks.go                  | 29 +++++++++++
+ internal/db/watermarks_integration_test.go | 82 +++++++++++++++++++++++++++---
+ 9 files changed, 388 insertions(+), 18 deletions(-)
+
+dec6386 ING-6c: arxivlens crawl-loop command, single-instance advisory lock, stack/db CI evidence, README
+
+draft=true merged=false base=main@53171d6 head=dec6386
+
+[exit code 0]

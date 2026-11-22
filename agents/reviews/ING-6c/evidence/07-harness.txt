@@ -1,0 +1,162 @@
+$ cat harness files
+== harness files (find | sort)
+/tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/goenv.sh
+/tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/mutants.py
+/tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/pgdir
+/tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/qa.mod
+
+==== mutants.py
+#!/usr/bin/env python3
+"""ING-6c QA r1 mutation run. Each mutant: copy the PR-head tree (git archive) into a fresh dir, apply ONE
+anchored substitution, run the named suites. Build failure => INVALID (never KILLED)."""
+import os, subprocess, sys, tempfile, shutil
+HEAD = "/root/wt/app-qa-ING-6c"
+S = os.path.dirname(os.path.abspath(__file__))
+P = open(os.path.join(S, "pgdir")).read().strip()
+DSN = f"postgres://postgres@/arxivlens?host={P}&port=55432&sslmode=disable"
+ENV = dict(os.environ, PATH="/usr/local/go1.25.1/bin:" + os.environ["PATH"], GOPROXY="direct", GOSUMDB="off",
+           GOFLAGS="-modfile=" + os.path.join(S, "qa.mod"), GOTOOLCHAIN="local", DATABASE_URL=DSN)
+IT = ["go", "test", "-tags", "integration", "-count=1", "-timeout=45s", "-run", "^(TestAdvanceWatermarkMonotonic|TestCrawlLoopLock)$", "./internal/db/"]
+M = [  # id, file, old (anchored on code), new, suites
+ ("M6 Watermark: read error -> (zero,false,nil)", "internal/db/watermarks.go",
+  "\t\treturn time.Time{}, false, fmt.Errorf(\"failed to read crawl watermark for %s: %w\", category, err)",
+  "\t\treturn time.Time{}, false, nil", ["it"]),
+ ("M8 AdvanceWatermark: Exec error swallowed", "internal/db/watermarks.go",
+  "\t\treturn fmt.Errorf(\"failed to advance crawl watermark for %s: %w\", category, err)", "\t\treturn nil", ["it"]),
+ ("M7 updated_at not bumped on conflict", "internal/db/watermarks.go",
+  "EXCLUDED.last_published_at),\n\t\tupdated_at = now()`", "EXCLUDED.last_published_at)`", ["it"]),
+ ("L1 lock: release does not unlock", "internal/db/watermarks.go",
+  "if _, err := conn.Exec(ctx, `SELECT pg_advisory_unlock(`+crawlLoopLockKeySQL+`)`); err != nil {",
+  "if false {", ["it"]),
+ ("L2 lock: ok ignored (always true)", "internal/db/watermarks.go",
+  "Scan(&ok); err != nil || !ok {", "Scan(&ok); err != nil {", ["it"]),
+ ("L3 lock: xact-level lock (released at once)", "internal/db/watermarks.go",
+  "`SELECT pg_try_advisory_lock(`", "`SELECT pg_try_advisory_xact_lock(`", ["it"]),
+ ("L4 lock: on ok=false, connection not released", "internal/db/watermarks.go",
+  "Scan(&ok); err != nil || !ok {\n\t\tconn.Release()", "Scan(&ok); err != nil || !ok {", ["it"]),
+ ("M9 acked set before Publish", "internal/crawler/loop.go",
+  "\tif err := l.pub.Publish(ctx, events.TopicPapersDiscovered, e); err != nil {\n\t\treturn fmt.Errorf(\"publish %s: %w\", key, err)\n\t}\n\tacked[key] = true\n",
+  "\tacked[key] = true\n\tif err := l.pub.Publish(ctx, events.TopicPapersDiscovered, e); err != nil {\n\t\treturn fmt.Errorf(\"publish %s: %w\", key, err)\n\t}\n",
+  ["crawler", "cross"]),
+ ("P1 double cat: prefix (walk re-adds it)", "internal/crawler/loop.go",
+  "return nil, st, fmt.Errorf(\"page start=%d: %w\", start, err)", "return nil, st, fmt.Errorf(\"cat:%s page start=%d: %w\", category, start, err)", ["crawler"]),
+ ("C1 RunOnce: no ctx check between categories", "internal/crawler/loop.go",
+  "\t\tif ctx.Err() != nil {\n\t\t\terrs = append(errs, ctx.Err())\n\t\t\tbreak\n\t\t}\n\t\tif err := l.runCategory", "\t\tif err := l.runCategory", ["crawler", "cancel"]),
+ ("F1 flags: --interval check dropped", "cmd/arxivlens/main.go", "case lc.Interval < time.Minute:", "case false:", ["cmd"]),
+ ("F2 flags: --interval < 1s (boundary)", "cmd/arxivlens/main.go", "case lc.Interval < time.Minute:", "case lc.Interval < time.Second:", ["cmd"]),
+ ("F3 flags: --limit-per-run < 0", "cmd/arxivlens/main.go", "case lc.LimitPerRun <= 0:", "case lc.LimitPerRun < 0:", ["cmd"]),
+ ("F4 flags: --max-scan <= check", "cmd/arxivlens/main.go", "case lc.MaxScan < lc.LimitPerRun:", "case lc.MaxScan < lc.LimitPerRun-1:", ["cmd"]),
+ ("F5 flags: categories error ignored", "cmd/arxivlens/main.go",
+  "if lc.Categories, err = crawler.ParseCategories(categories); err != nil {", "if lc.Categories, err = crawler.ParseCategories(categories); false {", ["cmd"]),
+ ("F6 flags: run before validation", "cmd/arxivlens/main.go",
+  "\t\t\tvar err error\n\t\t\tif lc.Categories", "\t\t\t_ = run(context.Background(), lc)\n\t\t\tvar err error\n\t\t\tif lc.Categories", ["cmd"]),
+ ("F7 default --max-scan 1000", "cmd/arxivlens/main.go", "\"max-scan\", 2000,", "\"max-scan\", 1000,", ["cmd"]),
+]
+SUITES = {"it": IT, "crawler": ["go", "test", "-count=1", "./internal/crawler/"],
+          "cross": ["go", "test", "-count=1", "-run", "^TestRunOnceCrossListed$", "./internal/crawler/"],
+          "cancel": ["go", "test", "-count=1", "-run", "^TestRunOnceCancelledAfterFirstCategory$", "./internal/crawler/"],
+          "cmd": ["go", "test", "-count=1", "-run", "^TestCrawlLoopFlags$", "./cmd/arxivlens/"]}
+def tree():
+    d = tempfile.mkdtemp(prefix="m-", dir=os.path.join(S, "mut3"))
+    subprocess.run(f"git -C {HEAD} archive HEAD | tar -x -C {d}", shell=True, check=True)
+    return d
+def run(d, suite):
+    r = subprocess.run(SUITES[suite], cwd=d, env=ENV, capture_output=True, text=True, timeout=240)
+    out = r.stdout + r.stderr
+    if "[build failed]" in out or "[setup failed]" in out or "\n# " in "\n" + out and r.returncode != 0 and "--- FAIL" not in out and "FAIL\t" not in out.replace("[build failed]", ""):
+        return "INVALID", out
+    fails = sorted({l.strip().split(" ")[2] for l in out.splitlines() if l.strip().startswith("--- FAIL:")})
+    if "panic: test timed out" in out: fails.append("TIMEOUT(hang: pool Close waits on a held conn)")
+    return ("PASS" if r.returncode == 0 else "FAIL " + ",".join(fails)), out
+os.makedirs(os.path.join(S, "mut3"), exist_ok=True)
+rows, diffs = [], []
+d = tree()
+for s in ["it", "crawler", "cmd"]:
+    v, out = run(d, s); rows.append(("CONTROL (unmutated head)", s, v))
+for mid, f, old, new, suites in M:
+    d = tree(); p = os.path.join(d, f); src = open(p).read()
+    if src.count(old) != 1:
+        rows.append((mid, "-", f"NOT APPLIED (anchor count {src.count(old)})")); continue
+    open(p, "w").write(src.replace(old, new))
+    diffs.append(mid + "\n" + subprocess.run(["diff", "-u", os.path.join(HEAD, f), p], capture_output=True, text=True).stdout)
+    for s in suites:
+        v, out = run(d, s)
+        rows.append((mid, s, v if v != "PASS" else "PASS  => SURVIVED"))
+        if v == "INVALID": diffs.append(out[-1500:])
+print(f"{'mutant':48} | suite   | result")
+for r in rows: print(f"{r[0]:48} | {r[1]:7} | {r[2]}")
+print("\nsuites:", {k: " ".join(v) for k, v in SUITES.items()})
+print("\n==== mutant diffs (local copies only, never pushed) ====")
+for x in diffs: print(x)
+
+==== goenv.sh
+export PATH=/usr/local/go1.25.1/bin:$PATH GOPROXY=direct GOSUMDB=off GOFLAGS=-modfile=/tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/qa.mod GOTOOLCHAIN=local
+
+==== qa.mod
+module arxivlens
+
+go 1.25.0
+
+require (
+	github.com/jackc/pgx/v5 v5.6.0
+	github.com/minio/minio-go/v7 v7.0.70
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/spf13/cobra v1.8.0
+	github.com/twmb/franz-go v1.16.1
+	github.com/twmb/franz-go/pkg/kmsg v1.7.0
+)
+
+require (
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/go-logr/logr v1.4.4 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/google/uuid v1.6.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	github.com/klauspost/compress v1.17.6 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
+	github.com/minio/md5-simd v1.1.2 // indirect
+	github.com/pierrec/lz4/v4 v4.1.19 // indirect
+	github.com/rs/xid v1.5.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
+	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
+	go.opentelemetry.io/otel v1.45.0 // indirect
+	go.opentelemetry.io/otel/metric v1.45.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.45.0 // indirect
+	go.opentelemetry.io/otel/trace v1.45.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
+	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
+)
+
+replace (
+	golang.org/x/crypto => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/crypto
+	golang.org/x/net => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/net
+	golang.org/x/sync => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/sync
+	golang.org/x/sys => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/sys
+	golang.org/x/text => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/text
+	gopkg.in/ini.v1 => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/ini
+	go.opentelemetry.io/otel => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/otel
+	go.opentelemetry.io/otel/metric => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/otel/metric
+	go.opentelemetry.io/otel/sdk => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/otel/sdk
+	go.opentelemetry.io/otel/trace => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/otel/trace
+	go.opentelemetry.io/auto/sdk => /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/deps/auto/sdk
+)
+
+==== deps (tag-pinned GitHub clones for replace)
+auto: sdk/v1.2.1
+crypto: v0.21.0
+ini: v1.67.0
+net: v0.23.0
+otel: schema/v0.0.18
+sync: v0.1.0
+sys: v0.47.0
+text: v0.14.0
+

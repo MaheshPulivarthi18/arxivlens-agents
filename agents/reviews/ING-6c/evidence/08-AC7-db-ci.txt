@@ -1,0 +1,16 @@
+$ gh api .../actions/jobs/137004574551/logs | grep
+job 137004574551 (DB, conclusion success) head_sha: dec6386a8a96f87b8d8faba0c2065ac601036cb6
+
+1675:2026-11-21T22:20:45.6255220Z [36;1mgo test -tags integration -count=1 -v -run '^(TestAdvanceWatermarkMonotonic|TestCrawlLoopLock)$' ./internal/db/ | tee /tmp/db-it.txt[0m
+1676:2026-11-21T22:20:45.6255881Z [36;1m# -v prints a SKIP line when DATABASE_URL is missing: that must not pass as green.[0m
+1677:2026-11-21T22:20:45.6256531Z [36;1mif grep -q -- '--- SKIP' /tmp/db-it.txt; then echo "::error::watermark/lock integration tests skipped"; exit 1; fi[0m
+1678:2026-11-21T22:20:45.6257409Z [36;1mfor t in TestAdvanceWatermarkMonotonic TestCrawlLoopLock; do grep -q -- "--- PASS: $t " /tmp/db-it.txt || { echo "::error::$t did not pass"; exit 1; }; done[0m
+1679:2026-11-21T22:20:45.6258145Z [36;1mleft="$($PSQL -At -c "SELECT count(*) FROM crawl_watermarks WHERE category LIKE 'it-test.%'")"[0m
+1680:2026-11-21T22:20:45.6258841Z [36;1mecho "crawl_watermarks rows left by the tests (category LIKE 'it-test.%'): $left"[0m
+1693:2026-11-21T22:20:46.0832906Z === RUN   TestAdvanceWatermarkMonotonic
+1694:2026-11-21T22:20:46.3053544Z --- PASS: TestAdvanceWatermarkMonotonic (0.22s)
+1695:2026-11-21T22:20:46.3072956Z === RUN   TestCrawlLoopLock
+1696:2026-11-21T22:20:46.3222449Z --- PASS: TestCrawlLoopLock (0.01s)
+1698:2026-11-21T22:20:46.3234592Z ok  	arxivlens/internal/db	0.242s
+1699:2026-11-21T22:20:46.3973262Z crawl_watermarks rows left by the tests (category LIKE 'it-test.%'): 0
+

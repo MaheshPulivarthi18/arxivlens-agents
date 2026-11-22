@@ -1,0 +1,22 @@
+$ bash -c . /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/goenv.sh; go version; go test -count=1 -v -run 'TestCrawlLoopFlags' ./cmd/arxivlens/ 2>&1
+go version go1.25.1 linux/amd64
+=== RUN   TestCrawlLoopFlags
+=== RUN   TestCrawlLoopFlags/defaults
+=== RUN   TestCrawlLoopFlags/valid_overrides
+=== RUN   TestCrawlLoopFlags/interval_30s
+=== RUN   TestCrawlLoopFlags/limit-per-run_0
+=== RUN   TestCrawlLoopFlags/max-scan_<_limit-per-run
+=== RUN   TestCrawlLoopFlags/bad_categories_(query_injection)
+=== RUN   TestCrawlLoopFlags/empty_categories
+--- PASS: TestCrawlLoopFlags (0.00s)
+    --- PASS: TestCrawlLoopFlags/defaults (0.00s)
+    --- PASS: TestCrawlLoopFlags/valid_overrides (0.00s)
+    --- PASS: TestCrawlLoopFlags/interval_30s (0.00s)
+    --- PASS: TestCrawlLoopFlags/limit-per-run_0 (0.00s)
+    --- PASS: TestCrawlLoopFlags/max-scan_<_limit-per-run (0.00s)
+    --- PASS: TestCrawlLoopFlags/bad_categories_(query_injection) (0.00s)
+    --- PASS: TestCrawlLoopFlags/empty_categories (0.00s)
+PASS
+ok  	arxivlens/cmd/arxivlens	0.009s
+
+[exit code 0]

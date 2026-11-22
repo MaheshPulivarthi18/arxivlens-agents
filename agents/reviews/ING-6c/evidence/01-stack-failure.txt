@@ -1,0 +1,30 @@
+$ gh api .../actions/jobs/137004575227/logs | grep/sed (see .txt)
+== job 137004575227 (Full stack) — error lines
+3891:2026-11-21T22:28:49.2332795Z ##[error]want the 2 crawled papers, got: 2611.26619 2611.26627 9999.00001
+3892:2026-11-21T22:28:49.2338990Z ##[error]Process completed with exit code 1.
+
+== step ING-6: crawl-loop: the precondition that failed (log lines 3821-3823)
+[36;1m# The two papers of "AC3: crawl 2 papers": the same recorded cs.LG feed crawl-loop reads.[0m
+[36;1mmapfile -t crawled < <(q "select arxiv_id from papers where arxiv_id <> '2608.20331' order by 1")[0m
+[36;1m[ "${#crawled[@]}" = 2 ] || fail "want the 2 crawled papers, got: ${crawled[*]}"[0m
+
+== source of 9999.00001 at the PR head (inserted by make test-full, never deleted)
+tests/test_m4_chaos.py:106:            VALUES ('9999.00001', 1, 'Corrupt Test Paper', 'Abstract', 'downloaded')
+tests/test_m4_chaos.py:121:        paper_id="9999.00001",
+tests/test_m4_chaos.py:126:            "arxiv_id": "9999.00001",
+tests/test_m4_chaos.py:135:        key=b"9999.00001",
+(no DELETE in tests/test_m4_chaos.py)
+
+== step order in stack.yml at PR head
+280:      - name: "AC4: make test-full"
+296:      - name: "Known failure F1 (CPU rerank latency, tracked)"
+313:      - name: "ING-6: crawl-loop"
+383:      - name: Collect service logs
+398:      - name: arXiv replay stats
+
+== replay stats step (crawl-loop never ran)
+3951:2026-11-21T22:28:49.3572303Z arXiv replay: {"hits": 5, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+
+== '[CrawlLoop]' / 'AC2:' / 'AC4' / 'AC5' output lines in the job log (excluding the echoed script):
+(none)
+

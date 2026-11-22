@@ -1,0 +1,13 @@
+$ bash -c . /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/goenv.sh; export DATABASE_URL='postgres://postgres@/arxivlens?host=/tmp/tmp.hjV4GkEUP3&port=55432&sslmode=disable'; psql -h /tmp/tmp.hjV4GkEUP3 -p 55432 -U postgres -tA -c 'select version()' arxivlens; go vet -tags integration ./internal/db/ && echo 'go vet -tags integration ./internal/db/: OK'; go test -tags integration -count=1 -v -run '^(TestAdvanceWatermarkMonotonic|TestCrawlLoopLock)$' ./internal/db/; echo -n "it-test.% rows left: "; psql -h /tmp/tmp.hjV4GkEUP3 -p 55432 -U postgres -tA -c "SELECT count(*) FROM crawl_watermarks WHERE category LIKE 'it-test.%'" arxivlens; echo -n 'advisory locks left: '; psql -h /tmp/tmp.hjV4GkEUP3 -p 55432 -U postgres -tA -c "select count(*) from pg_locks where locktype='advisory'" arxivlens
+PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+go vet -tags integration ./internal/db/: OK
+=== RUN   TestAdvanceWatermarkMonotonic
+--- PASS: TestAdvanceWatermarkMonotonic (0.02s)
+=== RUN   TestCrawlLoopLock
+--- PASS: TestCrawlLoopLock (0.01s)
+PASS
+ok  	arxivlens/internal/db	0.040s
+it-test.% rows left: 0
+advisory locks left: 0
+
+[exit code 0]

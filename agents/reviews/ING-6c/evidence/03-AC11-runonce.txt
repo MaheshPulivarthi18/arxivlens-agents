@@ -1,0 +1,14 @@
+$ bash -c . /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/goenv.sh; go test -count=1 -race -v -run 'TestRunOnce|TestRunStopsOnCancel' ./internal/crawler/ 2>&1 | grep -E '^(---|    ---|PASS|FAIL|ok)'
+--- PASS: TestRunOnceTwiceEmitsNothingSecondTime (0.00s)
+--- PASS: TestRunStopsOnCancel (0.03s)
+    --- PASS: TestRunStopsOnCancel/waits_Interval_between_passes,_nil_on_cancel (0.03s)
+    --- PASS: TestRunStopsOnCancel/Once_returns_the_pass_error (0.00s)
+--- PASS: TestRunOnceCrossListed (0.00s)
+    --- PASS: TestRunOnceCrossListed/published_once_per_pass (0.00s)
+    --- PASS: TestRunOnceCrossListed/cs.AI's_publish_of_p14_fails:_cs.LG_publishes_it (0.00s)
+--- PASS: TestRunOnceCancelledAfterFirstCategory (0.00s)
+--- PASS: TestRunOnceWatermarkReadError (0.00s)
+PASS
+ok  	arxivlens/internal/crawler	1.046s
+
+[exit code 0]

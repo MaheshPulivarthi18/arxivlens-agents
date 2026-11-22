@@ -1,0 +1,22 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/dec6386a8a96f87b8d8faba0c2065ac601036cb6/check-runs --jq '.check_runs[] | "\(.name) | \(.conclusion) | job \(.id)"'; echo; echo 'Recent stack.yml runs (other PR branches on the same day, for comparison):'; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/workflows/stack.yml/runs?per_page=8' --jq '.workflow_runs[] | "\(.head_branch) \(.head_sha[0:7]) \(.conclusion) \(.created_at)"'; echo; echo -n 'stack.yml runs on main (total_count): '; gh api 'repos/MaheshPulivarthi18/ArxivLens/actions/workflows/stack.yml/runs?branch=main&per_page=1' --jq .total_count
+Full stack (compose + make test-full) | failure | job 137004575227
+Go (vet, gofmt, test, build) | success | job 137004574893
+Python M0 unit tests | success | job 137004574878
+Agent ownership check | success | job 137004574847
+Frontend (lint, test, build) | success | job 137004574588
+Pinned digests resolve | success | job 137004574583
+DB (migrate twice, HNSW plan + recall) | success | job 137004574551
+
+Recent stack.yml runs (other PR branches on the same day, for comparison):
+agent/ai/EVAL-8c afed799 null 2026-11-22T02:04:18Z
+agent/backend/ING-6c dec6386 failure 2026-11-21T22:19:22Z
+agent/ai/OPS-H21 0970737 success 2026-11-21T22:19:20Z
+agent/ai/EVAL-8c b91f78e success 2026-11-21T22:19:20Z
+agent/ai/AI-14 82404ba success 2026-11-21T21:07:40Z
+agent/ai/EVAL-6c e76ae63 success 2026-11-21T21:07:35Z
+embedder/rerank-fp16 3c2d306 success 2026-11-21T20:54:47Z
+embedder/rerank-fp16 e0c45af cancelled 2026-11-21T20:47:53Z
+
+stack.yml runs on main (total_count): 0
+
+[exit code 0]

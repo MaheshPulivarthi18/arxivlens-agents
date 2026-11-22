@@ -1,0 +1,20 @@
+$ bash -c . /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa-ING-6c-r1/goenv.sh; go test -count=1 ./... 2>&1; echo "go test exit=$?"; go vet ./... && echo 'go vet OK'; out=$(gofmt -l $(git ls-files '*.go')); [ -z "$out" ] && echo 'gofmt -l: clean' || { echo "gofmt needed: $out"; }
+ok  	arxivlens/cmd/arxivlens	0.013s
+ok  	arxivlens/internal/arxiv	2.183s
+ok  	arxivlens/internal/config	0.003s
+ok  	arxivlens/internal/crawler	0.101s
+ok  	arxivlens/internal/db	0.008s
+ok  	arxivlens/internal/dlq	0.273s
+ok  	arxivlens/internal/downloader	0.106s
+ok  	arxivlens/internal/kafka	0.052s
+ok  	arxivlens/internal/llm	0.827s
+ok  	arxivlens/internal/llm/llmtest	0.107s
+ok  	arxivlens/internal/query	0.337s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+go test exit=0
+go vet OK
+gofmt -l: clean
+
+[exit code 0]
