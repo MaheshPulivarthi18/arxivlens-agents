@@ -8,7 +8,7 @@
 | **Depends on** | FE-3b #104, FE-0i #109, AI-8b #65, ADR-0019 #120 (all merged). Design `docs/design/FE-4.md` **approved with conditions** 2026-11-22 |
 | **Jira** | create: story under epic KAN-5 "Research UI & citations", labels `task-FE-4a`, `design-required`; link to KAN-44 (FE-4 umbrella) |
 | **Design required** | yes: covered by `docs/design/FE-4.md` (approved; §1 `claimState`/`claimCitations`/`groupByMarker`, §2, §3 grouping/focus/rows, §4, §5, §6) |
-| **Status** | In QA (PR pending). Built cycle 2026-11-21T21:59Z on `agent/frontend/FE-4a` (`a57c758`, not pushed yet) |
+| **Status** | Ready, picked cycle 2026-11-22T02:00Z (rebuild: the 2026-11-21T21:59Z build `a57c758` was never pushed and is lost) |
 
 ## Goal
 A researcher sees every statement of an answer with its own verdict (Supported / Unsupported / Not checked), and each `[n]` marker takes
@@ -69,3 +69,20 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   - Local verification: **not run**. `npm ci` fails with `getaddrinfo ENOTFOUND registry.npmjs.org` (registry unreachable from the sandbox, no
     node_modules anywhere), so lint/test/build depend on CI. What I did run: a TypeScript syntax parse of all 9 files (OK) and a plain-Node logic check
     of `claimState`/`claimCitations`/`claimRows`/`groupByMarker` on the new fixtures (results as expected). Jira story not created from this session (left for the orchestrator).
+- 2026-11-22 (pm-lead, cycle 2026-11-22T02:00Z): **the previous build is lost.** `a57c758` was local only and the cycle
+  died holding RUN_LOCK before a push; no branch or PR exists. Rebuild from app `main` `53171d6` this cycle, and push the
+  branch + open the draft PR **in the same session as the build** (don't leave a local-only commit).
+  **Size decision: accepted as one PR at ≈ 650 changed lines, no further split**, on these conditions:
+  1. The multi-entry "Cited by claim n" / "Check n" rows and their `aria-current` stay in FE-4b (as the build Notes did).
+     So in AC2 the clauses "for a repeated marker the matching 'Cited by claim n' row has `aria-current="true"`" and
+     "rows read 'Check n'" are **FE-4b's**, not FE-4a's. FE-4a's broken-invariant check is: markers still map by number
+     (focus lands on "Citation [n]"). Until FE-4b, a repeated-marker card shows one status chip per check in its header.
+  2. Production code (`citations.js`, `SynthesisView.jsx`, `ReferencesStack.jsx`, `App.jsx`) stays ≤ ~250 changed lines;
+     the overage is tests + fixtures only. The PR body states the prod/test split (from `git diff --numstat`).
+     If prod goes over ~300, stop and report instead of pushing.
+  3. No existing test body changes (AC5); import-line extensions are fine and must be listed in the PR body.
+  Why accept rather than split: a further cut would separate the claim chips (AC1) from marker focus (AC2/AC2b) and the
+  card grouping (AC2c), which share `claimRows`/`groupByMarker` and `App`'s `active` state; either half alone would
+  ship a P0 UI that is half-wired, and the extra lines are the AC test plan, which is what makes review safe.
+  The dropped `title="Click to inspect Evidence [n]"` on a fallback marker that has a card is accepted (the tooltip
+  replaces it, design Q1); keep it on markers with no matching citation.

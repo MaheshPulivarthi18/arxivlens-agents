@@ -30,6 +30,9 @@ section and page it comes from, and opens the PDF at that page in one click.
   empty/whitespace → null, and the NBSP row `[3, 4]` → ref kept (condition 5). Long passages: excerpt contains the `<mark>`, "Show full passage" toggles `aria-expanded` and shows the full text.
 - [ ] AC4 — Meta line reads `arXiv:<id>v<N> · § <section> · p. <N>` (`v` only when `paper_version > 0`, section omitted when empty, page only for an integer ≥ 1; no "Chunk #", no "General").
   PDF href is `pdf_url` (or the arXiv fallback) + `#page=N` only for a valid page, with an existing fragment replaced; link text "Open PDF at p. N ↗" / "Open PDF ↗"; tests for page 4, 0, null, `"4"`, absent, and `paper_version` 0.
+- [ ] AC2d (moved from FE-4a, pm-lead 2026-11-22) — A card for a repeated marker lists one row per check: "Cited by claim n" when the positional
+  invariant holds, "Check n" when it doesn't; after a click on a marker, the row for that `(marker, pos)` has `aria-current="true"` and no other row does.
+  These rows replace FE-4a's interim one-chip-per-check header. Tests: `ReferencesStack.test.jsx`, `App.test.jsx` (`synthesizedSkips`, `brokenPositional`).
 - [ ] AC6 — CI `frontend` job green: `npm ci`, `npm run lint` (warnings not above main's latest run), `npm test`, `npm run build`. `ReferencesStack.test.jsx:30` replaced by an exact meta-line assertion (listed in the PR body); no other existing test weakened.
 - [ ] Docs: after merge, pm-lead updates FE-4 umbrella and the Product PRD UI-1 note (via `docs/` PR). No app README change.
 
@@ -43,3 +46,5 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
 ## Notes
 - 2026-11-22 (pm-lead, design gate): split from FE-4 (≈ 250 changed lines). Label format `arXiv:2401.01234v2` approved (Q3); copy approved (Q5). `page` is absent on every
   real response until ING-11b, so the `#page=N` path is fixture-only; say so in the PR evidence. FE-2 (`ReferencesStack.jsx`) waits on this task.
+- 2026-11-22 (pm-lead, cycle 2026-11-22T02:00Z): FE-4a size decision moved the multi-entry "Cited by claim n" / "Check n" rows and their
+  `aria-current` here (new AC2d; design `docs/design/FE-4.md` §3 multi-entry bullet). Size estimate grows to ≈ 320 changed lines; split again if it passes 400.

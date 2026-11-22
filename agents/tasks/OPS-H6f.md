@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6e (ArxivLens #106) **merged**: same files `services/common/db.py`, `tests/test_chunk_reprocess_db.py` |
 | **Jira** | KAN-116 (epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6f`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py` plus tests, no schema/event/HTTP change, no new CLI/table/service |
-| **Status** | Ready (#106 merged `a4c0140`). Not picked cycle 2026-11-21T21:59Z: 4-task cap (EVAL-8c human direction, FE-4 P0, ING-6c P1 took priority); next backend slot |
+| **Status** | Ready, picked cycle 2026-11-22T02:00Z (#106 merged `a4c0140`; files disjoint from open PRs #122–#124) |
 
 ## Goal
 OPS-H6e made the embedder's save hash-aware: with a 4-tuple it locks the chunk row `FOR SHARE` and writes only if
@@ -77,3 +77,7 @@ git diff origin/main --name-only   # exactly services/common/db.py, tests/test_p
   reproduced on PG16) and nit 3 / r2 nit 2 + "Missing tests" (two-session `FOR SHARE` guard, duplicate-hash fixture),
   during the #106 PM review. Code refs are at app `main` `11c4696` + #106 head `f1b156e`. Backlog until #106 merges
   (same three files). Independent of AI-13 (different files), so both can be picked in the same cycle after #106 merges.
+- 2026-11-22 (pm-lead, cycle 2026-11-22T02:00Z): picked. Independent of ING-6c (#124, Go + workflows): no shared files.
+  #124's `Full stack` job is currently red; if OPS-H6f's own `Full stack` run fails, check whether the same failure is on
+  #124/main (pre-existing) before treating it as this change's regression, and say which in the PR. AC9 still needs the
+  new real-PG tests `PASSED` in the `-rA` summary.

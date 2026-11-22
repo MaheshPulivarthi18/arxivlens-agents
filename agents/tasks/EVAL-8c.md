@@ -53,7 +53,8 @@ locally today and in CI once ADR-0021 is decided. Also record the local baseline
       anywhere in the written JSON or in captured stdout/stderr (test greps both).
 - [ ] AC2 — Probe failures never fail the run: (a) connection refused, (b) HTTP 401, (c) `/api/tags` without the model,
       (d) non-JSON body each give `digest: null` and a `probe_error`, and `main` returns the same exit code as with the probe
-      patched to succeed (parametrized test). With `LLM_MODEL` unset, no probe request is made (test asserts zero calls).
+      patched to succeed (parametrized test). With `LLM_MODEL` unset **and `LLM_BASE_URL` and `LLM_API_KEY` set**, no probe
+      request is made (test asserts zero calls; a row with neither set is not enough).
 - [ ] AC3 — `case_record` carries `answer_kind` and each citation's `status`; a response without them gives `null`
       (tests on one synthesized, one quoted and one refusal fixture). `answer_review.py`'s existing tests still pass unchanged
       (its drift fingerprint is not widened here).
@@ -64,7 +65,8 @@ locally today and in CI once ADR-0021 is decided. Also record the local baseline
       (the existing `test_gate_*` tests pass unmodified), and no new `checks[]` entry exists.
 - [ ] AC6 — Mutants, each failing ≥ 1 test (run locally, never pushed): (m1) write the full `LLM_BASE_URL` instead of the
       host; (m2) drop the `Authorization` header; (m3) let a probe exception propagate; (m4) count quoted answers as
-      synthesized; (m5) drop `answer_kind` from `case_record`; (m6) probe when `LLM_MODEL` is unset.
+      synthesized; (m5) drop `answer_kind` from `case_record`; (m6) drop the `LLM_MODEL` condition of the probe guard (probe whenever
+      `LLM_BASE_URL` is set), so it must be killed by the AC2 row with `LLM_BASE_URL` set and `LLM_MODEL` unset.
 - [ ] AC7 — Docs: `evals/README.md` documents the `llm` block and the per-case keys; `evals/BASELINE.md` has the
       "Real LLM (reported, local)" section with every number traceable to the committed JSON (QA diffs them).
 - [ ] AC8 — CI on the draft PR: check-run `Python M0 unit tests` green (job runs `make test-py-light`, which includes
@@ -107,4 +109,7 @@ before quoting it (lesson ING-9d).
   untouched. `llm.probe_error` is present only on a probe failure (absent when unprobed or successful), so AC1's
   success block has exactly the 7 keys. Not run: `make test-py-light` locally (`confluent_kafka` not installable in the
   sandbox, pre-existing; the other 3 light files pass), `make eval` (report-only metadata), Go tests (no Go change). AC8 is CI.
-
+- 2026-11-22 (pm-lead, cycle 2026-11-22T02:00Z): QA r1 Finding 5 `[spec]` fixed. AC2's no-probe row now requires
+  `LLM_BASE_URL` and `LLM_API_KEY` set with `LLM_MODEL` unset (the old wording let a row with no base URL pass, which is
+  how Finding 1 slipped through), and AC6 m6 is now "drop the `LLM_MODEL` condition of the probe guard". No other AC
+  changed; QA r2 checks both against the reworded text. Findings 1–4 stay with ai-engineer (rework running).
