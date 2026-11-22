@@ -1,0 +1,14 @@
+$ bash -c timeout 120 make test-py-light 2>&1 | tail -8; echo "## the other three light files:"; timeout 200 python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py tests/test_arxiv_replay.py tests/test_rerank_precision.py 2>&1 | tail -2
+services/common/kafka_client.py:10: in <module>
+    from confluent_kafka import Consumer, Producer, Message, KafkaError, KafkaException
+E   ModuleNotFoundError: No module named 'confluent_kafka'
+=========================== short test summary info ============================
+ERROR tests/test_worker_heartbeat.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.11s
+make: *** [Makefile:56: test-py-light] Error 2
+## the other three light files:
+................                                                         [100%]
+303 passed, 1 skipped in 9.15s
+
+[exit code 0]

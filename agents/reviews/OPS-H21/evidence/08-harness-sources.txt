@@ -1,0 +1,147 @@
+$ bash -c cd /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa && for f in mutate.py control.sh probe.sh test_qa_probe.py; do echo ===== $f; cat $f; done
+===== mutate.py
+"""QA OPS-H21: apply each mutant to a temp copy of the PR head, run its target test and the full file."""
+import os, shutil, subprocess, sys, tempfile
+app = sys.argv[1]
+T = "tests/test_arxiv_replay.py::"
+M = [
+ ("m1", "AC5: treat all failures as transient", "    return status in (BUDGET, 429) or status >= 500", "    return True",
+  T + "test_prefetch_permanent_failures_get_no_second_pass"),
+ ("m2", "AC5: drop `now >= self.deadline` check before a request (q2)",
+  "                if self.deadline is not None and now >= self.deadline:\n                    return BUDGET, b\"\"\n", "",
+  T + "test_prefetch_no_request_after_a_request_that_overruns_the_deadline"),
+ ("m3", "AC5: treat all failures as permanent", "    return status in (BUDGET, 429) or status >= 500", "    return False",
+  T + "test_prefetch_mixed_failures_retry_only_the_transient_query"),
+ ("m4", "AC8: saved= written once at the end of main (old behaviour)",
+  "        self.report_saved()\n", "", T + "test_prefetch_reports_saved_as_soon_as_the_first_entry_is_on_disk",
+  ("    failed = [missing(n, s) for n, s in given_up + again]\n",
+   "    rec.report_saved()\n    failed = [missing(n, s) for n, s in given_up + again]\n")),
+ ("x1", "report_saved always appends (repeated saved= key)", "        if self.output_at is None:", "        if True:",
+  T + "test_prefetch_writes_one_saved_line_and_none_when_nothing_is_added"),
+ ("x2", "serve --record also writes $GITHUB_OUTPUT", "        Handler.rec = Recorder(args.dir, args.record)\n",
+  "        Handler.rec = Recorder(args.dir, args.record)\n        Handler.rec.output = os.environ.get(\"GITHUB_OUTPUT\")\n",
+  T + "test_serve_record_never_writes_github_output"),
+ ("x3", "permanent failures dropped from the exit report", "given_up + again]", "again]",
+  T + "test_prefetch_permanent_failures_get_no_second_pass"),
+ ("x4", "invalid 200 returns 502 (no BAD_BODY)", "        return (BAD_BODY if bad_body else status), b\"\"",
+  "        return status, b\"\"", T + "test_prefetch_permanent_failures_get_no_second_pass"),
+ ("x5", "504 (network error) treated as permanent", "or status >= 500", "or status >= 505", None),
+ ("x6", "a query is retried only if ALL its failures are transient", "if any(transient(s) for _, s in f):",
+  "if f and all(transient(s) for _, s in f):", None),
+]
+def run(d, sel):
+    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *sel], cwd=d,
+                       capture_output=True, text=True)
+    return r.returncode, (r.stdout.strip().splitlines() or ["?"])[-1]
+print(f"{'id':4} {'verdict':9} result")
+for m in M:
+    mid, what, old, new, target = m[:5]
+    d = tempfile.mkdtemp()
+    shutil.copytree(app, d, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git", "node_modules", "frontend"))
+    p = os.path.join(d, "scripts/arxiv_replay.py"); s = open(p).read()
+    assert s.count(old) == 1, (mid, s.count(old)); s = s.replace(old, new)
+    if len(m) > 5:
+        o2, n2 = m[5]; assert s.count(o2) == 1; s = s.replace(o2, n2)
+    open(p, "w").write(s)
+    if target:
+        rc, tline = run(d, ["-k", target.split("::")[1], "tests/test_arxiv_replay.py"])
+    else:
+        rc, tline = 0, "(no target named)"
+    frc, fline = run(d, ["tests/test_arxiv_replay.py"])
+    killed = (rc != 0) if target else (frc != 0)
+    print(f"{mid:4} {'KILLED' if killed else 'SURVIVED':9} target: {tline} | full file: {fline}")
+    print(f"      {what}")
+    shutil.rmtree(d)
+===== control.sh
+#!/bin/bash
+# QA OPS-H21 negative control: PR head tests against origin/main's scripts/arxiv_replay.py (new tests must fail).
+set -u
+app=$1; d=$(mktemp -d)
+git -C "$app" archive origin/main scripts tests | tar -x -C "$d"
+git -C "$app" show HEAD:tests/test_arxiv_replay.py > "$d/tests/test_arxiv_replay.py"
+echo "script: origin/main $(git -C "$app" rev-parse --short origin/main); tests: PR head $(git -C "$app" rev-parse --short HEAD)"
+(cd "$d" && python3 -m pytest -q -p no:cacheprovider -rA tests/test_arxiv_replay.py 2>&1 | grep -E "^(PASSED|FAILED)|passed|failed" | sed "s/ - .*//" | grep -vE "prefetch pass ([2-9]|1[0-9]):")
+rm -rf "$d"
+===== probe.sh
+#!/bin/bash
+# QA OPS-H21: run QA probe tests (not in the PR) at the PR head, then under mutants x5/x6 that the PR's suite misses.
+set -u
+app=$1; probe=$2
+run() { local d; d=$(mktemp -d); cp -r "$app/scripts" "$app/tests" "$d/"; cp "$probe" "$d/tests/test_qa_probe.py"
+  if [ -n "$2" ]; then python3 - "$d/scripts/arxiv_replay.py" "$2" "$3" <<'PY'
+import sys; p, o, n = sys.argv[1:]; s = open(p).read(); assert s.count(o) == 1; open(p, "w").write(s.replace(o, n))
+PY
+  fi
+  echo "== $1"; (cd "$d" && python3 -m pytest -q -p no:cacheprovider -rA -s tests/test_qa_probe.py 2>&1 | grep -E "^(PASSED|FAILED|requests:|p1.pdf|GITHUB_OUTPUT:)|passed|failed" | grep -v "^tests/"); rm -rf "$d"; }
+echo "app head: $(git -C "$app" rev-parse --short HEAD)"
+run "PR head (no mutation)" "" ""
+run "mutant x5: 504 network errors permanent (>= 500 -> >= 505)" "or status >= 500" "or status >= 505"
+run "mutant x6: retry a query only if ALL its failures are transient" "if any(transient(s) for _, s in f):" "if f and all(transient(s) for _, s in f):"
+===== test_qa_probe.py
+"""QA OPS-H21 probes (not committed to the PR): behaviours the ticket names but no committed test pins."""
+from tests.test_arxiv_replay import Clock, FEED, PDF, rp  # noqa: F401  (reuses the PR's fixtures)
+from tests.test_arxiv_replay import env  # noqa: F401
+import urllib.request
+
+
+def _run(tmp_path, *ids):
+    argv = ["prefetch", "--dir", str(tmp_path / "s"), "--budget-seconds", "1000"]
+    for i in ids:
+        argv += ["--id", i]
+    return rp.main(argv)
+
+
+def test_probe_5xx_gets_another_pass(env, tmp_path, monkeypatch, capsys):
+    up, _ = env
+    up.script = {"api": [(200, FEED, {})], "pdf": [(503, b"", {})] * 4 + [(200, PDF, {})]}
+    Clock(monkeypatch, up)
+    assert _run(tmp_path, "2401.00001") == 0
+    assert "retrying 1 queries" in capsys.readouterr().err
+
+
+def test_probe_network_error_gets_another_pass(env, tmp_path, monkeypatch, capsys):
+    up, _ = env
+    up.script = {"api": [(200, FEED, {})], "pdf": [(200, PDF, {})]}
+    Clock(monkeypatch, up)
+    real, n = urllib.request.urlopen, []
+
+    def flaky(req, timeout=None):
+        if req.full_url.endswith(".pdf") and len(n) < 4:
+            n.append(1)
+            raise TimeoutError("simulated")
+        return real(req, timeout=timeout)
+    monkeypatch.setattr(rp.urllib.request, "urlopen", flaky)
+    assert _run(tmp_path, "2401.00001") == 0
+    assert "retrying 1 queries" in capsys.readouterr().err
+
+
+def test_probe_query_with_404_and_429_pdf_is_retried(env, tmp_path, monkeypatch, capsys):
+    feed2 = (b'<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">'
+             b'<entry><id>p1</id></entry><entry><id>p2</id></entry></feed>')
+    up, _ = env
+    up.script = {"api": [(200, feed2, {})], "/pdf/p1.pdf": [(404, b"", {})],
+                 "/pdf/p2.pdf": [(429, b"", {})] * 4 + [(200, PDF, {})], "pdf": [(404, b"", {})]}
+    Clock(monkeypatch, up)
+    assert _run(tmp_path, "2401.00001") == 1
+    paths = [p for p, _ in up.requests]
+    err = capsys.readouterr().err
+    print("requests:", paths)
+    assert paths.count("/pdf/p2.pdf") == 5, paths  # retried in pass 2 and saved
+    assert "prefetch FAILED for 1: p1.pdf (arXiv" in err
+    # the permanent p1.pdf is asked again in pass 2 because its query is re-run (query-level retry, per AC2)
+    print("p1.pdf requests:", paths.count("/pdf/p1.pdf"))
+
+
+def test_probe_saved_line_grows_past_9_in_place(env, tmp_path, monkeypatch):
+    feed = (b'<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">'
+            + b"".join(b"<entry><id>p%d</id></entry>" % i for i in range(11)) + b"</feed>")
+    up, _ = env
+    up.script = {"api": [(200, feed, {})], "pdf": [(200, PDF, {})]}
+    out = tmp_path / "gh"
+    out.write_text("a=1\n")
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    assert rp.main(["prefetch", "--dir", str(tmp_path / "s"), "--id", "2401.00001"]) == 0
+    print("GITHUB_OUTPUT:", repr(out.read_text()))
+    assert out.read_text() == "a=1\nsaved=12\n"
+
+[exit code 0]

@@ -1,0 +1,24 @@
+$ python3 /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa/mutate.py /root/wt/app-qa-OPS-H21
+id   verdict   result
+m1   KILLED    target: 2 failed, 18 deselected in 1.23s | full file: 3 failed, 17 passed in 8.99s
+      AC5: treat all failures as transient
+m2   KILLED    target: 1 failed, 19 deselected in 0.56s | full file: 1 failed, 19 passed in 8.85s
+      AC5: drop `now >= self.deadline` check before a request (q2)
+m3   KILLED    target: 1 failed, 19 deselected in 0.56s | full file: 3 failed, 17 passed in 8.84s
+      AC5: treat all failures as permanent
+m4   KILLED    target: 1 failed, 19 deselected in 0.55s | full file: 2 failed, 18 passed in 8.85s
+      AC8: saved= written once at the end of main (old behaviour)
+x1   KILLED    target: 1 failed, 19 deselected in 0.55s | full file: 3 failed, 17 passed in 8.86s
+      report_saved always appends (repeated saved= key)
+x2   KILLED    target: 1 failed, 19 deselected in 1.08s | full file: 1 failed, 19 passed in 9.43s
+      serve --record also writes $GITHUB_OUTPUT
+x3   KILLED    target: 2 failed, 18 deselected in 1.07s | full file: 3 failed, 17 passed in 9.35s
+      permanent failures dropped from the exit report
+x4   KILLED    target: 1 failed, 1 passed, 18 deselected in 1.08s | full file: 1 failed, 19 passed in 9.40s
+      invalid 200 returns 502 (no BAD_BODY)
+x5   SURVIVED  target: (no target named) | full file: 20 passed in 8.84s
+      504 (network error) treated as permanent
+x6   SURVIVED  target: (no target named) | full file: 20 passed in 8.86s
+      a query is retried only if ALL its failures are transient
+
+[exit code 0]

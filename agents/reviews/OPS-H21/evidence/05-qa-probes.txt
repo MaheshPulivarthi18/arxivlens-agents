@@ -1,0 +1,27 @@
+$ bash /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa/probe.sh /root/wt/app-qa-OPS-H21 /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa/test_qa_probe.py
+app head: 0970737
+== PR head (no mutation)
+p1.pdf requests: 2
+GITHUB_OUTPUT: 'a=1\nsaved=12\n'
+PASSED tests/test_qa_probe.py::test_probe_5xx_gets_another_pass
+PASSED tests/test_qa_probe.py::test_probe_network_error_gets_another_pass
+PASSED tests/test_qa_probe.py::test_probe_query_with_404_and_429_pdf_is_retried
+PASSED tests/test_qa_probe.py::test_probe_saved_line_grows_past_9_in_place
+4 passed in 2.12s
+== mutant x5: 504 network errors permanent (>= 500 -> >= 505)
+p1.pdf requests: 2
+GITHUB_OUTPUT: 'a=1\nsaved=12\n'
+PASSED tests/test_qa_probe.py::test_probe_query_with_404_and_429_pdf_is_retried
+PASSED tests/test_qa_probe.py::test_probe_saved_line_grows_past_9_in_place
+FAILED tests/test_qa_probe.py::test_probe_5xx_gets_another_pass - AssertionEr...
+FAILED tests/test_qa_probe.py::test_probe_network_error_gets_another_pass - A...
+2 failed, 2 passed in 2.11s
+== mutant x6: retry a query only if ALL its failures are transient
+GITHUB_OUTPUT: 'a=1\nsaved=12\n'
+PASSED tests/test_qa_probe.py::test_probe_5xx_gets_another_pass
+PASSED tests/test_qa_probe.py::test_probe_network_error_gets_another_pass
+PASSED tests/test_qa_probe.py::test_probe_saved_line_grows_past_9_in_place
+FAILED tests/test_qa_probe.py::test_probe_query_with_404_and_429_pdf_is_retried
+1 failed, 3 passed in 2.11s
+
+[exit code 0]

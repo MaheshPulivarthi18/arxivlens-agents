@@ -1,5 +1,8 @@
-$ bash /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-OPS-H21-r1/control.sh /root/wt/qa-OPS-H21 /tmp/claude-0/-home-claude/918fc691-e252-5905-8c95-64fef3b27073/scratchpad/qa-OPS-H21-r1/work
+$ bash /tmp/claude-0/-home-claude/af958547-31ce-5037-9019-2063260c54aa/scratchpad/qa/control.sh /root/wt/app-qa-OPS-H21
 script: origin/main 53171d6; tests: PR head 0970737
+[replay] prefetch pass 1: 1 failed; retrying 1 queries in 60s
+[replay] prefetch pass 1: 1 failed; retrying 1 queries in 60s
+[replay] prefetch pass 1: 2 failed; retrying 2 queries in 60s
 PASSED tests/test_arxiv_replay.py::test_record_then_replay_without_upstream
 PASSED tests/test_arxiv_replay.py::test_rate_limit_is_retried_and_bad_bodies_never_saved
 PASSED tests/test_arxiv_replay.py::test_upstream_failure_passes_status_through
@@ -20,6 +23,6 @@ FAILED tests/test_arxiv_replay.py::test_prefetch_permanent_failures_get_no_secon
 FAILED tests/test_arxiv_replay.py::test_prefetch_mixed_failures_retry_only_the_transient_query
 FAILED tests/test_arxiv_replay.py::test_prefetch_reports_saved_as_soon_as_the_first_entry_is_on_disk
 FAILED tests/test_arxiv_replay.py::test_prefetch_writes_one_saved_line_and_none_when_nothing_is_added
-5 failed, 15 passed in 9.46s
+5 failed, 15 passed in 8.98s
 
 [exit code 0]

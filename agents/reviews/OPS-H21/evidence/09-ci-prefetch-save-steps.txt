@@ -1,0 +1,15 @@
+$ gh api .../actions/jobs/{137004566810,137004566700}/logs (excerpt)
+# CI job logs for head 0970737 (gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/<id>/logs), prefetch + save steps
+## Full stack (compose + make test-full), job 137004566810: prefetch saves 5 -> Save arXiv replay store runs
+2026-11-21T22:21:22.1912406Z ##[group]Run python3 scripts/arxiv_replay.py prefetch --dir .arxiv-replay --search "cat:cs.LG" --limit 2 --id 2608.20331 --budget-seconds 1020
+2026-11-21T22:21:35.3519101Z [replay] prefetch: 2 queries, stats={"hits": 0, "misses": 5, "upstream_fetches": 5, "upstream_failures": 0, "saved": 5}
+2026-11-21T22:21:35.3712737Z ##[group]Run actions/cache/save@v4
+2026-11-21T22:21:37.2678922Z Cache saved with key: arxiv-replay-Linux-stack-v1-44956133916
+## eval, job 137004566700: prefetch all hits (saved 0) -> no saved= line, save step skipped
+2026-11-21T22:23:41.1361488Z ##[group]Run python3 scripts/arxiv_replay.py prefetch --dir .arxiv-replay --ids evals/corpus.txt --budget-seconds 2520
+2026-11-21T22:23:41.3309441Z [replay] prefetch: 31 queries, stats={"hits": 62, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+eval step: Restore arXiv replay store: success
+eval step: Save arXiv replay store: skipped
+stack step: Restore arXiv replay store: success
+stack step: Save arXiv replay store: success
+
