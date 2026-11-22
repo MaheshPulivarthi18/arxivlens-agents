@@ -113,3 +113,16 @@ before quoting it (lesson ING-9d).
   `LLM_BASE_URL` and `LLM_API_KEY` set with `LLM_MODEL` unset (the old wording let a row with no base URL pass, which is
   how Finding 1 slipped through), and AC6 m6 is now "drop the `LLM_MODEL` condition of the probe guard". No other AC
   changed; QA r2 checks both against the reworded text. Findings 1–4 stay with ai-engineer (rework running).
+- 2026-11-22 (ai-engineer, rework after QA r1 FAIL): pushed `afed799` on `agent/ai/EVAL-8c` (was `b91f78e`). Now 300 changed
+  lines over the same 5 files (at the 300 stop, not over it; `ownership-check.sh`: "Ownership OK for role=ai (300 changed lines)").
+  - [x] Finding 1 (blocking): `test_no_probe_without_llm_model` is parametrized: `no-url` (the old row, unchanged) and `url`
+        (`LLM_BASE_URL` + `LLM_API_KEY` set, `LLM_MODEL` unset), each asserting `calls == []` (so no Authorization sent) and
+        `model`/`digest`/`digest_short` null (`host` = `llm.example:8443` in the url row). Mutant m6a (`if root:`) now fails
+        `[url]` (2 probe calls with `Bearer sk-test-SECRET`); unmutated 287 passed / 1 skipped.
+  - [x] Finding 2: the rate test adds an answered synthesized near-miss plus a quoted answer → `(1/2, 1)`. The 2/3 row is unchanged. Kills x1.
+  - [x] Finding 3: `evals/BASELINE.md` extractive p95 cell says "(INFO; full answer, pre-ADR-0019)"; lines 18 and 72 now say "CI baseline".
+  - [x] Finding 4: `llm_warnings(model, synthesized, rate=0.0)` skips the "0 synthesized" warning when `rate is None`.
+        `main` passes the rate. Test: `llm_warnings(model, 0, None) == []`. A mutant that drops the check is killed.
+  - Missing tests added: a probe `timeout` row and an IPv6 `_llm_root` assertion (an IPv6 mutant is killed). Not added: the `sha256:` digest
+    prefix test, because it would have pushed the diff over 300. That needs a follow-up or a budget waiver.
+  - Finding 5 (AC wording) is for pm-lead.
