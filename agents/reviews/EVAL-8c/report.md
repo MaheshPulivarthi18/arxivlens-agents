@@ -133,3 +133,35 @@ All 6 check runs report `head_sha afed799…`, completed/success. PR #122 is ope
 
 ## Hand-off
 PASS → pm-lead final review. No blocking findings. Nits 1–2 can go into one small ai-engineer follow-up, and nit 3 is for pm-lead when raising the PR.
+
+---
+
+# PM final review (pm-lead, cycle 2026-11-27T03:59Z)
+
+**Verdict:** APPROVE
+**Reviewed commit:** `afed799938f379f6a834aa21565ad130c1405d35` (PR #122, all 6 check runs success on this head) · **Date:** 2026-11-27
+
+I read the ticket (with the AC2/AC6 wording as changed after round 1), the PRD rows (Product PRD QA-8 and §8; EVAL-8 AC1–AC2), ADR-0021 (Proposed, R3/R4 data only) and both QA rounds. I opened every round-2 evidence file, `11`–`20`, each `.png` against its `.txt`.
+
+**PRD and user fit.** EVAL-8 observation 1 asked a question nobody could answer: did `n003`'s unsupported citation come from a written answer or a quoted one? Every `make eval` results file now records which model answered (`model`, `host`, Ollama version and digest) and each case's `answer_kind`. Mahesh can now tell an ADR-0003 flag from an ADR-0019 bug. Secrets stay out. The real-socket run (19) shows no key, userinfo or query in JSON, stdout or stderr across 9 scenarios. Round 1's realistic misconfiguration (base URL exported, model forgotten) now sends 0 requests. Probe failures show up honestly as `null` + `probe_error`. The gate means the same thing as before: across 50 `check_thresholds` calls, the head and main differ 0 times (16).
+
+**Scope.** Exactly the 5 named, ai-owned files: 293+/7−, 300 lines, at the stop limit and not over it (18). `check_thresholds`, `thresholds.json`, `.github/`, `internal/` and the app `README.md` are untouched. The BASELINE "Real LLM (reported, local)" section is labelled as reported, not re-measured, and its 11 rows match the committed JSON (17).
+
+**Evidence vs ACs.**
+- AC1: 12 and 19 (unit test plus a real HTTP server).
+- AC2: 12 (refused, 401, model-missing, non-json, timeout; `[url]` no-probe row with 0 calls) and 19.
+- AC3 and AC4: 15.
+- AC5: 16.
+- AC6: 14. m1–m6 are all killed, m6a by the `[url]` row the ticket names.
+- AC7: 17.
+- AC8: 11, 18, 20. The CI log shows `make test-py-light` → `319 passed, 1 skipped`. The `::error::ML stack present` line in 20 is the echoed guard command, not a failure (the job succeeded).
+
+No "⚠ unverified" is left on an AC. The one thing not shown is a live Ollama returning a non-null `digest_short`. The real-socket server covers the same code path, and the first CI real-LLM run (EVAL-8a) will show it. Acceptable.
+
+**Docs.** `evals/README.md` and `evals/BASELINE.md` are updated in the PR. No PRD status change: QA-8 is already ✅, and the EVAL-8 umbrella stays open until EVAL-8a merges. The app `README.md` is out of scope (no user-facing behaviour).
+
+**QA nits.**
+1. r2b (`main` passing `rate`) and 2. r2e (`sha256:` prefix): non-blocking. Both affect only stderr text or a report-only field. Moved to follow-up [EVAL-8d](../../tasks/EVAL-8d.md) (ai, P2, Ready, startable once #122 merges). r2e matters before ADR-0021 R3 compares digests, which is why it gets a ticket and not just a Backlog line.
+3. Stale PR description: fixed now. I rewrote it with the current numbers (287 passed / 1 skipped local, 319 passed / 1 skipped CI).
+
+**Hand-off:** PR #122 is raised (description rewritten with evidence, marked ready for review). Next: Mahesh reviews and merges.

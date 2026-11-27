@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-27 ~04:10Z by pm-lead (cycle 2026-11-27T03:59Z grooming; app `main` = `53171d6`, unchanged). The 2026-11-22T02:00Z cycle died before recording, so this replaces its stale header. Earlier history: `git log -p agents/board.md` and PROGRESS.
+Last updated: 2026-11-27 ~04:20Z by pm-lead (EVAL-8c PM APPROVE, #122 raised; EVAL-8d specced. Earlier: cycle 2026-11-27T03:59Z grooming; app `main` = `53171d6`, unchanged). The 2026-11-22T02:00Z cycle died before recording, so this replaces its stale header. Earlier history: `git log -p agents/board.md` and PROGRESS.
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency).
@@ -8,7 +8,7 @@ WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENT
 Active (counts toward WIP) at cycle start: ai 1 (#122), backend 1 (#124), frontend 1 (#125). After this cycle's picks every developer is at 2, so there is no 4th slot.
 **Picked 2026-11-27T03:59Z** (pairwise disjoint files, disjoint from #122–#125, all deps merged, no ADR wait): **FE-4a** (frontend, P0; design approved with conditions, size accepted ≈ 650 lines; 9 files: `frontend/src/lib/citations{,.test}.js`, `frontend/src/components/{SynthesisView,ReferencesStack}{.jsx,.test.jsx}`, `frontend/src/App{.jsx,.test.jsx}`, `frontend/src/test/fixtures.js`) → **OPS-H6f** (backend, P2 data correctness; `services/common/db.py`, `tests/test_processor_pages.py`, `tests/test_chunk_reprocess_db.py`) → **AI-13** (ai, P2 data correctness; `services/embedder/worker.py`, `tests/test_verify.py`). FE-4a and OPS-H6f were picked 2026-11-22T02:00Z but never built (no branch/PR): rebuild from `53171d6` and push + open the draft PR in the same session.
 `cmd/arxivlens/main.go` + app `README.md` order (one PR at a time): ING-6c (#124) → OPS-H7a2c → OPS-H7b → OPS-H7c. `rag.go` is free; next is the AI-14 follow-up (Backlog, needs a spec) or AI-5 if ADR-0011 is Accepted.
-`ReferencesStack.jsx`/`SynthesisView.jsx`/`App.jsx` order: FE-4a (picked) → FE-4b → FE-2. `tests/test_evals_data.py` (one PR at a time): EVAL-8c (#122) → EVAL-6c nits / EVAL-7 `build_rows` / EVAL-5 `CHUNK_COUNTS_SQL` follow-ups. `services/common/db.py`: OPS-H6f (picked); AI-13 (`worker.py`, `tests/test_verify.py`) is independent of it.
+`ReferencesStack.jsx`/`SynthesisView.jsx`/`App.jsx` order: FE-4a (picked) → FE-4b → FE-2. `tests/test_evals_data.py` (one PR at a time): EVAL-8c (#122) → EVAL-8d → EVAL-6c nits / EVAL-7 `build_rows` / EVAL-5 `CHUNK_COUNTS_SQL` follow-ups. `services/common/db.py`: OPS-H6f (picked); AI-13 (`worker.py`, `tests/test_verify.py`) is independent of it.
 Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; see the 2026-11-17 grooming notes.
 
 ## Ready
@@ -21,6 +21,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | 8 | [OPS-H7a2c](tasks/OPS-H7a2c.md) (KAN-98) | `dlq list` footer keeps `--partition`/`--page-size`; pin `inspect` edge cases (M21, M22); CLI errors printed once | backend-engineer | P1 | `main.go` + README queue: after ING-6c (#124) merges | QA OPS-H7a2b r1 finding 1 `[spec]` + nits |
 | 9 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | after OPS-H7a2c merges (`main.go`, README) | |
 | 10 | [OPS-H7c](tasks/OPS-H7c.md) | Replay advisory lock, deterministic IDs, stack replay run (closes OPS-H7) | backend-engineer | P1 | OPS-H7b merged | |
+| 10b | [EVAL-8d](tasks/EVAL-8d.md) (Jira: create) | Pin `main`'s rate wiring to `llm_warnings` and the `sha256:` digest prefix (EVAL-8c QA r2 nits) | ai-engineer | P2 | **#122 merged** (`tests/test_evals_data.py`) | tests only, < 60 lines; first in the `test_evals_data.py` queue after #122 |
 | 11 | [FE-2](tasks/FE-2.md) (KAN-20) | "Export all citations" (.bib) for an answer | frontend-engineer | P2 | after FE-4b merges (`ReferencesStack.jsx`) | |
 
 ## In progress
@@ -31,7 +32,6 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## In QA
 | ID | Title | Owner | PR |
 |---|---|---|---|
-| [EVAL-8c](tasks/EVAL-8c.md) | Eval results record which LLM answered; BASELINE real-LLM section | ai-engineer | #122 (draft; rework pushed, QA round 2 running) |
 
 ## PM review
 | ID | Title | Owner | PR |
@@ -40,6 +40,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Ready to merge (raised for Mahesh)
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
+| [EVAL-8c](tasks/EVAL-8c.md) | Eval results record which LLM answered; BASELINE real-LLM section | ai-engineer | #122 (ready for review) | QA PASS (r2), PM APPROVE ([report](reviews/EVAL-8c/report.md)) |
 | [OPS-H21](tasks/OPS-H21.md) (KAN-119) | Prefetch: no extra passes for permanent failures; `saved=` on first save; deadline-overrun test | ai-engineer | #123 (ready for review) | QA PASS, PM APPROVE ([report](reviews/OPS-H21/report.md)) |
 | [FE-0j](tasks/FE-0j.md) (KAN-115) | `Badge` test pins className precedence (mutant M5) | frontend-engineer | #125 (ready for review) | QA PASS, PM APPROVE ([report](reviews/FE-0j/report.md)) |
 

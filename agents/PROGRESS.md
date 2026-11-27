@@ -1107,3 +1107,4 @@ Format:
 - **Picked (3, pairwise disjoint files and disjoint from #122–#125):** FE-4a (frontend, P0, design approved, rebuild), OPS-H6f (backend, P2), AI-13 (ai, P2). No 4th pick: every developer is now at 2 active PRs.
 - Not picked: FE-4b/FE-2 (behind FE-4a), OPS-H7a2c/H7b/H7c (`main.go` + README queue behind #124), EVAL-6c nits (behind #122), EVAL-8a/8b + AI-10/AI-5/EVAL-2 (ADRs Proposed), AI-14 follow-up (not specced; ai slot taken anyway).
 - Board refreshed: In progress / In QA / Ready to merge columns now list #122–#125.
+- 2026-11-27 ~04:20Z pm-lead: EVAL-8c PM final review → **APPROVE** at `afed799` (QA r2 PASS, all 6 CI checks green; evidence 11–20 checked). PR #122 description rewritten with an Evidence section and marked ready for review → Ready to merge. QA nits r2b/r2e → new follow-up EVAL-8d (ai, P2, Ready, after #122 merges); nit 3 (stale PR numbers) fixed in the description.
