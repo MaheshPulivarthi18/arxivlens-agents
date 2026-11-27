@@ -1,6 +1,6 @@
 # ADR-0015: Which ranking-changing options may be used to cut CPU cross-encoder rerank latency (Known failure F1)
 
-- **Status:** Proposed
+- **Status:** Superseded by Technical PRD §9 "Reference hardware" (GPU is the target; CPU latency is informational). Mahesh approved the supersession 2026-11-17 and confirmed it 2026-11-28; recorded by pm-lead
 - **Date:** 2026-11-07
 - **Deciders:** Mahesh Pulivarthi (only the human owner sets Accepted/Rejected)
 - **Blocks:** AI-10 (and through it: removing the "Known failure F1" step from `stack.yml`)
@@ -73,7 +73,14 @@ default stays fp32-512, and pm-lead brings the numbers back to Mahesh with optio
 possible extra, since it needs a dependency decision and can't close a 3× gap by itself.
 
 ## Decision
-_(Filled by the human.)_ Chosen option(s), the adoption order and the quality tolerance (pm-lead proposes 0.01 absolute
+**Superseded, no option chosen** (2026-11-28). This ADR's driver was meeting the `/v1/ask` p95 on CPU runners. Technical
+PRD §9 (Accepted 2026-11-15, #43/#47) makes GPU (MPS or CUDA) the reference hardware and CPU latency informational only,
+and ADR-0020 (fp16 reranker on GPU) brought the gated quick-stage p95 under 3 s. No ranking-changing CPU speed-up
+(int8, shorter `max_length`, ONNX) will be built: AI-10 is closed as obsolete. "Known failure F1" in `stack.yml` (M3's
+10 s client timeout on CPU runners) stays a known, visible red on CPU until someone proposes another fix; it is not a
+product target.
+
+_Original open question, kept for history:_ chosen option(s), the adoption order and the quality tolerance (pm-lead proposed 0.01 absolute
 on Recall@5 / MRR / NDCG@5 against the fp32-512 baseline, with every existing gate still passing).
 
 ## Consequences

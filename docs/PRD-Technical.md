@@ -194,7 +194,7 @@ erDiagram
 
 Design choices:
 - **`halfvec(768)`** halves vector storage compared with `vector(768)`, with negligible loss in recall.
-- **HNSW cosine index (gap):** no migration creates it yet. `chunk_embeddings_hnsw_idx` (`m=16, ef_construction=64`) is created only by `scripts/benchmark_hnsw.py`, so a fresh `make migrate` has exact (sequential) vector scans. Tracked by [OPS-H5](../agents/tasks/OPS-H5.md).
+- **HNSW cosine index:** migration `000002_chunk_embeddings_hnsw` creates `chunk_embeddings_hnsw_idx` (`m=16, ef_construction=64`, the same as `scripts/benchmark_hnsw.py`; [OPS-H5](../agents/tasks/OPS-H5.md)). The values at scale are still open (ADR-0008, Proposed).
 - **`(chunk_id, model)` primary key** lets several embedding models co-exist, so a re-index can run without downtime.
 - **Generated `tsvector`** keeps BM25-style full-text search in sync with no application code.
 - **`processed_events`** is the per-consumer-group idempotency ledger.
@@ -237,11 +237,22 @@ sequenceDiagram
     Q->>EA: POST /internal/embed (is_query=true)
     EA-->>Q: 768-d vector
     Q->>PG: Hybrid SQL (vector top-50 ∪ BM25 top-50 → RRF k=60)
-    PG-->>Q: top max(20, limit) candidates by rrf_score (rerank pool)
+    PG-->>Q: rerank pool: top max(20, limit) by rrf_score (RerankPool = 20, ADR-0010)
     Q->>EA: POST /internal/rerank (query, all pool passages, one call)
-    EA-->>Q: cross-encoder scores (bge-reranker-base)
-    Note over Q: order by fused rerank + RRF rank (ADR-0017; ties keep RRF order), top-5 paper cap (ADR-0016), truncate to limit.<br/>On rerank error, timeout/cancel, wrong score count, or a NaN or ±Inf score (the first non-finite score by position names the reason): keep RRF order, log trace_id, no error to caller.
-    Q-->>UI: hits[] {chunk, arxiv_id, title, section, rrf_score, rerank_score}
+    EA-->>Q: cross-encoder scores (bge-reranker-base; fp16 on mps/cuda, ADR-0020)
+    Note over Q: 1. rank fusion (ADR-0017): key = 1/(FusionK + rerank rank) + 1/(FusionK + RRF rank), FusionK = 10, ties keep RRF order
+    Note over Q: 2. paper diversity (ADR-0016): the top 5 hold at most PaperCap = 2 chunks per paper, filled from the rest in fused order
+    Note over Q: 3. truncate to limit. On rerank error, timeout/cancel, wrong score count, or a NaN/±Inf score: keep RRF order, log trace_id, no error to caller
+    Q-->>UI: hits[] {chunk, arxiv_id, version, page, title, section, rrf_score, rerank_score}
+```
+
+```mermaid
+flowchart LR
+    P["RRF pool<br/>top 20 by rrf_score"] --> R["Cross-encoder rerank<br/>(one call)"]
+    R --> F["Rank fusion ADR-0017<br/>FusionK = 10"]
+    F --> D["Top 5: at most 2 chunks<br/>per paper (ADR-0016)"]
+    D --> T["Truncate to limit"]
+    R -. "error / NaN / wrong count" .-> T
 ```
 
 With `rerank:false` the SQL returns the top `limit` by `rrf_score` and there is no rerank call. The pool size is
@@ -269,26 +280,31 @@ FROM ... ORDER BY rrf_score DESC LIMIT $5;  -- $5 = max(20, limit) when rerank=t
 
 ```mermaid
 flowchart TD
-    A[Question] --> B["HybridSearch: rerank pool of max(20, max_citations),<br/>sort by rerank score, top max_citations"]
+    A["Question<br/>(quick: true = first stage)"] --> B["HybridSearch (§7.1): fused rerank order,<br/>paper cap, top max_citations"]
     B --> C{Filter}
     C -->|"rerank &lt; 0.45"| X[drop]
     C -->|"appendix/supplementary/table<br/>and rerank &lt; 0.70"| X
     C -->|pass| D{Any hits left?}
     D -- No --> R["Answer: No indexed papers are relevant<br/>to this question. citations: [], no refusal_reason"]
-    D -- Yes --> L{"LLM configured<br/>and not quick?"}
-    L -- Yes --> M["LLM writes cited claims<br/>(prompt synthesis-v1)"]
+    D -- Yes --> L{"LLM_MODEL set<br/>and not quick?"}
+    L -- "Yes (full stage)" --> M["LLM writes cited claims<br/>(prompt synthesis-v1; local Ollama by default, ADR-0024)"]
     M -->|"insufficient_evidence: true"| RI["Refuse: insufficient_evidence<br/>passages as unverified evidence"]
-    M -->|"claims"| V2[Verify each claim + cited passage]
+    M -->|"claims"| V2["Verify each claim + cited passage<br/>(quote match or NLI, ADR-0022)"]
     V2 --> K{"Any claim with a<br/>supported citation?"}
-    K -- Yes --> OS["answer_kind = synthesized:<br/>kept claims[], citations, prompt_version"]
+    K -- Yes --> OS["answer_kind = synthesized:<br/>kept claims[] with only their verified citations (ADR-0019), prompt_version"]
     K -- No --> Q
     M -->|"LLM error, timeout,<br/>unusable reply"| Q
-    L -- No --> Q["Quote the most relevant sentence<br/>of each of the top 3 hits, with #91;n#93;"]
-    Q --> V[Verify each sentence + cited passage]
+    L -- "No (quick stage, or no LLM)" --> Q["Quoted extractive answer (ADR-0023):<br/>the most relevant sentence of each of the top 3 hits, with #91;n#93;"]
+    Q --> V["Verify each sentence + cited passage<br/>(verbatim quote match, else NLI)"]
     V --> S{"Any citation supported?"}
-    S -- Yes --> OQ["answer_kind = quoted:<br/>claims[], citations"]
+    S -- Yes --> OQ["answer_kind = quoted:<br/>claims[], citations (unsupported ones flagged)"]
     S -- No --> RF["Refuse with evidence (ADR-0003):<br/>verification_unavailable if any citation unverified,<br/>else all_citations_unsupported"]
 ```
+
+**Two stages.** The UI first sends `"quick": true` and shows the quoted answer (gated p95 < 3 s, ADR-0019), then sends
+the same question without `quick`. With `LLM_MODEL` set that second request returns the written answer (`answer_kind:
+synthesized`); with no LLM, or when the LLM fails or nothing it wrote verifies, it returns the quoted answer again and the
+UI keeps the first one. Without `LLM_MODEL` both requests take the quoted path.
 
 **Verify** (every pair, both paths): markers outside `1..K` are dropped. A sentence that is a verbatim quote of the cited chunk
 (after whitespace / inline-reference normalisation) is supported with score 1. Any other pair goes, in one batch, to the
@@ -393,30 +409,44 @@ the p95 target.
 | `test_m4_chaos.py` | Duplicate-event invariance, corrupt PDF → DLQ | Full stack |
 | `test_m5_m6_telemetry_eval.py` | traceparent round-trip, ranking metrics, HNSW index | Full stack |
 
-- **`make eval`** (`scripts/eval_gate.py`, pending EVAL-1 / PR #2) runs the retrieval and answer evals over `evals/` and fails on any `evals/thresholds.json` miss.
+- **`make eval`** (`scripts/eval_gate.py`) runs the retrieval and answer evals over `evals/` and fails on any `evals/thresholds.json` miss. Latency gates apply on the GPU profile only (§9); report-only keys are listed in `REPORT_ONLY_KEYS`. CI (`eval.yml`, nightly) has no LLM, so it measures quoted answers; the real-LLM run is EVAL-8 (Modal, ADR-0021).
 - **`scripts/evaluate_retrieval.py`** compares BM25, vector, hybrid RRF, and RRF + rerank on Recall@5, MRR, and NDCG@5.
 - **`scripts/benchmark_hnsw.py`** sweeps `ef_search ∈ {20, 40, 80, 160}` and reports p50/p95/p99 latency, QPS, and index build time.
 
 ## 11. Roadmap
 
+Updated 2026-11-28. Work is planned as bundles (one PR each); see `agents/board.md`.
+
 | Priority | Item | Notes | Task |
 |---|---|---|---|
-| P0 | **LLM answer synthesis** | Done: `rag.go` prompts the configured LLM for cited claims over reranked chunks and verifies each claim (§7.2); without an LLM it quotes the passages. Real-LLM eval: [EVAL-8](../agents/tasks/EVAL-8.md) | [QA-8](../agents/tasks/QA-8.md) (Done, #46) |
-| P0 | Containerize processor + embedder in compose | Dockerfiles exist; add services and GPU/MPS notes | [OPS-H1](../agents/tasks/OPS-H1.md) |
-| P1 | Scheduled crawler | Cron/loop with a `since` watermark per category | [ING-6](../agents/tasks/ING-6.md) |
-| P1 | Unify Python deps | Add `minio`, `ulid-py`, `fastapi`, `uvicorn` to a single `requirements.txt` | [OPS-H2](../agents/tasks/OPS-H2.md) |
-| P1 | Batch embedding in RAG validation | Embed all sentences and chunks in one call instead of one call each | [AI-3](../agents/tasks/AI-3.md) |
+| P0 | **LLM answer synthesis** | Done: with `LLM_MODEL` set, `rag.go` prompts the LLM for cited claims and verifies each one (§7.2); without it, answers quote the passages | [QA-8](../agents/tasks/QA-8.md) (Done, #46) |
+| P0 | Claims, citation status and provenance in `/v1/ask` | Done: `claims[]`, citation `status`/`paper_version`/`page`/`quote`, versioned `pdf_url` (ADR-0014) | AI-8a/AI-8b (Done, #54, #65) |
+| P0 | **Answer evidence UI** | Status chips and claims list done (FE-3a/3b, FE-4a). Left: the quote highlighted in its passage, `arXiv:IDvN · § · p. N`, PDF at the page, "Cited by claim n" rows, `.bib` export | [B-UI](../agents/tasks/B-UI.md) |
+| P0 | **DLQ replay that resumes and can't run twice** | `dlq list` reaches the end of the topic (done, OPS-H7a). Left: list footer polish, Postgres checkpoints + replay log, advisory lock, deterministic IDs, stack replay run (closes Product PRD OPS-2) | [B-PIPE](../agents/tasks/B-PIPE.md) |
+| P0 | Containerize processor + embedder in compose | Done: `make stack-up`; CI `stack.yml` | [OPS-H1](../agents/tasks/OPS-H1.md) (Done) |
+| P1 | Real-LLM answer eval in CI | Local run done (2026-11-21); CI on Modal, built by Mahesh | [EVAL-8](../agents/tasks/EVAL-8.md) (ADR-0021) |
+| P1 | Scheduled crawler | Done: `arxivlens crawl-loop` with a per-category watermark and a single-instance lock | [ING-6](../agents/tasks/ING-6.md) (Done, #124) |
+| P1 | Eval extras | `/v1/search` p50/p95 reported (gate waits on ADR-0012); section-extraction scorer (baseline waits on hand labels) | [B-QUAL](../agents/tasks/B-QUAL.md) |
+| P1 | Unify Python deps | Done: one `requirements.txt` (+ dev, light) | [OPS-H2](../agents/tasks/OPS-H2.md) (Done, #53) |
+| P1 | Batch embedding in RAG validation | Done; verification now goes through `/internal/verify` in one batch | [AI-3](../agents/tasks/AI-3.md) (Done, #13) |
+| P1 | Relevance bar when rerank scores are missing | Waits on ADR-0011 | [AI-5](../agents/tasks/AI-5.md) (Blocked) |
 | P1 | Span export | OTLP exporter to Jaeger/Tempo | Backlog |
 | P2 | Metrics | Prometheus: consumer lag, DLQ depth, stage latency | Backlog |
 | P2 | Auth + rate limiting on query API | Needed before any shared deployment | Backlog |
+| P2 | Streaming answers (Product PRD QA-9) | After the answer evidence UI | Backlog |
 | P2 | Figure/table extraction | Multi-modal chunks | Backlog (post-v1; Product PRD §4 non-goal for v1) |
 
 ## 12. Open technical questions
 
-Each question is tracked by an ADR. All are **Proposed**; only the owner sets Accepted or Rejected.
+Each question is tracked by an ADR. Only the owner sets Accepted or Rejected. Still **Proposed** (2026-11-28):
 
-1. Should LLM synthesis run in Go (calling the API directly) or in the Python embedder API? → [ADR-0002](adr/0002-where-synthesis-runs.md)
-2. Should the on-demand ingest path publish to Kafka instead of running synchronously, for consistent idempotency and DLQ behavior? → [ADR-0004](adr/0004-on-demand-ingest-path.md)
-3. What HNSW parameters (`m`, `ef_construction`) should production use once the corpus passes ~1M chunks? → [ADR-0008](adr/0008-hnsw-parameters-at-scale.md)
-4. Should the embedding model be swapped to a long-context model (e.g. 8k tokens) to reduce chunk boundary effects? → [ADR-0009](adr/0009-long-context-embedding-model.md)
-5. How is Recall@5 computed (paper-level or chunk-level)? → [ADR-0006](adr/0006-recall-at-5-definition.md)
+1. Should the on-demand ingest path publish to Kafka instead of running synchronously? → [ADR-0004](adr/0004-on-demand-ingest-path.md)
+2. Default crawl categories → [ADR-0005](adr/0005-default-crawl-categories.md)
+3. What HNSW parameters should production use past ~1M chunks? → [ADR-0008](adr/0008-hnsw-parameters-at-scale.md); search plan cache vs HNSW → [ADR-0013](adr/0013-search-plan-cache-and-hnsw.md)
+4. Long-context embedding model? → [ADR-0009](adr/0009-long-context-embedding-model.md)
+5. What `/v1/ask` does when no rerank score is available → [ADR-0011](adr/0011-ask-relevance-bar-without-rerank.md)
+6. `/v1/search` p95 gate → [ADR-0012](adr/0012-search-p95-gate.md)
+7. The `/v1/ask` two-stage shape and `answer_kind` → [ADR-0018](adr/0018-two-stage-ask-and-answer-kind.md)
+8. Real-LLM eval in CI (Modal) → [ADR-0021](adr/0021-real-llm-ci-eval-gate.md)
+
+Decided: ADR-0001/0002/0003/0006/0010/0014/0016/0017/0019/0020 (Accepted), ADR-0022/0023/0024 (Accepted, recorded from Mahesh's merged PRs), ADR-0015 (Superseded by §9).
