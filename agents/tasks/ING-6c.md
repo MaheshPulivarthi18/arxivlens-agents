@@ -8,7 +8,7 @@
 | **Depends on** | ING-6b **merged**; #51 and #52 **merged** (README, `db.yml`); **OPS-H9 merged** (`db.yml`; AC8 documents its pgvector pin); no open PR on `cmd/arxivlens/main.go` (OPS-H7b also edits it), `.github/workflows/stack.yml`, `.github/workflows/db.yml` or `README.md` when the build starts. Approved design `docs/design/ING-6.md`, PM conditions 3, 6, 7, 9 and answer 3 |
 | **Jira** | KAN-66 (under KAN-18's epic KAN-4, `labels = "task-ING-6c"`) |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | In QA (PR pending). Built cycle 2026-11-21T21:59Z on `agent/backend/ING-6c` (commit `dec6386`, see Notes) |
+| **Status** | In QA (round 2). QA r1 FAIL at `dec6386`; reworked cycle 2026-11-27T03:59Z at `d55508f` (all 7 CI checks green, see Notes) |
 
 ## Goal
 Ship the user-facing command and prove on the real stack the PRD row: a second run with no new papers emits zero `papers.discovered` events, and a
@@ -107,3 +107,29 @@ DATABASE_URL=postgres://... go test -tags integration -count=1 -v -run '^(TestAd
   **Not run locally:** no Go module cache and proxy.golang.org is blocked here, so nothing compiled, no `go vet`/`go test`, and mutants M6/M8/M9
   were not run (QA must run them; the M9 row's comment names the expected failure). Docker unavailable: the `stack.yml` script was only
   run under `bash -n` and against stubbed docker/curl/arxivlens up to the kill -KILL part (stubs can't release a lock on SIGKILL). CI is the source of truth.
+- 2026-11-27 (backend-engineer, rework after QA r1 FAIL at `dec6386`, cycle 2026-11-27T03:59Z): commit `d55508f` on `agent/backend/ING-6c`;
+  425 changed lines vs `origin/main` `53171d6` (+407/−18; rework itself +39/−20 in 3 files; ownership check OK with the >400 warning, under the
+  design's 480 gate).
+  - [x] QA finding 1 [blocking], stack step precondition: the "AC3: wait until both crawled papers are embedded" step now writes the crawled IDs
+    to `crawled-ids.txt` while they are the only papers; "ING-6: crawl-loop" reads that file (no fixture deny-list) and logs
+    `crawled papers (AC3): … ; all papers now: …`. `papers0` is still taken at the step start, and every write in the step goes through
+    `UpsertDiscoveredPaper`, so "count unchanged" still catches a duplicate or a new version. CI job 140306711751 (green) has every line:
+    `AC2: first run produced 2 … (3 -> 5)`, `AC2: second run produced 0 papers.discovered events (5 -> 5)`, both `[CrawlLoop] cat=cs.LG …
+    out_of_order=0 …` lines, the `crawl_watermarks` row, `AC4 after two runs` / `AC4 (i)` / `AC4 (ii)` = `4 4 (before the step: 4 4)` with both
+    IDs and `W = max: t`, `AC2 lock: … arXiv requests (replay hits+misses) 9 -> 9` after `another crawl-loop is running`, `[CrawlLoop] stopped`,
+    `AC5 SIGTERM: exit 0 after 7 ms`, and `arXiv replay: {"hits": 11, "misses": 0, …}`.
+  - [x] QA finding 2 [nit], design write-back: `docs/design/ING-6.md` §2 (d) now quotes `cat:c: backlog exceeds --max-scan N; …`, and a
+    "Build notes (ING-6c)" section records the prefix move, the cancel-guard error text, the lock shape and the `crawled-ids.txt` hand-off.
+  - [x] QA finding 3 [nit], C1 survived: `TestRunOnceCancelledAfterFirstCategory` also asserts `err.Error() == "context canceled"` (the mutant
+    returns `cat:cs.LG: context canceled`). Mutant C1 run locally (go1.25.1, never pushed): KILLED in the full `./internal/crawler/` run and with
+    `-run '^TestRunOnceCancelledAfterFirstCategory$'` (`RunOnce = cat:cs.LG: context canceled … want exactly "context canceled"`).
+  - [x] QA finding 4 [nit], lock test hangs: `connectIT`'s cleanup bounds `DB.Close` to 10 s with a readable `t.Errorf`, and `TestCrawlLoopLock`
+    keeps lock handles in `held[2]` released by a cleanup that runs before the pools close. Local PG16.15: L2 FAIL in 0.01 s
+    (`second acquirer while held: …`), L3 FAIL in 0.01 s, L4 FAIL in 20 s with `DB.Close still blocked after 10s: …` (each was a hang to the
+    10-minute go-test timeout). Unmutated: both tests PASS, 0 `it-test.%` rows and 0 advisory locks left.
+  - CI on `d55508f`: all 7 checks success (Full stack 140306711751, DB 140306712586 with `--- PASS: TestAdvanceWatermarkMonotonic`,
+    `--- PASS: TestCrawlLoopLock`, leftover rows `0`; Go, Python M0, Frontend, ownership, pinned digests). Local: gofmt clean, `go vet ./...` and
+    `go vet -tags integration ./internal/db/` OK, `go test ./...` ok for every package except `internal/telemetry` (setup failed: two otel deps
+    not fetchable here; unchanged by this PR; green in CI). Not run locally: Docker stack (CI only).
+  - Seen in the job log, not in scope: the lock error prints twice (`Error: …` from cobra and from `main`), the "CLI errors printed once" item
+    already queued as OPS-H7a2c.
