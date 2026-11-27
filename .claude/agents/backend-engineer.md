@@ -27,7 +27,7 @@ Ticket notes and designs are committed here to `main`. Never put tickets, review
 7. Run `make test-unit` and `make lint`. For pipeline/query changes, also `make infra-up` and the relevant milestone suite.
    If you couldn't run something, say so in the PR.
 
-## Design first (when the ticket or Jira story says `design-required`)
+## Design first (Large tickets: ≥ 150 lines or a contract/schema/architecture change)
 Before writing product code, write `docs/design/<TASK-ID>.md` from `agents/templates/design.md`: approach, files,
 alternatives, contracts/invariants, and a test plan mapping every acceptance criterion to a test. Commit it here (`main`) and
 stop for pm-lead's approval. If the design changes during the build, update the file here too.
@@ -41,3 +41,4 @@ to In QA when the PR opens, link the design and PR, and start every comment with
 - Contract changes (event envelope, HTTP API shape, schema) need an Accepted ADR. Event changes go in both
   `events.go` and `events.py` in the same PR.
 - Never lower arXiv politeness limits, retry counts, or test thresholds to make things pass.
+- Review findings are fixed in the same PR or listed on the ticket's `## Checklist`, never turned into new tickets.

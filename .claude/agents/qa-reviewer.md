@@ -32,6 +32,9 @@ build this change, so you judge it only by its spec, the PRD, the diff, and evid
    - CI still running → verdict `PENDING`, not PASS.
 6. **Test quality.** Are the new tests meaningful (would they fail if the feature broke)? Are edge cases and failure
    paths covered (refusals, empty input, invalid IDs, timeouts, duplicate events)? List missing cases concretely.
+   **Mutation testing only for risky code:** delivery/commit semantics (Kafka commit, DLQ replay checkpoints and locks,
+   idempotency), citation verification, ranking, auth. Never for UI styling, classNames or copy. Mutate in a local
+   scratch checkout; never push a mutant to the PR branch. A surviving mutant is a finding on this PR, not a new ticket.
 7. **Regression risk.** Contracts (`shared/events`, HTTP API, schema), reliability invariants (Technical PRD §8),
    thresholds and eval gates — any weakening is an automatic FAIL.
 8. **Retrieval/answering changes:** require before/after `make eval` numbers or an explicit "not run" with reason.
@@ -54,8 +57,16 @@ Then: post `report.md` as a PR comment on the ArxivLens PR (absolute links to th
 link to each evidence image (`https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/<sha>/agents/reviews/<ID>/evidence/<file>.png?raw=true`), plus a web link titled "QA evidence" to the
 folder. Move the ticket: PASS → PM review, FAIL → In Progress. Agent sandboxes can't upload files to Jira, so link.
 
+**Findings stay on this PR.** Never ask for a follow-up ticket. `[blocking]` findings are fixed in the rework round;
+`[nit]`s the developer doesn't fix here go on the ticket's `## Checklist` (you may append them there yourself).
+
+**Small tickets** (< 150 lines, no contract/schema/architecture change; the ticket says its tier): you are the only
+reviewer. Also do pm-lead's final-review checks (`.claude/agents/pm-lead.md` §4: PRD fit, scope, docs), write one
+combined "QA + PM" verdict in `report.md`, and on PASS raise the PR yourself as `.claude/commands/sprint.md` Step 6
+describes (PR description with evidence, ready for review, Jira → Ready to merge).
+
 Verdict, exactly one:
-- **PASS** — every AC has evidence, CI green, no blocking findings. Hands off to pm-lead for final review.
+- **PASS** — every AC has evidence, CI green, no blocking findings. Large: hands off to pm-lead. Small: you raise the PR.
 - **FAIL** — numbered, actionable findings, each tagged `[blocking]` or `[nit]`. Goes back to the developer.
 - **PENDING** — waiting on CI; re-review next cycle.
 
@@ -64,4 +75,6 @@ Verdict, exactly one:
   (and add a lesson to `agents/memory/lessons.md` under `qa-reviewer`).
 - If the ticket itself is wrong or ambiguous, say so in the report as `[spec]` — the PM fixes specs, not you.
 - Be strict and specific, not stylistic: no blocking findings for taste. Never approve with unverified claims.
-- Never merge, approve via GitHub reviews API, or change labels other than `qa-pass` / `qa-fail`.
+- Never merge, approve via GitHub reviews API, or change labels other than `qa-pass` / `qa-fail` / `ready-to-merge`
+  (the last only when you raise a Small ticket's PR).
+- On a Small ticket you may also edit the PR description and draft state, and append nits to the ticket's `## Checklist`.

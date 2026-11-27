@@ -20,7 +20,7 @@ If the Atlassian tools are not available in a session, **skip Jira sync, continu
 | Repo | Jira |
 |---|---|
 | PRD feature area | **Epic** (description links the PRD section) |
-| Task `agents/tasks/<ID>.md` | **Story** under its epic, labels `task-<ID>`, `agent-<role>`, `arxivlens` |
+| Bundle `agents/tasks/<ID>.md` | **One story per bundle** under its epic, labels `task-<ID>`, `agent-<role>`, `arxivlens`. Absorbed older stories are closed with a comment linking the bundle. Review findings never get a story |
 | Human decision (ADR) | **Task** assigned to Mahesh, label `human-decision` |
 | Tech design `docs/design/<ID>.md` | Link in the story description + comment when written |
 | PR | Link in the story description (`**PR:** #n`) + comment when opened |
@@ -71,7 +71,9 @@ with `uploadAttachmentToJiraIssue`.
 ## Comments: who did what
 Every comment starts with the role in brackets, so the ticket reads like a team thread even though the API acts as
 one account: `[pm-lead]`, `[ai-engineer]`, `[backend-engineer]`, `[frontend-engineer]`, `[qa-reviewer]`, `[orchestrator]`.
-One comment per stage change, 1–4 lines, always with a link (spec, design, PR, review file). No pasted code or logs.
+One comment per **real** stage change (spec'd, design approved, PR opened, QA verdict, raised, blocked), 1–4 lines,
+always with a link. No "still waiting" / "no change this cycle" comments, no pasted code or logs. An idle cycle
+doesn't touch Jira at all.
 
 ## Intake: tickets the human creates
 A story or task in `KAN` with label `arxivlens` but **no** `task-*` label is new intake from Mahesh. pm-lead turns it

@@ -1,5 +1,5 @@
 ---
-description: Run one sprint cycle of the ArxivLens agent team (sync → plan → build → PR → QA → PM review → ready to merge → record → retro)
+description: Run one on-demand sprint cycle of the ArxivLens agent team (early exit → sync → plan → build → PR → QA → PM review → ready to merge → record)
 argument-hint: "[max-new-tasks, default 4]"
 ---
 
@@ -18,25 +18,39 @@ Ready ─► [Design ─► Design approved] ─► Build ─► In QA ─► PM
                                          ▲        │ FAIL        │ CHANGES
                                          └────────┴─────────────┘  (max 2 rework rounds, then Blocked)
 ```
-The Design steps apply only to tasks marked `design-required` (see `docs/design/README.md`).
-Every stage change is mirrored to Jira following `agents/jira.md` (status = stage, plus a role-tagged comment).
+The Design steps apply only to **Large** tickets (AGENTS.md §2 "Size tiers"). **Small** tickets (< 150 lines, no
+contract/schema/architecture change) skip Design and Step 6: qa-reviewer gives one combined QA+PM verdict and raises
+the PR itself. Real stage changes are mirrored to Jira following `agents/jira.md` (one story per bundle).
+
+**Lean rules.** Findings never become new tickets: they are fixed in the same PR (rework round) or appended to the
+parent ticket's `## Checklist`. Mutation testing only for risky code (AGENTS.md §2), locally, never pushed.
 
 Roles never review their own work: the developer builds, **qa-reviewer** verifies against ticket + PRD + test results,
 **pm-lead** gives the final product sign-off, the **human** merges.
 
-## Step 0 — Workspace and run lock
-`git pull --rebase` this repo. Cycles run hourly and one can outlast the hour, so take the lock first: if
-`agents/RUN_LOCK` exists and its timestamp is less than 100 minutes old, another cycle is running. Report
-"skipped: cycle <timestamp> still running" and stop. Otherwise write the current UTC time and session link to
-`agents/RUN_LOCK`, commit and push it (if the push is rejected, pull, re-check the lock and stop if someone else took
-it). Delete the lock in Step 8, and also when you stop early for any reason. Clone or update the app repo: `git clone https://github.com/MaheshPulivarthi18/ArxivLens app`
-(or `git -C app fetch origin`). All `git`/`make` commands for code run in `app/`; all memory edits happen here.
+## Step 0 — Workspace, early exit, run lock
+Cycles run **on demand** (Mahesh asks, or a one-off scheduled fire), never hourly. `git pull --rebase` this repo and
+clone or update the app repo (`git clone https://github.com/MaheshPulivarthi18/ArxivLens app` or `git -C app fetch origin`).
+
+**Cheap early exit (check before anything else, read nothing else):**
+1. `gh api 'repos/MaheshPulivarthi18/ArxivLens/pulls?state=all&per_page=30'`: any `agent/*` PR merged or closed since the
+   last PROGRESS entry's timestamp? Any open agent PR with a review or untagged comment by MaheshPulivarthi18 newer
+   than its last agent commit?
+2. `agents/board.md` "Active": any ticket Ready whose `Depends on` are merged and that touches no open PR's files?
+   (An ADR that Mahesh set to Accepted since the last entry counts: `git log --since=<last entry> -- docs/adr/`.)
+If all answers are no: report "idle: nothing merged, no human feedback, nothing Ready" and **stop**. Don't load
+memory, don't touch Jira, don't write PROGRESS or metrics, don't commit. (Release the lock if you had taken one.)
+
+**Run lock** (only when there is work): if `agents/RUN_LOCK` exists and is less than 100 minutes old, report
+"skipped: cycle <timestamp> still running" and stop. Otherwise write the UTC time and session link to it, commit and
+push (push rejected → pull, re-check, stop if someone else holds it). Delete it in Step 8, or whenever you stop early.
+All `git`/`make` commands for code run in `app/`; all memory edits happen here.
 
 ## Step 1 — Load memory
-Read `agents/jira.md` and, if the Atlassian tools are available, the Jira board:
-`searchJiraIssuesUsingJql` with `project = KAN AND labels = arxivlens AND statusCategory != Done ORDER BY rank`.
-Then read `AGENTS.md`, `agents/board.md`, the last 20 entries of `agents/PROGRESS.md`, `agents/memory/lessons.md`,
-`agents/metrics.md`, and every ADR in `docs/adr/` (note which are Accepted).
+Read `AGENTS.md`, `agents/board.md`, the last 10 entries of `agents/PROGRESS.md`, the relevant role sections of
+`agents/memory/lessons.md`, and the ADRs that the picked tickets reference (note which are Accepted). Read `agents/jira.md`
+and query Jira (`project = KAN AND labels = arxivlens AND statusCategory != Done ORDER BY rank`) only if a story will
+change stage this cycle.
 
 ## Step 2 — Sync with reality
 In `app/`: `git fetch origin`; work from the latest `origin/main`. List PRs with REST (GraphQL is blocked):
@@ -45,18 +59,19 @@ In `app/`: `git fetch origin`; work from the latest `origin/main`. List PRs with
 - Closed without merge → back to **Ready**, closing reason in the task Notes if visible.
 - Open with a **human review or comment** since the last agent commit (`gh api .../pulls/<n>/reviews` and
   `.../issues/<n>/comments`, author MaheshPulivarthi18, not starting with a `[role]` tag) → highest priority. Convert the
-  PR back to draft (`ccr/convert_to_draft`), Jira → **In Progress**, and append to the ticket's Notes a checklist with one
+  PR back to draft (`ccr/convert_to_draft`), Jira → **In Progress**, and append to the ticket's `## Checklist` one
   line per review item. Items that need Mahesh's decision → Blocked on that decision (comment on the PR saying so);
   the rest → the owner addresses them (Step 4), then QA checks every checklist item.
 - Open, new commits since the last QA report (or no report yet) → queue for **QA** (Step 5).
 - Open, QA PASS but no PM verdict → queue for **PM review** (Step 6).
 - An ADR that became `Accepted` unblocks its tasks: **Blocked → Ready**.
 - Jira: merged PRs → transition the story to **Done**. New intake tickets and human (untagged) comments are handled
-  as `agents/jira.md` describes — human comments get the same top priority as human PR comments.
+  as `agents/jira.md` describes — human comments get the same top priority as human PR comments. Human review items go
+  into the ticket's `## Checklist`, not into new tickets.
 
 ## Step 3 — Plan (delegate to `pm-lead`)
-Ask `pm-lead` to groom the board (spec next PRD/roadmap items if Ready is thin; fix any `[spec]` findings from QA
-reports) and return an ordered list of new tasks for this cycle, respecting:
+Ask `pm-lead` to check the board (fix any `[spec]` findings in the ticket itself; spec new bundles only for PRD/roadmap
+scope Mahesh agreed to) and return an ordered list of tickets for this cycle, respecting:
 - WIP: max 2 **active** PRs per developer agent (draft, In QA, PM review or rework), for independent tasks only. PRs at **Ready to merge** (raised,
   waiting only on Mahesh) don't count, so that agent takes the next task. Skip agents already at 2 active PRs.
 - Independence: every task picked this cycle must not change the same files (or the same shared contract) as another
@@ -70,7 +85,7 @@ reports) and return an ordered list of new tasks for this cycle, respecting:
 Run the selected tasks **in parallel**: one subagent per task, each in its own worktree
 (`git -C app worktree add "$HOME/wt/<TASK-ID>" -b agent/<role>/<TASK-ID> origin/main`, outside both repos; run `echo $HOME` first and write the **expanded absolute path** into every subagent prompt, since `$HOME` is not the workspace parent), launched together and awaited
 together. Rework items go first. QA and PM review for each PR also run in parallel. For each task:
-0. **Design gate.** If the ticket (or its Jira story) is `design-required` and there is no approved
+0. **Design gate.** If the ticket is **Large** (or `design-required`) and there is no approved
    `docs/design/<TASK-ID>.md` yet: the owner writes it from `agents/templates/design.md` and commits it to this repo's
    `main` (Jira: **Design**). Then `pm-lead` reviews it against the ticket and PRD and fills
    "PM decision". Approved → Jira **In Progress**, continue to build in this cycle. Changes requested → one
@@ -105,7 +120,11 @@ the PRD, the design, the diff and the evidence.
   role-tagged comment listing every evidence file link plus a web link "QA evidence" to the folder
   (`createJiraIssueRemoteIssueLink`). Agent sandboxes cannot upload files to Jira (the media host is blocked), so
   evidence is linked, never pasted or summarised from memory.
-- **PASS** → Step 6. **FAIL** → one rework round by the owner in this cycle (Step 4), then QA again.
+- **Small** tickets: QA also does the PM checks (pm-lead.md "Final review"), writes one combined verdict, and on PASS
+  raises the PR itself exactly as Step 6 describes. Large tickets: **PASS** → Step 6.
+- Findings go back into the same PR. Nothing QA finds becomes a new ticket; non-blocking nits the developer doesn't fix
+  in this PR go on the ticket's `## Checklist`.
+- **FAIL** → one rework round by the owner in this cycle (Step 4), then QA again.
   Second FAIL → **Blocked** with the report linked. **PENDING** → stays In QA for next cycle.
 - Jira: comment `[qa-reviewer] PASS|FAIL|PENDING — <one-line reason> → <review file link>`; PASS → **PM review**;
   FAIL → back to **In Progress**.
@@ -120,7 +139,8 @@ pm-lead opens every evidence file and checks product fit, scope, docs, and that 
   `gh api -X POST repos/MaheshPulivarthi18/ArxivLens/pulls/<n>/ccr/ready_for_review`, and adds the label
   `ready-to-merge` if the API allows. Jira → **Ready to merge** + `[pm-lead] APPROVE — PR #n raised for review → link`.
 - **CHANGES** → numbered list appended to `report.md`, PR stays draft, Jira → **In Progress**, rework round (Step 4)
-  → QA → PM again. Counted toward the 2-round limit.
+  → QA → PM again. Counted toward the 2-round limit. PM review notes are fixed in the same PR or added to the ticket's
+  `## Checklist`; never specced as follow-up tickets.
 
 ## Step 7 — PR review and merge (human)
 Agents never merge. The human reviews PRs that are ready for review (not draft) with the evidence in the description,
@@ -129,13 +149,13 @@ then merges or comments. A human comment sends the task back to Step 4. Next cyc
 ## Step 8 — Record
 Commit directly to this repo's `main` (no PR; `git pull --rebase` first), and delete `agents/RUN_LOCK` in the same commit:
 - `agents/board.md` — every move made this cycle
-- `agents/PROGRESS.md` — one entry per task: outcome, PR, attempts, QA rounds, PM rounds, blockers
-- Jira — confirm every story touched this cycle matches the repo (status, PR link, labels); fix drift.
+- `agents/PROGRESS.md` — one short entry for the cycle: per ticket outcome, PR, QA/PM rounds, blockers
+- Jira — only the stories that changed stage this cycle: status, PR link. No "no change" comments.
 - `agents/metrics.md` — one row for this cycle; count QA FAILs and PM CHANGES in "Fix rounds", and note the QA pass
   rate (first-round PASS / reviewed) in Notes
 
 ## Step 9 — Retro (self-improvement)
-Run `.claude/commands/retro.md` for this cycle. Rule changes it proposes go on a `rules/<topic>` branch as a PR here. QA findings are the richest source: a finding type that recurs
+Only when the cycle had a FAIL, a CHANGES or a Blocked ticket: run `.claude/commands/retro.md` for this cycle. Rule changes it proposes go on a `rules/<topic>` branch as a PR here. QA findings are the richest source: a finding type that recurs
 (e.g. "missing refusal test", "AC without evidence") becomes a lesson for that developer role, and if it recurs
 again, a proposed rule in their agent definition or the ticket template.
 

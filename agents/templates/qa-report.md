@@ -1,4 +1,4 @@
-# QA report — <TASK-ID> · PR #<n> · round <r>
+# QA report — <TASK-ID> · PR #<n> · round <r> · tier Small (combined QA+PM) | Large
 
 **Verdict:** PASS | FAIL | PENDING
 **Reviewed commit:** `<head sha>` · **Date:** YYYY-MM-DD
@@ -30,5 +30,12 @@ One or two sentences: does this deliver the requirement as the PRD describes it?
 ## Missing tests
 - 
 
+## Mutation (risky code only: delivery/commit, citation verification, ranking, auth; local, never pushed)
+Not applicable | table of mutant → killed by which test
+
+## PM checks (Small tickets only: PRD fit, scope, docs; see pm-lead.md §4)
+
+
 ## Hand-off
-PASS → pm-lead final review · FAIL → back to <owner> · PENDING → re-review next cycle
+PASS → pm-lead final review (Large) or PR raised by QA (Small) · FAIL → back to <owner> · PENDING → re-review next cycle
+Nits not fixed in this PR → appended to the ticket's `## Checklist` (no follow-up tickets).
