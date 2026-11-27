@@ -8,7 +8,7 @@
 | **Depends on** | FE-3b #104, FE-0i #109, AI-8b #65, ADR-0019 #120 (all merged). Design `docs/design/FE-4.md` **approved with conditions** 2026-11-22 |
 | **Jira** | create: story under epic KAN-5 "Research UI & citations", labels `task-FE-4a`, `design-required`; link to KAN-44 (FE-4 umbrella) |
 | **Design required** | yes: covered by `docs/design/FE-4.md` (approved; §1 `claimState`/`claimCitations`/`groupByMarker`, §2, §3 grouping/focus/rows, §4, §5, §6) |
-| **Status** | Ready, picked cycle 2026-11-27T03:59Z (third pick: the 2026-11-21T21:59Z build `a57c758` was lost and the 2026-11-22T02:00Z pick was never built; no branch/PR exists) |
+| **Status** | In QA: draft PR [#128](https://github.com/MaheshPulivarthi18/ArxivLens/pull/128), head `34cbd2e`, CI green (built cycle 2026-11-27T03:59Z) |
 
 ## Goal
 A researcher sees every statement of an answer with its own verdict (Supported / Unsupported / Not checked), and each `[n]` marker takes
@@ -90,3 +90,18 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   doesn't exist on origin. Build from app `main` `53171d6` under the 2026-11-22 size decision (conditions 1–3 above unchanged) and
   **push the branch + open the draft PR in the same session as the build**. Independent of open #125 FE-0j (only `ui/badge.test.jsx`)
   and of #122–#124 (no `frontend/` files). Frontend WIP after this pick: 2 (#125 + FE-4a).
+- 2026-11-27 (frontend-engineer, build, cycle 2026-11-27T03:59Z): branch `agent/frontend/FE-4a` **pushed**. Commit `34cbd2e` is on `53171d6`, with **draft PR #128**.
+  9 files under `frontend/src/`, +608/−49 = 657 changed lines. **Prod 221** (`App.jsx` 23, `ReferencesStack.jsx` 64, `SynthesisView.jsx` 77, `citations.js` 57), which is under the ~250 cap.
+  Tests + fixtures 436. Ownership check: OK for role=frontend, with a size warning > 400.
+  - Per size condition 1, the "Cited by claim n" / "Check n" rows and `aria-current` stay in FE-4b. A repeated-marker card shows one chip per check in its header.
+    `claimRows` maps markers by number when `claimCitations` returns `null`.
+  - Added `hasClaims` to `lib/citations.js`. It's the §2 item 2 mode test, moved out of the component so it can be unit-tested.
+    `ReferencesStack` takes `traceId` (card key `trace_id-marker`) but not `claims`: that prop is only needed for FE-4b's rows.
+  - Existing tests: no test body or assertion changed. Only import lines were extended, all listed in the PR body.
+    Fallback markers still call `onCitationClick(marker)` with one argument.
+    A fallback marker with a card drops `title`; markers with no citation keep it (accepted deviation).
+  - Docs: `docs/design/FE-4.md` §2 item 3 already carries the condition-1 wording (line 72, from the earlier cycle), so no edit was needed.
+  - Local: `npm ci` fails with `getaddrinfo ENOTFOUND registry.npmjs.org`, so I ran a TypeScript syntax parse of all 9 files (OK) and a plain-Node logic check of the helpers on the new fixtures (OK).
+    **CI on `34cbd2e`: all 5 checks green.** Frontend job: `npm ci` OK; oxlint `Found 0 warnings and 0 errors` (main `53171d6` also 0); Vitest 12 files, 207 tests passed (main 155); `vite build` OK.
+    Jira was skipped (orchestrator instruction). Evidence screenshots are still to come from QA.
+
