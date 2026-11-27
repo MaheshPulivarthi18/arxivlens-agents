@@ -171,3 +171,55 @@ leaked into the PR, and nothing listed as out of scope is touched.
 
 ## Hand-off
 PASS → pm-lead for final review (KAN-66 → PM review; Jira skipped this cycle per orchestrator). Findings 1–2 are informational.
+
+---
+
+# PM final review: ING-6c · PR #124
+
+**Verdict:** APPROVE
+**Reviewer:** pm-lead · **Date:** 2026-11-27 · cycle 2026-11-27T03:59Z · **Reviewed commit:** `d55508f3e372ce08ca8dea4ad05603c08a04e3a8` (7/7 CI checks success)
+**Inputs:** ticket `agents/tasks/ING-6c.md`; Product PRD ING-6; Technical PRD §11 "Scheduled crawler", §9; design `docs/design/ING-6.md` (PM decision + "Build notes (ING-6c)"); QA r1 FAIL and r2 PASS above; PR file list (9 files, +407/−18).
+
+## Evidence check (every file opened)
+| AC | Evidence | Proves it? |
+|---|---|---|
+| AC1 flags | 16 (7 `TestCrawlLoopFlags` rows PASS), 18 (F1–F7 KILLED) | Yes. The run-before-validate mutant F6 is killed, so "fails before any connection" is pinned, not just asserted. |
+| AC2 single instance | 14 + 17 (`TestCrawlLoopLock` PASS in CI and on PG16; 0 locks left), 18 (L1–L4 KILLED, now fail fast), 12 (`another crawl-loop is running` → `AC2 lock: … exited non-zero; arXiv requests 9 -> 9`) | Yes, both halves. |
+| AC3 zero events on 2nd run | 12: `AC2: first run produced 2 … (3 -> 5)`, `AC2: second run produced 0 papers.discovered events (5 -> 5)`, both `[CrawlLoop]` lines, the `crawl_watermarks` row | Yes. This is the PRD row's first clause, measured on Kafka end offsets on the real stack. |
+| AC4 kill + restart | 12 (and `.txt` for the truncated lines): after two runs, after (i) and after (ii), `count(*) count(distinct) = 4 4 (before the step: 4 4)`, both crawled IDs present, `W = max(published_at)`: `t`; "kill point not controlled; exact points: ING-6b TestRunCategoryCrashAtK" | Yes, as worded. See note 1. |
+| AC5 SIGTERM | 12: `[CrawlLoop] stopped`, `AC5 SIGTERM: exit 0 after 7 ms` (step asserts rc 0 and < 5 s) | Yes. |
+| AC6 politeness | 13: replay `misses: 0` after crawl-loop's passes (hits 11), every summary line has `out_of_order=0` | Yes, and no longer vacuous as in r1. |
+| AC7 db.yml | 14: exact vet + `-v -run` lines, both `--- PASS`, no SKIP | Yes. |
+| AC10 watermark gaps | 14 (`rows left … : 0`), 17, 18 (M6/M7/M8 KILLED) | Yes. The mutant output the AC wanted "in the PR" is QA's run; I link it in the PR body. |
+| AC8 README | 09 (taken at `dec6386`); 19 shows the r1→r2 rework doesn't touch README, so it still holds at head | Yes: CLI line, Scheduled crawl paragraph covering every item the AC lists, pgvector ≥ 0.8.0 matching the compose pin. |
+| AC9 CI | 11 (7/7 success on `d55508f`), 15 (local vet/gofmt/`go test ./...` clean) | Yes. |
+| AC11 loop tests | 16, 18 (M9 KILLED in full run and by name; C1 now KILLED; P1 KILLED by the exact-string assertion) | Yes. |
+| Scope | 19 (9 files, all in Scope; rework 3 files) | Yes. |
+
+No "⚠ unverified" remains on any AC. `make eval` not run is correct (no retrieval or answering change).
+
+## Product and scope
+- **PRD fit:** Product ING-6 asks for a per-category loop that stops at a stored watermark, emits zero events on an idle second run, and survives
+  a kill + restart without duplicates or skips. All three are shown on the real stack, and the design's crash-point matrix is covered by
+  ING-6b's unit test. A user running a scheduled crawl gets the safety they need (one instance per database, enforced before any arXiv request,
+  clean SIGTERM), plus readable operator signals (`backlog=`, `out_of_order=`) and README guidance on the first-run horizon, backfill,
+  reset and the late-announcement gap. Product PRD §7 principles concern answers and the UI and aren't affected; the relevant constraints are
+  Technical PRD §9 (politeness: one limiter per process, one process per database) and §8.1 (idempotency), both met.
+- **Scope:** nothing missing from the ticket, nothing extra. No out-of-scope item is touched (compose service ING-6d, lookback ING-6e,
+  `crawl --rate-limit` ING-9b). No shared contract changes: events, HTTP API and schema are untouched, and the lock is an advisory lock, not a table.
+- **Size:** 425 changed lines, over the 400 target but under the 480 gate the approved design set for this slice. Accepted. About 170 of them
+  are CI steps and tests.
+- **Design write-back:** condition 10 is met. §2 (d) and "Build notes (ING-6c)" match `loop.go` (QA r2 checked lines 109/197).
+
+## Notes (non-blocking, no rework)
+1. **AC4 (ii) kill point (QA r2 finding 1 [spec]).** The SIGKILL landed on an idle pass. My AC accepted that explicitly, and the exact crash points
+   are unit-tested (ING-6b `TestRunCategoryCrashAtK`) plus simulated by AC4 (i) (watermark lost after publish). A `DELETE FROM crawl_watermarks`
+   before (ii) alone wouldn't fix it: a replayed pass takes milliseconds, so a ~1 s kill would still land after the publish. A real
+   mid-publish kill needs a delay knob in the replay server or the publisher. That is harness work with low marginal value, so it goes to Backlog
+   as a P3 idea, not a ticket or a rework round.
+2. **Lock error printed twice (QA r2 finding 2 [code]).** This predates the PR (CLI-wide) and is already OPS-H7a2c AC4, next in the `main.go` queue.
+3. **After merge (pm-lead):** docs PR to flip Product PRD ING-6 ⏳ → ✅ and update Technical PRD §11 "Scheduled crawler". Merging this
+   closes the ING-6 umbrella. ING-6d/6e and ING-9b stay in Backlog.
+
+## Hand-off
+APPROVE → PR #124 description rewritten with the Evidence section, marked ready for review, label `ready-to-merge`. Board → Ready to merge. Merge is Mahesh's.

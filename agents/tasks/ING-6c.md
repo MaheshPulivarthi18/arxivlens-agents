@@ -8,7 +8,7 @@
 | **Depends on** | ING-6b **merged**; #51 and #52 **merged** (README, `db.yml`); **OPS-H9 merged** (`db.yml`; AC8 documents its pgvector pin); no open PR on `cmd/arxivlens/main.go` (OPS-H7b also edits it), `.github/workflows/stack.yml`, `.github/workflows/db.yml` or `README.md` when the build starts. Approved design `docs/design/ING-6.md`, PM conditions 3, 6, 7, 9 and answer 3 |
 | **Jira** | KAN-66 (under KAN-18's epic KAN-4, `labels = "task-ING-6c"`) |
 | **Design required** | no (covered by the approved ING-6 design) |
-| **Status** | In QA (round 2). QA r1 FAIL at `dec6386`; reworked cycle 2026-11-27T03:59Z at `d55508f` (all 7 CI checks green, see Notes) |
+| **Status** | Ready to merge. QA r1 FAIL at `dec6386`; QA r2 PASS and PM APPROVE at `d55508f` (2026-11-27); PR #124 raised for Mahesh |
 
 ## Goal
 Ship the user-facing command and prove on the real stack the PRD row: a second run with no new papers emits zero `papers.discovered` events, and a
@@ -133,3 +133,7 @@ DATABASE_URL=postgres://... go test -tags integration -count=1 -v -run '^(TestAd
     not fetchable here; unchanged by this PR; green in CI). Not run locally: Docker stack (CI only).
   - Seen in the job log, not in scope: the lock error prints twice (`Error: …` from cobra and from `main`), the "CLI errors printed once" item
     already queued as OPS-H7a2c.
+- 2026-11-27 (pm-lead, final review): **APPROVE** at `d55508f` ([report](../reviews/ING-6c/report.md)); every AC 1–11 is backed by evidence 09, 11–19.
+  PR #124 description rewritten with the Evidence section and marked ready for review. QA r2 finding 1 [spec] (AC4 (ii) SIGKILL lands on an idle
+  pass) is accepted as worded; a mid-publish kill needs a replay/publish delay knob, so it went to Backlog as a P3 idea. Finding 2 is OPS-H7a2c AC4.
+  After merge: pm-lead docs PR flips Product PRD ING-6 to ✅ (closes the ING-6 umbrella).

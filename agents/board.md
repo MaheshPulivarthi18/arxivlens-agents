@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-27 ~04:20Z by pm-lead (EVAL-8c PM APPROVE, #122 raised; EVAL-8d specced. Earlier: cycle 2026-11-27T03:59Z grooming; app `main` = `53171d6`, unchanged). The 2026-11-22T02:00Z cycle died before recording, so this replaces its stale header. Earlier history: `git log -p agents/board.md` and PROGRESS.
+Last updated: 2026-11-27 ~04:40Z by pm-lead (ING-6c PM APPROVE, #124 raised. Earlier: EVAL-8c PM APPROVE, #122 raised; EVAL-8d specced. Earlier: cycle 2026-11-27T03:59Z grooming; app `main` = `53171d6`, unchanged). The 2026-11-22T02:00Z cycle died before recording, so this replaces its stale header. Earlier history: `git log -p agents/board.md` and PROGRESS.
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency).
@@ -27,7 +27,6 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## In progress
 | ID | Title | Owner | Branch |
 |---|---|---|---|
-| [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl-loop` CLI, advisory lock, `db.yml` integration tests, README | backend-engineer | `agent/backend/ING-6c` · PR #124 (draft; QA r1 FAIL → rework round 1 running) |
 
 ## In QA
 | ID | Title | Owner | PR |
@@ -43,6 +42,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | [EVAL-8c](tasks/EVAL-8c.md) | Eval results record which LLM answered; BASELINE real-LLM section | ai-engineer | #122 (ready for review) | QA PASS (r2), PM APPROVE ([report](reviews/EVAL-8c/report.md)) |
 | [OPS-H21](tasks/OPS-H21.md) (KAN-119) | Prefetch: no extra passes for permanent failures; `saved=` on first save; deadline-overrun test | ai-engineer | #123 (ready for review) | QA PASS, PM APPROVE ([report](reviews/OPS-H21/report.md)) |
 | [FE-0j](tasks/FE-0j.md) (KAN-115) | `Badge` test pins className precedence (mutant M5) | frontend-engineer | #125 (ready for review) | QA PASS, PM APPROVE ([report](reviews/FE-0j/report.md)) |
+| [ING-6c](tasks/ING-6c.md) (KAN-66) | `crawl-loop` CLI, advisory lock, `db.yml` integration tests, README (completes ING-6) | backend-engineer | #124 (ready for review) | QA FAIL (r1), PASS (r2), PM APPROVE ([report](reviews/ING-6c/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
@@ -99,6 +99,8 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 - ~~theme.test.js part → specced as [FE-0c](tasks/FE-0c.md) (2026-11-20 13:00Z)~~ ~~OPS-H14 part~~ → specced as [OPS-H14](tasks/OPS-H14.md) (KAN-74) (2026-11-19 23:00Z, report-only); *Proposed* follow-up: once FE-0 #69 merges, make "Google font hosts = 0" and "woff2 ≥ 1" fail the job (new check, Mahesh decides). Still open: the frontend `theme.test.js` part below. Original: From the FE-0 design review: **OPS-H14** (backend, P3, `.github/workflows/ci.yml` `frontend` job): after `npm run build`, print `ls dist/assets | grep woff2` and grep `dist/assets/*.css` for `@font-face`, `.font-serif`, `.prose` and for no `fonts.googleapis|gstatic` hosts, so frontend QA has `dist/` evidence without a local build. Also: commit FE-0's AC5 Node checks as `src/lib/theme.test.js` after FE-1 merges (frontend; QA's scripts in `agents/reviews/FE-0/checks/` are the starting point, incl. the `index.html`/`theme.js` key+default drift guard, plus a ThemeToggle component test for OS change in `system` and the cross-tab `storage` event, per FE-0 QA "Missing tests")
 - (2026-11-20 04:00Z grooming: not picked. `stack.yml` has 0 runs on `main` (`actions/runs?branch=main&event=push` total 0) and only `pull_request`/`workflow_dispatch` triggers, so seeding needs a decision first: a `push: main` trigger (one 45-min run per merge) or a one-off `workflow_dispatch` on `main` by Mahesh, plus how the cache stays alive past 7 days unused. Mahesh: a single dispatch of `stack.yml` on `main` may be all OPS-H13 needs besides the header fix.) From the ING-6f PM review: **OPS-H13** (backend, P2, `stack.yml`): seed a main-scoped arXiv replay cache so PR branches replay one fixed recording instead of re-recording ~5 live requests on each new branch's first run; fix the header claim "0 arXiv requests per run once recorded"
 - ING-6d (compose `crawler` profile), ING-6e (late announcements), ING-9b (`crawl --rate-limit`): specced in the ING-6 split, Backlog
+- From the ING-6c PM review (pm-lead, after #124 merges): docs PR flipping Product PRD ING-6 ⏳ → ✅ (Technical PRD §11 "Scheduled crawler" row links ING-6).
+- From the ING-6c QA r2 finding 1 [spec] (backend, P3, harness, needs a spec): AC4 (ii)'s SIGKILL lands on an idle pass, because a replayed pass takes milliseconds. A true mid-publish kill in `stack.yml` needs a delay knob (e.g. a per-request delay in `scripts/arxiv_replay.py`, or a slow-publish test hook) plus `DELETE FROM crawl_watermarks` before the kill. The exact crash points are already covered by ING-6b `TestRunCategoryCrashAtK` and AC4 (i), so this is low value.
 - **pm-lead docs PR now due (#65 merged 2026-11-20 `d121a68`)** (ticket Docs AC): Product PRD QA-3/QA-4 status + notes (QA-4 still describes cosine + fail-open; now NLI/quote verification, three ADR-0014 statuses, `claims[]` with per-claim status) and Technical PRD §7.2 diagram/known-gap text (NLI, `status`, `claims`, `prompt_version`, refusal paths). PM APPROVE 2026-11-19 in `agents/reviews/AI-8b/report.md` **→ raised as arxivlens-agents [#16](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/16) (2026-11-21 02:00Z, Mahesh to merge)**
 - pm-lead docs PR (OPS-H7 design condition 7): Product PRD OPS-2 ✅ → ◐ until OPS-H7c merges. **Raised 2026-11-19 17:00Z as arxivlens-agents [#12](https://github.com/MaheshPulivarthi18/arxivlens-agents/pull/12)** (Mahesh to merge); flip back to ✅ when OPS-H7c merges.
 - ~~specced as [ING-11c](tasks/ING-11c.md) (2026-11-20 05:00Z, owner ai-engineer: `tests/` is shared, backend already has 2)~~ From ING-11b QA finding 4 (backend, P3, fold into the next `tests/test_m2_pipeline.py` change): `test_embedded_chunks_have_recorded_start_pages` reports a NULL `page_number` with a page row as "page_start N < page_number None"; give it its own message ("page row but NULL page_number")
