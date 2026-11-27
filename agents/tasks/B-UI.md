@@ -80,6 +80,7 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
 - [ ] (none yet)
 
 ## Notes
+- 2026-11-28 (frontend-engineer): QA r1 rework (round 1 of 2) pushed on #132, head `5fa2790`. Added `locateQuote` rows for F1 (M9: raw start after a normalised prefix, exact `{start, end}`), F2 (M13: NBSP and U+2009 collapse) and F3 (M7: whitespace-only quote on content holding it). Stand-in run: 83/83 on head, all three mutants killed (scratch copy, not pushed). F4: as-built notes in `docs/design/FE-4.md` (`804f86c`). F5: PR Size corrected to 756 lines (prod 428, tests 328). CI green on all 5 jobs (Frontend: 0 warnings, 266/266, build OK). Back to In QA.
 - 2026-11-28 (frontend-engineer): draft PR ArxivLens #132, head `5cc1cdd`, 745 changed lines (prod 360, tests 385; over the ~520 estimate, under the 800 cap: pm-lead to rule). CI green on every job (Frontend: 0 oxlint warnings, same as main; 261/261 tests; build OK). Tagline and Markdown note changes are listed under "Label honesty" in the PR. Status: In QA.
 - 2026-11-28 (pm-lead): design addendum approved with 3 conditions (`docs/design/FE-4.md` › PM decision B-UI addendum). The tagline and the note heading are folded in.
 - 2026-11-28 (pm-lead): bundle created in the process reset. No API change is needed: `Citation` already has `status`, `paper_version`, `page`,
