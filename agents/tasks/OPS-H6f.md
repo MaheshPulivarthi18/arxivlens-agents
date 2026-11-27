@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6e (ArxivLens #106) **merged**: same files `services/common/db.py`, `tests/test_chunk_reprocess_db.py` |
 | **Jira** | KAN-116 (epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6f`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py` plus tests, no schema/event/HTTP change, no new CLI/table/service |
-| **Status** | Ready, picked cycle 2026-11-27T03:59Z (2026-11-22T02:00Z pick never built; no branch/PR). Files disjoint from open PRs #122–#125 |
+| **Status** | In QA (draft PR #127, `b4b64b3`); picked cycle 2026-11-27T03:59Z (2026-11-22T02:00Z pick never built; no branch/PR). Files disjoint from open PRs #122–#125 |
 
 ## Goal
 OPS-H6e made the embedder's save hash-aware: with a 4-tuple it locks the chunk row `FOR SHARE` and writes only if
@@ -86,3 +86,24 @@ git diff origin/main --name-only   # exactly services/common/db.py, tests/test_p
   `scripts/`, `evals/`, `tests/test_evals_data.py`, `tests/test_arxiv_replay.py`; AI-13 (picked alongside) is `services/embedder/worker.py` +
   `tests/test_verify.py`. `tests/test_processor_pages.py` and `tests/test_verify.py` share the `make test-py-ml` target but no file.
   The 2026-11-22 Note on #124's red `Full stack` still applies. Backend WIP after this pick: 2 (#124 + OPS-H6f).
+- 2026-11-27 (backend-engineer, cycle 2026-11-27T03:59Z): built `b4b64b3` on `agent/backend/OPS-H6f` → draft PR
+  [#127](https://github.com/MaheshPulivarthi18/ArxivLens/pull/127) (3 files, +198/−4; ownership check OK, 202 lines).
+  `save_sections_and_chunks` runs one `SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;`
+  after the section upserts and before any vector DELETE/chunk write (also for an empty parse). Chose the single paper-wide
+  statement over per-chunk `FOR UPDATE`: one round trip, and every row is locked before the *first* DELETE.
+  Tests: unit `test_save_chunks_locks_chunk_rows_before_vector_deletes` (3 cases); `test_save_chunks_page_rows` re-indexed
+  by one, plus an assert for the lock. Real PG: `test_processor_resave_waits_for_inflight_embedder_write` (AC4),
+  `test_embedder_write_waits_for_processor_resave_then_skips` (AC5), `test_save_embeddings_keyed_on_chunk_id_not_hash` (AC6),
+  committed papers `ops-h6f-a/b` deleted in `finally`, module fixture `db_left_as_found` compares counts, `lock_timeout` 10 s,
+  joins 20 s, blocking observed via `pg_stat_activity.wait_event_type = 'Lock'`.
+  Test design notes: (1) AC4 races on chunk 0 (the first vector DELETE). With the race on chunk 1, "lock after the first
+  DELETE" survived the real-PG test. (2) AC5's batch puts the stale chunk first. With it second, the no-`FOR SHARE` mutant
+  survived: the first item's FK check waited out P's lock, so the second statement's snapshot already saw the new hash.
+  Local, not CI: PG 16 (`/usr/lib/postgresql/16`), with `halfvec` as a text domain plus a normalising trigger, run through
+  a psql-backed psycopg double (one `psql` per connection, so the locks are real). Head `5 passed` (×5). origin/main
+  `db.py`: AC4 test FAILED (`chunk 0: old-text vector kept under the new hash`). Mutants M1-M9 all KILLED. M4 (no
+  `ORDER BY`) is killed by the unit test only. M8 (no `FOR SHARE OF pc`) is killed by the AC5 test, M9 (hash-only lookup)
+  by the AC6 test. Ruff on the 3 files shows only the 2 findings already on main.
+  CI on `b4b64b3`: all 6 checks green. `Full stack` run 45940231278 / job 140312624580 lists all 5
+  `tests/test_chunk_reprocess_db.py` tests as `PASSED` in the `-rA` summary (`447 passed, 1 skipped, 3 deselected`).
+  Status → In QA.
