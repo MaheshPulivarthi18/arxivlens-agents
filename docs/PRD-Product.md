@@ -103,7 +103,7 @@ Status: ✅ done (verified against the code 2026-11-01, PM-1) · ◐ partial · 
 | ING-3 | Split papers into sections using typography; chunk into ~512-token passages with overlap, prefixed by paper + section title | P0 | ✅ | — |
 | ING-4 | On-demand ingest by arXiv ID or URL from the UI | P0 | ✅ | — |
 | ING-5 | "Discover" ingest: describe a paper in words → best arXiv match is ingested | P1 | ✅ | — |
-| ING-6 | Scheduled continuous crawling (cron) per category | P1 | ⏳ | [ING-6](../agents/tasks/ING-6.md): a crawl loop per configured category stops at a stored `since` watermark; a second run with no new papers emits zero `papers.discovered` events; a kill + restart creates no duplicate or skipped papers. Default categories: ADR-0005 (Proposed). |
+| ING-6 | Scheduled continuous crawling (cron) per category | P1 | ✅ | [ING-6](../agents/tasks/ING-6.md) (ING-6a/6b/6c, #56/#57/#60/#124): `arxivlens crawl-loop` walks each configured category back to a stored `since` watermark, emits oldest-first and advances the watermark only after a full group; a second run with no new papers emits zero `papers.discovered` events; a kill + restart creates no duplicate or skipped papers (stack evidence); a Postgres advisory lock keeps it single-instance. Default categories: ADR-0005 (Proposed). Not done: a compose `crawler` profile and late-announcement lookback (deferred). |
 | ING-7 | Handle new arXiv versions (v2, v3) as distinct records | P0 | ✅ | — |
 
 ### 6.2 Search and Q&A
@@ -126,13 +126,13 @@ Status: ✅ done (verified against the code 2026-11-01, PM-1) · ◐ partial · 
 | UI-2 | Papers library listing indexed papers and status | P0 | ✅ | — |
 | UI-3 | Ingest modal with progress feedback | P0 | ✅ | — |
 | UI-4 | Infrastructure modal showing corpus/pipeline stats | P1 | ✅ | — |
-| UI-5 | Saved questions / export citations (BibTeX) | P2 | ◐ partial | Per-citation "Copy BibTeX" exists (`frontend/src/components/ReferencesStack.jsx`). Remaining: [FE-2](../agents/tasks/FE-2.md) exports every citation of an answer as one `.bib` file. Saved questions: not specced; *Proposed acceptance (pm-lead, needs human approval)*: a user can save a question, it survives reload (local storage, no accounts per §4 non-goals), and re-running it re-queries the API. |
+| UI-5 | Saved questions / export citations (BibTeX) | P2 | ◐ partial | Per-citation "Copy BibTeX" exists (`frontend/src/components/ReferencesStack.jsx`). Remaining: [B-UI](../agents/tasks/B-UI.md) (absorbs FE-2) exports every citation of an answer as one `.bib` file. Saved questions: not specced; *Proposed acceptance (pm-lead, needs human approval)*: a user can save a question, it survives reload (local storage, no accounts per §4 non-goals), and re-running it re-queries the API. |
 
 ### 6.4 Operations
 | ID | Requirement | Priority | Status | Acceptance / task |
 |---|---|---|---|---|
 | OPS-1 | Automatic retry (3× backoff) and dead-letter routing with full diagnostics | P0 | ✅ | — |
-| OPS-2 | CLI to list, inspect, and replay DLQ events (with dry-run and error-type filter) | P0 | ◐ partial | `arxivlens dlq list/inspect/replay` exists with `--dry-run` and an error-type filter, but `dlq list` doesn't reach the end of the topic and `replay` repeats the head events. Remaining: [OPS-H7](../agents/tasks/OPS-H7.md), split into [OPS-H7f](../agents/tasks/OPS-H7f.md), [OPS-H7a](../agents/tasks/OPS-H7a.md), [OPS-H7b](../agents/tasks/OPS-H7b.md) and [OPS-H7c](../agents/tasks/OPS-H7c.md); back to ✅ when OPS-H7c merges ([design](design/OPS-H7.md), condition 7). |
+| OPS-2 | CLI to list, inspect, and replay DLQ events (with dry-run and error-type filter) | P0 | ◐ partial | `arxivlens dlq list/inspect/replay` exists with `--dry-run` and an error-type filter, and `dlq list`/`inspect` now page to the end of the topic with `P/O` cursors (OPS-H7f/7a, #32/#62/#83/#93). Remaining: `replay` keeps no checkpoint (repeats the head events) and has no lock → [B-PIPE](../agents/tasks/B-PIPE.md) (absorbs OPS-H7a2c/7b/7c); back to ✅ when it merges ([design](design/OPS-H7.md), condition 7). |
 | OPS-3 | Reprocessing never creates duplicate rows or embeddings | P0 | ✅ | — |
 | OPS-4 | Per-paper status lookup (`discovered → downloaded → chunked → embedded`) | P0 | ✅ | — |
 | OPS-5 | End-to-end trace ID across all stages | P1 | ✅ (propagation) | — |
@@ -186,7 +186,7 @@ timeline
 |---|---|---|
 | arXiv rate limits / blocking | Ingestion stalls | Built-in 3 s rate limit, descriptive User-Agent, resumable via Kafka offsets |
 | Poor PDF parsing (two-column, scanned) | Bad chunks → bad answers | Typography heuristics, section prefixing, DLQ for parse failures, replay after fixes |
-| Template answers feel shallow | Low perceived value | LLM synthesis is the top roadmap item; citation validation already in place to guard it |
+| Quoted answers feel shallow without an LLM | Low perceived value | With `LLM_MODEL` set an LLM writes the answer (QA-8); without one, answers quote the passages verbatim (ADR-0023), which is honest but terse |
 | Hallucinated citations once an LLM is added | Trust loss | Marker range check, per-sentence support scoring, unsupported badge |
 | Embedding model change | Re-index cost | Embeddings keyed by `(chunk_id, model)`, so models can co-exist during migration |
 
