@@ -8,7 +8,7 @@
 | **Depends on** | AI-14 (ArxivLens #115) **merged** as `53171d6` (it added `tableWordRegex`). No open PR touches `internal/query/rag_test.go` or `rag.go` (checked 2026-11-27T09:00Z against #122-#128). AI-5 (Blocked on ADR-0011) edits `rag.go` later and doesn't wait on this |
 | **Jira** | KAN-131, story under epic KAN-2 "Retrieval & answer quality gates"; labels `task-AI-14b`, `agent-ai`, `arxivlens` |
 | **Design required** | no: test rows only; no code, threshold, API or contract change |
-| **Status** | In QA (PR #129) |
+| **Status** | Ready to merge (PR #129) |
 
 ## Goal
 AI-14 made the table rule whole-word: `tableWordRegex = (?i)(^|[^\pL])tables?([^\pL]|$)` (`internal/query/rag.go:832` @ `53171d6`).
@@ -61,3 +61,4 @@ CI is the source of truth (AGENTS.md §4).
   download blocked), so verification used a stdlib-only scratch module with the decls extracted verbatim (QA AI-14 harness): unmutated
   21/21 PASS; m7 (no right boundary) → both new rows FAIL; m6 (no left boundary) → Notable/Stable/Suitable/Timetable FAIL. `gofmt -l` on
   the real package is clean. Full-package `go test`/`make lint-go`/`make test-go` not run locally (Go 1.25 unavailable); AC4 waits on CI.
+- 2026-11-27 (pm-lead): final review APPROVE on `92f37ad` after QA r1 PASS. All 6 evidence files checked, CI 6/6 green re-confirmed. PR #129 description rewritten with evidence and marked ready for review. Optional follow-up: pin "Table2"-style digit boundary (see `agents/reviews/AI-14b/report.md`).
