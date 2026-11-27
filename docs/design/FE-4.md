@@ -368,6 +368,11 @@ Markdown note heading "Clinical & Academic Research Note" and its bare "§ " on 
 
 **6. Size.** FE-4b ≈ 320 (prod ~120, tests+fixtures ~200), FE-2 ≈ 190 (prod ~70, tests ~120), App +2 → **≈ 510 changed lines**, one PR, under 800.
 
+**As built (2026-11-28, PR #132; QA r1 judged all three OK).** These are three small deviations from the text above:
+1. The no-quote note ("No exact quote for this citation: …") shows only when a supported entry has an explicit `status: "supported"`. A legacy citation with `supported: true` and no `status` comes from before the API had quotes, and adding the note there would break AC6 ("renders as `main` does").
+2. ReferencesStack takes a third new prop, `onNotify` (App's `showToast`), for the "Exported n references (.bib)" toast, in addition to `claims` and `answerKind`. That is one extra line in `App.jsx`.
+3. The separate `arXiv:` badge in the card header is removed. The ID and version are now only in the meta line `arXiv:<id>v<N> · § <section> · p. <N>`, under the title, so they aren't shown twice.
+
 ### PM decision (2026-11-28): B-UI addendum
 **Approved.** The addendum covers AC4–AC5 (builder API, `@misc` entry, trigger, refusal = trigger absent) and closes the `App.jsx` `claims` gap. It fabricates no field. Both flagged items are trivial string edits that make the labels more honest, so they **are folded into B-UI** (ticket scope amended):
 1. **Tagline** (`HeroSearch.jsx:51`): becomes "Evidence-Grounded Answers with Cited Passages". It no longer claims verification that "Not checked" answers don't have. One assert in an existing or new test checks the new text and that "Sentence-Level Verification" is gone.
