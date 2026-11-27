@@ -11,7 +11,7 @@
 | **Size estimate** | ~500 changed lines incl. tests (the FE-4b part ~320, the FE-2 part ~180). One PR |
 | **Absorbs** | AI-8 (KAN-43, API done), FE-3 (KAN-40, done in FE-3a/3b), FE-4 (KAN-44), FE-4b (no key), FE-2 (KAN-20) |
 | **Branch** | `agent/frontend/B-UI` |
-| **Status** | In Progress (design approved) |
+| **Status** | In QA (PR #132) |
 
 ## Goal
 A researcher checks any answer sentence in one or two clicks: the card shows the exact supporting words highlighted
@@ -80,6 +80,7 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
 - [ ] (none yet)
 
 ## Notes
+- 2026-11-28 (frontend-engineer): draft PR ArxivLens #132, head `5cc1cdd`, 745 changed lines (prod 360, tests 385; over the ~520 estimate, under the 800 cap: pm-lead to rule). CI green on every job (Frontend: 0 oxlint warnings, same as main; 261/261 tests; build OK). Tagline and Markdown note changes are listed under "Label honesty" in the PR. Status: In QA.
 - 2026-11-28 (pm-lead): design addendum approved with 3 conditions (`docs/design/FE-4.md` › PM decision B-UI addendum). The tagline and the note heading are folded in.
 - 2026-11-28 (pm-lead): bundle created in the process reset. No API change is needed: `Citation` already has `status`, `paper_version`, `page`,
   `quote` and `pdf_url`, and `claims[]` exists. So there is no B-UI-api part and the PR is frontend-only. The API has **no authors or published date**
