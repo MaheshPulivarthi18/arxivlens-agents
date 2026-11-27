@@ -19,7 +19,7 @@
 ### Not verified / risks
 - 
 
-### Follow-ups created
+### Checklist items left open (on the ticket, not new tickets)
 - 
 
 ### Evidence (filled by pm-lead when raising the PR)
@@ -31,5 +31,5 @@ CI: <check run results for the head commit>
 
 ### Review status (filled by the workflow)
 - QA (qa-reviewer): PENDING → `agents/reviews/<TASK-ID>/report.md`
-- PM (pm-lead): —
+- PM (pm-lead): — (Small tickets: combined QA+PM verdict by qa-reviewer)
 - Merge: human, after QA PASS + PM APPROVE

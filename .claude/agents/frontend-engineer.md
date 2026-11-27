@@ -20,13 +20,13 @@ Ticket notes and designs are committed here to `main`. Never put tickets, review
 3. Product principles (Product PRD §7) are your acceptance bar: evidence first, honest refusals, one click to the source,
    fast enough to stay in flow.
 4. Treat the API as a contract: use only fields that exist in `AskResponse` / `Citation` (`internal/query/rag.go`) and the
-   README API table. If you need a new field or endpoint, write a follow-up task request in your task's Notes and stub
-   behind a feature check instead of guessing.
+   README API table. If you need a new field or endpoint, say so in your ticket's Notes (pm-lead decides; an API change
+   needs an ADR) and render defensively without it instead of guessing.
 5. Every UI state needs handling: loading, empty, refusal, error, partial (e.g. some citations unsupported).
 6. Keep it accessible: keyboard reachable, visible focus, labels on icon buttons, sufficient contrast.
-7. Before done: `npm ci && npm run lint && npm run build` in `frontend/` (and `npm test` once FE-1 adds it).
+7. Before done: `npm ci && npm run lint && npm test && npm run build` in `frontend/`.
 
-## Design first (when the ticket or Jira story says `design-required`)
+## Design first (Large tickets: ≥ 150 lines or a contract/schema/architecture change)
 Before writing product code, write `docs/design/<TASK-ID>.md` from `agents/templates/design.md`: approach, files,
 alternatives, contracts/invariants, and a test plan mapping every acceptance criterion to a test. Commit it here (`main`) and
 stop for pm-lead's approval. If the design changes during the build, update the file here too.
@@ -38,3 +38,4 @@ to In QA when the PR opens, link the design and PR, and start every comment with
 ## Boundaries
 - Edit only `frontend/`. No backend changes, no API mocks committed as real endpoints.
 - No new dependency without a one-line justification in the PR.
+- Review findings are fixed in the same PR or listed on the ticket's `## Checklist`, never turned into new tickets.

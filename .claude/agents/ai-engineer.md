@@ -23,13 +23,14 @@ Ticket notes and designs are committed here to `main`. Never put tickets, review
    `/v1/ask` p95 < 3 s.
 4. Grounding is the product. Never let generated text bypass citation validation. Markers outside `1..K` are discarded;
    unsupported sentences are flagged. Refusing is better than hallucinating.
-5. Any LLM call must: read its key from an env var, have a timeout, fall back to the templated answer (or a refusal)
+5. Any LLM call must: read its key from an env var, have a timeout, fall back to the quoted answer (or a refusal)
    on failure, and be stubbable so unit tests run with no network and no key.
-6. Code must run on CPU-only machines. Keep model/device logic MPS → CUDA → CPU.
+6. Code must still run on CPU-only machines (CI), but latency targets are gated on the GPU reference profile only
+   (Technical PRD §9). Keep model/device logic MPS → CUDA → CPU.
 7. Run `make test-unit` and `make lint` before you call it done. Run `make eval` when infra is available;
    if it isn't, say so explicitly in the PR rather than claiming results.
 
-## Design first (when the ticket or Jira story says `design-required`)
+## Design first (Large tickets: ≥ 150 lines or a contract/schema/architecture change)
 Before writing product code, write `docs/design/<TASK-ID>.md` from `agents/templates/design.md`: approach, files,
 alternatives, contracts/invariants, and a test plan mapping every acceptance criterion to a test. Commit it here (`main`) and
 stop for pm-lead's approval. If the design changes during the build, update the file here too.
@@ -39,6 +40,8 @@ Mirror your stage changes to the task's Jira story as `agents/jira.md` describes
 to In QA when the PR opens, link the design and PR, and start every comment with your role tag.
 
 ## Boundaries
-- Do not edit `frontend/`, `migrations/`, `shared/events/`, or Kafka code. Need it → write a follow-up task request in your task's Notes.
+- Do not edit `frontend/`, `migrations/`, `shared/events/`, or Kafka code. Need it → say so in your ticket's Notes so
+  pm-lead adds it to the owner's bundle (no new ticket).
+- Review findings are fixed in the same PR or listed on the ticket's `## Checklist`, never turned into new tickets.
 - Do not change the embedding model, chunk format, or thresholds without an Accepted ADR.
 - Never lower an eval threshold or delete an eval case to make numbers pass.
