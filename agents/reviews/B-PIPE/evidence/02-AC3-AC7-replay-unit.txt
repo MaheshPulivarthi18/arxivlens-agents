@@ -1,0 +1,29 @@
+$ bash -c . /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/goenv.sh; go test -race -count=1 -v -run '^(TestReplayResumes|TestReplayCrashAfterPublish|TestReplayFilterKeepsSkippedEligible|TestReplayDryRun|TestReplayNeedsMigratedStore|TestReplayExpiredAndStall)$' ./internal/dlq/ 2>&1; go test -race -count=1 -v -run '^(TestDLQReplayCLI|TestDLQReplayNeedsPostgres)$' ./cmd/arxivlens/ 2>&1
+=== RUN   TestReplayResumes
+--- PASS: TestReplayResumes (0.00s)
+=== RUN   TestReplayCrashAfterPublish
+=== RUN   TestReplayCrashAfterPublish/AAAAA
+--- PASS: TestReplayCrashAfterPublish (0.00s)
+    --- PASS: TestReplayCrashAfterPublish/AAAAA (0.00s)
+=== RUN   TestReplayFilterKeepsSkippedEligible
+--- PASS: TestReplayFilterKeepsSkippedEligible (0.00s)
+=== RUN   TestReplayDryRun
+--- PASS: TestReplayDryRun (0.00s)
+=== RUN   TestReplayNeedsMigratedStore
+--- PASS: TestReplayNeedsMigratedStore (0.00s)
+=== RUN   TestReplayExpiredAndStall
+--- PASS: TestReplayExpiredAndStall (0.00s)
+PASS
+ok  	arxivlens/internal/dlq	1.015s
+=== RUN   TestDLQReplayCLI
+=== RUN   TestDLQReplayCLI/dry_run_lists_P/O_and_event_id,_takes_no_lock
+=== RUN   TestDLQReplayCLI/--limit_1_publishes_one
+--- PASS: TestDLQReplayCLI (0.00s)
+    --- PASS: TestDLQReplayCLI/dry_run_lists_P/O_and_event_id,_takes_no_lock (0.00s)
+    --- PASS: TestDLQReplayCLI/--limit_1_publishes_one (0.00s)
+=== RUN   TestDLQReplayNeedsPostgres
+--- PASS: TestDLQReplayNeedsPostgres (0.00s)
+PASS
+ok  	arxivlens/cmd/arxivlens	1.023s
+
+[exit code 0]

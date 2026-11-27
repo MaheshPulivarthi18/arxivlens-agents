@@ -1,0 +1,11 @@
+$ bash /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/ac11.sh
+== tests/test_evaluate_extraction.py present at head? no
+== make -n test-py-light (file absent)
+python3 -m pytest -q tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py tests/test_rerank_precision.py 
+== make -n test-py-light (file present, empty stub in scratch copy)
+python3 -m pytest -q tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py tests/test_rerank_precision.py tests/test_evaluate_extraction.py
+== ownership-check.sh threshold
+44:if [ "$lines" -gt 800 ]; then
+45:  echo "::warning::$lines changed lines (> 800, the bundle size in arxivlens-agents AGENTS.md). Consider splitting the change."
+
+[exit code 0]

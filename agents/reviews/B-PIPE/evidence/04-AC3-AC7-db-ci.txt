@@ -1,0 +1,102 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/140711320310/logs (excerpts)
+DB job 140711320310 (conclusion success); contiguous excerpts of the raw log, ANSI colour codes stripped
+
+--- lines 404-474 (migrate run 1, run 2, 000004 down step)
+2026-11-27T19:54:37.0729723Z 2026/11/27 19:54:37 [Migration] Running migration file: migrations/000004_dlq_replay.up.sql
+2026-11-27T19:54:37.0768313Z 2026/11/27 19:54:37 [Migration] Running migration file: migrations/000005_crawl_watermarks.up.sql
+2026-11-27T19:54:37.0788084Z 2026/11/27 19:54:37 [Migration] Database schema migrated successfully (5 file(s))
+2026-11-27T19:54:37.2999332Z                     Table "public.chunk_embeddings"
+2026-11-27T19:54:37.3000790Z    Column   |           Type           | Collation | Nullable | Default 
+2026-11-27T19:54:37.3001671Z ------------+--------------------------+-----------+----------+---------
+2026-11-27T19:54:37.3005234Z  chunk_id   | bigint                   |           | not null | 
+2026-11-27T19:54:37.3006781Z  model      | text                     |           | not null | 
+2026-11-27T19:54:37.3009027Z  embedding  | halfvec(768)             |           | not null | 
+2026-11-27T19:54:37.3013222Z  created_at | timestamp with time zone |           | not null | now()
+2026-11-27T19:54:37.3014169Z Indexes:
+2026-11-27T19:54:37.3022635Z     "chunk_embeddings_pkey" PRIMARY KEY, btree (chunk_id, model)
+2026-11-27T19:54:37.3026727Z     "chunk_embeddings_hnsw_idx" hnsw (embedding halfvec_cosine_ops) WITH (m='16', ef_construction='64')
+2026-11-27T19:54:37.3028097Z Foreign-key constraints:
+2026-11-27T19:54:37.3028953Z     "chunk_embeddings_chunk_id_fkey" FOREIGN KEY (chunk_id) REFERENCES paper_chunks(id) ON DELETE CASCADE
+2026-11-27T19:54:37.3029564Z 
+2026-11-27T19:54:37.3987246Z          indexname         |                                                                    indexdef                                                                     
+2026-11-27T19:54:37.3988501Z ---------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------
+2026-11-27T19:54:37.3989595Z  chunk_embeddings_hnsw_idx | CREATE INDEX chunk_embeddings_hnsw_idx ON public.chunk_embeddings USING hnsw (embedding halfvec_cosine_ops) WITH (m='16', ef_construction='64')
+2026-11-27T19:54:37.3991724Z  chunk_embeddings_pkey     | CREATE UNIQUE INDEX chunk_embeddings_pkey ON public.chunk_embeddings USING btree (chunk_id, model)
+2026-11-27T19:54:37.3992640Z (2 rows)
+2026-11-27T19:54:37.3992825Z 
+2026-11-27T19:54:37.4050743Z index|chunk_embeddings_hnsw_idx|CREATE INDEX chunk_embeddings_hnsw_idx ON public.chunk_embeddings USING hnsw (embedding halfvec_cosine_ops) WITH (m='16', ef_construction='64')
+2026-11-27T19:54:37.4065557Z index_valid|chunk_embeddings_hnsw_idx|true
+2026-11-27T19:54:37.4081158Z column|paper_chunk_pages.page_start|integer
+2026-11-27T19:54:37.4096077Z column|dlq_replay_checkpoints.next_offset|bigint
+2026-11-27T19:54:37.4111069Z column|dlq_replay_log.dlq_offset|bigint
+2026-11-27T19:54:37.4149947Z ##[group]Run ./bin/arxivlens migrate
+2026-11-27T19:54:37.4150328Z ./bin/arxivlens migrate
+2026-11-27T19:54:37.4150666Z $PSQL -At < /tmp/snapshot.sql > /tmp/run2.txt
+2026-11-27T19:54:37.4151044Z diff -u /tmp/run1.txt /tmp/run2.txt
+2026-11-27T19:54:37.4151565Z echo "Schema identical after run 2: $(wc -l < /tmp/run2.txt) objects (extensions, columns, indexes)"
+2026-11-27T19:54:37.4152131Z grep -E '^column\|dlq_replay_(checkpoints|log)\.' /tmp/run2.txt
+2026-11-27T19:54:37.4189171Z shell: /usr/bin/bash -e {0}
+2026-11-27T19:54:37.4189439Z env:
+2026-11-27T19:54:37.4190009Z   DATABASE_URL: ***localhost:5432/arxivlens?sslmode=disable
+2026-11-27T19:54:37.4190723Z   PSQL: docker exec -i 8afb194a6c0cec4a166db7b4b506bfd1a6baf1af27d2bbb44d853bd79e52b42a psql -U postgres -d arxivlens -v ON_ERROR_STOP=1
+2026-11-27T19:54:37.4191341Z ##[endgroup]
+2026-11-27T19:54:37.4358396Z 2026/11/27 19:54:37 [Migration] Running migration file: migrations/000001_init_schema.up.sql
+2026-11-27T19:54:37.4386112Z 2026/11/27 19:54:37 [Migration] Running migration file: migrations/000002_chunk_embeddings_hnsw.up.sql
+2026-11-27T19:54:37.4387217Z 2026/11/27 19:54:37 [Migration] Running migration file: migrations/000003_paper_chunk_pages.up.sql
+2026-11-27T19:54:37.4388024Z 2026/11/27 19:54:37 [Migration] Running migration file: migrations/000004_dlq_replay.up.sql
+2026-11-27T19:54:37.4391334Z 2026/11/27 19:54:37 [Migration] Running migration file: migrations/000005_crawl_watermarks.up.sql
+2026-11-27T19:54:37.4393712Z 2026/11/27 19:54:37 [Migration] Database schema migrated successfully (5 file(s))
+2026-11-27T19:54:37.5557321Z Schema identical after run 2: 91 objects (extensions, columns, indexes)
+2026-11-27T19:54:37.5571162Z column|dlq_replay_checkpoints.dlq_topic|text
+2026-11-27T19:54:37.5571714Z column|dlq_replay_checkpoints.next_offset|bigint
+2026-11-27T19:54:37.5572283Z column|dlq_replay_checkpoints.partition|integer
+2026-11-27T19:54:37.5572963Z column|dlq_replay_checkpoints.updated_at|timestamp with time zone
+2026-11-27T19:54:37.5573584Z column|dlq_replay_log.dlq_offset|bigint
+2026-11-27T19:54:37.5574055Z column|dlq_replay_log.dlq_topic|text
+2026-11-27T19:54:37.5574491Z column|dlq_replay_log.event_id|text
+2026-11-27T19:54:37.5574940Z column|dlq_replay_log.outcome|text
+2026-11-27T19:54:37.5575550Z column|dlq_replay_log.partition|integer
+2026-11-27T19:54:37.5576298Z column|dlq_replay_log.resolved_at|timestamp with time zone
+2026-11-27T19:54:37.5576687Z column|dlq_replay_log.target_topic|text
+2026-11-27T19:54:37.5610883Z ##[group]Run $PSQL < migrations/000004_dlq_replay.down.sql
+2026-11-27T19:54:37.5611336Z $PSQL < migrations/000004_dlq_replay.down.sql
+2026-11-27T19:54:37.5611998Z left="$($PSQL -At -c "SELECT count(*) FROM information_schema.tables WHERE table_name IN ('dlq_replay_checkpoints', 'dlq_replay_log')")"
+2026-11-27T19:54:37.5612684Z echo "dlq_replay tables after 000004 down: $left"
+2026-11-27T19:54:37.5613131Z [ "$left" = 0 ] || { echo "::error::000004 down left $left table(s)"; exit 1; }
+2026-11-27T19:54:37.5613812Z $PSQL < migrations/000004_dlq_replay.up.sql
+2026-11-27T19:54:37.5651445Z shell: /usr/bin/bash -e {0}
+2026-11-27T19:54:37.5651858Z env:
+2026-11-27T19:54:37.5652807Z   DATABASE_URL: ***localhost:5432/arxivlens?sslmode=disable
+2026-11-27T19:54:37.5653716Z   PSQL: docker exec -i 8afb194a6c0cec4a166db7b4b506bfd1a6baf1af27d2bbb44d853bd79e52b42a psql -U postgres -d arxivlens -v ON_ERROR_STOP=1
+2026-11-27T19:54:37.5654578Z ##[endgroup]
+2026-11-27T19:54:37.6601960Z DROP TABLE
+2026-11-27T19:54:37.6612267Z DROP TABLE
+2026-11-27T19:54:37.7977323Z dlq_replay tables after 000004 down: 0
+2026-11-27T19:54:37.8879204Z CREATE TABLE
+
+--- lines 1735-1745 (DLQ integration step script)
+2026-11-27T19:55:34.2846900Z set -o pipefail
+2026-11-27T19:55:34.2847208Z go vet -tags integration ./internal/dlq/
+2026-11-27T19:55:34.2847827Z KAFKA_BROKERS=localhost:9092 go test -tags integration -race -count=1 -v -timeout 10m ./internal/dlq/ | tee /tmp/dlq-it.txt
+2026-11-27T19:55:34.2848608Z if grep -q -- '--- SKIP' /tmp/dlq-it.txt; then echo "::error::DLQ integration tests skipped"; exit 1; fi
+2026-11-27T19:55:34.2849366Z for t in TestReadStopsAtSnapshot_Integration TestPGStore_Integration TestReplayResumes_Integration; do
+2026-11-27T19:55:34.2850042Z   grep -q -- "--- PASS: $t " /tmp/dlq-it.txt || { echo "::error::$t did not pass"; exit 1; }
+2026-11-27T19:55:34.2850463Z done
+2026-11-27T19:55:34.2851135Z left="$($PSQL -At -c "SELECT (SELECT count(*) FROM dlq_replay_log WHERE dlq_topic LIKE 'it.dlq.%') + (SELECT count(*) FROM dlq_replay_checkpoints WHERE dlq_topic LIKE 'it.dlq.%')")"
+2026-11-27T19:55:34.2851936Z echo "dlq_replay rows left by the tests (dlq_topic LIKE 'it.dlq.%'): $left"
+2026-11-27T19:55:34.2852416Z [ "$left" = 0 ] || { echo "::error::test rows not cleaned up"; exit 1; }
+2026-11-27T19:55:34.2888515Z shell: /usr/bin/bash -e {0}
+
+--- lines 1796-1798 and 1883-1890 (DLQ integration results)
+2026-11-27T19:56:02.5029795Z === RUN   TestReadStopsAtSnapshot_Integration
+2026-11-27T19:56:03.2424797Z     kafka_integration_test.go:99: TestReadStopsAtSnapshot: read 1500 records (1 undecodable) from 3 partitions, watermarks map[0:{0 1000} 1:{0 500} 2:{0 0}], in 130 non-empty polls (FetchMaxBytes=4096); 15 records written after the snapshot were not returned
+2026-11-27T19:56:06.2466726Z --- PASS: TestReadStopsAtSnapshot_Integration (3.74s)
+2026-11-27T19:56:06.5223500Z === RUN   TestPGStore_Integration
+2026-11-27T19:56:06.5460090Z --- PASS: TestPGStore_Integration (0.02s)
+2026-11-27T19:56:06.5460773Z === RUN   TestReplayResumes_Integration
+2026-11-27T19:56:10.7391397Z     store_integration_test.go:166: TestReplayResumes_Integration: target topic it.dlq.replay.1795809366545790231 holds 10 envelopes: [it-1795809366545790231-00 it-1795809366545790231-01 it-1795809366545790231-02 it-1795809366545790231-03 it-1795809366545790231-04 it-1795809366545790231-05 it-1795809366545790231-06 it-1795809366545790231-07 it-1795809366545790231-08 it-
+2026-11-27T19:56:10.7441570Z --- PASS: TestReplayResumes_Integration (4.20s)
+2026-11-27T19:56:10.7442211Z PASS
+2026-11-27T19:56:11.7506252Z ok  	arxivlens/internal/dlq	9.265s
+2026-11-27T19:56:11.9566305Z dlq_replay rows left by the tests (dlq_topic LIKE 'it.dlq.%'): 0
+

@@ -1,0 +1,30 @@
+$ bash -c . /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/goenv.sh; go test -race -count=1 -v -run '^(TestDLQFlags|TestDLQFooterRoundTrip)$' ./cmd/arxivlens/ 2>&1 | grep -E '^(---|    ---|ok|FAIL|PASS)'
+--- PASS: TestDLQFlags (0.02s)
+    --- PASS: TestDLQFlags/default_page_size_is_50 (0.00s)
+    --- PASS: TestDLQFlags/--page-size (0.00s)
+    --- PASS: TestDLQFlags/--limit_is_an_alias_of_--page-size (0.00s)
+    --- PASS: TestDLQFlags/--partition (0.00s)
+    --- PASS: TestDLQFlags/--from_P/O_then_the_later_partitions (0.00s)
+    --- PASS: TestDLQFlags/(a)_footer_keeps_--partition_and_--page-size (0.00s)
+    --- PASS: TestDLQFlags/(b)_footer_prints_--limit_as_--page-size (0.00s)
+    --- PASS: TestDLQFlags/(c)_footer_without_either_flag_is_unchanged (0.00s)
+    --- PASS: TestDLQFlags/bad_--from (0.00s)
+    --- PASS: TestDLQFlags/--all_pages_on_one_start-time_snapshot (0.00s)
+    --- PASS: TestDLQFlags/expired_offsets_warn_on_stderr_only (0.00s)
+    --- PASS: TestDLQFlags/undecodable_record_in_list (0.00s)
+    --- PASS: TestDLQFlags/stall_is_an_error,_not_end (0.00s)
+    --- PASS: TestDLQFlags/poll_error_is_an_error,_not_end (0.00s)
+    --- PASS: TestDLQFlags/missing_topic_(list) (0.00s)
+    --- PASS: TestDLQFlags/missing_topic_(inspect) (0.00s)
+    --- PASS: TestDLQFlags/reader_factory_error (0.00s)
+    --- PASS: TestDLQFlags/inspect_--key_scans_past_500,_first_match_only (0.00s)
+    --- PASS: TestDLQFlags/inspect_pages_on_one_start-time_snapshot (0.00s)
+    --- PASS: TestDLQFlags/inspect_without_--key_prints_every_record (0.00s)
+    --- PASS: TestDLQFlags/inspect_--key_skips_an_undecodable_first_record (0.00s)
+    --- PASS: TestDLQFlags/inspect_on_an_empty_topic (0.00s)
+    --- PASS: TestDLQFlags/inspect_stall_is_an_error (0.00s)
+--- PASS: TestDLQFooterRoundTrip (0.00s)
+PASS
+ok  	arxivlens/cmd/arxivlens	1.033s
+
+[exit code 0]

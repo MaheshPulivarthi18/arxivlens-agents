@@ -1,0 +1,57 @@
+$ bash /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/size.sh
+== changed files (numstat: added deleted path) vs origin/main
+2	2	.github/scripts/ownership-check.sh
+21	2	.github/workflows/db.yml
+3	1	Makefile
+18	4	README.md
+137	8	cmd/arxivlens/dlq_test.go
+104	36	cmd/arxivlens/main.go
+16	0	cmd/arxivlens/main_test.go
+15	26	internal/crawler/crawler.go
+59	0	internal/crawler/crawler_test.go
+5	4	internal/db/db_test.go
+163	90	internal/dlq/manager.go
+237	3	internal/dlq/manager_test.go
+70	0	internal/dlq/store.go
+170	0	internal/dlq/store_integration_test.go
+2	0	migrations/000004_dlq_replay.down.sql
+23	0	migrations/000004_dlq_replay.up.sql
+
+== totals
+changed 1221 | test files 639 | non-test 582
+
+== per part (main.go/README hunks split by function, from git diff -U0 hunk headers)
+E crawl politeness: crawler.go 41 + crawler_test.go 59 + main_test.go 16 (+ ~6 main.go lines in newCrawlCmd, 1 README line)
+D harness: Makefile 4 + ownership-check.sh 4
+B replay: manager.go 253 + store.go 70 + migrations 25 + manager_test.go 240 + store_integration_test.go 170 + db.yml 23 + db_test.go 9
+A+B shared: main.go 140 + dlq_test.go 145 + README 22
+
+== main.go hunk headers
+@@ -38,4 +38,3 @@ func main() {
+@@ -42,0 +42 @@ func main() {
+@@ -44,11 +44,6 @@ func main() {
+@@ -55,0 +51,2 @@ func main() {
+@@ -112,0 +110,3 @@ func newCrawlCmd() *cobra.Command {
+@@ -141 +141 @@ func newCrawlCmd() *cobra.Command {
+@@ -361,0 +362,3 @@ type dlqReader interface {
+@@ -368,0 +372,11 @@ func newDLQCmd() *cobra.Command {
+@@ -374 +388,2 @@ func newDLQCmd() *cobra.Command {
+@@ -381,2 +396,11 @@ func withDLQManager(newReader func() (dlqReader, error), fn func(context.Context
+@@ -410 +434 @@ func watermarkList(wm map[int32]dlq.Watermark) string {
+@@ -445 +469 @@ func newDLQCmdWith(newReader func() (dlqReader, error)) *cobra.Command {
+@@ -465 +489 @@ func newDLQCmdWith(newReader func() (dlqReader, error)) *cobra.Command {
+@@ -487,2 +511,2 @@ func newDLQCmdWith(newReader func() (dlqReader, error)) *cobra.Command {
+@@ -490,0 +515 @@ func newDLQCmdWith(newReader func() (dlqReader, error)) *cobra.Command {
+@@ -518,0 +544,2 @@ func newDLQCmdWith(newReader func() (dlqReader, error)) *cobra.Command {
+@@ -528,2 +555,3 @@ func newDLQCmdWith(newReader func() (dlqReader, error)) *cobra.Command {
+@@ -531,4 +559,4 @@ func newDLQCmdWith(newReader func() (dlqReader, error)) *cobra.Command {
+@@ -536,4 +564 @@ func newDLQCmdWith(newReader func() (dlqReader, error)) *cobra.Command {
+@@ -544,2 +569,2 @@ func newDLQCmdWith(newReader func() (dlqReader, error)) *cobra.Command {
+@@ -551,0 +577,43 @@ func newDLQCmdWith(newReader func() (dlqReader, error)) *cobra.Command {
+
+== ownership check: see CI job 140711320871 (evidence 13)
+
+== files outside backend paths or agent-only files?
+none
+
+[exit code 0]

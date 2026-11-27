@@ -1,0 +1,8 @@
+$ bash -c . /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/goenv.sh; go test -race -count=1 -v -run '^TestCrawlRateLimitFlag$' ./cmd/arxivlens/ 2>&1 | grep -E '^(---|ok|FAIL)'; go test -race -count=1 -v -run '^(TestCrawlWaitsOnLimiter|TestCrawlRetriesRateLimit)$' ./internal/crawler/ 2>&1 | grep -E '^(---|ok|FAIL)'
+--- PASS: TestCrawlRateLimitFlag (0.00s)
+ok  	arxivlens/cmd/arxivlens	1.021s
+--- PASS: TestCrawlRetriesRateLimit (0.01s)
+--- PASS: TestCrawlWaitsOnLimiter (0.24s)
+ok  	arxivlens/internal/crawler	1.261s
+
+[exit code 0]

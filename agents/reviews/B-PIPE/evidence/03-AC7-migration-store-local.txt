@@ -1,0 +1,42 @@
+$ bash /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/ac7.sh
+== up #1
+dlq_replay_checkpoints.dlq_topic text null=NO
+dlq_replay_checkpoints.next_offset bigint null=NO
+dlq_replay_checkpoints.partition integer null=NO
+dlq_replay_checkpoints.updated_at timestamp with time zone null=NO
+dlq_replay_log.dlq_offset bigint null=NO
+dlq_replay_log.dlq_topic text null=NO
+dlq_replay_log.event_id text null=YES
+dlq_replay_log.outcome text null=NO
+dlq_replay_log.partition integer null=NO
+dlq_replay_log.resolved_at timestamp with time zone null=NO
+dlq_replay_log.target_topic text null=YES
+== up #2 (IF NOT EXISTS: no error, schema identical)
+NOTICE:  relation "dlq_replay_checkpoints" already exists, skipping
+NOTICE:  relation "dlq_replay_log" already exists, skipping
+identical
+== constraints
+dlq_replay_checkpoints p PRIMARY KEY (dlq_topic, partition)
+dlq_replay_log c CHECK ((outcome = ANY (ARRAY['replayed'::text, 'unreplayable'::text])))
+dlq_replay_log p PRIMARY KEY (dlq_topic, partition, dlq_offset)
+== tables outside dlq_replay* touched? (public tables)
+dlq_replay_checkpoints dlq_replay_log
+== down
+DROP TABLE
+DROP TABLE
+tables left: 0
+== down again (IF EXISTS)
+NOTICE:  table "dlq_replay_log" does not exist, skipping
+DROP TABLE
+NOTICE:  table "dlq_replay_checkpoints" does not exist, skipping
+DROP TABLE
+== up again, then TestPGStore_Integration on real PG16 (Kafka test skips: no broker in sandbox)
+=== RUN   TestPGStore_Integration
+--- PASS: TestPGStore_Integration (0.01s)
+=== RUN   TestReplayResumes_Integration
+    store_integration_test.go:89: KAFKA_BROKERS not set
+--- SKIP: TestReplayResumes_Integration (0.00s)
+ok  	arxivlens/internal/dlq	1.022s
+rows left: 0
+
+[exit code 0]

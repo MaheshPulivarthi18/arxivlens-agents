@@ -1,0 +1,80 @@
+$ bash -c f=/home/claude/arxivlens-agents/agents/reviews/B-PIPE/evidence/08-mutants.txt; echo "verdicts from $f"; grep -E '\| =>' $f; echo; echo 'KILLED:' $(grep -cE '\| => +\| KILLED' $f) ' SURVIVED (PR tests):' $(grep -cE '\| => +\| SURVIVED' $f) ' INVALID/NOT APPLIED:' $(grep -cE 'INVALID|NOT APPLIED' $f); echo; echo 'Survivors: which suite caught them'; grep -E '^(R15|R21|R23|R24|R25|R26|R28|S1|S3|S4|S5|S6|S7|C8) ' $f | grep -v '=>'
+verdicts from /home/claude/arxivlens-agents/agents/reviews/B-PIPE/evidence/08-mutants.txt
+R1 checkpoint written BEFORE the publish ack               | =>    | KILLED
+R2 filter skip does not pin the checkpoint                 | =>    | KILLED
+R3 filter advances the checkpoint past a skipped record    | =>    | KILLED
+R4 filter skip writes a log row (marks skipped done)       | =>    | KILLED
+R5 filter applied before the envelope rule (unreplayables pinned) | =>    | KILLED
+R6 filter case-sensitive                                   | =>    | KILLED
+R7 already-resolved records re-published                   | =>    | KILLED
+R8 resolved records do not advance the tail checkpoint     | =>    | KILLED
+R9 mark moves the checkpoint even when not contiguous      | =>    | KILLED
+R10 dry run calls MarkResolved                             | =>    | KILLED
+R11 dry run publishes                                      | =>    | KILLED
+R12 publish error swallowed, record skipped                | =>    | KILLED
+R13 MarkResolved error swallowed                           | =>    | KILLED
+R14 stepErr not returned                                   | =>    | KILLED
+R15 --limit counts unreplayables                           | =>    | SURVIVED
+R16 --limit off by one                                     | =>    | KILLED
+R17 --limit ignored                                        | =>    | KILLED
+R18 partitions in descending order                         | =>    | KILLED
+R19 Checkpoints read after Kafka Watermarks                | =>    | KILLED
+R20 stored checkpoints ignored (start at 0)                | =>    | KILLED
+R21 Resolved() error ignored                               | =>    | SURVIVED (PR tests) / caught by QA probe
+R22 tail checkpoint write dropped                          | =>    | KILLED
+R23 tail checkpoint write in a dry run                     | =>    | SURVIVED (PR tests) / caught by QA probe
+R24 expired: reader not moved to Low                       | =>    | SURVIVED (PR tests) / caught by QA probe
+R25 all expired: checkpoint not moved to Low               | =>    | SURVIVED (PR tests) / caught by QA probe
+R26 all expired: dry run moves the checkpoint              | =>    | SURVIVED (PR tests) / caught by QA probe
+R27 unreplayables not resolved (pin forever)               | =>    | KILLED
+R28 empty original_topic replays into the DLQ itself       | =>    | SURVIVED (PR tests) / caught by QA probe
+S1 checkpoint upsert without GREATEST (can move down)      | =>    | SURVIVED (PR tests) / caught by QA probe
+S2 checkpoint written outside the tx, before the row       | =>    | KILLED
+S3 log insert without ON CONFLICT DO NOTHING               | =>    | SURVIVED (PR tests) / caught by QA probe
+S4 Resolved uses > from (drops the offset at from)         | =>    | SURVIVED (PR tests) / caught by QA probe
+S5 Checkpoints not filtered by dlq_topic                   | =>    | SURVIVED (PR tests) / caught by QA probe
+S6 Resolved not filtered by partition                      | =>    | SURVIVED (PR tests) / caught by QA probe
+S7 Resolved not filtered by dlq_topic                      | =>    | SURVIVED (PR tests) / caught by QA probe
+C1 footer: --limit not printed as --page-size              | =>    | KILLED
+C2 footer: --partition never repeated                      | =>    | KILLED
+C3 SilenceErrors off (double Error: line)                  | =>    | KILLED
+C4 inspect: no empty-topic line                            | =>    | KILLED
+C5 replay: Postgres error without the migrate hint         | =>    | KILLED
+C6 replay: no DRY RUN banner                               | =>    | KILLED
+C7 crawl: --rate-limit check removed                       | =>    | KILLED
+C8 crawl: check <= (rejects the 3s default)                | =>    | SURVIVED
+E1 crawl: GetAPI without the limiter                       | =>    | KILLED
+E2 NewCrawler: no 3 s floor                                | =>    | KILLED
+
+KILLED: 31  SURVIVED (PR tests): 14  INVALID/NOT APPLIED: 0
+
+Survivors: which suite caught them
+R15 --limit counts unreplayables                           | dlq   | pass
+R15 --limit counts unreplayables                           | cmd   | pass
+R21 Resolved() error ignored                               | dlq   | pass
+R21 Resolved() error ignored                               | probe | FAIL TestQAProbeResolvedErrorStops
+R23 tail checkpoint write in a dry run                     | dlq   | pass
+R23 tail checkpoint write in a dry run                     | probe | FAIL TestQAProbeDryRunTailNoWrite
+R24 expired: reader not moved to Low                       | dlq   | pass
+R24 expired: reader not moved to Low                       | probe | FAIL TestQAProbeAllExpired
+R25 all expired: checkpoint not moved to Low               | dlq   | pass
+R25 all expired: checkpoint not moved to Low               | probe | FAIL TestQAProbeAllExpired
+R26 all expired: dry run moves the checkpoint              | dlq   | pass
+R26 all expired: dry run moves the checkpoint              | probe | FAIL TestQAProbeAllExpired
+R28 empty original_topic replays into the DLQ itself       | dlq   | pass
+R28 empty original_topic replays into the DLQ itself       | probe | FAIL TestQAProbeTargetFallback
+S1 checkpoint upsert without GREATEST (can move down)      | dlq   | pass
+S1 checkpoint upsert without GREATEST (can move down)      | probe | FAIL TestQAProbeCheckpointMonotonicPG
+S3 log insert without ON CONFLICT DO NOTHING               | dlq   | pass
+S3 log insert without ON CONFLICT DO NOTHING               | probe | FAIL TestQAProbeDuplicateMarkPG
+S4 Resolved uses > from (drops the offset at from)         | dlq   | pass
+S4 Resolved uses > from (drops the offset at from)         | probe | FAIL TestQAProbeResolvedAtFromPG
+S5 Checkpoints not filtered by dlq_topic                   | dlq   | pass
+S5 Checkpoints not filtered by dlq_topic                   | probe | FAIL TestQAProbeTopicIsolationPG
+S6 Resolved not filtered by partition                      | dlq   | pass
+S6 Resolved not filtered by partition                      | probe | FAIL TestQAProbeFilterPG,TestQAProbeResumePG,TestQAProbeTopicIsolationPG
+S7 Resolved not filtered by dlq_topic                      | dlq   | pass
+S7 Resolved not filtered by dlq_topic                      | probe | FAIL TestQAProbeTopicIsolationPG
+C8 crawl: check <= (rejects the 3s default)                | cmd   | pass
+
+[exit code 0]

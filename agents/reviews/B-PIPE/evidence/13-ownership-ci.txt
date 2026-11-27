@@ -1,0 +1,11 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/140711320871/logs (lines 246-254)
+2026-11-27T19:54:07.4519474Z ##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+2026-11-27T19:54:07.4521343Z .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+2026-11-27T19:54:07.4556586Z shell: /usr/bin/bash -e {0}
+2026-11-27T19:54:07.4557482Z env:
+2026-11-27T19:54:07.4558227Z   HEAD_REF: agent/backend/B-PIPE
+2026-11-27T19:54:07.4559150Z   BASE_REF: main
+2026-11-27T19:54:07.4559901Z ##[endgroup]
+2026-11-27T19:54:07.6152136Z ##[warning]1221 changed lines (> 800, the bundle size in arxivlens-agents AGENTS.md). Consider splitting the change.
+2026-11-27T19:54:07.6159579Z Ownership OK for role=backend (1221 changed lines)
+

@@ -1,0 +1,23 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/140711320656/logs (excerpts)
+Full stack job 140711320656 (conclusion success); contiguous excerpts of the raw log, ANSI stripped
+
+--- lines 660-677 (replay store: cache miss on this branch, prefetch re-recorded)
+2026-11-27T19:55:53.3008744Z Cache not found for input keys: arxiv-replay-Linux-stack-v1-46059891146, arxiv-replay-Linux-stack-v1-
+2026-11-27T19:55:53.3093973Z ##[group]Run python3 scripts/arxiv_replay.py prefetch --dir .arxiv-replay --search "cat:cs.LG" --limit 2 --id 2608.20331 --budget-seconds 1020
+2026-11-27T19:56:05.6549007Z [replay] prefetch: 2 queries, stats={"hits": 0, "misses": 5, "upstream_fetches": 5, "upstream_failures": 0, "saved": 5}
+
+--- lines 3523-3524, 3539-3544 (stack.yml crawl step)
+2026-11-27T20:00:27.4526817Z ##[group]Run ./bin/arxivlens crawl --query "cat:cs.LG" --limit 2
+2026-11-27T20:00:27.4527231Z ./bin/arxivlens crawl --query "cat:cs.LG" --limit 2
+2026-11-27T20:00:27.4756299Z 2026/11/27 20:00:27 [Crawler] Starting crawl query="cat:cs.LG" limit=2 (rate-limit=3s)
+2026-11-27T20:00:27.4757677Z 2026/11/27 20:00:27 [Crawler] Fetching page start=0 size=2 URL=http://127.0.0.1:8099/api/query?max_results=2&search_query=cat%3Acs.LG&sortBy=submittedDate&sortOrder=descending&start=0
+2026-11-27T20:00:27.8078232Z 2026/11/27 20:00:27 [Crawler] Discovered & Published: 2611.34938 (v1) — "Tokenisation is not in APX"
+2026-11-27T20:00:27.8136255Z 2026/11/27 20:00:27 [Crawler] Discovered & Published: 2611.34935 (v1) — "Can image generation help visual reasoning? An empirical study"
+2026-11-27T20:00:27.8137518Z 2026/11/27 20:00:27 [Crawler] Crawl finished. Total discovered: 2
+2026-11-27T20:00:27.8138401Z 2026/11/27 20:00:27 [Crawl] Successfully discovered and published 2 papers
+
+--- lines 5417-5435 (arXiv replay stats at end of job)
+2026-11-27T20:05:10.9070942Z ##[group]Run stats="$(curl -fsS localhost:8099/stats || echo unavailable)"; echo "arXiv replay: $stats"
+2026-11-27T20:05:10.9071505Z stats="$(curl -fsS localhost:8099/stats || echo unavailable)"; echo "arXiv replay: $stats"
+2026-11-27T20:05:10.9219756Z arXiv replay: {"hits": 11, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+

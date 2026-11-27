@@ -1,0 +1,24 @@
+$ bash -c . /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/goenv.sh; echo '== go vet ./...'; go vet ./... && echo 'vet: clean'; echo '== gofmt -l .'; gofmt -l . ; echo "gofmt: $(gofmt -l . | wc -l) files"; echo '== go test -race -count=1 ./...'; go test -race -count=1 ./... 2>&1; echo '== frontend touched?'; git diff --name-only origin/main...HEAD -- frontend | wc -l
+== go vet ./...
+vet: clean
+== gofmt -l .
+gofmt: 0 files
+== go test -race -count=1 ./...
+ok  	arxivlens/cmd/arxivlens	1.043s
+ok  	arxivlens/internal/arxiv	3.190s
+ok  	arxivlens/internal/config	1.009s
+ok  	arxivlens/internal/crawler	1.353s
+ok  	arxivlens/internal/db	1.011s
+ok  	arxivlens/internal/dlq	1.286s
+ok  	arxivlens/internal/downloader	1.118s
+ok  	arxivlens/internal/kafka	1.061s
+ok  	arxivlens/internal/llm	2.011s
+ok  	arxivlens/internal/llm/llmtest	1.113s
+ok  	arxivlens/internal/query	1.477s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+== frontend touched?
+0
+
+[exit code 0]
