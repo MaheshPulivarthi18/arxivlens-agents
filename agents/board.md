@@ -16,8 +16,8 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 0a | [AI-14b](tasks/AI-14b.md) (Jira: create) | Pin the right word boundary of the table-section rule ("Tablet", "Tableau" kept; kills mutant m7) | ai-engineer | P2 | AI-14 (#115) merged `53171d6` | test-only, < 30 lines; picked 2026-11-27T09:00Z |
-| 0b | [FE-0k](tasks/FE-0k.md) (Jira: create) | Repo-wide form-control outline guard; hero search box `border-input` + full `ring-ring` focus | frontend-engineer | P3 | FE-0h (#101), FE-3b (#104) merged | picked 2026-11-27T09:00Z; files disjoint from #125/#128 |
+| 0a | [AI-14b](tasks/AI-14b.md) (KAN-131) | Pin the right word boundary of the table-section rule ("Tablet", "Tableau" kept; kills mutant m7) | ai-engineer | P2 | AI-14 (#115) merged `53171d6` | test-only, < 30 lines; picked 2026-11-27T09:00Z |
+| 0b | [FE-0k](tasks/FE-0k.md) (KAN-132) | Repo-wide form-control outline guard; hero search box `border-input` + full `ring-ring` focus | frontend-engineer | P3 | FE-0h (#101), FE-3b (#104) merged | picked 2026-11-27T09:00Z; files disjoint from #125/#128 |
 | 2b | [FE-4b](tasks/FE-4b.md) (Jira: create) | Quote highlight in passage, `arXiv:IDvN · § · p. N`, PDF `#page=N`; AC2d "Cited by claim n" rows | frontend-engineer | P0 | **FE-4a (#128) merged** (same files) | part 2 of FE-4; not startable until #128 merges; mutant notes added 2026-11-27 (M3 equivalent, M11 at runtime) |
 | 8 | [OPS-H7a2c](tasks/OPS-H7a2c.md) (KAN-98) | `dlq list` footer keeps `--partition`/`--page-size`; pin `inspect` edge cases (M21, M22); CLI errors printed once | backend-engineer | P1 | `main.go` + README queue: after ING-6c (#124) merges | QA OPS-H7a2b r1 finding 1 `[spec]` + nits |
 | 9 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | after OPS-H7a2c merges (`main.go`, README) | |

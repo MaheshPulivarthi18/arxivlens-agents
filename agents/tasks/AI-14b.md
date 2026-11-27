@@ -6,7 +6,7 @@
 | **Priority** | P2 (answer quality guard: without it, a regression silently drops relevant passages scored 0.45-0.70 from `/v1/ask`) |
 | **PRD ref** | Product PRD QA-6 "De-prioritize appendix, supplementary, and table passages unless strongly relevant" (✅); Technical PRD §7.2 (aux cutoff `0.70`). Source: QA AI-14 r1 nit 1 + PM review item 1 (`agents/reviews/AI-14/report.md`, mutant m7 survived, [03b](../reviews/AI-14/evidence/03b-ac1-boundary-probes.png)) |
 | **Depends on** | AI-14 (ArxivLens #115) **merged** as `53171d6` (it added `tableWordRegex`). No open PR touches `internal/query/rag_test.go` or `rag.go` (checked 2026-11-27T09:00Z against #122-#128). AI-5 (Blocked on ADR-0011) edits `rag.go` later and doesn't wait on this |
-| **Jira** | (Jira: create) story under epic KAN-2 "Retrieval & answer quality gates"; labels `task-AI-14b`, `agent-ai`, `arxivlens` |
+| **Jira** | KAN-131, story under epic KAN-2 "Retrieval & answer quality gates"; labels `task-AI-14b`, `agent-ai`, `arxivlens` |
 | **Design required** | no: test rows only; no code, threshold, API or contract change |
 | **Status** | Ready |
 

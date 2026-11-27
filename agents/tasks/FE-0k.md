@@ -6,7 +6,7 @@
 | **Priority** | P3 (accessibility polish + regression guard) |
 | **PRD ref** | FE-0 design token rule, `docs/design/FE-0.md:107-108` (`input` on `background` 3.30/3.48:1, on `card` 3.50/3.23:1, light/dark, WCAG 1.4.11), `:105-106` (`ring` on `background` 8.56/8.25, on `card` 9.09/7.65) and `:120-123` ("**any form control or control-identifying outline uses `border-input`, never `border-border`**"), `:210` (focus ring = `ring-2 ring-ring`). Sources: QA FE-0h r1 "Missing tests" (repo-wide scan) and QA FE-3b nit 2 + PM review item 2 (`agents/reviews/FE-3b/report.md:57,92`: hero halo `ring-ring/30` is 1.68/1.83:1; unfocused outline is `border-border/90`) |
 | **Depends on** | FE-0h (#101, merged `d646d63`, added `src/test/controls.test.js`), FE-3b (#104, merged `dcb326a`, last edit of `HeroSearch.jsx`). No open PR touches the files below (checked 2026-11-27T09:00Z: #125 `ui/badge.test.jsx`; #128 `App.{jsx,test.jsx}`, `ReferencesStack.*`, `SynthesisView.*`, `lib/citations.*`, `test/fixtures.js`; no other open PR is under `frontend/`) |
-| **Jira** | (Jira: create) story under epic KAN-5 "Research UI & citations"; labels `task-FE-0k`, `agent-frontend`, `arxivlens` |
+| **Jira** | KAN-132, story under epic KAN-5 "Research UI & citations"; labels `task-FE-0k`, `agent-frontend`, `arxivlens` |
 | **Design required** | no: one className edit applying an existing FE-0 design rule, plus a test file; no new component, token, dependency or API field |
 | **Status** | Ready |
 
