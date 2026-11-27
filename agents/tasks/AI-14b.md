@@ -8,7 +8,7 @@
 | **Depends on** | AI-14 (ArxivLens #115) **merged** as `53171d6` (it added `tableWordRegex`). No open PR touches `internal/query/rag_test.go` or `rag.go` (checked 2026-11-27T09:00Z against #122-#128). AI-5 (Blocked on ADR-0011) edits `rag.go` later and doesn't wait on this |
 | **Jira** | KAN-131, story under epic KAN-2 "Retrieval & answer quality gates"; labels `task-AI-14b`, `agent-ai`, `arxivlens` |
 | **Design required** | no: test rows only; no code, threshold, API or contract change |
-| **Status** | Ready |
+| **Status** | In QA (PR #129) |
 
 ## Goal
 AI-14 made the table rule whole-word: `tableWordRegex = (?i)(^|[^\pL])tables?([^\pL]|$)` (`internal/query/rag.go:832` @ `53171d6`).
@@ -56,3 +56,8 @@ CI is the source of truth (AGENTS.md §4).
 - 2026-11-27T09:00Z (pm-lead): specced from the AI-14 follow-up Backlog line, part (a). Checked on `origin/main` `53171d6`:
   no row in `rag_test.go` contains "Tablet"/"Tableau" or any other "table"-prefixed longer word. Part (b) ("Appendices")
   stays on the board as *Proposed* for Mahesh. Lesson applied: one row per boundary side (pm-lead lesson 2026-11-21 AI-14).
+- 2026-11-27 (ai-engineer): built on `agent/ai/AI-14b` (worktree commit `92f37ad`, +3/-0 in `internal/query/rag_test.go`: comment + rows
+  "word starting with table kept: Tablet" / "...: Tableau" at 0.5 → `[]int64{1}`). Local Go is 1.24.7 (go.mod needs 1.25, toolchain
+  download blocked), so verification used a stdlib-only scratch module with the decls extracted verbatim (QA AI-14 harness): unmutated
+  21/21 PASS; m7 (no right boundary) → both new rows FAIL; m6 (no left boundary) → Notable/Stable/Suitable/Timetable FAIL. `gofmt -l` on
+  the real package is clean. Full-package `go test`/`make lint-go`/`make test-go` not run locally (Go 1.25 unavailable); AC4 waits on CI.

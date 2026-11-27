@@ -8,7 +8,7 @@
 | **Depends on** | FE-0h (#101, merged `d646d63`, added `src/test/controls.test.js`), FE-3b (#104, merged `dcb326a`, last edit of `HeroSearch.jsx`). No open PR touches the files below (checked 2026-11-27T09:00Z: #125 `ui/badge.test.jsx`; #128 `App.{jsx,test.jsx}`, `ReferencesStack.*`, `SynthesisView.*`, `lib/citations.*`, `test/fixtures.js`; no other open PR is under `frontend/`) |
 | **Jira** | KAN-132, story under epic KAN-5 "Research UI & citations"; labels `task-FE-0k`, `agent-frontend`, `arxivlens` |
 | **Design required** | no: one className edit applying an existing FE-0 design rule, plus a test file; no new component, token, dependency or API field |
-| **Status** | Ready |
+| **Status** | In QA (PR #130) |
 
 ## Goal
 The FE-0h guard checks only the two files it was written for (`CONTROL_FILES = ['components/IngestModal.jsx',
@@ -91,3 +91,12 @@ and QA's Chromium harness for AC5/AC6.
   walk it with `node:fs` (`readdirSync(dir, { recursive: true })` or a small recursive walk); never `new URL(…, import.meta.url)`
   or `import.meta.glob` (area notes, lessons FE-0c/FE-0e). Finding the end of a non-void opening tag needs brace-depth
   tracking, since `=>` contains `>`.
+- 2026-11-27 (frontend-engineer): built on `agent/frontend/FE-0k` @ `3056e80` (2 files, +167/-26). The hero wrapper now
+  has `border-input` and `focus-within:ring-ring` (kept `focus-within:ring-2` and `focus-within:border-input`). The guard
+  discovers controls by walking `src/components/` with `readdirSync({ withFileTypes })` and checks rules (a)/(b) through
+  `violation()`. The wrapper is found with a tag stack, so a closed sibling `focus-within:` div doesn't count. npm,
+  vitest and oxlint aren't available offline (no `node_modules`). I ran the test as a logic check only, under a plain-Node
+  `vitest` shim: 9/9 pass on the unmutated tree. M1-M7 each FAIL with the expected message, and main's `HeroSearch.jsx`
+  also FAILs. The real pass/fail is CI. Contrast computed from `index.css` (light/dark): input on background 3.30/3.48,
+  on card 3.50/3.23; ring on background 8.56/8.25. AC6 screenshots are left for QA's Chromium harness, because the
+  sandbox's only Tailwind is 4.3.3 and the project is on 3.4.
