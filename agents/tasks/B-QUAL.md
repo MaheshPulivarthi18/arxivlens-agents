@@ -11,7 +11,7 @@
 | **Size estimate** | ~900 changed lines: ~150 new (EVAL-2 part) + ~750 carried over from `d2ad9c5` (scorer 364, tests 315, docs 75), which is written and self-contained. One PR; the two parts are separate files, so a reviewer can follow them |
 | **Absorbs** | EVAL-2 (KAN-12), ING-8 (KAN-32). AI-5 (KAN-25) stays Blocked on ADR-0011 (KAN-26) and is on the decisions list |
 | **Branch** | `agent/ai/B-QUAL` (start from `origin/main`, then bring `d2ad9c5` over by cherry-pick or rebase; don't reuse `agent/ai/ING-8`) |
-| **Status** | Ready (design first) |
+| **Status** | In Progress (design approved) |
 
 ## Goal
 (1) Every eval run shows how fast `/v1/search` is against the PRD's 1.5 s target, without changing a gate before
@@ -71,6 +71,7 @@ gh workflow run eval.yml --ref agent/ai/B-QUAL             # AC3, then read the 
 - [ ] (none yet)
 
 ## Notes
+- 2026-11-28 (pm-lead): design approved as ONE PR (the cap is waived for the carried scorer), with 3 conditions (`docs/design/B-QUAL.md` › PM decision).
 - 2026-11-28 (pm-lead): bundle created in the process reset. **Docs part (done by pm-lead, PR #22)**: Technical PRD §7.1 (RRF pool → rerank →
   fusion FusionK=10 → top-5 ≤ 2 per paper), §7.2 (two stages, LLM only with `LLM_MODEL` and not quick, quoted answers, quote/NLI verification,
   ADR-0003 refusals), §11 roadmap, §12; Product PRD ING-6 ✅ (QA-4/QA-8 were already ✅); new ADR-0022 (quote/NLI verification), 0023 (quoted

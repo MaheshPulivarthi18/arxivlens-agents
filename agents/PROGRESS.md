@@ -1214,3 +1214,8 @@ Format:
 - Checked the code (app `5fcbd5f`): already done were AI-8 (API fields, #54/#65), FE-3 (#86/#104), the "% Verified" labels (gone), ING-6 (#124), FE-4a (#128) and QA-4/QA-8 ✅. Still open: FE-4b, FE-2, OPS-H7a2c/7b/7c, ING-9b, EVAL-2 (report-only part), ING-8 (scorer on `d2ad9c5`, no labels).
 - New bundles: B-UI (frontend, ~500), B-PIPE (backend, ~880), B-QUAL (ai, ~900 incl. 750 carried over). EVAL-8 now owned by Mahesh (absorbs 8a/8b/8d). Closed or absorbed 21 specs (AI-10 obsolete); marked the 9 merged #122–#130 specs Done. Board rewritten compactly.
 - Jira not touched (per instruction). Needed next cycle: one story each for B-UI/B-PIPE/B-QUAL, and close the absorbed stories with a link.
+
+## 2026-11-28 — pm-lead: design approvals B-UI, B-QUAL
+- B-UI addendum (`docs/design/FE-4.md`): Approved. The hero tagline ("…Sentence-Level Verification" → "Evidence-Grounded Answers with Cited Passages") and the Markdown note heading ("ArxivLens Research Note", no bare `§ `) are folded into scope with tests. The PR stays about 520 lines.
+- B-QUAL (`docs/design/B-QUAL.md`): Approved as ONE PR of about 920 lines. The cap is waived because 754 lines are the carried, already-reviewed `d2ad9c5`. Conditions: separate commits for the verbatim pick, the rebase edits and the search work; no more than about 200 new lines; the AC2 test stays.
+- Both tasks are In Progress (design approved). Jira not touched.

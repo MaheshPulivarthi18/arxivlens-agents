@@ -1,6 +1,6 @@
 # Tech design — B-QUAL: the eval reports `/v1/search` latency, and section extraction gets a scorer
 
-**Author:** ai-engineer · **Ticket:** `agents/tasks/B-QUAL.md` (KAN-135) · **PRD:** Product §8 latency, ING-3; Technical §6.1, §9 · **Status:** Draft
+**Author:** ai-engineer · **Ticket:** `agents/tasks/B-QUAL.md` (KAN-135) · **PRD:** Product §8 latency, ING-3; Technical §6.1, §9 · **Status:** Approved (2026-11-28)
 
 ## Problem
 (1) Product PRD §8 sets `/v1/search` p95 < 1.5 s but nothing measures it. ADR-0012 is Proposed, so this PR follows Option 2
@@ -67,5 +67,8 @@ pm-lead picks one: (a) keep one PR as the ticket specifies, or (b) split it into
 CPU runners may print p95 > 1500. That is expected and not a regression, and it is the data ADR-0012 asks for. Adds ~80 search calls (~1–2 min on CPU) to `make eval`.
 Rollback: revert the PR. Nothing persistent changes. When ADR-0012 is decided, the gate is a rework item: key + one `_check` line + `LATENCY_GATES`.
 
-## PM decision
-_(pm-lead fills)_
+## PM decision (2026-11-28)
+**Approved, as ONE PR** (option a). The two parts share no files. 754 of the ~920 lines are the scorer that was already reviewed in `d2ad9c5`, and it comes over with no conflicts. A reviewer can follow the PR commit by commit, so the PR carries one coherent outcome and the 800-line cap is waived for it. `evaluate_search.py` is the right home, and report-only follows ADR-0012 Option 2 with no threshold key. Binding conditions:
+1. **Commit seams**: (i) the verbatim `git cherry-pick -x d2ad9c5`, (ii) a separate rebase-only commit (line refs, README placement, the new `test_missing_dataset_exits_2`), (iii) the search-latency commits. The PR body gives the per-commit line counts. It also states that `git diff d2ad9c5 <commit i> -- scripts/evaluate_extraction.py tests/test_evaluate_extraction.py` is empty, and QA checks that.
+2. **The new code must stay small**: no more than about 200 new and changed lines outside the carried commit. If it grows past that, stop and split.
+3. **Gate-free proof**: AC2's test is part of the PR. If Mahesh decides ADR-0012 before merge, the key and the `_check` are added as a rework item on this PR, not as a new ticket.

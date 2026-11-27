@@ -10,13 +10,13 @@ ticket's `## Checklist`, never into new tickets. WIP: 2 active PRs per developer
 ## Active
 | # | Bundle | Outcome | Owner | Tier | Size | Branch | Status |
 |---|---|---|---|---|---|---|---|
-| 1 | [B-UI](tasks/B-UI.md) | Quote highlighted in its passage, `arXiv:IDvN · § · p. N`, PDF at the page, "Cited by claim n" rows, `.bib` export | frontend-engineer | Large (FE-4 design + export addendum) | ~500 | `agent/frontend/B-UI` | Ready (addendum first) |
+| 1 | [B-UI](tasks/B-UI.md) | Quote highlighted in its passage, `arXiv:IDvN · § · p. N`, PDF at the page, "Cited by claim n" rows, `.bib` export | frontend-engineer | Large (FE-4 design + export addendum) | ~520 | `agent/frontend/B-UI` | In Progress (design approved) |
 | 2 | [B-PIPE](tasks/B-PIPE.md) | DLQ replay resumes from checkpoints, is locked against a second run, deterministic IDs; list footer polish; `crawl` politeness; harness lines | backend-engineer | Large (OPS-H7 design) | ~880 (seam: C → B-PIPE-2 if > 950) | `agent/backend/B-PIPE` | Ready |
-| 3 | [B-QUAL](tasks/B-QUAL.md) | `/v1/search` p50/p95 in every eval (report-only, ADR-0012); section-extraction scorer (from `d2ad9c5`) | ai-engineer | Large (short design) | ~900 (750 already written) | `agent/ai/B-QUAL` | Ready (design first) |
+| 3 | [B-QUAL](tasks/B-QUAL.md) | `/v1/search` p50/p95 in every eval (report-only, ADR-0012); section-extraction scorer (from `d2ad9c5`) | ai-engineer | Large (short design) | ~920 (754 carried; one PR, cap waived) | `agent/ai/B-QUAL` | In Progress (design approved) |
 | 4 | [EVAL-8](tasks/EVAL-8.md) | Real-LLM answer eval in CI on Modal | **Mahesh** | Large (ADR-0021) | his call | — | Mahesh building (2026-11-29) |
 
 The three agent bundles are independent: their files don't overlap (B-PIPE's `Makefile` line is a wildcard, so B-QUAL
-can merge before or after it). B-UI's design addendum and B-QUAL's design need pm-lead approval before code.
+can merge before or after it). B-UI's addendum and B-QUAL's design were approved 2026-11-28.
 
 ## Decisions for Mahesh
 | Decision | Question | Unblocks |

@@ -367,3 +367,9 @@ Markdown note heading "Clinical & Academic Research Note" and its bare "§ " on 
 | AC7 | CI: `npm ci && npm run lint && npm test && npm run build`, lint warnings ≤ main |
 
 **6. Size.** FE-4b ≈ 320 (prod ~120, tests+fixtures ~200), FE-2 ≈ 190 (prod ~70, tests ~120), App +2 → **≈ 510 changed lines**, one PR, under 800.
+
+### PM decision (2026-11-28): B-UI addendum
+**Approved.** The addendum covers AC4–AC5 (builder API, `@misc` entry, trigger, refusal = trigger absent) and closes the `App.jsx` `claims` gap. It fabricates no field. Both flagged items are trivial string edits that make the labels more honest, so they **are folded into B-UI** (ticket scope amended):
+1. **Tagline** (`HeroSearch.jsx:51`): becomes "Evidence-Grounded Answers with Cited Passages". It no longer claims verification that "Not checked" answers don't have. One assert in an existing or new test checks the new text and that "Sentence-Level Verification" is gone.
+2. **Markdown note** (`citations.js:45-48`): the heading becomes `# ArxivLens Research Note`. The ` (§ <section>)` part appears only when `section` is non-empty. Add a `markdownNote` test for both. Nothing else in the note changes, and the other "Clinical" strings stay out of scope.
+3. **Size**: with these the PR stays at about 520 lines, under the 800 cap. The PR body lists the two string changes under "Label honesty".

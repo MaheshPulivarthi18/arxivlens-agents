@@ -11,7 +11,7 @@
 | **Size estimate** | ~500 changed lines incl. tests (the FE-4b part ~320, the FE-2 part ~180). One PR |
 | **Absorbs** | AI-8 (KAN-43, API done), FE-3 (KAN-40, done in FE-3a/3b), FE-4 (KAN-44), FE-4b (no key), FE-2 (KAN-20) |
 | **Branch** | `agent/frontend/B-UI` |
-| **Status** | Ready (design addendum first) |
+| **Status** | In Progress (design approved) |
 
 ## Goal
 A researcher checks any answer sentence in one or two clicks: the card shows the exact supporting words highlighted
@@ -34,7 +34,9 @@ done, they take every reference in the answer at once as a `.bib` file. No label
   scroll box), the PDF link, the "Cited by claim n" / "Check n" rows (these replace FE-4a's interim one-chip-per-check
   header), and the "Export" `ui/dropdown-menu` with the item "BibTeX (.bib)".
 - `frontend/src/test/fixtures.js`, and `App.test.jsx` only where AC3 needs it.
-- Out of scope: any API or `rag.go` change; a PDF viewer; saved questions (rest of UI-5); the Markdown "Export Note"
+- Label honesty (added at design approval 2026-11-28): the hero tagline in `HeroSearch.jsx:51` and the Markdown note heading plus the empty `§ ` in `citations.js:45-48`
+  (see `docs/design/FE-4.md` › PM decision B-UI addendum).
+- Out of scope: any API or `rag.go` change; a PDF viewer; saved questions (rest of UI-5); other Markdown "Export Note"
   wording; app `README.md` (no line describes these cards).
 
 ## Acceptance criteria
@@ -78,6 +80,7 @@ cd app/frontend && npm ci && npm run lint && npm test && npm run build
 - [ ] (none yet)
 
 ## Notes
+- 2026-11-28 (pm-lead): design addendum approved with 3 conditions (`docs/design/FE-4.md` › PM decision B-UI addendum). The tagline and the note heading are folded in.
 - 2026-11-28 (pm-lead): bundle created in the process reset. No API change is needed: `Citation` already has `status`, `paper_version`, `page`,
   `quote` and `pdf_url`, and `claims[]` exists. So there is no B-UI-api part and the PR is frontend-only. The API has **no authors or published date**
   on citations (`papers.authors`/`published_at` exist in the schema but aren't returned). Adding them is an HTTP-contract change, so it needs an ADR.
