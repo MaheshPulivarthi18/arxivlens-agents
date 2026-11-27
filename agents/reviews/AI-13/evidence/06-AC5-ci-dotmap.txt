@@ -1,0 +1,7 @@
+$ python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-AI-13-r1/dotmap.py /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-AI-13-r1/job-140310849323.log /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-AI-13-r1/plugin
+CI outcome chars: 77  offline-collected ids: 77  equal: True
+skips (s) at: [(22, 'tests/test_m0.py::test_rerank_real_cross_encoder_scores_match_single_batch'), (34, 'tests/test_verify.py::test_real_nli_separates_support_from_topicality')]
+position 47: CI outcome '.' (passed) -> tests/test_verify.py::test_embedder_worker_passes_each_chunks_content_hash
+position 48: CI outcome '.' (passed) -> tests/test_verify.py::test_embedder_worker_logs_written_and_skipped_and_still_marks_embedded
+
+[exit code 0]

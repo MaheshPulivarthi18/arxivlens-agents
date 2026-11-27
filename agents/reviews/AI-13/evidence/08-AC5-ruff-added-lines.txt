@@ -1,0 +1,13 @@
+$ python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-AI-13-r1/ruff_added.py
+added line ranges: {'services/embedder/worker.py': '64-84 (13 lines)', 'tests/test_verify.py': '483-578 (96 lines)'}
+ruff findings total: 7; on added lines: 0
+all findings (pre-existing lines):
+   services/embedder/worker.py:9:20: F401 [*] `typing.Dict` imported but unused
+   services/embedder/worker.py:9:26: F401 [*] `typing.Any` imported but unused
+   services/embedder/worker.py:19:5: F401 [*] `services.common.db.check_and_record_ledger` imported but unused
+   services/embedder/worker.py:41:9: F841 Local variable `version` is assigned to but never used
+   tests/test_verify.py:22:131: E501 Line too long (150 > 130)
+   tests/test_verify.py:71:131: E501 Line too long (133 > 130)
+   tests/test_verify.py:126:131: E501 Line too long (134 > 130)
+
+[exit code 0]

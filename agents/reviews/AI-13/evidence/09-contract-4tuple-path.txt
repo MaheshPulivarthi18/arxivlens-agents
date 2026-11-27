@@ -1,0 +1,44 @@
+$ bash -c git log -1 --format='%h %s' origin/main -- services/common/db.py; git diff --quiet origin/main...HEAD -- services/common/ migrations/ shared/ && echo 'services/common, migrations, shared: unchanged by PR'; grep -n 'content_hash TEXT NOT NULL' migrations/000001_init_schema.up.sql; sed -n 201,238p services/common/db.py
+a4c0140 OPS-H6e: save_chunk_embeddings writes a vector only while its chunk still has that content_hash (#106)
+services/common, migrations, shared: unchanged by PR
+44:  content_hash TEXT NOT NULL,
+_UPSERT_EMBEDDING_IF_CURRENT_SQL = """
+    INSERT INTO chunk_embeddings (chunk_id, model, embedding)
+    SELECT pc.id, %s::text, %s::halfvec
+    FROM paper_chunks pc
+    WHERE pc.id = %s AND pc.content_hash = %s
+    FOR SHARE OF pc
+    ON CONFLICT (chunk_id, model) DO UPDATE
+    SET embedding = EXCLUDED.embedding,
+        created_at = now();
+"""
+
+
+def save_chunk_embeddings(
+    conn: psycopg.Connection,
+    chunk_embeddings: List[Union[Tuple[int, str, List[float]], Tuple[int, str, List[float], str]]],
+) -> int:
+    """
+    Inserts or updates halfvec embeddings, inside the caller's transaction (no commit).
+
+    Each item is `(chunk_id, model, vector)`, written unconditionally, or `(chunk_id, model, vector, content_hash)`,
+    written only while `paper_chunks` still has that id with that content_hash (OPS-H6e); otherwise it is skipped and
+    any existing vector is left alone. Returns the number of vectors written.
+    """
+    written = 0
+    with conn.cursor() as cur:
+        for item in chunk_embeddings:
+            if len(item) not in (3, 4):
+                raise ValueError(f"expected (chunk_id, model, vec[, content_hash]), got {len(item)} elements")
+            chunk_id, model, vec = item[0], item[1], item[2]
+            # Format vector as string for PostgreSQL halfvec: '[0.123, -0.456, ...]'
+            vec_str = "[" + ",".join(f"{x:.6f}" for x in vec) + "]"
+            if len(item) == 3:
+                cur.execute(_UPSERT_EMBEDDING_SQL, (chunk_id, model, vec_str))
+                written += 1
+            else:
+                cur.execute(_UPSERT_EMBEDDING_IF_CURRENT_SQL, (model, vec_str, chunk_id, item[3]))
+                written += cur.rowcount
+    return written
+
+[exit code 0]

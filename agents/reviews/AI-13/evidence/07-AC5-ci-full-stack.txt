@@ -1,0 +1,45 @@
+$ grep of gh api actions/jobs/140310849043/logs + app files at head
+== job 140310849043 Full stack (compose + make test-full) ==
+head_sha=00e7b173b2da32606ebd7b8c2fc4d0d356029167 conclusion=success
+-- make test-full summary + AI-13 / embedding-path tests (-rA) --
+3027:2026-11-27T04:32:14.8024979Z PASSED tests/test_chunk_reprocess_db.py::test_reprocess_drops_stale_vectors_and_tail
+3028:2026-11-27T04:32:14.8026025Z PASSED tests/test_chunk_reprocess_db.py::test_save_embeddings_only_for_current_chunk_text
+3378:2026-11-27T04:32:14.8256400Z PASSED tests/test_m2_pipeline.py::test_paper_sections_and_chunks_stored
+3379:2026-11-27T04:32:14.8256801Z PASSED tests/test_m2_pipeline.py::test_chunk_embeddings_and_pgvector_cosine_ops
+3380:2026-11-27T04:32:14.8257213Z PASSED tests/test_m2_pipeline.py::test_embedded_chunks_have_recorded_start_pages
+3381:2026-11-27T04:32:14.8257576Z PASSED tests/test_m3_query.py::test_query_service_health
+3382:2026-11-27T04:32:14.8257904Z PASSED tests/test_m3_query.py::test_paper_status_endpoint
+3383:2026-11-27T04:32:14.8258257Z PASSED tests/test_m4_chaos.py::test_idempotency_duplicate_event_row_invariance
+3384:2026-11-27T04:32:14.8258653Z PASSED tests/test_m4_chaos.py::test_corrupt_pdf_dlq_routing_and_diagnostic_payload
+3385:2026-11-27T04:32:14.8259053Z PASSED tests/test_m4_chaos.py::test_redelivered_discovered_keeps_embedded_status
+3441:2026-11-27T04:32:15.0919168Z PASSED tests/test_verify.py::test_embedder_worker_uses_injected_model
+3449:2026-11-27T04:32:15.0922873Z PASSED tests/test_verify.py::test_embedder_worker_passes_each_chunks_content_hash
+3450:2026-11-27T04:32:15.0923478Z PASSED tests/test_verify.py::test_embedder_worker_logs_written_and_skipped_and_still_marks_embedded
+3458:2026-11-27T04:32:15.0927027Z 443 passed, 1 skipped, 3 deselected, 5 warnings in 53.06s
+-- captured logs of the 2 new tests in this job --
+3001:2026-11-27T04:32:14.7997461Z INFO     embedder:worker.py:84 Saved 3 embeddings for 2608.00001
+3002:2026-11-27T04:32:14.7998337Z INFO     embedder:worker.py:89 Paper 2608.00001 fully indexed and marked as 'embedded'!
+3008:2026-11-27T04:32:14.8003868Z INFO     embedder:worker.py:81 Saved 1 embeddings for 2608.00001 (2 skipped: chunk text changed or removed since read)
+3009:2026-11-27T04:32:14.8005034Z INFO     embedder:worker.py:89 Paper 2608.00001 fully indexed and marked as 'embedded'!
+-- real stack: papers reach 'embedded' through the PR's embedder image (compose build context .) --
+2473:2026-11-27T04:29:29.1932432Z 2611.34935|discovered
+2474:2026-11-27T04:29:29.1933221Z 2611.34938|downloaded
+2477:2026-11-27T04:29:39.4453044Z 2611.34935|chunked
+2478:2026-11-27T04:29:39.4453940Z 2611.34938|chunked
+2481:2026-11-27T04:29:49.7714342Z 2611.34935|chunked
+2482:2026-11-27T04:29:49.7715227Z 2611.34938|chunked
+2485:2026-11-27T04:30:00.1015074Z 2611.34935|chunked
+2486:2026-11-27T04:30:00.1015699Z 2611.34938|embedded
+2489:2026-11-27T04:30:10.4181643Z 2611.34935|chunked
+2490:2026-11-27T04:30:10.4182865Z 2611.34938|embedded
+2497:2026-11-27T04:30:20.7420603Z Status:         embedded
+2506:2026-11-27T04:30:20.7524295Z Status:         embedded
+-- m2 assertion on real embeddings (tests/test_m2_pipeline.py at PR head) --
+39:        emb_count = cur.fetchone()[0]
+40:        assert emb_count >= 100, f"Expected at least 100 chunk embeddings, got {emb_count}"
+-- docker-compose.yml embedder-worker service + Dockerfile CMD at PR head --
+164:      dockerfile: services/embedder/Dockerfile
+208:  embedder-worker:
+213:      dockerfile: services/embedder/Dockerfile
+21:CMD ["python", "services/embedder/worker.py"]
+

@@ -1,0 +1,31 @@
+$ bash -c PYTHONPATH=$PWD:/tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-AI-13-r1/plugin python3 -m pytest -p qa_stubs -p no:cacheprovider -v -rA tests/test_verify.py::test_embedder_worker_passes_each_chunks_content_hash tests/test_verify.py::test_embedder_worker_logs_written_and_skipped_and_still_marks_embedded 2>&1
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+rootdir: /root/wt/qa-AI-13
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 2 items
+
+tests/test_verify.py::test_embedder_worker_passes_each_chunks_content_hash PASSED [ 50%]
+tests/test_verify.py::test_embedder_worker_logs_written_and_skipped_and_still_marks_embedded PASSED [100%]
+
+==================================== PASSES ====================================
+_____________ test_embedder_worker_passes_each_chunks_content_hash _____________
+------------------------------ Captured log call -------------------------------
+INFO     embedder:worker.py:44 Processing embedding for paper 2608.00001 (paper_db_id=42)...
+INFO     embedder:worker.py:54 Retrieved 4 chunks for 2608.00001
+INFO     embedder:worker.py:63 Embedding 3 new/updated chunks in batches of 2...
+INFO     embedder:worker.py:84 Saved 3 embeddings for 2608.00001
+INFO     embedder:worker.py:89 Paper 2608.00001 fully indexed and marked as 'embedded'!
+____ test_embedder_worker_logs_written_and_skipped_and_still_marks_embedded ____
+------------------------------ Captured log call -------------------------------
+INFO     embedder:worker.py:44 Processing embedding for paper 2608.00001 (paper_db_id=42)...
+INFO     embedder:worker.py:54 Retrieved 4 chunks for 2608.00001
+INFO     embedder:worker.py:63 Embedding 3 new/updated chunks in batches of 2...
+INFO     embedder:worker.py:81 Saved 1 embeddings for 2608.00001 (2 skipped: chunk text changed or removed since read)
+INFO     embedder:worker.py:89 Paper 2608.00001 fully indexed and marked as 'embedded'!
+=========================== short test summary info ============================
+PASSED tests/test_verify.py::test_embedder_worker_passes_each_chunks_content_hash
+PASSED tests/test_verify.py::test_embedder_worker_logs_written_and_skipped_and_still_marks_embedded
+============================== 2 passed in 0.18s ===============================
+
+[exit code 0]

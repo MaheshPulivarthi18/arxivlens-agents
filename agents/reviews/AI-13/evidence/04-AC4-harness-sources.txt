@@ -1,0 +1,148 @@
+$ bash -c cd /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-AI-13-r1 && sha256sum plugin/qa_stubs.py mutate.py dotmap.py ruff_added.py && for f in mutate.py plugin/qa_stubs.py dotmap.py ruff_added.py; do echo "===== $f"; cat $f; done
+eeeea41e7fff0d8fa43d3c8cfed8363da9db04ec17b988501505e0afb18a032d  plugin/qa_stubs.py
+83c38f2056a585e18fdadb6ac041aee603ce61d6324f4b4c2c0749c50d967cc7  mutate.py
+f1dc15f213d3c6d857cc0e3c0801a0c6b7d35e6e6b77db13a79f8aab6a37930b  dotmap.py
+85c821d88d6a02ca04310bb1c5f1ae31ee555d8a519053ea76a8b56029d181e1  ruff_added.py
+===== mutate.py
+"""QA AI-13 r1 mutation harness. Each mutant: fresh `git archive` copy of the PR head, one anchored substitution in
+services/embedder/worker.py (must match exactly once), then the two new AI-13 tests run with the qa_stubs plugin.
+KILLED = pytest exit 1 (test failure). INVALID = substitution missing or collection/import error (exit != 0,1)."""
+import os, subprocess, sys, tempfile
+
+APP = "/root/wt/qa-AI-13"
+PLUGIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plugin")
+TESTS = ["tests/test_verify.py::test_embedder_worker_passes_each_chunks_content_hash",
+         "tests/test_verify.py::test_embedder_worker_logs_written_and_skipped_and_still_marks_embedded"]
+SAVE = 'embeddings_to_save.append((c["chunk_id"], self.model_name, vec_list, c["content_hash"]))'
+MUTANTS = [
+    ("M01 hash dropped (3-tuple)  [AC4 named]", SAVE, 'embeddings_to_save.append((c["chunk_id"], self.model_name, vec_list))'),
+    ("M02 wrong hash: first chunk's  [AC4 named]", SAVE,
+     'embeddings_to_save.append((c["chunk_id"], self.model_name, vec_list, chunks_to_embed[0]["content_hash"]))'),
+    ("M03 wrong hash: next chunk in batch  [AC4 named]", SAVE,
+     'embeddings_to_save.append((c["chunk_id"], self.model_name, vec_list, batch[(j + 1) % len(batch)]["content_hash"]))'),
+    ("M04 wrong hash: index into all chunks, not chunks_to_embed", SAVE,
+     'embeddings_to_save.append((c["chunk_id"], self.model_name, vec_list, chunks[i + j]["content_hash"]))'),
+    ("M05 hash from a missing key (None)", SAVE,
+     'embeddings_to_save.append((c["chunk_id"], self.model_name, vec_list, c.get("hash")))'),
+    ("M06 return value ignored: written = len(items)  [AC4 named]", "written = save_chunk_embeddings(conn, embeddings_to_save)",
+     "save_chunk_embeddings(conn, embeddings_to_save); written = len(embeddings_to_save)"),
+    ("M07 skipped forced to 0  [AC4 named]", "skipped = len(embeddings_to_save) - written", "skipped = 0"),
+    ("M08 skip branch never taken (if False)", "if skipped > 0:", "if False:"),
+    ("M09 skip suffix always printed (>= 0)", "if skipped > 0:", "if skipped >= 0:"),
+    ("M10 log len(embeddings_to_save) as saved (skip branch)", 'logger.info(f"Saved {written} embeddings for {arxiv_id} "',
+     'logger.info(f"Saved {len(embeddings_to_save)} embeddings for {arxiv_id} "'),
+    ("M11 log len(embeddings_to_save) as saved (no-skip branch)", 'logger.info(f"Saved {written} embeddings for {arxiv_id}")',
+     'logger.info(f"Saved {len(embeddings_to_save)} embeddings for {arxiv_id}")'),
+    ("M12 skipped count wrong in log (written shown twice)", '({skipped} skipped:', '({written} skipped:'),
+    ("M13 raise on skip  [AC3]", "skipped = len(embeddings_to_save) - written",
+     "skipped = len(embeddings_to_save) - written\n                if skipped:\n                    raise RuntimeError('skip')"),
+    ("M14 status not set when anything skipped  [AC3]", '            update_paper_status(conn, paper_db_id, status="embedded")',
+     '            if len(chunks_to_embed) == 0 or skipped == 0:\n                update_paper_status(conn, paper_db_id, status="embedded")'),
+    ("M15 commit before status update (two transactions)  [AC3]",
+     '            update_paper_status(conn, paper_db_id, status="embedded")\n            conn.commit()',
+     '            conn.commit()\n            update_paper_status(conn, paper_db_id, status="embedded")\n            conn.commit()'),
+    ("M16 rollback on skip  [AC3]", "skipped = len(embeddings_to_save) - written",
+     "skipped = len(embeddings_to_save) - written\n                if skipped:\n                    conn.rollback()"),
+]
+
+
+def run(label, old, new):
+    d = tempfile.mkdtemp(prefix="qa-ai13-mut-")
+    subprocess.run(f"git -C {APP} archive HEAD | tar -x -C {d}", shell=True, check=True)
+    p = os.path.join(d, "services/embedder/worker.py")
+    src = open(p).read()
+    n = src.count(old) if old else -1
+    if old == "BASE":
+        subprocess.run(f"git -C {APP} show origin/main:services/embedder/worker.py > {p}", shell=True, check=True)
+    elif old is not None:
+        if n != 1:
+            return label, f"INVALID (anchor matched {n}x)", ""
+        open(p, "w").write(src.replace(old, new))
+    env = dict(os.environ, PYTHONPATH=f"{d}:{PLUGIN}")
+    r = subprocess.run([sys.executable, "-m", "pytest", "-p", "qa_stubs", "-p", "no:cacheprovider", "-q", *TESTS],
+                       cwd=d, env=env, capture_output=True, text=True)
+    tail = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr[-200:]
+    status = {0: "SURVIVED", 1: "KILLED"}.get(r.returncode, f"INVALID (pytest exit {r.returncode})")
+    return label, status, tail
+
+
+if __name__ == "__main__":
+    ctrl = [run("C1 control: unmutated PR head (expect 2 passed)", None, None),
+            run("C2 control: origin/main worker.py + PR tests (expect fail)", "BASE", None)]
+    rows = ctrl + [run(*m) for m in MUTANTS]
+    print(f"{'mutant':<64} {'result':<10} pytest summary")
+    for label, status, tail in rows:
+        print(f"{label:<64} {status:<10} {tail}")
+    k = sum(1 for _, s, _ in rows[2:] if s == "KILLED")
+    print(f"\n{k}/{len(rows) - 2} mutants killed. C1/C2 status column: SURVIVED = tests passed, KILLED = tests failed.")
+===== plugin/qa_stubs.py
+"""QA AI-13 harness: turn every unimportable third-party module into a MagicMock module (logic checks only)."""
+import importlib.abc, importlib.machinery, sys
+from unittest.mock import MagicMock
+
+STUB_ROOTS = {"torch", "psycopg", "psycopg_pool", "confluent_kafka", "fastapi", "ulid", "minio",
+              "sentence_transformers", "transformers", "fitz", "pymupdf", "uvicorn", "tiktoken", "huggingface_hub",
+              "grobid_client", "starlette", "prometheus_client", "boto3", "tokenizers", "pdfplumber", "httpx"}
+
+
+class _Loader(importlib.abc.Loader):
+    def create_module(self, spec):
+        m = MagicMock(name=spec.name)
+        m.__path__ = []
+        m.__spec__ = spec
+        m.__name__ = spec.name
+        return m
+
+    def exec_module(self, module):
+        pass
+
+
+class _Finder(importlib.abc.MetaPathFinder):
+    def find_spec(self, name, path, target=None):
+        if name.split(".")[0] not in STUB_ROOTS:
+            return None
+        if importlib.machinery.PathFinder.find_spec(name.split(".")[0]) is not None:
+            return None  # real module available
+        return importlib.machinery.ModuleSpec(name, _Loader(), is_package=True)
+
+
+sys.meta_path.insert(0, _Finder())
+===== dotmap.py
+"""Map CI `make test-py-ml` (-q) outcome characters to test ids collected offline at the PR head (stubbed imports)."""
+import re, subprocess, sys, os
+log, plugin = sys.argv[1], sys.argv[2]
+lines = open(log).read().splitlines()
+i = next(k for k, l in enumerate(lines) if "pytest -q tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py" in l)
+chars = ""
+for l in lines[i + 1:]:
+    m = re.match(r"^\S+Z ([.sFEx]+)\s+\[\s*\d+%\]$", l)
+    if not m: break
+    chars += m.group(1)
+ids = [l for l in subprocess.run([sys.executable, "-m", "pytest", "-p", "qa_stubs", "-p", "no:cacheprovider", "-q", "--collect-only",
+       "tests/test_m0.py", "tests/test_verify.py", "tests/test_processor_pages.py"], capture_output=True, text=True,
+       env=dict(os.environ, PYTHONPATH=f"{os.getcwd()}:{plugin}")).stdout.splitlines() if "::" in l]
+print(f"CI outcome chars: {len(chars)}  offline-collected ids: {len(ids)}  equal: {len(chars) == len(ids)}")
+print("skips (s) at:", [(n + 1, ids[n]) for n, c in enumerate(chars) if c == "s"])
+for n, (c, t) in enumerate(zip(chars, ids)):
+    if "embedder_worker_passes" in t or "embedder_worker_logs" in t:
+        print(f"position {n + 1}: CI outcome '{c}' ({'passed' if c == '.' else c}) -> {t}")
+===== ruff_added.py
+"""Intersect ruff findings with lines added by the PR (git diff -U0 origin/main...HEAD). Run inside app/."""
+import re, subprocess
+files = ["services/embedder/worker.py", "tests/test_verify.py"]
+added = {}
+for f in files:
+    d = subprocess.run(["git", "diff", "-U0", "origin/main...HEAD", "--", f], capture_output=True, text=True).stdout
+    for m in re.finditer(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@", d, re.M):
+        s, n = int(m.group(1)), int(m.group(2) or 1)
+        added.setdefault(f, set()).update(range(s, s + n))
+r = subprocess.run(["ruff", "check", "--isolated", "--select", "E,F,W", "--line-length", "130", "--output-format", "concise", *files],
+                   capture_output=True, text=True)
+finds = [l for l in r.stdout.splitlines() if re.match(r"^\S+:\d+:\d+:", l)]
+on_added = [l for l in finds if int(l.split(":")[1]) in added.get(l.split(":")[0], set())]
+print("added line ranges:", {f: f"{min(v)}-{max(v)} ({len(v)} lines)" for f, v in added.items()})
+print(f"ruff findings total: {len(finds)}; on added lines: {len(on_added)}")
+for l in on_added: print("  ON ADDED LINE:", l)
+print("all findings (pre-existing lines):"); [print("  ", l) for l in finds]
+
+[exit code 0]

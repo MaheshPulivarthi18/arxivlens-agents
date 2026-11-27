@@ -1,0 +1,24 @@
+$ python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-AI-13-r1/mutate.py
+mutant                                                           result     pytest summary
+C1 control: unmutated PR head (expect 2 passed)                  SURVIVED   2 passed in 0.25s
+C2 control: origin/main worker.py + PR tests (expect fail)       KILLED     2 failed in 0.26s
+M01 hash dropped (3-tuple)  [AC4 named]                          KILLED     1 failed, 1 passed in 0.26s
+M02 wrong hash: first chunk's  [AC4 named]                       KILLED     1 failed, 1 passed in 0.26s
+M03 wrong hash: next chunk in batch  [AC4 named]                 KILLED     1 failed, 1 passed in 0.27s
+M04 wrong hash: index into all chunks, not chunks_to_embed       KILLED     1 failed, 1 passed in 0.29s
+M05 hash from a missing key (None)                               KILLED     1 failed, 1 passed in 0.26s
+M06 return value ignored: written = len(items)  [AC4 named]      KILLED     1 failed, 1 passed in 0.27s
+M07 skipped forced to 0  [AC4 named]                             KILLED     1 failed, 1 passed in 0.31s
+M08 skip branch never taken (if False)                           KILLED     1 failed, 1 passed in 0.27s
+M09 skip suffix always printed (>= 0)                            KILLED     1 failed, 1 passed in 0.27s
+M10 log len(embeddings_to_save) as saved (skip branch)           KILLED     1 failed, 1 passed in 0.27s
+M11 log len(embeddings_to_save) as saved (no-skip branch)        SURVIVED   2 passed in 0.32s
+M12 skipped count wrong in log (written shown twice)             KILLED     1 failed, 1 passed in 0.41s
+M13 raise on skip  [AC3]                                         KILLED     1 failed, 1 passed in 0.70s
+M14 status not set when anything skipped  [AC3]                  KILLED     1 failed, 1 passed in 0.46s
+M15 commit before status update (two transactions)  [AC3]        KILLED     2 failed in 0.38s
+M16 rollback on skip  [AC3]                                      KILLED     1 failed, 1 passed in 0.43s
+
+15/16 mutants killed. C1/C2 status column: SURVIVED = tests passed, KILLED = tests failed.
+
+[exit code 0]
