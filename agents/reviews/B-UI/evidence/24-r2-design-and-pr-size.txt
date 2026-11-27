@@ -1,0 +1,14 @@
+$ bash -c grep -n -A4 'As built (2026-11-28' /home/claude/arxivlens-agents/docs/design/FE-4.md; echo '----- PR #132 body'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/132 --jq .body | grep -E -A1 '^### Size|^- F4'
+371:**As built (2026-11-28, PR #132; QA r1 judged all three OK).** These are three small deviations from the text above:
+372-1. The no-quote note ("No exact quote for this citation: …") shows only when a supported entry has an explicit `status: "supported"`. A legacy citation with `supported: true` and no `status` comes from before the API had quotes, and adding the note there would break AC6 ("renders as `main` does").
+373-2. ReferencesStack takes a third new prop, `onNotify` (App's `showToast`), for the "Exported n references (.bib)" toast, in addition to `claims` and `answerKind`. That is one extra line in `App.jsx`.
+374-3. The separate `arXiv:` badge in the card header is removed. The ID and version are now only in the meta line `arXiv:<id>v<N> · § <section> · p. <N>`, under the title, so they aren't shown twice.
+375-
+----- PR #132 body
+### Size
+**756 changed lines** at `5fa2790` (`git diff --numstat origin/main...HEAD`): **production 428** (ReferencesStack.jsx 279, citations.js 76, bibtex.js 68, App.jsx 3, HeroSearch.jsx 2) and **tests 328**. Round 1 said 360 / 385, which was wrong (QA r1 finding 5). This is over the ~520 estimate in the PM decision, mostly in production code (ReferencesStack.jsx), but under the 800 cap. pm-lead, please decide whether this is acceptable.
+--
+- F4: the three as-built choices are recorded in `docs/design/FE-4.md` › B-UI addendum. F5: the Size figures above are corrected.
+
+
+[exit code 0]

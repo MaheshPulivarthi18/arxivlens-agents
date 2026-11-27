@@ -1,0 +1,47 @@
+$ bash -c /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa-B-UI-r1/harness/run.sh /home/claude/arxivlens-agents/app/frontend/src head-5fa2790; /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa-B-UI-r1/harness/mutate.sh /home/claude/arxivlens-agents/app/frontend/src
+head-5fa2790 citations.test.js: 83 passed, 0 failed
+head-5fa2790 bibtex.test.js: 6 passed, 0 failed
+KILLED   M1 locateQuote case-insensitive (ticket)
+             FAIL locateQuote > case mismatch The Claim holds the claim holds null: toBeNull {"start":0,"end":15}
+KILLED   M1b normalised path case-insensitive
+             FAIL locateQuote > case mismatch The Claim holds the claim holds null: toBeNull {"start":0,"end":15}
+KILLED   M2 drop the inline-ref step (ticket)
+             FAIL locateQuote > inline [12] shown [12] here. shown here. shown [12] here.: Cannot read properties of null (reading 'start')
+             FAIL locateQuote > inline [3, 4] shown [3, 4] here shown here shown [3, 4] here: Cannot read properties of null (reading 'start')
+KILLED   M3 RE2 ASCII class -> JS \s (PM condition 5)
+             FAIL locateQuote > NBSP [3, 4] keeps the ref shown in [3, 4] that shown in that null: toBeNull {"start":0,"end":20}
+KILLED   M4 validPage >= 1 -> >= 0 (ticket)
+             FAIL pdfHref / arxivLabel / metaLine > page 0 https://arxiv.org/pdf/2401.01234v2 arXiv:2401.01234v2 · § Methods: toBe "https://arxiv.org/pdf/2401.01234v2#page=0" vs "https://arxiv.org/pdf/2401.01234v2"
+KILLED   M5 page '4' accepted (isInteger -> Number())
+             FAIL pdfHref / arxivLabel / metaLine > page 4 https://arxiv.org/pdf/2401.01234v2 arXiv:2401.01234v2 · § Methods: toBe "https://arxiv.org/pdf/2401.01234v2#page=4" vs "https://arxiv.org/pdf/2401.01234v2"
+KILLED   M6 drop spaceBeforePunct
+             FAIL locateQuote > space before . the claim . Next the claim. the claim .: Cannot read properties of null (reading 'start')
+KILLED   M7 whitespace-only quote accepted
+             FAIL locateQuote > whitespace quote a 
+KILLED   M8 mark end off by one (raw span short)
+             FAIL locateQuote > \n inside hybrid
+             FAIL locateQuote > double spaces a  b   c a b c a  b   c: toBe "a  b   " vs "a  b   c"
+KILLED   M9 mark start at normalised index, not raw
+             FAIL locateQuote > ref + spaces before As shown [12]  earlier, hybrid
+             FAIL locateQuote > newlines + spaces before Intro.
+KILLED   M10 existing #fragment kept
+             FAIL pdfHref / arxivLabel / metaLine > replaces an existing fragment, falls back to the arXiv URL, and drops v0 and an empty section: toBe "https://x.org/a.pdf#view=fit#page=2" vs "https://x.org/a.pdf#page=2"
+KILLED   M11 v0 shown
+             FAIL pdfHref / arxivLabel / metaLine > replaces an existing fragment, falls back to the arXiv URL, and drops v0 and an empty section: toBe "arXiv:2401.01234v0" vs "arXiv:2401.01234"
+KILLED   M12 empty section still prints '§ '
+             FAIL pdfHref / arxivLabel / metaLine > replaces an existing fragment, falls back to the arXiv URL, and drops v0 and an empty section: toBe "arXiv:2401.01234 · §  · p. 7" vs "arXiv:2401.01234 · p. 7"
+KILLED   M13 Unicode collapse -> ASCII only (strings.Fields mirror)
+             FAIL locateQuote > NBSP between words hybrid search works hybrid search works hybrid search works: Cannot read properties of null (reading 'start')
+             FAIL locateQuote > U+2009 between words a b c a b c a b c: Cannot read properties of null (reading 'start')
+KILLED   M14 status: supported/false disagreement reads Supported
+             FAIL citationState > row 5: status supported but supported: false {
+KILLED   M15 status: unverified reads Supported
+             FAIL citationState > row 2: status unverified {
+             FAIL citationState > row 2: status unverified (refusal mode) {
+KILLED   M16 status: reserved/unknown status reads Supported
+             FAIL citationState > row 5: status unsupported {
+             FAIL citationState > row 5: status supported but supported: false {
+KILLED   M17 markdownNote prints '(§ )' for empty section
+             FAIL markdownNote > heading is "# ArxivLens Research Note"; "(§ …)" only for a non-empty section: toContain "# ArxivLens Research Note\n\nA.\n\n## References\n- [1] **Grounded Retrieval for Scientific QA** (§ ) - [arXiv:2401.01234](https://arxiv.org/pdf/2401
+
+[exit code 0]

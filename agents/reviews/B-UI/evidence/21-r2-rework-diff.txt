@@ -1,0 +1,49 @@
+$ bash -c git diff --stat 5cc1cdd HEAD; git diff 5cc1cdd HEAD; echo '----- vs origin/main'; git diff --numstat origin/main...HEAD; git diff --shortstat origin/main...HEAD
+ frontend/src/lib/citations.test.js | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+diff --git a/frontend/src/lib/citations.test.js b/frontend/src/lib/citations.test.js
+index f29b02a..1886dd7 100644
+--- a/frontend/src/lib/citations.test.js
++++ b/frontend/src/lib/citations.test.js
+@@ -204,8 +204,14 @@ describe('locateQuote', () => {
+     ['space before .', 'the claim . Next', 'the claim.', 'the claim .'],
+     ['case mismatch', 'The Claim holds', 'the claim holds', null],
+     ['empty quote', 'abc', '', null],
+-    ['whitespace quote', 'abc', ' \n ', null],
++    ['whitespace quote', 'a \n b', ' \n ', null],
+     ['absent', 'abc', 'xyz', null],
++    // Something before the quote normalises away: the raw start is not the normalised index.
++    ['ref + spaces before', 'As shown [12]  earlier, hybrid\nsearch works well.', 'hybrid search works', 'hybrid\nsearch works'],
++    ['newlines + spaces before', 'Intro.\n\n\nWe  verify  each claim.', 'We verify each claim.', 'We  verify  each claim.'],
++    // strings.Fields collapses Unicode spaces (unicode.IsSpace), e.g. NBSP and U+2009 from PDF text.
++    ['NBSP between words', 'hybrid\u00a0search works', 'hybrid search works', 'hybrid\u00a0search works'],
++    ['U+2009 between words', 'a\u2009b c', 'a b c', 'a\u2009b c'],
+     // RE2 \s is ASCII: NBSP inside [3, 4] keeps the ref in the server's normalised text.
+     ['NBSP [3,\u00a04] keeps the ref', 'shown in [3,\u00a04] that', 'shown in that', null],
+   ])('%s', (_name, content, quote, raw) => {
+@@ -216,6 +222,11 @@ describe('locateQuote', () => {
+   });
+ });
+ 
++it('locateQuote returns exact raw offsets after a normalised prefix', () => {
++  expect(locateQuote('As shown [12]  earlier, hybrid\nsearch works well.', 'hybrid search works')).toEqual({ start: 24, end: 43 });
++  expect(locateQuote('Intro.\n\n\nWe  verify  each claim.', 'We verify each claim.')).toEqual({ start: 9, end: 32 });
++});
++
+ // B-UI AC2: provenance line and PDF page.
+ describe('pdfHref / arxivLabel / metaLine', () => {
+   const base = { ...supportedCitation, page: undefined };
+----- vs origin/main
+3	0	frontend/src/App.jsx
+33	0	frontend/src/App.test.jsx
+1	1	frontend/src/components/HeroSearch.jsx
+6	0	frontend/src/components/HeroSearch.test.jsx
+212	67	frontend/src/components/ReferencesStack.jsx
+155	9	frontend/src/components/ReferencesStack.test.jsx
+68	0	frontend/src/lib/bibtex.js
+54	0	frontend/src/lib/bibtex.test.js
+74	2	frontend/src/lib/citations.js
+70	1	frontend/src/lib/citations.test.js
+ 10 files changed, 676 insertions(+), 80 deletions(-)
+
+[exit code 0]
