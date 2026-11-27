@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6e (ArxivLens #106) **merged**: same files `services/common/db.py`, `tests/test_chunk_reprocess_db.py` |
 | **Jira** | KAN-116 (epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6f`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py` plus tests, no schema/event/HTTP change, no new CLI/table/service |
-| **Status** | Ready to merge (PR #127 raised for Mahesh, `b4b64b3`; QA PASS r1, PM APPROVE 2026-11-27) |
+| **Status** | Done (#127 merged `45792f8`) |
 
 ## Goal
 OPS-H6e made the embedder's save hash-aware: with a 4-tuple it locks the chunk row `FOR SHARE` and writes only if

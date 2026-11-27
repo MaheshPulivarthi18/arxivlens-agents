@@ -8,7 +8,7 @@
 | **Depends on** | **ADR-0021 Accepted** with a P option chosen; **EVAL-8c merged** (per-case `answer_kind` shows replay misses). For P1 (recommended) also **EVAL-8a merged**: the real-LLM run on `main` is what records the cache, and the `eval.yml` wiring is backend's, so the workflow lines are a backend follow-up or part of EVAL-8a (decided at finalisation) |
 | **Jira** | needs a story (orchestrator) under epic KAN-2 "Retrieval & answer quality gates"; labels `task-EVAL-8b`, `agent-ai`, `arxivlens`; link KAN-46 (EVAL-8) |
 | **Design required** | yes if P1 (a new CI-side service, like `arxiv_replay.py`); no for P2 |
-| **Status** | Blocked (needs ADR-0021: which replay option, P1/P2/P3) |
+| **Status** | Closed — merged into EVAL-8 (2026-11-28), owner Mahesh (AC7) |
 
 ## Goal
 PRs that change answering get real-model output in the eval without paying for (or waiting on) Modal, and every answer

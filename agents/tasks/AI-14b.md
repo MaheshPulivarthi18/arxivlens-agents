@@ -8,7 +8,7 @@
 | **Depends on** | AI-14 (ArxivLens #115) **merged** as `53171d6` (it added `tableWordRegex`). No open PR touches `internal/query/rag_test.go` or `rag.go` (checked 2026-11-27T09:00Z against #122-#128). AI-5 (Blocked on ADR-0011) edits `rag.go` later and doesn't wait on this |
 | **Jira** | KAN-131, story under epic KAN-2 "Retrieval & answer quality gates"; labels `task-AI-14b`, `agent-ai`, `arxivlens` |
 | **Design required** | no: test rows only; no code, threshold, API or contract change |
-| **Status** | Ready to merge (PR #129) |
+| **Status** | Done (#129 merged `4db3441`) |
 
 ## Goal
 AI-14 made the table rule whole-word: `tableWordRegex = (?i)(^|[^\pL])tables?([^\pL]|$)` (`internal/query/rag.go:832` @ `53171d6`).

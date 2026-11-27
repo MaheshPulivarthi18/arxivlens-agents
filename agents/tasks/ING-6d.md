@@ -8,7 +8,7 @@
 | **Depends on** | ING-6c **merged**; no open PR on `docker-compose.yml` or `.github/workflows/stack.yml` |
 | **Jira** | to create when it leaves Backlog, `labels = "task-ING-6d"` |
 | **Design required** | no (design `docs/design/ING-6.md` §5 "Compose", PM answer 4) |
-| **Status** | Backlog (deferred by the ING-6 PM decision; not needed for ING-6 Done) |
+| **Status** | Closed — deferred, not ticketed (2026-11-28, process reset) |
 
 ## Goal
 Let an operator run the scheduled crawler with `docker compose --profile crawler up -d` instead of a host process.

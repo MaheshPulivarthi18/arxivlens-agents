@@ -8,7 +8,7 @@
 | **Depends on** | FE-0h (#101, merged `d646d63`, added `src/test/controls.test.js`), FE-3b (#104, merged `dcb326a`, last edit of `HeroSearch.jsx`). No open PR touches the files below (checked 2026-11-27T09:00Z: #125 `ui/badge.test.jsx`; #128 `App.{jsx,test.jsx}`, `ReferencesStack.*`, `SynthesisView.*`, `lib/citations.*`, `test/fixtures.js`; no other open PR is under `frontend/`) |
 | **Jira** | KAN-132, story under epic KAN-5 "Research UI & citations"; labels `task-FE-0k`, `agent-frontend`, `arxivlens` |
 | **Design required** | no: one className edit applying an existing FE-0 design rule, plus a test file; no new component, token, dependency or API field |
-| **Status** | Ready to merge (PR #130) |
+| **Status** | Done (#130 merged `4b3b9b0`) |
 
 ## Goal
 The FE-0h guard checks only the two files it was written for (`CONTROL_FILES = ['components/IngestModal.jsx',

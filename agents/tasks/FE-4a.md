@@ -8,7 +8,7 @@
 | **Depends on** | FE-3b #104, FE-0i #109, AI-8b #65, ADR-0019 #120 (all merged). Design `docs/design/FE-4.md` **approved with conditions** 2026-11-22 |
 | **Jira** | create: story under epic KAN-5 "Research UI & citations", labels `task-FE-4a`, `design-required`; link to KAN-44 (FE-4 umbrella) |
 | **Design required** | yes: covered by `docs/design/FE-4.md` (approved; §1 `claimState`/`claimCitations`/`groupByMarker`, §2, §3 grouping/focus/rows, §4, §5, §6) |
-| **Status** | Ready to merge: PR [#128](https://github.com/MaheshPulivarthi18/ArxivLens/pull/128) raised for review, head `529ad12`, CI 5/5 green. QA FAIL (r1), PASS (r2); PM APPROVE 2026-11-27 ([report](../reviews/FE-4a/report.md)) |
+| **Status** | Done (#128 merged `4c61adc`) |
 
 ## Goal
 A researcher sees every statement of an answer with its own verdict (Supported / Unsupported / Not checked), and each `[n]` marker takes

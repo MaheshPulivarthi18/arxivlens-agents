@@ -1,33 +1,42 @@
-# EVAL-8: First answer eval with a real LLM (local OpenAI-compatible model in the eval workflow, or a hosted key)
+# EVAL-8: Real-LLM answer eval in CI on Modal (built by Mahesh)
 
 | | |
 |---|---|
-| **Owner** | pm-lead (umbrella). Work split 2026-11-22: [EVAL-8c](EVAL-8c.md) (ai, results record the LLM + BASELINE section, Ready), [EVAL-8a](EVAL-8a.md) (backend, `eval.yml` on Modal, Blocked on ADR-0021), [EVAL-8b](EVAL-8b.md) (ai, replayed LLM answers for PRs, Blocked on ADR-0021) |
+| **Owner** | **Mahesh** (human). He builds it himself (planned 2026-11-29). Agents don't build it; pm-lead keeps this spec and the board truthful |
 | **Priority** | P1 |
-| **PRD ref** | Product PRD QA-8, §8; ADR-0001 (Accepted: "pick the default by measuring both on `evals/`"; cost per answer open) |
-| **Depends on** | QA-8 delivered (Mahesh #46 `cc57474`), EVAL-3 merged, EVAL-6 merged. Mahesh's option-3 decision: **answered 2026-11-21** (local run committed; CI on Modal chosen → ADR-0021) |
-| **Jira** | KAN-46 |
-| **Design required** | yes (new CI cost/runtime, possibly a secret) |
-| **Status** | Blocked (umbrella; option 3 answered 2026-11-21: local run done, CI chosen). AC1 met, AC2 numbers met (BASELINE section → EVAL-8c), AC3 open → EVAL-8a. CI half waits on **ADR-0021** (Proposed). Closes when EVAL-8c and EVAL-8a merge |
+| **PRD ref** | Product PRD QA-8, §8; ADR-0001 (Accepted), ADR-0019 (Accepted), ADR-0021 (Proposed, **Mahesh's decision**: triggers A–C, could-not-run rules R1–R4, PR replay P1–P3, budget), ADR-0024 (reference model) |
+| **Depends on** | EVAL-8c merged (#122 `6d43de4`: results record model, host, Ollama version + digest, `answer_kind`). Mahesh's Modal endpoint + GitHub secrets |
+| **Jira** | KAN-46. KAN-125 (EVAL-8a), KAN-126 (EVAL-8b) and KAN-129 (EVAL-8d) are closed and point here. KAN-127 = the ADR-0021 decision |
+| **Tier** | Large (CI cost, secrets). Design: ADR-0021 is the design; Mahesh decides it |
+| **Size estimate** | Mahesh's call. The agent drafts below come to about 400 lines (`eval.yml` ~150, `scripts/llm_replay.py` + tests ~200, two digest tests ~60) |
+| **Absorbs** | EVAL-8a (KAN-125), EVAL-8b (KAN-126), EVAL-8d (KAN-129) |
+| **Status** | Mahesh building (2026-11-28). AC1 met, AC2 numbers met (local run 2026-11-21, EVAL-8c BASELINE section), AC3 open |
 
 ## Goal
-Fake-provider tests prove the plumbing, not the answers. Before QA-8's LLM path can be called "done" in the PRD, `make eval`
-must run once with a real model and report supported-citation rate, correct refusal (incl. near-miss), citation coverage and
-`/v1/ask` p95 against the Product PRD §8 targets, followed by a human review (EVAL-7) of a sample.
+CI measures written (`answer_kind: synthesized`) answers with the same model as Mahesh's local baseline
+(`qwen2.5:3b-instruct` @ `357c53fb659c`, Ollama `0.40.16`). A run where the LLM silently fell back, or where a
+different model answered, ends red (exit 2), never as a misleading green. Gate thresholds stay as they are.
 
-## Decision needed (Mahesh)
-1. **Local in CI**: an Ollama (or llama.cpp) service in `eval.yml` with a small open model. No key and no per-token cost,
-   but a CPU runner will likely miss the 3 s p95, and small models follow the citation format less reliably.
-2. **Hosted**: a repository secret, run only on `workflow_dispatch` with a capped eval size. Needs the max cost per answer from ADR-0001 first.
-3. **Mahesh runs it locally** and attaches the results JSON. No CI change.
+## Acceptance criteria
+- [x] AC1: one completed `make eval` with `LLM_MODEL` set; results JSON attached; model, host and machine recorded (2026-11-21, `agents/reviews/EVAL-8/`).
+- [x] AC2: supported ≥ 90%, correct refusal ≥ 95%, quick-stage p95 < 3 s on the reference profile (local runs 2026-11-21/22; EVAL-8c BASELINE section).
+- [ ] AC3: token usage per answer and Modal GPU-seconds (or wall time) per CI run reported (ADR-0021 Q4 cost).
+- [ ] AC4 (was EVAL-8a AC1): a `workflow_dispatch` run of `eval.yml` with the secrets: warm-up passes, `make eval` exits 0 or 1 (not 2), and the summary shows model,
+  digest `357c53fb659c`, `synthesized_answer_rate` > 0, and token usage.
+- [ ] AC5 (was EVAL-8a AC2, rules R1–R4): each could-not-run case ends exit 2 with its own `::error::`: a missing secret, the warm-up budget exhausted, a digest mismatch, 0 synthesized answers.
+- [ ] AC6 (was EVAL-8a AC3/AC4): no secret value in any job log, and secrets only on the R1 steps. Unlabelled PR runs keep the LLM-less behaviour (or replay, AC7).
+- [ ] AC7 (was EVAL-8b, if ADR-0021 picks P1): PR runs replay recorded real-LLM answers (`scripts/llm_replay.py` record/serve, sha256 of the canonical request body as the
+  key, 404 on a miss, `hits/misses` in the summary, the key never stored or logged).
+- [ ] AC8 (was EVAL-8d): two `tests/test_evals_data.py` pins. `main` passes `rate` to `llm_warnings` (an all-refused run gives no "0 answers were synthesized"
+  warning), and a `sha256:`-prefixed `/api/tags` digest gives `digest` = 64 hex and `digest_short` = 12 hex (ADR-0021 R3 relies on this).
+- [ ] Docs: `CONTRIBUTING.md` eval section, the `eval.yml` header ("No secrets"), and the app README eval lines.
 
-## Acceptance criteria (draft, finalised once unblocked)
-- [x] AC1 — One completed `make eval` run with `LLM_MODEL` set; results JSON attached; model, host and machine profile recorded.
-- [ ] AC2 — (numbers met 2026-11-21; template-path comparison in `evals/BASELINE.md` → EVAL-8c AC7) (moved from QA-8 old AC3) supported ≥ 90%, correct refusal ≥ 95%, `/v1/ask` p95 < 3 s reported against the template-path
-      baseline. A miss is a finding for pm-lead/Mahesh: no threshold changes.
-- [ ] AC3 — (open → EVAL-8a: the local run's `query.log` wasn't kept; cost 0 locally, Modal cost per ADR-0021 Q4) Token usage per answer reported (QA-8 log line), and the cost per answer for a hosted model.
+## Checklist
+- [ ] Mahesh: record the ADR-0021 decision (Q1 triggers, Q2 R1–R4, Q3 replay option, Q4 budget) by setting its Status, or ask pm-lead to write it up from chat.
+- [ ] Detailed drafts, kept for reference: `agents/tasks/EVAL-8a.md` (eval.yml steps, budget table), `EVAL-8b.md` (replay proxy), `EVAL-8d.md` (the two tests).
 
 ## Notes
+- 2026-11-28 (pm-lead, process reset): owner → Mahesh, who implements the Modal eval himself. EVAL-8a/8b/8d are absorbed (ACs above). Agents don't build or ticket any part of it this cycle.
 - 2026-11-22 cycle 2026-11-21T21:59Z (pm-lead): **option 3 answered.** Mahesh ran it locally (results JSON committed in `3d8cab1`) and wants CI on Modal
   as well. Checked against the ACs with the committed JSON (`agents/reviews/EVAL-8/baseline-local-20261121T212749Z.json`):
   - **AC1 met.** One completed `make eval` with the LLM on; the JSON is attached; model, host (Ollama `0.40.16` on localhost) and machine (M4, `mps`) are

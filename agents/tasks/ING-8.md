@@ -8,7 +8,7 @@
 | **Depends on** | — |
 | **Jira** | KAN-32 (`labels = "task-ING-8"`) |
 | **Design required** | no: measurement only. It adds a script and a dataset, with no CLI command, table, service, contract or gate. |
-| **Status** | Blocked (needs hand labels for `evals/extraction.jsonl`, AC1 + AC5: someone with arxiv.org access reads the PDFs; agents can't and must not label from memory). Scorer, tests and docs are on `agent/ai/ING-8` (`d2ad9c5`), now behind `main` by #40/#42 (parser changes) |
+| **Status** | Closed — merged into B-QUAL (2026-11-28) as AC4–AC7; scorer `d2ad9c5` carried over; hand labels on the decisions list |
 
 > **ID note:** Mahesh's plan called this ING-7. Product PRD §6.1 already has a row **ING-7** ("Handle new arXiv versions",
 > ✅), and task IDs in the ING series match PRD row IDs (ING-6), so this task is **ING-8** to avoid a clash.

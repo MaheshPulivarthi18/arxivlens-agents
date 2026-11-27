@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-8c (#122) **merged** (same `tests/test_evals_data.py`). Queue on that file: this, then the EVAL-6c nits / EVAL-7 / EVAL-5 follow-ups |
 | **Jira** | needs a story (orchestrator) under epic KAN-2; labels `task-EVAL-8d`, `agent-ai`, `arxivlens`; link the EVAL-8c story |
 | **Design required** | no: tests only, no behaviour change |
-| **Status** | Ready (startable once #122 merges) |
+| **Status** | Closed — merged into EVAL-8 (2026-11-28), owner Mahesh (AC8) |
 
 ## Goal
 Two EVAL-8c behaviours have no test: `main` passing `rate` to `llm_warnings`, and stripping a `sha256:` prefix from the

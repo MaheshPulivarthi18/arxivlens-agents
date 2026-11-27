@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H19 (ArxivLens #111) **merged** (same two files: #111 = `scripts/arxiv_replay.py`, `tests/test_arxiv_replay.py`, REST `pulls/111/files` 2026-11-21 13:10Z). No overlap with OPS-H20 #114 (`eval.yml` only; this ticket edits no workflow) |
 | **Jira** | KAN-119 (epic KAN-3 "Dev harness & infrastructure"; labels `task-OPS-H21`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: control flow inside an existing CI script + unit tests; no flag, contract or workflow change |
-| **Status** | Ready to merge: ArxivLens #123 @ `0970737` raised for review 2026-11-22 (QA r1 PASS, PM APPROVE) |
+| **Status** | Done (#123 merged `5fcbd5f`) |
 
 ## Goal
 Three gaps QA found in OPS-H19 and OPS-H20, all small and all in `main`'s prefetch path:

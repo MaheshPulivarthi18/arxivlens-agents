@@ -8,7 +8,7 @@
 | **Depends on** | EVAL-6c (#107, `bf37354`) and AI-14 (#115, `53171d6`) merged. **No ADR wait**: report-only metadata, no threshold, check or exit-code change (see Notes) |
 | **Jira** | needs a story (orchestrator) under epic KAN-2 "Retrieval & answer quality gates"; labels `task-EVAL-8c`, `agent-ai`, `arxivlens`; link KAN-46 (EVAL-8) |
 | **Design required** | no: report-only fields in an existing script's output; no CLI command, table, service or shared contract |
-| **Status** | Ready to merge (#122 raised 2026-11-27; QA PASS r2, PM APPROVE) |
+| **Status** | Done (#122 merged `6d43de4`) |
 
 ## Goal
 Mahesh's GATE-PASS real-LLM run (`agents/reviews/EVAL-8/`) can't prove from its JSON which model answered, or whether a

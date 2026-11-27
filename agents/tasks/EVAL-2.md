@@ -6,7 +6,7 @@
 | **Priority** | P2 |
 | **PRD ref** | Product PRD §8 (`/v1/search` p95 < 1.5 s, Recall@5 gate robustness); QA-2; ADR-0006, ADR-0010 |
 | **Depends on** | EVAL-1 (PR #2 merged); ADR-0012 (Proposed) |
-| **Status** | Blocked (needs ADR-0012) |
+| **Status** | Closed — merged into B-QUAL (2026-11-28) as AC1–AC3, report-only (ADR-0012 still Proposed) |
 
 ## Goal
 EVAL-1 left two kinds of gap. (b) The PRD target `/v1/search` p95 < 1.5 s is not measured or gated at all. (c) QA round 3 on

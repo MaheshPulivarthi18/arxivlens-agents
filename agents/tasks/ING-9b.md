@@ -8,7 +8,7 @@
 | **Depends on** | ING-6c **merged** (ING-6b/6c edit `internal/crawler/crawler.go` and `cmd/arxivlens/main.go`) |
 | **Jira** | to create when it leaves Backlog, `labels = "task-ING-9b"` |
 | **Design required** | no |
-| **Status** | Backlog (Ready once ING-6c merges) |
+| **Status** | Closed — merged into B-PIPE (2026-11-28) as part E |
 
 ## Goal
 Today `arxivlens crawl --rate-limit 1s` sends one request per second (`cmd/arxivlens/main.go` `--rate-limit` flag; `crawler.go` `NewCrawler`

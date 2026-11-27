@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H21 (ArxivLens #123) **merged**: same test file, and the tests target its `transient()` / per-query retry logic |
 | **Jira** | to be created under epic KAN-3 (labels `task-OPS-H22`, `agent-ai`, `arxivlens`) |
 | **Design required** | no: tests only, no code, flag, contract or workflow change |
-| **Status** | Backlog (waits for #123 to merge; then Ready) |
+| **Status** | Closed — deferred, not ticketed (2026-11-28, process reset: QA follow-up pins are not separate tickets) |
 
 ## Goal
 OPS-H21 made prefetch retry only transient failures, but two parts of that rule are not pinned by any committed test:

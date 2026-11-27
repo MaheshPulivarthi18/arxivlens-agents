@@ -8,7 +8,7 @@
 | **Depends on** | **FE-1 merged** (Vitest harness) and **FE-0 merged** (theme tokens, fonts) and **FE-0b merged** (`ui/tooltip`; split from FE-0 2026-11-19). AI-7 merged (`8406b18`). #46 merged (`cc57474`: new props and `insufficient_evidence`) |
 | **Jira** | new story under epic KAN-5 "Research UI & citations" (`labels = "task-FE-3"`) |
 | **Design required** | **yes** (short, `docs/design/FE-3.md`: states, copy and component changes; P0) |
-| **Status** | **Split** (design Approved with changes, pm-lead 2026-11-20): build as [FE-3a](FE-3a.md) (Ready: AC1–AC7, refusal state + honest labels) then [FE-3b](FE-3b.md) (after #70, FE-3a, FE-0e: tooltip, tokens, AC8 flip). FE-3 is Done when both merge |
+| **Status** | Closed — merged into B-UI (2026-11-28). Delivered by FE-3a (#86) and FE-3b (#104); design Q3/Q6 (show a full-stage `insufficient_evidence`?) moved to the decisions list |
 
 ## Goal
 After AI-7, `/v1/ask` can return no answer plus evidence passages and a `refusal_reason`. The UI must show that as a

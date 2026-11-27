@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6 (same delivery semantics; replayed records flow back through the fixed consumer) |
 | **Jira** | KAN-31 (epic "Dev harness & infrastructure", labels `task-OPS-H7`, `agent-backend`, `design-required`, `arxivlens`) |
 | **Design required** | **yes**: changes CLI behaviour/flags of `arxivlens dlq`, may add a table (checkpoints/lock), and defines replay delivery semantics |
-| **Status** | Split (umbrella). Design approved with conditions 2026-11-07. Work happens in OPS-H7f → OPS-H7a → OPS-H7b → OPS-H7c. Done when OPS-H7c merges |
+| **Status** | Closed — merged into B-PIPE (2026-11-28). OPS-H7f/7a/7a2/7a2b merged; the rest (a2c, b, c) is B-PIPE parts A–C |
 
 ## Goal
 An operator must be able to drain a DLQ of any size, exactly once per DLQ record, without two operators replaying the same records.

@@ -8,7 +8,7 @@
 | **Depends on** | **OPS-H7a2b = ArxivLens PR #93 merged** (same files). Never alongside ING-6c, OPS-H7b or OPS-H7c (all edit `cmd/arxivlens/main.go`; ING-6c also edits `README.md`). `main.go` queue: OPS-H7a2b → ING-6c → **OPS-H7a2c** → OPS-H7b → OPS-H7c |
 | **Jira** | KAN-98 (PROGRESS 2026-11-21, OPS-H7a2b record) under the "Dev harness & infrastructure" epic, labels `task-OPS-H7a2c`, `agent-backend`, `arxivlens` |
 | **Design required** | no. It amends `docs/design/OPS-H7.md` § Q3's footer text (amendment recorded there by pm-lead 2026-11-21). No new command, table or contract |
-| **Status** | Ready (#93 merged `f49efeb` 2026-11-21). Not picked 2026-11-21 05:00Z: `main.go` queue after ING-6c, and `README.md` is held by FE-3b this cycle |
+| **Status** | Closed — merged into B-PIPE (2026-11-28) as part A |
 
 ## Goal
 An operator who runs `arxivlens dlq list --partition 1 --page-size 10` can paste the printed `next page:` command and stay on partition 1 with 10-record pages.

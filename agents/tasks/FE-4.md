@@ -8,7 +8,7 @@
 | **Depends on** | **AI-8 merged** (claims + provenance JSON; design stage now), **FE-3 merged** (same components), **FE-1 merged** (harness), **FE-0 merged** (theme) and **FE-0b merged** (`ui/popover`, `ui/collapsible`; split 2026-11-19). ADR-0014 Accepted. ING-11b for real `page` values (fixtures suffice for tests) |
 | **Jira** | KAN-44 under epic KAN-5 "Research UI & citations" (`labels = "task-FE-4"`) |
 | **Design required** | **yes** (`docs/design/FE-4.md`: layout, states, interaction; P0) |
-| **Status** | Umbrella (2026-11-22): design `docs/design/FE-4.md` **approved with conditions**; built as [FE-4a](FE-4a.md) (AC1, AC2, AC5, AC6; Ready, picked cycle 2026-11-21T21:59Z) then [FE-4b](FE-4b.md) (AC3, AC4, AC6; after FE-4a merges). Closes when both merge |
+| **Status** | Closed — merged into B-UI (2026-11-28). FE-4a merged (#128); the FE-4b part is B-UI AC1–AC3 |
 
 ## Goal
 Let a researcher check any statement in an answer in one or two clicks: see whether it was supported, unsupported or

@@ -8,7 +8,7 @@
 | **Depends on** | ING-6c **merged** and data from its `out_of_order=` summary field (or Mahesh asking for it) |
 | **Jira** | to create when it leaves Backlog, `labels = "task-ING-6e"` |
 | **Design required** | yes, short addendum to `docs/design/ING-6.md` (changes the walk's stop rule and adds a DB existence check) |
-| **Status** | Backlog — Proposed, not Ready (needs evidence that late announcements actually cause misses) |
+| **Status** | Closed — deferred, not ticketed (2026-11-28, process reset) |
 
 ## Goal
 arXiv can announce a paper days after its `<published>` time (moderation holds). If that time is already below a category's watermark, the

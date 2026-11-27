@@ -1207,3 +1207,10 @@ Format:
 - New (pm-lead plan `1100c84`, 3 picks, every dev then at 2 active): AI-13 #126 (QA r1 PASS `b1efe05`, PM APPROVE `7f33471`), OPS-H6f #127 (QA r1 PASS `130f277`, PM APPROVE `9e27285`; OPS-H6g specced), FE-4a #128 (QA r1 FAIL vacuous AC2b test `d44b7cf` → rework `529ad12` → QA r2 PASS `b0225a1` → PM APPROVE `212a231`). All raised, `ready-to-merge`.
 - Jira: KAN-66/115/116/117/119/124 → Ready to merge with links; created KAN-128 (FE-4a, → Ready to merge), KAN-129 (EVAL-8d), KAN-130 (OPS-H6g).
 - Friction: qa-reviewer harness refused writing `report.md` for AI-13, OPS-H6f, FE-4a r1 (orchestrator saved PR comments verbatim, `6b06efa`); this session then stalled ~13 h before Step 8, so the 09:00Z cycle replaced the lock. Lock release was done by later cycles; this entry only backfills the record. #128 merged by Mahesh 18:52Z — next cycle moves it to Done.
+
+## 2026-11-28 — pm-lead (process reset, approved by Mahesh)
+- Rules PR arxivlens-agents #21 (`rules/lean-process`): bundles of up to ~800 lines, no follow-up tickets (fixes go in the same PR or the ticket's `## Checklist`), Small/Large tiers (Small = combined QA+PM by qa-reviewer), mutation testing only for risky code (local), on-demand cycles with a Step 0 early exit, one Jira story per bundle, stale gotchas removed.
+- Docs PR #22 (`docs/prd-catchup`): Technical PRD §7.1/§7.2/§11/§12, Product PRD ING-6 ✅, ADR-0022/0023/0024 recorded from Mahesh's #44/#46, ADR-0015 Superseded by §9.
+- Checked the code (app `5fcbd5f`): already done were AI-8 (API fields, #54/#65), FE-3 (#86/#104), the "% Verified" labels (gone), ING-6 (#124), FE-4a (#128) and QA-4/QA-8 ✅. Still open: FE-4b, FE-2, OPS-H7a2c/7b/7c, ING-9b, EVAL-2 (report-only part), ING-8 (scorer on `d2ad9c5`, no labels).
+- New bundles: B-UI (frontend, ~500), B-PIPE (backend, ~880), B-QUAL (ai, ~900 incl. 750 carried over). EVAL-8 now owned by Mahesh (absorbs 8a/8b/8d). Closed or absorbed 21 specs (AI-10 obsolete); marked the 9 merged #122–#130 specs Done. Board rewritten compactly.
+- Jira not touched (per instruction). Needed next cycle: one story each for B-UI/B-PIPE/B-QUAL, and close the absorbed stories with a link.

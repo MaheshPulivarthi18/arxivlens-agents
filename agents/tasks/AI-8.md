@@ -8,7 +8,7 @@
 | **Depends on** | **ADR-0014 Accepted** (2026-11-07). **QA-8 delivered** by Mahesh's #46 (`cc57474`) on top of #44 (`6251d1a`): claims come from `parseSynthesis` and are verified per claim. **RET-2 merged** (`6cfd836`: `SearchHit.Version`/`Page`). Not a dependency: ING-11b (fills `SearchHit.Page`; AI-8 tests `page` with hand-built hits). Soft: Proposed ADR-0018 (whether `answer_kind` replaces ADR-0014's `answer_source`; see Scope) |
 | **Jira** | new story under epic KAN-1 "Grounded LLM answers" (`labels = "task-AI-8"`) |
 | **Design required** | **yes**: P0 and an HTTP API contract change. New `docs/design/AI-8.md` (none exists yet). pm-lead approves before code. |
-| **Status** | **Umbrella** (design approved with conditions 2026-11-17). Built as [AI-8a](AI-8a.md) (citation status/provenance/quote/`pdf_url`/raw `content`, Ready) then [AI-8b](AI-8b.md) (`claims[]`, `prompt_version`, README `/v1/ask` row, AC6 Python; Blocked until AI-8a and ING-11b are merged). No branch or PR for AI-8 itself. Done when both are merged. |
+| **Status** | Closed — merged into B-UI (2026-11-28). The API half was delivered by AI-8a (#54) and AI-8b (#65); nothing is left for ai |
 
 ## Goal
 Each factual statement in an answer becomes a claim with its own status and its own evidence. The evidence is the paper

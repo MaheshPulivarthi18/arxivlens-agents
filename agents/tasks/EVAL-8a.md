@@ -8,7 +8,7 @@
 | **Depends on** | **ADR-0021 Accepted** (which runs use the LLM, rules R1–R4, timeouts); **EVAL-8c merged** (the `llm` block and per-case `answer_kind` this workflow reads); **Mahesh**: Modal endpoint deployed and repository secrets `LLM_BASE_URL`, `LLM_API_KEY` set (he does both himself) |
 | **Jira** | needs a story (orchestrator) under epic KAN-2 "Retrieval & answer quality gates"; labels `task-EVAL-8a`, `agent-backend`, `arxivlens`, `design-required`; link KAN-46 (EVAL-8) |
 | **Design required** | **yes**: `docs/design/EVAL-8a.md`. It adds a secret, CI cost and runtime (EVAL-8's original flag), and needs a per-step budget table (lesson 2026-11-07 EVAL-3) |
-| **Status** | Blocked (needs ADR-0021; then EVAL-8c merged and Mahesh's Modal endpoint + secrets) |
+| **Status** | Closed — merged into EVAL-8 (2026-11-28), owner Mahesh (AC3–AC6) |
 
 ## Goal
 CI measures written (`answer_kind: synthesized`) answers with the same model as Mahesh's local baseline

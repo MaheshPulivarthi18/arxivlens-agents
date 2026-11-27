@@ -8,7 +8,7 @@
 | **Depends on** | FE-0i (#109) **merged** (same file `ui/badge.test.jsx`). No ADR |
 | **Jira** | KAN-115 (frontend epic KAN-5) |
 | **Design required** | no: test-only, one primitive |
-| **Status** | Ready to merge: PR #125 raised 2026-11-27 (QA r1 PASS, PM APPROVE at `79da23e`). Picked cycle 2026-11-22T02:00Z |
+| **Status** | Done (#125 merged `552eac4`) |
 
 ## Goal
 `Badge` builds its classes with `cn(badgeVariants({ variant }), className)`, so a caller's class wins over a conflicting default.

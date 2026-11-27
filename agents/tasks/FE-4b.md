@@ -8,7 +8,7 @@
 | **Depends on** | **FE-4a merged** (same `ReferencesStack.jsx`, `lib/citations.js`, `test/fixtures.js`). ING-10 merged (`4c15275`). ING-11b for real `page` values (fixtures suffice) |
 | **Jira** | create: story under epic KAN-5 "Research UI & citations", labels `task-FE-4b`, `design-required`; link to KAN-44 (FE-4 umbrella) |
 | **Design required** | yes: covered by `docs/design/FE-4.md` (approved; §1 `locateQuote`/`pdfHref`/`arxivLabel`, §3 meta line, passage + quote, long passages, PDF link) |
-| **Status** | Blocked (needs FE-4a merged). Specced 2026-11-22 at the FE-4 design gate |
+| **Status** | Closed — merged into B-UI (2026-11-28) as AC1–AC3 |
 
 ## Goal
 On every citation card a researcher reads the exact words that support the claim, highlighted inside the passage, sees which paper version,

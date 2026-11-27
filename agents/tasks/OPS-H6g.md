@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6f (ArxivLens #127) **merged**: same file `tests/test_chunk_reprocess_db.py` |
 | **Jira** | create (epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6g`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: tests only, no schema/event/HTTP change |
-| **Status** | Backlog (Ready once #127 merges) |
+| **Status** | Closed — deferred, not ticketed (B-PIPE 2026-11-28): test-only pins of a lock that is correct and already pinned by exact SQL |
 
 ## Goal
 OPS-H6f's lock (`SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;`) is pinned by an

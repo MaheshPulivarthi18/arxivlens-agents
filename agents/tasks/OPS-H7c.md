@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H7b **merged** (same files, `Store`). ArxivLens #26 (OPS-H10) **merged** (`stack.yml`, README) |
 | **Jira** | to create under the "Dev harness & infrastructure" epic (labels `task-OPS-H7c`, `agent-backend`, `arxivlens`); parent work KAN-31 |
 | **Design required** | covered by `docs/design/OPS-H7.md` § Q4, Q5 + PM decision (approved 2026-11-07) |
-| **Status** | Ready after OPS-H7b merges |
+| **Status** | Closed — merged into B-PIPE (2026-11-28) as part C |
 
 ## Goal
 A second concurrent replay of the same DLQ fails fast and publishes nothing. A crashed holder never blocks later runs. A re-published raw payload keeps the same `event_id`.
