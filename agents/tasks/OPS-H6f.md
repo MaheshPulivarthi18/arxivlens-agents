@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6e (ArxivLens #106) **merged**: same files `services/common/db.py`, `tests/test_chunk_reprocess_db.py` |
 | **Jira** | KAN-116 (epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6f`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py` plus tests, no schema/event/HTTP change, no new CLI/table/service |
-| **Status** | In QA (draft PR #127, `b4b64b3`); picked cycle 2026-11-27T03:59Z (2026-11-22T02:00Z pick never built; no branch/PR). Files disjoint from open PRs #122–#125 |
+| **Status** | Ready to merge (PR #127 raised for Mahesh, `b4b64b3`; QA PASS r1, PM APPROVE 2026-11-27) |
 
 ## Goal
 OPS-H6e made the embedder's save hash-aware: with a 4-tuple it locks the chunk row `FOR SHARE` and writes only if
@@ -107,3 +107,7 @@ git diff origin/main --name-only   # exactly services/common/db.py, tests/test_p
   CI on `b4b64b3`: all 6 checks green. `Full stack` run 45940231278 / job 140312624580 lists all 5
   `tests/test_chunk_reprocess_db.py` tests as `PASSED` in the `-rA` summary (`447 passed, 1 skipped, 3 deselected`).
   Status → In QA.
+- 2026-11-27 (pm-lead, cycle 2026-11-27T03:59Z): **PM APPROVE** ([report](../reviews/OPS-H6f/report.md)); PR #127 description
+  rewritten with the evidence, marked ready for review, label `ready-to-merge`. Follow-up [OPS-H6g](OPS-H6g.md) (P3,
+  test-only) pins M4/M6/M8 and the ascending-order invariant by behaviour. The reverse-order 3-tuple residue (QA finding 2)
+  closes with AI-13 (#126). Status → Ready to merge.
