@@ -1127,3 +1127,19 @@ Format:
 - **FE-0k** (frontend) → PR [#130](https://github.com/MaheshPulivarthi18/ArxivLens/pull/130), `3056e80`, +167/-26. Attempts 1, QA rounds 1 (PASS; M1–M7 killed, Chromium screenshots light/dark; 5/5 CI green), PM rounds 1 (APPROVE). Raised, Ready to merge. QA [spec] finding 3 (guard should require a drawn border width) → Backlog, after #130 merges.
 - QA harness again refused to write `report.md` for both reviews → orchestrator saved both PR comment bodies verbatim with a provenance header (`00ff928`).
 - Blocked/decisions unchanged: ADR-0011, ADR-0012, ADR-0015, ADR-0018, ADR-0021, FE-3 design Q3/Q6, "Appendices" aux question, ING-8 hand labels. 9 PRs (#122–#130) wait on Mahesh; every remaining Ready task is gated on one of them merging.
+
+## 2026-11-27 cycle 2026-11-27T10:00Z — pm-lead, grooming
+- App `main` = `53171d6`, unchanged. All 9 open agent PRs (#122–#130) are raised and Ready to merge; no human reviews/comments, no Jira intake. Every developer has 0 active PRs. File lists of #122–#130 re-read via REST this cycle.
+- **No picks.** Nothing merged since 09:00Z, so every gated item stays gated; the one startable item isn't worth a 10th PR in Mahesh's queue.
+- **Re-checked:**
+  - AI-2 counters item: still not startable. Its test half lives in `internal/query/rag_test.go`, the only file in #129 (AI-14b), and ai owns no other test file for `rag.go`. Premise at `53171d6`: the unverified line (`rag.go:378`) logs `unverified/citations/pairs/verify_errors`, and `scorePairs` returns `failed` (bad/out-of-range scores) separately from `verifyErrs` (call errors) but only `verify_errors` is logged. Re-derive the counters split from that when #129 merges.
+  - `theme.test.js` no-`matchMedia` tests (+ `DEFAULT_THEME === "system"` pin): independent (no open PR touches `frontend/src/lib/theme.test.js`; no deps). Still optional P3: `index.html:17` and `theme.js:34`/`:54` already guard a missing `matchMedia`. Not picked, so Mahesh's queue doesn't grow for it; it stays in Backlog. The README `*.test.{js,jsx}` nit it was bundled with is already fixed (`frontend/README.md:14`, via FE-0h); board line 95 already strikes it.
+- **Unchanged, not picked:** everything else in the 09:00Z "Considered, not picked" list. Each one is still behind an open PR's files (#122/#123/#124/#127/#128/#129/#130), an ADR (0011/0012/0015/0018/0021), a Mahesh decision (FE-3 Q3/Q6, "Appendices", ING-8 labels) or arXiv access (ING-9, OPS-H1 fixture). FE-0k QA [spec] finding 3 and the AI-14b "Table2" pin need #130/#129 to merge first.
+- No board edits beyond this note.
+
+## 2026-11-27T10:00Z cycle (orchestrator) — outcomes
+- Setup: push dry-run OK; no RUN_LOCK present, lock taken at 10:00Z. App `main` = `53171d6`, unchanged; nothing merged or closed since 09:00Z.
+- Human reviews: none. No MaheshPulivarthi18 reviews, untagged issue comments or review comments on #122–#130; no untagged Jira comments or intake on KAN `arxivlens` issues. No open rework checklists.
+- Review: all 9 open PRs already have QA PASS + PM APPROVE for their current heads (heads checked against `agents/reviews/<ID>/report.md`), so no QA/PM work.
+- New work: pm-lead grooming → no picks (see entry above). Idle cycle; Jira unchanged (no stage moves).
+- Blocked/decisions unchanged: ADR-0011, ADR-0012, ADR-0015, ADR-0018, ADR-0021, FE-3 design Q3/Q6, "Appendices" aux question, ING-8 hand labels. 9 PRs (#122–#130) wait on Mahesh.
