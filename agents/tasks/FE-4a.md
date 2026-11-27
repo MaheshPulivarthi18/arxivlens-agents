@@ -8,7 +8,7 @@
 | **Depends on** | FE-3b #104, FE-0i #109, AI-8b #65, ADR-0019 #120 (all merged). Design `docs/design/FE-4.md` **approved with conditions** 2026-11-22 |
 | **Jira** | create: story under epic KAN-5 "Research UI & citations", labels `task-FE-4a`, `design-required`; link to KAN-44 (FE-4 umbrella) |
 | **Design required** | yes: covered by `docs/design/FE-4.md` (approved; §1 `claimState`/`claimCitations`/`groupByMarker`, §2, §3 grouping/focus/rows, §4, §5, §6) |
-| **Status** | In QA: draft PR [#128](https://github.com/MaheshPulivarthi18/ArxivLens/pull/128), head `34cbd2e`, CI green (built cycle 2026-11-27T03:59Z) |
+| **Status** | In QA (rework round 1 pushed): draft PR [#128](https://github.com/MaheshPulivarthi18/ArxivLens/pull/128), head `529ad12`, CI green (cycle 2026-11-27T03:59Z) |
 
 ## Goal
 A researcher sees every statement of an answer with its own verdict (Supported / Unsupported / Not checked), and each `[n]` marker takes
@@ -104,4 +104,10 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   - Local: `npm ci` fails with `getaddrinfo ENOTFOUND registry.npmjs.org`, so I ran a TypeScript syntax parse of all 9 files (OK) and a plain-Node logic check of the helpers on the new fixtures (OK).
     **CI on `34cbd2e`: all 5 checks green.** Frontend job: `npm ci` OK; oxlint `Found 0 warnings and 0 errors` (main `53171d6` also 0); Vitest 12 files, 207 tests passed (main 155); `vite build` OK.
     Jira was skipped (orchestrator instruction). Evidence screenshots are still to come from QA.
-
+- 2026-11-27 (frontend-engineer, rework round 1 after QA round 1 FAIL on `34cbd2e`, cycle 2026-11-27T03:59Z): commit `529ad12` on top of `34cbd2e`, +50/−2 (prod +1 in `SynthesisView.jsx`, tests +49/−2 in `App.test.jsx`, PR-added tests only). Prod total now 222 changed lines.
+  - [x] F1 [blocking] AC2b swap test was vacuous. It now clicks `[1]`, which has a card in both `quotedClaims` and `synthesizedSkips`. It asserts card 1 `data-active` and 1 active card before the swap, and after it asserts card 1 has no `data-active` and there are 0 active cards. So removing `setActive(null)` at `App.jsx:113` (M6) fails the test.
+  - [x] F2 [nit] New App test "a new search clears the active card": search, click `[3]`, assert card 3 active, search again, wait for the 2nd fetch and the list, assert none active (kills M10, `App.jsx:84`).
+  - [x] F3 [nit] New `it.each` App test (true→`auto`, false→`smooth`): stubs `matchMedia` and spies on `Element.prototype.scrollIntoView` (restored in `finally`). It asserts the last call is `{ behavior, block: 'nearest' }` on card 3 via `mock.contexts` (kills M13).
+  - [x] F4 [nit] Claims list: `{entries.length > 0 && ' '}` between the sentence and its first marker, matching the prose fallback. Uncited claims are unchanged. No test added (cosmetic).
+  - [ ] F5 [spec] M3 equivalence noted for FE-4b/QA. Nothing to change in FE-4a, and F2 now tests the reset directly.
+  - Local: no `node_modules` (registry blocked), not run. Ownership check OK (size warning, 706 lines). **CI on `529ad12`: all 5 checks green.** Frontend: oxlint 0 warnings/0 errors; Vitest 12 files **210 passed** (was 207; App.test.jsx 17→20); `vite build` OK. Mutant kills for M6/M10/M13 are by static reading. I have not run them.
