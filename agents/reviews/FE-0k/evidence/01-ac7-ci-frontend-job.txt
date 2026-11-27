@@ -1,0 +1,34 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/140412970507/logs | sed (strip ANSI) | grep -n -E 'HEAD is now at|Run npm|oxlint|Found|✓|×|Test Files|Tests|modules transformed|built in|rror'
+120:2026-11-27T09:11:05.1306816Z HEAD is now at 9a3a8ae Merge 3056e80e5996d1bef4de02357e67431cac9de4e4 into 53171d6579a90de027239255e98369e323416ad3
+144:2026-11-27T09:11:05.8660751Z (node:2280) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+150:2026-11-27T09:11:07.0237482Z ##[group]Run npm ci
+169:2026-11-27T09:11:10.6476813Z ##[group]Run npm run lint
+175:2026-11-27T09:11:10.7270204Z > oxlint
+177:2026-11-27T09:11:10.7895099Z Found 0 warnings and 0 errors.
+179:2026-11-27T09:11:10.8059292Z ##[group]Run npm test
+190:2026-11-27T09:11:12.6060570Z  ✓ src/test/controls.test.js (9 tests) 14ms
+191:2026-11-27T09:11:13.5963445Z  ✓ src/components/ui/primitives.test.jsx (17 tests) 592ms
+192:2026-11-27T09:11:13.7380965Z  ✓ src/components/ReferencesStack.test.jsx (16 tests) 754ms
+193:2026-11-27T09:11:14.7801326Z  ✓ src/lib/theme.test.js (35 tests) 55ms
+194:2026-11-27T09:11:15.4961845Z  ✓ src/components/SynthesisView.test.jsx (17 tests) 533ms
+195:2026-11-27T09:11:15.7995764Z  ✓ src/lib/citations.test.js (35 tests) 16ms
+196:2026-11-27T09:11:16.5859165Z  ✓ src/test/tokens.test.js (9 tests) 13ms
+197:2026-11-27T09:11:17.0400670Z  ✓ src/App.test.jsx (7 tests) 2905ms
+198:2026-11-27T09:11:17.0403324Z      ✓ AC1: refusal A, the whole page never says "verified"  782ms
+199:2026-11-27T09:11:17.0404939Z      ✓ AC1: refusal C, the whole page never says "verified"  338ms
+200:2026-11-27T09:11:17.0430229Z      ✓ AC2: refusal B is calm: no toast, no alert, passages visible, no writing stage  327ms
+201:2026-11-27T09:11:17.0460010Z      ✓ AC3: early refusal renders as today and the discover button posts the question  375ms
+202:2026-11-27T09:11:17.0469928Z      ✓ AC4: the panel link (Tab, then Enter) moves focus to the passages heading  389ms
+203:2026-11-27T09:11:17.0475548Z      ✓ AC5a: quoted answer with a writing status, then swapped for the synthesized one  365ms
+204:2026-11-27T09:11:17.0477078Z      ✓ AC5b: a refused written answer keeps the quoted one, no panel, no toast  326ms
+205:2026-11-27T09:11:17.2827218Z  ✓ src/components/ThemeToggle.test.jsx (4 tests) 219ms
+206:2026-11-27T09:11:18.3442536Z  ✓ src/components/ui/button.test.jsx (3 tests) 213ms
+207:2026-11-27T09:11:18.6008815Z  ✓ src/components/ui/badge.test.jsx (3 tests) 164ms
+208:2026-11-27T09:11:18.6489543Z  ✓ src/components/HeroSearch.test.jsx (5 tests) 779ms
+209:2026-11-27T09:11:18.6490664Z      ✓ submits the trimmed question  552ms
+211:2026-11-27T09:11:18.6515437Z  Test Files  12 passed (12)
+212:2026-11-27T09:11:18.6516391Z       Tests  160 passed (160)
+216:2026-11-27T09:11:18.6832020Z ##[group]Run npm run build
+226:2026-11-27T09:11:19.7915110Z ✓ 1939 modules transformed.
+252:2026-11-27T09:11:19.9032103Z ✓ built in 955ms
+

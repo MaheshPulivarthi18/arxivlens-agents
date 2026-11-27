@@ -1,0 +1,57 @@
+$ bash -c 
+echo "base origin/main=$(git rev-parse --short origin/main)  head=$(git rev-parse --short HEAD)"; git log --oneline origin/main..HEAD; echo
+git diff --stat origin/main...HEAD; echo
+git diff -U0 origin/main...HEAD -- frontend/src/components/HeroSearch.jsx; echo
+for rev in origin/main HEAD; do echo "== $rev HeroSearch.jsx:63 class tokens:"; git show $rev:frontend/src/components/HeroSearch.jsx | sed -n 63p | grep -o "className=\"[^\"]*\"" | sed "s/className=//; s/\"//g" | tr " " "\n" | grep -E "border|ring" | sed "s/^/   /"; done; echo
+echo "== AC1 token checks on HEAD:63"; L=$(git show HEAD:frontend/src/components/HeroSearch.jsx | sed -n 63p)
+for re in "(^| )border-input( |\")" "border-border" "focus-within:ring-2( |\")" "focus-within:ring-ring( |\")" "ring-ring/[0-9]+"; do printf "   %-32s %s\n" "$re" "$(echo "$L" | grep -E -c -- "$re" | sed "s/^1$/present/; s/^0$/absent/")"; done; echo
+echo "== Lines changed in HeroSearch.jsx other than 63:"; git diff -U0 origin/main...HEAD -- frontend/src/components/HeroSearch.jsx | grep -E "^@@" ; echo
+echo "== Out-of-scope files (must be empty diff):"; git diff --stat origin/main...HEAD -- frontend/src/components/HeroSearch.test.jsx frontend/src/test/tokens.test.js frontend/src/index.css frontend/src/components/ui/button.jsx frontend/README.md README.md CONTRIBUTING.md; echo "   (end; empty = untouched)"
+echo "== Non-frontend paths changed:"; git diff --name-only origin/main...HEAD | grep -v "^frontend/" || echo "   none"
+echo "== Docs AC: git grep on HEAD"; git grep -n -i "controls.test\|border-input\|form control" HEAD -- frontend/README.md README.md CONTRIBUTING.md || echo "   no hits"
+base origin/main=53171d6  head=3056e80
+3056e80 FE-0k: repo-wide form-control outline guard; hero search outlined with border-input and full-strength ring
+
+ frontend/src/components/HeroSearch.jsx |   2 +-
+ frontend/src/test/controls.test.js     | 191 ++++++++++++++++++++++++++++-----
+ 2 files changed, 167 insertions(+), 26 deletions(-)
+
+diff --git a/frontend/src/components/HeroSearch.jsx b/frontend/src/components/HeroSearch.jsx
+index 3379f87..fb0f705 100644
+--- a/frontend/src/components/HeroSearch.jsx
++++ b/frontend/src/components/HeroSearch.jsx
+@@ -63 +63 @@ export default function HeroSearch({ onSearch, loading }) {
+-        <div className="relative flex items-center bg-card border border-border/90 rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring/30 transition-all">
++        <div className="relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all">
+
+== origin/main HeroSearch.jsx:63 class tokens:
+   border
+   border-border/90
+   focus-within:border-input
+   focus-within:ring-2
+   focus-within:ring-ring/30
+== HEAD HeroSearch.jsx:63 class tokens:
+   border
+   border-input
+   focus-within:border-input
+   focus-within:ring-2
+   focus-within:ring-ring
+
+== AC1 token checks on HEAD:63
+   (^| )border-input( |")           present
+   border-border                    absent
+   focus-within:ring-2( |")         present
+   focus-within:ring-ring( |")      present
+   ring-ring/[0-9]+                 absent
+
+== Lines changed in HeroSearch.jsx other than 63:
+@@ -63 +63 @@ export default function HeroSearch({ onSearch, loading }) {
+
+== Out-of-scope files (must be empty diff):
+   (end; empty = untouched)
+== Non-frontend paths changed:
+   none
+== Docs AC: git grep on HEAD
+   no hits
+
+[exit code 0]

@@ -1,0 +1,38 @@
+$ bash -c set -e; D=$(mktemp -d /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/trees-b/r.XXXX); mkdir $D/head $D/main; git archive HEAD frontend | tar -x -C $D/head; git archive origin/main frontend | tar -x -C $D/main; echo "head=$(git rev-parse --short HEAD) main=$(git rev-parse --short origin/main)"; for t in head main; do node /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/browser/twbuild.mjs $D/$t/frontend $D/$t.css | sed "s#$D/##"; done; echo; node /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/browser/run.mjs $D/head/frontend $D/head.css /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/shots head; echo; node /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/browser/run.mjs $D/main/frontend $D/main.css /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/shots main
+head=3056e80 main=53171d6
+tailwind 4.3.3 compat build of head/frontend: 30 files, 2488 candidates, 49011 bytes
+  rule .border-input: yes
+  rule .border-border/90: no
+  rule .focus-within:ring-ring: yes
+  rule .focus-within:ring-ring/30: no
+  rule .focus-within:ring-2: yes
+tailwind 4.3.3 compat build of main/frontend: 30 files, 2489 candidates, 49355 bytes
+  rule .border-input: yes
+  rule .border-border/90: yes
+  rule .focus-within:ring-ring: yes
+  rule .focus-within:ring-ring/30: yes
+  rule .focus-within:ring-2: yes
+
+[head light] <html>.dark=false  wrapper class: relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all
+  unfocused: border 1px rgb(131, 137, 149) on card rgb(255, 255, 255), page rgb(249, 248, 246); box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0 0 0 / 0.4) 0px 25px 50px -12px
+             outline contrast vs page background 3.31:1, vs card fill 3.51:1  -> PASS 3:1
+  focused after Tab x1 (input is activeElement: true): border rgb(131, 137, 149); ring color rgb(33, 72, 131)
+             ring contrast vs page background 8.53:1, vs card 9.05:1  -> PASS 3:1;  page errors: none
+[head dark] <html>.dark=true  wrapper class: relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all
+  unfocused: border 1px rgb(112, 107, 102) on card rgb(30, 28, 26), page rgb(22, 20, 19); box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0 0 0 / 0.4) 0px 25px 50px -12px
+             outline contrast vs page background 3.48:1, vs card fill 3.22:1  -> PASS 3:1
+  focused after Tab x1 (input is activeElement: true): border rgb(112, 107, 102); ring color rgb(132, 177, 235)
+             ring contrast vs page background 8.28:1, vs card 7.66:1  -> PASS 3:1;  page errors: none
+
+[main light] <html>.dark=false  wrapper class: relative flex items-center bg-card border border-border/90 rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring/30 transition-all
+  unfocused: border 1px oklab(0.889006 0.000746071 0.00744224 / 0.9) on card rgb(255, 255, 255), page rgb(249, 248, 246); box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0 0 0 / 0.4) 0px 25px 50px -12px
+             outline contrast vs page background 1.27:1, vs card fill 1.35:1  -> BELOW 3:1
+  focused after Tab x1 (input is activeElement: true): border rgb(131, 137, 149); ring color oklab(0.405473 -0.0216139 -0.106123 / 0.3)
+             ring contrast vs page background 1.68:1, vs card 1.78:1  -> BELOW 3:1;  page errors: none
+[main dark] <html>.dark=true  wrapper class: relative flex items-center bg-card border border-border/90 rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring/30 transition-all
+  unfocused: border 1px oklab(0.322798 0.00220118 0.00531709 / 0.9) on card rgb(30, 28, 26), page rgb(22, 20, 19); box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0 0 0 / 0.4) 0px 25px 50px -12px
+             outline contrast vs page background 1.42:1, vs card fill 1.31:1  -> BELOW 3:1
+  focused after Tab x1 (input is activeElement: true): border rgb(112, 107, 102); ring color oklab(0.75001 -0.0244908 -0.0941743 / 0.3)
+             ring contrast vs page background 1.83:1, vs card 1.7:1  -> BELOW 3:1;  page errors: none
+
+[exit code 0]

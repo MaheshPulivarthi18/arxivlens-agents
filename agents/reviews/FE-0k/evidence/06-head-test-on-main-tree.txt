@@ -1,0 +1,12 @@
+$ env REV=origin/main ONLY=M0 bash /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/bin/mutants.sh
+product tree: 53171d6   test file: 3056e80:frontend/src/test/controls.test.js
+test file sha256: 48cdd27e1db4d937
+
+================ M0: unmutated tree (control)
+$ true
+   × form-control border guard > components/HeroSearch.jsx form controls are outlined with border-input
+     FAIL: components/HeroSearch.jsx: <input className="w-full bg-transparent px-3 py-2 text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none": expected 'wrapper has border-border' to be null
+ Tests  1 failed | 8 passed (9)
+>>> M0: FAIL (mutant killed, exit 1)
+
+[exit code 0]

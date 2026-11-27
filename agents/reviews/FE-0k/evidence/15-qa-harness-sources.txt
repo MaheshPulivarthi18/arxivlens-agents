@@ -1,0 +1,267 @@
+$ bash -c cd /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness && echo "node $(node --version); esbuild $(node -p "require('/opt/npm-tools/node_modules/esbuild/package.json').version"); tailwindcss $(node -p "require('/opt/npm-tools/node_modules/tailwindcss/package.json').version"); playwright $(node -p "require('/opt/npm-tools/node_modules/playwright/package.json').version"); react $(node -p "require('/opt/npm-tools/node_modules/react/package.json').version"); chrome: $(/usr/bin/google-chrome --version 2>/dev/null)"; for f in node_modules/vitest/package.json node_modules/vitest/index.js bin/run.mjs bin/mutants.sh fixtures/Two-spaced.jsx fixtures/Two.jsx fixtures/Note.jsx browser/typography-stub.mjs browser/stubs.jsx browser/entry.jsx browser/twbuild.mjs browser/contrast.mjs browser/run.mjs; do echo "===== ./$f  sha256=$(sha256sum $f | cut -c1-16)"; cat $f; done
+node v22.23.5; esbuild 0.28.2; tailwindcss 4.3.3; playwright 1.63.0; react 19.2.8; chrome: Google Chrome for Testing 153.0.8010.12 
+===== ./node_modules/vitest/package.json  sha256=303401cc2a1ad1bb
+{"name":"vitest","version":"0.0.0-qa-shim","type":"module","main":"index.js","exports":{".":"./index.js"}}
+===== ./node_modules/vitest/index.js  sha256=82a9d8c63ed4b294
+// QA FE-0k: minimal plain-Node stand-in for the vitest API used by controls.test.js.
+// Logic check only; CI's real Vitest run is the pass/fail of record.
+import { isDeepStrictEqual, inspect } from 'node:util'
+export const tests = []
+const prefix = []
+export function describe(name, fn) { prefix.push(name); fn(); prefix.pop() }
+export function it(name, fn) { tests.push({ name: [...prefix, name].join(' > '), fn }) }
+it.each = (rows) => (name, fn) => {
+  for (const row of rows) {
+    const args = Array.isArray(row) ? row : [row]
+    let k = 0
+    it(name.replace(/%s/g, () => String(args[k++])), () => fn(...args))
+  }
+}
+export const test = it
+const ARR = Symbol('arrayContaining')
+function eq(a, b) {
+  if (b && b[ARR]) return Array.isArray(a) && b.items.every((x) => a.some((y) => eq(y, x)))
+  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => eq(x, b[i]))
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    const ka = Object.keys(a), kb = Object.keys(b)
+    return ka.length === kb.length && ka.every((k) => eq(a[k], b[k]))
+  }
+  return isDeepStrictEqual(a, b)
+}
+class AssertionError extends Error {}
+function make(actual, msg, neg) {
+  const chk = (ok, what) => {
+    if (ok === neg) throw new AssertionError(`${msg ? msg + ': ' : ''}expected ${inspect(actual)} ${neg ? 'not ' : ''}${what}`)
+  }
+  const m = {
+    toMatch: (re) => chk(typeof re === 'string' ? String(actual).includes(re) : re.test(actual), `to match ${re}`),
+    toEqual: (e) => chk(eq(actual, e), `to equal ${inspect(e[ARR] ? e.items : e)}`),
+    toBe: (e) => chk(Object.is(actual, e), `to be ${inspect(e)}`),
+    toBeNull: () => chk(actual === null, 'to be null'),
+    toHaveLength: (n) => chk(actual != null && actual.length === n, `to have length ${n}`),
+    toBeGreaterThan: (n) => chk(actual > n, `to be greater than ${n}`),
+  }
+  return m
+}
+export function expect(actual, msg) { const m = make(actual, msg, false); m.not = make(actual, msg, true); return m }
+expect.arrayContaining = (items) => ({ [ARR]: true, items })
+===== ./bin/run.mjs  sha256=f7224c412537fdc4
+// Usage: node run.mjs <tree>/src/test/controls.test.js  -> vitest-like report, exit 1 on any failure
+import { pathToFileURL } from 'node:url'
+const file = process.argv[2]
+let tests
+try {
+  await import(pathToFileURL(file).href)
+  ;({ tests } = await import('vitest'))
+} catch (e) { console.log(` FAIL  ${file} [ import/collect error ]\n   ${e.message}`); process.exit(1) }
+let failed = 0
+for (const t of tests) {
+  try { await t.fn(); console.log(`   ✓ ${t.name}`) }
+  catch (e) { failed++; console.log(`   × ${t.name}\n     FAIL: ${e.message.split('\n')[0]}`) }
+}
+console.log(` Tests  ${failed ? failed + ' failed | ' : ''}${tests.length - failed} passed (${tests.length})`)
+process.exit(failed ? 1 : 0)
+===== ./bin/mutants.sh  sha256=96600f7c0875aa34
+#!/usr/bin/env bash
+# QA FE-0k mutation harness. Run from the app repo (PR head worktree).
+# Each mutant: fresh tree = `git archive <rev> frontend` + one edit, then the plain-Node vitest shim
+# runs <test-rev>:frontend/src/test/controls.test.js against it. Logic check; CI Vitest is the pass/fail.
+set -u
+H=$(cd "$(dirname "$0")/.." && pwd)
+REV=${REV:-HEAD}            # product tree
+TEST_REV=${TEST_REV:-HEAD}  # which controls.test.js to run
+ONLY=${ONLY:-}
+echo "product tree: $(git rev-parse --short $REV)   test file: $(git rev-parse --short $TEST_REV):frontend/src/test/controls.test.js"
+echo "test file sha256: $(git show $TEST_REV:frontend/src/test/controls.test.js | sha256sum | cut -c1-16)"
+run() { # id, description, edit-command (run inside tree/frontend)
+  local id=$1 desc=$2 cmd=$3
+  [ -n "$ONLY" ] && [[ " $ONLY " != *" $id "* ]] && return
+  local T=$H/trees/$id; rm -rf "$T"; mkdir -p "$T"
+  git archive $REV frontend | tar -x -C "$T"
+  git show $TEST_REV:frontend/src/test/controls.test.js > "$T/frontend/src/test/controls.test.js"
+  cp -r "$T/frontend" "$T/orig"
+  echo; echo "================ $id: $desc"
+  echo "\$ $cmd"
+  ( cd "$T/frontend" && eval "$cmd" )
+  diff -ru "$T/orig" "$T/frontend" | sed "s#$T/##g" | grep -v '^diff -ru' | head -20
+  local out; out=$(node "$H/bin/run.mjs" "$T/frontend/src/test/controls.test.js"); local rc=$?
+  echo "$out" | grep -E '×|FAIL|Tests ' | head -12
+  [ $rc -eq 0 ] && echo ">>> $id: PASS (mutant survives)" || echo ">>> $id: FAIL (mutant killed, exit $rc)"
+  rm -rf "$T/orig"
+}
+run M0 "unmutated tree (control)" "true"
+run M1 "hero wrapper border-input -> border-border/90" "sed -i 's/bg-card border border-input rounded-xl/bg-card border border-border\/90 rounded-xl/' src/components/HeroSearch.jsx"
+run M2 "hero focus-within:ring-ring -> focus-within:ring-ring/30" "sed -i 's/focus-within:ring-ring transition-all/focus-within:ring-ring\/30 transition-all/' src/components/HeroSearch.jsx"
+run M3 "new src/components/Probe.jsx with a border-border textarea" "printf 'export default function Probe() {\n  return <textarea className=\"border border-border\" />\n}\n' > src/components/Probe.jsx"
+run M4 "same file as src/components/ui/probe.jsx (recursion)" "printf 'export default function Probe() {\n  return <textarea className=\"border border-border\" />\n}\n' > src/components/ui/probe.jsx"
+run M5 "new file with only a border-border <select>" "printf 'export default function Pick() {\n  return (\n    <select className=\"border border-border\" onChange={(e) => e}>\n      <option>a</option>\n    </select>\n  )\n}\n' > src/components/Pick.jsx"
+run M6 "IngestModal.jsx input border-input -> border-border" "sed -i 's/border-input/border-border/' src/components/IngestModal.jsx"
+run M7 "PapersLibrary.jsx input border-input -> border-border" "sed -i 's/border-input/border-border/' src/components/PapersLibrary.jsx"
+run X1 "extra: hero wrapper drops focus-within:ring-ring (ring-2 only)" "sed -i 's/ focus-within:ring-ring transition-all/ transition-all/' src/components/HeroSearch.jsx"
+run X2 "extra: hero <input> gets its own border-border" "sed -i 's/className=\"w-full bg-transparent/className=\"border border-border w-full bg-transparent/' src/components/HeroSearch.jsx"
+run X3 "extra: hero wrapper className made dynamic (no static className)" "sed -i 's/<div className=\"relative flex items-center bg-card/<div className={\"relative flex items-center bg-card/; s/focus-within:ring-ring transition-all\">/focus-within:ring-ring transition-all\" + \"\"}>/' src/components/HeroSearch.jsx"
+run X4 "extra probe: same bad textarea after a spaced comparison {n < max ? ...} (file also has a good input)" "cp $H/fixtures/Two-spaced.jsx src/components/Two.jsx && cat -n src/components/Two.jsx"
+run X5 "extra probe: same file with an UNSPACED comparison {n<max ? ...}" "cp $H/fixtures/Two.jsx src/components/Two.jsx && cat -n src/components/Two.jsx"
+run X6 "extra gap probe: textarea with border-0 border-input (no visible outline; rule (a) only asks for the token)" "cp $H/fixtures/Note.jsx src/components/Note.jsx && cat -n src/components/Note.jsx"
+run N1 "negative: border-border textarea in a *.test.jsx (excluded, must PASS)" "printf 'export const x = <textarea className=\"border border-border\" />\n' > src/components/Probe.test.jsx"
+run N2 "negative: <Input className=\"border-border\" /> component use (not intrinsic, must PASS)" "printf 'const Input = (p) => null\nexport default () => <Input className=\"border-border\" />\n' > src/components/Uses.jsx"
+run N3 "negative: border-input textarea in ui/ (rule a, must PASS)" "printf 'export default () => <textarea className=\"border border-input\" rows={3} />\n' > src/components/ui/textarea.jsx"
+
+===== ./fixtures/Two-spaced.jsx  sha256=b568fd3d380c7ac8
+export default function Two({ n, max }) {
+  return (
+    <div>
+      <input className="border border-input" />
+      {n < max ? <span>ok</span> : null}
+      <textarea className="border border-border" />
+    </div>
+  )
+}
+===== ./fixtures/Two.jsx  sha256=8da97c8a73c8c81a
+export default function Two({ n, max }) {
+  return (
+    <div>
+      <input className="border border-input" />
+      {n<max ? <span>ok</span> : null}
+      <textarea className="border border-border" />
+    </div>
+  )
+}
+===== ./fixtures/Note.jsx  sha256=f8e2ca5d1d75fb38
+export default function Note() {
+  return <textarea className="border-0 border-input" />
+}
+===== ./browser/typography-stub.mjs  sha256=a14298dda8346c1c
+// QA stub for @tailwindcss/typography (not installable offline). The hero search box uses no .prose class.
+export default function typographyStub() {}
+===== ./browser/stubs.jsx  sha256=7ef576821740723b
+// QA stubs: lucide-react icons (not installable offline) -> small circle SVGs; @radix-ui/react-slot -> plain passthrough
+// (ui/button uses Slot only with asChild, which HeroSearch never passes).
+import React from 'react';
+const I = ({ className, ...p }) => <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" {...p}><circle cx="12" cy="12" r="9" /></svg>;
+export const Search = I, Sparkles = I, AlertCircle = I, Stethoscope = I, Cpu = I, Activity = I, Loader2 = I;
+export const Slot = React.forwardRef(({ children, ...p }, ref) => React.cloneElement(children, { ...p, ref }));
+===== ./browser/entry.jsx  sha256=dfc0f867316fbe59
+// Renders the tree's REAL components/HeroSearch.jsx (with the real ui/button, lib/utils, clsx, tailwind-merge, cva) on its own.
+import React from 'react'; import { createRoot } from 'react-dom/client';
+import HeroSearch from 'FE_SRC/components/HeroSearch.jsx';
+createRoot(document.getElementById('root')).render(<main className="min-h-screen bg-background text-foreground p-8"><HeroSearch onSearch={() => {}} loading={false} /></main>);
+===== ./browser/twbuild.mjs  sha256=55bb42ab52be0846
+// Build the app CSS with Tailwind 4.3.3 compile() in v3-compat mode (@config = the tree's real tailwind.config.js; typography
+// plugin swapped for a no-op stub). The repo pins Tailwind 3.4.19, not installable offline; CI's `npm run build` is the build proof.
+// usage: node twbuild.mjs <frontend dir> <out.css>
+import { createRequire } from 'node:module'; import fs from 'node:fs'; import path from 'node:path';
+const require = createRequire('/opt/npm-tools/node_modules/');
+const { compile } = await import(require.resolve('tailwindcss').replace(/lib\.js$/, 'lib.mjs'));
+const H = path.dirname(new URL(import.meta.url).pathname);
+const FE = path.resolve(process.argv[2]); const OUT = path.resolve(process.argv[3]);
+const TW = path.dirname(require.resolve('tailwindcss/package.json'));
+const cfgPath = `${path.dirname(OUT)}/${path.basename(OUT, '.css')}.tailwind.config.mjs`;
+fs.writeFileSync(cfgPath, fs.readFileSync(`${FE}/tailwind.config.js`, 'utf8').replace(/^import typography from .*$/m, `import typography from ${JSON.stringify(H + '/typography-stub.mjs')}`));
+const idx = fs.readFileSync(`${FE}/src/index.css`, 'utf8').replace(/^@tailwind .*$/mg, '');
+const c = await compile(`@import "tailwindcss";\n@config "${cfgPath}";\n${idx}`, { base: FE,
+  loadStylesheet: async (id, base) => { const p = id === 'tailwindcss' ? `${TW}/index.css` : path.resolve(base, id); return { path: p, base: path.dirname(p), content: fs.readFileSync(p, 'utf8') }; },
+  loadModule: async (id, base) => { const p = path.resolve(base, id); const m = await import(p); return { path: p, base: path.dirname(p), module: m.default ?? m }; } });
+const files = []; const walk = (d) => { for (const f of fs.readdirSync(d)) { const p = `${d}/${f}`; if (fs.statSync(p).isDirectory()) walk(p); else if (/\.(jsx?|html)$/.test(f) && !/\.test\./.test(f)) files.push(p); } };
+walk(`${FE}/src`); files.push(`${FE}/index.html`);
+const cand = new Set(); for (const f of files) for (const t of fs.readFileSync(f, 'utf8').split(/[\s"'`{}<>]+/)) if (t) cand.add(t);
+const out = c.build([...cand]); fs.writeFileSync(OUT, out);
+const has = (cls) => out.includes(cls.replace(/[:/.]/g, (m) => '\\' + m));
+console.log(`tailwind ${require('tailwindcss/package.json').version} compat build of ${FE}: ${files.length} files, ${cand.size} candidates, ${out.length} bytes`);
+for (const k of ['border-input', 'border-border/90', 'focus-within:ring-ring', 'focus-within:ring-ring/30', 'focus-within:ring-2']) console.log(`  rule .${k}: ${has(k) ? 'yes' : 'no'}`);
+===== ./browser/contrast.mjs  sha256=d5ef98b2cf1cead6
+// WCAG 2.1 contrast (1.4.11, >= 3:1) for FE-0k from an index.css: the hero outline token and the focus ring token, light (:root) and dark (.dark).
+// "H S% L%" tokens -> sRGB as CSS hsl() does; no alpha (the PR uses whole tokens). usage: node contrast.mjs <src/index.css> [label]
+import fs from 'node:fs';
+const css = fs.readFileSync(process.argv[2], 'utf8');
+const block = (sel) => { const m = css.match(new RegExp(sel.replace('.', '\\.') + '\\s*\\{([\\s\\S]*?)\\n  \\}')); const o = {}; for (const [, k, v] of m[1].matchAll(/--([\w-]+):\s*([^;]+);/g)) o[k] = v.trim(); return o; };
+const light = block(':root'); const dark = { ...light, ...block('.dark') };
+const hsl = (s) => { const [h, S, L] = s.split(/\s+/).map(parseFloat); const sat = S / 100, l = L / 100; const k = (n) => (n + h / 30) % 12; const a = sat * Math.min(l, 1 - l);
+  return [0, 8, 4].map((n) => 255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))); };
+const over = (fg, a, bg) => fg.map((c, i) => c * a + bg[i] * (1 - a));
+const lum = (rgb) => { const [r, g, b] = rgb.map((c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+const rows = [ // [fg token, alpha, bg token, used for, design light, design dark]
+  ['input', 1, 'background', 'hero outline (border-input) vs page', 3.30, 3.48],
+  ['input', 1, 'card', 'hero outline (border-input) vs its bg-card fill', 3.50, 3.23],
+  ['ring', 1, 'background', 'hero focus ring (focus-within:ring-ring) vs page', 8.56, 8.25],
+  ['ring', 1, 'card', 'focus ring vs card', 9.09, 7.65],
+  ['border', 0.9, 'background', 'BEFORE (main): border-border/90 vs page', null, null],
+  ['border', 0.9, 'card', 'BEFORE (main): border-border/90 vs card', null, null],
+  ['ring', 0.3, 'background', 'BEFORE (main): ring-ring/30 halo vs page', null, null],
+];
+console.log(`${process.argv[3] || ''} tokens from ${process.argv[2]}`);
+console.log(`light: --input ${light.input} --ring ${light.ring} --background ${light.background} --card ${light.card} --border ${light.border}`);
+console.log(`dark:  --input ${dark.input} --ring ${dark.ring} --background ${dark.background} --card ${dark.card} --border ${dark.border}\n`);
+console.log('pair | used for | light (FE-0 design) | dark (FE-0 design) | >= 3:1');
+for (const [fg, a, bg, use, dl, dd] of rows) {
+  const r = [light, dark].map((T) => { const s = hsl(T[bg]); return ratio(over(hsl(T[fg]), a, s), s); });
+  console.log(`${fg}${a < 1 ? '/' + Math.round(a * 100) : ''} on ${bg} | ${use} | ${r[0].toFixed(2)} (${dl ?? '-'}) | ${r[1].toFixed(2)} (${dd ?? '-'}) | ${r.every((x) => x >= 3) ? 'PASS' : 'BELOW'}`);
+}
+===== ./browser/run.mjs  sha256=de9116c82aeddcbc
+// QA FE-0k browser harness: real HeroSearch in headless Chromium, real index.html (pre-paint theme script; theme from
+// prefers-color-scheme), CSS from twbuild.mjs. For light/dark: measure the wrapper's computed border colour and focus box-shadow,
+// compute WCAG contrast of the outline against the page background and the box's own card fill, then screenshot unfocused and
+// focused (keyboard Tab). usage: node run.mjs <frontend dir> <css> <out dir> <label>
+import { createRequire } from 'node:module'; import fs from 'node:fs'; import path from 'node:path';
+const require = createRequire('/opt/npm-tools/node_modules/');
+const esbuild = require('esbuild'); const { chromium } = require('playwright');
+const H = path.dirname(new URL(import.meta.url).pathname);
+const FE = path.resolve(process.argv[2]); const CSS = fs.readFileSync(process.argv[3], 'utf8'); const OUT = path.resolve(process.argv[4]); const LABEL = process.argv[5] || 'head';
+fs.mkdirSync(OUT, { recursive: true });
+const plug = { name: 'qa', setup(b) {
+  b.onResolve({ filter: /^FE_SRC\// }, (a) => ({ path: `${FE}/src/${a.path.slice(7)}` }));
+  b.onResolve({ filter: /^(lucide-react|@radix-ui\/react-slot)$/ }, () => ({ path: `${H}/stubs.jsx` }));
+  b.onResolve({ filter: /^(react|react-dom|clsx|tailwind-merge|class-variance-authority)(\/.*)?$/ }, (a) => ({ path: require.resolve(a.path) }));
+}};
+const js = (await esbuild.build({ entryPoints: [`${H}/entry.jsx`], bundle: true, format: 'esm', write: false, jsx: 'automatic', loader: { '.js': 'jsx' },
+  define: { 'process.env.NODE_ENV': '"development"' }, plugins: [plug], logLevel: 'error' })).outputFiles[0].text;
+const html = fs.readFileSync(`${FE}/index.html`, 'utf8').replace('<script type="module" src="/src/main.jsx"></script>', '<script type="module" src="/b.js"></script>')
+  .replace('</head>', '<link rel="stylesheet" href="/app.css"></head>');
+const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome' });
+const MEASURE = () => {
+  const toRgb = (s) => { const c = document.createElement('canvas').getContext('2d'); c.fillStyle = '#000'; c.fillStyle = s; c.fillRect(0, 0, 1, 1); const d = c.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
+  const over = (fg, bg) => fg.slice(0, 3).map((v, i) => v * fg[3] + bg[i] * (1 - fg[3]));
+  const L = (rgb) => { const [r, g, b] = rgb.map((c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const ratio = (a, b) => { const [x, y] = [L(a), L(b)].sort((p, q) => q - p); return +((x + 0.05) / (y + 0.05)).toFixed(2); };
+  const input = document.querySelector('input[aria-label="Research question"]'); const w = input.parentElement; const cs = getComputedStyle(w);
+  const page = over(toRgb(getComputedStyle(document.querySelector('main')).backgroundColor), [255, 255, 255]);
+  const card = over(toRgb(cs.backgroundColor), page);
+  const border = over(toRgb(cs.borderTopColor), card);
+  const sh = cs.boxShadow; const ringCol = (sh.match(/(rgba?\([^)]*\)|color\([^)]*\)|oklab\([^)]*\)|oklch\([^)]*\)|lab\([^)]*\)|hsla?\([^)]*\))\s+0px\s+0px\s+0px\s+2px/) || [])[1];
+  const ring = ringCol ? over(toRgb(ringCol), page) : null;
+  return { focused: document.activeElement === input, wrapperClass: w.className, borderTopWidth: cs.borderTopWidth, borderColor: cs.borderTopColor, cardBg: cs.backgroundColor,
+    pageBg: getComputedStyle(document.querySelector('main')).backgroundColor, boxShadow: sh, ringColor: ringCol || null,
+    border_vs_page: ratio(border, page), border_vs_card: ratio(border, card), ring_vs_page: ring ? ratio(ring, page) : null, ring_vs_card: ring ? ratio(ring, card) : null };
+};
+const lines = [];
+for (const theme of ['light', 'dark']) {
+  const ctx = await browser.newContext({ viewport: { width: 1100, height: 700 }, colorScheme: theme, deviceScaleFactor: 1 });
+  const page = await ctx.newPage(); const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });
+  await page.route('http://qa.local/**', (r) => { const u = new URL(r.request().url());
+    if (u.pathname === '/b.js') return r.fulfill({ contentType: 'text/javascript', body: js });
+    if (u.pathname === '/app.css') return r.fulfill({ contentType: 'text/css', body: CSS });
+    return r.fulfill({ contentType: 'text/html', body: html }); });
+  await page.goto('http://qa.local/');
+  const box = page.getByRole('textbox', { name: 'Research question' }); await box.waitFor();
+  const dark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+  const form = page.locator('form').first();
+  const clip = async () => { const b = await form.boundingBox(); return { x: Math.max(0, b.x - 24), y: Math.max(0, b.y - 24), width: b.width + 48, height: b.height + 48 }; };
+  const un = await page.evaluate(MEASURE);
+  await page.screenshot({ path: `${OUT}/${LABEL}-unfocused-${theme}.png`, clip: await clip() });
+  let tabs = 0; for (; tabs < 20 && !(await box.evaluate((e) => e === document.activeElement)); tabs++) await page.keyboard.press('Tab');
+  await page.waitForTimeout(400); // transition-all
+  const fo = await page.evaluate(MEASURE);
+  await page.screenshot({ path: `${OUT}/${LABEL}-focused-${theme}.png`, clip: await clip() });
+  lines.push(`[${LABEL} ${theme}] <html>.dark=${dark}  wrapper class: ${un.wrapperClass}`);
+  lines.push(`  unfocused: border ${un.borderTopWidth} ${un.borderColor} on card ${un.cardBg}, page ${un.pageBg}; box-shadow: ${un.boxShadow}`);
+  lines.push(`             outline contrast vs page background ${un.border_vs_page}:1, vs card fill ${un.border_vs_card}:1  -> ${Math.min(un.border_vs_page, un.border_vs_card) >= 3 ? 'PASS' : 'BELOW'} 3:1`);
+  lines.push(`  focused after Tab x${tabs} (input is activeElement: ${fo.focused}): border ${fo.borderColor}; ring color ${fo.ringColor}`);
+  lines.push(`             ring contrast vs page background ${fo.ring_vs_page}:1, vs card ${fo.ring_vs_card}:1  -> ${fo.ring_vs_page != null && fo.ring_vs_page >= 3 ? 'PASS' : 'BELOW'} 3:1;  page errors: ${errors.length ? errors.join(' | ') : 'none'}`);
+  await ctx.close();
+}
+await browser.close();
+console.log(lines.join('\n'));
+
+[exit code 0]

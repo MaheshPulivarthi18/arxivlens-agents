@@ -1,0 +1,35 @@
+$ bash -c for sha in 53171d6579a90de027239255e98369e323416ad3 3056e80e5996d1bef4de02357e67431cac9de4e4; do j=$(gh api repos/MaheshPulivarthi18/ArxivLens/commits/$sha/check-runs --jq ".check_runs[] | select(.name==\"Frontend (lint, test, build)\") | \"\(.id) \(.conclusion)\""); echo "== ${sha:0:7} Frontend job $j"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/${j%% *}/logs | sed "s/\x1b\[[0-9;]*m//g" | grep -E "✓ src|× |Test Files|Tests +[0-9]" | sed -E "s/^[^ ]+ //; s/ [0-9]+ms$//" | sort; echo; done
+== 53171d6 Frontend job 136988844933 success
+      Tests  155 passed (155)
+ Test Files  12 passed (12)
+ ✓ src/App.test.jsx (7 tests)
+ ✓ src/components/HeroSearch.test.jsx (5 tests)
+ ✓ src/components/ReferencesStack.test.jsx (16 tests)
+ ✓ src/components/SynthesisView.test.jsx (17 tests)
+ ✓ src/components/ThemeToggle.test.jsx (4 tests)
+ ✓ src/components/ui/badge.test.jsx (3 tests)
+ ✓ src/components/ui/button.test.jsx (3 tests)
+ ✓ src/components/ui/primitives.test.jsx (17 tests)
+ ✓ src/lib/citations.test.js (35 tests)
+ ✓ src/lib/theme.test.js (35 tests)
+ ✓ src/test/controls.test.js (4 tests)
+ ✓ src/test/tokens.test.js (9 tests)
+
+== 3056e80 Frontend job 140412970507 success
+      Tests  160 passed (160)
+ Test Files  12 passed (12)
+ ✓ src/App.test.jsx (7 tests)
+ ✓ src/components/HeroSearch.test.jsx (5 tests)
+ ✓ src/components/ReferencesStack.test.jsx (16 tests)
+ ✓ src/components/SynthesisView.test.jsx (17 tests)
+ ✓ src/components/ThemeToggle.test.jsx (4 tests)
+ ✓ src/components/ui/badge.test.jsx (3 tests)
+ ✓ src/components/ui/button.test.jsx (3 tests)
+ ✓ src/components/ui/primitives.test.jsx (17 tests)
+ ✓ src/lib/citations.test.js (35 tests)
+ ✓ src/lib/theme.test.js (35 tests)
+ ✓ src/test/controls.test.js (9 tests)
+ ✓ src/test/tokens.test.js (9 tests)
+
+
+[exit code 0]

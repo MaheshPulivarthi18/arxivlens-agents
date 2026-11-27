@@ -1,0 +1,18 @@
+$ bash -c node /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/browser/contrast.mjs frontend/src/index.css "PR head $(git rev-parse --short HEAD)"; echo; echo '== index.css changed by the PR?'; git diff --stat origin/main...HEAD -- frontend/src/index.css; echo '   (empty = unchanged)'
+PR head 3056e80 tokens from frontend/src/index.css
+light: --input 220 8% 55% --ring 216 60% 32% --background 40 23% 97% --card 0 0% 100% --border 40 10% 85%
+dark:  --input 30 5% 42% --ring 214 72% 72% --background 30 7% 8% --card 30 6% 11% --border 30 5% 20%
+
+pair | used for | light (FE-0 design) | dark (FE-0 design) | >= 3:1
+input on background | hero outline (border-input) vs page | 3.30 (3.3) | 3.48 (3.48) | PASS
+input on card | hero outline (border-input) vs its bg-card fill | 3.50 (3.5) | 3.23 (3.23) | PASS
+ring on background | hero focus ring (focus-within:ring-ring) vs page | 8.56 (8.56) | 8.25 (8.25) | PASS
+ring on card | focus ring vs card | 9.09 (9.09) | 7.65 (7.65) | PASS
+border/90 on background | BEFORE (main): border-border/90 vs page | 1.28 (-) | 1.39 (-) | BELOW
+border/90 on card | BEFORE (main): border-border/90 vs card | 1.35 (-) | 1.31 (-) | BELOW
+ring/30 on background | BEFORE (main): ring-ring/30 halo vs page | 1.68 (-) | 1.83 (-) | BELOW
+
+== index.css changed by the PR?
+   (empty = unchanged)
+
+[exit code 0]

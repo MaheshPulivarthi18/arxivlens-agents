@@ -1,0 +1,96 @@
+$ env TEST_REV=origin/main ONLY=M0 M1 M2 M3 M4 M5 M6 M7 bash /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/bin/mutants.sh
+product tree: 3056e80   test file: 53171d6:frontend/src/test/controls.test.js
+test file sha256: 2acccc9e085553bc
+
+================ M0: unmutated tree (control)
+$ true
+ Tests  4 passed (4)
+>>> M0: PASS (mutant survives)
+
+================ M1: hero wrapper border-input -> border-border/90
+$ sed -i 's/bg-card border border-input rounded-xl/bg-card border border-border\/90 rounded-xl/' src/components/HeroSearch.jsx
+--- orig/src/components/HeroSearch.jsx	2026-11-27 14:49:23.652300621 +0530
++++ frontend/src/components/HeroSearch.jsx	2026-11-27 14:49:23.656231093 +0530
+@@ -60,7 +60,7 @@
+ 
+       {/* Main Clinical Search Bar */}
+       <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto">
+-        <div className="relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all">
++        <div className="relative flex items-center bg-card border border-border/90 rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all">
+           <Search className="w-5 h-5 text-muted-foreground ml-3 shrink-0" />
+           <input
+             type="text"
+ Tests  4 passed (4)
+>>> M1: PASS (mutant survives)
+
+================ M2: hero focus-within:ring-ring -> focus-within:ring-ring/30
+$ sed -i 's/focus-within:ring-ring transition-all/focus-within:ring-ring\/30 transition-all/' src/components/HeroSearch.jsx
+--- orig/src/components/HeroSearch.jsx	2026-11-27 14:49:23.742469668 +0530
++++ frontend/src/components/HeroSearch.jsx	2026-11-27 14:49:23.747916813 +0530
+@@ -60,7 +60,7 @@
+ 
+       {/* Main Clinical Search Bar */}
+       <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto">
+-        <div className="relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all">
++        <div className="relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring/30 transition-all">
+           <Search className="w-5 h-5 text-muted-foreground ml-3 shrink-0" />
+           <input
+             type="text"
+ Tests  4 passed (4)
+>>> M2: PASS (mutant survives)
+
+================ M3: new src/components/Probe.jsx with a border-border textarea
+$ printf 'export default function Probe() {\n  return <textarea className="border border-border" />\n}\n' > src/components/Probe.jsx
+Only in frontend/src/components: Probe.jsx
+ Tests  4 passed (4)
+>>> M3: PASS (mutant survives)
+
+================ M4: same file as src/components/ui/probe.jsx (recursion)
+$ printf 'export default function Probe() {\n  return <textarea className="border border-border" />\n}\n' > src/components/ui/probe.jsx
+Only in frontend/src/components/ui: probe.jsx
+ Tests  4 passed (4)
+>>> M4: PASS (mutant survives)
+
+================ M5: new file with only a border-border <select>
+$ printf 'export default function Pick() {\n  return (\n    <select className="border border-border" onChange={(e) => e}>\n      <option>a</option>\n    </select>\n  )\n}\n' > src/components/Pick.jsx
+Only in frontend/src/components: Pick.jsx
+ Tests  4 passed (4)
+>>> M5: PASS (mutant survives)
+
+================ M6: IngestModal.jsx input border-input -> border-border
+$ sed -i 's/border-input/border-border/' src/components/IngestModal.jsx
+--- orig/src/components/IngestModal.jsx	2026-11-27 14:49:24.088286744 +0530
++++ frontend/src/components/IngestModal.jsx	2026-11-27 14:49:24.092873948 +0530
+@@ -79,7 +79,7 @@
+             <div className="flex gap-2">
+               <input
+                 type="text"
+-                className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary font-mono"
++                className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary font-mono"
+                 placeholder="e.g. 2608.20154 or https://arxiv.org/abs/2608.20154"
+                 value={inputVal}
+                 onChange={(e) => setInputVal(e.target.value)}
+   × form-control border guard > components/IngestModal.jsx text inputs use border-input, not border-border
+     FAIL: components/IngestModal.jsx: <input className lacks border-input: expected 'flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary font-mono' to match /(?:^|\s)border-input(?=\s|$)/
+ Tests  1 failed | 3 passed (4)
+>>> M6: FAIL (mutant killed, exit 1)
+
+================ M7: PapersLibrary.jsx input border-input -> border-border
+$ sed -i 's/border-input/border-border/' src/components/PapersLibrary.jsx
+--- orig/src/components/PapersLibrary.jsx	2026-11-27 14:49:24.160907372 +0530
++++ frontend/src/components/PapersLibrary.jsx	2026-11-27 14:49:24.167514560 +0530
+@@ -50,7 +50,7 @@
+             <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+             <input
+               type="text"
+-              className="bg-card border border-input rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary w-48 sm:w-64"
++              className="bg-card border border-border rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary w-48 sm:w-64"
+               placeholder="Filter by title or ID..."
+               value={filterText}
+               onChange={(e) => setFilterText(e.target.value)}
+   × form-control border guard > components/PapersLibrary.jsx text inputs use border-input, not border-border
+     FAIL: components/PapersLibrary.jsx: <input className lacks border-input: expected 'bg-card border border-border rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary w-48 sm:w-64' to match /(?:^|\s)border-input(?=\s|$)/
+ Tests  1 failed | 3 passed (4)
+>>> M7: FAIL (mutant killed, exit 1)
+
+[exit code 0]

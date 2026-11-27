@@ -1,0 +1,38 @@
+$ bash -c for f in 04-ac5-mutants 05-ac5-negative-control-main-test 06-head-test-on-main-tree; do echo "== $f.txt"; grep -E '^product tree' /root/wt/agents-qa-FE-0k/agents/reviews/FE-0k/evidence/$f.txt; grep -E '^(================ |>>> )' /root/wt/agents-qa-FE-0k/agents/reviews/FE-0k/evidence/$f.txt | paste - - | sed -E 's/================ //; s/\t>>> [A-Z0-9]+: /  =>  /'; echo; done
+== 04-ac5-mutants.txt
+product tree: 3056e80   test file: 3056e80:frontend/src/test/controls.test.js
+M0: unmutated tree (control)  =>  PASS (mutant survives)
+M1: hero wrapper border-input -> border-border/90  =>  FAIL (mutant killed, exit 1)
+M2: hero focus-within:ring-ring -> focus-within:ring-ring/30  =>  FAIL (mutant killed, exit 1)
+M3: new src/components/Probe.jsx with a border-border textarea  =>  FAIL (mutant killed, exit 1)
+M4: same file as src/components/ui/probe.jsx (recursion)  =>  FAIL (mutant killed, exit 1)
+M5: new file with only a border-border <select>  =>  FAIL (mutant killed, exit 1)
+M6: IngestModal.jsx input border-input -> border-border  =>  FAIL (mutant killed, exit 1)
+M7: PapersLibrary.jsx input border-input -> border-border  =>  FAIL (mutant killed, exit 1)
+X1: extra: hero wrapper drops focus-within:ring-ring (ring-2 only)  =>  FAIL (mutant killed, exit 1)
+X2: extra: hero <input> gets its own border-border  =>  FAIL (mutant killed, exit 1)
+X3: extra: hero wrapper className made dynamic (no static className)  =>  FAIL (mutant killed, exit 1)
+X4: extra probe: same bad textarea after a spaced comparison {n < max ? ...} (file also has a good input)  =>  FAIL (mutant killed, exit 1)
+X5: extra probe: same file with an UNSPACED comparison {n<max ? ...}  =>  FAIL (mutant killed, exit 1)
+X6: extra gap probe: textarea with border-0 border-input (no visible outline; rule (a) only asks for the token)  =>  PASS (mutant survives)
+N1: negative: border-border textarea in a *.test.jsx (excluded, must PASS)  =>  PASS (mutant survives)
+N2: negative: <Input className="border-border" /> component use (not intrinsic, must PASS)  =>  PASS (mutant survives)
+N3: negative: border-input textarea in ui/ (rule a, must PASS)  =>  PASS (mutant survives)
+
+== 05-ac5-negative-control-main-test.txt
+product tree: 3056e80   test file: 53171d6:frontend/src/test/controls.test.js
+M0: unmutated tree (control)  =>  PASS (mutant survives)
+M1: hero wrapper border-input -> border-border/90  =>  PASS (mutant survives)
+M2: hero focus-within:ring-ring -> focus-within:ring-ring/30  =>  PASS (mutant survives)
+M3: new src/components/Probe.jsx with a border-border textarea  =>  PASS (mutant survives)
+M4: same file as src/components/ui/probe.jsx (recursion)  =>  PASS (mutant survives)
+M5: new file with only a border-border <select>  =>  PASS (mutant survives)
+M6: IngestModal.jsx input border-input -> border-border  =>  FAIL (mutant killed, exit 1)
+M7: PapersLibrary.jsx input border-input -> border-border  =>  FAIL (mutant killed, exit 1)
+
+== 06-head-test-on-main-tree.txt
+product tree: 53171d6   test file: 3056e80:frontend/src/test/controls.test.js
+M0: unmutated tree (control)  =>  FAIL (mutant killed, exit 1)
+
+
+[exit code 0]

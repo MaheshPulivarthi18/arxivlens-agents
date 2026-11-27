@@ -1,0 +1,221 @@
+$ bash /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/bin/mutants.sh
+product tree: 3056e80   test file: 3056e80:frontend/src/test/controls.test.js
+test file sha256: 48cdd27e1db4d937
+
+================ M0: unmutated tree (control)
+$ true
+ Tests  9 passed (9)
+>>> M0: PASS (mutant survives)
+
+================ M1: hero wrapper border-input -> border-border/90
+$ sed -i 's/bg-card border border-input rounded-xl/bg-card border border-border\/90 rounded-xl/' src/components/HeroSearch.jsx
+--- orig/src/components/HeroSearch.jsx	2026-11-27 14:49:21.906943412 +0530
++++ frontend/src/components/HeroSearch.jsx	2026-11-27 14:49:21.911219232 +0530
+@@ -60,7 +60,7 @@
+ 
+       {/* Main Clinical Search Bar */}
+       <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto">
+-        <div className="relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all">
++        <div className="relative flex items-center bg-card border border-border/90 rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all">
+           <Search className="w-5 h-5 text-muted-foreground ml-3 shrink-0" />
+           <input
+             type="text"
+   × form-control border guard > components/HeroSearch.jsx form controls are outlined with border-input
+     FAIL: components/HeroSearch.jsx: <input className="w-full bg-transparent px-3 py-2 text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none": expected 'wrapper has border-border' to be null
+ Tests  1 failed | 8 passed (9)
+>>> M1: FAIL (mutant killed, exit 1)
+
+================ M2: hero focus-within:ring-ring -> focus-within:ring-ring/30
+$ sed -i 's/focus-within:ring-ring transition-all/focus-within:ring-ring\/30 transition-all/' src/components/HeroSearch.jsx
+--- orig/src/components/HeroSearch.jsx	2026-11-27 14:49:21.996064623 +0530
++++ frontend/src/components/HeroSearch.jsx	2026-11-27 14:49:22.001380627 +0530
+@@ -60,7 +60,7 @@
+ 
+       {/* Main Clinical Search Bar */}
+       <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto">
+-        <div className="relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all">
++        <div className="relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring/30 transition-all">
+           <Search className="w-5 h-5 text-muted-foreground ml-3 shrink-0" />
+           <input
+             type="text"
+   × form-control border guard > components/HeroSearch.jsx form controls are outlined with border-input
+     FAIL: components/HeroSearch.jsx: <input className="w-full bg-transparent px-3 py-2 text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none": expected 'wrapper lacks full-strength focus-within:ring-ring' to be null
+ Tests  1 failed | 8 passed (9)
+>>> M2: FAIL (mutant killed, exit 1)
+
+================ M3: new src/components/Probe.jsx with a border-border textarea
+$ printf 'export default function Probe() {\n  return <textarea className="border border-border" />\n}\n' > src/components/Probe.jsx
+Only in frontend/src/components: Probe.jsx
+   × form-control border guard > components/Probe.jsx form controls are outlined with border-input
+     FAIL: components/Probe.jsx: <textarea className="border border-border": expected 'className has border-border' to be null
+ Tests  1 failed | 9 passed (10)
+>>> M3: FAIL (mutant killed, exit 1)
+
+================ M4: same file as src/components/ui/probe.jsx (recursion)
+$ printf 'export default function Probe() {\n  return <textarea className="border border-border" />\n}\n' > src/components/ui/probe.jsx
+Only in frontend/src/components/ui: probe.jsx
+   × form-control border guard > components/ui/probe.jsx form controls are outlined with border-input
+     FAIL: components/ui/probe.jsx: <textarea className="border border-border": expected 'className has border-border' to be null
+ Tests  1 failed | 9 passed (10)
+>>> M4: FAIL (mutant killed, exit 1)
+
+================ M5: new file with only a border-border <select>
+$ printf 'export default function Pick() {\n  return (\n    <select className="border border-border" onChange={(e) => e}>\n      <option>a</option>\n    </select>\n  )\n}\n' > src/components/Pick.jsx
+Only in frontend/src/components: Pick.jsx
+   × form-control border guard > components/Pick.jsx form controls are outlined with border-input
+     FAIL: components/Pick.jsx: <select className="border border-border": expected 'className has border-border' to be null
+ Tests  1 failed | 9 passed (10)
+>>> M5: FAIL (mutant killed, exit 1)
+
+================ M6: IngestModal.jsx input border-input -> border-border
+$ sed -i 's/border-input/border-border/' src/components/IngestModal.jsx
+--- orig/src/components/IngestModal.jsx	2026-11-27 14:49:22.389662818 +0530
++++ frontend/src/components/IngestModal.jsx	2026-11-27 14:49:22.394416428 +0530
+@@ -79,7 +79,7 @@
+             <div className="flex gap-2">
+               <input
+                 type="text"
+-                className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary font-mono"
++                className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary font-mono"
+                 placeholder="e.g. 2608.20154 or https://arxiv.org/abs/2608.20154"
+                 value={inputVal}
+                 onChange={(e) => setInputVal(e.target.value)}
+   × form-control border guard > components/IngestModal.jsx form controls are outlined with border-input
+     FAIL: components/IngestModal.jsx: <input className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary font-mono": expected 'className has border-border' to be null
+ Tests  1 failed | 8 passed (9)
+>>> M6: FAIL (mutant killed, exit 1)
+
+================ M7: PapersLibrary.jsx input border-input -> border-border
+$ sed -i 's/border-input/border-border/' src/components/PapersLibrary.jsx
+--- orig/src/components/PapersLibrary.jsx	2026-11-27 14:49:22.480165579 +0530
++++ frontend/src/components/PapersLibrary.jsx	2026-11-27 14:49:22.484402375 +0530
+@@ -50,7 +50,7 @@
+             <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+             <input
+               type="text"
+-              className="bg-card border border-input rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary w-48 sm:w-64"
++              className="bg-card border border-border rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary w-48 sm:w-64"
+               placeholder="Filter by title or ID..."
+               value={filterText}
+               onChange={(e) => setFilterText(e.target.value)}
+   × form-control border guard > components/PapersLibrary.jsx form controls are outlined with border-input
+     FAIL: components/PapersLibrary.jsx: <input className="bg-card border border-border rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary w-48 sm:w-64": expected 'className has border-border' to be null
+ Tests  1 failed | 8 passed (9)
+>>> M7: FAIL (mutant killed, exit 1)
+
+================ X1: extra: hero wrapper drops focus-within:ring-ring (ring-2 only)
+$ sed -i 's/ focus-within:ring-ring transition-all/ transition-all/' src/components/HeroSearch.jsx
+--- orig/src/components/HeroSearch.jsx	2026-11-27 14:49:22.572904858 +0530
++++ frontend/src/components/HeroSearch.jsx	2026-11-27 14:49:22.575393613 +0530
+@@ -60,7 +60,7 @@
+ 
+       {/* Main Clinical Search Bar */}
+       <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto">
+-        <div className="relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all">
++        <div className="relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 transition-all">
+           <Search className="w-5 h-5 text-muted-foreground ml-3 shrink-0" />
+           <input
+             type="text"
+   × form-control border guard > components/HeroSearch.jsx form controls are outlined with border-input
+     FAIL: components/HeroSearch.jsx: <input className="w-full bg-transparent px-3 py-2 text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none": expected 'wrapper lacks full-strength focus-within:ring-ring' to be null
+ Tests  1 failed | 8 passed (9)
+>>> X1: FAIL (mutant killed, exit 1)
+
+================ X2: extra: hero <input> gets its own border-border
+$ sed -i 's/className="w-full bg-transparent/className="border border-border w-full bg-transparent/' src/components/HeroSearch.jsx
+--- orig/src/components/HeroSearch.jsx	2026-11-27 14:49:22.662732357 +0530
++++ frontend/src/components/HeroSearch.jsx	2026-11-27 14:49:22.667002679 +0530
+@@ -65,7 +65,7 @@
+           <input
+             type="text"
+             aria-label="Research question"
+-            className="w-full bg-transparent px-3 py-2 text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none"
++            className="border border-border w-full bg-transparent px-3 py-2 text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none"
+             placeholder="Ask a clinical question, methodology, or benchmark..."
+             value={query}
+             onChange={(e) => setQuery(e.target.value)}
+   × form-control border guard > components/HeroSearch.jsx form controls are outlined with border-input
+     FAIL: components/HeroSearch.jsx: <input className="border border-border w-full bg-transparent px-3 py-2 text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none": expected 'className has border-border' to be null
+ Tests  1 failed | 8 passed (9)
+>>> X2: FAIL (mutant killed, exit 1)
+
+================ X3: extra: hero wrapper className made dynamic (no static className)
+$ sed -i 's/<div className="relative flex items-center bg-card/<div className={"relative flex items-center bg-card/; s/focus-within:ring-ring transition-all">/focus-within:ring-ring transition-all" + ""}>/' src/components/HeroSearch.jsx
+--- orig/src/components/HeroSearch.jsx	2026-11-27 14:49:22.750603605 +0530
++++ frontend/src/components/HeroSearch.jsx	2026-11-27 14:49:22.754707635 +0530
+@@ -60,7 +60,7 @@
+ 
+       {/* Main Clinical Search Bar */}
+       <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto">
+-        <div className="relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all">
++        <div className={"relative flex items-center bg-card border border-input rounded-xl p-1.5 shadow-2xl shadow-black/40 focus-within:border-input focus-within:ring-2 focus-within:ring-ring transition-all" + ""}>
+           <Search className="w-5 h-5 text-muted-foreground ml-3 shrink-0" />
+           <input
+             type="text"
+   × form-control border guard > components/HeroSearch.jsx form controls are outlined with border-input
+     FAIL: components/HeroSearch.jsx: <input className="w-full bg-transparent px-3 py-2 text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none": expected 'no border-input and no focus-within: outline wrapper' to be null
+ Tests  1 failed | 8 passed (9)
+>>> X3: FAIL (mutant killed, exit 1)
+
+================ X4: extra probe: same bad textarea after a spaced comparison {n < max ? ...} (file also has a good input)
+$ cp /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/fixtures/Two-spaced.jsx src/components/Two.jsx && cat -n src/components/Two.jsx
+     1	export default function Two({ n, max }) {
+     2	  return (
+     3	    <div>
+     4	      <input className="border border-input" />
+     5	      {n < max ? <span>ok</span> : null}
+     6	      <textarea className="border border-border" />
+     7	    </div>
+     8	  )
+     9	}
+Only in frontend/src/components: Two.jsx
+   × form-control border guard > components/Two.jsx form controls are outlined with border-input
+     FAIL: components/Two.jsx: <textarea className="border border-border": expected 'className has border-border' to be null
+ Tests  1 failed | 9 passed (10)
+>>> X4: FAIL (mutant killed, exit 1)
+
+================ X5: extra probe: same file with an UNSPACED comparison {n<max ? ...}
+$ cp /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/fixtures/Two.jsx src/components/Two.jsx && cat -n src/components/Two.jsx
+     1	export default function Two({ n, max }) {
+     2	  return (
+     3	    <div>
+     4	      <input className="border border-input" />
+     5	      {n<max ? <span>ok</span> : null}
+     6	      <textarea className="border border-border" />
+     7	    </div>
+     8	  )
+     9	}
+Only in frontend/src/components: Two.jsx
+   × form-control border guard > components/Two.jsx form controls are outlined with border-input
+     FAIL: components/Two.jsx: <textarea className="border border-border": expected 'className has border-border' to be null
+ Tests  1 failed | 9 passed (10)
+>>> X5: FAIL (mutant killed, exit 1)
+
+================ X6: extra gap probe: textarea with border-0 border-input (no visible outline; rule (a) only asks for the token)
+$ cp /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/fixtures/Note.jsx src/components/Note.jsx && cat -n src/components/Note.jsx
+     1	export default function Note() {
+     2	  return <textarea className="border-0 border-input" />
+     3	}
+Only in frontend/src/components: Note.jsx
+ Tests  10 passed (10)
+>>> X6: PASS (mutant survives)
+
+================ N1: negative: border-border textarea in a *.test.jsx (excluded, must PASS)
+$ printf 'export const x = <textarea className="border border-border" />\n' > src/components/Probe.test.jsx
+Only in frontend/src/components: Probe.test.jsx
+ Tests  9 passed (9)
+>>> N1: PASS (mutant survives)
+
+================ N2: negative: <Input className="border-border" /> component use (not intrinsic, must PASS)
+$ printf 'const Input = (p) => null\nexport default () => <Input className="border-border" />\n' > src/components/Uses.jsx
+Only in frontend/src/components: Uses.jsx
+ Tests  9 passed (9)
+>>> N2: PASS (mutant survives)
+
+================ N3: negative: border-input textarea in ui/ (rule a, must PASS)
+$ printf 'export default () => <textarea className="border border-input" rows={3} />\n' > src/components/ui/textarea.jsx
+Only in frontend/src/components/ui: textarea.jsx
+ Tests  10 passed (10)
+>>> N3: PASS (mutant survives)
+
+[exit code 0]

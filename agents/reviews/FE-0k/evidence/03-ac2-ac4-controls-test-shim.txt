@@ -1,0 +1,29 @@
+$ bash -c 
+T=$(mktemp -d /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/trees/AC.XXXX); git archive HEAD frontend | tar -x -C $T
+echo '== git grep of intrinsic controls under src/components (non-test .jsx), independent of the test:'; git grep -n -E '<(input|textarea|select)([[:space:]/>]|$)' HEAD -- 'frontend/src/components/*.jsx' 'frontend/src/components/**/*.jsx' ':!*.test.jsx'
+echo; echo '== CONTROL_SOURCES exported by the test (its own discovery):'
+node --input-type=module -e "import fs from 'node:fs'; const m = await import('$T/frontend/src/test/controls.test.js'); console.log(JSON.stringify(m.CONTROL_SOURCES)); console.log('CONTROL_FILES export:', 'CONTROL_FILES' in m ? 'present' : 'gone'); console.log('CONTROL_FILES in source:', /CONTROL_FILES/.test(fs.readFileSync('$T/frontend/src/test/controls.test.js','utf8')) ? 'present' : 'gone')" 2>&1 || true
+echo; echo '== run:'; node /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/fe0k/harness/bin/run.mjs $T/frontend/src/test/controls.test.js
+== git grep of intrinsic controls under src/components (non-test .jsx), independent of the test:
+HEAD:frontend/src/components/HeroSearch.jsx:65:          <input
+HEAD:frontend/src/components/IngestModal.jsx:80:              <input
+HEAD:frontend/src/components/PapersLibrary.jsx:51:            <input
+
+== CONTROL_SOURCES exported by the test (its own discovery):
+["components/HeroSearch.jsx","components/IngestModal.jsx","components/PapersLibrary.jsx"]
+CONTROL_FILES export: gone
+CONTROL_FILES in source: gone
+
+== run:
+   ✓ form-control border guard > patterns match whole tokens only
+   ✓ form-control border guard > extracts the className of each <input
+   ✓ form-control border guard > extracts textarea and select, with `>` inside braces
+   ✓ form-control border guard > applies the outline rule
+   ✓ form-control border guard > discovers intrinsic lowercase controls only
+   ✓ form-control border guard > scans every component, including the known controls
+   ✓ form-control border guard > components/HeroSearch.jsx form controls are outlined with border-input
+   ✓ form-control border guard > components/IngestModal.jsx form controls are outlined with border-input
+   ✓ form-control border guard > components/PapersLibrary.jsx form controls are outlined with border-input
+ Tests  9 passed (9)
+
+[exit code 0]
