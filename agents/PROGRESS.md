@@ -1199,3 +1199,11 @@ Format:
 - Review: all 9 open PRs already have QA PASS + PM APPROVE for their current heads.
 - New work: none. Every Ready task waits on an unmerged PR (FE-4b→#128, OPS-H7a2c→#124, OPS-H7b/c→OPS-H7a2c, EVAL-8d→#122, FE-2→FE-4b, OPS-H6g→#127); inputs identical to the 10:00Z grooming, so pm-lead was not re-run. Jira unchanged.
 - Blocked/decisions unchanged: ADR-0011, ADR-0012, ADR-0015, ADR-0018, ADR-0021 (KAN-127), FE-3 design Q3/Q6, "Appendices" aux question, ING-8 hand labels.
+
+## 2026-11-27 cycle 03:59Z — orchestrator (cycle record, written late at ~18:55Z)
+- Lock 2026-11-22T02:00Z was stale (that cycle died before Step 8); taken at 03:59Z. Sync: app `main` = `53171d6`; open #122–#125, no Mahesh review or untagged comment on any, no Jira intake, no ADR status change.
+- Rework: ING-6c #124 (QA r1 FAIL) → `d55508f` (stack precondition via `crawled-ids.txt`, C1/lock-test fixes, design write-back `d725911`); Full stack green. QA r2 PASS (`17556f9`), PM APPROVE (`9478005`), raised.
+- Review: EVAL-8c #122 QA r2 PASS (`c1fa3c3`) → PM APPROVE (`c1de037`), raised; EVAL-8d specced. FE-0j #125 QA r1 PASS (`5fb190a`) → PM APPROVE (`dc1d82c`), raised. OPS-H21 #123 already raised; Jira synced to Ready to merge.
+- New (pm-lead plan `1100c84`, 3 picks, every dev then at 2 active): AI-13 #126 (QA r1 PASS `b1efe05`, PM APPROVE `7f33471`), OPS-H6f #127 (QA r1 PASS `130f277`, PM APPROVE `9e27285`; OPS-H6g specced), FE-4a #128 (QA r1 FAIL vacuous AC2b test `d44b7cf` → rework `529ad12` → QA r2 PASS `b0225a1` → PM APPROVE `212a231`). All raised, `ready-to-merge`.
+- Jira: KAN-66/115/116/117/119/124 → Ready to merge with links; created KAN-128 (FE-4a, → Ready to merge), KAN-129 (EVAL-8d), KAN-130 (OPS-H6g).
+- Friction: qa-reviewer harness refused writing `report.md` for AI-13, OPS-H6f, FE-4a r1 (orchestrator saved PR comments verbatim, `6b06efa`); this session then stalled ~13 h before Step 8, so the 09:00Z cycle replaced the lock. Lock release was done by later cycles; this entry only backfills the record. #128 merged by Mahesh 18:52Z — next cycle moves it to Done.
