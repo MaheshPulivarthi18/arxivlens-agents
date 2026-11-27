@@ -131,3 +131,59 @@ None blocking.
 
 ## Hand-off
 PASS → pm-lead for final review. CI is green on `529ad12` (5/5). Every round-1 item is verified against the real tests, with mutants killed at head and surviving at the round-1 commit. The PR stays draft; I made no change to the ArxivLens repo.
+
+---
+
+# PM review — FE-4a · PR #128 · pm-lead
+
+**Verdict: APPROVE** · **Reviewed commit:** `529ad12bb2e3f20bb3ebeb29162dddf81107fcaf` · **Date:** 2026-11-27 (cycle 2026-11-27T03:59Z)
+**Inputs:** ticket `agents/tasks/FE-4a.md` (incl. the 2026-11-22 size decision), design `docs/design/FE-4.md` (PM decision + conditions 1–4 for FE-4a),
+Product PRD UI-1 / QA-3 / QA-4 / §7 principles 1–3, ADR-0003 / 0014 / 0019, the production diff (`gh api …/pulls/128/files`), QA rounds 1 and 2,
+and every file in `evidence/` (00–25: all 25 PNGs opened, including the Chromium screenshots 10–16, 23, 24).
+
+## Product fit (Product PRD §7)
+- **Principle 1 (every statement shows its own verdict):** each claim renders as a list item with its own text + icon chip (10, 23). The chip comes from the
+  claim's `status`, not from the citations, so a claim whose check failed can't borrow a neighbour's "Supported".
+- **Principle 2 (never overclaim):** `claimState` is the conservative order: only `supported` reads Supported, `unverified` → "Not checked", anything else
+  → "Unsupported". "Not checked" is a distinct amber chip, and no unverified item says "verified" (04, 05/22, M1 killed by unit + browser).
+- **Principle 3 (one click to the source):** every `[n]` button that has a card moves focus to that card and marks it (12, 13). Keyboard users get the
+  preview tooltip on focus, and Enter lands on the card, which is design condition 4 asserted on `document.activeElement` (20, CI 18).
+  Reduced motion is respected. The FE-3b review item (a stray ring in refusal mode) is closed (14 against negative control 06).
+- **ADR-0019:** a written answer with skipped markers shows `[1] [1] [3]`, no `[2]` and no "hidden" count. One card per passage, with both counts
+  pinned and shown: "2 cited" and "3 of 3 citations supported" (11, 24). Design condition 3 is met, including the screenshot.
+
+## Scope
+- Matches the ticket and the size decision. The 9 files are all under `frontend/src/` (01, 19). The "Cited by claim n" / "Check n" rows and `aria-current`
+  are absent, as agreed; they're FE-4b AC2d. The interim one-chip-per-check header on a repeated-marker card (11, 13: "Supported · 87.3%" and
+  "Supported · 80.1%") hides no check's status, which is why I accepted that interim.
+- Design condition 2 holds: the meta line, passage box and PDF link are untouched. "Chunk #", "§ Section:" and the `max-h-36` box are still visible in the screenshots, as intended until FE-4b.
+- Nothing extra. `hasClaims` was moved into `lib/citations.js` so it can be unit-tested (§2 item 2). This adds no behaviour. The dropped `title` on fallback markers with a card is the accepted deviation (design Q1).
+- **Size:** 706 changed lines in total. Prod is **222** (cap ~250; App 23, ReferencesStack 64, SynthesisView 78, citations 57) and tests + fixtures are 484. Accepted under the 2026-11-22 decision.
+  The overage is the AC test plan plus the three round-1 tests that killed M6/M10/M13.
+- **No existing test body changed** (condition 1 / AC5): the only removed test lines PR-wide are 3 import lines (03, 19). The 2 lines removed in the rework belong to the PR's own swap test (git blame in 19).
+
+## Evidence covers every AC
+| AC | Convincing? | Key evidence |
+|---|---|---|
+| AC1 | yes | 04 (claimState table), 05/22 (chips, variants, `[1] [1] [3]`, no hidden), 10/23, 11/24, CI 18 |
+| AC2 (FE-4a part) | yes | 12 (tooltip on keyboard focus with title + status), 13 (focus ring on card [1] after Enter), 20 (real App tests incl. broken invariant), 05/22 |
+| AC2b | yes, after rework | 14 (refusal A: no ring), 16 (after swap: no ring), 21 (M6 and M10 killed at 529ad12 and survive at 34cbd2e), 06 (main shows the ring) |
+| AC2c | yes | 11/24 (two cards, "2 cited", "3 of 3"), 05/22 (ids `ref-1`, `ref-3`), 06 (main: duplicate-key warning) |
+| AC5 | yes | 15 (prose fallback; `[2]` → card 2), 03/19 (no test body changed), CI SynthesisView 30/30 |
+| AC6 | yes | 17 (5/5 checks on 529ad12), 18 (oxlint 0 warnings = main, Vitest 210/210, build OK) |
+| Docs | yes | design §2 item 3 carries the condition-1 wording; no app README change needed |
+
+No AC rests on a "⚠ unverified" item. Mutants M7 and M11 survive QA's browser harness, but the PR's component tests kill them statically and those tests run green in CI (`refusal mode ignores active`, `toHaveBeenLastCalledWith(3, 2)`). M11 becomes visible in FE-4b (`aria-current` per `(marker, pos)`), and I've added it to FE-4b's mutant list.
+
+Observation (not a finding): in 16, claim 2's chip is captured mid colour transition (amber tint). The same fixture settled in 24 is green, and the variant assertions pass (05/22).
+
+## [spec] items (mine)
+- QA r1 F5 / r2 F1, **M3 is an equivalent mutant**: `handleSearch` resets `active` before any result renders, so "initial value back to 1" can't be observed.
+  I fixed the design test plan (`docs/design/FE-4.md` §Test plan: M3 is replaced by "drop the reset on a new search", alone or combined with M3) and added the
+  note to FE-4b's spec. Nothing changes in FE-4a. The reset is now tested directly ("a new search clears the active card", M10 killed).
+
+## Follow-ups
+- FE-4b (already specced, Blocked on this merge): AC2d rows replace the interim chips. Mutant list updated (M11, M3+M10). After FE-4b merges, the Product PRD UI-1 note gets updated via a `docs/` PR (already in FE-4b's Docs AC).
+- None new.
+
+**Raised:** PR description rewritten with the Evidence section, marked ready for review, label `ready-to-merge`. Merge is Mahesh's.

@@ -225,6 +225,10 @@ on unsupported; reserved/unknown claim status; page/version edge values; empty `
 Tests replaced (to be listed in the PR body with their stricter replacements): `ReferencesStack.test.jsx:30` `Section: <s>` → exact meta-line assert.
 Mutants QA can use (each must be killed): drop the `kind === 'supported'` highlight guard; `claimState` mapping `unverified` → supported; `pdfHref` `>= 1` → `>= 0`;
 `locateQuote` case-insensitive match; drop the inline-ref step; `claimCitations` skipping the marker-equality check; `active` initial value back to `1`; drop `tabIndex={-1}`/`.focus()`.
+_pm-lead 2026-11-27 (FE-4a QA r1 F5): "`active` initial value back to `1`" is an **equivalent mutant**. `handleSearch` calls `setActive(null)` before any result renders,
+so the initial value is never visible. Use instead: drop `setActive(null)` on a new search (alone it is killed by `App.test.jsx › a new search clears the active card`), or
+combine it with the initial `{marker: 1}` to reproduce the pre-FE-4a "card 1 active on load". Also used by FE-4a QA: drop `setActive(null)` on the quoted → written swap; ignore reduced
+motion; marker ignores `pos` (visible in FE-4b via `aria-current`)._
 
 ## Size and split
 | Part | Content | Prod | Tests |

@@ -8,7 +8,7 @@
 | **Depends on** | FE-3b #104, FE-0i #109, AI-8b #65, ADR-0019 #120 (all merged). Design `docs/design/FE-4.md` **approved with conditions** 2026-11-22 |
 | **Jira** | create: story under epic KAN-5 "Research UI & citations", labels `task-FE-4a`, `design-required`; link to KAN-44 (FE-4 umbrella) |
 | **Design required** | yes: covered by `docs/design/FE-4.md` (approved; §1 `claimState`/`claimCitations`/`groupByMarker`, §2, §3 grouping/focus/rows, §4, §5, §6) |
-| **Status** | In QA (rework round 1 pushed): draft PR [#128](https://github.com/MaheshPulivarthi18/ArxivLens/pull/128), head `529ad12`, CI green (cycle 2026-11-27T03:59Z) |
+| **Status** | Ready to merge: PR [#128](https://github.com/MaheshPulivarthi18/ArxivLens/pull/128) raised for review, head `529ad12`, CI 5/5 green. QA FAIL (r1), PASS (r2); PM APPROVE 2026-11-27 ([report](../reviews/FE-4a/report.md)) |
 
 ## Goal
 A researcher sees every statement of an answer with its own verdict (Supported / Unsupported / Not checked), and each `[n]` marker takes
@@ -109,5 +109,8 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   - [x] F2 [nit] New App test "a new search clears the active card": search, click `[3]`, assert card 3 active, search again, wait for the 2nd fetch and the list, assert none active (kills M10, `App.jsx:84`).
   - [x] F3 [nit] New `it.each` App test (true→`auto`, false→`smooth`): stubs `matchMedia` and spies on `Element.prototype.scrollIntoView` (restored in `finally`). It asserts the last call is `{ behavior, block: 'nearest' }` on card 3 via `mock.contexts` (kills M13).
   - [x] F4 [nit] Claims list: `{entries.length > 0 && ' '}` between the sentence and its first marker, matching the prose fallback. Uncited claims are unchanged. No test added (cosmetic).
-  - [ ] F5 [spec] M3 equivalence noted for FE-4b/QA. Nothing to change in FE-4a, and F2 now tests the reset directly.
+  - [x] F5 [spec] M3 equivalence noted for FE-4b/QA. Nothing to change in FE-4a, and F2 now tests the reset directly. (pm-lead 2026-11-27: noted in the `docs/design/FE-4.md` §Test plan and in the FE-4b spec.)
   - Local: no `node_modules` (registry blocked), not run. Ownership check OK (size warning, 706 lines). **CI on `529ad12`: all 5 checks green.** Frontend: oxlint 0 warnings/0 errors; Vitest 12 files **210 passed** (was 207; App.test.jsx 17→20); `vite build` OK. Mutant kills for M6/M10/M13 are by static reading. I have not run them.
+- 2026-11-27 (pm-lead, final review, cycle 2026-11-27T03:59Z): **APPROVE** at `529ad12`. I opened all evidence 00–25. AC1, AC2 (FE-4a part), AC2b, AC2c, AC5, AC6 and Docs are covered. Size conditions 1–3 and
+  design conditions 1–4 hold. Size is 706 lines in total (prod 222), accepted. The [spec] item about the M3 equivalent mutant went into the design §Test plan and the FE-4b Notes (with M11 to be killed at runtime by AC2d).
+  The PR description was rewritten with the Evidence section, the PR was marked ready for review and labelled `ready-to-merge`. FE-4b stays Blocked until #128 merges. Jira was skipped (orchestrator instruction).

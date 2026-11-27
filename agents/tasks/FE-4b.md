@@ -40,7 +40,9 @@ section and page it comes from, and opens the PDF at that page in one click.
 ```bash
 cd frontend && npm ci && npm run lint && npm test && npm run build
 # QA: kill the FE-4b mutants from docs/design/FE-4.md §Test plan: drop the kind==='supported' highlight guard; pdfHref >= 1 → >= 0;
-# locateQuote case-insensitive; drop the inline-ref step; ASCII whitespace class → \s in the regex steps (condition 5)
+# locateQuote case-insensitive; drop the inline-ref step; ASCII whitespace class → \s in the regex steps (condition 5);
+# AC2d: marker ignores pos (onCitationClick(marker) only) → aria-current must land on the wrong/no row; row label ignores the broken-invariant check
+# Not "active initial back to 1": equivalent (see Notes 2026-11-27); pair it with dropping setActive(null) on a new search
 ```
 
 ## Notes
@@ -48,3 +50,9 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   real response until ING-11b, so the `#page=N` path is fixture-only; say so in the PR evidence. FE-2 (`ReferencesStack.jsx`) waits on this task.
 - 2026-11-22 (pm-lead, cycle 2026-11-22T02:00Z): FE-4a size decision moved the multi-entry "Cited by claim n" / "Check n" rows and their
   `aria-current` here (new AC2d; design `docs/design/FE-4.md` §3 multi-entry bullet). Size estimate grows to ≈ 320 changed lines; split again if it passes 400.
+- 2026-11-27 (pm-lead, FE-4a final review): FE-4a (#128) is APPROVED and raised; this task is still Blocked until Mahesh merges it. Notes from that review:
+  (1) The design mutant "`active` initial value back to 1" is **equivalent**: `handleSearch` resets `active` before any result renders. QA should use
+  "drop the reset on a new search" (alone, or combined with the initial `{marker: 1}`) instead. FE-4a already tests the reset directly.
+  (2) The FE-4a mutant "marker ignores `pos`" was only killed statically (`toHaveBeenLastCalledWith(3, 2)`), because `pos` isn't visible until these rows exist.
+  AC2d's `aria-current` test with `synthesizedSkips` (click the *second* `[1]`, so the row for claim 2 is current and not claim 1) must kill it at runtime.
+  (3) The AC2d rows replace FE-4a's interim one-chip-per-check header in `ReferencesStack.jsx` (the `entries.map` in the card header). Remove that header in this PR.
