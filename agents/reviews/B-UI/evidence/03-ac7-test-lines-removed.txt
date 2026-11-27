@@ -1,0 +1,18 @@
+$ bash -c git diff -U0 origin/main...HEAD -- '*.test.js' '*.test.jsx' | grep -E '^(\+\+\+|-)' | grep -v '^---'
++++ b/frontend/src/App.test.jsx
++++ b/frontend/src/components/HeroSearch.test.jsx
++++ b/frontend/src/components/ReferencesStack.test.jsx
+-import { describe, it, expect, vi } from 'vitest';
+-import { render, screen, within } from '@testing-library/react';
+-  it('shows title, section and a one-click link to pdf_url for each citation', () => {
+-    for (const cit of [supportedCitation, unsupportedCitation]) {
+-      expect(c.getByText(new RegExp(`Section: ${cit.section}`))).toBeInTheDocument();
+-      expect(c.getByRole('link', { name: /open pdf/i })).toHaveAttribute('href', cit.pdf_url);
+-      `https://arxiv.org/pdf/${supportedCitation.arxiv_id}.pdf`,
+-  it('Copy BibTeX passes an @article{arxiv_... entry to onCopy', async () => {
+-    expect(bibtex).toMatch(/^@article\{arxiv_240101234,/);
++++ b/frontend/src/lib/bibtex.test.js
++++ b/frontend/src/lib/citations.test.js
+-import { citationState, markdownNote, claimState, hasClaims, claimCitations, claimRows, groupByMarker } from './citations';
+
+[exit code 0]

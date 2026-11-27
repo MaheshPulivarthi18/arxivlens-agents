@@ -1,0 +1,101 @@
+$ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa-B-UI-r1/harness/bibprobe.sh /home/claude/arxivlens-agents/app/frontend/src
+--- bibEntry(supportedCitation) [arxivYear=2024]
+@misc{arxiv240101234,
+  title = {Grounded Retrieval for Scientific QA},
+  eprint = {2401.01234},
+  archivePrefix = {arXiv},
+  year = {2024},
+  url = {https://arxiv.org/abs/2401.01234}
+}
+--- bibEntry(old-style id cs/0601001, title with specials) [arxivYear=2006]
+@misc{arxivcs0601001,
+  title = {A\_B \& \{C\} 50\% \$x \#1},
+  eprint = {cs/0601001},
+  archivePrefix = {arXiv},
+  year = {2006},
+  url = {https://arxiv.org/abs/cs/0601001}
+}
+--- bibEntry(unparseable id "nope", empty title) [arxivYear=null]
+@misc{arxivnope,
+  eprint = {nope},
+  archivePrefix = {arXiv},
+  url = {https://arxiv.org/abs/nope}
+}
+--- bibEntry(month 13 id 2413.01234) [arxivYear=null]
+@misc{arxiv241301234,
+  title = {T},
+  eprint = {2413.01234},
+  archivePrefix = {arXiv},
+  url = {https://arxiv.org/abs/2413.01234}
+}
+--- bibEntry(empty id) [arxivYear=null]
+null
+=== bibFile(quotedAnswer.citations, answerKind=quoted) count=2 of 2 citations
+% ArxivLens export. Author fields are not included: ArxivLens does not return authors yet; see each url.
+
+@misc{arxiv240101234,
+  title = {Grounded Retrieval for Scientific QA},
+  eprint = {2401.01234},
+  archivePrefix = {arXiv},
+  year = {2024},
+  url = {https://arxiv.org/abs/2401.01234}
+}
+
+@misc{arxiv240205678,
+  title = {Entailment Checks for Citations},
+  eprint = {2402.05678},
+  archivePrefix = {arXiv},
+  year = {2024},
+  url = {https://arxiv.org/abs/2402.05678}
+}
+
+=== bibFile(synthesizedSkips.citations, answerKind=synthesized) count=2 of 3 citations
+% ArxivLens export. Author fields are not included: ArxivLens does not return authors yet; see each url.
+
+@misc{arxiv240101234,
+  title = {Grounded Retrieval for Scientific QA},
+  eprint = {2401.01234},
+  archivePrefix = {arXiv},
+  year = {2024},
+  url = {https://arxiv.org/abs/2401.01234}
+}
+
+@misc{arxiv240504321,
+  title = {Claim-Level Checking in Practice},
+  eprint = {2405.04321},
+  archivePrefix = {arXiv},
+  year = {2024},
+  url = {https://arxiv.org/abs/2405.04321}
+}
+
+=== bibFile(mixedAnswer.citations, answerKind=quoted) count=3 of 3 citations
+% ArxivLens export. Author fields are not included: ArxivLens does not return authors yet; see each url.
+
+@misc{arxiv240101234,
+  title = {Grounded Retrieval for Scientific QA},
+  eprint = {2401.01234},
+  archivePrefix = {arXiv},
+  year = {2024},
+  url = {https://arxiv.org/abs/2401.01234}
+}
+
+@misc{arxiv240205678,
+  title = {Entailment Checks for Citations},
+  eprint = {2402.05678},
+  archivePrefix = {arXiv},
+  year = {2024},
+  url = {https://arxiv.org/abs/2402.05678}
+}
+
+@misc{arxiv240309999,
+  title = {Passage Without a Check},
+  eprint = {2403.09999},
+  archivePrefix = {arXiv},
+  year = {2024},
+  url = {https://arxiv.org/abs/2403.09999}
+}
+
+fields used across all exports: title, eprint, archivePrefix, year, url
+field lines author = / primaryClass = / year = {2026} present anywhere: false
+
+[exit code 0]

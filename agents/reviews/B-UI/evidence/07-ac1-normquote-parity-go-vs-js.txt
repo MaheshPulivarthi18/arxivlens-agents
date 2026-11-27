@@ -1,0 +1,40 @@
+$ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa-B-UI-r1/parity/cmp.sh /home/claude/arxivlens-agents/app
+== Go source used (from /home/claude/arxivlens-agents/app/internal/query/rag.go):
+var inlineRefRegex = regexp.MustCompile(`\s*\[\d+(?:\s*[,–-]\s*\d+)*\]`)
+
+var spaceBeforePunct = regexp.MustCompile(`\s+([.,;:!?])`)
+
+// normQuote normalizes text for quote matching: inline references removed, whitespace collapsed, no space
+// before punctuation (a removed answer marker leaves "claim ." behind).
+func normQuote(s string) string {
+	s = strings.Join(strings.Fields(inlineRefRegex.ReplaceAllString(s, "")), " ")
+	return spaceBeforePunct.ReplaceAllString(s, "$1")
+}
+SAME  "shown [12] here." -> "shown here." 
+SAME  "shown [3, 4] here" -> "shown here" 
+SAME  "shown [5\u20137] here" -> "shown here" 
+SAME  "shown [5-7] here" -> "shown here" 
+SAME  "the claim . Next" -> "the claim. Next" 
+SAME  "hybrid\nsearch works" -> "hybrid search works" 
+SAME  "a  b   c" -> "a b c" 
+SAME  "shown in [3,\u00a04] that" -> "shown in [3, 4] that" 
+SAME  "hybrid\u00a0search works" -> "hybrid search works" 
+SAME  "a\u2009b c" -> "a b c" 
+SAME  "As shown [12]  earlier, hybrid\nsearch works well." -> "As shown earlier, hybrid search works well." 
+SAME  "Intro.\n\n\nWe  verify  each claim." -> "Intro. We verify each claim." 
+SAME  "x\u00a0[3] y" -> "x y" 
+SAME  "x [3]\u00a0. y" -> "x. y" 
+SAME  "  lead and trail  " -> "lead and trail" 
+SAME  "x\u000b[3] y" -> "x y" 
+SAME  "end [1] , [2] ; ok" -> "end,; ok" 
+SAME  "We retrieve passages with hybrid\nsearch [12] and check each claim." -> "We retrieve passages with hybrid search and check each claim." 
+SAME  "a\u3000b" -> "a b" 
+SAME  "a\ufeffb" -> "a\ufeffb" 
+SAME  "a\u0085b" -> "a b" 
+SAME  "nested [1, 2, 3] refs [10\u201312] done !" -> "nested refs done!" 
+SAME  "[1]" -> "" 
+SAME  " \n " -> "" 
+SAME  "x\t[4]\t.y" -> "x.y" 
+25/25 inputs: JS normQuote == Go normQuote (rag.go)
+
+[exit code 0]

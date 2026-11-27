@@ -1,0 +1,18 @@
+$ bash -c git log --oneline origin/main..HEAD; git diff --numstat origin/main...HEAD; git diff --shortstat origin/main...HEAD; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/140708439931/logs | sed 's/\x1b\[[0-9;]*m//g' | grep -E 'ownership-check|Ownership'
+5cc1cdd B-UI: quote in passage, provenance line + PDF page, cited-by rows, .bib export
+3	0	frontend/src/App.jsx
+33	0	frontend/src/App.test.jsx
+1	1	frontend/src/components/HeroSearch.jsx
+6	0	frontend/src/components/HeroSearch.test.jsx
+212	67	frontend/src/components/ReferencesStack.jsx
+155	9	frontend/src/components/ReferencesStack.test.jsx
+68	0	frontend/src/lib/bibtex.js
+54	0	frontend/src/lib/bibtex.test.js
+74	2	frontend/src/lib/citations.js
+59	1	frontend/src/lib/citations.test.js
+ 10 files changed, 665 insertions(+), 80 deletions(-)
+2026-11-27T19:46:23.3788339Z ##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+2026-11-27T19:46:23.3791254Z .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+2026-11-27T19:46:23.4498085Z Ownership OK for role=frontend (745 changed lines)
+
+[exit code 0]

@@ -1,0 +1,20 @@
+$ bash -c F=/home/claude/arxivlens-agents/app/frontend/src; H=/tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa-B-UI-r1/harness; $H/gap.sh $F head; $H/gap.sh $F M7 7; $H/gap.sh $F M9 9; $H/gap.sh $F M13 13; true
+head gap rows: 5 passed, 0 failed
+applied: M7 whitespace-only quote accepted
+M7 gap rows: 4 passed, 1 failed
+  FAIL QA gap rows > whitespace-only quote on content that contains that whitespace → null: toBeNull {"start":1,"end":4}
+applied: M9 mark start at normalised index, not raw
+M9 gap rows: 3 passed, 2 failed
+  FAIL QA gap rows > ref + double space before the quote As shown [12]  earlier, hybrid
+search works well. hybrid search works hybrid
+search works: toBe "lier, hybrid\nsearch works" vs "hybrid\nsearch works"
+  FAIL QA gap rows > collapsed whitespace before the quote Intro.
+
+
+We  verify  each claim. We verify each claim. We  verify  each claim.: toBe "\n\nWe  verify  each claim." vs "We  verify  each claim."
+applied: M13 Unicode collapse -> ASCII only (strings.Fields mirror)
+M13 gap rows: 3 passed, 2 failed
+  FAIL QA gap rows > NBSP between words hybrid search works hybrid search works hybrid search works: toBe null vs "hybrid search works"
+  FAIL QA gap rows > thin space U+2009 a b c a b c a b c: toBe null vs "a b c"
+
+[exit code 0]

@@ -1,0 +1,196 @@
+$ bash -c echo node $(node --version); go version; echo esbuild $(/opt/npm-tools/node_modules/.bin/esbuild --version); for f in $(cd /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa-B-UI-r1 && find harness parity -type f ! -name '*.pyc' ! -name 'go.json' ! -name 'js.json' ! -name 'main.go' | sort); do echo "===== $f"; cat /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa-B-UI-r1/$f; done
+node v22.23.4
+esbuild 0.28.2
+===== harness/bibprobe.js
+// QA probe: what the PR's bibtex.js actually writes for fixture and edge-case citations (no field may be invented).
+import { bibEntry, bibFile, arxivYear } from '__SRC__/lib/bibtex.js';
+import * as F from '__SRC__/test/fixtures.js';
+const cases = {
+  supportedCitation: F.supportedCitation,
+  'old-style id cs/0601001, title with specials': { arxiv_id: 'cs/0601001', title: 'A_B & {C} 50% $x #1' },
+  'unparseable id "nope", empty title': { arxiv_id: 'nope', title: '' },
+  'month 13 id 2413.01234': { arxiv_id: '2413.01234', title: 'T' },
+  'empty id': { arxiv_id: '', title: 'T' },
+};
+for (const [n, c] of Object.entries(cases)) console.log(`--- bibEntry(${n}) [arxivYear=${arxivYear(c.arxiv_id)}]\n${bibEntry(c)}`);
+for (const [n, r] of [['quotedAnswer', F.quotedAnswer], ['synthesizedSkips', F.synthesizedSkips], ['mixedAnswer', F.mixedAnswer]]) {
+  const f = bibFile(r.citations, { answerKind: r.answer_kind });
+  console.log(`=== bibFile(${n}.citations, answerKind=${r.answer_kind}) count=${f.count} of ${r.citations.length} citations\n${f.text}`);
+}
+const all = [F.quotedAnswer, F.synthesizedSkips, F.mixedAnswer, F.quotedClaims].map((r) => bibFile(r.citations, { answerKind: r.answer_kind }).text).join('\n');
+console.log('fields used across all exports:', [...new Set([...all.matchAll(/^\s+(\w+) = /gm)].map((m) => m[1]))].join(', '));
+console.log('field lines author = / primaryClass = / year = {2026} present anywhere:', /^\s+(author|primaryClass)\s*=|year = \{2026\}/m.test(all));
+===== harness/bibprobe.sh
+#!/usr/bin/env bash
+set -eu; H=$(cd "$(dirname "$0")" && pwd); T=$(mktemp -d)
+sed "s#__SRC__#$1#" "$H/bibprobe.js" > "$T/p.js"
+/opt/npm-tools/node_modules/.bin/esbuild "$T/p.js" --bundle --format=esm --platform=node --log-level=error --outfile="$T/p.mjs" && node "$T/p.mjs"
+===== harness/gap-rows.test.js
+// QA probe rows (harness only, never pushed): the shape the missing locateQuote rows would take.
+import { describe, it, expect } from 'vitest';
+import { locateQuote, normQuote } from '__SRC__/lib/citations.js';
+describe('QA gap rows', () => {
+  it.each([
+    // quote does not start at 0 and something before it normalises away: the raw start must be mapped, not reused
+    ['ref + double space before the quote', 'As shown [12]  earlier, hybrid\nsearch works well.', 'hybrid search works', 'hybrid\nsearch works'],
+    ['collapsed whitespace before the quote', 'Intro.\n\n\nWe  verify  each claim.', 'We verify each claim.', 'We  verify  each claim.'],
+    // strings.Fields is Unicode: NBSP / U+2009 between words collapse to one space on the server
+    ['NBSP between words', 'hybrid search works', 'hybrid search works', 'hybrid search works'],
+    ['thin space U+2009', 'a b c', 'a b c', 'a b c'],
+  ])('%s', (_n, content, quote, raw) => {
+    const r = locateQuote(content, quote);
+    expect(r === null ? null : content.slice(r.start, r.end)).toBe(raw);
+    expect(normQuote(raw)).toBe(normQuote(quote));
+  });
+  it('whitespace-only quote on content that contains that whitespace → null', () => {
+    expect(locateQuote('a \n b', ' \n ')).toBeNull();
+  });
+});
+===== harness/gap.sh
+#!/usr/bin/env bash
+# usage: gap.sh <frontend/src> <label> [mutant index]  runs gap-rows.test.js against head or one mutant from mutants.py
+set -u
+SRC=$1; LABEL=$2; H=$(cd "$(dirname "$0")" && pwd); T=$(mktemp -d); cp -r "$SRC" "$T/src"
+if [ $# -ge 3 ]; then python3 -I - "$H" "$T/src/lib/citations.js" "$3" <<'PY'
+import sys; sys.path.insert(0, sys.argv[1]); from mutants import MUTANTS
+name, old, new = MUTANTS[int(sys.argv[3])]; p = sys.argv[2]; s = open(p).read(); assert s.count(old) == 1
+open(p, "w").write(s.replace(old, new)); print("applied:", name)
+PY
+fi
+sed "s#__SRC__#$T/src#" "$H/gap-rows.test.js" > "$T/gap.test.js"
+printf "import { report } from 'vitest';\nimport '%s/gap.test.js';\nprocess.exitCode = await report('%s gap rows');\n" "$T" "$LABEL" > "$T/entry.js"
+/opt/npm-tools/node_modules/.bin/esbuild "$T/entry.js" --bundle --format=esm --platform=node --log-level=error --alias:vitest="$H/vitest-shim.js" --outfile="$T/gap.mjs" && node "$T/gap.mjs"
+===== harness/mutants.py
+# Mutants of frontend/src/lib/citations.js (quote location, provenance/PDF page, citation status). Each is one exact
+# string replacement; the script asserts it applies exactly once, so a mutant can't silently be a no-op.
+MUTANTS = [
+ ("M1 locateQuote case-insensitive (ticket)",
+  "const direct = content.indexOf(quote);", "const direct = content.toLowerCase().indexOf(quote.toLowerCase());"),
+ ("M1b normalised path case-insensitive",
+  "const k = text.indexOf(q);", "const k = text.toLowerCase().indexOf(q.toLowerCase());"),
+ ("M2 drop the inline-ref step (ticket)",
+  "for (const m of raw.matchAll(INLINE_REF)) {", "for (const m of raw.matchAll(/(?!)/g)) {"),
+ ("M3 RE2 ASCII class -> JS \\s (PM condition 5)",
+  "const RE2_SPACE = '[\\\\t\\\\n\\\\f\\\\r ]';", "const RE2_SPACE = '\\\\s';"),
+ ("M4 validPage >= 1 -> >= 0 (ticket)",
+  "Number.isInteger(page) && page >= 1", "Number.isInteger(page) && page >= 0"),
+ ("M5 page '4' accepted (isInteger -> Number())",
+  "Number.isInteger(page) && page >= 1", "Number(page) >= 1"),
+ ("M6 drop spaceBeforePunct",
+  "const out = fields.filter((f, k) => !(f.ch === ' ' && PUNCT.includes(fields[k + 1]?.ch)));", "const out = fields;"),
+ ("M7 whitespace-only quote accepted",
+  "typeof quote !== 'string' || !quote.trim()) return null;", "typeof quote !== 'string' || !quote) return null;"),
+ ("M8 mark end off by one (raw span short)",
+  "end: at[k + q.length - 1] + 1 };", "end: at[k + q.length - 1] };"),
+ ("M9 mark start at normalised index, not raw",
+  "return { start: at[k], end:", "return { start: k, end:"),
+ ("M10 existing #fragment kept",
+  "`${base.split('#')[0]}#page=${cit.page}`", "`${base}#page=${cit.page}`"),
+ ("M11 v0 shown",
+  "Number.isInteger(v) && v > 0 ?", "Number.isInteger(v) && v >= 0 ?"),
+ ("M12 empty section still prints '§ '",
+  "cit.section && `§ ${cit.section}`", "`§ ${cit.section}`"),
+ ("M13 Unicode collapse -> ASCII only (strings.Fields mirror)",
+  "const GO_SPACE = /[\\t\\n\\v\\f\\r \\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]/;", "const GO_SPACE = /[\\t\\n\\f\\r ]/;"),
+ ("M14 status: supported/false disagreement reads Supported",
+  "if (status === 'supported' && supported !== false) return 'supported';", "if (status === 'supported') return 'supported';"),
+ ("M15 status: unverified reads Supported",
+  "if (status === 'unverified') return 'unchecked';", "if (status === 'unverified') return 'supported';"),
+ ("M16 status: reserved/unknown status reads Supported",
+  "  return 'unsupported';\n}", "  return 'supported';\n}"),
+ ("M17 markdownNote prints '(§ )' for empty section",
+  "const section = c.section ? ` (§ ${c.section})` : '';", "const section = ` (§ ${c.section})`;"),
+]
+===== harness/mutate.sh
+#!/usr/bin/env bash
+# usage: mutate.sh <app frontend/src>  copies src to a fresh temp dir per mutant, applies it, runs the lib tests
+set -u
+SRC=$1; H=$(cd "$(dirname "$0")" && pwd)
+N=$(python3 -I -c "import sys; sys.path.insert(0,'$H'); from mutants import MUTANTS; print(len(MUTANTS))")
+for i in $(seq 0 $((N-1))); do
+  T=$(mktemp -d); cp -r "$SRC" "$T/src"
+  NAME=$(python3 -I - "$H" "$T/src/lib/citations.js" "$i" <<'PY'
+import sys; sys.path.insert(0, sys.argv[1]); from mutants import MUTANTS
+name, old, new = MUTANTS[int(sys.argv[3])]; p = sys.argv[2]; s = open(p).read()
+assert s.count(old) == 1, f"{name}: pattern found {s.count(old)}x"
+open(p, "w").write(s.replace(old, new)); print(name)
+PY
+) || { echo "APPLY FAILED $i"; continue; }
+  OUT=$("$H/run.sh" "$T/src" mut 2>&1)
+  if echo "$OUT" | grep -q "FAIL "; then
+    echo "KILLED   $NAME"; echo "$OUT" | grep "FAIL " | head -2 | sed 's/^/           /'
+  else echo "SURVIVED $NAME"; echo "$OUT" | sed 's/^/           /'; fi
+done
+===== harness/run.sh
+#!/usr/bin/env bash
+# usage: run.sh <frontend/src dir> <label>   bundles lib tests with the shim and runs them under node
+set -u
+SRC=$1; LABEL=$2; H=$(cd "$(dirname "$0")" && pwd); OUT=$(mktemp -d)
+for t in citations bibtex; do
+  printf "import { report } from 'vitest';\nimport '%s/lib/%s.test.js';\nprocess.exitCode = await report('%s %s.test.js');\n" "$SRC" "$t" "$LABEL" "$t" > "$OUT/entry-$t.js"
+  /opt/npm-tools/node_modules/.bin/esbuild "$OUT/entry-$t.js" --bundle --format=esm --platform=node --log-level=error \
+    --alias:vitest="$H/vitest-shim.js" --outfile="$OUT/$t.mjs" && node "$OUT/$t.mjs"
+done
+===== harness/vitest-shim.js
+// Minimal vitest stand-in for plain-ESM lib tests (logic check only; CI Vitest is the pass/fail).
+import { isDeepStrictEqual, format } from 'node:util';
+const results = []; const stack = [];
+export const describe = (n, f) => { stack.push(n); f(); stack.pop(); };
+const run = (name, f) => results.push({ name: [...stack, name].join(' > '), f });
+export const it = Object.assign(run, {
+  each: (rows) => (name, f) => rows.forEach((r) => { const a = Array.isArray(r) ? r : [r]; run(format(name, ...a), () => f(...a)); }),
+});
+export const test = it;
+const fail = (m) => { throw new Error(m); };
+const show = (v) => { try { return JSON.stringify(v); } catch { return String(v); } };
+function matchers(v, neg) {
+  const chk = (ok, m) => { if (ok === neg) fail((neg ? 'NOT ' : '') + m); };
+  return {
+    toBe: (e) => chk(Object.is(v, e), `toBe ${show(v)} vs ${show(e)}`),
+    toEqual: (e) => chk(isDeepStrictEqual(JSON.parse(JSON.stringify(v ?? null)), JSON.parse(JSON.stringify(e ?? null))), `toEqual ${show(v)} vs ${show(e)}`),
+    toBeNull: () => chk(v === null, `toBeNull ${show(v)}`),
+    toMatch: (re) => chk(typeof re === 'string' ? String(v).includes(re) : re.test(v), `toMatch ${show(v)} ${re}`),
+    toContain: (e) => chk(v != null && v.includes(e), `toContain ${show(v)} ${show(e)}`),
+    toHaveLength: (n) => chk(v != null && v.length === n, `toHaveLength ${show(v)} ${n}`),
+    toBeGreaterThan: (n) => chk(v > n, `toBeGreaterThan ${v} ${n}`),
+  };
+}
+export const expect = (v) => Object.assign(matchers(v, false), { not: matchers(v, true) });
+export const vi = {};
+export async function report(label) {
+  let pass = 0; const fails = [];
+  for (const t of results) { try { await t.f(); pass += 1; } catch (e) { fails.push(`${t.name}: ${e.message.slice(0, 160)}`); } }
+  console.log(`${label}: ${pass} passed, ${fails.length} failed`);
+  for (const f of fails) console.log('  FAIL ' + f);
+  return fails.length;
+}
+===== parity/cmp.sh
+#!/usr/bin/env bash
+# usage: cmp.sh <app dir>  — Go normQuote copied verbatim from rag.go vs the PR's JS normQuote, same inputs
+set -eu
+P=$(cd "$(dirname "$0")" && pwd); APP=$1; cd "$P"
+{ echo 'package main'; echo 'import ("encoding/json";"fmt";"os";"regexp";"strings")'; sed -n '/^var inlineRefRegex/,/^}/p' "$APP/internal/query/rag.go" | grep -v '^//';
+  echo 'func main(){var in []string; b,_:=os.ReadFile(os.Args[1]); json.Unmarshal(b,&in); out:=[]string{}; for _,s:=range in{out=append(out,normQuote(s))}; j,_:=json.Marshal(out); fmt.Println(string(j))}'; } > main.go
+echo "== Go source used (from $APP/internal/query/rag.go):"; sed -n '/^var inlineRefRegex/,/^}/p' "$APP/internal/query/rag.go"
+GOTOOLCHAIN=local go run main.go inputs.json > go.json
+T=$(mktemp -d); printf "import { normQuote } from '%s/frontend/src/lib/citations.js';\nimport fs from 'node:fs';\nconsole.log(JSON.stringify(JSON.parse(fs.readFileSync(process.argv[2],'utf8')).map(normQuote)));\n" "$APP" > $T/e.js
+/opt/npm-tools/node_modules/.bin/esbuild $T/e.js --bundle --format=esm --platform=node --log-level=error --outfile=$T/e.mjs && node $T/e.mjs inputs.json > js.json
+python3 -I -c "
+import json;i=json.load(open('inputs.json'));g=json.load(open('go.json'));j=json.load(open('js.json'))
+d=0
+for a,b,c in zip(i,g,j):
+  ok=b==c; d+=not ok; print('SAME ' if ok else 'DIFF ', json.dumps(a), '->', json.dumps(b), '' if ok else 'js='+json.dumps(c))
+print(f'{len(i)-d}/{len(i)} inputs: JS normQuote == Go normQuote (rag.go)')"
+===== parity/go.mod
+module parity
+
+go 1.24
+===== parity/inputs.json
+["shown [12] here.", "shown [3, 4] here", "shown [5–7] here", "shown [5-7] here", "the claim . Next", "hybrid\nsearch works", "a  b   c",
+ "shown in [3, 4] that", "hybrid search works", "a b c", "As shown [12]  earlier, hybrid\nsearch works well.", "Intro.\n\n\nWe  verify  each claim.",
+ "x [3] y", "x [3] . y", "  lead and trail  ", "x\u000b[3] y", "end [1] , [2] ; ok", "We retrieve passages with hybrid\nsearch [12] and check each claim.",
+ "a　b", "a﻿b", "a\u0085b", "nested [1, 2, 3] refs [10–12] done !", "[1]", " \n ", "x\t[4]\t.y"]
+go: downloading go1.25.0 (linux/amd64)
+go: download go1.25.0: golang.org/toolchain@v0.0.1-go1.25.0.linux-amd64: Get "https://proxy.golang.org/golang.org/toolchain/@v/v0.0.1-go1.25.0.linux-amd64.zip": dial tcp: lookup proxy.golang.org on 8.8.8.8:53: no such host
+
+[exit code 0]

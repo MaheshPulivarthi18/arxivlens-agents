@@ -1,0 +1,139 @@
+$ bash -c grep -n '' frontend/src/components/ReferencesStack.test.jsx | sed -n '220,355p'
+220:// B-UI (design FE-4 §3 + B-UI addendum): quote in passage, provenance, Cited-by rows, Export.
+221:describe('ReferencesStack: evidence and export (B-UI)', () => {
+222:  const renderWith = (citations, extra = {}) =>
+223:    render(<ReferencesStack citations={citations} onCopy={vi.fn()} traceId="t" {...extra} />);
+224:  const marks = () => [...document.querySelectorAll('mark')].map((m) => m.textContent);
+225:  const NOT_FOUND = /Quoted text \(not found in the passage shown above\)/;
+226:  const NO_QUOTE = 'No exact quote for this citation: the check compared the claim with the whole passage.';
+227:
+228:  it('AC1: highlights the raw span of a normalised quote, with an sr-only "Quote: "', () => {
+229:    const cit = quotedClaims.citations[0];
+230:    renderWith([cit]);
+231:    expect(marks()).toEqual([`Quote: ${cit.content}`]);
+232:    expect(document.querySelector('mark .sr-only')).toHaveTextContent('Quote:');
+233:    expect(screen.queryByText(NOT_FOUND)).toBeNull();
+234:    expect(screen.queryByText(NO_QUOTE)).toBeNull();
+235:  });
+236:
+237:  it('AC1: a quote that is not located gets the fallback block, no mark', () => {
+238:    renderWith([{ ...supportedCitation, quote: 'Not in this passage.' }]);
+239:    expect(marks()).toEqual([]);
+240:    expect(screen.getByText(NOT_FOUND)).toHaveTextContent('“Not in this passage.”');
+241:  });
+242:
+243:  it('AC1: a supported citation without a quote gets the no-quote note', () => {
+244:    renderWith([{ ...supportedCitation, quote: undefined }]);
+245:    expect(marks()).toEqual([]);
+246:    expect(screen.getByText(NO_QUOTE)).toBeInTheDocument();
+247:  });
+248:
+249:  it.each([
+250:    ['unsupported', { ...unsupportedCitation, quote: 'Entailment scores' }],
+251:    ['not checked', { ...unverifiedCitation, quote: 'An introductory passage.' }],
+252:  ])('AC1: %s with a quote: no highlight and no note', (_n, cit) => {
+253:    renderWith([cit]);
+254:    expect(marks()).toEqual([]);
+255:    expect(screen.queryByText(NOT_FOUND)).toBeNull();
+256:    expect(screen.queryByText(NO_QUOTE)).toBeNull();
+257:  });
+258:
+259:  it('AC1: a long passage shows an excerpt holding the mark; "Show full passage" toggles aria-expanded', async () => {
+260:    const user = userEvent.setup();
+261:    const content = `Opening sentence of the chunk. ${'Filler words for length. '.repeat(30)}We verify each claim at the end.`;
+262:    renderWith([{ ...supportedCitation, content }]);
+263:    const excerpt = document.querySelector('[data-excerpt]');
+264:    expect(excerpt.textContent.startsWith('…')).toBe(true);
+265:    expect(excerpt.querySelector('mark')).toHaveTextContent('verify each claim');
+266:    expect(card(1).textContent).not.toContain('Opening sentence');
+267:    const toggle = screen.getByRole('button', { name: 'Show full passage' });
+268:    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+269:    await user.click(toggle);
+270:    expect(screen.getByRole('button', { name: 'Show less' })).toHaveAttribute('aria-expanded', 'true');
+271:    expect(card(1).textContent).toContain(content.slice(0, 60));
+272:    expect(marks()).toEqual(['Quote: verify each claim']);
+273:  });
+274:
+275:  it.each([
+276:    [4, '#page=4', 'Open PDF at p. 4 ↗'],
+277:    [0, '', 'Open PDF ↗'],
+278:    [null, '', 'Open PDF ↗'],
+279:    ['4', '', 'Open PDF ↗'],
+280:    [undefined, '', 'Open PDF ↗'],
+281:  ])('AC2: page %s → link suffix "%s", text "%s"', (page, suffix, text) => {
+282:    renderWith([{ ...supportedCitation, page }]);
+283:    const link = screen.getByRole('link', { name: /open pdf/i });
+284:    expect(link).toHaveAttribute('href', `${supportedCitation.pdf_url}${suffix}`);
+285:    expect(link).toHaveTextContent(text);
+286:    expect(card(1).textContent.includes('p. ')).toBe(suffix !== '');
+287:  });
+288:
+289:  it('AC2: paper_version 0 → "arXiv:<id>" with no "v0"', () => {
+290:    renderWith([{ ...supportedCitation, paper_version: 0, page: undefined }]);
+291:    expect(screen.getByText('arXiv:2401.01234 · § Methods')).toBeInTheDocument();
+292:  });
+293:
+294:  it('AC6: an older citation (no status, page, quote, paper_version) renders without new notes', () => {
+295:    const { marker, arxiv_id, title, chunk_id, section, content, pdf_url, score, supported } = supportedCitation;
+296:    const legacy = { marker, arxiv_id, title, chunk_id, section, content, pdf_url, score, supported };
+297:    renderWith([legacy]);
+298:    expect(screen.getByText('arXiv:2401.01234 · § Methods')).toBeInTheDocument();
+299:    expect(screen.getByText('Supported · 87.3%')).toBeInTheDocument();
+300:    expect(screen.getByRole('link', { name: /open pdf/i })).toHaveAttribute('href', legacy.pdf_url);
+301:    expect(card(1).textContent).toContain(legacy.content);
+302:    expect(marks()).toEqual([]);
+303:    expect(screen.queryByText(NO_QUOTE)).toBeNull();
+304:  });
+305:
+306:  describe('Export', () => {
+307:    let clicks;
+308:    afterEach(() => vi.restoreAllMocks());
+309:    const exportVia = async (key, citations, answerKind) => {
+310:      URL.createObjectURL = vi.fn(() => 'blob:x');
+311:      URL.revokeObjectURL = vi.fn();
+312:      clicks = [];
+313:      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function click() {
+314:        clicks.push(this.download);
+315:      });
+316:      const onNotify = vi.fn();
+317:      const user = userEvent.setup();
+318:      renderWith(citations, { answerKind, onNotify });
+319:      const trigger = screen.getByRole('button', { name: 'Export' });
+320:      for (let i = 0; i < 20 && document.activeElement !== trigger; i += 1) await user.tab();
+321:      expect(trigger).toHaveFocus();
+322:      await user.keyboard(key);
+323:      const item = await screen.findByRole('menuitem', { name: 'BibTeX (.bib)' });
+324:      await waitFor(() => expect(item).toHaveFocus());
+325:      await user.keyboard('{Enter}');
+326:      expect(clicks).toHaveLength(1);
+327:      expect(clicks[0]).toMatch(/^arxivlens-\d{8}-\d{6}\.bib$/);
+328:      const blob = URL.createObjectURL.mock.calls[0][0];
+329:      const text = await new Promise((done) => {
+330:        const reader = new FileReader();
+331:        reader.onload = () => done(reader.result);
+332:        reader.readAsText(blob);
+333:      });
+334:      return { text, onNotify };
+335:    };
+336:
+337:    it.each([['{Enter}'], [' ']])('AC5: keyboard %j opens Export, Enter downloads every shown reference', async (key) => {
+338:      const { text, onNotify } = await exportVia(key, quotedAnswer.citations, 'quoted');
+339:      expect(text).toContain('@misc{arxiv240101234,');
+340:      expect(text).toContain('@misc{arxiv240205678,');
+341:      expect(onNotify).toHaveBeenCalledWith('Exported 2 references (.bib)');
+342:    });
+343:
+344:    it('AC5: a written answer exports only supported citations', async () => {
+345:      const { text } = await exportVia('{Enter}', [...synthesizedSkips.citations, unsupportedCitation], 'synthesized');
+346:      expect(text.match(/@misc\{/g)).toHaveLength(2);
+347:      expect(text).not.toContain('arxiv240205678');
+348:    });
+349:
+350:    it('AC5: refusal mode has no Export trigger', () => {
+351:      renderWith(refusalA.citations, { refusalReason: refusalA.refusal_reason });
+352:      expect(screen.queryByRole('button', { name: /export/i })).toBeNull();
+353:    });
+354:  });
+355:});
+
+[exit code 0]

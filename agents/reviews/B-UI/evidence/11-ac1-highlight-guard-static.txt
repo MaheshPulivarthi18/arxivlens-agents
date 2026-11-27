@@ -1,0 +1,30 @@
+$ bash -c grep -n '' frontend/src/components/ReferencesStack.jsx | sed -n '98,115p'; echo '----- fixtures (content the guard test relies on)'; grep -n -E "content: '" frontend/src/test/fixtures.js | head -3; echo '----- tests'; grep -n -E 'no highlight and no note|unsupportedCitation, quote|unverifiedCitation, quote|AC6: an older' frontend/src/components/ReferencesStack.test.jsx
+98:
+99:// Highlight only for supported checks: a quote on any other status would read as evidence for a failed check.
+100:function quoteState(content, entries, refusal) {
+101:  const supported = entries.filter(({ citation }) => citationState(citation, { refusal }).kind === 'supported');
+102:  const ranges = [];
+103:  const missing = [];
+104:  for (const { citation } of supported) {
+105:    const q = typeof citation.quote === 'string' ? citation.quote.trim() : '';
+106:    if (!q) continue;
+107:    const r = locateQuote(content, citation.quote);
+108:    if (r) ranges.push([r.start, r.end]);
+109:    else if (!missing.includes(q)) missing.push(q);
+110:  }
+111:  ranges.sort((x, y) => x[0] - y[0]);
+112:  // The no-quote note needs an explicit `status` (a response from before quotes existed has none, AC6).
+113:  const checked = supported.some(({ citation }) => citation.status === 'supported');
+114:  return { ranges, missing, noQuote: checked && !ranges.length && !missing.length };
+115:}
+----- fixtures (content the guard test relies on)
+9:  content: 'We retrieve passages with hybrid search and verify each claim.',
+25:  content: 'Entailment scores fall below the support threshold.',
+40:  content: 'An introductory passage.',
+----- tests
+250:    ['unsupported', { ...unsupportedCitation, quote: 'Entailment scores' }],
+251:    ['not checked', { ...unverifiedCitation, quote: 'An introductory passage.' }],
+252:  ])('AC1: %s with a quote: no highlight and no note', (_n, cit) => {
+294:  it('AC6: an older citation (no status, page, quote, paper_version) renders without new notes', () => {
+
+[exit code 0]

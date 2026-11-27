@@ -1,0 +1,48 @@
+$ bash -c git diff origin/main...HEAD -- frontend/src/components/HeroSearch.jsx | grep -E '^[-+] '; git diff origin/main...HEAD -- frontend/src/lib/citations.js | grep -E '^[-+] .*(Research Note|section)'; echo '----- grep -niE "verified|verification|clinical" in non-test frontend/src at HEAD:'; git grep -niE 'verified|verification|clinical' HEAD -- frontend/src ':!*.test.*' || echo '(none)'
+-        <span>Evidence-Grounded Synthesis with Sentence-Level Verification</span>
++        <span>Evidence-Grounded Answers with Cited Passages</span>
+-  let md = `# Clinical & Academic Research Note\n\n${answer}\n\n## References\n`;
++  let md = `# ArxivLens Research Note\n\n${answer}\n\n## References\n`;
+-    md += `- [${c.marker}] **${c.title}** (§ ${c.section}) - [arXiv:${c.arxiv_id}](${pdf}) • ${citationState(c).text}\n`;
++    const section = c.section ? ` (§ ${c.section})` : '';
++    md += `- [${c.marker}] **${c.title}**${section} - [arXiv:${c.arxiv_id}](${pdf}) • ${citationState(c).text}\n`;
++  return [arxivLabel(cit), cit.section && `§ ${cit.section}`, validPage(cit.page) && `p. ${cit.page}`]
+----- grep -niE "verified|verification|clinical" in non-test frontend/src at HEAD:
+HEAD:frontend/src/App.jsx:76:  // when the server has an LLM, a written answer whose every claim is verified replaces it when ready. A newer
+HEAD:frontend/src/App.jsx:109:      // Keep the quoted answer if the written one was refused: the quotes are already verified evidence.
+HEAD:frontend/src/App.jsx:238:        <p>ArxivLens Clinical AI Studio • Powered by PostgreSQL pgvector HNSW, Kafka 3.7 & PyTorch MPS</p>
+HEAD:frontend/src/components/HeroSearch.jsx:10:    badge: "Clinical AI"
+HEAD:frontend/src/components/HeroSearch.jsx:61:      {/* Main Clinical Search Bar */}
+HEAD:frontend/src/components/HeroSearch.jsx:69:            placeholder="Ask a clinical question, methodology, or benchmark..."
+HEAD:frontend/src/components/HeroSearch.jsx:75:            variant="clinical"
+HEAD:frontend/src/components/HeroSearch.jsx:93:      {/* Clinical Topic Chips */}
+HEAD:frontend/src/components/InfrastructureModal.jsx:139:                variant="clinical"
+HEAD:frontend/src/components/IngestModal.jsx:90:                variant="clinical"
+HEAD:frontend/src/components/IngestModal.jsx:159:                  variant="clinical"
+HEAD:frontend/src/components/PapersLibrary.jsx:41:            Indexed Clinical & AI Research Papers
+HEAD:frontend/src/components/PapersLibrary.jsx:117:                      <Badge variant="clinical" className="gap-1 text-[11px] border-border bg-supported text-supported-foreground">
+HEAD:frontend/src/components/SynthesisView.jsx:47:  verification_unavailable:
+HEAD:frontend/src/components/SynthesisView.jsx:126:    onCopy(answer, "📋 Clinical summary copied to clipboard!");
+HEAD:frontend/src/components/SynthesisView.jsx:130:    onCopy(markdownNote(answer, citations), "📥 Markdown clinical research note copied to clipboard!");
+HEAD:frontend/src/components/SynthesisView.jsx:142:              Clinical Literature Synthesis
+HEAD:frontend/src/components/ui/badge.jsx:17:        clinical:
+HEAD:frontend/src/components/ui/button.jsx:23:        clinical:
+HEAD:frontend/src/lib/citations.js:3:// `status`/`supported` disagreement, can never read as Supported. No output of this module says "verified".
+HEAD:frontend/src/lib/citations.js:10:  if (status === 'unverified') return 'unchecked';
+HEAD:frontend/src/lib/citations.js:55:// `supported` reads Supported, `unverified` reads Not checked, anything else (reserved, unknown, missing) Unsupported.
+HEAD:frontend/src/lib/citations.js:59:  if (status === 'unverified') return { kind: 'unchecked', text: 'Not checked' };
+HEAD:frontend/src/test/fixtures.js:34:export const unverifiedCitation = {
+HEAD:frontend/src/test/fixtures.js:45:  status: 'unverified',
+HEAD:frontend/src/test/fixtures.js:57:  answer: 'Each claim is verified against its cited passage [1].',
+HEAD:frontend/src/test/fixtures.js:66:  citations: [supportedCitation, unsupportedCitation, unverifiedCitation],
+HEAD:frontend/src/test/fixtures.js:83:  citations: [{ ...unsupportedCitation, marker: 1, score: 0.31 }, { ...unverifiedCitation, marker: 2 }],
+HEAD:frontend/src/test/fixtures.js:90:  answer: 'Verification is unavailable right now, so no answer is shown.',
+HEAD:frontend/src/test/fixtures.js:91:  citations: [{ ...unsupportedCitation, marker: 1, score: 0.22 }, { ...unverifiedCitation, marker: 2 }],
+HEAD:frontend/src/test/fixtures.js:93:  refusal_reason: 'verification_unavailable',
+HEAD:frontend/src/test/fixtures.js:99:  citations: [{ ...unverifiedCitation, marker: 1 }, { ...unverifiedCitation, marker: 2, chunk_id: 304 }],
+HEAD:frontend/src/test/fixtures.js:108:export const legacyRefusalZero = { ...unverifiedCitation, status: undefined, score: 0, supported: false };
+HEAD:frontend/src/test/fixtures.js:123:    unverifiedCitation,
+HEAD:frontend/src/test/fixtures.js:128:    { text: 'An introductory passage.', status: 'unverified', markers: [3] },
+HEAD:frontend/src/test/fixtures.js:129:    { text: 'Results vary across domains.', status: 'unverified', markers: [] },
+
+[exit code 0]

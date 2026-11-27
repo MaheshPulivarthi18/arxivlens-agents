@@ -1,0 +1,47 @@
+$ bash -c grep -n '' frontend/src/App.test.jsx | sed -n '327,358p'; echo '----- ReferencesStack.jsx'; grep -n -E 'claimOf|aria-current|const current|Cited by claim' frontend/src/components/ReferencesStack.jsx; echo '----- App.jsx'; grep -n -E 'claims=|answerKind=|onNotify=' frontend/src/App.jsx
+327:  it('AC3 (B-UI): the second [1] makes the "Cited by claim 2" row current, not claim 1', async () => {
+328:    stubFetch({ quick: synthesizedSkips });
+329:    const user = userEvent.setup();
+330:    render(<App />);
+331:    await ask(user);
+332:    const items = within(await claimsList()).getAllByRole('listitem');
+333:    const rows = () => within(citationCard(1)).getAllByRole('listitem');
+334:    const current = () => citationCard(1).querySelectorAll('[aria-current]');
+335:    expect(rows().map((r) => r.firstChild.textContent)).toEqual(['Cited by claim 1', 'Cited by claim 2']);
+336:    expect(current()).toHaveLength(0);
+337:
+338:    await user.click(within(items[1]).getByRole('button', { name: '[1]' }));
+339:    expect(rows()[1]).toHaveAttribute('aria-current', 'true');
+340:    expect(current()).toHaveLength(1);
+341:    await user.click(within(items[0]).getByRole('button', { name: '[1]' }));
+342:    expect(rows()[0]).toHaveAttribute('aria-current', 'true');
+343:    expect(current()).toHaveLength(1);
+344:  });
+345:
+346:  it('AC3 (B-UI): with a broken positional invariant the rows read "Check n"', async () => {
+347:    stubFetch({ quick: brokenPositional });
+348:    const user = userEvent.setup();
+349:    render(<App />);
+350:    await ask(user);
+351:    const items = within(await claimsList()).getAllByRole('listitem');
+352:    const rows = within(citationCard(1)).getAllByRole('listitem');
+353:    expect(rows.map((r) => r.firstChild.textContent)).toEqual(['Check 1', 'Check 2']);
+354:    expect(document.body.textContent).not.toMatch(/Cited by claim/);
+355:    await user.click(within(items[1]).getByRole('button', { name: '[1]' }));
+356:    expect(rows[0]).toHaveAttribute('aria-current', 'true');
+357:    expect(citationCard(1).querySelectorAll('[aria-current]')).toHaveLength(1);
+358:  });
+----- ReferencesStack.jsx
+145:  const claimOf = new Map();
+147:    for (const { pos } of row.entries) claimOf.set(pos, row.index + 1);
+226:                    const current = isHighlighted && active?.pos === pos;
+230:                        aria-current={current ? 'true' : undefined}
+235:                        <span>{claimOf.has(pos) ? `Cited by claim ${claimOf.get(pos)}` : `Check ${k + 1}`}</span>
+----- App.jsx
+205:                    answerKind={searchResult.answer_kind}
+209:                    claims={searchResult.claims}
+218:                    claims={searchResult.claims}
+219:                    answerKind={searchResult.answer_kind}
+223:                    onNotify={showToast}
+
+[exit code 0]

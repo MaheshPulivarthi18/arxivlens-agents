@@ -1,0 +1,5 @@
+$ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa-B-UI-r1/harness/run.sh /home/claude/arxivlens-agents/app/frontend/src head
+head citations.test.js: 78 passed, 0 failed
+head bibtex.test.js: 6 passed, 0 failed
+
+[exit code 0]
