@@ -1,6 +1,6 @@
 # Board
 
-Last updated: 2026-11-27 ~09:10Z by pm-lead (cycle 2026-11-27T09:00Z grooming: all 7 open PRs #122–#128 Ready to merge, every developer at 0 active; picked AI-14b + FE-0k; app `main` = `53171d6`, unchanged). Earlier: 2026-11-27 ~05:35Z by pm-lead (FE-4a PM APPROVE, #128 raised; FE-4b mutant notes. Earlier: OPS-H6f PM APPROVE, #127 raised; OPS-H6g specced. Earlier: AI-13 PM APPROVE, #126 raised. Earlier: ING-6c PM APPROVE, #124 raised. Earlier: EVAL-8c PM APPROVE, #122 raised; EVAL-8d specced. Earlier: cycle 2026-11-27T03:59Z grooming; app `main` = `53171d6`, unchanged). The 2026-11-22T02:00Z cycle died before recording, so this replaces its stale header. Earlier history: `git log -p agents/board.md` and PROGRESS.
+Last updated: 2026-11-27 ~09:30Z by orchestrator (cycle 2026-11-27T09:00Z: AI-14b #129 and FE-0k #130 built, QA PASS r1, PM APPROVE, raised → Ready to merge; 9 PRs #122–#130 now wait on Mahesh). Earlier: 2026-11-27 ~09:10Z by pm-lead (cycle 2026-11-27T09:00Z grooming: all 7 open PRs #122–#128 Ready to merge, every developer at 0 active; picked AI-14b + FE-0k; app `main` = `53171d6`, unchanged). Earlier: 2026-11-27 ~05:35Z by pm-lead (FE-4a PM APPROVE, #128 raised; FE-4b mutant notes. Earlier: OPS-H6f PM APPROVE, #127 raised; OPS-H6g specced. Earlier: AI-13 PM APPROVE, #126 raised. Earlier: ING-6c PM APPROVE, #124 raised. Earlier: EVAL-8c PM APPROVE, #122 raised; EVAL-8d specced. Earlier: cycle 2026-11-27T03:59Z grooming; app `main` = `53171d6`, unchanged). The 2026-11-22T02:00Z cycle died before recording, so this replaces its stale header. Earlier history: `git log -p agents/board.md` and PROGRESS.
 
 WIP limit: 2 active PRs per developer agent (Ready to merge doesn't count; AGENTS.md §3). Order within a column = priority.
 "After #N" = start only once that PR is **merged** (file overlap or dependency).
@@ -16,8 +16,6 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 ## Ready
 | # | ID | Title | Owner | Pri | Depends on / waits for | Note |
 |---|---|---|---|---|---|---|
-| 0a | [AI-14b](tasks/AI-14b.md) (KAN-131) | Pin the right word boundary of the table-section rule ("Tablet", "Tableau" kept; kills mutant m7) | ai-engineer | P2 | AI-14 (#115) merged `53171d6` | test-only, < 30 lines; picked 2026-11-27T09:00Z |
-| 0b | [FE-0k](tasks/FE-0k.md) (KAN-132) | Repo-wide form-control outline guard; hero search box `border-input` + full `ring-ring` focus | frontend-engineer | P3 | FE-0h (#101), FE-3b (#104) merged | picked 2026-11-27T09:00Z; files disjoint from #125/#128 |
 | 2b | [FE-4b](tasks/FE-4b.md) (Jira: create) | Quote highlight in passage, `arXiv:IDvN · § · p. N`, PDF `#page=N`; AC2d "Cited by claim n" rows | frontend-engineer | P0 | **FE-4a (#128) merged** (same files) | part 2 of FE-4; not startable until #128 merges; mutant notes added 2026-11-27 (M3 equivalent, M11 at runtime) |
 | 8 | [OPS-H7a2c](tasks/OPS-H7a2c.md) (KAN-98) | `dlq list` footer keeps `--partition`/`--page-size`; pin `inspect` edge cases (M21, M22); CLI errors printed once | backend-engineer | P1 | `main.go` + README queue: after ING-6c (#124) merges | QA OPS-H7a2b r1 finding 1 `[spec]` + nits |
 | 9 | [OPS-H7b](tasks/OPS-H7b.md) | Resumable replay: checkpoints + log (migration 000004), filters, dry-run (OPS-H7 part 3) | backend-engineer | P1 | after OPS-H7a2c merges (`main.go`, README) | |
@@ -48,6 +46,8 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | [AI-13](tasks/AI-13.md) (KAN-117) | Embedder worker passes `content_hash`, logs skipped vectors | ai-engineer | #126 (ready for review) | QA PASS (r1), PM APPROVE ([report](reviews/AI-13/report.md)) |
 | [OPS-H6f](tasks/OPS-H6f.md) (KAN-116) | Processor locks chunk rows before deleting vectors; two-connection real-PG tests | backend-engineer | #127 (ready for review) | QA PASS (r1), PM APPROVE ([report](reviews/OPS-H6f/report.md)); AI-13 (#126) closes the reverse-order 3-tuple residue |
 | [FE-4a](tasks/FE-4a.md) | Claims list + per-claim chips; `[n]` focuses its card; grouping; nothing active on load (part 1 of FE-4, KAN-44) | frontend-engineer | #128 (ready for review) | QA FAIL (r1), PASS (r2), PM APPROVE ([report](reviews/FE-4a/report.md)); 706 lines (prod 222) accepted; FE-4b waits on its merge |
+| [AI-14b](tasks/AI-14b.md) (KAN-131) | Pin the right word boundary of the table-section rule ("Tablet", "Tableau" kept; kills m7) | ai-engineer | #129 (ready for review) | QA PASS (r1), PM APPROVE ([report](reviews/AI-14b/report.md)); test-only +3 |
+| [FE-0k](tasks/FE-0k.md) (KAN-132) | Repo-wide form-control outline guard; hero search `border-input` + full `ring-ring` | frontend-engineer | #130 (ready for review) | QA PASS (r1), PM APPROVE ([report](reviews/FE-0k/report.md)); QA [spec] finding 3 → Backlog |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
