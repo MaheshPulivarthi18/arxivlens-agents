@@ -1,0 +1,43 @@
+$ bash /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/scope.sh
+== rework diff 34cbd2e..529ad12 (files + lines)
+ frontend/src/App.test.jsx                 | 52 +++++++++++++++++++++++++++++--
+ frontend/src/components/SynthesisView.jsx |  1 +
+ 2 files changed, 51 insertions(+), 2 deletions(-)
+
+== lines REMOVED by the rework (all files)
+-    await user.click(within(list).getByRole('button', { name: '[2]' }));
+-    expect(citationCard(2)).toHaveAttribute('data-active', 'true');
+
+== origin of those removed lines: git blame at 34cbd2e (commit 34cbd2ec = the PR, not main)
+34cbd2ec (Claude 2026-11-27 10:01:17 +0530 299)     await user.click(within(list).getByRole('button', { name: '[2]' }));
+34cbd2ec (Claude 2026-11-27 10:01:17 +0530 300)     expect(citationCard(2)).toHaveAttribute('data-active', 'true');
+
+== does main 53171d6 App.test.jsx contain the FE-4a describe block at all? (count of "FE-4a" lines)
+0
+
+== whole PR vs main 53171d6: removed lines in test files + fixtures (expect only the 3 import lines from round 1)
++++ b/frontend/src/App.test.jsx
+-import { act, render, screen, waitFor } from '@testing-library/react';
+-import { earlyRefusal, quotedAnswer, refusalA, refusalB, refusalC, synthesizedAnswer } from './test/fixtures';
++++ b/frontend/src/components/ReferencesStack.test.jsx
++++ b/frontend/src/components/SynthesisView.test.jsx
++++ b/frontend/src/lib/citations.test.js
+-import { citationState, markdownNote } from './citations';
++++ b/frontend/src/test/fixtures.js
+
+== whole PR vs main: numstat (prod = App.jsx, ReferencesStack.jsx, SynthesisView.jsx, citations.js)
+14	9	frontend/src/App.jsx
+156	2	frontend/src/App.test.jsx
+39	25	frontend/src/components/ReferencesStack.jsx
+46	0	frontend/src/components/ReferencesStack.test.jsx
+66	12	frontend/src/components/SynthesisView.jsx
+114	0	frontend/src/components/SynthesisView.test.jsx
+57	0	frontend/src/lib/citations.js
+98	1	frontend/src/lib/citations.test.js
+67	0	frontend/src/test/fixtures.js
+prod changed lines: 222
+
+== every changed path is under frontend/src/
+0
+
+[exit code 0]

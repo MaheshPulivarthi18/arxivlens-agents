@@ -1,0 +1,33 @@
+$ bash -c rm -rf /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/trees/34cbd2e && mkdir -p /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/trees/34cbd2e && git archive 34cbd2e frontend | tar -x -C /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/trees/34cbd2e && timeout 1500 python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/harness/mutants-r2.py /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2 529ad12 34cbd2e
+== tree 529ad12
+  control  none (control)
+            13 passed, 0 failed
+  KILLED    M6  drop setActive(null) on the quoted->written swap (App.jsx:113)
+            12 passed, 1 failed
+            failing: AC2b: after the written answer replaces the quoted one, no card is active
+              -> expect(<div#ref-1 Citation [1]: Grounded Retrieval for Scientific QA>).not.toHaveAttribute(data-active, undefined) got "true"
+  KILLED    M10 drop setActive(null) at the start of a new search (App.jsx:84)
+            12 passed, 1 failed
+            failing: a new search clears the active card
+              -> expect(<div#ref-3 Citation [3]: Claim-Level Checking in Practice>).not.toHaveAttribute(data-active, undefined) got "true"
+  KILLED    M13 ignore reduced motion: behavior always 'smooth' (App.jsx:154)
+            12 passed, 1 failed
+            failing: prefers-reduced-motion true scrolls the card with behavior "auto"
+              -> expect(undefined).toHaveBeenLastCalledWith([{"behavior":"auto","block":"nearest"}]) last=[{"behavior":"smooth","block":"nearest"}]
+  KILLED    M13b behavior always 'auto'
+            12 passed, 1 failed
+            failing: prefers-reduced-motion false scrolls the card with behavior "smooth"
+              -> expect(undefined).toHaveBeenLastCalledWith([{"behavior":"smooth","block":"nearest"}]) last=[{"behavior":"auto","block":"nearest"}]
+== tree 34cbd2e
+  control  none (control)
+            10 passed, 0 failed
+  SURVIVES  M6  drop setActive(null) on the quoted->written swap (App.jsx:113)
+            10 passed, 0 failed
+  SURVIVES  M10 drop setActive(null) at the start of a new search (App.jsx:84)
+            10 passed, 0 failed
+  SURVIVES  M13 ignore reduced motion: behavior always 'smooth' (App.jsx:154)
+            10 passed, 0 failed
+  SURVIVES  M13b behavior always 'auto'
+            10 passed, 0 failed
+
+[exit code 0]

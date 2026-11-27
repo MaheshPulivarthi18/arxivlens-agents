@@ -1,0 +1,29 @@
+$ bash -c sed 's/\x1b\[[0-9;]*m//g' /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/ci-frontend-head.log | grep -E 'HEAD is now|Run npm|Found [0-9]+ warn| ✓ src/|     ✓ (a new search|AC2b)|Test Files|Tests  |✓ built|##\[error\]' | cut -c30-
+HEAD is now at d2b4bcd Merge 529ad12bb2e3f20bb3ebeb29162dddf81107fcaf into 53171d6579a90de027239255e98369e323416ad3
+##[group]Run npm ci
+##[group]Run npm run lint
+Found 0 warnings and 0 errors.
+##[group]Run npm test
+ ✓ src/components/ui/primitives.test.jsx (17 tests) 600ms
+ ✓ src/components/SynthesisView.test.jsx (30 tests) 1283ms
+ ✓ src/lib/citations.test.js (59 tests) 21ms
+ ✓ src/components/ReferencesStack.test.jsx (21 tests) 1117ms
+ ✓ src/lib/theme.test.js (35 tests) 87ms
+ ✓ src/test/tokens.test.js (9 tests) 16ms
+ ✓ src/components/ThemeToggle.test.jsx (4 tests) 324ms
+ ✓ src/test/controls.test.js (4 tests) 11ms
+ ✓ src/components/ui/button.test.jsx (3 tests) 267ms
+ ✓ src/components/HeroSearch.test.jsx (5 tests) 749ms
+ ✓ src/components/ui/badge.test.jsx (3 tests) 151ms
+ ✓ src/App.test.jsx (20 tests) 9045ms
+     ✓ AC2b: quoted answer (prose): no card is active on load  348ms
+     ✓ AC2b: quoted claims: no card is active on load  357ms
+     ✓ AC2b: refusal B: no card is active on load  370ms
+     ✓ AC2b: refusal C: no card is active on load  310ms
+     ✓ a new search clears the active card  584ms
+ Test Files  12 passed (12)
+      Tests  210 passed (210)
+##[group]Run npm run build
+✓ built in 935ms
+
+[exit code 0]

@@ -1,0 +1,206 @@
+$ bash -c cd /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/harness && for f in runtests.mjs jsdom-parity.js vitest-browser.js rtl-browser.jsx ue-browser.js toast-mock.jsx mutants-r2.py; do echo "===== $f"; cat $f; echo; done; sha256sum *
+===== runtests.mjs
+// QA round 2: run the PR's REAL src/App.test.jsx (+ src/test/setup.js) in Chromium against the given frontend tree.
+// Viewport is 8000px tall so focus never scrolls the page: like jsdom (no layout), where Radix's tooltip never sees a scroll event (it closes on scroll).
+// usage: node runtests.mjs <frontend dir> [name filter]
+import { createRequire } from 'node:module'; import path from 'node:path';
+const require = createRequire('/opt/npm-tools/node_modules/'); const esbuild = require('esbuild'); const { chromium } = require('playwright');
+const H = path.dirname(new URL(import.meta.url).pathname); const R1 = path.resolve(H, '../../qa-FE-4a-r1/harness'); const RADIX = path.resolve(R1, '../deps/radix/packages');
+const FE = path.resolve(process.argv[2]); const FILTER = process.argv[3] || '';
+const plug = { name: 'qa', setup(b) {
+  b.onResolve({ filter: /^vitest$/ }, () => ({ path: `${H}/vitest-browser.js` }));
+  b.onResolve({ filter: /^@testing-library\/react$/ }, () => ({ path: `${H}/rtl-browser.jsx` }));
+  b.onResolve({ filter: /^@testing-library\/user-event$/ }, () => ({ path: `${H}/ue-browser.js` }));
+  b.onResolve({ filter: /^@testing-library\/jest-dom/ }, () => ({ path: 'empty', namespace: 'empty' }));
+  b.onResolve({ filter: /^\.\/components\/Toast$/ }, () => ({ path: `${H}/toast-mock.jsx` }));
+  b.onResolve({ filter: /^lucide-react$/ }, () => ({ path: `${R1}/stubs-lucide.jsx` }));
+  b.onResolve({ filter: /^\.\/ui\/(dialog|tabs|dropdown-menu)$/ }, () => ({ path: `${R1}/stubs-ui.jsx` }));
+  b.onResolve({ filter: /^@fontsource-variable\/|\.css$/ }, () => ({ path: 'empty', namespace: 'empty' }));
+  b.onLoad({ filter: /.*/, namespace: 'empty' }, () => ({ contents: '', loader: 'js' }));
+  b.onResolve({ filter: /^@radix-ui\/react-([\w-]+)$/ }, (a) => ({ path: `${RADIX}/react/${a.path.slice(16)}/src/index.ts` }));
+  b.onResolve({ filter: /^@radix-ui\/env-check\/is-development$/ }, () => ({ path: `${RADIX}/core/env-check/src/internal/is-development.true.ts` }));
+  b.onResolve({ filter: /^@radix-ui\/([\w-]+)$/ }, (a) => ({ path: `${RADIX}/core/${a.path.slice(10)}/src/index.ts` }));
+  b.onResolve({ filter: /^(react|react-dom|clsx|tailwind-merge|class-variance-authority|@floating-ui\/[\w-]+)(\/.*)?$/ }, (a) => ({ path: require.resolve(a.path) }));
+}};
+const entry = `import '${H}/jsdom-parity.js'; import '${FE}/src/test/setup.js'; import '${FE}/src/App.test.jsx'; import { __run } from 'vitest'; window.__result = __run(${JSON.stringify(FILTER)});`;
+const js = (await esbuild.build({ stdin: { contents: entry, resolveDir: FE, loader: 'js' }, bundle: true, format: 'esm', write: false, jsx: 'automatic', loader: { '.js': 'jsx' },
+  define: { 'process.env.NODE_ENV': '"development"' }, plugins: [plug], logLevel: 'error' })).outputFiles[0].text;
+const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome' });
+const page = await (await browser.newContext({ viewport: { width: 1280, height: 8000 } })).newPage();
+await page.exposeFunction('__pw', async (op, arg) => { if (op === 'press') await page.keyboard.press(arg); });
+const errs = []; page.on('pageerror', (e) => errs.push(e.message));
+await page.route('http://qa.local/**', (r) => r.request().url().endsWith('/t.js') ? r.fulfill({ contentType: 'text/javascript', body: js })
+  : r.fulfill({ contentType: 'text/html', body: '<!doctype html><html><head></head><body><script type="module" src="/t.js"></script></body></html>' }));
+await page.goto('http://qa.local/'); await page.waitForFunction(() => window.__result, null, { timeout: 30000 });
+console.log(await page.evaluate(() => window.__result)); if (errs.length) console.log('page errors:', errs.join(' | '));
+await browser.close();
+
+===== jsdom-parity.js
+// jsdom parity: jsdom has no Element.prototype.scrollIntoView (App calls it with ?.), so remove Chromium's; otherwise a smooth scroll
+// started in one test keeps scrolling the page into the next one and closes Radix tooltips (they close on scroll).
+delete Element.prototype.scrollIntoView;
+
+===== vitest-browser.js
+// QA round 2: in-browser stand-in for the `vitest` API used by src/App.test.jsx (describe/it/it.each/expect/vi/afterEach).
+// Runs the PR's REAL test file in Chromium. Logic check only; CI's Vitest log is the pass/fail of record.
+const tests = []; const after = []; let cur = '';
+export function describe(name, fn) { const p = cur; cur = p ? `${p} › ${name}` : name; fn(); cur = p; }
+export function it(name, fn) { tests.push({ name: cur ? `${cur} › ${name}` : name, fn }); }
+it.each = (rows) => (name, fn) => rows.forEach((r) => { const a = Array.isArray(r) ? r : [r]; let i = 0; it(name.replace(/%s/g, () => String(a[i++])), () => fn(...a)); });
+export const test = it;
+export function afterEach(fn) { after.push(fn); }
+export function beforeEach() { throw new Error('beforeEach not shimmed'); }
+const fmt = (v) => { if (v instanceof Element) return `<${v.tagName.toLowerCase()}${v.id ? '#' + v.id : ''} ${v.getAttribute('aria-label') || ''}>`; try { return JSON.stringify(v); } catch { return String(v); } };
+const strip = (v) => Array.isArray(v) ? v.map(strip) : (v && typeof v === 'object' && !(v instanceof Node)) ? Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined).map(([k, x]) => [k, strip(x)])) : v;
+const deq = (a, b) => { if (Object.is(a, b)) return true; if (typeof a !== 'object' || typeof b !== 'object' || !a || !b) return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false; const ka = Object.keys(a), kb = Object.keys(b); if (ka.length !== kb.length) return false; return ka.every((k) => deq(a[k], b[k])); };
+const norm = (s) => s.replace(/\s+/g, ' ').trim();
+const visible = (el) => { if (!el || !el.isConnected) return false; for (let e = el; e; e = e.parentElement) { const cs = getComputedStyle(e);
+  if (e.hidden || cs.display === 'none' || cs.visibility === 'hidden' || cs.visibility === 'collapse' || cs.opacity === '0') return false; } return true; };
+const matchers = (v, neg) => {
+  const ok = (c, msg) => { if (Boolean(c) !== neg) return; throw new Error(`expect(${fmt(v)})${neg ? '.not' : ''}.${msg}`); };
+  return {
+    toBe: (x) => ok(Object.is(v, x), `toBe(${fmt(x)})`),
+    toBeNull: () => ok(v === null, 'toBeNull()'),
+    toMatch: (re) => ok(typeof re === 'string' ? String(v).includes(re) : re.test(v), `toMatch(${re})`),
+    toEqual: (x) => ok(deq(strip(v), strip(x)), `toEqual(${fmt(x)})`),
+    toHaveLength: (n) => ok(v.length === n, `toHaveLength(${n}) got ${v?.length}`),
+    toBeGreaterThan: (x) => ok(v > x, `toBeGreaterThan(${x})`),
+    toBeInTheDocument: () => ok(v && document.documentElement.contains(v), 'toBeInTheDocument()'),
+    toBeVisible: () => ok(visible(v), 'toBeVisible()'),
+    toHaveFocus: () => ok(document.activeElement === v, `toHaveFocus() active=${fmt(document.activeElement)}`),
+    toHaveAttribute: (n, x) => ok(v.hasAttribute(n) && (x === undefined || v.getAttribute(n) === String(x)), `toHaveAttribute(${n}, ${fmt(x)}) got ${fmt(v.getAttribute(n))}`),
+    toHaveTextContent: (x) => { const t = norm(v.textContent); ok(typeof x === 'string' ? t.includes(norm(x)) : x.test(t), `toHaveTextContent(${x}) got ${fmt(t)}`); },
+    toHaveBeenCalled: () => ok(v.mock.calls.length > 0, 'toHaveBeenCalled()'),
+    toHaveBeenCalledTimes: (n) => ok(v.mock.calls.length === n, `toHaveBeenCalledTimes(${n}) got ${v.mock.calls.length}`),
+    toHaveBeenCalledWith: (...a) => ok(v.mock.calls.some((c) => deq(strip(c), strip(a))), `toHaveBeenCalledWith(${fmt(a)})`),
+    toHaveBeenLastCalledWith: (...a) => ok(v.mock.calls.length && deq(strip(v.mock.calls.at(-1)), strip(a)), `toHaveBeenLastCalledWith(${fmt(a)}) last=${fmt(v.mock.calls.at(-1))}`),
+  };
+};
+export const expect = (v) => ({ ...matchers(v, false), not: matchers(v, true) });
+const stubs = new Map(); globalThis.__viMocks = {};
+export const vi = {
+  fn(impl) { const m = function (...args) { m.mock.calls.push(args); m.mock.contexts.push(this); return impl ? impl.apply(this, args) : undefined; };
+    m.mock = { calls: [], contexts: [] }; m.mockClear = () => { m.mock.calls = []; m.mock.contexts = []; return m; }; return m; },
+  hoisted: (fn) => fn(),
+  mock: (path, factory) => { globalThis.__viMocks[path] = factory; },
+  stubGlobal(name, value) { if (!stubs.has(name)) stubs.set(name, Object.getOwnPropertyDescriptor(globalThis, name)); globalThis[name] = value; },
+  unstubAllGlobals() { for (const [n, d] of stubs) { if (d) Object.defineProperty(globalThis, n, d); else delete globalThis[n]; } stubs.clear(); },
+};
+export async function __run(filter) {
+  const out = []; let pass = 0, fail = 0;
+  for (const t of tests) {
+    if (filter && !t.name.includes(filter)) continue;
+    let err = null;
+    try { await Promise.race([t.fn(), new Promise((_, r) => setTimeout(() => r(new Error('test timed out after 5000ms')), 5000))]); } catch (e) { err = e; }
+    for (const h of [...after].reverse()) { try { await h(); } catch (e) { err = err || e; } }
+    if (err) { fail++; out.push(`  FAIL ${t.name}\n         ${String(err.message).split('\n')[0].slice(0, 400)}`); } else { pass++; out.push(`  ok   ${t.name}`); }
+  }
+  return out.join('\n') + `\n\n${pass} passed, ${fail} failed`;
+}
+
+===== rtl-browser.jsx
+// QA round 2: in-browser stand-in for @testing-library/react (render/screen/within/act/waitFor/cleanup), no CSS loaded (like jsdom).
+// Role + accessible-name rules: explicit role, else the implicit roles App.test.jsx uses; name = aria-labelledby > aria-label > content (buttons, headings, ...).
+import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
+globalThis.IS_REACT_ACT_ENVIRONMENT = false;
+const norm = (s) => s.replace(/\s+/g, ' ').trim(); const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const hiddenEl = (el) => { for (let e = el; e; e = e.parentElement) { if (e.hidden || e.getAttribute('aria-hidden') === 'true') return true; const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden') return true; } return false; };
+function roleOf(el) { const r = el.getAttribute('role'); if (r) return r.split(/\s+/)[0]; const t = el.tagName.toLowerCase();
+  if (t === 'button') return 'button'; if (t === 'a' && el.hasAttribute('href')) return 'link'; if (/^h[1-6]$/.test(t)) return 'heading';
+  if (t === 'ul' || t === 'ol') return 'list'; if (t === 'li') return 'listitem'; if (t === 'article') return 'article'; if (t === 'textarea') return 'textbox';
+  if (t === 'input') { const ty = (el.getAttribute('type') || 'text').toLowerCase(); if (['button', 'submit', 'reset', 'image'].includes(ty)) return 'button'; if (ty === 'checkbox') return 'checkbox'; if (ty === 'search') return 'searchbox'; if (['text', 'email', 'url', 'tel'].includes(ty)) return 'textbox'; }
+  if (t === 'nav') return 'navigation'; if (t === 'main') return 'main'; if (t === 'dialog') return 'dialog'; if (t === 'output') return 'status'; if (t === 'img') return 'img';
+  if (t === 'section' && (el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby'))) return 'region'; return null; }
+function contentText(n) { if (n.nodeType === 3) return n.textContent; if (n.nodeType !== 1) return ''; if (n.getAttribute('aria-hidden') === 'true') return '';
+  const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden') return ''; const al = n.getAttribute('aria-label'); if (al && al.trim()) return al;
+  if (n.tagName === 'IMG') return n.getAttribute('alt') || ''; let s = ''; for (const c of n.childNodes) s += contentText(c); return s; }
+const FROM_CONTENT = new Set(['button', 'link', 'heading', 'listitem', 'tooltip', 'checkbox', 'menuitem', 'tab', 'option', 'cell', 'radio', 'switch']);
+function nameOf(el) { const lb = el.getAttribute('aria-labelledby'); if (lb) return norm(lb.split(/\s+/).map((id) => { const r = document.getElementById(id); return r ? contentText(r) : ''; }).join(' '));
+  const al = el.getAttribute('aria-label'); if (al && al.trim()) return norm(al);
+  if (el.labels && el.labels.length) return norm([...el.labels].map(contentText).join(' '));
+  if (FROM_CONTENT.has(roleOf(el))) return norm(contentText(el)); return norm(el.getAttribute('title') || ''); }
+const matches = (m, s, el) => (m instanceof RegExp ? m.test(s) : typeof m === 'function' ? m(s, el) : s === norm(String(m)));
+const ownText = (el) => norm([...el.childNodes].filter((c) => c.nodeType === 3).map((c) => c.textContent).join(''));
+function queries(root) {
+  const allRole = (role, o = {}) => [...root.querySelectorAll('*')].filter((e) => roleOf(e) === role && !hiddenEl(e) && (o.name === undefined || matches(o.name, nameOf(e), e)));
+  const allText = (m) => [...root.querySelectorAll('*')].filter((e) => !['SCRIPT', 'STYLE'].includes(e.tagName) && matches(m, ownText(e), e));
+  const mk = (kind, all) => {
+    const desc = (a) => `${kind}(${a.map(String).join(', ')}${a[1]?.name ? ' name=' + a[1].name : ''})`;
+    const get = (...a) => { const r = all(...a); if (r.length === 0) throw new Error(`Unable to find ${desc(a)}`); if (r.length > 1) throw new Error(`Found multiple (${r.length}) ${desc(a)}`); return r[0]; };
+    return { [`getBy${kind}`]: get, [`getAllBy${kind}`]: (...a) => { const r = all(...a); if (!r.length) throw new Error(`Unable to find ${desc(a)}`); return r; },
+      [`queryBy${kind}`]: (...a) => { const r = all(...a); if (r.length > 1) throw new Error(`Found multiple ${desc(a)}`); return r[0] || null; },
+      [`queryAllBy${kind}`]: (...a) => all(...a), [`findBy${kind}`]: (...a) => waitFor(() => get(...a)), [`findAllBy${kind}`]: (...a) => waitFor(() => { const r = all(...a); if (!r.length) throw new Error(`Unable to find ${desc(a)}`); return r; }) };
+  };
+  return { ...mk('Role', allRole), ...mk('Text', allText) };
+}
+export async function waitFor(cb, { timeout = 1000, interval = 50 } = {}) { const end = Date.now() + timeout; let last;
+  for (;;) { try { return await cb(); } catch (e) { last = e; } if (Date.now() > end) throw last; await sleep(interval); } }
+export const screen = new Proxy({}, { get: (_, k) => queries(document.body)[k] });
+export const within = (el) => queries(el);
+export async function act(cb) { const r = await cb(); await sleep(0); return r; }
+const mounted = [];
+export function render(ui) { const container = document.body.appendChild(document.createElement('div')); const root = createRoot(container);
+  flushSync(() => root.render(ui)); mounted.push({ root, container }); return { container, unmount: () => root.unmount() }; }
+export function cleanup() { while (mounted.length) { const { root, container } = mounted.pop(); flushSync(() => root.unmount()); container.remove(); } }
+
+===== ue-browser.js
+// QA round 2: @testing-library/user-event stand-in. click = userEvent's pointer sequence dispatched on the target; keys (Tab, Enter, Space,
+// typing) are REAL Chromium key presses via Playwright (window.__pw), so native button activation and form submit are the browser's own.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const settle = () => sleep(20);
+const focusable = (el) => el.closest('button, a[href], input, textarea, select, [tabindex]');
+async function click(el) {
+  const o = { bubbles: true, cancelable: true, composed: true, view: window, button: 0, pointerType: 'mouse', isPrimary: true, pointerId: 1 };
+  el.dispatchEvent(new PointerEvent('pointerover', o)); el.dispatchEvent(new PointerEvent('pointerenter', { ...o, bubbles: false })); el.dispatchEvent(new MouseEvent('mouseover', o));
+  el.dispatchEvent(new PointerEvent('pointermove', o)); el.dispatchEvent(new MouseEvent('mousemove', o));
+  el.dispatchEvent(new PointerEvent('pointerdown', o)); const md = el.dispatchEvent(new MouseEvent('mousedown', o));
+  if (md) { const f = focusable(el); if (f) f.focus(); else document.activeElement?.blur?.(); }
+  el.dispatchEvent(new PointerEvent('pointerup', o)); el.dispatchEvent(new MouseEvent('mouseup', o)); el.click(); await settle();
+}
+async function keys(seq) { for (const m of seq.matchAll(/\{([^}]+)\}|(.)/gs)) { const k = m[1] ?? (m[2] === ' ' ? 'Space' : m[2]); await window.__pw('press', k); } await settle(); }
+const api = {
+  click, keyboard: keys,
+  tab: async () => { await window.__pw('press', 'Tab'); await settle(); },
+  clear: async (el) => { el.focus(); el.select?.(); await window.__pw('press', 'Backspace'); await settle(); },
+  type: async (el, text) => { await click(el); await keys(text); },
+};
+export default { setup: () => api, ...api };
+
+===== toast-mock.jsx
+// vi.mock('./components/Toast', factory) emulation: resolves the factory the test file registered, lazily at render time.
+let m; export default function ToastMock(props) { m ||= globalThis.__viMocks['./components/Toast'](); return m.default(props); }
+
+===== mutants-r2.py
+# QA round 2: apply one mutant to App.jsx in a fresh copy of the given tree, run the PR's REAL App.test.jsx (FE-4a describe) in Chromium
+# via runtests.mjs, and print which tests fail. KILLED = at least one test fails. usage: python3 mutants-r2.py <scratch dir> <tree name>...
+import subprocess, sys, shutil, tempfile, os
+S = sys.argv[1]; H = S + '/harness'
+MUT = {
+  'none (control)': None,
+  'M6  drop setActive(null) on the quoted->written swap (App.jsx:113)': ("        setSearchResult(full);\n        setActive(null);\n", "        setSearchResult(full);\n"),
+  'M10 drop setActive(null) at the start of a new search (App.jsx:84)': ("    setSearchResult(null);\n    setActive(null);\n", "    setSearchResult(null);\n"),
+  "M13 ignore reduced motion: behavior always 'smooth' (App.jsx:154)": ("behavior: reduce ? 'auto' : 'smooth'", "behavior: 'smooth'"),
+  "M13b behavior always 'auto'": ("behavior: reduce ? 'auto' : 'smooth'", "behavior: 'auto'"),
+}
+for tree in sys.argv[2:]:
+  print(f'== tree {tree}')
+  for name, rep in MUT.items():
+    d = tempfile.mkdtemp(dir=S + '/mut'); shutil.copytree(f'{S}/trees/{tree}/frontend', d + '/frontend')
+    if rep:
+      f = d + '/frontend/src/App.jsx'; s = open(f).read(); assert s.count(rep[0]) == 1, name; open(f, 'w').write(s.replace(rep[0], rep[1]))
+    out = subprocess.run(['node', H + '/runtests.mjs', d + '/frontend', 'FE-4a'], capture_output=True, text=True, timeout=300).stdout.strip().splitlines()
+    summary = out[-1]; fails = [out[i].split(' › ')[-1] + '\n              -> ' + out[i+1].strip()[:200] for i in range(len(out)) if out[i].startswith('  FAIL')]
+    verdict = 'control' if not rep else ('KILLED  ' if fails else 'SURVIVES')
+    print(f'  {verdict}  {name}\n            {summary}' + ''.join(f'\n            failing: {x}' for x in fails))
+    shutil.rmtree(d)
+
+f6ea7b544974422bb641e779b3d7c1f0290b0cd0fde8e819d98d87e29fd06a2e  jsdom-parity.js
+a46078ad2b62ec090d4f1a9c841b98f1456cb41371aa022e4dc340e068092cf0  mutants-r2.py
+ab6043007365a1c48e2512aeeae2cb4ec50abdb8f6938df86e39099f1b2561af  rtl-browser.jsx
+f6783a1ce113f0ef70330099c15d7c06b86f09ac20502be4f76f003c5a176b15  runtests.mjs
+32a75db176bb9e56ab79f608f9a0857b16f73d3908db9a95b8b542ac1c8218a9  toast-mock.jsx
+60b55040b0cbd1d283653f3f881466f624202c7a7ab9a990c5b8172cf1e0e691  ue-browser.js
+b16574381a17a1678713e8283abcd2f8810d28e22883f80bbf9f4641903cb7ba  vitest-browser.js
+
+[exit code 0]

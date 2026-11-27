@@ -1,0 +1,25 @@
+$ bash -c rm -rf /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/trees/529ad12 && mkdir -p /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/trees/529ad12 && git archive 529ad12 frontend | tar -x -C /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/trees/529ad12 && timeout 300 node /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/harness/runtests.mjs /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r2/trees/529ad12/frontend
+  ok   App: refusal states (FE-3a) › AC1: refusal A, the whole page never says "verified"
+  ok   App: refusal states (FE-3a) › AC1: refusal C, the whole page never says "verified"
+  ok   App: refusal states (FE-3a) › AC2: refusal B is calm: no toast, no alert, passages visible, no writing stage
+  ok   App: refusal states (FE-3a) › AC3: early refusal renders as today and the discover button posts the question
+  ok   App: refusal states (FE-3a) › AC4: the panel link (Tab, then Enter) moves focus to the passages heading
+  ok   App: two-stage answer (FE-3a) › AC5a: quoted answer with a writing status, then swapped for the synthesized one
+  ok   App: two-stage answer (FE-3a) › AC5b: a refused written answer keeps the quoted one, no panel, no toast
+  ok   App: claim markers focus their card (FE-4a) › AC2/AC2c: clicking [3] focuses card [3] and marks it active; heading counts cards, footer counts checks
+  ok   App: claim markers focus their card (FE-4a) › AC2: Tab to [1] opens its preview tooltip; Enter moves focus to card [1] and the tooltip closes
+  ok   App: claim markers focus their card (FE-4a) › AC2: Space on a marker also focuses its card
+  ok   App: claim markers focus their card (FE-4a) › AC2: with a broken positional invariant, markers still map by number
+  ok   App: claim markers focus their card (FE-4a) › AC2b: quoted answer (prose): no card is active on load
+  ok   App: claim markers focus their card (FE-4a) › AC2b: quoted claims: no card is active on load
+  ok   App: claim markers focus their card (FE-4a) › AC2b: refusal A: no card is active on load
+  ok   App: claim markers focus their card (FE-4a) › AC2b: refusal B: no card is active on load
+  ok   App: claim markers focus their card (FE-4a) › AC2b: refusal C: no card is active on load
+  ok   App: claim markers focus their card (FE-4a) › AC2b: after the written answer replaces the quoted one, no card is active
+  ok   App: claim markers focus their card (FE-4a) › a new search clears the active card
+  ok   App: claim markers focus their card (FE-4a) › prefers-reduced-motion true scrolls the card with behavior "auto"
+  ok   App: claim markers focus their card (FE-4a) › prefers-reduced-motion false scrolls the card with behavior "smooth"
+
+20 passed, 0 failed
+
+[exit code 0]
