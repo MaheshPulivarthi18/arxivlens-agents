@@ -43,3 +43,26 @@ No blocking findings, and no nits on the code.
 
 ## Hand-off
 PASS → pm-lead final review.
+
+---
+
+# PM final review: FE-0j · PR #125 · round 1
+
+**Verdict:** APPROVE
+**Reviewed commit:** `79da23ed9e119f2a3eca1c21db20527c0f7faa88` · **Date:** 2026-11-27 · **Reviewer:** pm-lead
+
+- **PRD fit:** a test-only change. It pins the `cn(badgeVariants(...), className)` order that `ReferencesStack.jsx` (line 43) depends on for its compact count badge. This keeps the UI consistent (Product PRD §7) with no user-visible change. No contracts are touched.
+- **Scope:** one file, `frontend/src/components/ui/badge.test.jsx` (+10/-0). This matches the ticket's "Files expected" exactly, with nothing extra. `badge.jsx` and the callers are untouched, as the ticket required.
+- **Evidence (opened all six, 00–05 at `5fb190a`):**
+  - 00 shows 5/5 checks passing at the head commit.
+  - 01 is the diff and the ownership check. It proves AC1's assertions.
+  - 02 compares the CI Frontend job at head and at main: 0 warnings, 12 files both times, 155 → 156 tests, badge tests 3 → 4. It proves AC3 (+1, a new test).
+  - 03 is the mutation run. M5 is KILLED by the new test only, M0–M4 are KILLED, and both controls pass. The negative control is the key part: on main's tests M5 SURVIVES, which proves AC2.
+  - 04 holds the harness sources and their provenance.
+  - 05 records why the tests weren't run locally. That is acceptable because CI is the source of truth.
+- **AC2 caveat:** the mutation run uses a shim (Vitest/RTL shims, with real react-dom, cva and tailwind-merge in Chromium). This is acceptable because the ticket explicitly allows QA's harness, and the CI Vitest log is the pass/fail of record.
+- **Docs:** none needed. The PRD status column doesn't change for a test-hardening task.
+- **QA finding 1 [spec]:** fixed in the ticket (`ReferencesStack.jsx:42` → `:43`). No code change needed.
+- **Optional follow-up (not filed):** a colour-group precedence test, suggested by QA. M5 is already killed, so the value is low. Left as a note.
+
+Action: PR #125 description rewritten with evidence, marked ready for review. Merge is Mahesh's.

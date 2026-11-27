@@ -8,11 +8,11 @@
 | **Depends on** | FE-0i (#109) **merged** (same file `ui/badge.test.jsx`). No ADR |
 | **Jira** | KAN-115 (frontend epic KAN-5) |
 | **Design required** | no: test-only, one primitive |
-| **Status** | Ready, picked cycle 2026-11-22T02:00Z (#109 merged `8337086`; only `ui/badge.test.jsx`, disjoint from FE-4a and all open PRs) |
+| **Status** | Ready to merge: PR #125 raised 2026-11-27 (QA r1 PASS, PM APPROVE at `79da23e`). Picked cycle 2026-11-22T02:00Z |
 
 ## Goal
 `Badge` builds its classes with `cn(badgeVariants({ variant }), className)`, so a caller's class wins over a conflicting default.
-`ReferencesStack.jsx:42` relies on this (`className="text-xs px-2 py-0"` overrides the default `px-2.5 py-0.5`). No test pins it:
+`ReferencesStack.jsx:43` relies on this (`className="text-xs px-2 py-0"` overrides the default `px-2.5 py-0.5`). No test pins it:
 QA's mutant M5 `cn(className, badgeVariants({ variant }))` passes all 3 FE-0i tests and silently restores the default padding.
 
 ## Scope
@@ -21,11 +21,11 @@ QA's mutant M5 `cn(className, badgeVariants({ variant }))` passes all 3 FE-0i te
 - Size: ~10 lines.
 
 ## Acceptance criteria
-- [ ] AC1: `render(<Badge className="px-2 py-0">x</Badge>)` → element has `px-2` and `py-0` and **not** `px-2.5` / `py-0.5`.
-- [ ] AC2: **Mutation check** (developer if Vitest runs, else QA's harness, evidence file): mutant M5 (`cn(className, badgeVariants({ variant }))`
+- [x] AC1: `render(<Badge className="px-2 py-0">x</Badge>)` → element has `px-2` and `py-0` and **not** `px-2.5` / `py-0.5`.
+- [x] AC2: **Mutation check** (developer if Vitest runs, else QA's harness, evidence file): mutant M5 (`cn(className, badgeVariants({ variant }))`
   in `badge.jsx`) fails the new test, and the unmutated file passes. The FE-0i mutants M0–M4 stay killed.
-- [ ] AC3: `npm run lint` (0 warnings) and `npm test` pass in the CI Frontend job. The Vitest test count is main + 1 (or +0 if an existing test is extended; say which), and the file count is unchanged.
-- [ ] Docs: none.
+- [x] AC3: `npm run lint` (0 warnings) and `npm test` pass in the CI Frontend job. The Vitest test count is main + 1 (or +0 if an existing test is extended; say which), and the file count is unchanged.
+- [x] Docs: none.
 
 ## Verification
 ```bash
@@ -35,3 +35,4 @@ git diff origin/main --name-only    # exactly frontend/src/components/ui/badge.t
 
 ## Notes
 - 2026-11-21 (pm-lead): specced from FE-0i QA r1 nit 1 at the FE-0i PM review. Independent of #104 and FE-0g (`ui/primitives.test.jsx`).
+- 2026-11-27 (pm-lead): QA r1 PASS, PM APPROVE, PR #125 raised. Fixed QA [spec] finding: the `Badge` call in `ReferencesStack.jsx` is on line 43, not 42.

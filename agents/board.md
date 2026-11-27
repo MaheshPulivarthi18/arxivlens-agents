@@ -32,7 +32,6 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | ID | Title | Owner | PR |
 |---|---|---|---|
 | [EVAL-8c](tasks/EVAL-8c.md) | Eval results record which LLM answered; BASELINE real-LLM section | ai-engineer | #122 (draft; rework pushed, QA round 2 running) |
-| [FE-0j](tasks/FE-0j.md) (KAN-115) | `Badge` test pins className precedence (mutant M5) | frontend-engineer | #125 (draft; QA round 1 running) |
 
 ## PM review
 | ID | Title | Owner | PR |
@@ -42,6 +41,7 @@ Mahesh merged his own PRs #40–#50 (2026-11-14/15) outside the agent workflow; 
 | ID | Title | Owner | PR | Verdicts |
 |---|---|---|---|---|
 | [OPS-H21](tasks/OPS-H21.md) (KAN-119) | Prefetch: no extra passes for permanent failures; `saved=` on first save; deadline-overrun test | ai-engineer | #123 (ready for review) | QA PASS, PM APPROVE ([report](reviews/OPS-H21/report.md)) |
+| [FE-0j](tasks/FE-0j.md) (KAN-115) | `Badge` test pins className precedence (mutant M5) | frontend-engineer | #125 (ready for review) | QA PASS, PM APPROVE ([report](reviews/FE-0j/report.md)) |
 
 ## Blocked
 | ID | Title | Owner | Waiting on |
