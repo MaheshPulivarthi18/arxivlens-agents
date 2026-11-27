@@ -1,0 +1,29 @@
+$ bash -c echo "origin/agent/frontend/FE-0j = $(git rev-parse origin/agent/frontend/FE-0j)"; git diff --stat origin/main...HEAD; git diff origin/main...HEAD --name-only; git diff --name-only origin/main...HEAD > /dev/null; git branch -f agent/frontend/FE-0j HEAD >/dev/null 2>&1; bash .github/scripts/ownership-check.sh origin/main agent/frontend/FE-0j 2>&1 | tail -3; git diff origin/main...HEAD
+origin/agent/frontend/FE-0j = 79da23ed9e119f2a3eca1c21db20527c0f7faa88
+ frontend/src/components/ui/badge.test.jsx | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+frontend/src/components/ui/badge.test.jsx
+Ownership OK for role=frontend (10 changed lines)
+diff --git a/frontend/src/components/ui/badge.test.jsx b/frontend/src/components/ui/badge.test.jsx
+index f979bac..cdc4161 100644
+--- a/frontend/src/components/ui/badge.test.jsx
++++ b/frontend/src/components/ui/badge.test.jsx
+@@ -26,6 +26,16 @@ describe('Badge', () => {
+     expect(badge).not.toHaveClass('bg-primary');
+   });
+ 
++  // FE-0j: caller classes must win over conflicting defaults (ReferencesStack relies on
++  // className="text-xs px-2 py-0" replacing the default px-2.5 py-0.5).
++  it('lets a caller className override conflicting default padding', () => {
++    render(<Badge className="px-2 py-0">x</Badge>);
++    const badge = screen.getByText('x');
++    expect(badge).toHaveClass('px-2', 'py-0');
++    expect(badge).not.toHaveClass('px-2.5');
++    expect(badge).not.toHaveClass('py-0.5');
++  });
++
+   it('is valid phrasing content inside a button (no div descendant)', () => {
+     render(
+       <button type="button">
+
+[exit code 0]

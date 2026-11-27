@@ -1,0 +1,125 @@
+$ bash -c cd /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-0j-r1 && for f in $(find harness shims -type f | sort); do echo "===== $f"; cat $f; done; echo '===== tree provenance'; for t in head main; do sha256sum trees/$t/frontend/src/components/ui/badge.test.jsx trees/$t/frontend/src/components/ui/badge.jsx; done; sha256sum trees/pre/frontend/src/components/ui/badge.jsx; cd /root/wt/qa-FE-0j; git show HEAD:frontend/src/components/ui/badge.test.jsx | sha256sum; git show origin/main:frontend/src/components/ui/badge.test.jsx | sha256sum; git show HEAD:frontend/src/components/ui/badge.jsx | sha256sum; git show 8337086^1:frontend/src/components/ui/badge.jsx | sha256sum
+===== harness/mutants.py
+# QA FE-0j AC2 mutation run: {head badge.test.jsx (PR), main badge.test.jsx (negative control)} x
+# {head badge.jsx, pre-FE-0i badge.jsx (M0), single-edit mutants M1-M5}, shim vitest/RTL in headless Chromium.
+import subprocess, sys, os, json, tempfile, difflib
+S = sys.argv[1]; head = S + '/trees/head/frontend/src'
+src = open(head + '/components/ui/badge.jsx').read()
+pre_src = open(S + '/trees/pre/frontend/src/components/ui/badge.jsx').read()
+LINE = '    <span className={cn(badgeVariants({ variant }), className)} {...props} />'
+assert src.count(LINE) == 1
+M = [('CONTROL head badge.jsx', src),
+     ('M0 pre-FE-0i badge.jsx (div)', pre_src),
+     ('M1 span -> p', src.replace(LINE, LINE.replace('<span', '<p'))),
+     ('M2 drop caller className', src.replace(LINE, '    <span className={cn(badgeVariants({ variant }))} {...props} />')),
+     ('M3 ignore variant', src.replace(LINE, '    <span className={cn(badgeVariants({}), className)} {...props} />')),
+     ('M4 drop {...props}', src.replace(LINE, '    <span className={cn(badgeVariants({ variant }), className)} />')),
+     ('M5 caller className before defaults', src.replace(LINE, '    <span className={cn(className, badgeVariants({ variant }))} {...props} />')),
+     ('RESTORED head badge.jsx', src)]
+TESTS = [('HEAD tests (PR #125)', head + '/components/ui/badge.test.jsx'),
+         ('MAIN tests (negative control)', S + '/trees/main/frontend/src/components/ui/badge.test.jsx')]
+os.environ['UTILS'] = head + '/lib/utils.js'
+allout = []
+for tname, tfile in TESTS:
+    out = []
+    for name, code in M:
+        d = tempfile.mkdtemp(dir=S + '/mut'); bf = d + '/badge.src.jsx'; open(bf, 'w').write(code)
+        diff = [l for l in difflib.unified_diff(src.splitlines(), code.splitlines(), lineterm='', n=0) if l[:1] in '+-' and l[:3] not in ('+++', '---')]
+        b = subprocess.run(['node', S + '/shims/build.mjs', tfile, bf, d + '/w', d + '/t.js'], capture_output=True, text=True)
+        if b.returncode: out.append((name, 'INVALID (build failed) ' + b.stderr[:200], [], diff)); continue
+        r = subprocess.run(['node', S + '/harness/run-tests.mjs', d + '/t.js'], capture_output=True, text=True, env={**os.environ, 'PLAYWRIGHT_BROWSERS_PATH': '/opt/pw-browsers'})
+        if r.returncode: out.append((name, 'INVALID (run failed) ' + r.stderr[:200], [], diff)); continue
+        res = json.loads(r.stdout); passed = sum(t['ok'] for t in res)
+        if name.startswith(('CONTROL', 'RESTORED')): verdict = 'ok %d/%d pass' % (passed, len(res)) if passed == len(res) else 'BROKEN CONTROL'
+        else: verdict = 'KILLED' if passed < len(res) else 'SURVIVED'
+        out.append((name, verdict + ' (%d passed / %d failed)' % (passed, len(res) - passed), res, diff))
+    allout.append((tname, out))
+print('SUMMARY (real badge.test.jsx files, shim vitest/RTL/jest-dom, real react-dom 19.2.8 + cva 0.7.1 + tailwind-merge 3.6.0 in Chromium)')
+for tname, out in allout:
+    print('== ' + tname)
+    for name, v, res, diff in out: print('  %-38s %s' % (name, v))
+print('\nPER TEST')
+for tname, out in allout:
+    print('==== ' + tname)
+    for name, v, res, diff in out:
+        print('-- %s' % name); [print('   mutant diff: ' + l) for l in diff]
+        for t in res: print('   %s  %s%s' % ('PASS' if t['ok'] else 'FAIL', t['name'].split(' > ')[-1][:72], '' if t['ok'] else '\n         -> ' + t['err'][:130]))
+===== harness/run-tests.mjs
+import { chromium } from '/opt/npm-tools/node_modules/playwright/index.mjs'; import fs from 'node:fs';
+const b = await chromium.launch(); const p = await b.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
+await p.setContent('<!doctype html><html><body></body></html>');
+await p.addScriptTag({ content: fs.readFileSync(process.argv[2], 'utf8') });
+const r = await p.evaluate(() => window.__results); console.log(JSON.stringify(r)); await b.close();
+if (errs.length) { console.error(errs.join('\n')); process.exit(1); }
+===== shims/build.mjs
+// Bundle the PR's REAL badge.test.jsx against a given badge.jsx (copied next to it as ./badge) with the shims.
+import * as esbuild from '/opt/npm-tools/node_modules/esbuild/lib/main.js'; import fs from 'node:fs';
+const [testFile, badgeFile, workDir, out] = process.argv.slice(2);
+fs.mkdirSync(workDir + '/components/ui', { recursive: true }); fs.mkdirSync(workDir + '/lib', { recursive: true });
+fs.copyFileSync(testFile, workDir + '/components/ui/badge.test.jsx'); fs.copyFileSync(badgeFile, workDir + '/components/ui/badge.jsx');
+fs.copyFileSync(process.env.UTILS, workDir + '/lib/utils.js');
+const S = new URL('.', import.meta.url).pathname;
+fs.writeFileSync(workDir + '/__test__.jsx', "import './components/ui/badge.test.jsx';");
+fs.copyFileSync(S + 'main.jsx', workDir + '/main.jsx');
+await esbuild.build({ entryPoints: [workDir + '/main.jsx'], bundle: true, outfile: out, format: 'iife', jsx: 'automatic',
+  nodePaths: ['/opt/npm-tools/node_modules'], logLevel: 'error', define: { 'process.env.NODE_ENV': '"development"' },
+  alias: { vitest: S + 'vitest.js', '@testing-library/react': S + 'rtl.js' } });
+===== shims/main.jsx
+import './__test__.jsx';
+import { runAll } from 'vitest'; import { cleanup } from '@testing-library/react';
+window.__results = runAll(cleanup);
+===== shims/rtl.js
+// QA shim of @testing-library/react render/screen (real react-dom/client + act). Logic check only.
+import { createRoot } from 'react-dom/client'; import { act } from 'react';
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+const mounted = [];
+export function render(ui) { const c = document.body.appendChild(document.createElement('div')); const r = createRoot(c);
+  act(() => r.render(ui)); mounted.push([r, c]); return { container: c }; }
+export function cleanup() { for (const [r, c] of mounted.splice(0)) { act(() => r.unmount()); c.remove(); } }
+const one = (els, what) => { if (els.length !== 1) throw new Error(`found ${els.length} elements for ${what}`); return els[0]; };
+// getByText: elements whose own text (default matcher: trimmed, whitespace-collapsed full textContent) equals the string,
+// ignoring <script>/<style>, matching DTL's default `ignore` and that it matches the deepest element via node text.
+const norm = (s) => s.replace(/\s+/g, ' ').trim();
+export const screen = {
+  getByText: (t) => one([...document.body.querySelectorAll('*')].filter((e) => !/^(SCRIPT|STYLE)$/.test(e.tagName)
+    && [...e.childNodes].some((n) => n.nodeType === 3) && norm([...e.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('')) === t), `text ${t}`),
+  getByTestId: (id) => one([...document.body.querySelectorAll(`[data-testid="${id}"]`)], `testid ${id}`),
+  getByRole: (role, { name } = {}) => { if (role !== 'button') throw new Error('shim supports role=button only');
+    return one([...document.body.querySelectorAll('button,[role="button"]')].filter((b) => name === undefined || norm(b.textContent) === name), `button ${name}`); },
+};
+===== shims/vitest.js
+// QA shim of the vitest API used by badge.test.jsx (describe/it/expect + jest-dom matchers). Logic check only.
+export const results = []; const tests = []; let prefix = [];
+export function describe(name, fn) { prefix.push(name); fn(); prefix.pop(); }
+export function it(name, fn) { tests.push({ name: [...prefix, name].join(' > '), fn }); }
+export const afterEach = (fn) => { afterEachFns.push(fn); }; const afterEachFns = [];
+export async function runAll(cleanup) {
+  for (const t of tests) { try { await t.fn(); results.push({ name: t.name, ok: true }); }
+    catch (e) { results.push({ name: t.name, ok: false, err: String(e.message || e).split('\n')[0] }); }
+    cleanup(); }
+  return results;
+}
+const fail = (m) => { throw new Error(m); };
+function matchers(v, neg) {
+  const chk = (cond, msg) => { if (neg ? cond : !cond) fail((neg ? 'NOT ' : '') + msg); };
+  return {
+    toBe: (e) => chk(Object.is(v, e), `expected ${String(v)} toBe ${String(e)}`),
+    toBeNull: () => chk(v === null, `expected ${v && v.outerHTML ? v.tagName : v} toBeNull`),
+    toHaveClass: (...cs) => chk(cs.every((c) => v.classList.contains(c)), `expected class(es) ${cs.join(' ')} on <${v.tagName.toLowerCase()} class="${v.className}">`),
+    toHaveAttribute: (a, val) => chk(v.hasAttribute(a) && (val === undefined || v.getAttribute(a) === val), `expected attribute ${a}=${val}, got ${v.getAttribute(a)}`),
+    toHaveTextContent: (t) => { const tc = (v ? v.textContent : '').replace(/\s+/g, ' ').trim(); chk(typeof t === 'string' ? tc.includes(t) : t.test(tc), `expected text "${t}", got "${tc}"`); },
+  };
+}
+export function expect(v) { if (v === null && false) {} const m = matchers(v, false); m.not = matchers(v, true); return m; }
+===== tree provenance
+5be227818388a7c89909f0db973525b1d343d7b9ea81cc265e4721bd587301d5  trees/head/frontend/src/components/ui/badge.test.jsx
+997c9b6d0a7067fbf88df33c63a9380b3fb978166a2b8f9ddea810a7b907db51  trees/head/frontend/src/components/ui/badge.jsx
+fabc54fa6aa6f061e07505764cd013df22fb68f80406655382edd850eb2c3368  trees/main/frontend/src/components/ui/badge.test.jsx
+997c9b6d0a7067fbf88df33c63a9380b3fb978166a2b8f9ddea810a7b907db51  trees/main/frontend/src/components/ui/badge.jsx
+b505e8ed762986f4a1178fb8671c4666eb1c6b5cfaa5f92888c2c68ccf6ffbbe  trees/pre/frontend/src/components/ui/badge.jsx
+5be227818388a7c89909f0db973525b1d343d7b9ea81cc265e4721bd587301d5  -
+fabc54fa6aa6f061e07505764cd013df22fb68f80406655382edd850eb2c3368  -
+997c9b6d0a7067fbf88df33c63a9380b3fb978166a2b8f9ddea810a7b907db51  -
+b505e8ed762986f4a1178fb8671c4666eb1c6b5cfaa5f92888c2c68ccf6ffbbe  -
+
+[exit code 0]

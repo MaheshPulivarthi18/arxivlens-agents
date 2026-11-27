@@ -1,0 +1,147 @@
+$ env PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers timeout 600 python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-0j-r1/harness/mutants.py /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-0j-r1
+SUMMARY (real badge.test.jsx files, shim vitest/RTL/jest-dom, real react-dom 19.2.8 + cva 0.7.1 + tailwind-merge 3.6.0 in Chromium)
+== HEAD tests (PR #125)
+  CONTROL head badge.jsx                 ok 4/4 pass (4 passed / 0 failed)
+  M0 pre-FE-0i badge.jsx (div)           KILLED (1 passed / 3 failed)
+  M1 span -> p                           KILLED (1 passed / 3 failed)
+  M2 drop caller className               KILLED (2 passed / 2 failed)
+  M3 ignore variant                      KILLED (3 passed / 1 failed)
+  M4 drop {...props}                     KILLED (0 passed / 4 failed)
+  M5 caller className before defaults    KILLED (3 passed / 1 failed)
+  RESTORED head badge.jsx                ok 4/4 pass (4 passed / 0 failed)
+== MAIN tests (negative control)
+  CONTROL head badge.jsx                 ok 3/3 pass (3 passed / 0 failed)
+  M0 pre-FE-0i badge.jsx (div)           KILLED (0 passed / 3 failed)
+  M1 span -> p                           KILLED (0 passed / 3 failed)
+  M2 drop caller className               KILLED (2 passed / 1 failed)
+  M3 ignore variant                      KILLED (2 passed / 1 failed)
+  M4 drop {...props}                     KILLED (0 passed / 3 failed)
+  M5 caller className before defaults    SURVIVED (3 passed / 0 failed)
+  RESTORED head badge.jsx                ok 3/3 pass (3 passed / 0 failed)
+
+PER TEST
+==== HEAD tests (PR #125)
+-- CONTROL head badge.jsx
+   PASS  renders a span holding its children with the default variant classes
+   PASS  merges a caller className, applies a named variant and forwards extra pr
+   PASS  lets a caller className override conflicting default padding
+   PASS  is valid phrasing content inside a button (no div descendant)
+-- M0 pre-FE-0i badge.jsx (div)
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+   FAIL  renders a span holding its children with the default variant classes
+         -> expected DIV toBe SPAN
+   FAIL  merges a caller className, applies a named variant and forwards extra pr
+         -> expected DIV toBe SPAN
+   PASS  lets a caller className override conflicting default padding
+   FAIL  is valid phrasing content inside a button (no div descendant)
+         -> expected DIV toBeNull
+-- M1 span -> p
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <p className={cn(badgeVariants({ variant }), className)} {...props} />
+   FAIL  renders a span holding its children with the default variant classes
+         -> expected P toBe SPAN
+   FAIL  merges a caller className, applies a named variant and forwards extra pr
+         -> expected P toBe SPAN
+   PASS  lets a caller className override conflicting default padding
+   FAIL  is valid phrasing content inside a button (no div descendant)
+         -> expected text "x", got ""
+-- M2 drop caller className
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <span className={cn(badgeVariants({ variant }))} {...props} />
+   PASS  renders a span holding its children with the default variant classes
+   FAIL  merges a caller className, applies a named variant and forwards extra pr
+         -> expected class(es) ml-2 inline-flex bg-supported text-supported-foreground on <span class="inline-flex items-center rounded-full b
+   FAIL  lets a caller className override conflicting default padding
+         -> expected class(es) px-2 py-0 on <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold tran
+   PASS  is valid phrasing content inside a button (no div descendant)
+-- M3 ignore variant
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <span className={cn(badgeVariants({}), className)} {...props} />
+   PASS  renders a span holding its children with the default variant classes
+   FAIL  merges a caller className, applies a named variant and forwards extra pr
+         -> expected class(es) ml-2 inline-flex bg-supported text-supported-foreground on <span class="inline-flex items-center rounded-full b
+   PASS  lets a caller className override conflicting default padding
+   PASS  is valid phrasing content inside a button (no div descendant)
+-- M4 drop {...props}
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <span className={cn(badgeVariants({ variant }), className)} />
+   FAIL  renders a span holding its children with the default variant classes
+         -> found 0 elements for text x
+   FAIL  merges a caller className, applies a named variant and forwards extra pr
+         -> found 0 elements for testid chip
+   FAIL  lets a caller className override conflicting default padding
+         -> found 0 elements for text x
+   FAIL  is valid phrasing content inside a button (no div descendant)
+         -> found 0 elements for button x
+-- M5 caller className before defaults
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <span className={cn(className, badgeVariants({ variant }))} {...props} />
+   PASS  renders a span holding its children with the default variant classes
+   PASS  merges a caller className, applies a named variant and forwards extra pr
+   FAIL  lets a caller className override conflicting default padding
+         -> expected class(es) px-2 py-0 on <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold tran
+   PASS  is valid phrasing content inside a button (no div descendant)
+-- RESTORED head badge.jsx
+   PASS  renders a span holding its children with the default variant classes
+   PASS  merges a caller className, applies a named variant and forwards extra pr
+   PASS  lets a caller className override conflicting default padding
+   PASS  is valid phrasing content inside a button (no div descendant)
+==== MAIN tests (negative control)
+-- CONTROL head badge.jsx
+   PASS  renders a span holding its children with the default variant classes
+   PASS  merges a caller className, applies a named variant and forwards extra pr
+   PASS  is valid phrasing content inside a button (no div descendant)
+-- M0 pre-FE-0i badge.jsx (div)
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+   FAIL  renders a span holding its children with the default variant classes
+         -> expected DIV toBe SPAN
+   FAIL  merges a caller className, applies a named variant and forwards extra pr
+         -> expected DIV toBe SPAN
+   FAIL  is valid phrasing content inside a button (no div descendant)
+         -> expected DIV toBeNull
+-- M1 span -> p
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <p className={cn(badgeVariants({ variant }), className)} {...props} />
+   FAIL  renders a span holding its children with the default variant classes
+         -> expected P toBe SPAN
+   FAIL  merges a caller className, applies a named variant and forwards extra pr
+         -> expected P toBe SPAN
+   FAIL  is valid phrasing content inside a button (no div descendant)
+         -> expected text "x", got ""
+-- M2 drop caller className
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <span className={cn(badgeVariants({ variant }))} {...props} />
+   PASS  renders a span holding its children with the default variant classes
+   FAIL  merges a caller className, applies a named variant and forwards extra pr
+         -> expected class(es) ml-2 inline-flex bg-supported text-supported-foreground on <span class="inline-flex items-center rounded-full b
+   PASS  is valid phrasing content inside a button (no div descendant)
+-- M3 ignore variant
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <span className={cn(badgeVariants({}), className)} {...props} />
+   PASS  renders a span holding its children with the default variant classes
+   FAIL  merges a caller className, applies a named variant and forwards extra pr
+         -> expected class(es) ml-2 inline-flex bg-supported text-supported-foreground on <span class="inline-flex items-center rounded-full b
+   PASS  is valid phrasing content inside a button (no div descendant)
+-- M4 drop {...props}
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <span className={cn(badgeVariants({ variant }), className)} />
+   FAIL  renders a span holding its children with the default variant classes
+         -> found 0 elements for text x
+   FAIL  merges a caller className, applies a named variant and forwards extra pr
+         -> found 0 elements for testid chip
+   FAIL  is valid phrasing content inside a button (no div descendant)
+         -> found 0 elements for button x
+-- M5 caller className before defaults
+   mutant diff: -    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+   mutant diff: +    <span className={cn(className, badgeVariants({ variant }))} {...props} />
+   PASS  renders a span holding its children with the default variant classes
+   PASS  merges a caller className, applies a named variant and forwards extra pr
+   PASS  is valid phrasing content inside a button (no div descendant)
+-- RESTORED head badge.jsx
+   PASS  renders a span holding its children with the default variant classes
+   PASS  merges a caller className, applies a named variant and forwards extra pr
+   PASS  is valid phrasing content inside a button (no div descendant)
+
+[exit code 0]

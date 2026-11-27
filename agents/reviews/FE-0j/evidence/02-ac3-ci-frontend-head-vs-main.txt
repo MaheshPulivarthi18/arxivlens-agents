@@ -1,0 +1,15 @@
+$ bash -c for j in 136988844933 137066033508; do echo "===== job $j head_sha=$(gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j --jq .head_sha) conclusion=$(gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j --jq .conclusion)"; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/$j/logs | sed -E 's/\x1b\[[0-9;]*m//g' | grep -E 'Found [0-9]+ warning|badge.test|Test Files|Tests +[0-9]|built in'; done
+===== job 136988844933 head_sha=53171d6579a90de027239255e98369e323416ad3 conclusion=success
+2026-11-21T21:21:03.2612985Z Found 0 warnings and 0 errors.
+2026-11-21T21:21:13.7852602Z  ✓ src/components/ui/badge.test.jsx (3 tests) 164ms
+2026-11-21T21:21:13.7888598Z  Test Files  12 passed (12)
+2026-11-21T21:21:13.7889512Z       Tests  155 passed (155)
+2026-11-21T21:21:15.3649971Z ✓ built in 1.22s
+===== job 137066033508 head_sha=79da23ed9e119f2a3eca1c21db20527c0f7faa88 conclusion=success
+2026-11-22T02:25:43.2272710Z Found 0 warnings and 0 errors.
+2026-11-22T02:25:49.1960321Z  ✓ src/components/ui/badge.test.jsx (4 tests) 176ms
+2026-11-22T02:25:49.9586161Z  Test Files  12 passed (12)
+2026-11-22T02:25:49.9586755Z       Tests  156 passed (156)
+2026-11-22T02:25:50.9499594Z ✓ built in 725ms
+
+[exit code 0]
