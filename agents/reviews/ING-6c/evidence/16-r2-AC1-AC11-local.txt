@@ -1,0 +1,29 @@
+$ bash -c go test -count=1 -v -run TestCrawlLoopFlags ./cmd/arxivlens/ 2>&1 | grep -E "^(=== RUN|--- |    ---|ok|FAIL|PASS)"; go test -count=1 -race -v -run TestRunOnce ./internal/crawler/ 2>&1 | grep -E "^(--- |    --- |ok|FAIL|PASS)"
+=== RUN   TestCrawlLoopFlags
+=== RUN   TestCrawlLoopFlags/defaults
+=== RUN   TestCrawlLoopFlags/valid_overrides
+=== RUN   TestCrawlLoopFlags/interval_30s
+=== RUN   TestCrawlLoopFlags/limit-per-run_0
+=== RUN   TestCrawlLoopFlags/max-scan_<_limit-per-run
+=== RUN   TestCrawlLoopFlags/bad_categories_(query_injection)
+=== RUN   TestCrawlLoopFlags/empty_categories
+--- PASS: TestCrawlLoopFlags (0.00s)
+    --- PASS: TestCrawlLoopFlags/defaults (0.00s)
+    --- PASS: TestCrawlLoopFlags/valid_overrides (0.00s)
+    --- PASS: TestCrawlLoopFlags/interval_30s (0.00s)
+    --- PASS: TestCrawlLoopFlags/limit-per-run_0 (0.00s)
+    --- PASS: TestCrawlLoopFlags/max-scan_<_limit-per-run (0.00s)
+    --- PASS: TestCrawlLoopFlags/bad_categories_(query_injection) (0.00s)
+    --- PASS: TestCrawlLoopFlags/empty_categories (0.00s)
+PASS
+ok  	arxivlens/cmd/arxivlens	0.007s
+--- PASS: TestRunOnceTwiceEmitsNothingSecondTime (0.00s)
+--- PASS: TestRunOnceCrossListed (0.00s)
+    --- PASS: TestRunOnceCrossListed/published_once_per_pass (0.00s)
+    --- PASS: TestRunOnceCrossListed/cs.AI's_publish_of_p14_fails:_cs.LG_publishes_it (0.00s)
+--- PASS: TestRunOnceCancelledAfterFirstCategory (0.00s)
+--- PASS: TestRunOnceWatermarkReadError (0.00s)
+PASS
+ok  	arxivlens/internal/crawler	1.022s
+
+[exit code 0]

@@ -1,0 +1,33 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/140306712586/logs | sed -n 1670,1700p
+2026-11-27T04:11:54.0231392Z ok  	arxivlens/internal/query	31.162s
+2026-11-27T04:11:54.0491387Z ##[group]Run set -o pipefail
+2026-11-27T04:11:54.0491670Z [36;1mset -o pipefail[0m
+2026-11-27T04:11:54.0491898Z [36;1mgo vet -tags integration ./internal/db/[0m
+2026-11-27T04:11:54.0492410Z [36;1mgo test -tags integration -count=1 -v -run '^(TestAdvanceWatermarkMonotonic|TestCrawlLoopLock)$' ./internal/db/ | tee /tmp/db-it.txt[0m
+2026-11-27T04:11:54.0492999Z [36;1m# -v prints a SKIP line when DATABASE_URL is missing: that must not pass as green.[0m
+2026-11-27T04:11:54.0493503Z [36;1mif grep -q -- '--- SKIP' /tmp/db-it.txt; then echo "::error::watermark/lock integration tests skipped"; exit 1; fi[0m
+2026-11-27T04:11:54.0494374Z [36;1mfor t in TestAdvanceWatermarkMonotonic TestCrawlLoopLock; do grep -q -- "--- PASS: $t " /tmp/db-it.txt || { echo "::error::$t did not pass"; exit 1; }; done[0m
+2026-11-27T04:11:54.0495212Z [36;1mleft="$($PSQL -At -c "SELECT count(*) FROM crawl_watermarks WHERE category LIKE 'it-test.%'")"[0m
+2026-11-27T04:11:54.0495729Z [36;1mecho "crawl_watermarks rows left by the tests (category LIKE 'it-test.%'): $left"[0m
+2026-11-27T04:11:54.0496130Z [36;1m[ "$left" = 0 ] || { echo "::error::test rows not cleaned up"; exit 1; }[0m
+2026-11-27T04:11:54.0526071Z shell: /usr/bin/bash -e {0}
+2026-11-27T04:11:54.0526284Z env:
+2026-11-27T04:11:54.0526721Z   DATABASE_URL: ***localhost:5432/arxivlens?sslmode=disable
+2026-11-27T04:11:54.0527266Z   PSQL: docker exec -i d0f9659a0c413f9387c0172b46d73afdc750bd068fad30a2917a26a15fdced42 psql -U postgres -d arxivlens -v ON_ERROR_STOP=1
+2026-11-27T04:11:54.0527790Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-27T04:11:54.0528127Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-27T04:11:54.0528643Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-27T04:11:54.0528985Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-27T04:11:54.0529277Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-27T04:11:54.0529583Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-27T04:11:54.0529844Z ##[endgroup]
+2026-11-27T04:11:54.5635395Z === RUN   TestAdvanceWatermarkMonotonic
+2026-11-27T04:11:54.5893529Z --- PASS: TestAdvanceWatermarkMonotonic (0.02s)
+2026-11-27T04:11:54.5894172Z === RUN   TestCrawlLoopLock
+2026-11-27T04:11:54.6051273Z --- PASS: TestCrawlLoopLock (0.02s)
+2026-11-27T04:11:54.6052042Z PASS
+2026-11-27T04:11:54.6077132Z ok  	arxivlens/internal/db	0.047s
+2026-11-27T04:11:54.6945916Z crawl_watermarks rows left by the tests (category LIKE 'it-test.%'): 0
+2026-11-27T04:11:54.6983523Z ##[group]Run go vet -tags integration ./internal/dlq/
+2026-11-27T04:11:54.6984187Z [36;1mgo vet -tags integration ./internal/dlq/[0m
+

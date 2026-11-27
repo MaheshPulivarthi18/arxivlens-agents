@@ -1,0 +1,26 @@
+$ bash -c go version; echo "== go vet ./..."; go vet ./... && echo vet OK; echo "== gofmt -l (tracked .go files)"; out=$(gofmt -l $(git ls-files "*.go")); [ -z "$out" ] && echo gofmt clean || echo "$out"; echo "== go test ./..."; go test -count=1 ./... 2>&1; echo "exit=$?"; echo "== git status (tree untouched)"; git status --short; git rev-parse HEAD
+go version go1.25.1 linux/amd64
+== go vet ./...
+vet OK
+== gofmt -l (tracked .go files)
+gofmt clean
+== go test ./...
+ok  	arxivlens/cmd/arxivlens	0.016s
+ok  	arxivlens/internal/arxiv	2.182s
+ok  	arxivlens/internal/config	0.002s
+ok  	arxivlens/internal/crawler	0.098s
+ok  	arxivlens/internal/db	0.006s
+ok  	arxivlens/internal/dlq	0.269s
+ok  	arxivlens/internal/downloader	0.106s
+ok  	arxivlens/internal/kafka	0.053s
+ok  	arxivlens/internal/llm	0.836s
+ok  	arxivlens/internal/llm/llmtest	0.107s
+ok  	arxivlens/internal/query	0.331s
+?   	arxivlens/internal/storage	[no test files]
+?   	arxivlens/internal/telemetry	[no test files]
+?   	arxivlens/shared/events	[no test files]
+exit=0
+== git status (tree untouched)
+d55508f3e372ce08ca8dea4ad05603c08a04e3a8
+
+[exit code 0]

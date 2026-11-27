@@ -1,0 +1,37 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/140306711751/logs | grep -v 'version. is obsolete' | sed -n '/Z crawled papers (AC3)/,/Z AC4 (ii) .*W(cs.LG)/p' (+ the wm row after it)
+2026-11-27T04:19:10.8586662Z crawled papers (AC3): 2611.26619 2611.26627; all papers now: 2608.20331 2611.26619 2611.26627 9999.00001
+2026-11-27T04:19:12.0679396Z 2026/11/27 04:19:12 [CrawlLoop] started categories=cs.LG interval=6h0m0s limit_per_run=2 max_scan=2000 once=true
+2026-11-27T04:19:12.0680141Z 2026/11/27 04:19:12 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=2 emitted=2 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (advanced)
+2026-11-27T04:19:13.3763065Z AC2: first run produced 2 papers.discovered events (3 -> 5)
+2026-11-27T04:19:13.3903229Z 2026/11/27 04:19:13 [CrawlLoop] started categories=cs.LG interval=6h0m0s limit_per_run=2 max_scan=2000 once=true
+2026-11-27T04:19:13.3904087Z 2026/11/27 04:19:13 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (unchanged)
+2026-11-27T04:19:14.4652493Z AC2: second run produced 0 papers.discovered events (5 -> 5)
+2026-11-27T04:19:14.4662756Z 2026/11/27 04:19:12 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=2 emitted=2 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (advanced)
+2026-11-27T04:19:14.4663639Z 2026/11/27 04:19:13 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (unchanged)
+2026-11-27T04:19:14.5590019Z cs.LG|2026-11-19 18:59:53+00|2026-11-27 04:19:12.063639+00
+2026-11-27T04:19:14.6543035Z AC4 after two runs: papers count(*) count(distinct (arxiv_id, version)) = 4 4 (before the step: 4 4)
+2026-11-27T04:19:14.9194602Z AC4 after two runs: both crawled IDs present (2611.26619 2611.26627); W(cs.LG) = max(published_at) of them: t
+2026-11-27T04:19:15.0045740Z cs.LG|2026-11-19 18:59:53+00|2026-11-27 04:19:12.063639+00
+2026-11-27T04:19:15.0936973Z DELETE 1
+2026-11-27T04:19:15.1174264Z 2026/11/27 04:19:15 [CrawlLoop] started categories=cs.LG interval=6h0m0s limit_per_run=2 max_scan=2000 once=true
+2026-11-27T04:19:15.1175072Z 2026/11/27 04:19:15 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=2 emitted=2 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (advanced)
+2026-11-27T04:19:15.2075836Z AC4 (i) DELETE FROM crawl_watermarks (crash after publish, before the watermark write), then --once: papers count(*) count(distinct (arxiv_id, version)) = 4 4 (before the step: 4 4)
+2026-11-27T04:19:15.4826297Z AC4 (i) DELETE FROM crawl_watermarks (crash after publish, before the watermark write), then --once: both crawled IDs present (2611.26619 2611.26627); W(cs.LG) = max(published_at) of them: t
+2026-11-27T04:19:15.5668652Z cs.LG|2026-11-19 18:59:53+00|2026-11-27 04:19:15.112873+00
+2026-11-27T04:19:16.0945019Z Error: another crawl-loop is running (PostgreSQL advisory lock held); run one instance per database
+2026-11-27T04:19:16.0945715Z Error: another crawl-loop is running (PostgreSQL advisory lock held); run one instance per database
+2026-11-27T04:19:16.1007490Z AC2 lock: --once beside a running crawl-loop exited non-zero; arXiv requests (replay hits+misses) 9 -> 9
+2026-11-27T04:19:16.1081197Z 2026/11/27 04:19:15 [CrawlLoop] started categories=cs.LG interval=1m0s limit_per_run=2 max_scan=2000 once=false
+2026-11-27T04:19:16.1081863Z 2026/11/27 04:19:15 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (unchanged)
+2026-11-27T04:19:16.1082573Z 2026/11/27 04:19:16 [CrawlLoop] stopped
+2026-11-27T04:19:16.1106277Z AC5 SIGTERM: exit 0 after 7 ms
+2026-11-27T04:19:17.2104640Z /home/runner/work/_temp/a9025379-cc51-4c30-bd94-376c2b977b43.sh: line 62: 53979 Killed                     nohup ./bin/arxivlens crawl-loop --categories cs.LG --limit-per-run 2 --interval 1m > loop2.log 2>&1
+2026-11-27T04:19:17.2106335Z == killed crawl-loop log (kill point not controlled; exact points: ING-6b TestRunCategoryCrashAtK)
+2026-11-27T04:19:17.2122411Z 2026/11/27 04:19:16 [CrawlLoop] started categories=cs.LG interval=1m0s limit_per_run=2 max_scan=2000 once=false
+2026-11-27T04:19:17.2123205Z 2026/11/27 04:19:16 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (unchanged)
+2026-11-27T04:19:17.3224041Z 2026/11/27 04:19:17 [CrawlLoop] started categories=cs.LG interval=6h0m0s limit_per_run=2 max_scan=2000 once=true
+2026-11-27T04:19:17.3225062Z 2026/11/27 04:19:17 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (unchanged)
+2026-11-27T04:19:17.4160432Z AC4 (ii) kill -KILL of a looping crawl-loop ~1 s after start, then --once: papers count(*) count(distinct (arxiv_id, version)) = 4 4 (before the step: 4 4)
+2026-11-27T04:19:17.6842947Z AC4 (ii) kill -KILL of a looping crawl-loop ~1 s after start, then --once: both crawled IDs present (2611.26619 2611.26627); W(cs.LG) = max(published_at) of them: t
+2026-11-27T04:19:17.7688228Z cs.LG|2026-11-19 18:59:53+00|2026-11-27 04:19:15.112873+00
+

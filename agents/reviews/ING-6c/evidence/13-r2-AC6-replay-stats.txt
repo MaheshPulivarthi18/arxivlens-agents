@@ -1,0 +1,12 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/140306711751/logs | grep -E 'Z arXiv replay: |Z AC2 lock:|out_of_order='
+2026-11-27T04:19:12.0680141Z 2026/11/27 04:19:12 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=2 emitted=2 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (advanced)
+2026-11-27T04:19:13.3904087Z 2026/11/27 04:19:13 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (unchanged)
+2026-11-27T04:19:14.4662756Z 2026/11/27 04:19:12 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=2 emitted=2 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (advanced)
+2026-11-27T04:19:14.4663639Z 2026/11/27 04:19:13 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (unchanged)
+2026-11-27T04:19:15.1175072Z 2026/11/27 04:19:15 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=2 emitted=2 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (advanced)
+2026-11-27T04:19:16.1007490Z AC2 lock: --once beside a running crawl-loop exited non-zero; arXiv requests (replay hits+misses) 9 -> 9
+2026-11-27T04:19:16.1081863Z 2026/11/27 04:19:15 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (unchanged)
+2026-11-27T04:19:17.2123205Z 2026/11/27 04:19:16 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (unchanged)
+2026-11-27T04:19:17.3225062Z 2026/11/27 04:19:17 [CrawlLoop] cat=cs.LG pages=1 scanned=2 candidates=0 emitted=0 backlog=0 out_of_order=0 watermark=2026-11-19T18:59:53Z (unchanged)
+2026-11-27T04:19:17.8777399Z arXiv replay: {"hits": 11, "misses": 0, "upstream_fetches": 0, "upstream_failures": 0, "saved": 0}
+

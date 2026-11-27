@@ -1,0 +1,14 @@
+$ bash -c psql "$DATABASE_URL" -Atc "select version()"; go vet -tags integration ./internal/db/ && echo "vet -tags integration OK"; go test -tags integration -count=1 -v -run "^(TestAdvanceWatermarkMonotonic|TestCrawlLoopLock)$" ./internal/db/; echo "exit=$?"; echo "it-test rows left: $(psql "$DATABASE_URL" -Atc "select count(*) from crawl_watermarks where category like 'it-test.%'")"; echo "advisory locks held: $(psql "$DATABASE_URL" -Atc "select count(*) from pg_locks where locktype = 'advisory'")"
+PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+vet -tags integration OK
+=== RUN   TestAdvanceWatermarkMonotonic
+--- PASS: TestAdvanceWatermarkMonotonic (0.03s)
+=== RUN   TestCrawlLoopLock
+--- PASS: TestCrawlLoopLock (0.01s)
+PASS
+ok  	arxivlens/internal/db	0.051s
+exit=0
+it-test rows left: 0
+advisory locks held: 0
+
+[exit code 0]

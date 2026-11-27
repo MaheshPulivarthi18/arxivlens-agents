@@ -1,0 +1,132 @@
+$ bash -c echo "origin/main = $(git rev-parse --short origin/main)"; echo "== git diff --stat origin/main...HEAD"; git diff --stat origin/main...HEAD; echo; echo "== git diff --stat dec6386 d55508f"; git diff --stat dec6386 d55508f; echo; git diff dec6386 d55508f
+origin/main = 53171d6
+== git diff --stat origin/main...HEAD
+ .github/workflows/db.yml                   | 12 ++++
+ .github/workflows/stack.yml                | 75 +++++++++++++++++++++++
+ README.md                                  | 17 ++++++
+ cmd/arxivlens/main.go                      | 74 +++++++++++++++++++++++
+ cmd/arxivlens/main_test.go                 | 59 ++++++++++++++++++
+ internal/crawler/loop.go                   |  9 +--
+ internal/crawler/loop_test.go              | 54 +++++++++++++++--
+ internal/db/watermarks.go                  | 29 +++++++++
+ internal/db/watermarks_integration_test.go | 96 +++++++++++++++++++++++++++---
+ 9 files changed, 407 insertions(+), 18 deletions(-)
+
+== git diff --stat dec6386 d55508f
+ .github/workflows/stack.yml                | 10 +++++--
+ internal/crawler/loop_test.go              |  5 ++--
+ internal/db/watermarks_integration_test.go | 44 ++++++++++++++++++++----------
+ 3 files changed, 39 insertions(+), 20 deletions(-)
+
+diff --git a/.github/workflows/stack.yml b/.github/workflows/stack.yml
+index 7754c01..f333f32 100644
+--- a/.github/workflows/stack.yml
++++ b/.github/workflows/stack.yml
+@@ -258,6 +258,8 @@ jobs:
+             ./bin/arxivlens status --arxiv-id "$id" | tee -a "$GITHUB_STEP_SUMMARY"
+           done
+           echo '```' >> "$GITHUB_STEP_SUMMARY"
++          # ING-6c: the 2 crawled IDs, recorded while they are the only papers (make test-full seeds more rows later).
++          q "select arxiv_id from papers order by arxiv_id" > crawled-ids.txt
+           for t in papers.discovered.dlq papers.downloaded.dlq papers.chunked.dlq; do
+             ./bin/arxivlens dlq list --topic "$t"
+             end="$(docker compose exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 --topic "$t" --time -1 \
+@@ -322,9 +324,11 @@ jobs:
+           lock_free() { for _ in $(seq 20); do [ "$(q "select count(*) from pg_locks where locktype = 'advisory'")" = 0 ] && return 0; sleep 0.5; done; fail "advisory lock still held"; }
+           wm() { q "select category, last_published_at, updated_at from crawl_watermarks order by 1"; }
+           if [ -f downloader.pid ]; then kill "$(cat downloader.pid)" 2>/dev/null || true; fi
+-          # The two papers of "AC3: crawl 2 papers": the same recorded cs.LG feed crawl-loop reads.
+-          mapfile -t crawled < <(q "select arxiv_id from papers where arxiv_id <> '2608.20331' order by 1")
+-          [ "${#crawled[@]}" = 2 ] || fail "want the 2 crawled papers, got: ${crawled[*]}"
++          # The two papers of "AC3: crawl 2 papers" (the recorded cs.LG feed crawl-loop reads), saved by the AC3 wait step
++          # before make test-full added its own rows (e.g. test_m4_chaos.py's 9999.00001).
++          mapfile -t crawled < crawled-ids.txt
++          [ "${#crawled[@]}" = 2 ] || fail "want the 2 crawled papers in crawled-ids.txt, got: ${crawled[*]}"
++          echo "crawled papers (AC3): ${crawled[*]}; all papers now: $(q "select string_agg(arxiv_id, ' ' order by arxiv_id) from papers")"
+           papers0="$(q "select count(*) || ' ' || count(distinct (arxiv_id, version)) from papers")"
+           check() {
+             got="$(q "select count(*) || ' ' || count(distinct (arxiv_id, version)) from papers")"
+diff --git a/internal/crawler/loop_test.go b/internal/crawler/loop_test.go
+index 8d1a49b..7466f29 100644
+--- a/internal/crawler/loop_test.go
++++ b/internal/crawler/loop_test.go
+@@ -516,8 +516,9 @@ func TestRunOnceCancelledAfterFirstCategory(t *testing.T) {
+ 		}
+ 	}
+ 	err := l.RunOnce(ctx)
+-	if !errors.Is(err, context.Canceled) || len(lg.calls) != 0 || minute(st.w["cs.AI"]) != 14 || minute(st.w["cs.LG"]) != 10 {
+-		t.Errorf("RunOnce = %v, cs.LG %d feed requests, W cs.AI=%d cs.LG=%d; want context.Canceled, 0 requests, 14, 10",
++	// The exact text pins RunOnce's own guard: without it, cs.LG still runs and walk fails with "cat:cs.LG: context canceled".
++	if !errors.Is(err, context.Canceled) || err.Error() != "context canceled" || len(lg.calls) != 0 || minute(st.w["cs.AI"]) != 14 || minute(st.w["cs.LG"]) != 10 {
++		t.Errorf("RunOnce = %v, cs.LG %d feed requests, W cs.AI=%d cs.LG=%d; want exactly \"context canceled\", 0 requests, 14, 10",
+ 			err, len(lg.calls), minute(st.w["cs.AI"]), minute(st.w["cs.LG"]))
+ 	}
+ }
+diff --git a/internal/db/watermarks_integration_test.go b/internal/db/watermarks_integration_test.go
+index cdd69ce..507bb6d 100644
+--- a/internal/db/watermarks_integration_test.go
++++ b/internal/db/watermarks_integration_test.go
+@@ -27,7 +27,15 @@ func connectIT(t *testing.T) *DB {
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	t.Cleanup(d.Close)
++	t.Cleanup(func() { // bounded: pgxpool's Close waits for acquired connections, so a leaked lock conn would hang the job
++		done := make(chan struct{})
++		go func() { d.Close(); close(done) }()
++		select {
++		case <-done:
++		case <-time.After(10 * time.Second):
++			t.Errorf("DB.Close still blocked after 10s: a pooled connection was never released (crawl-loop lock?)")
++		}
++	})
+ 	if err := d.RunMigrations(context.Background(), filepath.Join("..", "..", "migrations", "000005_crawl_watermarks.up.sql")); err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -99,24 +107,30 @@ func TestAdvanceWatermarkMonotonic(t *testing.T) {
+ func TestCrawlLoopLock(t *testing.T) {
+ 	ctx := context.Background()
+ 	a, b := connectIT(t), connectIT(t)
+-	release, ok, err := a.TryCrawlLoopLock(ctx)
+-	if err != nil || !ok || release == nil {
+-		t.Fatalf("first acquirer: (release %v, ok %v, err %v), want the lock", release != nil, ok, err)
+-	}
++	// held[i] is a lock connection still out of b's or a's pool. The cleanup (it runs before the pools close, LIFO)
++	// releases it, so a failing check below reports its message instead of hanging in DB.Close.
++	var held [2]func()
+ 	t.Cleanup(func() {
+-		if release != nil {
+-			release()
++		for _, r := range held {
++			if r != nil {
++				r()
++			}
+ 		}
+ 	})
+-	if r, ok, err := b.TryCrawlLoopLock(ctx); err != nil || ok || r != nil {
+-		t.Fatalf("second acquirer while held: (release %v, ok %v, err %v), want ok=false and nothing held", r != nil, ok, err)
++	var ok bool
++	var err error
++	if held[0], ok, err = a.TryCrawlLoopLock(ctx); err != nil || !ok || held[0] == nil {
++		t.Fatalf("first acquirer: (release %v, ok %v, err %v), want the lock", held[0] != nil, ok, err)
++	}
++	if held[1], ok, err = b.TryCrawlLoopLock(ctx); err != nil || ok || held[1] != nil {
++		t.Fatalf("second acquirer while held: (release %v, ok %v, err %v), want ok=false and nothing held", held[1] != nil, ok, err)
+ 	}
+-	rel := release
+-	release = nil // the cleanup must not release twice
++	rel := held[0]
++	held[0] = nil // the cleanup must not release twice
+ 	rel()
+-	r, ok, err := b.TryCrawlLoopLock(ctx)
+-	if err != nil || !ok || r == nil {
+-		t.Fatalf("second acquirer after release: (release %v, ok %v, err %v), want the lock", r != nil, ok, err)
++	if held[1], ok, err = b.TryCrawlLoopLock(ctx); err != nil || !ok || held[1] == nil {
++		t.Fatalf("second acquirer after release: (release %v, ok %v, err %v), want the lock", held[1] != nil, ok, err)
+ 	}
+-	r()
++	rel, held[1] = held[1], nil
++	rel()
+ }
+
+[exit code 0]
