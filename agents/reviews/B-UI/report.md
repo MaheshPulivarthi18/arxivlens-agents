@@ -95,3 +95,60 @@ Not produced this round. An offline Chromium render of the real page needs the R
 
 ## Hand-off
 FAIL → back to frontend-engineer (rework round 1 of 2, same PR #132). F1 and F2 are blocking. F3–F5 are nits to fix in the same rework. If any nit is left unfixed, it goes on the ticket's `## Checklist` (no follow-up tickets).
+
+---
+
+# Round 2 · PR #132 · head `5fa2790d7e5b242989f030186efaf7fae25aa05e` · 2026-11-28
+
+**Verdict: PASS.** All five round-1 findings are resolved. The 3 surviving mutants are now killed (18/18), and CI is green on every job.
+Round 2 checks only the round-1 findings, as instructed. The rework touches nothing else.
+Evidence base (E2): https://github.com/MaheshPulivarthi18/arxivlens-agents/blob/a272557c3b954e27e8336d2438701dd2e196d631/agents/reviews/B-UI/evidence/
+
+## What changed since round 1
+There is one commit, `5fa2790`. It changes `frontend/src/lib/citations.test.js` only (+12 / −1) and adds no production change (E2/21-r2-rework-diff).
+The total against main is 756 changed lines: production 428 (unchanged), tests 328. That is under the 800 cap, and "Ownership OK for role=frontend (756 changed lines)" (E2/22-r2-ci-frontend). Round 1 judged 745 acceptable, and the +11 lines are test rows, so the size is still acceptable.
+
+## Test results
+| Check | Source | Result |
+|---|---|---|
+| Go, Python M0, DB, Frontend, Agent ownership | CI at `5fa2790` (E2/20-r2-ci-checks) | all completed / success |
+| Frontend job 140713597717 | CI log (E2/22) | oxlint 0 warnings / 0 errors (= main). `citations.test.js` 83 tests. **266 passed** (r1: 261). Build OK |
+| Lib tests under the node shim | local, logic check (E2/23) | `citations.test.js` 83/83, `bibtex.test.js` 6/6 (same counts as CI) |
+| `npm ci/lint/test/build` locally | not run: npm registry unreachable | CI is the source |
+
+## Round-1 findings
+| # | Finding | Status | Evidence |
+|---|---|---|---|
+| F1 | [blocking] M9 mark start offset untested | ✅ fixed | Rows `ref + spaces before` and `newlines + spaces before`, plus an exact-offset test (`{start: 24, end: 43}`, `{start: 9, end: 32}`). **M9 killed** by those rows (E2/23) |
+| F2 | [blocking] M13 Unicode collapse untested | ✅ fixed | Rows `NBSP between words` and `U+2009 between words`. **M13 killed** by both (E2/23). These are the inputs the Go-parity run in round 1 showed `rag.go` collapsing (E/07) |
+| F3 | [nit] M7 whitespace guard | ✅ fixed | The `whitespace quote` row now uses content `'a \n b'`. **M7 killed** (E2/23) |
+| F4 | [nit] record as-built choices in design | ✅ fixed | `docs/design/FE-4.md` › B-UI addendum "As built (2026-11-28, PR #132…)" items 1–3: no-quote note on explicit status, `onNotify`, badge folded into the meta line (E2/24) |
+| F5 | [nit] PR body size split wrong | ✅ fixed | The PR body "Size" now reads 756 = production 428 + tests 328 (E2/24) |
+
+## Mutation (local scratch copies, never pushed)
+I used the same harness and the same 18 mutants as round 1 (sources in E/13, unchanged), run against `5fa2790`: **18 killed, 0 survived** (E2/23). The previously surviving M7, M9 and M13 are now killed by the new rows named above. The component mutants (highlight guard, row ignores pos) are still covered by static reading only, as in round 1. That code is unchanged since round 1.
+
+## Findings (round 2)
+None.
+
+## PM-equivalent check (lean combined path; design-approved bundle)
+- **Product fit against the ticket's Goal**: ✅ A researcher can check an answer sentence in one or two clicks:
+  - the card highlights the exact supporting words inside the passage (`<mark>` + sr-only "Quote: ");
+  - it shows `arXiv:<id>v<N> · § <section> · p. <N>`;
+  - it opens the PDF at that page ("Open PDF at p. N ↗", `#page=N`).
+  The whole answer's references export as one `.bib`. "No label claims more than the system checked" holds:
+  - there is no "Verified" label;
+  - the tagline and the note heading are honest;
+  - unsupported and not-checked citations get no highlight;
+  - the `.bib` has no fabricated author, year or `primaryClass` (r1 E/08, E/12).
+- **PRD**: UI-1 / QA-3 / QA-4 / §7 principles 1 and 3 are delivered, and UI-5 is delivered for export (saved questions stay open, as the ticket says). ADR-0019 is respected: a written answer exports supported citations only. ADR-0018 (Proposed) is respected: `answer_kind` absent is treated as quoted.
+- **Scope**: frontend-only. There is no API, `rag.go`, README or PDF-viewer change. The PM decision's two label-honesty edits are included and listed in the PR body. There are no out-of-scope edits.
+- **Docs**: the design addendum, PM decision and as-built note are in `docs/design/FE-4.md`. After merge, pm-lead flips Product PRD UI-5 to ✅ for export and updates the UI-1 note (docs PR, per ticket).
+- **Ticket checklist**: no open items. All five round-1 findings were fixed in this PR, with no follow-up tickets.
+- **UI screenshots**: none in either round. The offline Chromium harness was not built. The UI evidence is the jsdom component tests in CI. Mahesh may want to view the cards on a live stack before merging.
+
+## Evidence index (round 2, E2 = base URL above)
+20-r2-ci-checks · 21-r2-rework-diff · 22-r2-ci-frontend · 23-r2-mutants · 24-r2-design-and-pr-size (round-1 files 00–13 still apply)
+
+## Hand-off (round 2)
+PASS → pm-lead final review and raise. `qa-fail` is removed and `qa-pass` set on PR #132. The PR stays draft. Jira is untouched (per coordinator).
