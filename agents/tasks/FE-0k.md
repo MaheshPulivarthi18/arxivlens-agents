@@ -8,7 +8,7 @@
 | **Depends on** | FE-0h (#101, merged `d646d63`, added `src/test/controls.test.js`), FE-3b (#104, merged `dcb326a`, last edit of `HeroSearch.jsx`). No open PR touches the files below (checked 2026-11-27T09:00Z: #125 `ui/badge.test.jsx`; #128 `App.{jsx,test.jsx}`, `ReferencesStack.*`, `SynthesisView.*`, `lib/citations.*`, `test/fixtures.js`; no other open PR is under `frontend/`) |
 | **Jira** | KAN-132, story under epic KAN-5 "Research UI & citations"; labels `task-FE-0k`, `agent-frontend`, `arxivlens` |
 | **Design required** | no: one className edit applying an existing FE-0 design rule, plus a test file; no new component, token, dependency or API field |
-| **Status** | In QA (PR #130) |
+| **Status** | Ready to merge (PR #130) |
 
 ## Goal
 The FE-0h guard checks only the two files it was written for (`CONTROL_FILES = ['components/IngestModal.jsx',
@@ -100,3 +100,4 @@ and QA's Chromium harness for AC5/AC6.
   also FAILs. The real pass/fail is CI. Contrast computed from `index.css` (light/dark): input on background 3.30/3.48,
   on card 3.50/3.23; ring on background 8.56/8.25. AC6 screenshots are left for QA's Chromium harness, because the
   sandbox's only Tailwind is 4.3.3 and the project is on 3.4.
+- 2026-11-27 (pm-lead): QA r1 PASS; PM APPROVE (`agents/reviews/FE-0k/report.md`). PR #130 raised (Evidence section, ready for review). QA finding 3 `[spec]` (a drawn border width) and the "Missing tests" self-tests went to the Backlog as a P3 frontend follow-up.
