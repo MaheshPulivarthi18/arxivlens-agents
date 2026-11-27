@@ -8,7 +8,7 @@
 | **Depends on** | OPS-H6e (ArxivLens #106) **merged**: same files `services/common/db.py`, `tests/test_chunk_reprocess_db.py` |
 | **Jira** | KAN-116 (epic KAN-4 "Continuous ingestion"; labels `task-OPS-H6f`, `agent-backend`, `arxivlens`) |
 | **Design required** | no: one function in `services/common/db.py` plus tests, no schema/event/HTTP change, no new CLI/table/service |
-| **Status** | Ready, picked cycle 2026-11-22T02:00Z (#106 merged `a4c0140`; files disjoint from open PRs #122–#124) |
+| **Status** | Ready, picked cycle 2026-11-27T03:59Z (2026-11-22T02:00Z pick never built; no branch/PR). Files disjoint from open PRs #122–#125 |
 
 ## Goal
 OPS-H6e made the embedder's save hash-aware: with a 4-tuple it locks the chunk row `FOR SHARE` and writes only if
@@ -81,3 +81,8 @@ git diff origin/main --name-only   # exactly services/common/db.py, tests/test_p
   #124's `Full stack` job is currently red; if OPS-H6f's own `Full stack` run fails, check whether the same failure is on
   #124/main (pre-existing) before treating it as this change's regression, and say which in the PR. AC9 still needs the
   new real-PG tests `PASSED` in the `-rA` summary.
+- 2026-11-27 (pm-lead, cycle 2026-11-27T03:59Z): **re-picked** (the 2026-11-22T02:00Z cycle died before building; no
+  `agent/backend/OPS-H6f` on origin). Still independent: #124 ING-6c touches Go + workflows + app `README.md` only; #122/#123 are
+  `scripts/`, `evals/`, `tests/test_evals_data.py`, `tests/test_arxiv_replay.py`; AI-13 (picked alongside) is `services/embedder/worker.py` +
+  `tests/test_verify.py`. `tests/test_processor_pages.py` and `tests/test_verify.py` share the `make test-py-ml` target but no file.
+  The 2026-11-22 Note on #124's red `Full stack` still applies. Backend WIP after this pick: 2 (#124 + OPS-H6f).

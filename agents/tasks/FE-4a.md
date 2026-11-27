@@ -8,7 +8,7 @@
 | **Depends on** | FE-3b #104, FE-0i #109, AI-8b #65, ADR-0019 #120 (all merged). Design `docs/design/FE-4.md` **approved with conditions** 2026-11-22 |
 | **Jira** | create: story under epic KAN-5 "Research UI & citations", labels `task-FE-4a`, `design-required`; link to KAN-44 (FE-4 umbrella) |
 | **Design required** | yes: covered by `docs/design/FE-4.md` (approved; §1 `claimState`/`claimCitations`/`groupByMarker`, §2, §3 grouping/focus/rows, §4, §5, §6) |
-| **Status** | Ready, picked cycle 2026-11-22T02:00Z (rebuild: the 2026-11-21T21:59Z build `a57c758` was never pushed and is lost) |
+| **Status** | Ready, picked cycle 2026-11-27T03:59Z (third pick: the 2026-11-21T21:59Z build `a57c758` was lost and the 2026-11-22T02:00Z pick was never built; no branch/PR exists) |
 
 ## Goal
 A researcher sees every statement of an answer with its own verdict (Supported / Unsupported / Not checked), and each `[n]` marker takes
@@ -86,3 +86,7 @@ cd frontend && npm ci && npm run lint && npm test && npm run build
   ship a P0 UI that is half-wired, and the extra lines are the AC test plan, which is what makes review safe.
   The dropped `title="Click to inspect Evidence [n]"` on a fallback marker that has a card is accepted (the tooltip
   replaces it, design Q1); keep it on markers with no matching citation.
+- 2026-11-27 (pm-lead, cycle 2026-11-27T03:59Z): **re-picked.** The 2026-11-22T02:00Z cycle died before building; `agent/frontend/FE-4a`
+  doesn't exist on origin. Build from app `main` `53171d6` under the 2026-11-22 size decision (conditions 1–3 above unchanged) and
+  **push the branch + open the draft PR in the same session as the build**. Independent of open #125 FE-0j (only `ui/badge.test.jsx`)
+  and of #122–#124 (no `frontend/` files). Frontend WIP after this pick: 2 (#125 + FE-4a).

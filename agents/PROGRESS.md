@@ -1100,3 +1100,10 @@ Format:
 ## 2026-11-22 cycle 2026-11-21T21:59Z — pm-lead, FE-4 design gate
 - `docs/design/FE-4.md` (`ec9e9dc`) **APPROVED with 6 conditions** (AC5 fallback wording + existing tests unmodified; FE-4a leaves the card body alone; pin heading vs footer counts; tooltip test asserts card focus; `locateQuote` uses RE2's ASCII `\s` in the regex steps with an NBSP row; highlight guard). Answers: tooltip not popover, `normQuote`-exact for AC3, `arXiv:IDvN`, split approved, copy approved, nothing active on load in every mode.
 - Split: **FE-4a** (Ready, picked: claims list, chips, marker focus, grouping, App `active`; AC1/AC2/AC5/AC6) → **FE-4b** (after FE-4a merges: quote highlight, meta line, PDF page; AC3/AC4/AC6). FE-4 (KAN-44) is the umbrella. FE-2 now waits on FE-4b. Jira stories for FE-4a/FE-4b to create.
+
+## 2026-11-27 cycle 2026-11-27T03:59Z — pm-lead, grooming
+- App `main` = `53171d6` (unchanged). Previous cycle 2026-11-22T02:00Z died before recording: of its picks only FE-0j got a PR (#125); FE-4a and OPS-H6f have no branch/PR.
+- Open agent PRs: #122 EVAL-8c (ai, QA r2 running), #123 OPS-H21 (ai, Ready to merge), #124 ING-6c (backend, QA r1 FAIL, rework), #125 FE-0j (frontend, QA r1). No human reviews, no Jira intake. ADR-0015/0018/0021 still Proposed.
+- **Picked (3, pairwise disjoint files and disjoint from #122–#125):** FE-4a (frontend, P0, design approved, rebuild), OPS-H6f (backend, P2), AI-13 (ai, P2). No 4th pick: every developer is now at 2 active PRs.
+- Not picked: FE-4b/FE-2 (behind FE-4a), OPS-H7a2c/H7b/H7c (`main.go` + README queue behind #124), EVAL-6c nits (behind #122), EVAL-8a/8b + AI-10/AI-5/EVAL-2 (ADRs Proposed), AI-14 follow-up (not specced; ai slot taken anyway).
+- Board refreshed: In progress / In QA / Ready to merge columns now list #122–#125.
