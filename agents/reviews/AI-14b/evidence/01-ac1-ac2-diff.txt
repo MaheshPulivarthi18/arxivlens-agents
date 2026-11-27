@@ -1,0 +1,23 @@
+$ bash -c git log --oneline -1; git merge-base HEAD origin/main; git diff --numstat origin/main...HEAD; git diff origin/main...HEAD | grep -E '^-[^-]' | wc -l | sed 's/^/removed lines: /'; git diff origin/main...HEAD; echo '$ gofmt -l internal/query/'; gofmt -l internal/query/; echo gofmt exit $?
+92f37ad AI-14b: pin right word boundary of table-section rule (Tablet, Tableau kept)
+53171d6579a90de027239255e98369e323416ad3
+3	0	internal/query/rag_test.go
+removed lines: 0
+diff --git a/internal/query/rag_test.go b/internal/query/rag_test.go
+index ea0f0e4..b771ad2 100644
+--- a/internal/query/rag_test.go
++++ b/internal/query/rag_test.go
+@@ -174,6 +174,9 @@ func TestFilterRelevantHits(t *testing.T) {
+ 		{"tables as last word dropped", []SearchHit{ragHit(1, "Results tables", 0.5)}, []int64{}},
+ 		{"table followed by hyphen dropped", []SearchHit{ragHit(1, "table-2", 0.5)}, []int64{}},
+ 		{"supplementary material dropped", []SearchHit{ragHit(1, "Supplementary Material", 0.5)}, []int64{}},
++		// AI-14b: right word boundary, "table" as the prefix of a longer word is not a table section.
++		{"word starting with table kept: Tablet", []SearchHit{ragHit(1, "Tablet experiments", 0.5)}, []int64{1}},
++		{"word starting with table kept: Tableau", []SearchHit{ragHit(1, "Tableau dashboards", 0.5)}, []int64{1}},
+ 	}
+ 	for _, tc := range tests {
+ 		t.Run(tc.name, func(t *testing.T) {
+$ gofmt -l internal/query/
+gofmt exit 0
+
+[exit code 0]

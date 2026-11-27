@@ -1,0 +1,69 @@
+$ gh api .../actions/jobs/{140412961980,140412962132}/logs | sed -n '93,120p;207,232p' / '243,252p'
+### Go (vet, gofmt, test, build) job 140412961980: checkout + lint-go + test-go
+2026-11-27T09:11:04.8285905Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +fe51ba6bcac4d4e6701752fc70f4c0688fe83ac7:refs/remotes/pull/129/merge
+2026-11-27T09:11:05.3804227Z From https://github.com/MaheshPulivarthi18/ArxivLens
+2026-11-27T09:11:05.3805020Z  * [new ref]         fe51ba6bcac4d4e6701752fc70f4c0688fe83ac7 -> pull/129/merge
+2026-11-27T09:11:05.3809902Z ##[endgroup]
+2026-11-27T09:11:05.3810504Z ##[group]Determining the checkout info
+2026-11-27T09:11:05.3812851Z ##[endgroup]
+2026-11-27T09:11:05.3818948Z [command]/usr/bin/git sparse-checkout disable
+2026-11-27T09:11:05.3872074Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-27T09:11:05.3902736Z ##[group]Checking out the ref
+2026-11-27T09:11:05.3906414Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/129/merge
+2026-11-27T09:11:05.4090225Z Note: switching to 'refs/remotes/pull/129/merge'.
+2026-11-27T09:11:05.4090602Z 
+2026-11-27T09:11:05.4091066Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-27T09:11:05.4091990Z changes and commit them, and you can discard any commits you make in this
+2026-11-27T09:11:05.4092876Z state without impacting any branches by switching back to a branch.
+2026-11-27T09:11:05.4093402Z 
+2026-11-27T09:11:05.4093764Z If you want to create a new branch to retain commits you create, you may
+2026-11-27T09:11:05.4094602Z do so (now or later) by using -c with the switch command. Example:
+2026-11-27T09:11:05.4095553Z 
+2026-11-27T09:11:05.4095804Z   git switch -c <new-branch-name>
+2026-11-27T09:11:05.4096186Z 
+2026-11-27T09:11:05.4096414Z Or undo this operation with:
+2026-11-27T09:11:05.4096749Z 
+2026-11-27T09:11:05.4096949Z   git switch -
+2026-11-27T09:11:05.4097223Z 
+2026-11-27T09:11:05.4097704Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-27T09:11:05.4098513Z 
+2026-11-27T09:11:05.4098967Z HEAD is now at fe51ba6 Merge 92f37ad147e5e3e8f6ef5d26b6ea987a48706926 into 53171d6579a90de027239255e98369e323416ad3
+2026-11-27T09:11:15.8811380Z ##[group]Run make lint-go
+2026-11-27T09:11:15.8811762Z [36;1mmake lint-go[0m
+2026-11-27T09:11:15.8855328Z shell: /usr/bin/bash -e {0}
+2026-11-27T09:11:15.8855635Z ##[endgroup]
+2026-11-27T09:11:15.8965024Z go vet ./...
+2026-11-27T09:11:17.4180786Z ##[group]Run make test-go
+2026-11-27T09:11:17.4181123Z [36;1mmake test-go[0m
+2026-11-27T09:11:17.4217394Z shell: /usr/bin/bash -e {0}
+2026-11-27T09:11:17.4217666Z env:
+2026-11-27T09:11:17.4217904Z   GOFLAGS: -race
+2026-11-27T09:11:17.4218136Z ##[endgroup]
+2026-11-27T09:11:17.4290839Z go test ./...
+2026-11-27T09:11:57.3349038Z ok  	arxivlens/cmd/arxivlens	1.047s
+2026-11-27T09:11:59.5011183Z ok  	arxivlens/internal/arxiv	3.210s
+2026-11-27T09:11:59.5039315Z ok  	arxivlens/internal/config	1.019s
+2026-11-27T09:11:59.5039905Z ok  	arxivlens/internal/crawler	1.132s
+2026-11-27T09:11:59.5040508Z ok  	arxivlens/internal/db	1.020s
+2026-11-27T09:11:59.5041103Z ok  	arxivlens/internal/dlq	1.293s
+2026-11-27T09:11:59.5880345Z ok  	arxivlens/internal/downloader	1.125s
+2026-11-27T09:12:00.6175145Z ok  	arxivlens/internal/kafka	1.069s
+2026-11-27T09:12:02.3647548Z ok  	arxivlens/internal/llm	2.042s
+2026-11-27T09:12:02.3648624Z ok  	arxivlens/internal/llm/llmtest	1.118s
+2026-11-27T09:12:03.0606963Z ok  	arxivlens/internal/query	1.547s
+2026-11-27T09:12:03.0629215Z ?   	arxivlens/internal/storage	[no test files]
+2026-11-27T09:12:04.5970734Z ?   	arxivlens/internal/telemetry	[no test files]
+2026-11-27T09:12:04.5971188Z ?   	arxivlens/shared/events	[no test files]
+
+### Agent ownership check job 140412962132
+2026-11-27T09:11:09.8254441Z ##[group]Run .github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"
+2026-11-27T09:11:09.8255015Z [36;1m.github/scripts/ownership-check.sh "origin/$BASE_REF" "$HEAD_REF"[0m
+2026-11-27T09:11:10.2117746Z shell: /usr/bin/bash -e {0}
+2026-11-27T09:11:10.2118192Z env:
+2026-11-27T09:11:10.2118496Z   HEAD_REF: agent/ai/AI-14b
+2026-11-27T09:11:10.2118743Z   BASE_REF: main
+2026-11-27T09:11:10.2118950Z ##[endgroup]
+2026-11-27T09:11:10.2339725Z Ownership OK for role=ai (3 changed lines)
+2026-11-27T09:11:10.2437834Z Post job cleanup.
+2026-11-27T09:11:10.3104708Z [command]/usr/bin/git version
+

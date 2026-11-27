@@ -1,0 +1,55 @@
+$ /tmp/claude-0/-home-claude/1838ca22-8c8c-5720-87a0-446c3543938a/scratchpad/mutate.sh
+rag.go regex at PR head:
+832:var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?([^\pL]|$)`)
+================ baseline (PR head, unmutated) ================
+subtests PASS: 21
+ok  	scratch/query	0.003s
+================ m7-no-right-boundary ================
+-var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?([^\pL]|$)`)
++var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?`)
+--- tests from PR-head rag_test.go
+    rag_test.go:62: got [], want [1]
+    rag_test.go:62: got [], want [1]
+--- FAIL: TestFilterRelevantHits (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_starting_with_table_kept:_Tablet (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_starting_with_table_kept:_Tableau (0.00s)
+FAIL
+FAIL	scratch/query	0.002s
+FAIL
+RESULT m7-no-right-boundary [PR-head tests]: CAUGHT (exit 1)
+--- tests from main-53171d6 rag_test.go
+ok  	scratch/query	0.002s
+RESULT m7-no-right-boundary [main-53171d6 tests]: SURVIVED
+================ m6-no-left-boundary ================
+-var tableWordRegex = regexp.MustCompile(`(?i)(^|[^\pL])tables?([^\pL]|$)`)
++var tableWordRegex = regexp.MustCompile(`(?i)tables?([^\pL]|$)`)
+--- tests from PR-head rag_test.go
+    rag_test.go:62: got [], want [1]
+    rag_test.go:62: got [], want [1]
+    rag_test.go:62: got [], want [1]
+    rag_test.go:62: got [], want [1]
+--- FAIL: TestFilterRelevantHits (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Notable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Stable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Suitable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Timetable (0.00s)
+FAIL
+FAIL	scratch/query	0.003s
+FAIL
+RESULT m6-no-left-boundary [PR-head tests]: CAUGHT (exit 1)
+--- tests from main-53171d6 rag_test.go
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+    rag_test.go:59: got [], want [1]
+--- FAIL: TestFilterRelevantHits (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Notable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Stable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Suitable (0.00s)
+    --- FAIL: TestFilterRelevantHits/word_containing_table_kept:_Timetable (0.00s)
+FAIL
+FAIL	scratch/query	0.003s
+FAIL
+RESULT m6-no-left-boundary [main-53171d6 tests]: CAUGHT (exit 1)
+
+[exit code 0]
