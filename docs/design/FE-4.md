@@ -304,3 +304,66 @@ and the code at `53171d6`: `rag.go:42-104` (fields, positional `citations` comme
 6. **Highlight guard (FE-4b)**: `<mark>` only on entries whose `citationState` kind is `supported` (as designed); keep the mutant list in §Test plan for QA.
 
 **Size**: FE-4a ≈ 365 changed lines, FE-4b ≈ 250; both under 400. If FE-4a goes over 400, move the multi-entry "Cited by claim n" rows to FE-4b rather than growing the PR.
+
+## B-UI addendum (2026-11-28)
+frontend-engineer, for pm-lead review. Bundle B-UI (KAN-133) = FE-4b + FE-2, one PR on `agent/frontend/B-UI`, code read at app `5fcbd5f`.
+§1, §3 and conditions 5–6 above stand unchanged for AC1–AC3; this adds the export (AC4–AC5) and the wiring FE-4a left out.
+
+**1. Remaining FE-4b (claim → passage → PDF page).** FE-4a ships marker → focused card. Left: `locateQuote`, `pdfHref`, `arxivLabel` (§1, ASCII-class
+regex steps per condition 5); meta line `arXiv:<id>v<N> · § <section> · p. <N>` replacing `ReferencesStack.jsx:114`; `<mark>` + sr-only "Quote: " and the four
+passage states (§3 table); `ui/collapsible` excerpt > 480 chars replacing the `max-h-36` box (`:120`); link `pdfHref(cit)`, "Open PDF at p. N ↗" / "Open PDF ↗".
+Cited-by rows: a card with > 1 entry replaces FE-4a's chip strip (`:86-105`) with one row per entry, "Cited by claim n" (or "Check n" when
+`claimCitations` is `null`); `aria-current="true"` only on the row whose `pos === active.pos`. **Gap found:** `App.jsx:216` passes no `claims` to
+ReferencesStack, so the rows can't be labelled today. B-UI adds `claims` and `answerKind` props there (+2 lines in `App.jsx`, inside `frontend/`).
+
+**2. `.bib` export (FE-2). Fields available today** (`rag.go:42-57`): `arxiv_id`, `title`, `paper_version`, `pdf_url`. No authors, no published date, no venue.
+New `src/lib/bibtex.js` (plain ESM):
+```js
+export function arxivYear(id)    // "2401.01234" → 2024, "cs/0601001" → 2006 (YY ≥ 91 → 19YY), "2401.01234v3" → 2024; unparseable → null
+export function bibKey(id)       // "arxiv" + id minus version and non-alphanumerics: "arxiv240101234", "arxivcs0601001"; empty id → null
+export function bibEntry(cit)    // one entry string, or null when bibKey is null
+export function bibFile(cits, { answerKind }) // → { text, count }: unique arxiv_id in first-seen order; synthesized → supported only
+export function bibFilename(d = new Date())   // "arxivlens-20261128-142530.bib" (local time, zero-padded)
+```
+Entry (`@misc`, arXiv's own export convention; `@article` needs a `journal` we don't have):
+```
+@misc{arxiv240101234,
+  title = {Grounded Retrieval for Scientific QA},
+  eprint = {2401.01234},
+  archivePrefix = {arXiv},
+  year = {2024},
+  url = {https://arxiv.org/abs/2401.01234}
+}
+```
+- **No author/year:** no `author` field ever (no data; adding it needs the HTTP-contract ADR on Mahesh's list). `year` only when `arxivYear` parses, else the line is
+  omitted: never `2026`, never a guess. `primaryClass = {cs.AI}` is dropped (fabricated). Empty title → no `title` line (no "Untitled").
+  The file starts with one BibTeX comment: `% ArxivLens export. Author fields are not included: ArxivLens does not return authors yet; see each url.`
+- Escaping: one pass over the title, `[\\{}&%$#_]` → `\textbackslash{}`, `\{`, `\}`, `\&`, `\%`, `\$`, `\#`, `\_`.
+- Which citations: what the answer shows. Quoted → all; synthesized → `citationState(c).kind === 'supported'` (the server already drops the rest per
+  ADR-0019; the filter is a guard). `answerKind` absent → treated as quoted (§5, ADR-0018).
+- **Trigger:** references header, right side, next to "Click [n] in text to inspect". `ui/dropdown-menu`: `<Button variant="outline" size="sm">` with
+  `Download` icon (`aria-hidden`) + visible text "Export" (its accessible name); item "BibTeX (.bib)". Selecting builds the file, downloads it via
+  `Blob` + `URL.createObjectURL` + a temporary `<a download>`, revokes the URL, toasts "Exported n references (.bib)". `count === 0` → item disabled.
+- **Refusal: trigger absent** (not disabled). A disabled button is skipped by Tab, so its explanation would be unreachable by keyboard, and the heading
+  already says "Retrieved passages (no answer was shown)". Per-card "Copy BibTeX" stays on refusal cards: copying a retrieved paper's reference claims nothing.
+- Per-card "Copy BibTeX" calls `bibEntry(cit)`; hidden when it returns `null`. The handler at `ReferencesStack.jsx:23-34` is deleted.
+
+**3. Leftover label honesty (FE-3).** In scope: the empty-`content` fallback (`:121`) prints `"<title> — [Section: <s>]"` in quote marks inside the passage box,
+which reads as a quote the paper doesn't contain; it becomes "Passage text isn't available. Open the PDF to read it." (§3's "unchanged" row is superseded).
+Out of scope, flagged only for pm-lead: the hero tagline "…with Sentence-Level Verification" (`HeroSearch.jsx:51`) overstates "Not checked" answers; the
+Markdown note heading "Clinical & Academic Research Note" and its bare "§ " on an empty section (`citations.js:45-48`, ticket excludes Export Note wording).
+
+**4. Files.** `lib/citations.js` + test · new `lib/bibtex.js` + test · `components/ReferencesStack.jsx` + test · `App.jsx` (2 props) · `App.test.jsx` (AC3) · `test/fixtures.js`. No new dependency.
+
+**5. Test plan** (Vitest, all run in CI `frontend` job)
+| AC | Tests |
+|---|---|
+| AC1 | `citations.test.js › locateQuote` table from §Test plan + NBSP `[3, 4]` row; `ReferencesStack.test.jsx` › mark equals raw span · not-located block · no-quote note · quote on unsupported/unchecked → no mark, no note · long passage: excerpt holds the mark, trigger toggles `aria-expanded` |
+| AC2 | `› pdfHref/arxivLabel` tables (page 4, 0, null, `"4"`, absent; fragment replaced; version 0); exact meta-line assert replacing `ReferencesStack.test.jsx:30`; no "Chunk #", no "General" |
+| AC3 | `App.test.jsx` (`synthesizedSkips`): click the second `[1]` → "Cited by claim 2" row `aria-current="true"`, claim-1 row none; `brokenPositional` → "Check 1/2" |
+| AC4 | `bibtex.test.js`: 3× same id → 1 entry; key stable across calls; escaping table; `eprint`/`archivePrefix`/`url`; year 2024 / 2006 / omitted; no `author`, no `primaryClass`, no `2026` unless the ID says so; card copy === `bibEntry` (spy on `onCopy`) |
+| AC5 | `ReferencesStack.test.jsx`: Tab to "Export", Enter opens, Enter on "BibTeX (.bib)" → one download; blob text has the expected entries (quoted all; synthesized with an injected unsupported → excluded); filename matches `/^arxivlens-\d{8}-\d{6}\.bib$/`; refusal → no "Export" button. `URL.createObjectURL` stubbed |
+| AC6 | legacy fixtures without `claims`/`page`/`quote`/`paper_version` render as main bar the meta line; whole-tree no-"Verified" tests untouched |
+| AC7 | CI: `npm ci && npm run lint && npm test && npm run build`, lint warnings ≤ main |
+
+**6. Size.** FE-4b ≈ 320 (prod ~120, tests+fixtures ~200), FE-2 ≈ 190 (prod ~70, tests ~120), App +2 → **≈ 510 changed lines**, one PR, under 800.
