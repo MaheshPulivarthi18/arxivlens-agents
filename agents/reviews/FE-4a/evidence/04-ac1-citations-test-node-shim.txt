@@ -1,0 +1,28 @@
+$ bash -c node /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/harness/unit.mjs frontend /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/out/unit-render.mjs && node /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/out/unit-render.mjs | tail -1 && node /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/out/unit-render.mjs | grep -E 'claimState|hasClaims|claimCitations|claimRows|groupByMarker'
+59 passed, 0 failed
+  ok   claimState › status supported → supported "Supported"
+  ok   claimState › status unverified → unchecked "Not checked"
+  ok   claimState › status unsupported → unsupported "Unsupported"
+  ok   claimState › status partially_supported → unsupported "Unsupported"
+  ok   claimState › status contradicted → unsupported "Unsupported"
+  ok   claimState › status bogus → unsupported "Unsupported"
+  ok   claimState › status undefined → unsupported "Unsupported"
+  ok   claimState › a missing claim reads Unsupported
+  ok   hasClaims › accepts a non-empty list of claims with text
+  ok   hasClaims › absent → false
+  ok   hasClaims › empty → false
+  ok   hasClaims › malformed 1 → false
+  ok   hasClaims › malformed 2 → false
+  ok   hasClaims › malformed 3 → false
+  ok   hasClaims › malformed 4 → false
+  ok   claimCitations › maps each claim marker to its positional citation entry
+  ok   claimCitations › an uncited claim has no entries
+  ok   claimCitations › returns null when a marker disagrees with its positional citation
+  ok   claimCitations › returns null when the citation count differs from the marker count
+  ok   claimRows › uses the positional mapping when it is valid
+  ok   claimRows › broken positional invariant: markers still map by number
+  ok   claimRows › a marker with no citation gets citation null and no position
+  ok   groupByMarker › one group per distinct marker, in first-seen order, entries keep their positions
+  ok   groupByMarker › no citations → no groups
+
+[exit code 0]

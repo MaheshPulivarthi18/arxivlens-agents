@@ -1,0 +1,32 @@
+$ bash -c rm -rf /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/trees/mainr && mkdir -p /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/trees/mainr && git archive 53171d6 frontend | tar -x -C /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/trees/mainr && git show HEAD:frontend/src/test/fixtures.js > /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/trees/mainr/frontend/src/test/fixtures.js && node /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/harness/run4a.mjs /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/trees/mainr /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/out/app.css /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/out/shots-mainr noshots | cut -c1-230
+12 PASS, 15 FAIL
+
+FAIL  quotedClaims: scenario aborted  — locator.waitFor: Timeout 4000ms exceeded.
+PASS  quotedClaims: no page errors / console errors
+FAIL  synthesizedSkips: scenario aborted  — locator.waitFor: Timeout 4000ms exceeded.
+FAIL  synthesizedSkips: no page errors / console errors  — Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to 
+FAIL  reducedMotion: scenario aborted  — locator.waitFor: Timeout 4000ms exceeded.
+FAIL  reducedMotion: no page errors / console errors  — Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be 
+FAIL  brokenPositional: scenario aborted  — locator.waitFor: Timeout 4000ms exceeded.
+FAIL  brokenPositional: no page errors / console errors  — Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to 
+PASS  fallback AC5: no "Claims in this answer" list
+PASS  fallback AC2b: nothing active on load ([])
+FAIL  fallback AC2: prose [2] -> focus "BUTTON"
+PASS  prose fallback (no claims): no page errors / console errors
+PASS  refusalA AC2b: no [data-active] ([]), no markers, no claims list
+FAIL  refusalA AC2b: no card carries the active ring classes [true,false]
+PASS  refusalA: no page errors / console errors
+PASS  refusalB AC2b: no [data-active] ([]), no markers, no claims list
+FAIL  refusalB AC2b: no card carries the active ring classes [true,false]
+PASS  refusalB: no page errors / console errors
+PASS  refusalC AC2b: no [data-active] ([]), no markers, no claims list
+FAIL  refusalC AC2b: no card carries the active ring classes [true,false]
+PASS  refusalC: no page errors / console errors
+FAIL  two-stage swap: scenario aborted  — locator.waitFor: Timeout 4000ms exceeded.
+PASS  two-stage swap: no page errors / console errors
+FAIL  two-stage swap [1]: scenario aborted  — locator.waitFor: Timeout 4000ms exceeded.
+PASS  two-stage swap [1]: no page errors / console errors
+FAIL  new search: scenario aborted  — locator.waitFor: Timeout 4000ms exceeded.
+FAIL  new search: no page errors / console errors  — Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be dup
+
+[exit code 0]

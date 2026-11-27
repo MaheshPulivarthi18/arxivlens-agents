@@ -1,0 +1,36 @@
+$ bash -c echo '--- frontend/src/App.test.jsx (PR head) ---'; grep -n 'after the written answer replaces the quoted one' -A15 frontend/src/App.test.jsx; echo; echo '--- markers per fixture (PR head fixtures.js) ---'; node --input-type=module -e "const fx = await import('/root/wt/qa-FE-4a/frontend/src/test/fixtures.js'); for (const k of ['quotedClaims','synthesizedSkips']) console.log(k, 'citation markers', JSON.stringify(fx[k].citations.map(c => c.marker)))"; echo; echo '--- production line the test is meant to guard (App.jsx) ---'; grep -n -B2 -A1 'setActive(null);' frontend/src/App.jsx | sed -n '5,9p'; echo; echo '--- M6 = that setActive(null) deleted, browser harness ---'; python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/harness/m6.py /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1
+--- frontend/src/App.test.jsx (PR head) ---
+292:  it('AC2b: after the written answer replaces the quoted one, no card is active', async () => {
+293-    const full = deferred();
+294-    stubFetch({ quick: { ...quotedClaims, synthesis_available: true }, full: () => full.promise });
+295-    const user = userEvent.setup();
+296-    render(<App />);
+297-    await ask(user);
+298-    const list = await claimsList();
+299-    await user.click(within(list).getByRole('button', { name: '[2]' }));
+300-    expect(citationCard(2)).toHaveAttribute('data-active', 'true');
+301-
+302-    await act(async () => {
+303-      full.resolve(synthesizedSkips);
+304-    });
+305-    expect(await screen.findByText(synthesizedSkips.claims[0].text)).toBeInTheDocument();
+306-    expect(activeCards()).toHaveLength(0);
+307-  });
+
+--- markers per fixture (PR head fixtures.js) ---
+quotedClaims citation markers [1,2,3]
+synthesizedSkips citation markers [1,1,3]
+
+--- production line the test is meant to guard (App.jsx) ---
+--
+111-        // Marker numbers refer to a different passage set after the swap, so no card stays active.
+112-        setSearchResult(full);
+113:        setActive(null);
+114-      }
+
+--- M6 = that setActive(null) deleted, browser harness ---
+M6 tree: 47 PASS, 1 FAIL
+PASS  two-stage AC2b: active ["ref-2"] on the quoted answer -> [] after the written answer replaces it
+FAIL  two-stage [1] AC2b: active ["ref-1"] -> ["ref-1"] after the swap (marker 1 exists in both answers)
+
+[exit code 0]

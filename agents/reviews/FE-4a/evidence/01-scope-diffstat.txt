@@ -1,0 +1,21 @@
+$ bash -c git log --oneline -1; git diff --numstat 53171d6 HEAD; echo; echo "prod (citations.js, SynthesisView.jsx, ReferencesStack.jsx, App.jsx) changed lines:"; git diff --numstat 53171d6 HEAD -- frontend/src/lib/citations.js frontend/src/components/SynthesisView.jsx frontend/src/components/ReferencesStack.jsx frontend/src/App.jsx | awk "{s+=\$1+\$2} END {print s}"; echo "tests + fixtures changed lines:"; git diff --numstat 53171d6 HEAD -- "*.test.*" frontend/src/test/fixtures.js | awk "{s+=\$1+\$2} END {print s}"; echo; echo "files outside frontend/src/:"; git diff --name-only 53171d6 HEAD | grep -v "^frontend/src/" || echo none
+34cbd2e FE-4a: Claims list with per-claim status chips; [n] markers focus their own card
+14	9	frontend/src/App.jsx
+108	2	frontend/src/App.test.jsx
+39	25	frontend/src/components/ReferencesStack.jsx
+46	0	frontend/src/components/ReferencesStack.test.jsx
+65	12	frontend/src/components/SynthesisView.jsx
+114	0	frontend/src/components/SynthesisView.test.jsx
+57	0	frontend/src/lib/citations.js
+98	1	frontend/src/lib/citations.test.js
+67	0	frontend/src/test/fixtures.js
+
+prod (citations.js, SynthesisView.jsx, ReferencesStack.jsx, App.jsx) changed lines:
+221
+tests + fixtures changed lines:
+436
+
+files outside frontend/src/:
+none
+
+[exit code 0]

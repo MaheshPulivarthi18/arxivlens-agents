@@ -1,0 +1,25 @@
+$ bash -c echo "removed lines in test files:"; git diff 53171d6 HEAD -- "*.test.*" | grep -E "^-([^-]|$)"; echo; echo "hunk headers (-old +new):"; git diff -U0 53171d6 HEAD -- "*.test.*" | grep -E "^(\+\+\+|@@)"; echo; echo "fixtures.js removed lines: $(git diff 53171d6 HEAD -- frontend/src/test/fixtures.js | grep -cE "^-([^-]|$)")"
+removed lines in test files:
+-import { act, render, screen, waitFor } from '@testing-library/react';
+-import { earlyRefusal, quotedAnswer, refusalA, refusalB, refusalC, synthesizedAnswer } from './test/fixtures';
+-import { citationState, markdownNote } from './citations';
+
+hunk headers (-old +new):
++++ b/frontend/src/App.test.jsx
+@@ -2 +2 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
+@@ -5 +5,4 @@ import App from './App';
+@@ -202,0 +206,103 @@ describe('App: two-stage answer (FE-3a)', () => {
++++ b/frontend/src/components/ReferencesStack.test.jsx
+@@ -12,0 +13 @@ import {
+@@ -163,0 +165,45 @@ describe('ReferencesStack', () => {
++++ b/frontend/src/components/SynthesisView.test.jsx
+@@ -12,0 +13,4 @@ import {
+@@ -149,0 +154,110 @@ describe('SynthesisView', () => {
++++ b/frontend/src/lib/citations.test.js
+@@ -2 +2 @@ import { describe, it, expect } from 'vitest';
+@@ -10,0 +11,4 @@ import {
+@@ -85,0 +90,93 @@ describe('markdownNote', () => {
+
+fixtures.js removed lines: 0
+
+[exit code 0]

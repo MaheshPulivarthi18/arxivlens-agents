@@ -1,0 +1,663 @@
+$ bash -c for d in /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/deps/*; do echo "dep $(basename $d): $(git -C $d describe --tags --always 2>/dev/null) $(git -C $d rev-parse --short HEAD) $(git -C $d remote get-url origin)"; done; echo 'node' $(node --version); for f in $(cd /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/harness && find . -type f | sort); do echo "===== $f"; cat /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/harness/$f; done
+dep cssesc: v3.0.0 cb894eb https://github.com/mathiasbynens/cssesc
+dep psp: v6.0.10 91a0147 https://github.com/postcss/postcss-selector-parser
+dep radix: eb3a2b70 eb3a2b70 https://github.com/radix-ui/primitives
+dep typography: v0.5.20 e3714a3 https://github.com/tailwindlabs/tailwindcss-typography
+node v22.23.5
+===== ./build-typo.mjs
+// Bundle @tailwindcss/typography v0.5.20 (git tag clone, the lockfile version) with postcss-selector-parser v6.0.10 and cssesc v3.0.0
+// (also git tag clones; the npm registry is unreachable) into one CJS file. tailwindcss/plugin + /colors come from /opt/npm-tools (v4).
+import { createRequire } from 'node:module'; import path from 'node:path';
+const require = createRequire('/opt/npm-tools/node_modules/');
+const esbuild = require('esbuild');
+const H = path.dirname(new URL(import.meta.url).pathname);
+const D = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../deps');
+await esbuild.build({ entryPoints: [`${D}/typography/src/index.js`], bundle: true, platform: 'node', format: 'cjs', outfile: process.argv[2],
+  plugins: [{ name: 'a', setup(b) {
+    b.onResolve({ filter: /^postcss-selector-parser$/ }, () => ({ path: `${H}/psp-shim.cjs` }));
+    b.onResolve({ filter: /^PSP_SRC$/ }, () => ({ path: `${D}/psp/src/index.js` }));
+    b.onResolve({ filter: /^cssesc$/ }, () => ({ path: `${D}/cssesc/cssesc.js` }));
+    b.onResolve({ filter: /^util-deprecate$/ }, () => ({ path: require.resolve('util-deprecate') }));
+    b.onResolve({ filter: /^tailwindcss\/(plugin|colors)$/ }, (a) => ({ path: require.resolve(a.path) }));
+  } }], logLevel: 'error' });
+console.log('typography bundle ->', process.argv[2]);
+===== ./classprobe.mjs
+// For every class token on the '+' side of the PR diff (className strings of the changed .jsx), compile it alone with Tailwind
+// against the PR's real tailwind.config.js (+ real typography plugin) and report whether it generates a rule. Control tokens
+// that must NOT generate CSS are included (bg-popoverx, text-not-a-token).
+import { createRequire } from 'node:module'; import fs from 'node:fs'; import path from 'node:path'; import { execSync } from 'node:child_process';
+const require = createRequire('/opt/npm-tools/node_modules/');
+const { compile } = await import(require.resolve('tailwindcss').replace(/lib\.js$/, 'lib.mjs'));
+const APP = process.argv[2]; const FE = `${APP}/frontend`; const TYPO = path.resolve(process.argv[3]);
+const TW = path.dirname(require.resolve('tailwindcss/package.json'));
+const cfgPath = `/tmp/claude-0/-home-claude/c034de38-2b32-59cf-b61a-d5a273c9087b/scratchpad/qa-FE-3b-r1/harness/out/probe.tailwind.config.mjs`;
+fs.writeFileSync(cfgPath, fs.readFileSync(`${FE}/tailwind.config.js`, 'utf8').replace(/^import typography from .*$/m, `import typography from ${JSON.stringify(TYPO)}`));
+const mk = async () => compile(`@import "tailwindcss/theme.css";\n@import "tailwindcss/utilities.css";\n@config "${cfgPath}";`, { base: FE,
+  loadStylesheet: async (id, base) => { const p = id.startsWith('tailwindcss/') ? `${TW}/${id.slice(12)}` : path.resolve(base, id); return { path: p, base: path.dirname(p), content: fs.readFileSync(p, 'utf8') }; },
+  loadModule: async (id, base) => { const p = path.resolve(base, id); const m = await import(p); return { path: p, base: path.dirname(p), module: m.default ?? m }; } });
+const diff = execSync(`git -C ${APP} diff origin/main...HEAD -- 'frontend/src/*.jsx' 'frontend/src/**/*.jsx' ':!*.test.jsx'`, { encoding: 'utf8' });
+const added = diff.split('\n').filter((l) => l.startsWith('+') && !l.startsWith('+++'));
+const toks = new Set();
+for (const l of added) for (const m of l.matchAll(/className="([^"]+)"|'([^']*(?:border|ring|bg|text)-[^']*)'/g)) for (const t of (m[1] || m[2]).split(/\s+/)) if (t) toks.add(t);
+const controls = ['bg-popoverx', 'text-not-a-token'];
+let empty = 0;
+const BASE = (await mk()).build([]).trim(); // output with no candidates; a class only counts if it adds to this
+console.log(`baseline (no candidates) output: ${BASE.length} bytes`);
+const rows = [];
+for (const t of [...toks, ...controls]) {
+  const c = await mk(); const out = c.build([t]).trim();
+  const ok = out.length > BASE.length; if (!ok && !controls.includes(t)) empty++;
+  rows.push(`${ok ? 'CSS ' : 'NONE'}  ${controls.includes(t) ? '(control) ' : ''}${t}`);
+}
+console.log(`${toks.size} class tokens on '+' lines of the PR's non-test .jsx; ${empty} generate no CSS (controls must say NONE)`);
+console.log(rows.sort((a, b) => a.startsWith('NONE') ? -1 : b.startsWith('NONE') ? 1 : 0).join('\n'));
+===== ./combo.py
+# M3+M10 together (initial {marker:1} AND no reset on search) = the pre-FE-4a "card 1 active on load" behaviour; run the browser harness.
+import subprocess, sys, shutil, tempfile
+S = sys.argv[1]; d = tempfile.mkdtemp(dir=S + '/mut'); shutil.copytree(S + '/trees/head/frontend', d + '/frontend')
+f = d + '/frontend/src/App.jsx'; s = open(f).read()
+for old, new in [("const [active, setActive] = useState(null);", "const [active, setActive] = useState({ marker: 1, pos: 0 });"),
+                 ("    setActive(null);\n    setSynthesis('idle');", "    setSynthesis('idle');")]:
+    assert s.count(old) == 1; s = s.replace(old, new)
+open(f, 'w').write(s)
+out = subprocess.run(['node', S + '/harness/run4a.mjs', d, S + '/out/app.css', d + '/shots', 'noshots'], capture_output=True, text=True).stdout
+print('M3+M10 combined:', out.splitlines()[0]); print('\n'.join(l for l in out.splitlines() if l.startswith('FAIL')))
+===== ./contrast.mjs
+// WCAG 2.1 contrast for FE-3b, computed from the PR's src/index.css (both :root = light and .dark).
+// Token "hue sat% light%" -> sRGB (CSS hsl()), alpha layers composited in sRGB over their real parent surface, as the browser does.
+// usage: node contrast.mjs <path to src/index.css>
+import fs from 'node:fs';
+const css = fs.readFileSync(process.argv[2], 'utf8');
+const block = (sel) => { const m = css.match(new RegExp(sel.replace('.', '\\.') + '\\s*\\{([\\s\\S]*?)\\n  \\}')); const o = {}; for (const [, k, v] of m[1].matchAll(/--([\w-]+):\s*([^;]+);/g)) o[k] = v.trim(); return o; };
+const light = block(':root'); const dark = { ...light, ...block('.dark') };
+const hsl = (s) => { const [h, S, L] = s.split(/\s+/).map(parseFloat); const sat = S / 100, l = L / 100; const k = (n) => (n + h / 30) % 12; const a = sat * Math.min(l, 1 - l);
+  return [0, 8, 4].map((n) => 255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))); };
+const over = (fg, a, bg) => fg.map((c, i) => c * a + bg[i] * (1 - a));
+const lum = (rgb) => { const [r, g, b] = rgb.map((c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+// surface spec: [token, alpha] layers from the bottom (page background) up
+const surf = (T, layers) => layers.reduce((acc, [tok, a]) => over(hsl(T[tok]), a, acc), hsl(T.background));
+const BG = [['background', 1]];
+const SYN = [...BG, ['card', 0.95]];          // SynthesisView <Card bg-card/95>
+const REF = [...BG, ['card', 0.9]];           // ReferencesStack card, not highlighted (bg-card/90)
+const REFA = [...BG, ['card', 1]];            // highlighted card (bg-card)
+const rows = [
+  // [pair, used for, fg token(, alpha), surface layers, min, design light, design dark]
+  ['foreground on card/95', 'answer prose (--tw-prose-body)', ['foreground'], SYN, 4.5, 16.63, 13.79],
+  ['primary on accent', '[n] marker in the answer', ['primary'], [...SYN, ['accent', 1]], 4.5, 7.64, 5.88],
+  ['primary on accent/70 (hover)', '[n] marker hover', ['primary'], [...SYN, ['accent', 0.7]], 4.5, null, null],
+  ['foreground on muted', 'refusal panel body / early-refusal banner text', ['foreground'], [...SYN, ['muted', 1]], 4.5, 14.35, 11.80],
+  ['muted-foreground on muted', 'banner secondary text', ['muted-foreground'], [...BG, ['muted', 1]], 4.5, 5.84, 5.91],
+  ['secondary-foreground on secondary', 'banner <code> question chip', ['secondary-foreground'], [...BG, ['muted', 1], ['secondary', 1]], 4.5, null, null],
+  ['primary-foreground on primary', 'banner <Button size=sm>, search button, spinner', ['primary-foreground'], [...BG, ['primary', 1]], 4.5, null, 8.11],
+  ['foreground on muted/50 over card/90', 'PASSAGE TEXT (was text-slate-300)', ['foreground'], [...REF, ['muted', 0.5]], 4.5, 15.46, 12.81],
+  ['foreground on muted/50 over card', 'passage text, highlighted card', ['foreground'], [...REFA, ['muted', 0.5]], 4.5, null, null],
+  ['accent-foreground on accent', 'marker tile [n], icon tile, selection', ['accent-foreground'], [...REF, ['accent', 1]], 4.5, 9.47, 8.98],
+  ['muted-foreground on card/90', 'section line', ['muted-foreground'], REF, 4.5, 6.77, 6.91],
+  ['muted-foreground on card/95', 'footer summary, writing status', ['muted-foreground'], SYN, 4.5, null, null],
+  ['supported-foreground on supported', 'chip', ['supported-foreground'], [...REF, ['supported', 1]], 4.5, 7.23, 8.41],
+  ['unsupported-foreground on unsupported', 'chip', ['unsupported-foreground'], [...REF, ['unsupported', 1]], 4.5, 7.55, 7.99],
+  ['unchecked-foreground on unchecked', 'chip', ['unchecked-foreground'], [...REF, ['unchecked', 1]], 4.5, 7.71, 8.82],
+  ['popover-foreground on popover', 'chip tooltip text', ['popover-foreground'], [...BG, ['popover', 1]], 4.5, null, null],
+  ['primary on card/90', '"Open PDF" link text', ['primary'], REF, 4.5, null, null],
+  ['accent-foreground on accent', '"Open PDF" hover', ['accent-foreground'], [...REF, ['accent', 1]], 4.5, null, null],
+  ['primary on accent (over background)', 'hero tagline pill', ['primary'], [...BG, ['accent', 1]], 4.5, 8.56, 8.25],
+  ['primary on muted', 'refusal panel "Read the n passages" link', ['primary'], [...SYN, ['muted', 1]], 4.5, null, null],
+  ['muted-foreground on card/80', 'hero suggested-topic chips', ['muted-foreground'], [...BG, ['card', 0.8]], 4.5, null, null],
+  ['foreground on accent', 'hero chip hover', ['foreground'], [...BG, ['accent', 1]], 4.5, null, null],
+  ['ring on card (1.4.11)', 'focus rings: status-chip button, [n] marker', ['ring'], REF, 3, 9.09, 7.65],
+  ['ring on muted (1.4.11)', 'focus ring: banner button / panel link', ['ring'], [...BG, ['muted', 1]], 3, null, null],
+  ['input on card (1.4.11)', 'hero search box focused border (focus-within:border-input)', ['input'], [...BG, ['card', 1]], 3, null, null],
+  ['ring/30 on background (1.4.11)', 'hero search box focus-within:ring-ring/30 halo', ['ring', 0.3], BG, 3, null, null],
+];
+let fails = 0; const out = [];
+out.push('pair | used for | min | light (design) | dark (design) | result');
+for (const [pair, use, [fg, fa = 1], layers, min, dl, dd] of rows) {
+  const r = [light, dark].map((T) => { const s = surf(T, layers); return ratio(over(hsl(T[fg]), fa, s), s); });
+  const ok = r.every((x) => x >= min); if (!ok) fails++;
+  out.push(`${pair} | ${use} | ${min} | ${r[0].toFixed(2)} (${dl ?? '-'}) | ${r[1].toFixed(2)} (${dd ?? '-'}) | ${ok ? 'PASS' : 'BELOW ' + min}`);
+}
+// Before/after for the passage text the ticket calls out (main: text-slate-300 #cbd5e1 on bg-background/80 over card/90)
+const slate300 = [0xcb, 0xd5, 0xe1];
+const before = [light, dark].map((T) => { const s = over(hsl(T.background), 0.8, surf(T, REF)); return ratio(slate300, s).toFixed(2); });
+console.log(`${rows.length} pairs, ${fails} below their minimum (text 4.5:1, non-text/focus 3:1), from ${process.argv[2]}\n`);
+console.log(out.join('\n'));
+console.log(`\nBefore (origin/main classes): passage text-slate-300 on bg-background/80 over card/90 = light ${before[0]} / dark ${before[1]}`);
+===== ./guard-mutants.sh
+#!/usr/bin/env bash
+# AC2 negative controls for the PR's tokens.test.js guard (run in plain node via vitest-shim; logic check, CI Vitest is the pass/fail).
+# Each case copies the PR head's frontend/src into a fresh mktemp dir, applies one change to a PRODUCT file, runs the real test file there.
+# A case is CAUGHT when the guard reports hits (test file exits non-zero). Also prints extra regex probes not in the PR's self-test.
+APP=$1; H=$(cd "$(dirname "$0")" && pwd)
+run_case() { # name, shell snippet run inside the copied src dir
+  local d; d=$(mktemp -d "$H/mut.XXXX"); cp -r "$APP/frontend/src" "$d/src"; (cd "$d/src" && eval "$2")
+  local out; out=$(cd "$H" && node --import ./reg.mjs "$d/src/test/tokens.test.js" 2>&1); local rc=$?
+  local hits; hits=$(echo "$out" | grep -oE '"[^"]+:[0-9]+ [^"]+"' | tr '\n' ' ')
+  printf '%-8s %-62s %s\n' "$([ $rc -ne 0 ] && echo CAUGHT || echo MISSED)" "$1" "${hits:0:400}"
+}
+echo "verdict  case                                                           guard hits"
+run_case "control: PR head unchanged (must be MISSED = 0 hits)" "true"
+run_case "HeroSearch.jsx:81 spinner back to border-white/30 border-t-white" "sed -i 's#border-primary-foreground/30 border-t-primary-foreground#border-white/30 border-t-white#' components/HeroSearch.jsx"
+for f in components/SynthesisView.jsx components/ReferencesStack.jsx App.jsx components/HeroSearch.jsx; do
+  run_case "$f replaced by origin/main's version" "git -C '$APP' show origin/main:frontend/src/$f > $f"
+done
+run_case "App.jsx banner: text-foreground -> text-white" "sed -i '0,/text-sm space-y-3/s#text-foreground text-sm space-y-3#text-white text-sm space-y-3#' App.jsx"
+run_case "ReferencesStack.jsx chip: ring-offset-card -> ring-offset-slate-950" "sed -i 's#focus-visible:ring-offset-card#focus-visible:ring-offset-slate-950#' components/ReferencesStack.jsx"
+run_case "SynthesisView.jsx marker: text-primary -> text-sky-300" "sed -i '0,/font-semibold text-primary bg-accent/s#font-semibold text-primary bg-accent#font-semibold text-sky-300 bg-accent#' components/SynthesisView.jsx"
+run_case "HeroSearch.jsx: add shadow-black/80 (allowed: must be MISSED)" "sed -i 's#shadow-2xl shadow-black/40#shadow-2xl shadow-black/80#' components/HeroSearch.jsx"
+echo
+echo "Extra regex probes (not in the PR's self-test), PALETTE_CLASS from the PR's tokens.test.js:"
+cd "$H" && node --import ./reg.mjs --input-type=module -e "
+const { PALETTE_CLASS } = await import('$APP/frontend/src/test/tokens.test.js');
+const hit = ['group-hover:text-white','!bg-white','[&>svg]:text-black','border-x-white','divide-y-gray-200','text-gray-50','bg-black','to-black/0','md:hover:bg-slate-50/50','dark:placeholder:text-neutral-400','ring-1 ring-white/10','border-b-emerald-500/40'];
+const miss = ['shadow-white','bg-transparent','text-current','text-muted-foreground','bg-unchecked','text-unsupported-foreground','border-input','ring-offset-background','bg-popover','selection:bg-accent','focus-within:ring-ring/30','motion-safe:animate-pulse'];
+for (const c of hit) console.log((PALETTE_CLASS.test(c) ? 'ok   hit ' : 'GAP  not caught ') + c);
+for (const c of miss) console.log((!PALETTE_CLASS.test(c) ? 'ok   allowed ' : 'FALSE-POSITIVE ') + c);
+" 2>&1 | grep -v "^palette-class\|passed,\|^  ok\|^  FAIL\|^ *$"
+===== ./hooks.mjs
+// Resolve hook: `import ... from 'vitest'` -> vitest-shim.mjs, everything else unchanged.
+export async function resolve(spec, ctx, next) { if (spec === 'vitest') return { url: new URL('./vitest-shim.mjs', import.meta.url).href, shortCircuit: true }; return next(spec, ctx); }
+===== ./m6.py
+# M6 (drop setActive(null) on the quoted->written swap) on the PR head tree: print both browser swap scenarios.
+# "two-stage swap" mirrors the PR's App test (click [2], a marker the written answer doesn't have); "two-stage swap [1]" clicks a marker both answers have.
+import subprocess, sys, shutil, tempfile
+S = sys.argv[1]; d = tempfile.mkdtemp(dir=S + '/mut'); shutil.copytree(S + '/trees/head/frontend', d + '/frontend')
+f = d + '/frontend/src/App.jsx'; s = open(f).read(); old = "        setSearchResult(full);\n        setActive(null);\n"
+assert s.count(old) == 1; open(f, 'w').write(s.replace(old, "        setSearchResult(full);\n"))
+out = subprocess.run(['node', S + '/harness/run4a.mjs', d, S + '/out/app.css', d + '/shots', 'noshots'], capture_output=True, text=True).stdout
+print('M6 tree:', out.splitlines()[0]); print('\n'.join(l for l in out.splitlines() if 'two-stage' in l and 'errors' not in l))
+===== ./mutants4a.py
+# QA FE-4a mutation run. Each mutant = the PR head tree (git archive 34cbd2e) with ONE anchored string replacement (asserted to match once).
+# Per mutant: (a) the PR's REAL citations.test.js via unit.mjs + vitest shim in node (59 tests at head = CI count), and
+# (b) the browser behaviour harness run4a.mjs (real App + components + real Radix tooltip in Chromium). Build failures are INVALID, never KILLED.
+# Component tests (SynthesisView/ReferencesStack/App .test.jsx) can't run offline (no RTL/user-event); the report maps those statically.
+import subprocess, sys, os, shutil, tempfile, re
+S = sys.argv[1]; HEAD = S + '/trees/head'
+L, A, R, V = 'frontend/src/lib/citations.js', 'frontend/src/App.jsx', 'frontend/src/components/ReferencesStack.jsx', 'frontend/src/components/SynthesisView.jsx'
+M = [
+ ('CONTROL head (no edit)', None, None, None),
+ ('M1 claimState unverified -> Supported', L, "if (status === 'unverified') return { kind: 'unchecked', text: 'Not checked' };", "if (status === 'unverified') return { kind: 'supported', text: 'Supported' };"),
+ ('M2 claimCitations: drop marker-equality check', L, "    if (entries.some((e) => e.citation?.marker !== e.marker)) return null;\n", ""),
+ ('M2b claimCitations: drop count check', L, "return o === cits.length ? rows : null;", "return rows;"),
+ ('M3 App active initial {marker:1} (old default)', A, "const [active, setActive] = useState(null);", "const [active, setActive] = useState({ marker: 1, pos: 0 });"),
+ ('M4 drop tabIndex={-1} on cards', R, "            tabIndex={-1}\n", ""),
+ ('M5 drop card .focus()', A, "      targetElement.focus({ preventScroll: true });\n", ""),
+ ('M6 keep active across quoted->written swap', A, "        setSearchResult(full);\n        setActive(null);\n", "        setSearchResult(full);\n"),
+ ('M7 ReferencesStack honours active in refusal mode', R, "const isHighlighted = !refusalReason && active?.marker === marker;", "const isHighlighted = active?.marker === marker;"),
+ ('M8 hasClaims: drop the every(text is string) check', L, " && claims.every((c) => typeof c?.text === 'string');", ";"),
+ ('M9 no grouping: one card per citation entry', R, "const groups = groupByMarker(citations);", "const groups = citations.map((citation, pos) => ({ marker: citation.marker, entries: [{ citation, pos }] }));"),
+ ('M10 keep active on a new search', A, "    setActive(null);\n    setSynthesis('idle');", "    setSynthesis('idle');"),
+ ('M11 marker ignores pos (reports marker only)', V, "onClick={() => (pos === undefined ? onCitationClick(marker) : onCitationClick(marker, pos))}", "onClick={() => onCitationClick(marker)}"),
+ ('M12 drop aria-controls on markers', V, "      aria-controls={citation ? `ref-${marker}` : undefined}\n", ""),
+ ('M13 reduced motion ignored (always smooth)', A, "behavior: reduce ? 'auto' : 'smooth'", "behavior: 'smooth'"),
+]
+rows = []
+for name, f, old, new in M:
+    d = tempfile.mkdtemp(dir=S + '/mut'); shutil.copytree(HEAD + '/frontend', d + '/frontend')
+    diff = ''
+    if f:
+        src = open(d + '/' + f).read(); assert src.count(old) == 1, (name, src.count(old))
+        open(d + '/' + f, 'w').write(src.replace(old, new)); diff = f"{f}: -{old.strip()[:90]!r} +{new.strip()[:60]!r}"
+    b = subprocess.run(['node', S + '/harness/unit.mjs', d + '/frontend', d + '/u.mjs'], capture_output=True, text=True)
+    if b.returncode: rows.append((name, 'INVALID build', '', '', diff)); continue
+    u = subprocess.run(['node', d + '/u.mjs'], capture_output=True, text=True).stdout
+    uf = [l.strip()[5:] for l in u.splitlines() if l.strip().startswith('FAIL ')]
+    usum = u.strip().splitlines()[-1]
+    br = subprocess.run(['node', S + '/harness/run4a.mjs', d, S + '/out/app.css', d + '/shots', 'noshots'], capture_output=True, text=True)
+    if br.returncode and 'PASS,' not in br.stdout: rows.append((name, usum, 'INVALID browser: ' + br.stderr[-200:], '', diff)); continue
+    bsum = br.stdout.strip().splitlines()[0]; bf = [l[6:] for l in br.stdout.splitlines() if l.startswith('FAIL ')]
+    rows.append((name, usum, bsum, uf, bf, diff))
+print('mutant | PR citations.test.js (node shim) | QA browser harness | verdict')
+for r in rows:
+    if len(r) == 5: print(f'{r[0]} | {r[1]} | {r[2]} | INVALID'); continue
+    name, usum, bsum, uf, bf, diff = r
+    k = [x for x, n in (('unit', uf), ('browser', bf)) if n]
+    print(f"{name} | {usum} | {bsum} | {'CONTROL' if name.startswith('CONTROL') else ('KILLED by ' + '+'.join(k)) if k else 'SURVIVED (both)'}")
+print('\n=== details (failing test/check names, mutant diff) ===')
+for r in rows:
+    if len(r) == 5: continue
+    name, usum, bsum, uf, bf, diff = r
+    print(f'\n## {name}\n  diff: {diff}')
+    for x in uf[:4]: print('  unit FAIL:', x[:160])
+    for x in bf[:4]: print('  browser FAIL:', x[:200])
+===== ./psp-shim.cjs
+// CJS view of postcss-selector-parser's ESM src (its published dist is a babel CJS build with module.exports = default).
+const m = require('PSP_SRC'); module.exports = Object.assign(m.default, m);
+===== ./reg.mjs
+import { register } from 'node:module'; register('./hooks.mjs', import.meta.url);
+===== ./run.mjs
+// QA browser harness for FE-3b. Bundles the PR's REAL src/main.jsx -> App.jsx and every component, lib/theme.js, lib/citations.js,
+// ui/badge|card|button|tooltip, with the REAL @radix-ui/react-tooltip + react-slot sources (git clone of radix-ui/primitives; tooltip
+// package.json 1.4.1 = lockfile), real react/react-dom 19.2.8 (= lockfile), real class-variance-authority/clsx/tailwind-merge and
+// @floating-ui/react-dom 2.1.9 (= lockfile) from /opt/npm-tools. Stubbed: lucide-react icons (circles) and ui/dialog|tabs|dropdown-menu
+// (closed in every run). Fonts: @fontsource is not installable, so Inter/Source Serif fall back to system sans/serif.
+// The page is the PR's REAL index.html (pre-paint theme script included); only its module <script> is swapped for the bundle.
+// CSS = twbuild.mjs output (real tailwind.config.js + real typography plugin, Tailwind 4.3.3 compat). /v1/ask answered with the PR's
+// src/test/fixtures.js. No localStorage is set, so the theme is whatever DEFAULT_THEME + prefers-color-scheme give.
+// usage: node run.mjs <app dir> <css> <out dir>
+import { createRequire } from 'node:module'; import fs from 'node:fs'; import path from 'node:path';
+const require = createRequire('/opt/npm-tools/node_modules/');
+const esbuild = require('esbuild'); const { chromium } = require('playwright');
+const H = path.dirname(new URL(import.meta.url).pathname); const RADIX = path.resolve(H, '../deps/radix/packages');
+const APP = path.resolve(process.argv[2]); const FE = `${APP}/frontend`; const CSS = fs.readFileSync(process.argv[3], 'utf8');
+const OUT = path.resolve(process.argv[4]); fs.mkdirSync(OUT, { recursive: true });
+const fx = await import(`${FE}/src/test/fixtures.js`);
+const plug = { name: 'qa', setup(b) {
+  b.onResolve({ filter: /^lucide-react$/ }, () => ({ path: `${H}/stubs-lucide.jsx` }));
+  b.onResolve({ filter: /^\.\/ui\/(dialog|tabs|dropdown-menu)$/ }, () => ({ path: `${H}/stubs-ui.jsx` }));
+  b.onResolve({ filter: /^@fontsource-variable\/|\.css$/ }, () => ({ path: 'empty', namespace: 'empty' }));
+  b.onLoad({ filter: /.*/, namespace: 'empty' }, () => ({ contents: '', loader: 'js' }));
+  b.onResolve({ filter: /^@radix-ui\/react-([\w-]+)$/ }, (a) => ({ path: `${RADIX}/react/${a.path.slice(16)}/src/index.ts` }));
+  b.onResolve({ filter: /^@radix-ui\/env-check\/is-development$/ }, () => ({ path: `${RADIX}/core/env-check/src/internal/is-development.true.ts` }));
+  b.onResolve({ filter: /^@radix-ui\/([\w-]+)$/ }, (a) => ({ path: `${RADIX}/core/${a.path.slice(10)}/src/index.ts` }));
+  b.onResolve({ filter: /^(react|react-dom|clsx|tailwind-merge|class-variance-authority|@floating-ui\/[\w-]+)(\/.*)?$/ }, (a) => ({ path: require.resolve(a.path) }));
+}};
+const js = (await esbuild.build({ entryPoints: [`${FE}/src/main.jsx`], bundle: true, format: 'esm', write: false, jsx: 'automatic', loader: { '.js': 'jsx' },
+  define: { 'process.env.NODE_ENV': '"development"' }, plugins: [plug], logLevel: 'error' })).outputFiles[0].text;
+const html = fs.readFileSync(`${FE}/index.html`, 'utf8').replace('<script type="module" src="/src/main.jsx"></script>', '<script type="module" src="/b.js"></script>')
+  .replace('</head>', '<link rel="stylesheet" href="/app.css"></head>');
+const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome' });
+const results = []; const check = (name, ok, detail = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  — ' + detail : ''}`);
+
+// In-page WCAG contrast of an element's real computed text colour over the composited backgrounds of its ancestors.
+const CONTRAST_FN = `(el) => {
+  const parse = (s) => { let m = s.match(/rgba?\\(([^)]+)\\)/); if (m) { const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [p[0], p[1], p[2], p[3] ?? 1]; }
+    m = s.match(/color\\(srgb ([^)]+)\\)/); if (m) { const p = m[1].split(/[ /]+/).filter(Boolean).map(Number); return [p[0]*255, p[1]*255, p[2]*255, p[3] ?? 1]; }
+    m = s.match(/oklch|oklab|lab|hsl/); if (m) { const c = document.createElement('canvas').getContext('2d'); c.fillStyle = s; c.fillRect(0,0,1,1); const d = c.getImageData(0,0,1,1).data; return [d[0], d[1], d[2], d[3]/255]; }
+    return [0,0,0,0]; };
+  const stack = []; for (let n = el; n; n = n.parentElement) stack.push(parse(getComputedStyle(n).backgroundColor));
+  let bg = [255,255,255]; const root = parse(getComputedStyle(document.documentElement).backgroundColor); if (root[3] > 0) bg = root.slice(0,3);
+  for (const c of stack.reverse()) bg = bg.map((v, i) => c[i] * c[3] + v * (1 - c[3]));
+  const f = parse(getComputedStyle(el).color); const fg = f.slice(0,3).map((v, i) => v * f[3] + bg[i] * (1 - f[3]));
+  const L = (rgb) => { const [r,g,b] = rgb.map((c) => { c /= 255; return c <= 0.04045 ? c/12.92 : ((c+0.055)/1.055)**2.4; }); return 0.2126*r + 0.7152*g + 0.0722*b; };
+  const [a, b] = [L(fg), L(bg)].sort((x, y) => y - x); return Math.round(((a + 0.05) / (b + 0.05)) * 100) / 100; }`;
+
+async function scenario(name, { quick, theme, gate }, body) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 1000 }, colorScheme: theme });
+  const page = await ctx.newPage(); const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); });
+  await page.route('http://qa.local/**', async (r) => {
+    const u = new URL(r.request().url());
+    if (u.pathname === '/b.js') return r.fulfill({ contentType: 'text/javascript', body: js });
+    if (u.pathname === '/app.css') return r.fulfill({ contentType: 'text/css', body: CSS });
+    if (u.pathname === '/v1/ask') { if (gate) await gate; return r.fulfill({ contentType: 'application/json', body: JSON.stringify(quick) }); }
+    if (u.pathname.startsWith('/v1/')) return r.fulfill({ contentType: 'application/json', body: '{}' });
+    return r.fulfill({ contentType: 'text/html', body: html });
+  });
+  await page.goto('http://qa.local/');
+  const dark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+  const stored = await page.evaluate(() => localStorage.getItem('arxivlens-theme'));
+  check(`${name}: AC3 no stored choice (${stored}) + prefers-color-scheme ${theme} -> <html> ${dark ? '.dark' : 'light'}`, stored === null && dark === (theme === 'dark'));
+  if (quick) { const box = page.getByRole('textbox', { name: 'Research question' }); await box.fill('how are citations checked'); await box.press('Enter'); }
+  page.setDefaultTimeout(5000);
+  // A missing element aborts the rest of the scenario and counts as one FAIL (so the harness also runs as a negative control on main).
+  try { await body(page); } catch (e) { check(`${name}: scenario aborted`, false, e.message.split('\n')[0]); }
+  check(`${name}: no page errors / console errors`, errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+const contrast = (loc) => loc.evaluate(new Function('return ' + CONTRAST_FN)());
+const shot = (page, f) => page.screenshot({ path: `${OUT}/${f}`, fullPage: true });
+
+for (const theme of ['light', 'dark']) {
+  await scenario(`mixedAnswer ${theme}`, { quick: { ...fx.mixedAnswer, synthesis_available: false }, theme }, async (page) => {
+    await page.getByText('1 of 3 citations supported').waitFor();
+    const prose = page.locator('.prose').first();
+    const ff = await prose.evaluate((e) => getComputedStyle(e).fontFamily);
+    check(`mixedAnswer ${theme}: AC2 answer prose is .prose.font-serif (font-family ${ff.slice(0, 40)}…)`, (await prose.getAttribute('class')).includes('font-serif') && /Source Serif|serif/i.test(ff));
+    check(`mixedAnswer ${theme}: AC5 answer prose text contrast ${await contrast(prose.locator('p').first())}:1 >= 4.5`, (await contrast(prose.locator('p').first())) >= 4.5);
+    const marker = page.getByRole('button', { name: '[1]' }).first();
+    check(`mixedAnswer ${theme}: AC5 [n] marker contrast ${await contrast(marker)}:1 >= 4.5`, (await contrast(marker)) >= 4.5);
+    const passages = page.locator('[role=article] .font-serif');
+    const pc = []; for (let i = 0; i < await passages.count(); i++) pc.push(await contrast(passages.nth(i)));
+    check(`mixedAnswer ${theme}: AC5 passage text contrast ${pc.join(', ')} (all >= 4.5)`, pc.length === 3 && pc.every((x) => x >= 4.5));
+    const section = page.locator('[role=article] div.text-muted-foreground').first();
+    check(`mixedAnswer ${theme}: AC5 section line contrast ${await contrast(section)}:1 >= 4.5`, (await contrast(section)) >= 4.5);
+    const chips = []; for (const n of ['Supported · 87.3%', 'Unsupported · 12.0%', 'Not checked']) { const b = page.getByRole('button', { name: n, exact: true }); chips.push([n, await b.count(), await b.getAttribute('type'), await b.getAttribute('title'), await contrast(b.locator('span').last())]); }
+    check(`mixedAnswer ${theme}: AC1 chips are <button type=button> named by their text, no title; chip text contrast ${chips.map((c) => c[4]).join('/')}`,
+      chips.every(([, c, t, ti, k]) => c === 1 && t === 'button' && ti === null && k >= 4.5), JSON.stringify(chips.map((c) => c.slice(0, 4))));
+    check(`mixedAnswer ${theme}: AC1 no chip/button inside a card has a title attribute`, (await page.locator('[role=article] [title]').count()) === 0);
+    await shot(page, `mixedAnswer-${theme}.png`);
+    // keyboard: Tab from the top until the supported chip is focused, the tooltip opens
+    const chip = page.getByRole('button', { name: 'Supported · 87.3%', exact: true });
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    let tabs = 0; for (; tabs < 40 && !(await chip.evaluate((e) => e === document.activeElement)); tabs++) await page.keyboard.press('Tab');
+    const tip = page.getByRole('tooltip'); await tip.waitFor({ state: 'attached', timeout: 3000 }).catch(() => {});
+    const txt = (await tip.count()) ? await tip.textContent() : '';
+    check(`mixedAnswer ${theme}: AC1 Tab x${tabs} focuses the chip and opens role=tooltip with the exact supported text`,
+      txt === 'Supported: a check found that this passage backs the sentence citing it (support score 87.3%).', JSON.stringify(txt));
+    check(`mixedAnswer ${theme}: AC1 chip aria-describedby -> tooltip`, (await chip.getAttribute('aria-describedby')) === (await tip.getAttribute('id')));
+    const visible = page.locator('[data-radix-popper-content-wrapper] > div').first();
+    check(`mixedAnswer ${theme}: AC5 visible tooltip text contrast ${await contrast(visible)}:1 >= 4.5; focus ring box-shadow present`,
+      (await contrast(visible)) >= 4.5 && (await chip.evaluate((e) => getComputedStyle(e).boxShadow)) !== 'none');
+    await page.screenshot({ path: `${OUT}/tooltip-keyboard-${theme}.png`, clip: { x: 640, y: 0, width: 640, height: 700 } });
+    await page.keyboard.press('Escape'); await page.waitForTimeout(200);
+    check(`mixedAnswer ${theme}: AC1 Escape closes the tooltip`, (await page.getByRole('tooltip').count()) === 0);
+  });
+  await scenario(`refusalA ${theme}`, { quick: fx.refusalA, theme }, async (page) => {
+    await page.getByRole('status', { name: /no answer shown/i }).waitFor();
+    const passages = page.locator('[role=article] .font-serif');
+    const pc = []; for (let i = 0; i < await passages.count(); i++) pc.push(await contrast(passages.nth(i)));
+    check(`refusalA ${theme}: AC5 passage text contrast ${pc.join(', ')} (all >= 4.5)`, pc.length === 2 && pc.every((x) => x >= 4.5));
+    const body = page.getByRole('status', { name: /no answer shown/i }).locator('p');
+    check(`refusalA ${theme}: AC5 refusal panel body contrast ${await contrast(body)}:1 >= 4.5`, (await contrast(body)) >= 4.5);
+    check(`refusalA ${theme}: AC1 chips "Unsupported · 31.0%" + "Not checked" are buttons`, (await page.getByRole('button', { name: 'Unsupported · 31.0%' }).count()) === 1 && (await page.getByRole('button', { name: 'Not checked' }).count()) === 1);
+    await shot(page, `refusalA-${theme}.png`);
+  });
+  await scenario(`earlyRefusal ${theme}`, { quick: fx.earlyRefusal, theme }, async (page) => {
+    await page.getByText('Relevance Protection Activated:').waitFor();
+    const banner = page.getByRole('status').filter({ hasText: 'Relevance Protection Activated:' });
+    check(`earlyRefusal ${theme}: banner is role=status`, (await banner.count()) === 1);
+    const cs = [await contrast(banner.locator('strong')), await contrast(banner.locator('p')), await contrast(banner.locator('code'))];
+    const btn = page.getByRole('button', { name: '⚡ Search arXiv for "how are citations checked" & Index' });
+    cs.push(await contrast(btn.locator('span')));
+    check(`earlyRefusal ${theme}: AC5 heading/secondary/code/button contrast ${cs.join(' / ')} (all >= 4.5)`, cs.every((x) => x >= 4.5));
+    check(`earlyRefusal ${theme}: discover button is ui/Button (bg-primary, h-auto override)`, /bg-primary/.test(await btn.getAttribute('class')));
+    check(`earlyRefusal ${theme}: no article cards, no "Clinical Literature Synthesis"`, (await page.locator('[role=article]').count()) === 0 && !(await page.evaluate(() => document.body.textContent)).includes('Clinical Literature Synthesis'));
+    await shot(page, `earlyRefusal-${theme}.png`);
+  });
+}
+// Loading spinner on the search button (dark, where FE-0f made the button bg-primary light blue)
+{ let rel; const gate = new Promise((r) => (rel = r));
+  await scenario('loading dark', { quick: fx.mixedAnswer, theme: 'dark', gate }, async (page) => {
+    const sp = page.locator('.animate-spin').first(); await sp.waitFor();
+    const [top, btnBg] = await sp.evaluate((e) => [getComputedStyle(e).borderTopColor, getComputedStyle(e.closest('button')).backgroundColor]);
+    const fgc = await page.getByRole('button', { name: /Synthesizing/ }).evaluate((e) => getComputedStyle(e).color);
+    check(`loading dark: AC2 spinner border-top = button text colour (primary-foreground) ${top}`, top === fgc, `button bg ${btnBg}, fg ${fgc}`);
+    await page.screenshot({ path: `${OUT}/loading-spinner-dark.png`, clip: { x: 240, y: 150, width: 800, height: 300 } });
+    rel();
+  }); }
+await browser.close();
+console.log(`${results.filter((r) => r.startsWith('PASS')).length} PASS, ${results.filter((r) => r.startsWith('FAIL')).length} FAIL\n`);
+console.log(results.join('\n'));
+===== ./run4a.mjs
+// QA browser harness for FE-4a (rebuilt from QA FE-3b/18 run.mjs). Bundles the given tree's REAL src/main.jsx -> App.jsx and every
+// component, lib/citations.js, ui/badge|card|button|tooltip, with the REAL @radix-ui/react-tooltip + react-slot sources (git clone of
+// radix-ui/primitives eb3a2b7; tooltip package.json 1.4.1 = lockfile), real react/react-dom 19.2.8, class-variance-authority/clsx/
+// tailwind-merge and @floating-ui/react-dom 2.1.9 from /opt/npm-tools. Stubbed: lucide-react icons (circles), ui/dialog|tabs|dropdown-menu
+// (closed in every run). CSS = twbuild.mjs output (real tailwind.config.js + typography, Tailwind 4.3.3 compat). /v1/ask answered with the
+// tree's src/test/fixtures.js. Each check prints PASS/FAIL; a missing element aborts its scenario as one FAIL.
+// usage: node run4a.mjs <app dir> <css> <out dir> [noshots]
+import { createRequire } from 'node:module'; import fs from 'node:fs'; import path from 'node:path';
+const require = createRequire('/opt/npm-tools/node_modules/');
+const esbuild = require('esbuild'); const { chromium } = require('playwright');
+const H = path.dirname(new URL(import.meta.url).pathname); const RADIX = path.resolve(H, '../deps/radix/packages');
+const APP = path.resolve(process.argv[2]); const FE = `${APP}/frontend`; const CSS = fs.readFileSync(process.argv[3], 'utf8');
+const OUT = path.resolve(process.argv[4]); fs.mkdirSync(OUT, { recursive: true }); const SHOTS = process.argv[5] !== 'noshots';
+const fx = await import(`${FE}/src/test/fixtures.js?${Date.now()}`);
+const plug = { name: 'qa', setup(b) {
+  b.onResolve({ filter: /^lucide-react$/ }, () => ({ path: `${H}/stubs-lucide.jsx` }));
+  b.onResolve({ filter: /^\.\/ui\/(dialog|tabs|dropdown-menu)$/ }, () => ({ path: `${H}/stubs-ui.jsx` }));
+  b.onResolve({ filter: /^@fontsource-variable\/|\.css$/ }, () => ({ path: 'empty', namespace: 'empty' }));
+  b.onLoad({ filter: /.*/, namespace: 'empty' }, () => ({ contents: '', loader: 'js' }));
+  b.onResolve({ filter: /^@radix-ui\/react-([\w-]+)$/ }, (a) => ({ path: `${RADIX}/react/${a.path.slice(16)}/src/index.ts` }));
+  b.onResolve({ filter: /^@radix-ui\/env-check\/is-development$/ }, () => ({ path: `${RADIX}/core/env-check/src/internal/is-development.true.ts` }));
+  b.onResolve({ filter: /^@radix-ui\/([\w-]+)$/ }, (a) => ({ path: `${RADIX}/core/${a.path.slice(10)}/src/index.ts` }));
+  b.onResolve({ filter: /^(react|react-dom|clsx|tailwind-merge|class-variance-authority|@floating-ui\/[\w-]+)(\/.*)?$/ }, (a) => ({ path: require.resolve(a.path) }));
+}};
+const js = (await esbuild.build({ entryPoints: [`${FE}/src/main.jsx`], bundle: true, format: 'esm', write: false, jsx: 'automatic', loader: { '.js': 'jsx' },
+  define: { 'process.env.NODE_ENV': '"development"' }, plugins: [plug], logLevel: 'error' })).outputFiles[0].text;
+const html = fs.readFileSync(`${FE}/index.html`, 'utf8').replace('<script type="module" src="/src/main.jsx"></script>', '<script type="module" src="/b.js"></script>')
+  .replace('</head>', '<link rel="stylesheet" href="/app.css"></head>');
+const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome' });
+const results = []; const check = (name, ok, detail = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  — ' + detail : ''}`);
+
+async function scenario(name, { quick, full, theme = 'light', reducedMotion = 'no-preference' }, body) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 1000 }, colorScheme: theme, reducedMotion });
+  const page = await ctx.newPage(); const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); });
+  let releaseFull; const fullGate = new Promise((r) => (releaseFull = r));
+  await page.route('http://qa.local/**', async (r) => {
+    const u = new URL(r.request().url());
+    if (u.pathname === '/b.js') return r.fulfill({ contentType: 'text/javascript', body: js });
+    if (u.pathname === '/app.css') return r.fulfill({ contentType: 'text/css', body: CSS });
+    if (u.pathname === '/v1/ask') {
+      const q = JSON.parse(r.request().postData() || '{}').quick === true;
+      if (!q) await fullGate;
+      return r.fulfill({ contentType: 'application/json', body: JSON.stringify(q ? quick : full) });
+    }
+    if (u.pathname.startsWith('/v1/')) return r.fulfill({ contentType: 'application/json', body: '{}' });
+    return r.fulfill({ contentType: 'text/html', body: html });
+  });
+  // Record every scrollIntoView call's options (reduced-motion check), without changing behaviour.
+  await page.addInitScript(() => { const o = Element.prototype.scrollIntoView; window.__scrolls = [];
+    Element.prototype.scrollIntoView = function (a) { window.__scrolls.push(JSON.stringify(a)); return o.call(this, a); }; });
+  await page.goto('http://qa.local/');
+  const box = page.getByRole('textbox', { name: 'Research question' }); await box.fill('how are citations checked'); await box.press('Enter');
+  page.setDefaultTimeout(4000);
+  try { await body(page, releaseFull); } catch (e) { check(`${name}: scenario aborted`, false, e.message.split('\n')[0]); }
+  check(`${name}: no page errors / console errors`, errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+const shot = (page, f) => SHOTS && page.screenshot({ path: `${OUT}/${f}`, fullPage: true });
+const activeIds = (page) => page.evaluate(() => [...document.querySelectorAll('[data-active]')].map((e) => e.id));
+const focusedLabel = (page) => page.evaluate(() => document.activeElement?.getAttribute('aria-label') || document.activeElement?.tagName);
+const list = (page) => page.getByRole('list', { name: 'Claims in this answer' });
+const tabTo = async (page, loc) => { for (let i = 0; i < 80 && !(await loc.evaluate((e) => e === document.activeElement)); i++) await page.keyboard.press('Tab'); };
+
+await scenario('quotedClaims', { quick: { ...fx.quotedClaims, synthesis_available: false } }, async (page) => {
+  await list(page).waitFor();
+  const items = list(page).getByRole('listitem'); const n = await items.count();
+  const rows = []; for (let i = 0; i < n; i++) { const li = items.nth(i);
+    rows.push({ text: (await li.textContent()).trim(), chip: await li.locator('span.inline-flex, div.inline-flex').last().getAttribute('class').catch(() => ''), buttons: await li.getByRole('button').allTextContents() }); }
+  check('quotedClaims AC1: 4 claims in server order', n === 4 && rows.every((r, i) => r.text.startsWith(fx.quotedClaims.claims[i].text)), JSON.stringify(rows.map((r) => r.text)));
+  const chipText = []; for (let i = 0; i < n; i++) chipText.push(await items.nth(i).locator('.font-sans.text-\\[11px\\]').innerText());
+  check(`quotedClaims AC1: chips ${JSON.stringify(chipText)} = Supported/Unsupported/Not checked/Not checked`, JSON.stringify(chipText) === JSON.stringify(['Supported', 'Unsupported', 'Not checked', 'Not checked']));
+  const variants = []; for (let i = 0; i < 3; i++) variants.push((await items.nth(i).locator('.font-sans.text-\\[11px\\]').getAttribute('class')).match(/bg-(supported|unsupported|unchecked)\b/)?.[1]);
+  check(`quotedClaims AC1: three different Badge variants ${JSON.stringify(variants)}`, new Set(variants).size === 3 && !variants.includes(undefined));
+  check('quotedClaims AC1: unverified claims (3, 4) never say Supported/verified', !/\bSupported\b|verified/i.test(rows[2].text + rows[3].text), rows[2].text + ' | ' + rows[3].text);
+  check(`quotedClaims AC1: markers per claim ${JSON.stringify(rows.map((r) => r.buttons))}; uncited claim has none`, JSON.stringify(rows.map((r) => r.buttons)) === '[["[1]"],["[2]"],["[3]"],[]]');
+  check(`quotedClaims AC2b: nothing active on load (${JSON.stringify(await activeIds(page))})`, (await activeIds(page)).length === 0);
+  check('quotedClaims AC5: the prose answer paragraph is not rendered in claims mode', (await page.getByText(fx.quotedClaims.answer).count()) === 0);
+  await shot(page, 'quotedClaims-light.png');
+});
+
+await scenario('synthesizedSkips', { quick: fx.synthesizedSkips }, async (page, _r) => {
+  await list(page).waitFor();
+  const btns = await list(page).getByRole('button').allTextContents();
+  check(`synthesizedSkips AC1: markers ${JSON.stringify(btns)} = [1],[1],[3], no [2]`, JSON.stringify(btns) === '["[1]","[1]","[3]"]' && (await page.getByRole('button', { name: '[2]', exact: true }).count()) === 0);
+  check('synthesizedSkips AC1: no "hidden" text on the page (ADR-0019)', !/hidden/i.test(await page.evaluate(() => document.body.innerText)));
+  const heading = (await page.getByRole('heading', { name: /^References/ }).innerText()).replace(/\s+/g, ' ');
+  check(`synthesizedSkips AC2c: heading "${heading}" counts cards (2), footer "3 of 3 citations supported" counts entries`, /2 cited/.test(heading) && (await page.getByText('3 of 3 citations supported').count()) === 1);
+  const ids = await page.evaluate(() => [...document.querySelectorAll('[id^="ref-"]')].map((e) => e.id));
+  check(`synthesizedSkips AC2c: card ids ${JSON.stringify(ids)}, no duplicate`, JSON.stringify(ids) === '["ref-1","ref-3"]');
+  const ctl = await list(page).getByRole('button').evaluateAll((bs) => bs.map((b) => b.getAttribute('aria-controls')));
+  check(`synthesizedSkips AC2: marker aria-controls ${JSON.stringify(ctl)}`, JSON.stringify(ctl) === '["ref-1","ref-1","ref-3"]');
+  check(`synthesizedSkips AC2b: nothing active on load (${JSON.stringify(await activeIds(page))})`, (await activeIds(page)).length === 0);
+  await shot(page, 'synthesizedSkips-light.png');
+  // keyboard: Tab to claim 1's [1], the tooltip previews title + status; Enter moves focus to the card
+  const m1 = list(page).getByRole('listitem').nth(0).getByRole('button', { name: '[1]' });
+  await page.evaluate(() => document.activeElement && document.activeElement.blur());
+  await tabTo(page, m1);
+  const tip = page.getByRole('tooltip'); await tip.waitFor({ state: 'attached' });
+  const tt = await tip.textContent();
+  check(`synthesizedSkips AC2: Tab focuses [1] and opens role=tooltip "${tt}"`, tt.includes(fx.synthesizedSkips.citations[0].title) && /Supported · 87\.3%/.test(tt));
+  check('synthesizedSkips AC2: marker aria-describedby -> tooltip', (await m1.getAttribute('aria-describedby')) === (await tip.getAttribute('id')));
+  if (SHOTS) await page.screenshot({ path: `${OUT}/tooltip-focus-light.png`, clip: { x: 0, y: 100, width: 1280, height: 600 } });
+  await page.keyboard.press('Enter'); await page.waitForTimeout(300);
+  check(`synthesizedSkips AC2: Enter -> document.activeElement is "${await focusedLabel(page)}"`, /^Citation \[1\]/.test(await focusedLabel(page)));
+  check(`synthesizedSkips AC2: data-active on ${JSON.stringify(await activeIds(page))}`, JSON.stringify(await activeIds(page)) === '["ref-1"]');
+  check('synthesizedSkips AC2: tooltip closed after Enter (focus left the marker)', (await page.getByRole('tooltip').count()) === 0);
+  const [fv, ring] = await page.locator('#ref-1').evaluate((e) => [e.matches(':focus-visible'), getComputedStyle(e).boxShadow]);
+  check(`synthesizedSkips AC2: focused card matches :focus-visible=${fv} and has a non-transparent ring (box-shadow ${ring})`, fv && /rgb\(|rgba\((?!0, 0, 0, 0\))/.test(ring.replace(/rgba\(0, 0, 0, 0\)/g, '')));
+  if (SHOTS) await page.screenshot({ path: `${OUT}/enter-focus-card-light.png`, fullPage: true });
+  // Space on claim 2's [3]
+  const m3 = list(page).getByRole('listitem').nth(1).getByRole('button', { name: '[3]' });
+  await m3.focus(); await page.keyboard.press(' '); await page.waitForTimeout(200);
+  check(`synthesizedSkips AC2: Space on [3] -> focus "${await focusedLabel(page)}", active ${JSON.stringify(await activeIds(page))}`, /^Citation \[3\]/.test(await focusedLabel(page)) && JSON.stringify(await activeIds(page)) === '["ref-3"]');
+  // mouse click on claim 2's [1]
+  await list(page).getByRole('listitem').nth(1).getByRole('button', { name: '[1]' }).click(); await page.waitForTimeout(200);
+  check(`synthesizedSkips AC2: click [1] -> focus "${await focusedLabel(page)}", active ${JSON.stringify(await activeIds(page))}`, /^Citation \[1\]/.test(await focusedLabel(page)) && JSON.stringify(await activeIds(page)) === '["ref-1"]');
+  const sc = await page.evaluate(() => window.__scrolls);
+  check(`synthesizedSkips AC2: scrollIntoView options (no reduced motion) ${JSON.stringify(sc)}`, sc.length >= 3 && sc.every((s) => s.includes('"smooth"')));
+  check('synthesizedSkips: cards are not Tab stops (tabindex=-1)', (await page.locator('[role=article]').evaluateAll((a) => a.map((e) => e.getAttribute('tabindex')))).every((t) => t === '-1'));
+});
+
+await scenario('reducedMotion', { quick: fx.synthesizedSkips, reducedMotion: 'reduce' }, async (page) => {
+  await list(page).waitFor();
+  await list(page).getByRole('button', { name: '[3]' }).click(); await page.waitForTimeout(200);
+  const sc = await page.evaluate(() => window.__scrolls);
+  check(`reducedMotion AC2: prefers-reduced-motion -> scrollIntoView ${JSON.stringify(sc)}`, sc.length === 1 && sc[0].includes('"auto"'));
+});
+
+await scenario('brokenPositional', { quick: fx.brokenPositional }, async (page) => {
+  await list(page).waitFor();
+  const items = list(page).getByRole('listitem');
+  await items.nth(1).getByRole('button', { name: '[3]' }).click(); await page.waitForTimeout(150);
+  const f3 = await focusedLabel(page);
+  await items.nth(0).getByRole('button', { name: '[1]' }).click(); await page.waitForTimeout(150);
+  const f1 = await focusedLabel(page);
+  check(`brokenPositional AC2: markers map by number: [3] -> "${f3}", [1] -> "${f1}"`, /^Citation \[3\]/.test(f3) && /^Citation \[1\]/.test(f1));
+});
+
+await scenario('prose fallback (no claims)', { quick: { ...fx.quotedAnswer, synthesis_available: false } }, async (page) => {
+  await page.getByRole('button', { name: '[1]', exact: true }).first().waitFor();
+  check('fallback AC5: no "Claims in this answer" list', (await list(page).count()) === 0);
+  check(`fallback AC2b: nothing active on load (${JSON.stringify(await activeIds(page))})`, (await activeIds(page)).length === 0);
+  await page.getByRole('button', { name: '[2]', exact: true }).first().click(); await page.waitForTimeout(150);
+  check(`fallback AC2: prose [2] -> focus "${await focusedLabel(page)}"`, /^Citation \[2\]/.test(await focusedLabel(page)));
+  await shot(page, 'fallback-prose-light.png');
+});
+
+for (const r of ['refusalA', 'refusalB', 'refusalC']) {
+  await scenario(r, { quick: fx[r] }, async (page) => {
+    await page.locator('[role=article]').first().waitFor();
+    check(`${r} AC2b: no [data-active] (${JSON.stringify(await activeIds(page))}), no markers, no claims list`,
+      (await activeIds(page)).length === 0 && (await page.getByRole('button', { name: /^\[\d+\]$/ }).count()) === 0 && (await list(page).count()) === 0);
+    const ring = await page.locator('[role=article]').evaluateAll((a) => a.map((e) => e.className.includes('border-primary')));
+    check(`${r} AC2b: no card carries the active ring classes ${JSON.stringify(ring)}`, ring.every((x) => !x));
+    if (r === 'refusalA') await shot(page, 'refusalA-light.png');
+  });
+}
+
+await scenario('two-stage swap', { quick: { ...fx.quotedClaims, synthesis_available: true }, full: fx.synthesizedSkips }, async (page, releaseFull) => {
+  await list(page).waitFor();
+  await list(page).getByRole('button', { name: '[2]' }).click(); await page.waitForTimeout(150);
+  const before = await activeIds(page);
+  releaseFull();
+  await page.getByText(fx.synthesizedSkips.claims[0].text).waitFor();
+  const after = await activeIds(page);
+  check(`two-stage AC2b: active ${JSON.stringify(before)} on the quoted answer -> ${JSON.stringify(after)} after the written answer replaces it`, JSON.stringify(before) === '["ref-2"]' && after.length === 0);
+  await shot(page, 'twoStage-after-swap-light.png');
+});
+
+// Same swap, but the clicked marker [1] also exists in the written answer, so a stale `active` would still ring a card.
+await scenario('two-stage swap [1]', { quick: { ...fx.quotedClaims, synthesis_available: true }, full: fx.synthesizedSkips }, async (page, releaseFull) => {
+  await list(page).waitFor();
+  await list(page).getByRole('button', { name: '[1]' }).click(); await page.waitForTimeout(150);
+  const before = await activeIds(page);
+  releaseFull();
+  await page.getByText(fx.synthesizedSkips.claims[0].text).waitFor(); await page.waitForTimeout(150);
+  const after = await activeIds(page);
+  check(`two-stage [1] AC2b: active ${JSON.stringify(before)} -> ${JSON.stringify(after)} after the swap (marker 1 exists in both answers)`, JSON.stringify(before) === '["ref-1"]' && after.length === 0);
+});
+
+await scenario('new search', { quick: fx.synthesizedSkips }, async (page) => {
+  await list(page).waitFor();
+  await list(page).getByRole('button', { name: '[3]' }).click(); await page.waitForTimeout(150);
+  const before = await activeIds(page);
+  const box = page.getByRole('textbox', { name: 'Research question' }); await box.fill('a second question'); await box.press('Enter');
+  await page.waitForTimeout(400); await list(page).waitFor();
+  const after = await activeIds(page);
+  check(`new search (design §4): active ${JSON.stringify(before)} -> ${JSON.stringify(after)} after a second search`, JSON.stringify(before) === '["ref-3"]' && after.length === 0);
+});
+
+await browser.close();
+console.log(`${results.filter((r) => r.startsWith('PASS')).length} PASS, ${results.filter((r) => r.startsWith('FAIL')).length} FAIL\n`);
+console.log(results.join('\n'));
+===== ./stubs-lucide.jsx
+// QA stub for lucide-react (not installable offline): every icon is a small circle SVG; props (aria-hidden, className) pass through.
+import React from 'react';
+const I = ({ className, ...p }) => <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" {...p}><circle cx="12" cy="12" r="9" /></svg>;
+export const ExternalLink=I, FileCode=I, ShieldCheck=I, ShieldAlert=I, Info=I, BookOpen=I, FileText=I, Copy=I, Download=I, AlertCircle=I,
+ Search=I, Sparkles=I, Stethoscope=I, Cpu=I, Activity=I, Microscope=I, Layers=I, Settings=I, DownloadCloud=I, CheckCircle2=I, Monitor=I, Moon=I, Sun=I,
+ X=I, Check=I, RefreshCw=I, AlertTriangle=I, Loader2=I, ArrowRight=I, ArrowLeft=I, ChevronDown=I, ChevronRight=I, Circle=I, Database=I, Server=I,
+ Zap=I, Clock=I, Trash2=I, Plus=I, Upload=I, Link=I, Library=I, Brain=I, FlaskConical=I, Dna=I, HeartPulse=I, Atom=I, Network=I, BarChart3=I, Globe=I, Hash=I, FileSearch=I, Loader=I;
+===== ./stubs-ui.jsx
+// QA stubs for the Radix Dialog/Tabs/DropdownMenu wrappers (they need react-remove-scroll etc., not available offline).
+// Not part of the FE-3b diff; the modals stay closed and the theme menu is not opened in these runs.
+import React from 'react';
+const pass = ({ children }) => <>{children}</>;
+const none = () => null;
+export const Dialog = ({ open, children }) => open ? <>{children}</> : null;
+export const DialogContent = pass, DialogHeader = pass, DialogTitle = pass, DialogDescription = pass, DialogFooter = pass;
+export const Tabs = pass, TabsList = pass, TabsTrigger = pass, TabsContent = pass;
+export const DropdownMenu = pass, DropdownMenuTrigger = pass;
+export const DropdownMenuContent = none, DropdownMenuLabel = none, DropdownMenuRadioGroup = none, DropdownMenuRadioItem = none, DropdownMenuSeparator = none, DropdownMenuItem = none;
+===== ./twbuild.mjs
+// Build the app's CSS with Tailwind v4.3.3 compile() in v3-compat mode: @config = the PR's real tailwind.config.js, with its
+// `import typography from "@tailwindcss/typography"` pointed at the bundled real plugin (build-typo.mjs). The repo pins Tailwind 3.4.19,
+// which is not installable offline, so utility output can differ in detail from CI's build (CI's dist report is the AC4 proof).
+// Candidates = every class-like token in src/**/*.{js,jsx} (non-test) + index.html.
+import { createRequire } from 'node:module'; import fs from 'node:fs'; import path from 'node:path';
+const require = createRequire('/opt/npm-tools/node_modules/');
+const { compile } = await import(require.resolve('tailwindcss').replace(/lib\.js$/, 'lib.mjs'));
+const FE = path.resolve(process.argv[2]); const OUT = path.resolve(process.argv[3]); const TYPO = path.resolve(process.argv[4]);
+const TW = path.dirname(require.resolve('tailwindcss/package.json'));
+const cfgSrc = fs.readFileSync(`${FE}/tailwind.config.js`, 'utf8').replace(/^import typography from .*$/m, `import typography from ${JSON.stringify(TYPO)}`);
+const cfgPath = `${path.dirname(OUT)}/qa.tailwind.config.mjs`; fs.writeFileSync(cfgPath, cfgSrc);
+const idx = fs.readFileSync(`${FE}/src/index.css`, 'utf8').replace(/^@tailwind .*$/mg, '');
+const css = `@import "tailwindcss";\n@config "${cfgPath}";\n${idx}`;
+const c = await compile(css, {
+  base: FE,
+  loadStylesheet: async (id, base) => { const p = id === 'tailwindcss' ? `${TW}/index.css` : path.resolve(base, id); return { path: p, base: path.dirname(p), content: fs.readFileSync(p, 'utf8') }; },
+  loadModule: async (id, base) => { const p = path.resolve(base, id); const m = await import(p); return { path: p, base: path.dirname(p), module: m.default ?? m }; },
+});
+const files = []; const walk = (d) => { for (const f of fs.readdirSync(d)) { const p = `${d}/${f}`; if (fs.statSync(p).isDirectory()) walk(p); else if (/\.(jsx?|html)$/.test(f) && !/\.test\./.test(f)) files.push(p); } };
+walk(`${FE}/src`); files.push(`${FE}/index.html`);
+const cand = new Set(); for (const f of files) for (const t of fs.readFileSync(f, 'utf8').split(/[\s"'`{}<>]+/)) if (t) cand.add(t);
+const out = c.build([...cand]); fs.writeFileSync(OUT, out);
+console.log(`tailwind ${require('tailwindcss/package.json').version} compat build: ${files.length} files, ${cand.size} candidates -> ${OUT} (${out.length} bytes); .prose rule: ${/\.prose\s*\{/.test(out) ? 'yes' : 'no'}; .font-serif: ${/\.font-serif\s*\{/.test(out) ? 'yes' : 'no'}`);
+===== ./unit.mjs
+// Bundle a tree's REAL src/lib/citations.test.js (+ citations.js, test/fixtures.js) with vitest -> vitest-shim4a.mjs and run it in node.
+// usage: node unit.mjs <frontend dir> <out.mjs>
+import { createRequire } from 'node:module'; import path from 'node:path'; import { execFileSync } from 'node:child_process';
+const require = createRequire('/opt/npm-tools/node_modules/'); const esbuild = require('esbuild');
+const H = path.dirname(new URL(import.meta.url).pathname);
+await esbuild.build({ entryPoints: [`${process.argv[2]}/src/lib/citations.test.js`], bundle: true, format: 'esm', platform: 'node', outfile: process.argv[3],
+  plugins: [{ name: 'v', setup(b) { b.onResolve({ filter: /^vitest$/ }, () => ({ path: `${H}/vitest-shim4a.mjs` })); } }], logLevel: 'error' });
+===== ./vitest-shim.mjs
+// Minimal stand-in for the vitest API used by src/test/tokens.test.js (describe/it/it.each/expect). Logic check only; CI's Vitest log is the pass/fail.
+const fmt = (v) => JSON.stringify(v);
+let pass = 0, fail = 0; const log = [];
+const matchers = (v, neg) => {
+  const ok = (c, msg) => { if (c !== neg) return; throw new Error(`${neg ? 'not.' : ''}${msg}`); };
+  return {
+    toMatch: (re) => ok(re.test(v), `toMatch ${re} on ${fmt(v)}`),
+    toEqual: (x) => ok(fmt(v) === fmt(x), `toEqual: got ${fmt(v)}`),
+    toBeGreaterThan: (x) => ok(v > x, `toBeGreaterThan ${x}: got ${v}`),
+  };
+};
+export const expect = (v) => ({ ...matchers(v, false), not: matchers(v, true) });
+const run = (name, fn) => { try { fn(); pass++; log.push(`  ok   ${name}`); } catch (e) { fail++; log.push(`  FAIL ${name}\n         ${e.message}`); } };
+export const it = (name, fn) => run(name, fn);
+it.each = (rows) => (name, fn) => rows.forEach((r) => run(name.replace('%s', r), () => fn(r)));
+export const describe = (name, fn) => { log.push(name); fn(); };
+process.on('exit', () => { console.log(log.join('\n')); console.log(`\n${pass} passed, ${fail} failed`); process.exitCode = fail ? 1 : 0; });
+===== ./vitest-shim4a.mjs
+// Minimal stand-in for the vitest API used by src/lib/citations.test.js (describe/it/it.each/expect). Logic check only; CI's Vitest log is the pass/fail.
+import { isDeepStrictEqual } from 'node:util';
+const fmt = (v) => { try { return JSON.stringify(v); } catch { return String(v); } };
+// vitest toEqual ignores undefined-valued properties: compare after dropping them.
+const strip = (v) => Array.isArray(v) ? v.map(strip) : (v && typeof v === 'object') ? Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined).map(([k, x]) => [k, strip(x)])) : v;
+let pass = 0, fail = 0; const log = [];
+const matchers = (v, neg) => {
+  const ok = (c, msg) => { if (c !== neg) return; throw new Error(`${neg ? 'not.' : ''}${msg}`); };
+  return {
+    toBe: (x) => ok(Object.is(v, x), `toBe ${fmt(x)}: got ${fmt(v)}`),
+    toBeNull: () => ok(v === null, `toBeNull: got ${fmt(v)}`),
+    toMatch: (re) => ok(typeof re === 'string' ? String(v).includes(re) : re.test(v), `toMatch ${re} on ${fmt(v)}`),
+    toContain: (x) => ok(v.includes(x), `toContain ${fmt(x)}: got ${fmt(v)}`),
+    toEqual: (x) => ok(isDeepStrictEqual(strip(v), strip(x)), `toEqual ${fmt(x)}: got ${fmt(v)}`),
+    toHaveLength: (n) => ok(v.length === n, `toHaveLength ${n}: got ${v?.length}`),
+    toBeGreaterThan: (x) => ok(v > x, `toBeGreaterThan ${x}: got ${v}`),
+  };
+};
+export const expect = (v) => ({ ...matchers(v, false), not: matchers(v, true) });
+let prefix = '';
+const run = (name, fn) => { try { fn(); pass++; log.push(`  ok   ${prefix}${name}`); } catch (e) { fail++; log.push(`  FAIL ${prefix}${name}\n         ${e.message.slice(0, 300)}`); } };
+export const it = (name, fn) => run(name, fn);
+it.each = (rows) => (name, fn) => rows.forEach((r) => { const a = Array.isArray(r) ? r : [r]; let i = 0; run(name.replace(/%s/g, () => String(a[i++])), () => fn(...a)); });
+export const describe = (name, fn) => { prefix = name + ' › '; fn(); prefix = ''; };
+process.on('exit', () => { console.log(log.join('\n')); console.log(`\n${pass} passed, ${fail} failed`); process.exitCode = fail ? 1 : 0; });
+
+[exit code 0]

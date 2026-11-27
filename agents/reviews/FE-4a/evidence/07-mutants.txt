@@ -1,0 +1,99 @@
+$ bash -c git archive HEAD frontend | tar -x -C /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/trees/head && (cd /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/trees/head && git -C /root/wt/qa-FE-4a diff --no-index --stat /root/wt/qa-FE-4a/frontend/src frontend/src; echo 'tree == HEAD frontend/src (empty diffstat above)') && python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/harness/mutants4a.py /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1 && python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1/harness/combo.py /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-FE-4a-r1
+tree == HEAD frontend/src (empty diffstat above)
+mutant | PR citations.test.js (node shim) | QA browser harness | verdict
+CONTROL head (no edit) | 59 passed, 0 failed | 48 PASS, 0 FAIL | CONTROL
+M1 claimState unverified -> Supported | 58 passed, 1 failed | 45 PASS, 3 FAIL | KILLED by unit+browser
+M2 claimCitations: drop marker-equality check | 56 passed, 3 failed | 48 PASS, 0 FAIL | KILLED by unit
+M2b claimCitations: drop count check | 58 passed, 1 failed | 48 PASS, 0 FAIL | KILLED by unit
+M3 App active initial {marker:1} (old default) | 59 passed, 0 failed | 48 PASS, 0 FAIL | SURVIVED (both)
+M4 drop tabIndex={-1} on cards | 59 passed, 0 failed | 41 PASS, 7 FAIL | KILLED by browser
+M5 drop card .focus() | 59 passed, 0 failed | 42 PASS, 6 FAIL | KILLED by browser
+M6 keep active across quoted->written swap | 59 passed, 0 failed | 47 PASS, 1 FAIL | KILLED by browser
+M7 ReferencesStack honours active in refusal mode | 59 passed, 0 failed | 48 PASS, 0 FAIL | SURVIVED (both)
+M8 hasClaims: drop the every(text is string) check | 56 passed, 3 failed | 48 PASS, 0 FAIL | KILLED by unit
+M9 no grouping: one card per citation entry | 59 passed, 0 failed | 34 PASS, 10 FAIL | KILLED by browser
+M10 keep active on a new search | 59 passed, 0 failed | 47 PASS, 1 FAIL | KILLED by browser
+M11 marker ignores pos (reports marker only) | 59 passed, 0 failed | 48 PASS, 0 FAIL | SURVIVED (both)
+M12 drop aria-controls on markers | 59 passed, 0 failed | 47 PASS, 1 FAIL | KILLED by browser
+M13 reduced motion ignored (always smooth) | 59 passed, 0 failed | 47 PASS, 1 FAIL | KILLED by browser
+
+=== details (failing test/check names, mutant diff) ===
+
+## CONTROL head (no edit)
+  diff: 
+
+## M1 claimState unverified -> Supported
+  diff: frontend/src/lib/citations.js: -"if (status === 'unverified') return { kind: 'unchecked', text: 'Not checked' };" +"if (status === 'unverified') return { kind: 'supported', tex"
+  unit FAIL: claimState › status unverified → unchecked "Not checked"
+  browser FAIL: quotedClaims AC1: chips ["Supported","Unsupported","Supported","Supported"] = Supported/Unsupported/Not checked/Not checked
+  browser FAIL: quotedClaims AC1: three different Badge variants ["supported","unsupported","supported"]
+  browser FAIL: quotedClaims AC1: unverified claims (3, 4) never say Supported/verified  — An introductory passage.[3] Supported | Results vary across domains. Supported
+
+## M2 claimCitations: drop marker-equality check
+  diff: frontend/src/lib/citations.js: -'if (entries.some((e) => e.citation?.marker !== e.marker)) return null;' +''
+  unit FAIL: claimCitations › returns null when a marker disagrees with its positional citation
+  unit FAIL: claimRows › broken positional invariant: markers still map by number
+  unit FAIL: claimRows › a marker with no citation gets citation null and no position
+
+## M2b claimCitations: drop count check
+  diff: frontend/src/lib/citations.js: -'return o === cits.length ? rows : null;' +'return rows;'
+  unit FAIL: claimCitations › returns null when the citation count differs from the marker count
+
+## M3 App active initial {marker:1} (old default)
+  diff: frontend/src/App.jsx: -'const [active, setActive] = useState(null);' +'const [active, setActive] = useState({ marker: 1, pos: 0 });'
+
+## M4 drop tabIndex={-1} on cards
+  diff: frontend/src/components/ReferencesStack.jsx: -'tabIndex={-1}' +''
+  browser FAIL: synthesizedSkips AC2: Enter -> document.activeElement is "BUTTON"
+  browser FAIL: synthesizedSkips AC2: focused card matches :focus-visible=false and has a non-transparent ring (box-shadow rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 
+  browser FAIL: synthesizedSkips AC2: Space on [3] -> focus "BUTTON", active ["ref-3"]
+  browser FAIL: synthesizedSkips AC2: click [1] -> focus "BUTTON", active ["ref-1"]
+
+## M5 drop card .focus()
+  diff: frontend/src/App.jsx: -'targetElement.focus({ preventScroll: true });' +''
+  browser FAIL: synthesizedSkips AC2: Enter -> document.activeElement is "BUTTON"
+  browser FAIL: synthesizedSkips AC2: focused card matches :focus-visible=false and has a non-transparent ring (box-shadow rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 
+  browser FAIL: synthesizedSkips AC2: Space on [3] -> focus "BUTTON", active ["ref-3"]
+  browser FAIL: synthesizedSkips AC2: click [1] -> focus "BUTTON", active ["ref-1"]
+
+## M6 keep active across quoted->written swap
+  diff: frontend/src/App.jsx: -'setSearchResult(full);\n        setActive(null);' +'setSearchResult(full);'
+  browser FAIL: two-stage [1] AC2b: active ["ref-1"] -> ["ref-1"] after the swap (marker 1 exists in both answers)
+
+## M7 ReferencesStack honours active in refusal mode
+  diff: frontend/src/components/ReferencesStack.jsx: -'const isHighlighted = !refusalReason && active?.marker === marker;' +'const isHighlighted = active?.marker === marker;'
+
+## M8 hasClaims: drop the every(text is string) check
+  diff: frontend/src/lib/citations.js: -"&& claims.every((c) => typeof c?.text === 'string');" +';'
+  unit FAIL: hasClaims › malformed 2 → false
+  unit FAIL: hasClaims › malformed 3 → false
+  unit FAIL: hasClaims › malformed 4 → false
+
+## M9 no grouping: one card per citation entry
+  diff: frontend/src/components/ReferencesStack.jsx: -'const groups = groupByMarker(citations);' +'const groups = citations.map((citation, pos) => ({ marker: c'
+  browser FAIL: synthesizedSkips AC2c: heading "References 3 cited" counts cards (2), footer "3 of 3 citations supported" counts entries
+  browser FAIL: synthesizedSkips AC2c: card ids ["ref-1","ref-1","ref-3"], no duplicate
+  browser FAIL: synthesizedSkips AC2: data-active on ["ref-1","ref-1"]
+  browser FAIL: synthesizedSkips: scenario aborted  — locator.evaluate: Error: strict mode violation: locator('#ref-1') resolved to 2 elements:
+
+## M10 keep active on a new search
+  diff: frontend/src/App.jsx: -"setActive(null);\n    setSynthesis('idle');" +"setSynthesis('idle');"
+  browser FAIL: new search (design §4): active ["ref-3"] -> ["ref-3"] after a second search
+
+## M11 marker ignores pos (reports marker only)
+  diff: frontend/src/components/SynthesisView.jsx: -'onClick={() => (pos === undefined ? onCitationClick(marker) : onCitationClick(marker, pos)' +'onClick={() => onCitationClick(marker)}'
+
+## M12 drop aria-controls on markers
+  diff: frontend/src/components/SynthesisView.jsx: -'aria-controls={citation ? `ref-${marker}` : undefined}' +''
+  browser FAIL: synthesizedSkips AC2: marker aria-controls [null,null,null]
+
+## M13 reduced motion ignored (always smooth)
+  diff: frontend/src/App.jsx: -"behavior: reduce ? 'auto' : 'smooth'" +"behavior: 'smooth'"
+  browser FAIL: reducedMotion AC2: prefers-reduced-motion -> scrollIntoView ["{\"behavior\":\"smooth\",\"block\":\"nearest\"}"]
+M3+M10 combined: 44 PASS, 4 FAIL
+FAIL  quotedClaims AC2b: nothing active on load (["ref-1"])
+FAIL  synthesizedSkips AC2b: nothing active on load (["ref-1"])
+FAIL  fallback AC2b: nothing active on load (["ref-1"])
+FAIL  new search (design §4): active ["ref-3"] -> ["ref-3"] after a second search
+
+[exit code 0]
