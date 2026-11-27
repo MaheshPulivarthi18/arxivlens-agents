@@ -1,0 +1,17 @@
+$ bash -c git diff origin/main...HEAD --stat; echo; git diff origin/main...HEAD --name-only; echo; echo '--- every removed (-) line in the PR ---'; git diff origin/main...HEAD | grep -E '^-[^-]'
+ services/common/db.py            |   4 +
+ tests/test_chunk_reprocess_db.py | 174 ++++++++++++++++++++++++++++++++++++++-
+ tests/test_processor_pages.py    |  24 +++++-
+ 3 files changed, 198 insertions(+), 4 deletions(-)
+
+services/common/db.py
+tests/test_chunk_reprocess_db.py
+tests/test_processor_pages.py
+
+--- every removed (-) line in the PR ---
+-Not in `make test-py` (needs a DB); runs in `make test-full`. Everything happens on one `autocommit=False` connection that
+-is always rolled back, so the shared stack DB that the M2/M3 suites count is left exactly as it was.
+-    sec_sql, chunk_call = calls[0][0], calls[2]  # section id 100, chunk id 101 (calls[1]: OPS-H6d stale-vector delete)
+-    assert calls[1] == (STALE_VECTOR_SQL, (7, 0, "h0"))
+
+[exit code 0]

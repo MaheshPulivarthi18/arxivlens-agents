@@ -1,0 +1,21 @@
+$ bash -c for x in 'head services/common/db.py' 'main /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1/db_main.py' 'M6 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1/db_m6.py'; do /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1/run_probe.sh $x 2>&1 | grep -E '^==|P[0-9] blocked|passed|failed' | grep -v '{blocked}'; done
+== head: services/common/db.py = services/common/db.py (sha1 7d991ae52da2)
+P1 blocked=True result={'value': 3} stale_vectors={}
+P2 blocked=True result={'value': 1} chunk0 hash=hash-a0-new stale_vectors={0: ['ops-h6d-model']}  (3-tuple path: AI-13)
+P3 blocked=True e_second_save=2 p_result={'value': 3} stale_vectors={} chunk2=['ops-h6d-model']
+P4 blocked=True embedder=wrote 1 processor=ERROR: deadlock detected (SQLSTATE 40P01)
+4 passed in 1.29s
+== main: services/common/db.py = /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1/db_main.py (sha1 18868d2787f4)
+P1 blocked=False result={'value': 3} stale_vectors={0: ['ops-h6d-model'], 1: ['ops-h6d-model']}
+P2 blocked=False result={'value': 1} chunk0 hash=hash-a0-new stale_vectors={0: ['ops-h6d-model']}  (3-tuple path: AI-13)
+P3 blocked=True e_second_save=2 p_result={'value': 3} stale_vectors={0: ['ops-h6d-model']} chunk2=['ops-h6d-model']
+P4 blocked=True embedder=wrote 1 processor=ERROR: deadlock detected (SQLSTATE 40P01)
+2 failed, 2 passed in 21.31s
+== M6: services/common/db.py = /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1/db_m6.py (sha1 e86e57a4a697)
+P1 blocked=False result={'value': 3} stale_vectors={0: ['ops-h6d-model'], 1: ['ops-h6d-model']}
+P2 blocked=False result={'value': 1} chunk0 hash=hash-a0-new stale_vectors={0: ['ops-h6d-model']}  (3-tuple path: AI-13)
+P3 blocked=True e_second_save=2 p_result={'value': 3} stale_vectors={} chunk2=['ops-h6d-model']
+P4 blocked=True embedder=wrote 1 processor=ERROR: deadlock detected (SQLSTATE 40P01)
+1 failed, 3 passed in 21.27s
+
+[exit code 0]

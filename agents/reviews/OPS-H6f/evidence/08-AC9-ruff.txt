@@ -1,0 +1,15 @@
+$ bash -c echo '== PR head'; ruff check --isolated --select E,F,W --line-length 130 --output-format concise services/common/db.py tests/test_processor_pages.py tests/test_chunk_reprocess_db.py; T=$(mktemp -d /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1/ruff-main-XXXX); for f in services/common/db.py tests/test_processor_pages.py tests/test_chunk_reprocess_db.py; do mkdir -p $T/$(dirname $f); git show origin/main:$f > $T/$f; done; echo '== origin/main'; (cd $T && ruff check --isolated --select E,F,W --line-length 130 --output-format concise services/common/db.py tests/test_processor_pages.py tests/test_chunk_reprocess_db.py); echo '== added lines > 130 chars:'; git diff origin/main...HEAD | grep -E '^\+[^+]' | awk 'length($0) > 131' | wc -l
+== PR head
+services/common/db.py:1:8: F401 [*] `json` imported but unused
+tests/test_processor_pages.py:214:131: E501 Line too long (134 > 130)
+Found 2 errors.
+[*] 1 fixable with the `--fix` option.
+== origin/main
+services/common/db.py:1:8: F401 [*] `json` imported but unused
+tests/test_processor_pages.py:212:131: E501 Line too long (134 > 130)
+Found 2 errors.
+[*] 1 fixable with the `--fix` option.
+== added lines > 130 chars:
+0
+
+[exit code 0]

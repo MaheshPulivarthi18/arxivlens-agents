@@ -1,0 +1,465 @@
+$ bash -c cd /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1 && echo 'PG16: initdb -A trust; pg_ctl -o "-k <sockdir> -c listen_addresses="; schema.sql = halfvec_shim.sql + migrations 000001 (CREATE EXTENSION vector dropped, halfvec(768)->halfvec) + qa_norm trigger + 000003 + 000005'; for f in $(find stub plug probe -type f -name '*.py' | sort) halfvec_shim.sql mutants.py run_probe.sh base_control.sh flake.sh ac7_fixture_mutant.sh; do echo; echo "===== $f"; cat $f; done
+PG16: initdb -A trust; pg_ctl -o "-k <sockdir> -c listen_addresses="; schema.sql = halfvec_shim.sql + migrations 000001 (CREATE EXTENSION vector dropped, halfvec(768)->halfvec) + qa_norm trigger + 000003 + 000005
+
+===== plug/qa_mockmods.py
+"""QA plugin: modules the sandbox lacks (pymupdf, torch, transformers, kafka, minio...) become MagicMock modules, so
+tests/test_processor_pages.py collects; only its FakeConn DB tests (-k save_) are run, which never touch them."""
+import importlib.abc
+import importlib.machinery
+import sys
+from unittest import mock
+
+SKIP = {"simplejson", "_typeshed"}
+
+
+class _Finder(importlib.abc.MetaPathFinder, importlib.abc.Loader):
+    def find_spec(self, name, path, target=None):
+        root = name.split(".")[0]
+        if root in SKIP or name in sys.modules:
+            return None
+        for f in sys.meta_path:
+            if f is self:
+                continue
+            try:
+                if f.find_spec(name, path, target) is not None:
+                    return None
+            except Exception:
+                pass
+        return importlib.machinery.ModuleSpec(name, self, is_package=True)
+
+    def create_module(self, spec):
+        m = mock.MagicMock(name=spec.name)
+        m.__path__, m.__spec__, m.__name__ = [], spec, spec.name
+        return m
+
+    def exec_module(self, module):
+        pass
+
+
+sys.meta_path.append(_Finder())
+
+===== probe/test_qa_h6f_probe.py
+"""QA OPS-H6f probes beyond the PR's tests, on the PR's own fixtures/helpers (two real PG16 sessions).
+P1  AC4 order with the 3-tuple save the embedder worker uses today (FK check = FOR KEY SHARE, not FOR SHARE).
+P2  reverse order with the 3-tuple save (P re-saved first): informational; the 4-tuple guard (AI-13) is what fixes it.
+P3  no deadlock when E saves ascending and P starts between E's statements (E: chunk 0, P blocks, E: chunks 1, 2).
+P4  E saving DEScending against P's ascending lock: informational, shows why the ascending order matters."""
+from tests.test_chunk_reprocess_db import (  # noqa: F401
+    MODEL, SECTIONS, _blocked_on_lock, _chunk, _final, _floats, _in_thread, _pid, committed, db_left_as_found,
+    save_chunk_embeddings, save_sections_and_chunks, TIMEOUT_S,
+)
+
+
+def _stale(final_a, idxs):
+    return {i: sorted(final_a[i][3]) for i in idxs if final_a[i][3]}
+
+
+def test_p1_3tuple_inflight_then_resave(committed):
+    k = committed
+    e, p = k.session(), k.session()
+    e_pid, p_pid = _pid(e), _pid(p)
+    assert save_chunk_embeddings(e, [(k.ids[i], MODEL, _floats(3)) for i in (0, 1, 2)]) == 3
+    t, out = _in_thread(save_sections_and_chunks, p, k.a, SECTIONS, [_chunk(0, "a0-new"), _chunk(1, "a1-new"), _chunk(2, "a2")])
+    blocked = _blocked_on_lock(k.setup, p_pid)
+    e.commit()
+    t.join(2 * TIMEOUT_S)
+    p.commit()
+    fa, _ = _final(k)
+    print(f"P1 blocked={blocked} result={out} stale_vectors={_stale(fa, (0, 1))}")
+    assert blocked and not _stale(fa, (0, 1))
+
+
+def test_p2_3tuple_after_resave_informational(committed):
+    k = committed
+    e, p = k.session(), k.session()
+    e_pid, p_pid = _pid(e), _pid(p)
+    save_sections_and_chunks(p, k.a, SECTIONS, [_chunk(0, "a0-new"), _chunk(1, "a1"), _chunk(2, "a2")])
+    t, out = _in_thread(save_chunk_embeddings, e, [(k.ids[0], MODEL, _floats(4))])
+    blocked = _blocked_on_lock(k.setup, e_pid)
+    p.commit()
+    t.join(2 * TIMEOUT_S)
+    e.commit()
+    fa, _ = _final(k)
+    print(f"P2 blocked={blocked} result={out} chunk0 hash={fa[0][1]} stale_vectors={_stale(fa, (0,))}  (3-tuple path: AI-13)")
+
+
+def test_p3_ascending_interleaved_no_deadlock(committed):
+    k = committed
+    e, p = k.session(), k.session()
+    e_pid, p_pid = _pid(e), _pid(p)
+    assert save_chunk_embeddings(e, [(k.ids[0], MODEL, _floats(3), "hash-a0")]) == 1
+    t, out = _in_thread(save_sections_and_chunks, p, k.a, SECTIONS, [_chunk(0, "a0-new"), _chunk(1, "a1-new"), _chunk(2, "a2")])
+    blocked = _blocked_on_lock(k.setup, p_pid)
+    n = save_chunk_embeddings(e, [(k.ids[1], MODEL, _floats(3), "hash-a1"), (k.ids[2], MODEL, _floats(3), "hash-a2")])
+    e.commit()
+    t.join(2 * TIMEOUT_S)
+    p.commit()
+    fa, _ = _final(k)
+    print(f"P3 blocked={blocked} e_second_save={n} p_result={out} stale_vectors={_stale(fa, (0, 1))} chunk2={sorted(fa[2][3])}")
+    assert blocked and n == 2 and out.get("value") == 3 and not _stale(fa, (0, 1)) and sorted(fa[2][3]) == [MODEL]
+
+
+def test_p4_descending_informational(committed):
+    k = committed
+    e, p = k.session(), k.session()
+    e_pid, p_pid = _pid(e), _pid(p)
+    assert save_chunk_embeddings(e, [(k.ids[2], MODEL, _floats(3), "hash-a2")]) == 1
+    t, out = _in_thread(save_sections_and_chunks, p, k.a, SECTIONS, [_chunk(0, "a0-new"), _chunk(1, "a1-new"), _chunk(2, "a2")])
+    blocked = _blocked_on_lock(k.setup, p_pid)
+    try:
+        n = save_chunk_embeddings(e, [(k.ids[1], MODEL, _floats(3), "hash-a1")])
+        e.commit()
+        e_res = f"wrote {n}"
+    except Exception as ex:
+        e.rollback()
+        e_res = f"error {ex}"
+    t.join(2 * TIMEOUT_S)
+    p_res = out.get("value", out.get("error"))
+    p.rollback() if "error" in out else p.commit()
+    print(f"P4 blocked={blocked} embedder={e_res} processor={p_res}")
+
+===== stub/psycopg/__init__.py
+"""QA double of psycopg 3 (no psycopg / PyPI in the sandbox): a minimal PostgreSQL wire-protocol client over the Unix
+socket (simple-query protocol, trust auth). One real server session per Connection, so row locks are real. Parameters
+are interpolated client-side as SQL literals. autocommit=False: BEGIN is sent before the first statement, like psycopg."""
+import os
+import re
+import socket
+import struct
+from urllib.parse import urlparse
+
+from . import rows  # noqa: F401
+
+
+class Error(Exception):
+    def __init__(self, fields):
+        self.fields = fields
+        self.sqlstate = fields.get("C")
+        super().__init__(f"{fields.get('S')}: {fields.get('M')} (SQLSTATE {fields.get('C')})")
+
+
+OperationalError = DatabaseError = Error
+_INT = {20, 21, 23, 26}
+_FLOAT = {700, 701, 1700}
+
+
+def _lit(v):
+    if v is None:
+        return "NULL"
+    if isinstance(v, bool):
+        return "TRUE" if v else "FALSE"
+    if isinstance(v, (int, float)):
+        return repr(v)
+    if isinstance(v, (list, tuple)):
+        items = ",".join('"' + str(x).replace("\\", "\\\\").replace('"', '\\"') + '"' for x in v)
+        return "'{" + items.replace("'", "''") + "}'"
+    return "'" + str(v).replace("'", "''") + "'"
+
+
+def _interp(sql, params):
+    if params is None:
+        return sql
+    it = iter(params)
+    out = re.sub(r"%s", lambda m: _lit(next(it)), sql.replace("%%", "\x00"))
+    rest = list(it)
+    assert not rest, f"unused params {rest}"
+    return out.replace("\x00", "%")
+
+
+class Connection:
+    def __init__(self, sockdir, port, user, db, autocommit):
+        self.s = socket.socket(socket.AF_UNIX)
+        self.s.connect(os.path.join(sockdir, f".s.PGSQL.{port}"))
+        self.autocommit, self.in_tx, self.closed = autocommit, False, False
+        body = struct.pack("!i", 196608) + b"user\0" + user.encode() + b"\0database\0" + db.encode() + b"\0\0"
+        self.s.sendall(struct.pack("!i", len(body) + 4) + body)
+        self._until_ready()
+
+    def _recv(self, n):
+        b = b""
+        while len(b) < n:
+            c = self.s.recv(n - len(b))
+            if not c:
+                raise Error({"M": "server closed the connection"})
+            b += c
+        return b
+
+    def _msg(self):
+        t = self._recv(1)
+        ln = struct.unpack("!i", self._recv(4))[0]
+        return t, self._recv(ln - 4)
+
+    def _until_ready(self):
+        results, cur, err = [], None, None
+        while True:
+            t, b = self._msg()
+            if t == b"R":
+                assert struct.unpack("!i", b[:4])[0] == 0, "only trust auth"
+            elif t == b"T":
+                n, off, cols = struct.unpack("!h", b[:2])[0], 2, []
+                for _ in range(n):
+                    end = b.index(b"\0", off)
+                    name = b[off:end].decode()
+                    oid = struct.unpack("!i", b[end + 7:end + 11])[0]
+                    cols.append((name, oid))
+                    off = end + 19
+                cur = {"cols": cols, "rows": []}
+            elif t == b"D":
+                n, off, row = struct.unpack("!h", b[:2])[0], 2, []
+                for name, oid in cur["cols"]:
+                    ln = struct.unpack("!i", b[off:off + 4])[0]
+                    off += 4
+                    if ln < 0:
+                        row.append(None)
+                        continue
+                    v = b[off:off + ln].decode()
+                    off += ln
+                    row.append(int(v) if oid in _INT else float(v) if oid in _FLOAT else (v == "t") if oid == 16 else v)
+                cur["rows"].append(tuple(row))
+            elif t == b"C":
+                tag = b[:-1].decode()
+                cnt = int(tag.split()[-1]) if tag.split()[-1].isdigit() else -1
+                results.append((cur, cnt))
+                cur = None
+            elif t == b"E":
+                f, off = {}, 0
+                while b[off] != 0:
+                    end = b.index(b"\0", off + 1)
+                    f[chr(b[off])] = b[off + 1:end].decode()
+                    off = end + 1
+                err = Error(f)
+            elif t == b"Z":
+                self.status = b
+                if err:
+                    raise err
+                return results
+
+    def _simple(self, sql):
+        q = sql.encode() + b"\0"
+        self.s.sendall(b"Q" + struct.pack("!i", len(q) + 4) + q)
+        return self._until_ready()
+
+    def execute_sql(self, sql):
+        if not self.autocommit and not self.in_tx:
+            self._simple("BEGIN")
+            self.in_tx = True
+        return self._simple(sql)
+
+    def cursor(self, row_factory=None):
+        return Cursor(self, row_factory)
+
+    def commit(self):
+        if self.in_tx:
+            self._simple("COMMIT")
+        self.in_tx = False
+
+    def rollback(self):
+        if self.in_tx:
+            self._simple("ROLLBACK")
+        self.in_tx = False
+
+    def close(self):
+        if not self.closed:
+            try:
+                self.s.sendall(b"X" + struct.pack("!i", 4))
+            finally:
+                self.s.close()
+                self.closed = True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        self.close()
+
+
+class Cursor:
+    def __init__(self, conn, row_factory):
+        self.conn, self.row_factory, self._rows, self.rowcount, self.description = conn, row_factory, [], -1, None
+
+    def execute(self, sql, params=None):
+        res = self.conn.execute_sql(_interp(sql, params))
+        cur, cnt = res[-1] if res else (None, -1)
+        self.rowcount = cnt
+        if cur is None:
+            self._rows, self.description = [], None
+        else:
+            names = [c[0] for c in cur["cols"]]
+            self.description = names
+            self._rows = [dict(zip(names, r)) for r in cur["rows"]] if self.row_factory else list(cur["rows"])
+        return self
+
+    def fetchone(self):
+        return self._rows.pop(0) if self._rows else None
+
+    def fetchall(self):
+        r, self._rows = self._rows, []
+        return r
+
+    def close(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        pass
+
+
+def connect(url, autocommit=False):
+    u = urlparse(url)
+    return Connection(os.environ["QA_PGSOCKDIR"], u.port or 5432, u.username or "postgres", u.path.lstrip("/"), autocommit)
+
+===== stub/psycopg/rows.py
+def dict_row(cursor):  # marker only; the double's Cursor builds dicts when any row_factory is given
+    return None
+
+===== halfvec_shim.sql
+-- QA shim: no pgvector in the sandbox. halfvec = text domain; a trigger normalises '[1.000000,...]' to pgvector's '[1,...]'
+-- text form and enforces 768 dims, so the test's _vec() comparisons behave as on real pgvector.
+CREATE DOMAIN halfvec AS text;
+CREATE FUNCTION qa_norm_halfvec() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE parts text[];
+BEGIN
+  parts := string_to_array(btrim(NEW.embedding, '[] '), ',');
+  IF array_length(parts, 1) IS DISTINCT FROM 768 THEN RAISE EXCEPTION 'expected 768 dimensions, not %', array_length(parts, 1); END IF;
+  NEW.embedding := '[' || array_to_string(ARRAY(SELECT (x::real)::text FROM unnest(parts) WITH ORDINALITY AS u(x, n) ORDER BY n), ',') || ']';
+  RETURN NEW;
+END $$;
+
+===== mutants.py
+"""QA OPS-H6f mutation run. Each mutant = one exact-string edit of the PR head's services/common/db.py (asserted to apply
+exactly once, in code, not a comment), in a fresh copy of the app tree. Per mutant: the real-PG module
+(tests/test_chunk_reprocess_db.py, psycopg wire double, PG16) and the FakeConn unit tests (test_processor_pages.py -k save_).
+The DB is dropped and rebuilt from schema.sql before each mutant. Summary table first, diffs after."""
+import difflib
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+
+APP, H = sys.argv[1], sys.argv[2]
+LOCK = '        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))\n'
+DEL_END = "                (paper_id, chunk[\"chunk_index\"], chunk[\"content_hash\"]),\n            )\n"
+TAIL = "        # 3. OPS-H6d: drop this paper's chunks"
+M = {
+    "M1 no lock": [(LOCK, "")],
+    "M2 lock after the whole chunk loop": [(LOCK, ""), (TAIL, LOCK + TAIL)],
+    "M3 lock after each chunk's vector DELETE": [(LOCK, ""), (DEL_END, DEL_END + LOCK.replace("        cur", "            cur"))],
+    "M4 lock without ORDER BY": [(" ORDER BY chunk_index FOR UPDATE", " FOR UPDATE")],
+    "M5 FOR SHARE instead of FOR UPDATE": [("ORDER BY chunk_index FOR UPDATE", "ORDER BY chunk_index FOR SHARE")],
+    "M6 FOR NO KEY UPDATE": [("ORDER BY chunk_index FOR UPDATE", "ORDER BY chunk_index FOR NO KEY UPDATE")],
+    "M7 lock commits (conn.commit after lock)": [(LOCK, LOCK + "        conn.commit()\n")],
+    "M8 lock only chunk_index 0": [("WHERE paper_id = %s ORDER BY", "WHERE paper_id = %s AND chunk_index = 0 ORDER BY")],
+    "M9 lock wrong paper (paper_id + 1)": [("FOR UPDATE;\", (paper_id,))", "FOR UPDATE;\", (paper_id + 1,))")],
+    "M10 lock SKIP LOCKED": [("ORDER BY chunk_index FOR UPDATE;", "ORDER BY chunk_index FOR UPDATE SKIP LOCKED;")],
+    "M11 lock NOWAIT": [("ORDER BY chunk_index FOR UPDATE;", "ORDER BY chunk_index FOR UPDATE NOWAIT;")],
+    "M12 no FOR SHARE OF pc (OPS-H6e guard)": [("    FOR SHARE OF pc\n", "")],
+    "M13 hash-only lookup (id ignored)": [("WHERE pc.id = %s AND pc.content_hash = %s", "WHERE (pc.id = %s OR TRUE) AND pc.content_hash = %s")],
+}
+
+
+def run(tree, args, env):
+    p = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *args], cwd=tree, env=env,
+                       capture_output=True, text=True, timeout=240)
+    last = [l for l in p.stdout.splitlines() if " passed" in l or " failed" in l or " error" in l]
+    fails = [l.split(" - ")[0] for l in p.stdout.splitlines() if l.startswith(("FAILED", "ERROR"))]
+    return p.returncode, (last[-1] if last else p.stdout[-200:]), fails
+
+
+def reset_db():
+    sock, psql = open(f"{H}/pgdir").read().strip(), "/usr/lib/postgresql/16/bin/psql"
+    subprocess.run([psql, "-X", "-q", "-h", sock, "-U", "postgres", "-d", "postgres", "-c", "DROP DATABASE IF EXISTS arxivlens WITH (FORCE);",
+                    "-c", "CREATE DATABASE arxivlens;"], check=True)
+    subprocess.run([psql, "-X", "-q", "-v", "ON_ERROR_STOP=1", "-h", sock, "-U", "postgres", "-d", "arxivlens", "-f", f"{H}/schema.sql"],
+                   check=True)
+
+
+env = dict(os.environ, PYTHONPATH=f"{H}/plug:{H}/stub:.", QA_PGSOCKDIR=open(f"{H}/pgdir").read().strip())
+src = open(f"{APP}/services/common/db.py").read()
+rows, diffs = [], []
+for name, edits in [("M0 none (head control)", [])] + list(M.items()):
+    mut = src
+    for old, new in edits:
+        assert mut.count(old) == 1, (name, old)
+        mut = mut.replace(old, new)
+    reset_db()  # fresh schema per mutant: a mutant that commits (M7) must not leak rows into the next one
+    tree = tempfile.mkdtemp(prefix="h6f-mut-", dir=H)
+    for d in ("services", "tests", "scripts"):
+        shutil.copytree(f"{APP}/{d}", f"{tree}/{d}")
+    open(f"{tree}/services/common/db.py", "w").write(mut)
+    rc1, s1, f1 = run(tree, ["tests/test_chunk_reprocess_db.py"], env)
+    rc2, s2, f2 = run(tree, ["-p", "qa_mockmods", "-k", "save_", "tests/test_processor_pages.py"], env)
+    verdict = "control" if not edits else ("KILLED" if (rc1 or rc2) else "SURVIVED")
+    rows.append((name, s1, s2, verdict, f1, f2))
+    diffs.append((name, "".join(difflib.unified_diff(src.splitlines(True), mut.splitlines(True), "head", "mutant", n=0))))
+print(f"{'verdict':8} | {'mutant':42} | {'real PG (test_chunk_reprocess_db.py)':30} | unit (-k save_)")
+for name, s1, s2, v, _, _ in rows:
+    print(f"{v:8} | {name:42} | {s1:30} | {s2}")
+print("\nfailing tests per mutant:")
+for name, _, _, _, f1, f2 in rows:
+    print(f"  {name}: " + (", ".join(x.replace("tests/", "") for x in f1 + f2) or "-"))
+print("\n--- mutant diffs ---")
+for name, d in diffs:
+    print(f"## {name}\n{d}")
+
+===== run_probe.sh
+#!/bin/bash
+# usage: run_probe.sh <label> <db.py to use>   (fresh DB, copy of the PR-head tree with that db.py)
+H=/tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1; S=$(cat $H/pgdir); P=/usr/lib/postgresql/16/bin/psql
+$P -X -q -h $S -U postgres -d postgres -c "DROP DATABASE IF EXISTS arxivlens WITH (FORCE);" -c "CREATE DATABASE arxivlens;"
+$P -X -q -v ON_ERROR_STOP=1 -h $S -U postgres -d arxivlens -f $H/schema.sql
+T=$(mktemp -d $H/probe-tree-XXXX); cp -r /root/wt/qa-OPS-H6f/{services,tests,scripts} $T/; cp $2 $T/services/common/db.py; cp $H/probe/test_qa_h6f_probe.py $T/tests/
+echo "== $1: services/common/db.py = $2 (sha1 $(sha1sum < $2 | cut -c1-12))"
+cd $T && QA_PGSOCKDIR=$S PYTHONPATH=$H/stub:. timeout 300 python3 -m pytest -q -s -p no:cacheprovider tests/test_qa_h6f_probe.py 2>&1 | grep -oE "P[0-9] blocked.*|[0-9]+ (passed|failed).*|^FAILED.*"
+
+===== base_control.sh
+#!/bin/bash
+# AC4 base control: the PR head's tests/test_chunk_reprocess_db.py run against origin/main's services/common/db.py
+# (OPS-H6e #106 merged, no OPS-H6f lock), fresh PG16 DB, psycopg wire double. Then the same tests on the PR head.
+H=/tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1; S=$(cat $H/pgdir); P=/usr/lib/postgresql/16/bin/psql
+reset() { $P -X -q -h $S -U postgres -d postgres -c "DROP DATABASE IF EXISTS arxivlens WITH (FORCE);" -c "CREATE DATABASE arxivlens;"; $P -X -q -v ON_ERROR_STOP=1 -h $S -U postgres -d arxivlens -f $H/schema.sql; }
+echo "origin/main = $(git rev-parse --short origin/main); FOR SHARE OF pc on main: $(git show origin/main:services/common/db.py | grep -c 'FOR SHARE OF pc'); FOR UPDATE on main: $(git show origin/main:services/common/db.py | grep -c 'FOR UPDATE')"
+T=$(mktemp -d $H/base-tree-XXXX); cp -r services tests scripts $T/; git show origin/main:services/common/db.py > $T/services/common/db.py
+reset; echo "=== PR tests x origin/main db.py ==="
+(cd $T && QA_PGSOCKDIR=$S PYTHONPATH=$H/stub:. timeout 120 python3 -m pytest -v -p no:cacheprovider tests/test_chunk_reprocess_db.py 2>&1 | grep -E "::|^E .*(AssertionError|old-text|must wait)|passed|failed" | grep -v "^tests.*PASSED.*\[" ; true)
+(cd $T && QA_PGSOCKDIR=$S PYTHONPATH=$H/stub:. timeout 120 python3 -m pytest -q -p no:cacheprovider tests/test_chunk_reprocess_db.py 2>&1 | grep -E "^(FAILED|ERROR)|passed|failed")
+reset; echo "=== PR tests x PR head db.py ($(git rev-parse --short HEAD)) ==="
+QA_PGSOCKDIR=$S PYTHONPATH=$H/stub:. timeout 120 python3 -m pytest -v -p no:cacheprovider tests/test_chunk_reprocess_db.py 2>&1 | grep -E "::|passed|failed"
+
+===== flake.sh
+#!/bin/bash
+# 20 runs of the PR's real-PG module at the PR head on a fresh DB, with 4 busy-loop processes on the 2-core sandbox,
+# and the table counts the module fixture guards (papers, paper_chunks, chunk_embeddings) before and after all runs.
+H=/tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1; S=$(cat $H/pgdir); P=/usr/lib/postgresql/16/bin/psql
+$P -X -q -h $S -U postgres -d postgres -c "DROP DATABASE IF EXISTS arxivlens WITH (FORCE);" -c "CREATE DATABASE arxivlens;"
+$P -X -q -v ON_ERROR_STOP=1 -h $S -U postgres -d arxivlens -f $H/schema.sql
+cnt() { $P -X -At -h $S -U postgres -d arxivlens -c "SELECT (SELECT count(*) FROM papers)||'/'||(SELECT count(*) FROM paper_chunks)||'/'||(SELECT count(*) FROM chunk_embeddings);"; }
+$P -X -q -h $S -U postgres -d arxivlens -c "INSERT INTO papers (arxiv_id) VALUES ('qa-preexisting');"
+echo "counts papers/chunks/embeddings before: $(cnt)"
+for i in 1 2 3 4; do ( while :; do :; done ) & done; trap 'kill $(jobs -p) 2>/dev/null' EXIT
+pass=0; fail=0
+for r in $(seq 1 20); do
+  out=$(QA_PGSOCKDIR=$S PYTHONPATH=$H/stub:. timeout 120 python3 -m pytest -q -p no:cacheprovider tests/test_chunk_reprocess_db.py 2>&1 | tail -1)
+  case "$out" in "5 passed"*) pass=$((pass+1));; *) fail=$((fail+1));; esac; echo "run $r: $out"
+done
+echo "SUMMARY: $pass/20 runs '5 passed', $fail other (under 4 busy loops on $(nproc) cores)"
+echo "counts papers/chunks/embeddings after:  $(cnt)"
+
+===== ac7_fixture_mutant.sh
+#!/bin/bash
+# AC7: does the module fixture `db_left_as_found` catch leftovers? Test mutant T1 = drop the committed fixture's cleanup
+# DELETE (PR head db.py, fresh DB). Expect an ERROR at module teardown.
+H=/tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1; S=$(cat $H/pgdir); P=/usr/lib/postgresql/16/bin/psql
+reset() { $P -X -q -h $S -U postgres -d postgres -c "DROP DATABASE IF EXISTS arxivlens WITH (FORCE);" -c "CREATE DATABASE arxivlens;"; $P -X -q -v ON_ERROR_STOP=1 -h $S -U postgres -d arxivlens -f $H/schema.sql; }
+T=$(mktemp -d $H/ac7-tree-XXXX); cp -r services tests scripts $T/
+python3 - "$T/tests/test_chunk_reprocess_db.py" <<'PY'
+import sys; p=sys.argv[1]; s=open(p).read()
+old='            cur.execute("DELETE FROM papers WHERE arxiv_id = ANY(%s::text[]);", (H6F_PAPERS,))  # cascades\n'
+assert s.count(old)==1; open(p,"w").write(s.replace(old,"            pass  # T1: cleanup dropped\n"))
+PY
+reset; echo "=== T1: cleanup DELETE removed ==="; (cd $T && diff <(cd /root/wt/qa-OPS-H6f && cat tests/test_chunk_reprocess_db.py) tests/test_chunk_reprocess_db.py)
+(cd $T && QA_PGSOCKDIR=$S PYTHONPATH=$H/stub:. timeout 120 python3 -m pytest -q -p no:cacheprovider tests/test_chunk_reprocess_db.py 2>&1 | grep -E "^(FAILED|ERROR)|^E .*must leave|passed|failed|error")
+
+[exit code 0]

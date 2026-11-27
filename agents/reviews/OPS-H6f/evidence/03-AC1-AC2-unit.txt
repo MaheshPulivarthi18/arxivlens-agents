@@ -1,0 +1,22 @@
+$ bash -c PYTHONPATH=/tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1/plug:/tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1/stub:. python3 -m pytest -v -p no:cacheprovider -p qa_mockmods -k save_ tests/test_processor_pages.py 2>&1 | grep -E '::|passed|failed'
+tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-set] PASSED [  5%]
+tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number] PASSED [ 11%]
+tests/test_processor_pages.py::test_save_chunks_page_rows[missing] PASSED [ 16%]
+tests/test_processor_pages.py::test_save_chunks_page_rows[none] PASSED   [ 22%]
+tests/test_processor_pages.py::test_save_chunks_page_rows_use_each_returned_id PASSED [ 27%]
+tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[contiguous] PASSED [ 33%]
+tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[gaps] PASSED [ 38%]
+tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[single-not-zero] PASSED [ 44%]
+tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[empty] PASSED [ 50%]
+tests/test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three] PASSED [ 55%]
+tests/test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero] PASSED [ 61%]
+tests/test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty] PASSED [ 66%]
+tests/test_processor_pages.py::test_save_embeddings_3tuple_unchanged PASSED [ 72%]
+tests/test_processor_pages.py::test_save_embeddings_4tuple_guarded[hash-matches-written] PASSED [ 77%]
+tests/test_processor_pages.py::test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped] PASSED [ 83%]
+tests/test_processor_pages.py::test_save_embeddings_mixed_batch_counts_only_written PASSED [ 88%]
+tests/test_processor_pages.py::test_save_embeddings_rejects_other_shapes[2-tuple] PASSED [ 94%]
+tests/test_processor_pages.py::test_save_embeddings_rejects_other_shapes[5-tuple] PASSED [100%]
+====================== 18 passed, 14 deselected in 0.20s =======================
+
+[exit code 0]

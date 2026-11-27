@@ -1,0 +1,23 @@
+$ gh api .../actions/jobs/140312624580/logs | grep -nE 'HEAD is now at|short test summary|PASSED tests/test_chunk_reprocess_db.py|test_save_chunks_*|N passed, N skipped'
+128:2026-11-27T04:29:31.7515777Z HEAD is now at f4f03fd Merge b4b64b3d53b42fbf76c13ec013f09062a7f2edfd into 53171d6579a90de027239255e98369e323416ad3
+2680:2026-11-27T04:40:22.8484975Z   if grep -q 'short test summary info' test-full.log; then sed -n '/short test summary info/,$p' test-full.log | grep -v '^PASSED '; else tail -n 1 test-full.log; fi
+3116:2026-11-27T04:41:53.9077837Z =========================== short test summary info ============================
+3130:2026-11-27T04:41:53.9086953Z PASSED tests/test_chunk_reprocess_db.py::test_reprocess_drops_stale_vectors_and_tail
+3131:2026-11-27T04:41:53.9087572Z PASSED tests/test_chunk_reprocess_db.py::test_save_embeddings_only_for_current_chunk_text
+3132:2026-11-27T04:41:53.9088234Z PASSED tests/test_chunk_reprocess_db.py::test_processor_resave_waits_for_inflight_embedder_write
+3133:2026-11-27T04:41:53.9088919Z PASSED tests/test_chunk_reprocess_db.py::test_embedder_write_waits_for_processor_resave_then_skips
+3134:2026-11-27T04:41:53.9089585Z PASSED tests/test_chunk_reprocess_db.py::test_save_embeddings_keyed_on_chunk_id_not_hash
+3498:2026-11-27T04:41:53.9341164Z PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-set]
+3499:2026-11-27T04:41:53.9341794Z PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number]
+3500:2026-11-27T04:41:53.9342630Z PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[missing]
+3501:2026-11-27T04:41:53.9343170Z PASSED tests/test_processor_pages.py::test_save_chunks_page_rows[none]
+3503:2026-11-27T04:41:53.9344323Z PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[contiguous]
+3504:2026-11-27T04:41:53.9344909Z PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[gaps]
+3505:2026-11-27T04:41:53.9345517Z PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[single-not-zero]
+3506:2026-11-27T04:41:53.9346415Z PASSED tests/test_processor_pages.py::test_save_chunks_reprocess_deletes[empty]
+3507:2026-11-27T04:41:53.9347078Z PASSED tests/test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three]
+3508:2026-11-27T04:41:53.9347829Z PASSED tests/test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero]
+3509:2026-11-27T04:41:53.9348571Z PASSED tests/test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+3565:2026-11-27T04:41:54.2511885Z 447 passed, 1 skipped, 3 deselected, 5 warnings in 90.37s (0:01:30)
+4997:2026-11-27T04:42:26.0833526Z =========================== short test summary info ============================
+

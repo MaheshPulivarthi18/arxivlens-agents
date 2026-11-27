@@ -1,0 +1,128 @@
+$ python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1/mutants.py /root/wt/qa-OPS-H6f /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/qa-OPS-H6f-r1
+verdict  | mutant                                     | real PG (test_chunk_reprocess_db.py) | unit (-k save_)
+control  | M0 none (head control)                     | 5 passed in 0.29s              | 18 passed, 14 deselected in 0.19s
+KILLED   | M1 no lock                                 | 1 failed, 4 passed in 0.26s    | 7 failed, 11 passed, 14 deselected in 0.26s
+KILLED   | M2 lock after the whole chunk loop         | 1 failed, 4 passed in 0.27s    | 6 failed, 12 passed, 14 deselected in 0.26s
+KILLED   | M3 lock after each chunk's vector DELETE   | 1 failed, 4 passed in 0.28s    | 10 failed, 8 passed, 14 deselected in 0.30s
+KILLED   | M4 lock without ORDER BY                   | 5 passed in 0.20s              | 7 failed, 11 passed, 14 deselected in 0.27s
+KILLED   | M5 FOR SHARE instead of FOR UPDATE         | 1 failed, 4 passed in 0.28s    | 7 failed, 11 passed, 14 deselected in 0.28s
+KILLED   | M6 FOR NO KEY UPDATE                       | 5 passed in 0.26s              | 7 failed, 11 passed, 14 deselected in 0.27s
+KILLED   | M7 lock commits (conn.commit after lock)   | 5 passed, 1 error in 0.29s     | 12 failed, 6 passed, 14 deselected in 0.31s
+KILLED   | M8 lock only chunk_index 0                 | 5 passed in 0.20s              | 7 failed, 11 passed, 14 deselected in 0.26s
+KILLED   | M9 lock wrong paper (paper_id + 1)         | 1 failed, 4 passed in 0.30s    | 7 failed, 11 passed, 14 deselected in 0.28s
+KILLED   | M10 lock SKIP LOCKED                       | 1 failed, 4 passed in 0.29s    | 7 failed, 11 passed, 14 deselected in 0.27s
+KILLED   | M11 lock NOWAIT                            | 1 failed, 4 passed in 10.27s   | 7 failed, 11 passed, 14 deselected in 0.26s
+KILLED   | M12 no FOR SHARE OF pc (OPS-H6e guard)     | 1 failed, 4 passed in 0.28s    | 3 failed, 15 passed, 14 deselected in 0.23s
+KILLED   | M13 hash-only lookup (id ignored)          | 3 failed, 2 passed in 0.21s    | 3 failed, 15 passed, 14 deselected in 0.25s
+
+failing tests per mutant:
+  M0 none (head control): -
+  M1 no lock: FAILED test_chunk_reprocess_db.py::test_processor_resave_waits_for_inflight_embedder_write, FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+  M2 lock after the whole chunk loop: FAILED test_chunk_reprocess_db.py::test_processor_resave_waits_for_inflight_embedder_write, FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero]
+  M3 lock after each chunk's vector DELETE: FAILED test_chunk_reprocess_db.py::test_processor_resave_waits_for_inflight_embedder_write, FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_reprocess_deletes[contiguous], FAILED test_processor_pages.py::test_save_chunks_reprocess_deletes[gaps], FAILED test_processor_pages.py::test_save_chunks_reprocess_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+  M4 lock without ORDER BY: FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+  M5 FOR SHARE instead of FOR UPDATE: FAILED test_chunk_reprocess_db.py::test_processor_resave_waits_for_inflight_embedder_write, FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+  M6 FOR NO KEY UPDATE: FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+  M7 lock commits (conn.commit after lock): ERROR test_chunk_reprocess_db.py::test_save_embeddings_keyed_on_chunk_id_not_hash, FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_page_rows_use_each_returned_id, FAILED test_processor_pages.py::test_save_chunks_reprocess_deletes[contiguous], FAILED test_processor_pages.py::test_save_chunks_reprocess_deletes[gaps], FAILED test_processor_pages.py::test_save_chunks_reprocess_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_reprocess_deletes[empty], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+  M8 lock only chunk_index 0: FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+  M9 lock wrong paper (paper_id + 1): FAILED test_chunk_reprocess_db.py::test_processor_resave_waits_for_inflight_embedder_write, FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+  M10 lock SKIP LOCKED: FAILED test_chunk_reprocess_db.py::test_processor_resave_waits_for_inflight_embedder_write, FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+  M11 lock NOWAIT: FAILED test_chunk_reprocess_db.py::test_processor_resave_waits_for_inflight_embedder_write, FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-set], FAILED test_processor_pages.py::test_save_chunks_page_rows[page_start-1-no-page_number], FAILED test_processor_pages.py::test_save_chunks_page_rows[missing], FAILED test_processor_pages.py::test_save_chunks_page_rows[none], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[three], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[single-not-zero], FAILED test_processor_pages.py::test_save_chunks_locks_chunk_rows_before_vector_deletes[empty]
+  M12 no FOR SHARE OF pc (OPS-H6e guard): FAILED test_chunk_reprocess_db.py::test_embedder_write_waits_for_processor_resave_then_skips, FAILED test_processor_pages.py::test_save_embeddings_4tuple_guarded[hash-matches-written], FAILED test_processor_pages.py::test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped], FAILED test_processor_pages.py::test_save_embeddings_mixed_batch_counts_only_written
+  M13 hash-only lookup (id ignored): FAILED test_chunk_reprocess_db.py::test_processor_resave_waits_for_inflight_embedder_write, FAILED test_chunk_reprocess_db.py::test_embedder_write_waits_for_processor_resave_then_skips, FAILED test_chunk_reprocess_db.py::test_save_embeddings_keyed_on_chunk_id_not_hash, FAILED test_processor_pages.py::test_save_embeddings_4tuple_guarded[hash-matches-written], FAILED test_processor_pages.py::test_save_embeddings_4tuple_guarded[stale-or-deleted-skipped], FAILED test_processor_pages.py::test_save_embeddings_mixed_batch_counts_only_written
+
+--- mutant diffs ---
+## M0 none (head control)
+
+## M1 no lock
+--- head
++++ mutant
+@@ -98 +97,0 @@
+-        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
+
+## M2 lock after the whole chunk loop
+--- head
++++ mutant
+@@ -98 +97,0 @@
+-        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
+@@ -153,0 +153 @@
++        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
+
+## M3 lock after each chunk's vector DELETE
+--- head
++++ mutant
+@@ -98 +97,0 @@
+-        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
+@@ -115,0 +115 @@
++            cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
+
+## M4 lock without ORDER BY
+--- head
++++ mutant
+@@ -98 +98 @@
+-        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
++        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s FOR UPDATE;", (paper_id,))
+
+## M5 FOR SHARE instead of FOR UPDATE
+--- head
++++ mutant
+@@ -98 +98 @@
+-        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
++        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR SHARE;", (paper_id,))
+
+## M6 FOR NO KEY UPDATE
+--- head
++++ mutant
+@@ -98 +98 @@
+-        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
++        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR NO KEY UPDATE;", (paper_id,))
+
+## M7 lock commits (conn.commit after lock)
+--- head
++++ mutant
+@@ -98,0 +99 @@
++        conn.commit()
+
+## M8 lock only chunk_index 0
+--- head
++++ mutant
+@@ -98 +98 @@
+-        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
++        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s AND chunk_index = 0 ORDER BY chunk_index FOR UPDATE;", (paper_id,))
+
+## M9 lock wrong paper (paper_id + 1)
+--- head
++++ mutant
+@@ -98 +98 @@
+-        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
++        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id + 1,))
+
+## M10 lock SKIP LOCKED
+--- head
++++ mutant
+@@ -98 +98 @@
+-        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
++        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE SKIP LOCKED;", (paper_id,))
+
+## M11 lock NOWAIT
+--- head
++++ mutant
+@@ -98 +98 @@
+-        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE;", (paper_id,))
++        cur.execute("SELECT id FROM paper_chunks WHERE paper_id = %s ORDER BY chunk_index FOR UPDATE NOWAIT;", (paper_id,))
+
+## M12 no FOR SHARE OF pc (OPS-H6e guard)
+--- head
++++ mutant
+@@ -210 +209,0 @@
+-    FOR SHARE OF pc
+
+## M13 hash-only lookup (id ignored)
+--- head
++++ mutant
+@@ -209 +209 @@
+-    WHERE pc.id = %s AND pc.content_hash = %s
++    WHERE (pc.id = %s OR TRUE) AND pc.content_hash = %s
+
+
+[exit code 0]

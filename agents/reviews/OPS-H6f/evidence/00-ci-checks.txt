@@ -1,0 +1,12 @@
+$ bash -c gh api repos/MaheshPulivarthi18/ArxivLens/commits/b4b64b3d53b42fbf76c13ec013f09062a7f2edfd/check-runs --jq '.check_runs[] | "\(.name) | \(.status) | \(.conclusion) | job \(.id)"'; echo; gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/140312624580 --jq '"Full stack job: head_sha=\(.head_sha) run_id=\(.run_id) conclusion=\(.conclusion)"'; gh api repos/MaheshPulivarthi18/ArxivLens/pulls/127 --jq '"PR #127: draft=\(.draft) merged=\(.merged) head=\(.head.sha)"'
+DB (migrate twice, HNSW plan + recall) | completed | success | job 140312624988
+Go (vet, gofmt, test, build) | completed | success | job 140312624982
+Frontend (lint, test, build) | completed | success | job 140312624965
+Python M0 unit tests | completed | success | job 140312624924
+Agent ownership check | completed | success | job 140312624687
+Full stack (compose + make test-full) | completed | success | job 140312624580
+
+Full stack job: head_sha=b4b64b3d53b42fbf76c13ec013f09062a7f2edfd run_id=45940231278 conclusion=success
+PR #127: draft=true merged=false head=b4b64b3d53b42fbf76c13ec013f09062a7f2edfd
+
+[exit code 0]
