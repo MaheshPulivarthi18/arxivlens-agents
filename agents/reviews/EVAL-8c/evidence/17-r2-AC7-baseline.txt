@@ -1,0 +1,109 @@
+$ bash -c python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/ac7_baseline.py evals/BASELINE.md /root/wt/agents-qa-EVAL-8c/agents/reviews/EVAL-8/baseline-local-20261121T212749Z.json | sed '/^Doc section text/,$d'; echo '$ git diff b91f78e afed799 -- evals/BASELINE.md'; git diff b91f78e afed799 -- evals/BASELINE.md; echo '$ grep -n "GPU" evals/BASELINE.md'; grep -n 'GPU' evals/BASELINE.md; echo '$ grep -n -E "llm|answer_kind|status" evals/README.md'; grep -n -E 'llm|answer_kind|`status`' evals/README.md; echo; echo '===== harness ====='; cat /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/ac7_baseline.py
+JSON: timestamp=20261121T212749Z hardware={'device': 'mps', 'profile': 'gpu'} latency_stage=quick gate=PASS
+  MATCH Recall@5, Hybrid RRF + Rerank                        doc='0.9850'                                 json='0.9850'
+  MATCH supported_citation_rate                              doc='1.0000 (44 citations)'                  json='1.0000 (44 citations)'
+  MATCH correct_refusal_rate                                 doc='1.0000 (22)'                            json='1.0000 (22)'
+  MATCH ask_p95_ms (quick stage, gated on GPU)               doc='2423.4579 (PASS)'                       json='2423.4579 (PASS)'
+  MATCH ask_errors                                           doc='0'                                      json='0'
+  MATCH (info) expected_paper_hit_rate                       doc='1.0000'                                 json='1.0000'
+  MATCH (info) ask_p50_ms                                    doc='1674.0'                                 json='1674.0'
+  MATCH (report-only) ask_full_p50_ms / ask_full_p95_ms      doc='2083.1 / 16786.0'                       json='2083.1 / 16786.0'
+  MATCH (report-only) citation_coverage                      doc='1.0000'                                 json='1.0000'
+  MATCH (report-only) near_miss_correct_refusal_rate         doc='0.9333 of 15 (`n003` answered)'         json='0.9333 of 15 (`n003` answered)'
+  MATCH (report-only) refusal_reason_counts                  doc='`{"insufficient_evidence": 2}`'         json='`{"insufficient_evidence": 2}`'
+rows in doc table: 11 (excl. header); compared: 11; diffs: 0
+
+Observations vs per-case records:
+  n003: near_miss answered [(223, True, 1), (239, False, 0.0551), (166, True, 1)]
+  a001: (chunk, marker) repeats: {(98, 2): 3}
+  a020: (chunk, marker) repeats: {(1680, 1): 2}
+  other cases with duplicate (chunk, marker): []
+  answer_kind key in JSON cases: False | llm block in JSON: False
+
+$ git diff b91f78e afed799 -- evals/BASELINE.md
+diff --git a/evals/BASELINE.md b/evals/BASELINE.md
+index 79a7859..9071ad7 100644
+--- a/evals/BASELINE.md
++++ b/evals/BASELINE.md
+@@ -15,7 +15,7 @@ is used and the summary value is given next to it.
+ ## Profile: CPU-only
+ This is the **CPU-only** profile, so `/v1/ask` p95 is informational here: the gate prints it as
+ `INFO (cpu-only; not gated)` and it can neither pass nor fail the run (Technical PRD §9, Accepted 2026-11-15). The
+-`< 3000 ms` latency gate applies only on the GPU reference profile (`mps`/`cuda`), and this file has no GPU baseline.
++`< 3000 ms` latency gate applies only on the GPU reference profile (`mps`/`cuda`), and this file has no GPU CI baseline.
+ 
+ - Runner: GitHub `ubuntu-latest` (image `ubuntu-26.04` 20261111.196.1), 4 CPUs (AMD EPYC 9V45), 15 GB RAM.
+ - PyTorch `2.15.0+cpu`. Embedder `/healthz`: `{"status":"ok","device":"cpu","reranker":true,"verifier":true}`; the gate logged
+@@ -69,7 +69,7 @@ refusal (no `refusal_reason`, `citations: []`, see `evals/README.md`). "1 of 22"
+ | multi | 6 | 0.5000 | 1.0000 | 1.0000 | 1.0000 |
+ 
+ GPU-profile latency on Mahesh's reference Mac is in the PR descriptions of #46–#50 (reported, not re-measured; no
+-run artifact), so it is not a baseline value here.
++run artifact), so it is not a CI baseline value here.
+ 
+ ## Real LLM (reported, local)
+ Mahesh's own `make eval` with the LLM on, 2026-11-21 21:27Z: results `20261121T212749Z.json`, committed with its
+@@ -83,7 +83,7 @@ Ollama `0.40.16`, `qwen2.5:3b-instruct` @ `357c53fb659c` (reported by Mahesh; th
+ | Recall@5, Hybrid RRF + Rerank | 0.9850 | 0.9850 |
+ | supported_citation_rate | 1.0000 (44 citations) | 1.0000 (60 citations) |
+ | correct_refusal_rate | 1.0000 (22) | 1.0000 (22) |
+-| ask_p95_ms (quick stage, gated on GPU) | 2423.4579 (PASS) | 13330.2916 (INFO) |
++| ask_p95_ms (quick stage, gated on GPU) | 2423.4579 (PASS) | 13330.2916 (INFO; full answer, pre-ADR-0019) |
+ | ask_errors | 0 | 0 |
+ | (info) expected_paper_hit_rate | 1.0000 | 0.9545 |
+ | (info) ask_p50_ms | 1674.0 | 10932.2 |
+$ grep -n "GPU" evals/BASELINE.md
+18:`< 3000 ms` latency gate applies only on the GPU reference profile (`mps`/`cuda`), and this file has no GPU CI baseline.
+71:GPU-profile latency on Mahesh's reference Mac is in the PR descriptions of #46–#50 (reported, not re-measured; no
+77:as `baseline-local-20261121T212749Z.json`. Reported, not re-measured, and not a CI baseline. Profile GPU (`mps`, Apple M4);
+86:| ask_p95_ms (quick stage, gated on GPU) | 2423.4579 (PASS) | 13330.2916 (INFO; full answer, pre-ADR-0019) |
+$ grep -n -E "llm|answer_kind|status" evals/README.md
+15:| `results/` → `llm` | which LLM answered (EVAL-8c, report-only, never gated): `model` (`LLM_MODEL` or `null`), `source: "env"`, `host` (host[:port] of `LLM_BASE_URL`, default `localhost:11434` only with a model; never the scheme, path, query, userinfo or key), `ollama_version`, `digest`, `digest_short` (first 12 hex, = `ollama list` ID) from `GET /api/version` and `/api/tags` (bearer `LLM_API_KEY`, 5 s, not called without `LLM_MODEL`; on failure `null` plus `probe_error`), `synthesized_answer_rate` (answered full responses with `answer_kind: synthesized` / all answered, every set; `null` if none answered) | — |
+16:| `results/` → `answers.cases[]` | adds `answer_kind` (`quoted`, `synthesized` or `null`) and each citation's ADR-0014 `status` (or `null`) | — |
+103:**The results say which LLM answered** (EVAL-8c). The gate prints an `llm:` line next to `hardware:` and stores the
+104:`llm` block above. It only reports: no check reads it and the exit code never depends on it. It warns on stderr when
+174:- **Keep it blind:** the sheet hides `score`, `supported`, `status`; don't open that run's results or UI until done.
+
+===== harness =====
+"""QA EVAL-8c AC7: every number in BASELINE.md's "Real LLM (reported, local)" section vs the committed JSON.
+Usage: ac7_baseline.py <app>/evals/BASELINE.md <agents>/agents/reviews/EVAL-8/baseline-local-20261121T212749Z.json"""
+import collections, json, re, sys
+md, js = sys.argv[1:3]
+d = json.load(open(js)); a = d["answers"]; ck = {c["metric"]: c for c in d["checks"]}
+sec = open(md, encoding="utf-8").read().split("## Real LLM (reported, local)")[1].split("\n## ")[0]
+rows = {r.split("|")[1].strip(): r.split("|")[2].strip() for r in sec.splitlines() if r.startswith("| ") and "---" not in r}
+f4 = lambda x: f"{x:.4f}"
+want = {
+ "Recall@5, Hybrid RRF + Rerank": f4(d["retrieval"]["modes"]["Hybrid RRF + Rerank"]["recall@5"]),
+ "supported_citation_rate": f"{f4(a['supported_citation_rate'])} ({a['citations_total']} citations)",
+ "correct_refusal_rate": f"{f4(a['correct_refusal_rate'])} ({a['refusal_cases']})",
+ "ask_p95_ms (quick stage, gated on GPU)": f"{f4(a['ask_p95_ms'])} ({'PASS' if ck['ask_p95_ms']['passed'] else 'FAIL'})",
+ "ask_errors": str(a["ask_error_count"]),
+ "(info) expected_paper_hit_rate": f4(a["expected_paper_hit_rate"]),
+ "(info) ask_p50_ms": f"{a['ask_p50_ms']:.1f}",
+ "(report-only) ask_full_p50_ms / ask_full_p95_ms": f"{a['ask_full_p50_ms']:.1f} / {a['ask_full_p95_ms']:.1f}",
+ "(report-only) citation_coverage": f4(a["citation_coverage"]),
+ "(report-only) near_miss_correct_refusal_rate": f"{f4(a['near_miss_correct_refusal_rate'])} of {a['near_miss_cases']} (`{'`, `'.join(a['near_miss_failure_ids'])}` answered)",
+ "(report-only) refusal_reason_counts": f"`{json.dumps(a['refusal_reason_counts'])}`",
+}
+print(f"JSON: timestamp={d['timestamp']} hardware={d['hardware']} latency_stage={a['latency_stage']} "
+      f"gate={'PASS' if all(c['passed'] for c in d['checks']) else 'FAIL'}")
+bad = 0
+for k, v in want.items():
+    got = rows.get(k); ok = got == v; bad += not ok
+    print(f"  {'MATCH' if ok else 'DIFF '} {k:52s} doc={got!r:40s} json={v!r}")
+print(f"rows in doc table: {len(rows)-1} (excl. header); compared: {len(want)}; diffs: {bad}")
+print("\nObservations vs per-case records:")
+cases = {c["id"]: c for c in a["cases"]}
+n = cases["n003"]; print("  n003:", n["set"], n["outcome"], [(c["chunk_id"], c["supported"], round(c["score"], 4)) for c in n["citations"]])
+for cid in ("a001", "a020"):
+    cnt = collections.Counter((c["chunk_id"], c["marker"]) for c in cases[cid]["citations"])
+    print(f"  {cid}: (chunk, marker) repeats:", {k: v for k, v in cnt.items() if v > 1})
+others = [cid for cid, c in cases.items() if cid not in ("a001", "a020") and
+          any(v > 1 for v in collections.Counter((x["chunk_id"], x["marker"]) for x in c["citations"]).values())]
+print("  other cases with duplicate (chunk, marker):", others)
+print("  answer_kind key in JSON cases:", any("answer_kind" in c for c in a["cases"]), "| llm block in JSON:", "llm" in d)
+print("\nDoc section text:\n" + sec)
+
+
+[exit code 0]

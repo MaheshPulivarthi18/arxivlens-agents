@@ -1,0 +1,169 @@
+$ bash -c timeout 120 python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/probe_real_server.py /root/wt/qa-EVAL-8c 2>&1 | cut -c1-330; echo; echo '===== harness source ====='; cat /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/probe_real_server.py
+SUMMARY (name | exit | secs | requests (path, auth) | leaks in json/stdout/stderr)
+  ok                   exit=1 t= 0.0s req=[('/api/version', 'Bearer sk-test-SECRET'), ('/api/tags', 'Bearer sk-test-SECRET')] leaks=none
+  ok-no-key            exit=1 t= 0.0s req=[('/api/version', None), ('/api/tags', None)] leaks=none
+  refused              exit=1 t= 0.0s req=[] leaks=none
+  401                  exit=1 t= 0.0s req=[('/api/version', 'Bearer sk-test-SECRET'), ('/api/tags', 'Bearer sk-test-SECRET')] leaks=none
+  model-missing        exit=1 t= 0.0s req=[('/api/version', 'Bearer sk-test-SECRET'), ('/api/tags', 'Bearer sk-test-SECRET')] leaks=none
+  non-json             exit=1 t= 0.0s req=[('/api/version', 'Bearer sk-test-SECRET'), ('/api/tags', 'Bearer sk-test-SECRET')] leaks=none
+  timeout(7s server)   exit=1 t=10.0s req=[('/api/version', 'Bearer sk-test-SECRET'), ('/api/tags', 'Bearer sk-test-SECRET')] leaks=none
+  bad-url              exit=1 t= 0.0s req=[] leaks=none
+  model-unset          exit=1 t= 0.0s req=[] leaks=none
+exit codes all equal: True {'ok': 1, 'ok-no-key': 1, 'refused': 1, '401': 1, 'model-missing': 1, 'non-json': 1, 'timeout(7s server)': 1, 'bad-url': 1, 'model-unset': 1}
+
+[ok] llm = {"model": "qwen2.5:3b-instruct", "source": "env", "host": "127.0.0.1:41209", "ollama_version": "0.40.16", "digest": "357c53fb659c0123456789abcdef0123456789abcdef0123456789abcdef0123", "digest_short": "357c53fb659c", "synthesized_answer_rate": 1.0}
+    stdout: ['llm: model=qwen2.5:3b-instruct host=127.0.0.1:41209 ollama=0.40.16 digest=357c53fb659c']
+    stderr warnings: []
+[ok-no-key] llm = {"model": "qwen2.5:3b-instruct", "source": "env", "host": "127.0.0.1:41209", "ollama_version": "0.40.16", "digest": "357c53fb659c0123456789abcdef0123456789abcdef0123456789abcdef0123", "digest_short": "357c53fb659c", "synthesized_answer_rate": 1.0}
+    stdout: ['llm: model=qwen2.5:3b-instruct host=127.0.0.1:41209 ollama=0.40.16 digest=357c53fb659c']
+    stderr warnings: []
+[refused] llm = {"model": "qwen2.5:3b-instruct", "source": "env", "host": "127.0.0.1:58999", "ollama_version": null, "digest": null, "digest_short": null, "probe_error": "GET /api/version: URLError (ConnectionRefusedError); GET /api/tags: URLError (ConnectionRefusedError)", "synthesized_answer_rate": 1.0}
+    stdout: ['llm: model=qwen2.5:3b-instruct host=127.0.0.1:58999 ollama=unknown digest=unknown (GET /api/version: URLError (ConnectionRefusedError); GET /api/tags: URLError (ConnectionRefusedError))']
+    stderr warnings: []
+[401] llm = {"model": "qwen2.5:3b-instruct", "source": "env", "host": "127.0.0.1:41209", "ollama_version": null, "digest": null, "digest_short": null, "probe_error": "GET /api/version: HTTPError 401; GET /api/tags: HTTPError 401", "synthesized_answer_rate": 1.0}
+    stdout: ['llm: model=qwen2.5:3b-instruct host=127.0.0.1:41209 ollama=unknown digest=unknown (GET /api/version: HTTPError 401; GET /api/tags: HTTPError 401)']
+    stderr warnings: []
+[model-missing] llm = {"model": "qwen2.5:3b-instruct", "source": "env", "host": "127.0.0.1:41209", "ollama_version": "0.40.16", "digest": null, "digest_short": null, "probe_error": "GET /api/tags: qwen2.5:3b-instruct not listed", "synthesized_answer_rate": 1.0}
+    stdout: ['llm: model=qwen2.5:3b-instruct host=127.0.0.1:41209 ollama=0.40.16 digest=unknown (GET /api/tags: qwen2.5:3b-instruct not listed)']
+    stderr warnings: []
+[non-json] llm = {"model": "qwen2.5:3b-instruct", "source": "env", "host": "127.0.0.1:41209", "ollama_version": null, "digest": null, "digest_short": null, "probe_error": "GET /api/version: JSONDecodeError; GET /api/tags: JSONDecodeError", "synthesized_answer_rate": 1.0}
+    stdout: ['llm: model=qwen2.5:3b-instruct host=127.0.0.1:41209 ollama=unknown digest=unknown (GET /api/version: JSONDecodeError; GET /api/tags: JSONDecodeError)']
+    stderr warnings: []
+[timeout(7s server)] llm = {"model": "qwen2.5:3b-instruct", "source": "env", "host": "127.0.0.1:41209", "ollama_version": null, "digest": null, "digest_short": null, "probe_error": "GET /api/version: TimeoutError; GET /api/tags: TimeoutError", "synthesized_answer_rate": 1.0}
+    stdout: ['llm: model=qwen2.5:3b-instruct host=127.0.0.1:41209 ollama=unknown digest=unknown (GET /api/version: TimeoutError; GET /api/tags: TimeoutError)']
+    stderr warnings: []
+[bad-url] llm = {"model": "qwen2.5:3b-instruct", "source": "env", "host": null, "ollama_version": null, "digest": null, "digest_short": null, "probe_error": "LLM_BASE_URL is not an absolute http(s) URL", "synthesized_answer_rate": 1.0}
+    stdout: ['llm: model=qwen2.5:3b-instruct host=n/a ollama=unknown digest=unknown (LLM_BASE_URL is not an absolute http(s) URL)']
+    stderr warnings: []
+[model-unset] llm = {"model": null, "source": "env", "host": "127.0.0.1:41209", "ollama_version": null, "digest": null, "digest_short": null, "synthesized_answer_rate": 1.0}
+    stdout: ['llm: model=unset host=127.0.0.1:41209 ollama=unknown digest=unknown']
+    stderr warnings: ["warning: 22 written answers came from an LLM the eval can't name; export LLM_MODEL for make eval too"]
+
+===== harness source =====
+"""QA EVAL-8c: drive the PR's real eval_gate.main against a real local HTTP server (no urllib monkeypatch).
+
+Only the stack-facing pieces are stubbed (embedder_device, retrieval, /v1/ask). The Ollama probe goes over a real
+socket, so the Authorization header, the URL actually requested and the failure handling are observed, not faked.
+Usage: python3 probe_real_server.py <app_dir>
+"""
+import copy
+import http.server
+import io
+import json
+import os
+import socket
+import sys
+import tempfile
+import threading
+import time
+import contextlib
+
+APP = sys.argv[1]
+sys.path.insert(0, APP)
+from scripts import eval_gate, evaluate_answers  # noqa: E402
+
+DIGEST = "357c53fb659c" + "0123456789abcdef" * 3 + "0123"
+SECRET, USERINFO, QUERY = "sk-test-SECRET", "u:p", "x=1"
+SEEN = []
+MODE = {"m": "ok"}
+
+
+class H(http.server.BaseHTTPRequestHandler):
+    def log_message(self, *a):
+        pass
+
+    def do_GET(self):
+        SEEN.append((self.path, self.headers.get("Authorization")))
+        m = MODE["m"]
+        if m == "slow":
+            time.sleep(7)
+        if m == "401":
+            self.send_response(401); self.end_headers(); self.wfile.write(b"no " + SECRET.encode()); return
+        if m == "nonjson":
+            body = b"<html>" + SECRET.encode()
+        elif self.path == "/api/version":
+            body = b'{"version":"0.40.16"}'
+        elif self.path == "/api/tags":
+            models = [{"name": "other:1b", "digest": "f" * 64}]
+            if m != "missing":
+                models.append({"name": "qwen2.5:3b-instruct", "model": "qwen2.5:3b-instruct", "digest": DIGEST})
+            body = json.dumps({"models": models}).encode()
+        else:
+            self.send_response(404); self.end_headers(); return
+        self.send_response(200); self.send_header("Content-Type", "application/json"); self.end_headers()
+        self.wfile.write(body)
+
+
+srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), H)
+port = srv.server_address[1]
+threading.Thread(target=srv.serve_forever, daemon=True).start()
+s = socket.socket(); s.bind(("127.0.0.1", 0)); closed_port = s.getsockname()[1]; s.close()
+
+ANSWERED = {"answer": "X holds [1].", "refused": False, "answer_kind": "synthesized",
+            "citations": [{"marker": 1, "arxiv_id": "1706.03762", "chunk_id": 7, "supported": True, "score": 0.6,
+                           "status": "supported"}]}
+REFUSAL = {"answer": "", "refused": True, "refusal_reason": "insufficient_evidence", "citations": []}
+RET = {"methods": {}, "cases": 0}
+
+
+def run(env):
+    for k in ("LLM_MODEL", "LLM_BASE_URL", "LLM_API_KEY"):
+        os.environ.pop(k, None)
+    os.environ.update(env)
+    eval_gate.embedder_device = lambda url: "mps"
+    eval_gate.er.run_retrieval_evaluation = lambda **k: copy.deepcopy(RET)
+    refusal_qs = {c["question"] for c in evaluate_answers.load_cases(os.path.join(APP, "evals", "refusal.jsonl"))}
+    refusal_qs |= {c["question"] for c in evaluate_answers.load_cases(os.path.join(APP, "evals", "refusal_near_miss.jsonl"))}
+    evaluate_answers.make_http_ask = lambda url, t, max_citations=5, quick=False: (
+        lambda q: (copy.deepcopy(REFUSAL if q in refusal_qs else ANSWERED), 10.0))
+    d = tempfile.mkdtemp()
+    out, err = io.StringIO(), io.StringIO()
+    t0 = time.time()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        code = eval_gate.main(["--results-dir", d, "--skip-retrieval"])
+    dt = time.time() - t0
+    (f,) = os.listdir(d)
+    written = open(os.path.join(d, f), encoding="utf-8").read()
+    return code, written, out.getvalue(), err.getvalue(), dt
+
+
+def leaks(*blobs):
+    return [s for s in (SECRET, USERINFO, QUERY, "u:p@") if any(s in b for b in blobs)]
+
+
+base = f"https://{USERINFO}@llm.example:8443/v1?{QUERY}"
+local = f"http://{USERINFO}@127.0.0.1:{port}/v1?{QUERY}"
+rows = []
+codes = {}
+for name, env, mode in [
+    ("ok", {"LLM_MODEL": "qwen2.5:3b-instruct", "LLM_BASE_URL": local, "LLM_API_KEY": SECRET}, "ok"),
+    ("ok-no-key", {"LLM_MODEL": "qwen2.5:3b-instruct", "LLM_BASE_URL": f"http://127.0.0.1:{port}/v1/"}, "ok"),
+    ("refused", {"LLM_MODEL": "qwen2.5:3b-instruct", "LLM_BASE_URL": f"http://{USERINFO}@127.0.0.1:{closed_port}/v1?{QUERY}", "LLM_API_KEY": SECRET}, "ok"),
+    ("401", {"LLM_MODEL": "qwen2.5:3b-instruct", "LLM_BASE_URL": local, "LLM_API_KEY": SECRET}, "401"),
+    ("model-missing", {"LLM_MODEL": "qwen2.5:3b-instruct", "LLM_BASE_URL": local, "LLM_API_KEY": SECRET}, "missing"),
+    ("non-json", {"LLM_MODEL": "qwen2.5:3b-instruct", "LLM_BASE_URL": local, "LLM_API_KEY": SECRET}, "nonjson"),
+    ("timeout(7s server)", {"LLM_MODEL": "qwen2.5:3b-instruct", "LLM_BASE_URL": local, "LLM_API_KEY": SECRET}, "slow"),
+    ("bad-url", {"LLM_MODEL": "qwen2.5:3b-instruct", "LLM_BASE_URL": f"ftp://{USERINFO}@h/v1?{QUERY}", "LLM_API_KEY": SECRET}, "ok"),
+    ("model-unset", {"LLM_BASE_URL": local, "LLM_API_KEY": SECRET}, "ok"),
+]:
+    MODE["m"] = mode
+    SEEN.clear()
+    code, written, out, err, dt = run(env)
+    llm = json.loads(written)["llm"]
+    codes[name] = code
+    rows.append((name, code, round(dt, 1), list(SEEN), llm, leaks(written, out, err),
+                 [ln for ln in out.splitlines() if ln.startswith("llm:")], [ln for ln in err.splitlines() if "warning" in ln]))
+
+print("SUMMARY (name | exit | secs | requests (path, auth) | leaks in json/stdout/stderr)")
+for name, code, dt, seen, llm, lk, _, _ in rows:
+    print(f"  {name:20s} exit={code} t={dt:>4}s req={seen} leaks={lk or 'none'}")
+print("exit codes all equal:", len(set(codes.values())) == 1, codes)
+print()
+for name, code, dt, seen, llm, lk, line, warn in rows:
+    print(f"[{name}] llm = {json.dumps(llm, sort_keys=False)}")
+    print(f"    stdout: {line}")
+    print(f"    stderr warnings: {warn}")
+srv.shutdown()
+
+
+[exit code 0]

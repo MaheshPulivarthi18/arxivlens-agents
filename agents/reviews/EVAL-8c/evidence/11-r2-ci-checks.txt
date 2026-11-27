@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/afed799938f379f6a834aa21565ad130c1405d35/check-runs; gh api .../pulls/122
+Python M0 unit tests | completed | success | job 137060770668 | head_sha afed799938f379f6a834aa21565ad130c1405d35
+Go (vet, gofmt, test, build) | completed | success | job 137060770525 | head_sha afed799938f379f6a834aa21565ad130c1405d35
+Frontend (lint, test, build) | completed | success | job 137060770513 | head_sha afed799938f379f6a834aa21565ad130c1405d35
+DB (migrate twice, HNSW plan + recall) | completed | success | job 137060770392 | head_sha afed799938f379f6a834aa21565ad130c1405d35
+Agent ownership check | completed | success | job 137060770318 | head_sha afed799938f379f6a834aa21565ad130c1405d35
+Full stack (compose + make test-full) | completed | success | job 137060770208 | head_sha afed799938f379f6a834aa21565ad130c1405d35
+PR #122 head=afed799938f379f6a834aa21565ad130c1405d35 draft=true state=open base=53171d6579a90de027239255e98369e323416ad3
+

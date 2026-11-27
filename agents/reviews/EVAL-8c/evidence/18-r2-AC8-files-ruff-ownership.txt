@@ -1,0 +1,17 @@
+$ bash -c echo "merge-base=$(git merge-base origin/main HEAD) origin/main=$(git rev-parse origin/main) HEAD=$(git rev-parse HEAD)"; echo "\$ git diff origin/main --name-only"; git diff origin/main --name-only; echo "\$ git diff --stat origin/main | tail -1"; git diff --stat origin/main | tail -1; echo "\$ ruff check --isolated --select E,F,W --line-length 130 scripts/eval_gate.py scripts/evaluate_answers.py tests/test_evals_data.py"; ruff check --isolated --select E,F,W --line-length 130 scripts/eval_gate.py scripts/evaluate_answers.py tests/test_evals_data.py; echo "\$ git diff origin/main --name-only | grep -E \"agents/|reviews|tasks|PRD\" (empty = no leaked files)"; git diff origin/main --name-only | grep -E "agents/|reviews|tasks|PRD"; echo "\$ .github/scripts/ownership-check.sh origin/main agent/ai/EVAL-8c"; GITHUB_HEAD_REF=agent/ai/EVAL-8c bash .github/scripts/ownership-check.sh origin/main agent/ai/EVAL-8c 2>&1 | tail -3
+merge-base=53171d6579a90de027239255e98369e323416ad3 origin/main=53171d6579a90de027239255e98369e323416ad3 HEAD=afed799938f379f6a834aa21565ad130c1405d35
+$ git diff origin/main --name-only
+evals/BASELINE.md
+evals/README.md
+scripts/eval_gate.py
+scripts/evaluate_answers.py
+tests/test_evals_data.py
+$ git diff --stat origin/main | tail -1
+ 5 files changed, 293 insertions(+), 7 deletions(-)
+$ ruff check --isolated --select E,F,W --line-length 130 scripts/eval_gate.py scripts/evaluate_answers.py tests/test_evals_data.py
+All checks passed!
+$ git diff origin/main --name-only | grep -E "agents/|reviews|tasks|PRD" (empty = no leaked files)
+$ .github/scripts/ownership-check.sh origin/main agent/ai/EVAL-8c
+Ownership OK for role=ai (300 changed lines)
+
+[exit code 0]

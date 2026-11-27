@@ -1,0 +1,74 @@
+$ bash -c python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k "case_record or case_records or malformed_citations or claims_and_citation or review or judgment or synthesized_answer_rate or llm_warnings or warning_goes" 2>&1 | grep -E "PASSED|FAILED|ERROR|passed|failed"; echo "\$ git diff origin/main --stat -- scripts/answer_review.py  (empty = unchanged)"; git diff origin/main --stat -- scripts/answer_review.py; echo "\$ git diff b91f78e afed799 -- scripts/eval_gate.py"; git diff b91f78e afed799 -- scripts/eval_gate.py
+tests/test_evals_data.py::test_case_records_hold_ids_and_numbers_only PASSED [  2%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[5-[]] PASSED [  4%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case['s'-[]] PASSED [  7%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[{'k': 1}-[]] PASSED [  9%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[{}-[]] PASSED [ 12%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[True-[]] PASSED [ 14%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[['str', {'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]-[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]] PASSED [ 17%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}, None]-[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]] PASSED [ 19%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]]-[]] PASSED [ 21%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[{'arxiv_id': 7, 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]-None] PASSED [ 24%]
+tests/test_evals_data.py::test_malformed_citations_are_one_error_case[[{'arxiv_id': '1706.03762', 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}, {'arxiv_id': ['1706.03762'], 'chunk_id': 7, 'content': 'passage text', 'title': 'T', 'score': 0.6}]-None] PASSED [ 26%]
+tests/test_evals_data.py::test_review_export_one_row_per_claim_citation_and_blind PASSED [ 29%]
+tests/test_evals_data.py::test_review_score_known_numbers_and_unjudged_excluded PASSED [ 31%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change0-False] PASSED [ 34%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change1-False] PASSED [ 36%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change2-False] PASSED [ 39%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change3-False] PASSED [ 41%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change4-False] PASSED [ 43%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change5-False] PASSED [ 46%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change6-True] PASSED [ 48%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change7-False] PASSED [ 51%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change8-False] PASSED [ 53%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change9-False] PASSED [ 56%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change10-False] PASSED [ 58%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change11-False] PASSED [ 60%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change12-True] PASSED [ 63%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change13-True] PASSED [ 65%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change14-True] PASSED [ 68%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change15-True] PASSED [ 70%]
+tests/test_evals_data.py::test_review_validator_rejects_bad_labels_and_text_fields[change16-True] PASSED [ 73%]
+tests/test_evals_data.py::test_review_load_rejects_conflicting_claim_labels_and_duplicates PASSED [ 75%]
+tests/test_evals_data.py::test_review_round_trip_export_score_save PASSED [ 78%]
+tests/test_evals_data.py::test_review_committed_judgments_hold_ids_and_labels_only PASSED [ 80%]
+tests/test_evals_data.py::test_claims_and_citation_fields_leave_eval_results_unchanged PASSED [ 82%]
+tests/test_evals_data.py::test_case_record_carries_answer_kind_and_citation_status PASSED [ 85%]
+tests/test_evals_data.py::test_synthesized_answer_rate_counts_answered_full_responses_only PASSED [ 87%]
+tests/test_evals_data.py::test_llm_warnings[None-0-None] PASSED          [ 90%]
+tests/test_evals_data.py::test_llm_warnings[None-2-can't name] PASSED    [ 92%]
+tests/test_evals_data.py::test_llm_warnings[qwen2.5:3b-instruct-0-0 answers were synthesized] PASSED [ 95%]
+tests/test_evals_data.py::test_llm_warnings[qwen2.5:3b-instruct-2-None] PASSED [ 97%]
+tests/test_evals_data.py::test_warning_goes_to_stderr_and_keeps_the_exit_code PASSED [100%]
+====================== 41 passed, 247 deselected in 0.18s ======================
+$ git diff origin/main --stat -- scripts/answer_review.py  (empty = unchanged)
+$ git diff b91f78e afed799 -- scripts/eval_gate.py
+diff --git a/scripts/eval_gate.py b/scripts/eval_gate.py
+index 0821302..feef6e9 100644
+--- a/scripts/eval_gate.py
++++ b/scripts/eval_gate.py
+@@ -149,11 +149,11 @@ def synthesized_answer_rate(answers: Optional[Dict[str, Any]]) -> Tuple[Optional
+     return (synth / len(answered) if answered else None), synth
+ 
+ 
+-def llm_warnings(model: Optional[str], synthesized: int) -> List[str]:
++def llm_warnings(model: Optional[str], synthesized: int, rate: Optional[float] = 0.0) -> List[str]:
+     if not model and synthesized:
+         return [f"warning: {synthesized} written answers came from an LLM the eval can't name; "
+                 "export LLM_MODEL for make eval too"]
+-    if model and not synthesized:
++    if model and not synthesized and rate is not None:  # rate None: nothing answered, so nothing to say
+         return [f"warning: LLM_MODEL={model} is set but 0 answers were synthesized (every answer was quoted)"]
+     return []
+ 
+@@ -314,7 +314,7 @@ def main(argv=None) -> int:
+     rate, synthesized = synthesized_answer_rate(results["answers"])
+     results["llm"] = {**llm, "synthesized_answer_rate": rate}
+     print(f"(report-only) synthesized_answer_rate: {'n/a' if rate is None else f'{rate:.4f}'}")
+-    for w in llm_warnings(llm["model"], synthesized) if results["answers"] is not None else []:
++    for w in llm_warnings(llm["model"], synthesized, rate) if results["answers"] is not None else []:
+         print(w, file=sys.stderr)
+     checks = check_thresholds(results, thresholds)
+     print_table(checks, results["answers"], results["retrieval"])
+
+[exit code 0]

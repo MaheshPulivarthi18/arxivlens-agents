@@ -1,0 +1,210 @@
+$ bash -c timeout 1200 python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/mutants.py /root/wt/qa-EVAL-8c $(mktemp -d /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/mutwork.XXXX) 2>&1; echo; echo '===== harness source (/tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/mutants.py) ====='; cat /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/mutants.py
+SUMMARY: mutant | verdict | pytest -x tail | first failing test
+  control (unmutated PR head)                    PASS       287 passed, 1 skipped in 0.64s                               
+  m1 host = full LLM_BASE_URL                    KILLED     1 failed, 270 passed, 1 skipped in 0.42s                     tests/test_evals_data.py::test_llm_block_names_model_host_version_digest_and_never_leaks
+  m2 drop Authorization header                   KILLED     1 failed, 270 passed, 1 skipped in 0.37s                     tests/test_evals_data.py::test_llm_block_names_model_host_version_digest_and_never_leaks
+  m3a /api/version exception propagates          KILLED     1 failed, 271 passed, 1 skipped in 0.45s                     tests/test_evals_data.py::test_probe_failure_never_changes_the_run[refused]
+  m3b /api/tags exception propagates             KILLED     1 failed, 271 passed, 1 skipped in 0.47s                     tests/test_evals_data.py::test_probe_failure_never_changes_the_run[refused]
+  m4 quoted counts as synthesized                KILLED     1 failed, 276 passed, 1 skipped in 0.46s                     tests/test_evals_data.py::test_no_probe_without_llm_model[no-url]
+  m5 drop answer_kind from case_record           KILLED     1 failed, 97 passed, 1 skipped in 0.21s                      tests/test_evals_data.py::test_case_records_hold_ids_and_numbers_only
+  m6a probe whenever a base URL is set           KILLED     1 failed, 277 passed, 1 skipped in 0.46s                     tests/test_evals_data.py::test_no_probe_without_llm_model[url]
+  m6b probe default URL even without model       KILLED     1 failed, 276 passed, 1 skipped in 0.47s                     tests/test_evals_data.py::test_no_probe_without_llm_model[no-url]
+  x1 rate counts answer set only (not near-miss) KILLED     1 failed, 280 passed, 1 skipped in 0.47s                     tests/test_evals_data.py::test_synthesized_answer_rate_counts_answered_full_responses_only
+  x2 no probe timeout                            KILLED     1 failed, 270 passed, 1 skipped in 0.40s                     tests/test_evals_data.py::test_llm_block_names_model_host_version_digest_and_never_leaks
+  x3 host keeps userinfo                         KILLED     1 failed, 270 passed, 1 skipped in 0.38s                     tests/test_evals_data.py::test_llm_block_names_model_host_version_digest_and_never_leaks
+  x4 keep trailing /v1 in probe root             KILLED     1 failed, 270 passed, 1 skipped in 0.37s                     tests/test_evals_data.py::test_llm_block_names_model_host_version_digest_and_never_leaks
+  x5 digest_short 8 hex                          KILLED     1 failed, 270 passed, 1 skipped in 0.37s                     tests/test_evals_data.py::test_llm_block_names_model_host_version_digest_and_never_leaks
+  x6 no 'model set, 0 synthesized' warning       KILLED     1 failed, 283 passed, 1 skipped in 0.46s                     tests/test_evals_data.py::test_llm_warnings[qwen2.5:3b-instruct-0-0
+  x7 warnings to stdout                          KILLED     1 failed, 285 passed, 1 skipped in 0.47s                     tests/test_evals_data.py::test_warning_goes_to_stderr_and_keeps_the_exit_code
+  x8 answer_kind without str guard               KILLED     1 failed, 279 passed, 1 skipped in 0.48s                     tests/test_evals_data.py::test_case_record_carries_answer_kind_and_citation_status
+  x9 citation status always null                 KILLED     1 failed, 279 passed, 1 skipped in 0.49s                     tests/test_evals_data.py::test_case_record_carries_answer_kind_and_citation_status
+  x10 rate denominator = all cases               KILLED     1 failed, 280 passed, 1 skipped in 0.44s                     tests/test_evals_data.py::test_synthesized_answer_rate_counts_answered_full_responses_only
+  x11 match tags on 'model' key only             KILLED     1 failed, 270 passed, 1 skipped in 0.41s                     tests/test_evals_data.py::test_llm_block_names_model_host_version_digest_and_never_leaks
+  x12 llm block not written to results           KILLED     1 failed, 270 passed, 1 skipped in 0.40s                     tests/test_evals_data.py::test_llm_block_names_model_host_version_digest_and_never_leaks
+  r2a F4: drop 'rate is not None' warning guard  KILLED     1 failed, 280 passed, 1 skipped in 0.47s                     tests/test_evals_data.py::test_synthesized_answer_rate_counts_answered_full_responses_only
+  r2b F4: main does not pass rate to llm_warnings SURVIVED   287 passed, 1 skipped in 0.41s                               
+  r2c IPv6 host without brackets                 KILLED     1 failed, 278 passed, 1 skipped in 0.44s                     tests/test_evals_data.py::test_default_base_url_only_with_a_model
+  r2d probe catches only URLError (timeout escapes) KILLED     1 failed, 274 passed, 1 skipped in 0.45s                     tests/test_evals_data.py::test_probe_failure_never_changes_the_run[non-json]
+  r2e keep 'sha256:' digest prefix (known untested) SURVIVED   287 passed, 1 skipped in 0.41s                               
+  r2f no-model guard: probe with model=None via elif KILLED     1 failed, 277 passed, 1 skipped in 0.44s                     tests/test_evals_data.py::test_no_probe_without_llm_model[url]
+
+MUTANT DIFFS (changed lines only)
+## m1 host = full LLM_BASE_URL
+   -    info: Dict[str, Any] = {"model": model, "source": "env", "host": host,
+   +    info: Dict[str, Any] = {"model": model, "source": "env", "host": base,
+## m2 drop Authorization header
+   -    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+   +    headers = {}
+## m3a /api/version exception propagates
+   -    except Exception as e:  # noqa: BLE001 (best effort: report, never fail the run)
+   +    except ZeroDivisionError as e:  # noqa: BLE001 (best effort: report, never fail the run)
+## m3b /api/tags exception propagates
+   -    except Exception as e:  # noqa: BLE001
+   +    except ZeroDivisionError as e:  # noqa: BLE001
+## m4 quoted counts as synthesized
+   -    synth = sum(1 for c in answered if c.get("answer_kind") == "synthesized")
+   +    synth = sum(1 for c in answered if c.get("answer_kind") in ("synthesized", "quoted"))
+## m5 drop answer_kind from case_record
+   -        "answer_kind": r.get("answer_kind") if isinstance(r.get("answer_kind"), str) else None,
+## m6a probe whenever a base URL is set
+   -    if model and root:
+   +    if root:
+## m6b probe default URL even without model
+   -    base = env.get("LLM_BASE_URL", "").strip() or (LLM_DEFAULT_BASE_URL if model else "")
+   +    base = env.get("LLM_BASE_URL", "").strip() or LLM_DEFAULT_BASE_URL
+## x1 rate counts answer set only (not near-miss)
+   -    answered = [c for c in (answers or {}).get("cases") or [] if c.get("outcome") == "answered"]
+   +    answered = [c for c in (answers or {}).get("cases") or [] if c.get("outcome") == "answered" and c.get("set") == "answer"]
+## x2 no probe timeout
+   -        with urllib.request.urlopen(req, timeout=timeout_s) as r:
+   +        with urllib.request.urlopen(req) as r:
+## x3 host keeps userinfo
+   -    hostport = (f"[{host}]" if ":" in host else host) + (f":{port}" if port else "")
+   +    hostport = u.netloc.split('?')[0]
+## x4 keep trailing /v1 in probe root
+   -    path = path[:-3] if path.endswith("/v1") else path
+   +    path = path
+## x5 digest_short 8 hex
+   -            out.update(digest=digest, digest_short=digest[:12])
+   +            out.update(digest=digest, digest_short=digest[:8])
+## x6 no 'model set, 0 synthesized' warning
+   -    if model and not synthesized and rate is not None:  # rate None: nothing answered, so nothing to say
+   +    if False:  # rate None: nothing answered, so nothing to say
+## x7 warnings to stdout
+   -        print(w, file=sys.stderr)
+   +        print(w)
+## x8 answer_kind without str guard
+   -        "answer_kind": r.get("answer_kind") if isinstance(r.get("answer_kind"), str) else None,
+   +        "answer_kind": r.get("answer_kind"),
+## x9 citation status always null
+   -                       "status": c.get("status") if isinstance(c.get("status"), str) else None}
+   +                       "status": None}
+## x10 rate denominator = all cases
+   -    return (synth / len(answered) if answered else None), synth
+   +    return (synth / len((answers or {}).get('cases') or [1]) if answered else None), synth
+## x11 match tags on 'model' key only
+   -                  and model in (m.get("name"), m.get("model"))]
+   +                  and model == m.get("model")]
+## x12 llm block not written to results
+   -    results["llm"] = {**llm, "synthesized_answer_rate": rate}
+   +    pass
+## r2a F4: drop 'rate is not None' warning guard
+   -    if model and not synthesized and rate is not None:  # rate None: nothing answered, so nothing to say
+   +    if model and not synthesized:  # rate None: nothing answered, so nothing to say
+## r2b F4: main does not pass rate to llm_warnings
+   -    for w in llm_warnings(llm["model"], synthesized, rate) if results["answers"] is not None else []:
+   +    for w in llm_warnings(llm["model"], synthesized) if results["answers"] is not None else []:
+## r2c IPv6 host without brackets
+   -    hostport = (f"[{host}]" if ":" in host else host) + (f":{port}" if port else "")
+   +    hostport = host + (f":{port}" if port else "")
+## r2d probe catches only URLError (timeout escapes)
+   -    except Exception as e:  # noqa: BLE001 (best effort: report, never fail the run)
+   +    except urllib.error.URLError as e:  # noqa: BLE001 (best effort: report, never fail the run)
+## r2e keep 'sha256:' digest prefix (known untested)
+   -            digest = digest.split(":", 1)[-1]  # tolerate a "sha256:" prefix
+   +            digest = digest  # tolerate a "sha256:" prefix
+## r2f no-model guard: probe with model=None via elif
+   +    elif root:
+   +        info.update(probe_ollama(root, "", ""))
+
+===== harness source (/tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/mutants.py) =====
+"""QA EVAL-8c mutant runner (round 2: r1 set, x6 anchor updated for the new rate guard, plus r2 mutants). Each mutant is one anchored substitution on a fresh copy of the PR head (never pushed).
+A substitution whose anchor is not found exactly once is INVALID (never counted as KILLED).
+Usage: python3 mutants.py <app_dir> <work_dir>"""
+import os
+import shutil
+import subprocess
+import sys
+
+APP, WORK = sys.argv[1], sys.argv[2]
+G, A = "scripts/eval_gate.py", "scripts/evaluate_answers.py"
+MUTANTS = [
+    ("m1 host = full LLM_BASE_URL", G, '"host": host,', '"host": base,'),
+    ("m2 drop Authorization header", G, 'headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}', "headers = {}"),
+    ("m3a /api/version exception propagates", G,
+     'except Exception as e:  # noqa: BLE001 (best effort: report, never fail the run)\n        errors.append(_probe_error("/api/version", e))',
+     'except ZeroDivisionError as e:  # noqa: BLE001 (best effort: report, never fail the run)\n        errors.append(_probe_error("/api/version", e))'),
+    ("m3b /api/tags exception propagates", G,
+     'except Exception as e:  # noqa: BLE001\n        errors.append(_probe_error("/api/tags", e))',
+     'except ZeroDivisionError as e:  # noqa: BLE001\n        errors.append(_probe_error("/api/tags", e))'),
+    ("m4 quoted counts as synthesized", G, 'c.get("answer_kind") == "synthesized")', 'c.get("answer_kind") in ("synthesized", "quoted"))'),
+    ("m5 drop answer_kind from case_record", A,
+     '        "answer_kind": r.get("answer_kind") if isinstance(r.get("answer_kind"), str) else None,\n', ""),
+    ("m6a probe whenever a base URL is set", G, "    if model and root:\n", "    if root:\n"),
+    ("m6b probe default URL even without model", G,
+     '(LLM_DEFAULT_BASE_URL if model else "")', "LLM_DEFAULT_BASE_URL"),
+    ("x1 rate counts answer set only (not near-miss)", G,
+     'if c.get("outcome") == "answered"]', 'if c.get("outcome") == "answered" and c.get("set") == "answer"]'),
+    ("x2 no probe timeout", G, "with urllib.request.urlopen(req, timeout=timeout_s) as r:", "with urllib.request.urlopen(req) as r:"),
+    ("x3 host keeps userinfo", G, "    hostport = (f\"[{host}]\" if \":\" in host else host) + (f\":{port}\" if port else \"\")\n",
+     "    hostport = u.netloc.split('?')[0]\n"),
+    ("x4 keep trailing /v1 in probe root", G, 'path = path[:-3] if path.endswith("/v1") else path', "path = path"),
+    ("x5 digest_short 8 hex", G, "digest_short=digest[:12]", "digest_short=digest[:8]"),
+    ("x6 no 'model set, 0 synthesized' warning", G,
+     '    if model and not synthesized and rate is not None:', '    if False:'),
+    ("x7 warnings to stdout", G, "        print(w, file=sys.stderr)\n", "        print(w)\n"),
+    ("x8 answer_kind without str guard", A,
+     '"answer_kind": r.get("answer_kind") if isinstance(r.get("answer_kind"), str) else None,', '"answer_kind": r.get("answer_kind"),'),
+    ("x9 citation status always null", A, '"status": c.get("status") if isinstance(c.get("status"), str) else None}', '"status": None}'),
+    ("x10 rate denominator = all cases", G,
+     "return (synth / len(answered) if answered else None), synth",
+     "return (synth / len((answers or {}).get('cases') or [1]) if answered else None), synth"),
+    ("x11 match tags on 'model' key only", G, 'model in (m.get("name"), m.get("model"))]', 'model == m.get("model")]'),
+    ("x12 llm block not written to results", G, 'results["llm"] = {**llm, "synthesized_answer_rate": rate}', 'pass'),
+    ("r2a F4: drop 'rate is not None' warning guard", G,
+     'if model and not synthesized and rate is not None:', 'if model and not synthesized:'),
+    ("r2b F4: main does not pass rate to llm_warnings", G,
+     'llm_warnings(llm["model"], synthesized, rate) if', 'llm_warnings(llm["model"], synthesized) if'),
+    ("r2c IPv6 host without brackets", G,
+     'hostport = (f"[{host}]" if ":" in host else host)', 'hostport = host'),
+    ("r2d probe catches only URLError (timeout escapes)", G,
+     'except Exception as e:  # noqa: BLE001 (best effort: report, never fail the run)',
+     'except urllib.error.URLError as e:  # noqa: BLE001 (best effort: report, never fail the run)'),
+    ("r2e keep 'sha256:' digest prefix (known untested)", G,
+     'digest = digest.split(":", 1)[-1]', 'digest = digest'),
+    ("r2f no-model guard: probe with model=None via elif", G,
+     '    elif model:\n        info["probe_error"]', '    elif root:\n        info.update(probe_ollama(root, "", ""))\n    elif model:\n        info["probe_error"]'),
+]
+
+
+def run(tree):
+    p = subprocess.run([sys.executable, "-m", "pytest", "-q", "-x", "-p", "no:cacheprovider", "tests/test_evals_data.py"],
+                       cwd=tree, capture_output=True, text=True, timeout=300)
+    last = [ln for ln in p.stdout.splitlines() if ln.strip()][-1:] or ["?"]
+    failed = [ln.split(" ")[1] for ln in p.stdout.splitlines() if ln.startswith("FAILED ")]
+    return p.returncode, last[0], failed
+
+
+os.makedirs(WORK, exist_ok=True)
+rows, diffs = [], []
+base_tree = os.path.join(WORK, "base")
+shutil.copytree(APP, base_tree, ignore=shutil.ignore_patterns(".git", "node_modules", "__pycache__", "frontend"))
+rc, last, _ = run(base_tree)
+rows.append(("control (unmutated PR head)", "PASS" if rc == 0 else f"BROKEN rc={rc}", last, []))
+for i, (name, path, old, new) in enumerate(MUTANTS):
+    tree = os.path.join(WORK, f"mut{i:02d}")
+    shutil.copytree(base_tree, tree)
+    f = os.path.join(tree, path)
+    src = open(f, encoding="utf-8").read()
+    n = src.count(old)
+    if n != 1:
+        rows.append((name, f"INVALID (anchor found {n}x)", "", []))
+        continue
+    open(f, "w", encoding="utf-8").write(src.replace(old, new))
+    d = subprocess.run(["diff", "-u", os.path.join(base_tree, path), f], capture_output=True, text=True).stdout
+    diffs.append((name, [ln for ln in d.splitlines() if ln[:1] in "+-" and not ln.startswith(("+++", "---"))]))
+    rc, last, failed = run(tree)
+    rows.append((name, "KILLED" if rc == 1 else ("SURVIVED" if rc == 0 else f"ERROR rc={rc}"), last, failed))
+
+print("SUMMARY: mutant | verdict | pytest -x tail | first failing test")
+for name, verdict, last, failed in rows:
+    print(f"  {name:46s} {verdict:10s} {last[:60]:60s} {failed[0] if failed else ''}")
+print()
+print("MUTANT DIFFS (changed lines only)")
+for name, lines in diffs:
+    print(f"## {name}")
+    for ln in lines:
+        print("   " + ln[:150])
+
+
+[exit code 0]

@@ -1,0 +1,17 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/actions/jobs/{137060770668,137060770318}/logs | grep -E 'make test-py-light|pytest|passed|failed|Ownership'
+## Python M0 unit tests (job 137060770668) — make test-py-light and result lines
+2026-11-22T02:04:33.8984679Z (node:2344) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-22T02:04:44.9184027Z (node:2390) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-22T02:04:50.8563663Z [36;1m  echo "::error::ML stack present before the light tests"; exit 1[0m
+2026-11-22T02:04:50.8564284Z [36;1mmake test-py-light[0m
+2026-11-22T02:04:57.4645788Z python3 -m pytest -q tests/test_evals_data.py tests/test_worker_heartbeat.py tests/test_arxiv_replay.py tests/test_rerank_precision.py
+2026-11-22T02:05:04.1761478Z 319 passed, 1 skipped in 6.13s
+2026-11-22T02:05:40.5731612Z python3 -m pytest -q tests/test_m0.py tests/test_verify.py tests/test_processor_pages.py
+2026-11-22T02:05:52.5755058Z 73 passed, 2 skipped, 3 warnings in 11.55s
+2026-11-22T02:05:53.4336236Z tests/test_kafka_client.py::test_dlq_stack_trace_is_the_errors_own PASSED [ 25%]
+2026-11-22T02:05:53.4361937Z tests/test_kafka_client.py::test_commit_error_is_logged_and_loop_continues PASSED [ 35%]
+2026-11-22T02:05:53.5790211Z ============================== 48 passed in 0.23s ==============================
+
+## Agent ownership check (job 137060770318)
+2026-11-22T02:04:23.6225888Z Ownership OK for role=ai (300 changed lines)
+

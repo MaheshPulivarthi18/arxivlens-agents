@@ -1,0 +1,13 @@
+$ bash -c python3 -m pytest -v -p no:cacheprovider tests/test_evals_data.py -k "no_probe_without_llm_model or probe_failure_never or llm_block_names or default_base_url" 2>&1 | grep -E "PASSED|FAILED|ERROR|passed|failed"
+tests/test_evals_data.py::test_llm_block_names_model_host_version_digest_and_never_leaks PASSED [ 11%]
+tests/test_evals_data.py::test_probe_failure_never_changes_the_run[refused] PASSED [ 22%]
+tests/test_evals_data.py::test_probe_failure_never_changes_the_run[401] PASSED [ 33%]
+tests/test_evals_data.py::test_probe_failure_never_changes_the_run[model-missing] PASSED [ 44%]
+tests/test_evals_data.py::test_probe_failure_never_changes_the_run[non-json] PASSED [ 55%]
+tests/test_evals_data.py::test_probe_failure_never_changes_the_run[timeout] PASSED [ 66%]
+tests/test_evals_data.py::test_no_probe_without_llm_model[no-url] PASSED [ 77%]
+tests/test_evals_data.py::test_no_probe_without_llm_model[url] PASSED    [ 88%]
+tests/test_evals_data.py::test_default_base_url_only_with_a_model PASSED [100%]
+====================== 9 passed, 279 deselected in 0.35s =======================
+
+[exit code 0]

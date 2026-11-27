@@ -1,0 +1,50 @@
+$ bash -c python3 /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/ac5_diff.py /root/wt/qa-EVAL-8c /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/main_test_evals_data.py /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/main_eval_gate.py 2>&1 | grep -v '^\.\|^\[' ; python3 -m pytest -q -p no:cacheprovider tests/test_evals_data.py -k 'test_gate_ or adds_no_check' 2>&1 | tail -1; echo; echo '===== harness source ====='; cat /tmp/claude-0/-home-claude/9b8da11c-f69d-5b65-a77c-405982c877d4/scratchpad/r2/ac5_diff.py
+test functions changed main->head: ['test_case_records_hold_ids_and_numbers_only', 'test_claims_and_citation_fields_leave_eval_results_unchanged', 'test_malformed_citations_are_one_error_case']
+removed: []
+added  : ['_fake_ollama', '_gate_main', 'test_case_record_carries_answer_kind_and_citation_status', 'test_default_base_url_only_with_a_model', 'test_llm_block_adds_no_check', 'test_llm_block_names_model_host_version_digest_and_never_leaks', 'test_llm_warnings', 'test_no_probe_without_llm_model', 'test_probe_failure_never_changes_the_run', 'test_synthesized_answer_rate_counts_answered_full_responses_only', 'test_warning_goes_to_stderr_and_keeps_the_exit_code']
+test_gate_* changed: [] of 10 test_gate_* functions
+answer_review-calling tests changed: []
+287 passed, 1 skipped in 0.48s
+pytest rc=0; check_thresholds calls compared head vs main: 50 (of which with an llm block: 16); outputs differing: 0
+14 passed, 274 deselected in 0.06s
+
+===== harness source =====
+"""QA EVAL-8c AC5: (1) which test functions changed main -> head (ast, per function source);
+(2) differential: every check_thresholds call made by the head's whole test file is also run through origin/main's
+check_thresholds on a deep copy, and the outputs must be identical. Usage: ac5_diff.py <app> <main_test> <main_gate>"""
+import ast, copy, importlib.util, json, os, sys
+app, main_test, main_gate = sys.argv[1:4]
+def funcs(path):
+    src = open(path, encoding="utf-8").read(); t = ast.parse(src)
+    return {n.name: ast.get_source_segment(src, n) for n in t.body if isinstance(n, ast.FunctionDef)}
+old, new = funcs(main_test), funcs(os.path.join(app, "tests/test_evals_data.py"))
+changed = sorted(n for n in old if n in new and old[n] != new[n])
+print("test functions changed main->head:", changed)
+print("removed:", sorted(set(old) - set(new)))
+print("added  :", sorted(set(new) - set(old)))
+print("test_gate_* changed:", [n for n in changed if n.startswith("test_gate")], "of", len([n for n in old if n.startswith("test_gate")]), "test_gate_* functions")
+print("answer_review-calling tests changed:", [n for n in changed if "answer_review." in new[n]])
+# (2) differential plugin
+sys.path.insert(0, app)
+import pytest
+from scripts import eval_gate
+spec = importlib.util.spec_from_file_location("main_eval_gate", main_gate); mg = importlib.util.module_from_spec(spec); spec.loader.exec_module(mg)
+head_ct = eval_gate.check_thresholds
+stats = {"calls": 0, "diff": 0, "with_llm": 0}
+def wrapped(results, thresholds):
+    a = head_ct(results, thresholds)
+    b = mg.check_thresholds(copy.deepcopy({k: v for k, v in results.items() if k != "llm"}), copy.deepcopy(thresholds))
+    stats["calls"] += 1; stats["with_llm"] += "llm" in results
+    if json.dumps(a, sort_keys=True, default=str) != json.dumps(b, sort_keys=True, default=str):
+        stats["diff"] += 1
+    return a
+eval_gate.check_thresholds = wrapped
+class P:
+    def pytest_sessionfinish(self):
+        pass
+rc = pytest.main(["-q", "-p", "no:cacheprovider", os.path.join(app, "tests/test_evals_data.py")], plugins=[P()])
+print(f"pytest rc={rc}; check_thresholds calls compared head vs main: {stats['calls']} "
+      f"(of which with an llm block: {stats['with_llm']}); outputs differing: {stats['diff']}")
+
+
+[exit code 0]
