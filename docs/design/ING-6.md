@@ -48,7 +48,7 @@ For category `c` with watermark `W(c)`: *every paper listed in `cat:c` with `pub
 - Stop after: (a) a page whose **last** (oldest) entry has `published ≤ W` (boundary crossed; the rest of that page was still filtered, so an
   occasional out-of-order entry at the top of a page can't end the walk early); (b) a short or empty page (end of feed); (c) first run only:
   `limit` entries collected; (d) `scanned ≥ maxScan` with a watermark and no boundary yet → **error**, nothing emitted, `W` unchanged
-  (`backlog in cat:c exceeds --max-scan N; raise --max-scan once or backfill with arxivlens crawl`). Never a silent gap.
+  (`cat:c: backlog exceeds --max-scan N; raise --max-scan once or backfill with arxivlens crawl`, see Build notes ING-6c). Never a silent gap.
 - Every request goes through `arxiv.GetAPI(ctx, client, lim, url, arxiv.UserAgent("Crawl Loop"), arxiv.DefaultRetry)` with **one**
   `*arxiv.Limiter` (`arxiv.NewLimiter(arxiv.DefaultInterval)`) shared by all categories and all retries of the process. No `--rate-limit` flag:
   the interval can't be lowered. Non-200 is a typed `*arxiv.StatusError` (#45), never parsed.
@@ -303,3 +303,14 @@ until OPS-H7b merges is harmless, the two tables are independent, and `TestRepoM
   (QA mutant M9) is ING-6c AC11.
 - Error text: `RunOnce` wraps `cat:<c>` around errors that `walk` already prefixes. Cosmetic; tidied in ING-6c AC11.
 - Size: 443 changed lines (+421/−22), under the 480 gate. No split.
+
+## Build notes (ING-6c), backend-engineer 2026-11-27 (condition 10, QA r1 finding 2)
+- **Error prefix moved to `RunOnce`** (AC11(c)): `walk` no longer adds `cat:<c>`; its errors read `page start=N: …` and
+  `backlog exceeds --max-scan N; …`, and `RunOnce` prefixes each category's error once with `cat:<c>: `. So §2 (d) now reads
+  `cat:cs.LG: backlog exceeds --max-scan N; raise --max-scan once or backfill with arxivlens crawl`. Cosmetic; same information.
+- **A cancel between categories** returns exactly `context canceled` (the `RunOnce` guard, no `cat:` prefix); the next category's
+  watermark isn't read. Pinned by `TestRunOnceCancelledAfterFirstCategory` (QA r1 finding 3, mutant C1).
+- **Lock**: `pg_try_advisory_lock(hashtext('arxivlens:crawl-loop'))` on a `pgxpool.Conn` held until release; release unlocks, or closes
+  the session if the unlock fails.
+- **Stack evidence** (`stack.yml` "ING-6: crawl-loop") runs after `make test-full`, which seeds its own `papers` rows, so the two crawled IDs
+  are saved by the "AC3: wait" step (when they are the only papers) to `crawled-ids.txt` and read from there (QA r1 finding 1).
