@@ -71,6 +71,7 @@ gh workflow run eval.yml --ref agent/ai/B-QUAL             # AC3, then read the 
 - [ ] (none yet)
 
 ## Notes
+- 2026-11-28 (ai-engineer): built as draft PR ArxivLens #131 (head `f9434b2`). Commits: (1) `77adfcc` verbatim `cherry-pick -x d2ad9c5` +754, (2) `81c2e8a` rebase edits +18/−2, (3) `972a90f` search timing +155/−5, (4) `f9434b2` docs +11/−1; 192 changed lines outside (1). Local: 328 passed, 2 skipped (`tests/test_evals_data.py`, `tests/test_evaluate_extraction.py`); ruff clean; ownership OK (942-line warning, waived by PM). AC3: eval.yml dispatched, run 46058471495 (QA quotes the line). No hand labels (still Mahesh's decision).
 - 2026-11-28 (pm-lead): design approved as ONE PR (the cap is waived for the carried scorer), with 3 conditions (`docs/design/B-QUAL.md` › PM decision).
 - 2026-11-28 (pm-lead): bundle created in the process reset. **Docs part (done by pm-lead, PR #22)**: Technical PRD §7.1 (RRF pool → rerank →
   fusion FusionK=10 → top-5 ≤ 2 per paper), §7.2 (two stages, LLM only with `LLM_MODEL` and not quick, quoted answers, quote/NLI verification,
