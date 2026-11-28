@@ -1,0 +1,23 @@
+$ bash /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/mut/run_m2.sh
+--- mutant M2 (search errors fail the run), applied locally, never pushed:
+diff --git a/scripts/eval_gate.py b/scripts/eval_gate.py
+index ce51f90..bc7ee07 100644
+--- a/scripts/eval_gate.py
++++ b/scripts/eval_gate.py
+@@ -348,7 +348,7 @@ def main(argv=None) -> int:
+         json.dump({"timestamp": stamp, "thresholds": thresholds, "checks": checks, **results}, f, indent=2)
+     print(f"results written to {out}")
+ 
+-    passed = all(c["passed"] for c in checks)
++    passed = all(c["passed"] for c in checks) and not (results.get('search') or {}).get('search_error_count')
+     print("GATE: PASS" if passed else "GATE: FAIL")
+     return 0 if passed else 1
+ 
+--- full suites against the mutant:
+328 passed, 2 skipped in 0.68s
+--- why it survives: _gate_main fixture's baseline exit code and failing checks
+CODE 1 [('correct_refusal_rate', False)]
+--- reverted:
+(clean)
+
+[exit code 0]

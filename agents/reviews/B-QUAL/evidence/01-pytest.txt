@@ -1,0 +1,12 @@
+$ python3 -m pytest -q -rs tests/test_evals_data.py tests/test_evaluate_extraction.py
+........................................................................ [ 21%]
+........s............................................................... [ 43%]
+........................................................................ [ 65%]
+........................................................................ [ 87%]
+..........................s...............                               [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_evals_data.py:839: opt-in: needs DATABASE_URL with migrations/ applied
+SKIPPED [1] tests/test_evaluate_extraction.py:134: AC1 not met: no hand labels. evals/extraction.jsonl must be hand-annotated from the PDFs with licences checked on the arXiv abs pages, which needs arxiv.org access (see evals/EXTRACTION_BASELINE.md).
+328 passed, 2 skipped in 0.75s
+
+[exit code 0]

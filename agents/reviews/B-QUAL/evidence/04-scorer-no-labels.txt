@@ -1,0 +1,11 @@
+$ bash -c python3 scripts/evaluate_extraction.py; echo "exit=$?"; python3 scripts/evaluate_extraction.py --help | head -4; grep -n "heading_threshold\|1.15" scripts/evaluate_extraction.py; echo "heuristic grep exit=$? (1 = empty)"; git status --short | grep -i pdf; echo "pdf in git status exit=$?"
+exit=2
+usage: evaluate_extraction.py [-h] [--dataset DATASET] [--cache-dir CACHE_DIR]
+                              [--results-dir RESULTS_DIR] [--offline]
+
+Score the production PDF section detector against hand-annotated headings
+heuristic grep exit=1 (1 = empty)
+pdf in git status exit=1
+could not run: dataset /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/bq/evals/extraction.jsonl not found
+
+[exit code 0]

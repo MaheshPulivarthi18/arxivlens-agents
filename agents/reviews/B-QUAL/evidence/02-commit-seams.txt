@@ -1,0 +1,23 @@
+$ bash -c git log --oneline 5fcbd5f..HEAD; echo; for c in d2ad9c5 77adfcc; do git show $c | git patch-id --stable; done; echo "diff d2ad9c5 77adfcc (scorer+tests) lines: $(git diff d2ad9c5 77adfcc -- scripts/evaluate_extraction.py tests/test_evaluate_extraction.py evals/EXTRACTION_BASELINE.md | wc -l)"; echo; echo "outside commit 1:"; git diff --shortstat 77adfcc HEAD; for c in 81c2e8a 972a90f f9434b2; do git show --shortstat --format="%h %s" $c; done
+f9434b2 B-QUAL: document the report-only /v1/search latency in evals/README.md and BASELINE.md
+972a90f B-QUAL: make eval times /v1/search (rerank) and reports p50/p95, report-only
+81c2e8a B-QUAL: rebase edits for the ING-8 scorer on main (skip reason, missing-dataset test, labelling steps)
+77adfcc ING-8: section-extraction eval scorer, tests and docs (dataset pending)
+
+55ddebaaeefa83143387cad04197b4f3e343270c d2ad9c5f0eac2ac516a5df8931884623af27cf2f
+55ddebaaeefa83143387cad04197b4f3e343270c 77adfcc9031ae3ce56351ddbafe7425a57b9335e
+diff d2ad9c5 77adfcc (scorer+tests) lines: 0
+
+outside commit 1:
+ 7 files changed, 184 insertions(+), 8 deletions(-)
+81c2e8a B-QUAL: rebase edits for the ING-8 scorer on main (skip reason, missing-dataset test, labelling steps)
+
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+972a90f B-QUAL: make eval times /v1/search (rerank) and reports p50/p95, report-only
+
+ 3 files changed, 155 insertions(+), 5 deletions(-)
+f9434b2 B-QUAL: document the report-only /v1/search latency in evals/README.md and BASELINE.md
+
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+[exit code 0]

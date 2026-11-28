@@ -1,0 +1,9 @@
+$ gh api repos/MaheshPulivarthi18/ArxivLens/commits/f9434b2543fe/check-runs
+eval completed success
+Go (vet, gofmt, test, build) completed success
+Agent ownership check completed success
+Python M0 unit tests completed success
+Frontend (lint, test, build) completed success
+DB (migrate twice, HNSW plan + recall) completed success
+Full stack (compose + make test-full) completed success
+

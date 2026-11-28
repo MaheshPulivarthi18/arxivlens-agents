@@ -1,0 +1,8 @@
+$ bash -c echo "thresholds.json/services/Makefile diff lines: $(git diff 5fcbd5f...HEAD -- evals/thresholds.json services/ Makefile | wc -l)"; echo "check_thresholds body diff lines: $(diff <(git show 5fcbd5f:scripts/eval_gate.py | sed -n "/^def check_thresholds/,/^def print_table/p") <(sed -n "/^def check_thresholds/,/^def print_table/p" scripts/eval_gate.py) | wc -l)"; grep -n "search" evals/thresholds.json; echo "grep search in thresholds.json exit=$?"; python3 -m pytest -q tests/test_evals_data.py -k search
+thresholds.json/services/Makefile diff lines: 0
+check_thresholds body diff lines: 0
+grep search in thresholds.json exit=1
+..................                                                       [100%]
+18 passed, 275 deselected in 0.09s
+
+[exit code 0]

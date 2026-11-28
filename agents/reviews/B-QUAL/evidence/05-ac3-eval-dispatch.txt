@@ -1,0 +1,62 @@
+$ gh api .../actions/jobs/140706656372/logs | sed -n '/^Configuration/,/^GATE:/p'
+Configuration            | Recall@5 | MRR      | NDCG@5   | ChunkP@5 | Avg ms
+--------------------------------------------------------------------------------
+BM25 Keyword             | 0.4573   | 0.4615   | 0.4520   | 0.3051   | 1.08
+Dense Vector             | 0.9060   | 0.9391   | 0.9080   | 0.8436   | 0.84
+Hybrid RRF               | 0.9231   | 0.9615   | 0.9319   | 0.8513   | 3.40
+Hybrid RRF + Rerank      | 0.9850   | 0.9765   | 0.9707   | 0.6333   | 9548.59
+================================================================================
+By query kind (info, not gated): MRR per mode, n = cases
+Kind                   |   n | BM25 Keyword   | Dense Vector   | Hybrid RRF     | Hybrid RRF + R
+abstract-paraphrase    |  34 | 0.8382         | 1.0000         | 1.0000         | 1.0000        
+body-detail            |  24 | 0.1250         | 0.8750         | 0.9167         | 0.9514        
+own-words              |   6 | 0.0000         | 0.8333         | 0.8333         | 0.8889        
+siblings               |   8 | 0.1875         | 0.9062         | 1.0000         | 1.0000        
+multi                  |   6 | 0.5000         | 1.0000         | 1.0000         | 1.0000        
+================================================================================
+Cases evaluated: 78/78
+============================================================
+ArxivLens — /v1/ask answer + refusal eval
+============================================================
+Supported citations      : 100.00% (64 citations)
+Answers citing expected  : 100.00% of 22
+In-corpus refused        : 0.00%
+Correct refusals         : 100.00% of 22
+Latency p50 / p95 (ms)   : 9927 / 12371 (quick stage)
+-- report-only (not gated) --
+Full answer p50/p95 (ms) : 10129 / 12327
+Citation coverage        : 100.00%
+Near-miss refusals       : 80.00% of 15
+  near-miss answered IDs : n003, n008, n010
+refusal_reason counts    : {}
+(report-only) synthesized_answer_rate: 0.0000
+
+==============================================================================
+Metric                                           |     Value |     Target | Result
+------------------------------------------------------------------------------
+rerank via production /internal/rerank           |    1.0000 |     == 1.0 | PASS
+retrieval_coverage                               |    1.0000 |     == 1.0 | PASS
+recall@5 (Hybrid RRF + Rerank)                   |    0.9850 |     >= 0.8 | PASS
+hybrid+rerank beats BM25 & dense (MRR, NDCG@5)   |    1.0000 |     == 1.0 | PASS
+supported_citation_rate                          |    1.0000 |     >= 0.9 | PASS
+correct_refusal_rate                             |    1.0000 |    >= 0.95 | PASS
+ask_p95_ms                                       | 12370.5466 |     < 3000 | INFO (cpu-only; not gated)
+ask_errors (answer + refusal sets)               |    0.0000 |       == 0 | PASS
+(info, not gated) chunk_precision@5 (Hybrid RRF + Rerank) |    0.6333 |
+(info) expected_paper_hit_rate                   |    1.0000 |
+(info) ask_p50_ms                                |    9927.3 |
+------------------------------------------------------------------------------
+report-only (EVAL-6; not gated, promoting one to a gate needs an ADR)
+(report-only) ask_full_p95_ms                    | 12326.8177 |
+(report-only) citation_coverage                  |    1.0000 |
+(report-only) near_miss_correct_refusal_rate     |    0.8000 |
+(report-only) verification_unavailable_count     |         0 |
+(report-only) search_p50_ms                      | 9830.5857 |
+(report-only) search_p95_ms                      | 10091.9680 |
+(report-only) search_count                       |        78 |
+(report-only) search_error_count                 |         0 |
+(report-only) refusal_reason_counts              | {}
+==============================================================================
+/v1/search p50/p95 (ms): 9831 / 10092 (report-only, ADR-0012 Proposed; target 1500) errors=0/78 profile=cpu-only
+results written to /home/runner/work/ArxivLens/ArxivLens/evals/results/20261127T205944Z.json
+

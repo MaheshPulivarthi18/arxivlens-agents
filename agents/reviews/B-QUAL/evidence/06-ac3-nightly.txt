@@ -1,0 +1,12 @@
+$ gh api .../actions/jobs/<nightly>/logs | grep metrics
+BM25 Keyword             | 0.4573   | 0.4615   | 0.4520   | 0.3051   | 1.10
+Dense Vector             | 0.9188   | 0.9455   | 0.9161   | 0.8487   | 0.92
+Hybrid RRF               | 0.9231   | 0.9615   | 0.9319   | 0.8513   | 3.77
+Hybrid RRF + Rerank      | 0.9850   | 0.9765   | 0.9707   | 0.6333   | 7080.97
+recall@5 (Hybrid RRF + Rerank)                   |    0.9850 |     >= 0.8 | PASS
+supported_citation_rate                          |    1.0000 |     >= 0.9 | PASS
+correct_refusal_rate                             |    1.0000 |    >= 0.95 | PASS
+(info) expected_paper_hit_rate                   |    1.0000 |
+(report-only) near_miss_correct_refusal_rate     |    0.8000 |
+GATE: PASS
+
