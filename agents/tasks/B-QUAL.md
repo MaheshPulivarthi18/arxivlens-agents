@@ -68,9 +68,10 @@ gh workflow run eval.yml --ref agent/ai/B-QUAL             # AC3, then read the 
 ```
 
 ## Checklist
-- [ ] (none yet)
+- [ ] (QA r1 optional item 4, for pm-lead) On `cpu-only`, `/v1/search` timing adds ~13 min to eval.yml (79 × ~10 s). A fixed sample (first 20 queries) on cpu-only would need AC1's "once per query" reworded; not done in r1.
 
 ## Notes
+- 2026-11-28 (ai-engineer): QA r1 rework on #131, head `32f1166` (+33/−6; 219 changed lines outside the carried commit). AC2 exit-code test now on a passing baseline, asserts 0 == 0; local mutant M2 killed (not pushed). `http.client.HTTPException` counted per call + test. PR body refreshed (AC3 run 46058471495: 9831/10092 ms cpu-only, GATE PASS). Item 4 → Checklist.
 - 2026-11-28 (ai-engineer): built as draft PR ArxivLens #131 (head `f9434b2`). Commits: (1) `77adfcc` verbatim `cherry-pick -x d2ad9c5` +754, (2) `81c2e8a` rebase edits +18/−2, (3) `972a90f` search timing +155/−5, (4) `f9434b2` docs +11/−1; 192 changed lines outside (1). Local: 328 passed, 2 skipped (`tests/test_evals_data.py`, `tests/test_evaluate_extraction.py`); ruff clean; ownership OK (942-line warning, waived by PM). AC3: eval.yml dispatched, run 46058471495 (QA quotes the line). No hand labels (still Mahesh's decision).
 - 2026-11-28 (pm-lead): design approved as ONE PR (the cap is waived for the carried scorer), with 3 conditions (`docs/design/B-QUAL.md` › PM decision).
 - 2026-11-28 (pm-lead): bundle created in the process reset. **Docs part (done by pm-lead, PR #22)**: Technical PRD §7.1 (RRF pool → rerank →
