@@ -1219,3 +1219,7 @@ Format:
 - B-UI addendum (`docs/design/FE-4.md`): Approved. The hero tagline ("…Sentence-Level Verification" → "Evidence-Grounded Answers with Cited Passages") and the Markdown note heading ("ArxivLens Research Note", no bare `§ `) are folded into scope with tests. The PR stays about 520 lines.
 - B-QUAL (`docs/design/B-QUAL.md`): Approved as ONE PR of about 920 lines. The cap is waived because 754 lines are the carried, already-reviewed `d2ad9c5`. Conditions: separate commits for the verbatim pick, the rebase edits and the search work; no more than about 200 new lines; the AC2 test stays.
 - Both tasks are In Progress (design approved). Jira not touched.
+
+## 2026-11-28 — pm-lead: final review B-PIPE-1 (ArxivLens #133)
+- APPROVE on `bbb2657` (QA r2 PASS, 7/7 CI checks green, 45/47 mutants killed; W1/W2 = nit 8 goes on the checklist and is being covered in #134). Size 1,316 lines (730 tests) accepted with no cut.
+- PR raised: body rewritten with commit-pinned evidence, CI, verdicts and the merge order (#133 first, then retarget #134 to `main`). Marked ready for review, label `ready-to-merge`. Jira not touched.

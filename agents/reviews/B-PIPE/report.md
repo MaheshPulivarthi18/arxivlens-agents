@@ -197,3 +197,34 @@ Deferred: the coordinator asked for one combined check once both #133 and #134 p
 - #134: FAIL → backend-engineer, rework round 1 of 2. Fix finding 1 in this PR; preferably 2 and 3 too.
 - #133: PASS → pm-lead final review.
 - Merge order when both pass: #133 first, then retarget #134 to `main` and merge it. The combined PM-equivalent check (OPS-2/OPS-3 product fit) will be added when #134 passes. QA's next round re-runs `mutants134*.py` and the #134 probes from [p2-05](evidence/p2-05-harness.png).
+
+---
+
+# PM review (B-PIPE-1) · PR #133 · head `bbb2657f34a8a5092503424a8254af00af41e7cf` · 2026-11-28
+
+**Verdict: APPROVE.** PR raised: description rewritten with the evidence, marked ready for review, label `ready-to-merge`.
+
+**Inputs:** ticket `agents/tasks/B-PIPE.md`; design `docs/design/OPS-H7.md` (§ Q1–Q3, Q6, Q7, PM decision, "Build notes (B-PIPE-1)"); Product PRD OPS-2/OPS-3; QA rounds 1 and 2 above. I opened every #133 evidence file (`00`–`13`, `r2-00`, `r2-01`, `r2-02`, `r2-02b`; the `p2-*` files are #134's). I checked the PR on the REST API: head `bbb2657`, base `main`, mergeable `clean`, and all 7 check runs `success`.
+
+## Decisions
+1. **PRD fit.** This delivers the part of OPS-2 ("operator recovers failed papers", §5.3) that mattered most: replay no longer repeats the head of the DLQ.
+   - Repeated `--limit N` runs drain the DLQ in order and resolve each record once.
+   - A crash re-publishes at most one record, with the same `event_id` for a full envelope.
+   - Records a filter skips stay eligible for a later run.
+   - The dry run matches a real run and writes nothing.
+   - Replay refuses to start without a migrated Postgres.
+
+   OPS-3 (no duplicate rows) holds. Downstream idempotency still absorbs the one possible re-publish, and the processor/embedder are untouched. The §9 arXiv politeness NFR now holds for the one-off `crawl` too. OPS-2 correctly stays ◐ until B-PIPE-2 (#134) merges, as the PRD row already says. No PRD edit is needed for this PR.
+2. **Size (1,316 changed lines, 730 in tests).** Accepted, no cut. The rule is to split only when a reviewer couldn't follow the PR. Here the non-test surface is about 590 lines, and the risky part is concentrated in `manager.go` Replay, `store.go` and the migration. Cutting E (~120 lines) would only add a PR and a merge for Mahesh without making the risky part easier to read. Part C was already split out at the spec's seam (B-PIPE-2), as the spec planned.
+3. **Scope.** Matches the ticket's B-PIPE-1 seam (A + B + D + E). Nothing from C leaked in, and nothing extra was added. Part D's ownership-check threshold change is allowed because rules PR #21 is merged (evidence 05).
+4. **Raising #133 without #134 is safe.** Without the lock, two overlapping runs skip nothing (`ON CONFLICT DO NOTHING`, `GREATEST`). Their only cost is duplicate publishes, which the README states plainly, along with the raw-payload random-ID caveat. This interim state is better than `main` today, which re-publishes the head of the DLQ on every run.
+5. **Evidence covers every in-scope AC.** AC1–AC7, AC11, AC12, the B-PIPE-1 part of AC13, and AC14 (CI green on `bbb2657`). Nothing that matters is left "⚠ unverified": AC6's round-1 ⚠ was closed by the R23/R26 rows. The one survivor pair, W1/W2 (`WithoutCancel` untested), can only bring back the round-1 behaviour the design accepted: one re-publish with the same event_id. QA nit 8 goes on the ticket checklist and is being covered in #134. It doesn't block this PR.
+6. **Docs.** The README replay section and CLI table are updated. The design build notes are written back (`e377d7b`). The PR body's old claim that "AC14 pending" is replaced by the CI results.
+
+## Merge order (for Mahesh)
+1. Merge **#133** first. It's safe on its own.
+2. Retarget **#134** to `main` and merge it once it passes QA. It's in rework round 1 now.
+3. After #134 merges, pm-lead flips Product PRD OPS-2 to ✅ (docs PR).
+
+## Checklist added to the ticket
+- QA nit 8 (W1/W2: pin `WithoutCancel` with a cancel-inside-Publish test). Being covered in #134.

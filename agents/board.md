@@ -11,7 +11,7 @@ ticket's `## Checklist`, never into new tickets. WIP: 2 active PRs per developer
 | # | Bundle | Outcome | Owner | Tier | Size | Branch | Status |
 |---|---|---|---|---|---|---|---|
 | 1 | [B-UI](tasks/B-UI.md) | Quote highlighted in its passage, `arXiv:IDvN · § · p. N`, PDF at the page, "Cited by claim n" rows, `.bib` export | frontend-engineer | Large (FE-4 design + export addendum) | ~520 | `agent/frontend/B-UI` | In Progress (design approved) |
-| 2 | [B-PIPE](tasks/B-PIPE.md) | DLQ replay resumes from checkpoints, is locked against a second run, deterministic IDs; list footer polish; `crawl` politeness; harness lines | backend-engineer | Large (OPS-H7 design) | ~880 (seam: C → B-PIPE-2 if > 950) | `agent/backend/B-PIPE` | Ready |
+| 2 | [B-PIPE](tasks/B-PIPE.md) | DLQ replay resumes from checkpoints, is locked against a second run, deterministic IDs; list footer polish; `crawl` politeness; harness lines | backend-engineer | Large (OPS-H7 design) | ~880 (seam: C → B-PIPE-2 if > 950) | `agent/backend/B-PIPE` | #133 (B-PIPE-1) **Ready to merge** (merge first); #134 (B-PIPE-2, stacked) in rework r1 |
 | 3 | [B-QUAL](tasks/B-QUAL.md) | `/v1/search` p50/p95 in every eval (report-only, ADR-0012); section-extraction scorer (from `d2ad9c5`) | ai-engineer | Large (short design) | ~920 (754 carried; one PR, cap waived) | `agent/ai/B-QUAL` | In Progress (design approved) |
 | 4 | [EVAL-8](tasks/EVAL-8.md) | Real-LLM answer eval in CI on Modal | **Mahesh** | Large (ADR-0021) | his call | — | Mahesh building (2026-11-29) |
 

@@ -11,7 +11,7 @@
 | **Size estimate** | ~880 changed lines incl. tests (part A ~90, part B ~480, part C ~225, harness ~10, part E ~80). If the counted skeleton projects > 950, stop and split at the seam **B-PIPE-1 = A + B + D + E**, **B-PIPE-2 = C**, merged in that order |
 | **Absorbs** | OPS-H7 (KAN-31), OPS-H7a2c (KAN-98), OPS-H7b, OPS-H7c, ING-9b (no key: `crawl` must obey arXiv politeness). ING-6 (KAN-18) is already complete (ING-6c #124) and closed. OPS-H6g (KAN-130) is deferred, not ticketed (see Notes) |
 | **Branch** | `agent/backend/B-PIPE` |
-| **Status** | Ready |
+| **Status** | In Review: B-PIPE-1 #133 Ready to merge (QA PASS r2, PM APPROVE 2026-11-28); B-PIPE-2 #134 in rework r1 |
 
 ## Goal
 Repeated `dlq replay --limit N` runs work through the whole DLQ, resolving each record once. A crash never skips or
@@ -88,7 +88,7 @@ make stack-up && ./bin/arxivlens migrate && make test-full
 ```
 
 ## Checklist
-- [ ] (none yet)
+- [ ] QA #133 r2 nit 8: pin `context.WithoutCancel` on the `MarkResolved` commit (mutants W1/W2 survive): a `fakePublisher` that cancels the run ctx inside `Publish`, a `fakeStore.MarkResolved` returning `ctx.Err()`; assert the record is logged and the next run publishes 0. Being covered in #134.
 
 ## Notes
 - 2026-11-28 (pm-lead): bundle created in the process reset from the four OPS-H7 sub-specs. Their detailed AC history and design
@@ -104,3 +104,4 @@ make stack-up && ./bin/arxivlens migrate && make test-full
 - 2026-11-28 (backend-engineer): built as **B-PIPE-1 = A + B + D + E**, draft PR ArxivLens #133 (`9ac8978`). The size gate fired: the whole bundle came to ~1,495 changed lines, so part C (lock, deterministic ULIDs, `stack.yml` replay step; AC8-AC10, AC13 lock text) is **B-PIPE-2**, and its code is kept on the local `wip/B-PIPE-full` branch of the `app` clone. B-PIPE-1 alone is 1,221 changed lines (~600 tests), over the ~800 bundle size: pm-lead to decide whether E or A splits out further. Ownership check: rules PR #21 merged, so the warning threshold is now 800.
 - 2026-11-28 (backend-engineer): **B-PIPE-2** (part C: lock, deterministic ULIDs, `stack.yml` replay run; AC8-AC10, the rest of AC13) is draft PR ArxivLens #134 (`6f5e36f`), **stacked on #133** (base `agent/backend/B-PIPE`; merge #133 first, then retarget #134 to main). 380 changed lines against its base. If QA rework on #133 touches shared files, B-PIPE-2 takes them through a merge commit, never a force-push.
 - 2026-11-28 (backend-engineer): QA r1 rework (round 1 of 2) on #133. All 7 findings are fixed. Findings 1-5 and 7 are in `bbb2657` (+112/-17); finding 6 is the build notes in `docs/design/OPS-H7.md` (`e377d7b`). I re-ran QA's 45 mutants (`09-harness.txt` shapes, R10/R13 anchors updated for `WithoutCancel`) in scratch copies, never pushed: 45/45 killed by the PR's own tests, including S1, S3-S7, R15, R21, R23-R26, R28 and C8. Merged into B-PIPE-2 with merge commit `96025da` (#134; no force-push).
+- 2026-11-28 (pm-lead): #133 (B-PIPE-1, `bbb2657`) APPROVED and raised: PR body rewritten with evidence, marked ready, label `ready-to-merge`. The 1,316-line size is accepted without a cut (730 lines are tests; the risky surface is concentrated). Merge #133 first, then retarget #134 to `main`. OPS-2 stays ◐ until #134 merges.
