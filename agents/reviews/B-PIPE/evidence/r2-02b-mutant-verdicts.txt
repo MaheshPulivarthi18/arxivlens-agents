@@ -1,0 +1,52 @@
+$ bash -c f=/home/claude/arxivlens-agents/agents/reviews/B-PIPE/evidence/r2-02-mutants.txt; grep -E '\| =>' $f; echo; echo KILLED: $(grep -cE '\| => +\| KILLED' $f) SURVIVED: $(grep -cE '\| => +\| SURVIVED' $f) INVALID: $(grep -cE '\| => +\| INVALID' $f)
+R1 checkpoint written BEFORE the publish ack               | =>    | KILLED
+R2 filter skip does not pin the checkpoint                 | =>    | KILLED
+R3 filter advances the checkpoint past a skipped record    | =>    | KILLED
+R4 filter skip writes a log row (marks skipped done)       | =>    | KILLED
+R5 filter applied before the envelope rule (unreplayables pinned) | =>    | KILLED
+R6 filter case-sensitive                                   | =>    | KILLED
+R7 already-resolved records re-published                   | =>    | KILLED
+R8 resolved records do not advance the tail checkpoint     | =>    | KILLED
+R9 mark moves the checkpoint even when not contiguous      | =>    | KILLED
+R10 dry run calls MarkResolved                             | =>    | KILLED
+R11 dry run publishes                                      | =>    | KILLED
+R12 publish error swallowed, record skipped                | =>    | KILLED
+R13 MarkResolved error swallowed                           | =>    | KILLED
+W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish) | =>    | SURVIVED
+W2 tail checkpoint write uses the cancellable ctx          | =>    | SURVIVED
+R14 stepErr not returned                                   | =>    | KILLED
+R15 --limit counts unreplayables                           | =>    | KILLED
+R16 --limit off by one                                     | =>    | KILLED
+R17 --limit ignored                                        | =>    | KILLED
+R18 partitions in descending order                         | =>    | KILLED
+R19 Checkpoints read after Kafka Watermarks                | =>    | KILLED
+R20 stored checkpoints ignored (start at 0)                | =>    | KILLED
+R21 Resolved() error ignored                               | =>    | KILLED
+R22 tail checkpoint write dropped                          | =>    | KILLED
+R23 tail checkpoint write in a dry run                     | =>    | KILLED
+R24 expired: reader not moved to Low                       | =>    | KILLED
+R25 all expired: checkpoint not moved to Low               | =>    | KILLED
+R26 all expired: dry run moves the checkpoint              | =>    | KILLED
+R27 unreplayables not resolved (pin forever)               | =>    | KILLED
+R28 empty original_topic replays into the DLQ itself       | =>    | KILLED
+S1 checkpoint upsert without GREATEST (can move down)      | =>    | KILLED
+S2 checkpoint written outside the tx, before the row       | =>    | KILLED
+S3 log insert without ON CONFLICT DO NOTHING               | =>    | KILLED
+S4 Resolved uses > from (drops the offset at from)         | =>    | KILLED
+S5 Checkpoints not filtered by dlq_topic                   | =>    | KILLED
+S6 Resolved not filtered by partition                      | =>    | KILLED
+S7 Resolved not filtered by dlq_topic                      | =>    | KILLED
+C1 footer: --limit not printed as --page-size              | =>    | KILLED
+C2 footer: --partition never repeated                      | =>    | KILLED
+C3 SilenceErrors off (double Error: line)                  | =>    | KILLED
+C4 inspect: no empty-topic line                            | =>    | KILLED
+C5 replay: Postgres error without the migrate hint         | =>    | KILLED
+C6 replay: no DRY RUN banner                               | =>    | KILLED
+C7 crawl: --rate-limit check removed                       | =>    | KILLED
+C8 crawl: check <= (rejects the 3s default)                | =>    | KILLED
+E1 crawl: GetAPI without the limiter                       | =>    | KILLED
+E2 NewCrawler: no 3 s floor                                | =>    | KILLED
+
+KILLED: 45 SURVIVED: 2 INVALID: 0
+
+[exit code 0]

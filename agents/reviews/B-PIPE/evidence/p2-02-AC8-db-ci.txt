@@ -1,0 +1,26 @@
+$ gh api .../actions/jobs/140872793623/logs (excerpts)
+DB job 140872793623 on #134 head 96025da (success); contiguous raw-log excerpts, ANSI stripped
+--- lines 1736-1745
+2026-11-28T05:07:19.9053179Z go vet -tags integration ./internal/dlq/
+2026-11-28T05:07:19.9053825Z KAFKA_BROKERS=localhost:9092 go test -tags integration -race -count=1 -v -timeout 10m ./internal/dlq/ | tee /tmp/dlq-it.txt
+2026-11-28T05:07:19.9054669Z if grep -q -- '--- SKIP' /tmp/dlq-it.txt; then echo "::error::DLQ integration tests skipped"; exit 1; fi
+2026-11-28T05:07:19.9055542Z for t in TestReadStopsAtSnapshot_Integration TestPGStore_Integration TestAdvisoryLock_Integration TestReplayResumes_Integration; do
+2026-11-28T05:07:19.9056370Z   grep -q -- "--- PASS: $t " /tmp/dlq-it.txt || { echo "::error::$t did not pass"; exit 1; }
+2026-11-28T05:07:19.9056816Z done
+2026-11-28T05:07:19.9057521Z left="$($PSQL -At -c "SELECT (SELECT count(*) FROM dlq_replay_log WHERE dlq_topic LIKE 'it.dlq.%') + (SELECT count(*) FROM dlq_replay_checkpoints WHERE dlq_topic LIKE 'it.dlq.%')")"
+2026-11-28T05:07:19.9058385Z echo "dlq_replay rows left by the tests (dlq_topic LIKE 'it.dlq.%'): $left"
+2026-11-28T05:07:19.9058900Z [ "$left" = 0 ] || { echo "::error::test rows not cleaned up"; exit 1; }
+2026-11-28T05:07:19.9091723Z shell: /usr/bin/bash -e {0}
+--- lines 1897-1907
+2026-11-28T05:07:52.6742158Z === RUN   TestPGStore_Integration
+2026-11-28T05:07:52.7176318Z --- PASS: TestPGStore_Integration (0.04s)
+2026-11-28T05:07:52.7177045Z === RUN   TestAdvisoryLock_Integration
+2026-11-28T05:07:52.7495237Z     store_integration_test.go:133: TestAdvisoryLock: B got the lock after A's backend (pid 355) was terminated
+2026-11-28T05:07:52.7664244Z --- PASS: TestAdvisoryLock_Integration (0.05s)
+2026-11-28T05:07:52.7664873Z === RUN   TestReplayResumes_Integration
+2026-11-28T05:07:56.9755280Z     store_integration_test.go:225: TestReplayResumes_Integration: target topic it.dlq.replay.1795842472765343818 holds 10 envelopes: [it-1795842472765343818-00 it-1795842472765343818-01 it-1795842472765343818-02 it-1795842472765343818-03 it-1795842472765343818-04 it-1795
+2026-11-28T05:07:56.9802505Z --- PASS: TestReplayResumes_Integration (4.21s)
+2026-11-28T05:07:56.9803585Z PASS
+2026-11-28T05:07:57.9869850Z ok  	arxivlens/internal/dlq	9.433s
+2026-11-28T05:07:58.2847951Z dlq_replay rows left by the tests (dlq_topic LIKE 'it.dlq.%'): 0
+

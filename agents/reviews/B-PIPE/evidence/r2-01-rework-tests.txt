@@ -1,0 +1,17 @@
+$ bash -c . /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/goenv.sh; go test -race -count=1 -v -run '^(TestReplayExpiredAndStall|TestReplayResolvedErrorStops|TestReplayDryRunTailNoWrite|TestReplayLimitCountsPublishedOnly|TestReplayTargetFallback|TestCrawlRateLimitFlag)$' ./internal/dlq/ ./cmd/arxivlens/ 2>&1 | grep -E '^(---|ok|FAIL)'; go test -race -count=1 ./... 2>&1 | grep -E 'dlq|arxivlens/cmd|crawler|FAIL'; DATABASE_URL='postgres://postgres@/arxivlens?host=/tmp/qapg&port=55432&sslmode=disable' go test -tags integration -count=1 -v -run '^TestPGStore_Integration$' ./internal/dlq/ 2>&1 | grep -E '^(---|ok|FAIL)'; gofmt -l . | wc -l | sed 's/^/gofmt files: /'
+--- PASS: TestReplayExpiredAndStall (0.00s)
+--- PASS: TestReplayResolvedErrorStops (0.00s)
+--- PASS: TestReplayDryRunTailNoWrite (0.00s)
+--- PASS: TestReplayLimitCountsPublishedOnly (0.00s)
+--- PASS: TestReplayTargetFallback (0.00s)
+ok  	arxivlens/internal/dlq	1.017s
+--- PASS: TestCrawlRateLimitFlag (0.01s)
+ok  	arxivlens/cmd/arxivlens	1.027s
+ok  	arxivlens/cmd/arxivlens	1.063s
+ok  	arxivlens/internal/crawler	1.370s
+ok  	arxivlens/internal/dlq	1.304s
+--- PASS: TestPGStore_Integration (0.03s)
+ok  	arxivlens/internal/dlq	0.032s
+gofmt files: 0
+
+[exit code 0]

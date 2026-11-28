@@ -1,0 +1,39 @@
+$ bash -c . /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/goenv.sh; go test -race -count=1 -v -run '^(TestReplayRefusedWhileLocked|TestReplayCrashAfterPublish|TestReplayDryRun|TestReplayResumes|TestReplayID|TestReplayEnvelope|TestDLQReplayCLI)$' ./internal/dlq/ ./cmd/arxivlens/ 2>&1 | grep -E '^(---|    ---|ok|FAIL)'; DATABASE_URL='postgres://postgres@/arxivlens?host=/tmp/qapg&port=55432&sslmode=disable' go test -tags integration -race -count=1 -v -run '^(TestAdvisoryLock_Integration|TestPGStore_Integration)$' ./internal/dlq/ 2>&1 | grep -E '^(---|    store|ok|FAIL)'; go vet ./... && echo vet clean; gofmt -l . | wc -l | sed 's/^/gofmt files: /'
+--- PASS: TestReplayEnvelope (0.00s)
+    --- PASS: TestReplayEnvelope/a_full_envelope (0.00s)
+    --- PASS: TestReplayEnvelope/a_full_envelope,_empty_key (0.00s)
+    --- PASS: TestReplayEnvelope/a_full_envelope,_other_event_type_and_key (0.00s)
+    --- PASS: TestReplayEnvelope/b_raw_object (0.00s)
+    --- PASS: TestReplayEnvelope/b_partial_envelope (0.00s)
+    --- PASS: TestReplayEnvelope/b_full_envelope_minus_event_id (0.00s)
+    --- PASS: TestReplayEnvelope/b_full_envelope_minus_event_type (0.00s)
+    --- PASS: TestReplayEnvelope/b_full_envelope_minus_paper_id (0.00s)
+    --- PASS: TestReplayEnvelope/b_raw_value_plus_another_key (0.00s)
+    --- PASS: TestReplayEnvelope/b_envelope_with_wrong_field_type (0.00s)
+    --- PASS: TestReplayEnvelope/c_nil_value_(B2) (0.00s)
+    --- PASS: TestReplayEnvelope/c_empty_object (0.00s)
+    --- PASS: TestReplayEnvelope/c_raw_value_only (0.00s)
+    --- PASS: TestReplayEnvelope/c_raw_object,_empty_key (0.00s)
+    --- PASS: TestReplayEnvelope/c_partial_envelope,_empty_key (0.00s)
+    --- PASS: TestReplayEnvelope/c_full_envelope_minus_event_id,_empty_key (0.00s)
+--- PASS: TestReplayID (0.00s)
+--- PASS: TestReplayResumes (0.00s)
+--- PASS: TestReplayCrashAfterPublish (0.00s)
+    --- PASS: TestReplayCrashAfterPublish/AAAAA (0.00s)
+    --- PASS: TestReplayCrashAfterPublish/AARAA (0.00s)
+--- PASS: TestReplayDryRun (0.00s)
+--- PASS: TestReplayRefusedWhileLocked (0.00s)
+ok  	arxivlens/internal/dlq	1.027s
+--- PASS: TestDLQReplayCLI (0.00s)
+    --- PASS: TestDLQReplayCLI/lock_held:_nothing_read_or_published (0.00s)
+    --- PASS: TestDLQReplayCLI/dry_run_lists_P/O_and_event_id,_takes_no_lock (0.00s)
+    --- PASS: TestDLQReplayCLI/--limit_1_publishes_one (0.00s)
+ok  	arxivlens/cmd/arxivlens	1.025s
+--- PASS: TestPGStore_Integration (0.02s)
+    store_integration_test.go:133: TestAdvisoryLock: B got the lock after A's backend (pid 29589) was terminated
+--- PASS: TestAdvisoryLock_Integration (0.02s)
+ok  	arxivlens/internal/dlq	1.055s
+vet clean
+gofmt files: 0
+
+[exit code 0]

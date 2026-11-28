@@ -1,0 +1,87 @@
+$ bash -c f=/tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/p2-mut.txt; echo '== full run verdicts'; sed -n '/### full run/,/### re-run/p' $f | grep -E '\| =>'; echo; echo '== INVALID re-run'; sed -n '/### re-run/,/### survivors/p' $f | grep -E '\| =>'; echo; echo '== survivors vs #134 probes'; sed -n '/### survivors/,$p' $f | grep -E '\| =>'
+== full run verdicts
+R1 checkpoint written BEFORE the publish ack               | =>    | KILLED
+R2 filter skip does not pin the checkpoint                 | =>    | KILLED
+R3 filter advances the checkpoint past a skipped record    | =>    | KILLED
+R4 filter skip writes a log row (marks skipped done)       | =>    | KILLED
+R5 filter applied before the envelope rule (unreplayables pinned) | =>    | KILLED
+R6 filter case-sensitive                                   | =>    | KILLED
+R7 already-resolved records re-published                   | =>    | KILLED
+R8 resolved records do not advance the tail checkpoint     | =>    | KILLED
+R9 mark moves the checkpoint even when not contiguous      | =>    | KILLED
+R10 dry run calls MarkResolved                             | =>    | KILLED
+R11 dry run publishes                                      | =>    | KILLED
+R12 publish error swallowed, record skipped                | =>    | KILLED
+R13 MarkResolved error swallowed                           | =>    | KILLED
+W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish) | =>    | SURVIVED
+W2 tail checkpoint write uses the cancellable ctx          | =>    | SURVIVED
+R14 stepErr not returned                                   | =>    | KILLED
+R15 --limit counts unreplayables                           | =>    | KILLED
+R16 --limit off by one                                     | =>    | KILLED
+R17 --limit ignored                                        | =>    | KILLED
+R18 partitions in descending order                         | =>    | KILLED
+R19 Checkpoints read after Kafka Watermarks                | =>    | KILLED
+R20 stored checkpoints ignored (start at 0)                | =>    | KILLED
+R21 Resolved() error ignored                               | =>    | KILLED
+R22 tail checkpoint write dropped                          | =>    | KILLED
+R23 tail checkpoint write in a dry run                     | =>    | KILLED
+R24 expired: reader not moved to Low                       | =>    | KILLED
+R25 all expired: checkpoint not moved to Low               | =>    | KILLED
+R26 all expired: dry run moves the checkpoint              | =>    | KILLED
+R27 unreplayables not resolved (pin forever)               | =>    | KILLED
+R28 empty original_topic replays into the DLQ itself       | =>    | KILLED
+S1 checkpoint upsert without GREATEST (can move down)      | =>    | KILLED
+S2 checkpoint written outside the tx, before the row       | =>    | KILLED
+S3 log insert without ON CONFLICT DO NOTHING               | =>    | KILLED
+S4 Resolved uses > from (drops the offset at from)         | =>    | KILLED
+S5 Checkpoints not filtered by dlq_topic                   | =>    | KILLED
+S6 Resolved not filtered by partition                      | =>    | KILLED
+S7 Resolved not filtered by dlq_topic                      | =>    | KILLED
+C1 footer: --limit not printed as --page-size              | =>    | KILLED
+C2 footer: --partition never repeated                      | =>    | KILLED
+C3 SilenceErrors off (double Error: line)                  | =>    | KILLED
+C4 inspect: no empty-topic line                            | =>    | KILLED
+C5 replay: Postgres error without the migrate hint         | =>    | KILLED
+C6 replay: no DRY RUN banner                               | =>    | KILLED
+C7 crawl: --rate-limit check removed                       | =>    | KILLED
+C8 crawl: check <= (rejects the 3s default)                | =>    | KILLED
+E1 crawl: GetAPI without the limiter                       | =>    | KILLED
+E2 NewCrawler: no 3 s floor                                | =>    | KILLED
+L1 dry run takes the lock                                  | =>    | KILLED
+L2 refused lock ignored (run proceeds)                     | =>    | INVALID
+L3 unlock never called                                     | =>    | KILLED
+L4 lock taken after the Kafka watermarks                   | =>    | KILLED
+L5 lockedError not ErrLocked                               | =>    | KILLED
+L6 lock key ignores the topic                              | =>    | KILLED
+L7 xact-level lock (released at once)                      | =>    | KILLED
+L8 unlock does not unlock (conn back to pool still holding it) | =>    | SURVIVED
+L9 refused path leaks the connection                       | =>    | KILLED
+L10 holder query never matches                             | =>    | KILLED
+L11 lock taken on a pooled conn, not the dedicated one     | =>    | SURVIVED
+L12 TryLock error ignored (run without the lock)           | =>    | SURVIVED
+I1 ID ignores the offset                                   | =>    | KILLED
+I2 ID ignores the topic                                    | =>    | KILLED
+I3 ID time part = now                                      | =>    | KILLED
+I4 no separator partition|offset (digit-shift collisions)  | =>    | KILLED
+I5 raw payload keeps the random NewEventEnvelope ID        | =>    | KILLED
+I6 occurred_at not the DLQ timestamp                       | =>    | KILLED
+I7 manager passes offset 0 (all raw records of a partition share one ID) | =>    | SURVIVED
+I8 manager passes a zero timestamp                         | =>    | INVALID
+I9 manager passes partition 0                              | =>    | SURVIVED
+I10 full envelope also gets the derived ID                 | =>    | KILLED
+
+== INVALID re-run
+L2 refused lock ignored (run proceeds)                     | =>    | KILLED
+I8 manager passes a zero timestamp                         | =>    | SURVIVED
+
+== survivors vs #134 probes
+W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish) | =>    | SURVIVED
+W2 tail checkpoint write uses the cancellable ctx          | =>    | SURVIVED
+L8 unlock does not unlock (conn back to pool still holding it) | =>    | SURVIVED (PR tests) / caught by QA probe
+L11 lock taken on a pooled conn, not the dedicated one     | =>    | SURVIVED (PR tests) / caught by QA probe
+L12 TryLock error ignored (run without the lock)           | =>    | SURVIVED (PR tests) / caught by QA probe
+I7 manager passes offset 0 (all raw records of a partition share one ID) | =>    | SURVIVED (PR tests) / caught by QA probe
+I8 manager passes a zero timestamp                         | =>    | SURVIVED (PR tests) / caught by QA probe
+I9 manager passes partition 0                              | =>    | SURVIVED (PR tests) / caught by QA probe
+
+[exit code 0]

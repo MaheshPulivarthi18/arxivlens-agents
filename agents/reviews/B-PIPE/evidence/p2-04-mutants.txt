@@ -1,0 +1,1325 @@
+$ python3 scratchpad/qa/mutants134*.py
+### full run (mutants134.py on 96025da)
+mutant                                                     | suite | result
+CONTROL (unmutated head + QA probe)                        | dlq   | pass
+CONTROL (unmutated head + QA probe)                        | probe | pass
+CONTROL (unmutated head + QA probe)                        | cmd   | pass
+CONTROL (unmutated head + QA probe)                        | crawl | pass
+R1 checkpoint written BEFORE the publish ack               | dlq   | FAIL TestReplayCrashAfterPublish,TestReplayCrashAfterPublish/AAAAA,TestReplayCrashAfterPublish/AARAA
+R1 checkpoint written BEFORE the publish ack               | probe | pass
+R1 checkpoint written BEFORE the publish ack               | =>    | KILLED
+R2 filter skip does not pin the checkpoint                 | dlq   | FAIL TestReplayFilterKeepsSkippedEligible
+R2 filter skip does not pin the checkpoint                 | probe | FAIL TestQAProbeFilterPG
+R2 filter skip does not pin the checkpoint                 | =>    | KILLED
+R3 filter advances the checkpoint past a skipped record    | dlq   | FAIL TestReplayFilterKeepsSkippedEligible
+R3 filter advances the checkpoint past a skipped record    | probe | FAIL TestQAProbeFilterPG
+R3 filter advances the checkpoint past a skipped record    | =>    | KILLED
+R4 filter skip writes a log row (marks skipped done)       | dlq   | FAIL TestReplayFilterKeepsSkippedEligible
+R4 filter skip writes a log row (marks skipped done)       | probe | FAIL TestQAProbeFilterPG
+R4 filter skip writes a log row (marks skipped done)       | =>    | KILLED
+R5 filter applied before the envelope rule (unreplayables pinned) | dlq   | FAIL TestReplayFilterKeepsSkippedEligible
+R5 filter applied before the envelope rule (unreplayables pinned) | probe | pass
+R5 filter applied before the envelope rule (unreplayables pinned) | =>    | KILLED
+R6 filter case-sensitive                                   | dlq   | FAIL TestReplayFilterKeepsSkippedEligible
+R6 filter case-sensitive                                   | =>    | KILLED
+R7 already-resolved records re-published                   | dlq   | FAIL TestReplayFilterKeepsSkippedEligible
+R7 already-resolved records re-published                   | probe | FAIL TestQAProbeFilterPG
+R7 already-resolved records re-published                   | =>    | KILLED
+R8 resolved records do not advance the tail checkpoint     | dlq   | FAIL TestReplayDryRunTailNoWrite,TestReplayFilterKeepsSkippedEligible
+R8 resolved records do not advance the tail checkpoint     | probe | FAIL TestQAProbeFilterPG
+R8 resolved records do not advance the tail checkpoint     | =>    | KILLED
+R9 mark moves the checkpoint even when not contiguous      | dlq   | FAIL TestReplayFilterKeepsSkippedEligible
+R9 mark moves the checkpoint even when not contiguous      | probe | FAIL TestQAProbeFilterPG
+R9 mark moves the checkpoint even when not contiguous      | =>    | KILLED
+R10 dry run calls MarkResolved                             | dlq   | FAIL TestReplayDryRun
+R10 dry run calls MarkResolved                             | cmd   | pass
+R10 dry run calls MarkResolved                             | =>    | KILLED
+R11 dry run publishes                                      | dlq   | FAIL TestReplayDryRun
+R11 dry run publishes                                      | cmd   | FAIL TestDLQReplayCLI,TestDLQReplayCLI/dry_run_lists_P/O_and_event_id,_takes_no_lock
+R11 dry run publishes                                      | =>    | KILLED
+R12 publish error swallowed, record skipped                | dlq   | FAIL TestReplayCrashAfterPublish
+R12 publish error swallowed, record skipped                | =>    | KILLED
+R13 MarkResolved error swallowed                           | dlq   | FAIL TestReplayCrashAfterPublish,TestReplayCrashAfterPublish/AAAAA,TestReplayCrashAfterPublish/AARAA
+R13 MarkResolved error swallowed                           | =>    | KILLED
+W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish) | dlq   | pass
+W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish) | =>    | SURVIVED
+W2 tail checkpoint write uses the cancellable ctx          | dlq   | pass
+W2 tail checkpoint write uses the cancellable ctx          | =>    | SURVIVED
+R14 stepErr not returned                                   | dlq   | FAIL TestReplayCrashAfterPublish,TestReplayCrashAfterPublish/AAAAA,TestReplayCrashAfterPublish/AARAA
+R14 stepErr not returned                                   | =>    | KILLED
+R15 --limit counts unreplayables                           | dlq   | FAIL TestReplayLimitCountsPublishedOnly
+R15 --limit counts unreplayables                           | cmd   | pass
+R15 --limit counts unreplayables                           | =>    | KILLED
+R16 --limit off by one                                     | dlq   | FAIL TestReplayLimitCountsPublishedOnly,TestReplayResumes
+R16 --limit off by one                                     | cmd   | FAIL TestDLQReplayCLI,TestDLQReplayCLI/--limit_1_publishes_one
+R16 --limit off by one                                     | =>    | KILLED
+R17 --limit ignored                                        | dlq   | FAIL TestReplayLimitCountsPublishedOnly,TestReplayResumes
+R17 --limit ignored                                        | cmd   | FAIL TestDLQReplayCLI,TestDLQReplayCLI/--limit_1_publishes_one
+R17 --limit ignored                                        | =>    | KILLED
+R18 partitions in descending order                         | dlq   | FAIL TestReplayDryRun,TestReplayFilterKeepsSkippedEligible,TestReplayResumes
+R18 partitions in descending order                         | =>    | KILLED
+R19 Checkpoints read after Kafka Watermarks                | dlq   | FAIL TestReplayNeedsMigratedStore
+R19 Checkpoints read after Kafka Watermarks                | =>    | KILLED
+R20 stored checkpoints ignored (start at 0)                | dlq   | FAIL TestReplayDryRun,TestReplayExpiredAndStall
+R20 stored checkpoints ignored (start at 0)                | probe | pass
+R20 stored checkpoints ignored (start at 0)                | =>    | KILLED
+R21 Resolved() error ignored                               | dlq   | FAIL TestReplayResolvedErrorStops
+R21 Resolved() error ignored                               | probe | FAIL TestQAProbeResolvedErrorStops
+R21 Resolved() error ignored                               | =>    | KILLED
+R22 tail checkpoint write dropped                          | dlq   | FAIL TestReplayDryRunTailNoWrite,TestReplayFilterKeepsSkippedEligible
+R22 tail checkpoint write dropped                          | probe | FAIL TestQAProbeFilterPG
+R22 tail checkpoint write dropped                          | =>    | KILLED
+R23 tail checkpoint write in a dry run                     | dlq   | FAIL TestReplayDryRunTailNoWrite
+R23 tail checkpoint write in a dry run                     | probe | FAIL TestQAProbeDryRunTailNoWrite
+R23 tail checkpoint write in a dry run                     | =>    | KILLED
+R24 expired: reader not moved to Low                       | dlq   | FAIL TestReplayExpiredAndStall
+R24 expired: reader not moved to Low                       | probe | FAIL TestQAProbeAllExpired
+R24 expired: reader not moved to Low                       | =>    | KILLED
+R25 all expired: checkpoint not moved to Low               | dlq   | FAIL TestReplayExpiredAndStall
+R25 all expired: checkpoint not moved to Low               | probe | FAIL TestQAProbeAllExpired
+R25 all expired: checkpoint not moved to Low               | =>    | KILLED
+R26 all expired: dry run moves the checkpoint              | dlq   | FAIL TestReplayExpiredAndStall
+R26 all expired: dry run moves the checkpoint              | probe | FAIL TestQAProbeAllExpired
+R26 all expired: dry run moves the checkpoint              | =>    | KILLED
+R27 unreplayables not resolved (pin forever)               | dlq   | FAIL TestReplayDryRun,TestReplayFilterKeepsSkippedEligible,TestReplayLimitCountsPublishedOnly
+R27 unreplayables not resolved (pin forever)               | =>    | KILLED
+R28 empty original_topic replays into the DLQ itself       | dlq   | FAIL TestReplayTargetFallback
+R28 empty original_topic replays into the DLQ itself       | probe | FAIL TestQAProbeTargetFallback
+R28 empty original_topic replays into the DLQ itself       | =>    | KILLED
+S1 checkpoint upsert without GREATEST (can move down)      | dlq   | FAIL TestPGStore_Integration
+S1 checkpoint upsert without GREATEST (can move down)      | probe | FAIL TestQAProbeCheckpointMonotonicPG
+S1 checkpoint upsert without GREATEST (can move down)      | =>    | KILLED
+S2 checkpoint written outside the tx, before the row       | dlq   | FAIL TestPGStore_Integration
+S2 checkpoint written outside the tx, before the row       | probe | pass
+S2 checkpoint written outside the tx, before the row       | =>    | KILLED
+S3 log insert without ON CONFLICT DO NOTHING               | dlq   | FAIL TestPGStore_Integration
+S3 log insert without ON CONFLICT DO NOTHING               | probe | FAIL TestQAProbeDuplicateMarkPG
+S3 log insert without ON CONFLICT DO NOTHING               | =>    | KILLED
+S4 Resolved uses > from (drops the offset at from)         | dlq   | FAIL TestPGStore_Integration
+S4 Resolved uses > from (drops the offset at from)         | probe | FAIL TestQAProbeResolvedAtFromPG
+S4 Resolved uses > from (drops the offset at from)         | =>    | KILLED
+S5 Checkpoints not filtered by dlq_topic                   | dlq   | FAIL TestPGStore_Integration
+S5 Checkpoints not filtered by dlq_topic                   | probe | FAIL TestQAProbeTopicIsolationPG
+S5 Checkpoints not filtered by dlq_topic                   | =>    | KILLED
+S6 Resolved not filtered by partition                      | dlq   | FAIL TestPGStore_Integration
+S6 Resolved not filtered by partition                      | probe | FAIL TestQAProbeFilterPG,TestQAProbeResumePG,TestQAProbeTopicIsolationPG
+S6 Resolved not filtered by partition                      | =>    | KILLED
+S7 Resolved not filtered by dlq_topic                      | dlq   | FAIL TestPGStore_Integration
+S7 Resolved not filtered by dlq_topic                      | probe | FAIL TestQAProbeTopicIsolationPG
+S7 Resolved not filtered by dlq_topic                      | =>    | KILLED
+C1 footer: --limit not printed as --page-size              | cmd   | FAIL TestDLQFlags,TestDLQFlags/(b)_footer_prints_--limit_as_--page-size
+C1 footer: --limit not printed as --page-size              | =>    | KILLED
+C2 footer: --partition never repeated                      | cmd   | FAIL TestDLQFlags,TestDLQFlags/(a)_footer_keeps_--partition_and_--page-size,TestDLQFooterRoundTrip
+C2 footer: --partition never repeated                      | =>    | KILLED
+C3 SilenceErrors off (double Error: line)                  | cmd   | FAIL TestDLQFlags,TestDLQFlags/bad_--from,TestDLQFlags/inspect_stall_is_an_error,TestDLQFlags/missing_topic_(inspect),TestDLQFlags/missing_topic_(list),TestDLQFlags/poll_error_is_an_error,_not_end,TestDLQFlags/reader_factory_error,TestDLQFlags/stall_is_an_error,_not_end,TestDLQReplayCLI,TestDLQReplayCLI/lock_held:_nothing_read_or_published
+C3 SilenceErrors off (double Error: line)                  | =>    | KILLED
+C4 inspect: no empty-topic line                            | cmd   | FAIL TestDLQFlags,TestDLQFlags/inspect_on_an_empty_topic
+C4 inspect: no empty-topic line                            | =>    | KILLED
+C5 replay: Postgres error without the migrate hint         | cmd   | FAIL TestDLQReplayNeedsPostgres
+C5 replay: Postgres error without the migrate hint         | =>    | KILLED
+C6 replay: no DRY RUN banner                               | cmd   | FAIL TestDLQReplayCLI,TestDLQReplayCLI/dry_run_lists_P/O_and_event_id,_takes_no_lock
+C6 replay: no DRY RUN banner                               | =>    | KILLED
+C7 crawl: --rate-limit check removed                       | cmd   | FAIL TestCrawlRateLimitFlag
+C7 crawl: --rate-limit check removed                       | =>    | KILLED
+C8 crawl: check <= (rejects the 3s default)                | cmd   | FAIL TestCrawlRateLimitFlag
+C8 crawl: check <= (rejects the 3s default)                | =>    | KILLED
+E1 crawl: GetAPI without the limiter                       | crawl | FAIL TestCrawlWaitsOnLimiter
+E1 crawl: GetAPI without the limiter                       | =>    | KILLED
+E2 NewCrawler: no 3 s floor                                | crawl | FAIL TestCrawlWaitsOnLimiter
+E2 NewCrawler: no 3 s floor                                | =>    | KILLED
+L1 dry run takes the lock                                  | dlq   | FAIL TestReplayDryRun
+L1 dry run takes the lock                                  | cmd   | FAIL TestDLQReplayCLI,TestDLQReplayCLI/dry_run_lists_P/O_and_event_id,_takes_no_lock
+L1 dry run takes the lock                                  | =>    | KILLED
+L2 refused lock ignored (run proceeds)                     | dlq   | INVALID
+L2 refused lock ignored (run proceeds)                     | cmd   | INVALID
+L2 refused lock ignored (run proceeds)                     | =>    | INVALID
+L3 unlock never called                                     | dlq   | FAIL TestReplayCrashAfterPublish,TestReplayCrashAfterPublish/AAAAA,TestReplayCrashAfterPublish/AARAA,TestReplayDryRun,TestReplayDryRunTailNoWrite,TestReplayExpiredAndStall,TestReplayFilterKeepsSkippedEligible,TestReplayLimitCountsPublishedOnly,TestReplayResolvedErrorStops,TestReplayResumes,TestReplayTargetFallback
+L3 unlock never called                                     | =>    | KILLED
+L4 lock taken after the Kafka watermarks                   | dlq   | FAIL TestReplayNeedsMigratedStore,TestReplayRefusedWhileLocked
+L4 lock taken after the Kafka watermarks                   | cmd   | pass
+L4 lock taken after the Kafka watermarks                   | =>    | KILLED
+L5 lockedError not ErrLocked                               | dlq   | FAIL TestReplayRefusedWhileLocked
+L5 lockedError not ErrLocked                               | cmd   | FAIL TestDLQReplayCLI,TestDLQReplayCLI/lock_held:_nothing_read_or_published
+L5 lockedError not ErrLocked                               | =>    | KILLED
+L6 lock key ignores the topic                              | dlq   | FAIL TestAdvisoryLock_Integration
+L6 lock key ignores the topic                              | =>    | KILLED
+L7 xact-level lock (released at once)                      | dlq   | FAIL PANIC
+L7 xact-level lock (released at once)                      | =>    | KILLED
+L8 unlock does not unlock (conn back to pool still holding it) | dlq   | pass
+L8 unlock does not unlock (conn back to pool still holding it) | =>    | SURVIVED
+L9 refused path leaks the connection                       | dlq   | FAIL PANIC
+L9 refused path leaks the connection                       | =>    | KILLED
+L10 holder query never matches                             | dlq   | FAIL TestAdvisoryLock_Integration
+L10 holder query never matches                             | =>    | KILLED
+L11 lock taken on a pooled conn, not the dedicated one     | dlq   | pass
+L11 lock taken on a pooled conn, not the dedicated one     | =>    | SURVIVED
+L12 TryLock error ignored (run without the lock)           | dlq   | pass
+L12 TryLock error ignored (run without the lock)           | =>    | SURVIVED
+I1 ID ignores the offset                                   | dlq   | FAIL TestReplayID
+I1 ID ignores the offset                                   | =>    | KILLED
+I2 ID ignores the topic                                    | dlq   | FAIL TestReplayID
+I2 ID ignores the topic                                    | =>    | KILLED
+I3 ID time part = now                                      | dlq   | FAIL TestReplayID
+I3 ID time part = now                                      | =>    | KILLED
+I4 no separator partition|offset (digit-shift collisions)  | dlq   | FAIL TestReplayID
+I4 no separator partition|offset (digit-shift collisions)  | =>    | KILLED
+I5 raw payload keeps the random NewEventEnvelope ID        | dlq   | FAIL TestReplayCrashAfterPublish,TestReplayCrashAfterPublish/AARAA,TestReplayDryRun,TestReplayEnvelope,TestReplayEnvelope/b_envelope_with_wrong_field_type,TestReplayEnvelope/b_full_envelope_minus_event_id,TestReplayEnvelope/b_full_envelope_minus_event_type,TestReplayEnvelope/b_full_envelope_minus_paper_id,TestReplayEnvelope/b_partial_envelope,TestReplayEnvelope/b_raw_object,TestReplayEnvelope/b_raw_value_plus_another_key,TestReplayID
+I5 raw payload keeps the random NewEventEnvelope ID        | =>    | KILLED
+I6 occurred_at not the DLQ timestamp                       | dlq   | FAIL TestReplayEnvelope,TestReplayEnvelope/b_envelope_with_wrong_field_type,TestReplayEnvelope/b_full_envelope_minus_event_id,TestReplayEnvelope/b_full_envelope_minus_event_type,TestReplayEnvelope/b_full_envelope_minus_paper_id,TestReplayEnvelope/b_partial_envelope,TestReplayEnvelope/b_raw_object,TestReplayEnvelope/b_raw_value_plus_another_key,TestReplayID
+I6 occurred_at not the DLQ timestamp                       | =>    | KILLED
+I7 manager passes offset 0 (all raw records of a partition share one ID) | dlq   | pass
+I7 manager passes offset 0 (all raw records of a partition share one ID) | cmd   | pass
+I7 manager passes offset 0 (all raw records of a partition share one ID) | =>    | SURVIVED
+I8 manager passes a zero timestamp                         | dlq   | INVALID
+I8 manager passes a zero timestamp                         | cmd   | INVALID
+I8 manager passes a zero timestamp                         | =>    | INVALID
+I9 manager passes partition 0                              | dlq   | pass
+I9 manager passes partition 0                              | cmd   | pass
+I9 manager passes partition 0                              | =>    | SURVIVED
+I10 full envelope also gets the derived ID                 | dlq   | FAIL TestReplayDryRun,TestReplayEnvelope,TestReplayEnvelope/a_full_envelope,TestReplayEnvelope/a_full_envelope,_empty_key,TestReplayEnvelope/a_full_envelope,_other_event_type_and_key
+I10 full envelope also gets the derived ID                 | =>    | KILLED
+
+suites: {'dlq': 'go test -tags integration -count=1 -timeout=90s -skip QAProbe ./internal/dlq/', 'probe': 'go test -tags integration -count=1 -timeout=90s -run QAProbe ./internal/dlq/', 'cmd': 'go test -count=1 -timeout=90s ./cmd/arxivlens/', 'crawl': 'go test -count=1 -timeout=90s ./internal/crawler/'}
+
+==== mutant diffs (local scratch copies only, never pushed) ====
+## R1 checkpoint written BEFORE the publish ack
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-t6uxihtj/internal/dlq/manager.go	2026-11-28 05:19:47.380067058 +0000
+@@ -333,16 +333,16 @@
+ 				item.Outcome, item.EventID = OutcomeReplayed, env.EventID
+ 			}
+ 		}
++		if stepErr = mark(Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: item.Outcome,
++			TargetTopic: item.Target, EventID: item.EventID}); stepErr != nil {
++			return false
++		}
+ 		if item.Outcome == OutcomeReplayed && !opt.DryRun {
+ 			if stepErr = m.pub.Publish(ctx, item.Target, env); stepErr != nil {
+ 				stepErr = fmt.Errorf("dlq: publish %d/%d to %s (nothing marked resolved): %w", p, r.Offset, item.Target, stepErr)
+ 				return false
+ 			}
+ 		}
+-		if stepErr = mark(Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: item.Outcome,
+-			TargetTopic: item.Target, EventID: item.EventID}); stepErr != nil {
+-			return false
+-		}
+ 		res.Items = append(res.Items, item)
+ 		if item.Outcome == OutcomeReplayed {
+ 			res.Published++
+
+## R2 filter skip does not pin the checkpoint
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-5k7t0mqr/internal/dlq/manager.go	2026-11-28 05:19:49.524080723 +0000
+@@ -327,7 +327,6 @@
+ 			var ok bool
+ 			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
+ 				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
+-					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+ 					return true
+ 				}
+ 				item.Outcome, item.EventID = OutcomeReplayed, env.EventID
+
+## R3 filter advances the checkpoint past a skipped record
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-fruw47ye/internal/dlq/manager.go	2026-11-28 05:19:51.810163742 +0000
+@@ -327,7 +327,9 @@
+ 			var ok bool
+ 			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
+ 				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
+-					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
++					if contiguous {
++						next = r.Offset + 1
++					}
+ 					return true
+ 				}
+ 				item.Outcome, item.EventID = OutcomeReplayed, env.EventID
+
+## R4 filter skip writes a log row (marks skipped done)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-6rsiluf1/internal/dlq/manager.go	2026-11-28 05:19:54.126512561 +0000
+@@ -327,8 +327,9 @@
+ 			var ok bool
+ 			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
+ 				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
+-					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+-					return true
++					contiguous = false
++					stepErr = m.store.MarkResolved(ctx, Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: OutcomeUnreplayable})
++					return stepErr == nil
+ 				}
+ 				item.Outcome, item.EventID = OutcomeReplayed, env.EventID
+ 			}
+
+## R5 filter applied before the envelope rule (unreplayables pinned)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-qvjacx11/internal/dlq/manager.go	2026-11-28 05:19:56.343899260 +0000
+@@ -325,8 +325,12 @@
+ 				item.Target = strings.TrimSuffix(topic, ".dlq")
+ 			}
+ 			var ok bool
++			if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
++				contiguous = false
++				return true
++			}
+ 			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
+-				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
++				if false {
+ 					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+ 					return true
+ 				}
+
+## R6 filter case-sensitive
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-hnkne45p/internal/dlq/manager.go	2026-11-28 05:19:58.685191486 +0000
+@@ -326,7 +326,7 @@
+ 			}
+ 			var ok bool
+ 			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
+-				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
++				if opt.ErrorType != "" && r.Payload.ErrorType != opt.ErrorType {
+ 					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+ 					return true
+ 				}
+
+## R7 already-resolved records re-published
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-5ievgtel/internal/dlq/manager.go	2026-11-28 05:20:00.250000755 +0000
+@@ -311,7 +311,7 @@
+ 	}
+ 	var stepErr error
+ 	err = m.reader.Read(ctx, topic, p, from, wm.High, func(r Record) bool {
+-		if resolved[r.Offset] {
++		if false && resolved[r.Offset] {
+ 			if contiguous {
+ 				next = r.Offset + 1
+ 			}
+
+## R8 resolved records do not advance the tail checkpoint
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-2vmae_xt/internal/dlq/manager.go	2026-11-28 05:20:02.489977093 +0000
+@@ -313,7 +313,6 @@
+ 	err = m.reader.Read(ctx, topic, p, from, wm.High, func(r Record) bool {
+ 		if resolved[r.Offset] {
+ 			if contiguous {
+-				next = r.Offset + 1
+ 			}
+ 			return true
+ 		}
+
+## R9 mark moves the checkpoint even when not contiguous
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-iuk12blg/internal/dlq/manager.go	2026-11-28 05:20:04.739364021 +0000
+@@ -296,7 +296,7 @@
+ 	}
+ 	contiguous, next, written := true, from, cp // next: checkpoint the resolved prefix allows; written: stored value
+ 	mark := func(r Resolution) error {
+-		if contiguous {
++		if true {
+ 			r.Next, next, written = r.Offset+1, r.Offset+1, r.Offset+1
+ 		}
+ 		if opt.DryRun {
+
+## R10 dry run calls MarkResolved
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-iw88oo7o/internal/dlq/manager.go	2026-11-28 05:20:06.895478729 +0000
+@@ -299,9 +299,6 @@
+ 		if contiguous {
+ 			r.Next, next, written = r.Offset+1, r.Offset+1, r.Offset+1
+ 		}
+-		if opt.DryRun {
+-			return nil
+-		}
+ 		// WithoutCancel: a Ctrl-C right after a publish ack still records it, so the next run doesn't re-publish it.
+ 		if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {
+ 			return fmt.Errorf("dlq: mark %d/%d resolved (a published record is re-published by the next run, same event_id): %w",
+
+## R11 dry run publishes
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-168b604p/internal/dlq/manager.go	2026-11-28 05:20:10.292123317 +0000
+@@ -333,7 +333,7 @@
+ 				item.Outcome, item.EventID = OutcomeReplayed, env.EventID
+ 			}
+ 		}
+-		if item.Outcome == OutcomeReplayed && !opt.DryRun {
++		if item.Outcome == OutcomeReplayed {
+ 			if stepErr = m.pub.Publish(ctx, item.Target, env); stepErr != nil {
+ 				stepErr = fmt.Errorf("dlq: publish %d/%d to %s (nothing marked resolved): %w", p, r.Offset, item.Target, stepErr)
+ 				return false
+
+## R12 publish error swallowed, record skipped
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-vvuyxweb/internal/dlq/manager.go	2026-11-28 05:20:13.876480213 +0000
+@@ -335,8 +335,8 @@
+ 		}
+ 		if item.Outcome == OutcomeReplayed && !opt.DryRun {
+ 			if stepErr = m.pub.Publish(ctx, item.Target, env); stepErr != nil {
+-				stepErr = fmt.Errorf("dlq: publish %d/%d to %s (nothing marked resolved): %w", p, r.Offset, item.Target, stepErr)
+-				return false
++				stepErr = nil
++				return true
+ 			}
+ 		}
+ 		if stepErr = mark(Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: item.Outcome,
+
+## R13 MarkResolved error swallowed
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-hw3c1cgl/internal/dlq/manager.go	2026-11-28 05:20:15.382524581 +0000
+@@ -303,7 +303,7 @@
+ 			return nil
+ 		}
+ 		// WithoutCancel: a Ctrl-C right after a publish ack still records it, so the next run doesn't re-publish it.
+-		if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {
++		if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil && false {
+ 			return fmt.Errorf("dlq: mark %d/%d resolved (a published record is re-published by the next run, same event_id): %w",
+ 				r.Partition, r.Offset, storeError(err))
+ 		}
+
+## W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-qizv_uui/internal/dlq/manager.go	2026-11-28 05:20:16.863251947 +0000
+@@ -303,7 +303,7 @@
+ 			return nil
+ 		}
+ 		// WithoutCancel: a Ctrl-C right after a publish ack still records it, so the next run doesn't re-publish it.
+-		if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {
++		if err := m.store.MarkResolved(ctx, r); err != nil {
+ 			return fmt.Errorf("dlq: mark %d/%d resolved (a published record is re-published by the next run, same event_id): %w",
+ 				r.Partition, r.Offset, storeError(err))
+ 		}
+
+## W2 tail checkpoint write uses the cancellable ctx
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-_55c4n1n/internal/dlq/manager.go	2026-11-28 05:20:18.317224648 +0000
+@@ -355,7 +355,7 @@
+ 	}
+ 	if err == nil && !done && !opt.DryRun && contiguous && next > written {
+ 		// The partition ended on already-resolved records: move the checkpoint over them.
+-		err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: next})
++		err = m.store.MarkResolved(ctx, Resolution{DLQTopic: topic, Partition: p, Next: next})
+ 	}
+ 	return done, err
+ }
+
+## R14 stepErr not returned
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-035pwm2e/internal/dlq/manager.go	2026-11-28 05:20:19.740961814 +0000
+@@ -350,9 +350,6 @@
+ 		done = opt.Limit > 0 && res.Published >= opt.Limit
+ 		return !done
+ 	})
+-	if err == nil {
+-		err = stepErr
+-	}
+ 	if err == nil && !done && !opt.DryRun && contiguous && next > written {
+ 		// The partition ended on already-resolved records: move the checkpoint over them.
+ 		err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: next})
+
+## R15 --limit counts unreplayables
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-ej2vvsd1/internal/dlq/manager.go	2026-11-28 05:20:21.227424800 +0000
+@@ -347,7 +347,7 @@
+ 		if item.Outcome == OutcomeReplayed {
+ 			res.Published++
+ 		}
+-		done = opt.Limit > 0 && res.Published >= opt.Limit
++		done = opt.Limit > 0 && len(res.Items) >= opt.Limit
+ 		return !done
+ 	})
+ 	if err == nil {
+
+## R16 --limit off by one
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-9lkadpyu/internal/dlq/manager.go	2026-11-28 05:20:24.796614837 +0000
+@@ -347,7 +347,7 @@
+ 		if item.Outcome == OutcomeReplayed {
+ 			res.Published++
+ 		}
+-		done = opt.Limit > 0 && res.Published >= opt.Limit
++		done = opt.Limit > 0 && res.Published > opt.Limit
+ 		return !done
+ 	})
+ 	if err == nil {
+
+## R17 --limit ignored
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-hri2odr2/internal/dlq/manager.go	2026-11-28 05:20:28.289635479 +0000
+@@ -348,7 +348,7 @@
+ 			res.Published++
+ 		}
+ 		done = opt.Limit > 0 && res.Published >= opt.Limit
+-		return !done
++		return true
+ 	})
+ 	if err == nil {
+ 		err = stepErr
+
+## R18 partitions in descending order
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-iswfq4cj/internal/dlq/manager.go	2026-11-28 05:20:31.926919989 +0000
+@@ -267,7 +267,7 @@
+ 	for p := range res.Watermarks {
+ 		parts = append(parts, p)
+ 	}
+-	sort.Slice(parts, func(i, j int) bool { return parts[i] < parts[j] })
++	sort.Slice(parts, func(i, j int) bool { return parts[i] > parts[j] })
+ 	for _, p := range parts {
+ 		if done, err := m.replayPartition(ctx, topic, p, opt, &res); err != nil || done {
+ 			return res, err
+
+## R19 Checkpoints read after Kafka Watermarks
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-jmvn43no/internal/dlq/manager.go	2026-11-28 05:20:33.441546640 +0000
+@@ -255,14 +255,14 @@
+ 		}
+ 		defer unlock()
+ 	}
+-	if res.Checkpoints, err = m.store.Checkpoints(ctx, topic); err != nil {
+-		return res, storeError(err) // before any Kafka read
+-	}
+ 	if res.Watermarks, err = m.reader.Watermarks(ctx, topic); errors.Is(err, kerr.UnknownTopicOrPartition) {
+ 		return res, &missingTopicError{topic, err}
+ 	} else if err != nil {
+ 		return res, err
+ 	}
++	if res.Checkpoints, err = m.store.Checkpoints(ctx, topic); err != nil {
++		return res, storeError(err)
++	}
+ 	parts := make([]int32, 0, len(res.Watermarks))
+ 	for p := range res.Watermarks {
+ 		parts = append(parts, p)
+
+## R20 stored checkpoints ignored (start at 0)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-j5zl4syk/internal/dlq/manager.go	2026-11-28 05:20:34.937613932 +0000
+@@ -278,7 +278,7 @@
+ 
+ // replayPartition replays one partition from its checkpoint; done is true once opt.Limit records were published.
+ func (m *Manager) replayPartition(ctx context.Context, topic string, p int32, opt ReplayOptions, res *ReplayResult) (done bool, err error) {
+-	wm, cp := res.Watermarks[p], res.Checkpoints[p]
++	wm, cp := res.Watermarks[p], int64(0)
+ 	from := cp
+ 	if from < wm.Low { // retention deleted records that were never resolved (design Q2)
+ 		res.Warnings = append(res.Warnings, fmt.Sprintf("WARNING partition %d: offsets %d..%d expired before replay", p, from, wm.Low-1))
+
+## R21 Resolved() error ignored
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-nh19q91l/internal/dlq/manager.go	2026-11-28 05:20:37.199353371 +0000
+@@ -290,10 +290,7 @@
+ 		}
+ 		return false, err
+ 	}
+-	resolved, err := m.store.Resolved(ctx, topic, p, from)
+-	if err != nil {
+-		return false, storeError(err)
+-	}
++	resolved, _ := m.store.Resolved(ctx, topic, p, from)
+ 	contiguous, next, written := true, from, cp // next: checkpoint the resolved prefix allows; written: stored value
+ 	mark := func(r Resolution) error {
+ 		if contiguous {
+
+## R22 tail checkpoint write dropped
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-9qfsos2_/internal/dlq/manager.go	2026-11-28 05:20:39.426918618 +0000
+@@ -353,7 +353,7 @@
+ 	if err == nil {
+ 		err = stepErr
+ 	}
+-	if err == nil && !done && !opt.DryRun && contiguous && next > written {
++	if false && next > written {
+ 		// The partition ended on already-resolved records: move the checkpoint over them.
+ 		err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: next})
+ 	}
+
+## R23 tail checkpoint write in a dry run
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-ecqxq8l_/internal/dlq/manager.go	2026-11-28 05:20:41.685350154 +0000
+@@ -353,7 +353,7 @@
+ 	if err == nil {
+ 		err = stepErr
+ 	}
+-	if err == nil && !done && !opt.DryRun && contiguous && next > written {
++	if err == nil && !done && contiguous && next > written {
+ 		// The partition ended on already-resolved records: move the checkpoint over them.
+ 		err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: next})
+ 	}
+
+## R24 expired: reader not moved to Low
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-iqb5bz_x/internal/dlq/manager.go	2026-11-28 05:20:44.071103172 +0000
+@@ -282,7 +282,6 @@
+ 	from := cp
+ 	if from < wm.Low { // retention deleted records that were never resolved (design Q2)
+ 		res.Warnings = append(res.Warnings, fmt.Sprintf("WARNING partition %d: offsets %d..%d expired before replay", p, from, wm.Low-1))
+-		from = wm.Low
+ 	}
+ 	if from >= wm.High {
+ 		if from > cp && !opt.DryRun { // every record left has expired: start the next run at Low
+
+## R25 all expired: checkpoint not moved to Low
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-kahp40qo/internal/dlq/manager.go	2026-11-28 05:20:46.332826724 +0000
+@@ -285,7 +285,7 @@
+ 		from = wm.Low
+ 	}
+ 	if from >= wm.High {
+-		if from > cp && !opt.DryRun { // every record left has expired: start the next run at Low
++		if false { // every record left has expired: start the next run at Low
+ 			err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: from})
+ 		}
+ 		return false, err
+
+## R26 all expired: dry run moves the checkpoint
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-vby10cqr/internal/dlq/manager.go	2026-11-28 05:20:48.776951202 +0000
+@@ -285,7 +285,7 @@
+ 		from = wm.Low
+ 	}
+ 	if from >= wm.High {
+-		if from > cp && !opt.DryRun { // every record left has expired: start the next run at Low
++		if from > cp { // every record left has expired: start the next run at Low
+ 			err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: from})
+ 		}
+ 		return false, err
+
+## R27 unreplayables not resolved (pin forever)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-h1sr0908/internal/dlq/manager.go	2026-11-28 05:20:50.978564373 +0000
+@@ -339,6 +339,10 @@
+ 				return false
+ 			}
+ 		}
++		if item.Outcome == OutcomeUnreplayable {
++			contiguous = false
++			return true
++		}
+ 		if stepErr = mark(Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: item.Outcome,
+ 			TargetTopic: item.Target, EventID: item.EventID}); stepErr != nil {
+ 			return false
+
+## R28 empty original_topic replays into the DLQ itself
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-ubqflru7/internal/dlq/manager.go	2026-11-28 05:20:52.687095308 +0000
+@@ -322,7 +322,7 @@
+ 		if r.Payload != nil {
+ 			item.Target = r.Payload.OriginalTopic
+ 			if item.Target == "" {
+-				item.Target = strings.TrimSuffix(topic, ".dlq")
++				item.Target = topic
+ 			}
+ 			var ok bool
+ 			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
+
+## S1 checkpoint upsert without GREATEST (can move down)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-_m5q3we8/internal/dlq/store.go	2026-11-28 05:20:54.886286714 +0000
+@@ -107,7 +107,7 @@
+ 			if _, err := tx.Exec(ctx, `
+ 				INSERT INTO dlq_replay_checkpoints (dlq_topic, partition, next_offset) VALUES ($1, $2, $3)
+ 				ON CONFLICT (dlq_topic, partition) DO UPDATE SET
+-					next_offset = GREATEST(dlq_replay_checkpoints.next_offset, EXCLUDED.next_offset), updated_at = now()`,
++					next_offset = EXCLUDED.next_offset, updated_at = now()`,
+ 				r.DLQTopic, r.Partition, r.Next); err != nil {
+ 				return fmt.Errorf("write dlq_replay_checkpoints: %w", err)
+ 			}
+
+## S2 checkpoint written outside the tx, before the row
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-qejz_qoc/internal/dlq/store.go	2026-11-28 05:20:57.232693668 +0000
+@@ -94,6 +94,9 @@
+ // MarkResolved: the log row and the checkpoint move in one transaction; GREATEST never moves a checkpoint back.
+ func (s *PGStore) MarkResolved(ctx context.Context, r Resolution) error {
+ 	return pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
++		if r.Next > 0 {
++			_, _ = s.pool.Exec(ctx, `INSERT INTO dlq_replay_checkpoints (dlq_topic, partition, next_offset) VALUES ($1, $2, $3) ON CONFLICT (dlq_topic, partition) DO UPDATE SET next_offset = GREATEST(dlq_replay_checkpoints.next_offset, EXCLUDED.next_offset)`, r.DLQTopic, r.Partition, r.Next)
++		}
+ 		if r.Outcome != "" {
+ 			if _, err := tx.Exec(ctx, `
+ 				INSERT INTO dlq_replay_log (dlq_topic, partition, dlq_offset, outcome, target_topic, event_id)
+
+## S3 log insert without ON CONFLICT DO NOTHING
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-cacu_2vw/internal/dlq/store.go	2026-11-28 05:20:59.636030211 +0000
+@@ -97,8 +97,7 @@
+ 		if r.Outcome != "" {
+ 			if _, err := tx.Exec(ctx, `
+ 				INSERT INTO dlq_replay_log (dlq_topic, partition, dlq_offset, outcome, target_topic, event_id)
+-				VALUES ($1, $2, $3, $4, NULLIF($5, ''), NULLIF($6, ''))
+-				ON CONFLICT (dlq_topic, partition, dlq_offset) DO NOTHING`,
++				VALUES ($1, $2, $3, $4, NULLIF($5, ''), NULLIF($6, ''))`,
+ 				r.DLQTopic, r.Partition, r.Offset, r.Outcome, r.TargetTopic, r.EventID); err != nil {
+ 				return fmt.Errorf("write dlq_replay_log: %w", err)
+ 			}
+
+## S4 Resolved uses > from (drops the offset at from)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-u88hyfy5/internal/dlq/store.go	2026-11-28 05:21:02.048604767 +0000
+@@ -79,7 +79,7 @@
+ 
+ func (s *PGStore) Resolved(ctx context.Context, dlqTopic string, p int32, from int64) (map[int64]bool, error) {
+ 	rows, err := s.pool.Query(ctx,
+-		`SELECT dlq_offset FROM dlq_replay_log WHERE dlq_topic = $1 AND partition = $2 AND dlq_offset >= $3`, dlqTopic, p, from)
++		`SELECT dlq_offset FROM dlq_replay_log WHERE dlq_topic = $1 AND partition = $2 AND dlq_offset > $3`, dlqTopic, p, from)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("read dlq_replay_log: %w", err)
+ 	}
+
+## S5 Checkpoints not filtered by dlq_topic
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-fnepl277/internal/dlq/store.go	2026-11-28 05:21:04.221975375 +0000
+@@ -63,7 +63,7 @@
+ }
+ 
+ func (s *PGStore) Checkpoints(ctx context.Context, dlqTopic string) (map[int32]int64, error) {
+-	rows, err := s.pool.Query(ctx, `SELECT partition, next_offset FROM dlq_replay_checkpoints WHERE dlq_topic = $1`, dlqTopic)
++	rows, err := s.pool.Query(ctx, `SELECT partition, next_offset FROM dlq_replay_checkpoints WHERE dlq_topic = $1 OR true`, dlqTopic)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("read dlq_replay_checkpoints: %w", err)
+ 	}
+
+## S6 Resolved not filtered by partition
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-88xyrj6y/internal/dlq/store.go	2026-11-28 05:21:06.292337273 +0000
+@@ -79,7 +79,7 @@
+ 
+ func (s *PGStore) Resolved(ctx context.Context, dlqTopic string, p int32, from int64) (map[int64]bool, error) {
+ 	rows, err := s.pool.Query(ctx,
+-		`SELECT dlq_offset FROM dlq_replay_log WHERE dlq_topic = $1 AND partition = $2 AND dlq_offset >= $3`, dlqTopic, p, from)
++		`SELECT dlq_offset FROM dlq_replay_log WHERE dlq_topic = $1 AND $2::int IS NOT NULL AND dlq_offset >= $3`, dlqTopic, p, from)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("read dlq_replay_log: %w", err)
+ 	}
+
+## S7 Resolved not filtered by dlq_topic
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-8bov60ca/internal/dlq/store.go	2026-11-28 05:21:08.464504172 +0000
+@@ -79,7 +79,7 @@
+ 
+ func (s *PGStore) Resolved(ctx context.Context, dlqTopic string, p int32, from int64) (map[int64]bool, error) {
+ 	rows, err := s.pool.Query(ctx,
+-		`SELECT dlq_offset FROM dlq_replay_log WHERE dlq_topic = $1 AND partition = $2 AND dlq_offset >= $3`, dlqTopic, p, from)
++		`SELECT dlq_offset FROM dlq_replay_log WHERE $1::text IS NOT NULL AND partition = $2 AND dlq_offset >= $3`, dlqTopic, p, from)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("read dlq_replay_log: %w", err)
+ 	}
+
+## C1 footer: --limit not printed as --page-size
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/cmd/arxivlens/main.go	2026-11-28 05:15:58.397712222 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-2ooy_jbp/cmd/arxivlens/main.go	2026-11-28 05:21:10.551882177 +0000
+@@ -582,7 +582,7 @@
+ 	if cmd.Flags().Changed("partition") {
+ 		fmt.Fprintf(&b, " --partition %d", partition)
+ 	}
+-	if cmd.Flags().Changed("page-size") || cmd.Flags().Changed("limit") {
++	if cmd.Flags().Changed("page-size") {
+ 		fmt.Fprintf(&b, " --page-size %d", pageSize)
+ 	}
+ 	return b.String()
+
+## C2 footer: --partition never repeated
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/cmd/arxivlens/main.go	2026-11-28 05:15:58.397712222 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-m07ydod8/cmd/arxivlens/main.go	2026-11-28 05:21:12.574551274 +0000
+@@ -579,7 +579,7 @@
+ // --page-size), so pasting the footer continues the same listing.
+ func footerFlags(cmd *cobra.Command, partition int32, pageSize int) string {
+ 	var b strings.Builder
+-	if cmd.Flags().Changed("partition") {
++	if false {
+ 		fmt.Fprintf(&b, " --partition %d", partition)
+ 	}
+ 	if cmd.Flags().Changed("page-size") || cmd.Flags().Changed("limit") {
+
+## C3 SilenceErrors off (double Error: line)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/cmd/arxivlens/main.go	2026-11-28 05:15:58.397712222 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-wqqt7jtz/cmd/arxivlens/main.go	2026-11-28 05:21:14.655693929 +0000
+@@ -46,7 +46,7 @@
+ 	rootCmd := &cobra.Command{
+ 		Use:           "arxivlens",
+ 		Short:         "ArxivLens — Distributed Paper Ingestion & Semantic Search Pipeline",
+-		SilenceErrors: true,
++		SilenceErrors: false,
+ 	}
+ 	rootCmd.AddCommand(newMigrateCmd(), newCrawlCmd(), newCrawlLoopCmd(), newDownloadCmd(), newStatusCmd(), newQueryCmd(), dlqCmd)
+ 	return rootCmd
+
+## C4 inspect: no empty-topic line
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/cmd/arxivlens/main.go	2026-11-28 05:15:58.397712222 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-7fkzfe2u/cmd/arxivlens/main.go	2026-11-28 05:21:16.736674665 +0000
+@@ -541,7 +541,7 @@
+ 				}
+ 				if key != "" {
+ 					fmt.Fprintf(out, "No DLQ events found for key: %s\n", key)
+-				} else if seen == 0 {
++				} else if seen < 0 {
+ 					fmt.Fprintf(out, "No DLQ events in topic: %s\n", topic)
+ 				}
+ 				return nil
+
+## C5 replay: Postgres error without the migrate hint
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/cmd/arxivlens/main.go	2026-11-28 05:15:58.397712222 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-ui3lrreo/cmd/arxivlens/main.go	2026-11-28 05:21:18.878883872 +0000
+@@ -372,7 +372,7 @@
+ 	}, func(ctx context.Context) (dlq.Publisher, dlq.Store, func(), error) {
+ 		database, err := db.Connect(ctx, cfg.PostgresURL)
+ 		if err != nil { // before any Kafka read
+-			return nil, nil, nil, fmt.Errorf("dlq replay needs a migrated PostgreSQL (DATABASE_URL; run 'arxivlens migrate'): %w", err)
++			return nil, nil, nil, err
+ 		}
+ 		producer, err := kafka.NewProducer(cfg.KafkaBrokers)
+ 		if err != nil {
+
+## C6 replay: no DRY RUN banner
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/cmd/arxivlens/main.go	2026-11-28 05:15:58.397712222 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-49gez2cr/cmd/arxivlens/main.go	2026-11-28 05:21:21.042266742 +0000
+@@ -596,7 +596,6 @@
+ 	verb, resolved := "replayed", "resolved"
+ 	if dryRun {
+ 		verb, resolved = "would replay", "would be resolved"
+-		fmt.Fprintln(out, "DRY RUN (no lock taken; may race a concurrent replay)")
+ 	}
+ 	cps := make(map[int32]dlq.Watermark, len(res.Watermarks)) // watermarkList prints .High
+ 	for p := range res.Watermarks {
+
+## C7 crawl: --rate-limit check removed
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/cmd/arxivlens/main.go	2026-11-28 05:15:58.397712222 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-ipi2plqu/cmd/arxivlens/main.go	2026-11-28 05:21:23.048819663 +0000
+@@ -107,7 +107,7 @@
+ 		Use:   "crawl",
+ 		Short: "Crawl arXiv papers and publish to papers.discovered topic",
+ 		RunE: func(cmd *cobra.Command, args []string) error {
+-			if rateLimit < arxiv.DefaultInterval { // before any connection (ING-9b)
++			if false { // before any connection (ING-9b)
+ 				return fmt.Errorf("--rate-limit %v: must be at least %v (arXiv allows 1 request / 3 s)", rateLimit, arxiv.DefaultInterval)
+ 			}
+ 			ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
+## C8 crawl: check <= (rejects the 3s default)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/cmd/arxivlens/main.go	2026-11-28 05:15:58.397712222 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-q5k2wb1y/cmd/arxivlens/main.go	2026-11-28 05:21:25.230805018 +0000
+@@ -107,7 +107,7 @@
+ 		Use:   "crawl",
+ 		Short: "Crawl arXiv papers and publish to papers.discovered topic",
+ 		RunE: func(cmd *cobra.Command, args []string) error {
+-			if rateLimit < arxiv.DefaultInterval { // before any connection (ING-9b)
++			if rateLimit <= arxiv.DefaultInterval { // before any connection (ING-9b)
+ 				return fmt.Errorf("--rate-limit %v: must be at least %v (arXiv allows 1 request / 3 s)", rateLimit, arxiv.DefaultInterval)
+ 			}
+ 			ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
+## E1 crawl: GetAPI without the limiter
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/crawler/crawler.go	2026-11-28 05:15:58.400962234 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-1prt2ily/internal/crawler/crawler.go	2026-11-28 05:21:27.339015848 +0000
+@@ -100,7 +100,7 @@
+ 		log.Printf("[Crawler] Fetching page start=%d size=%d URL=%s", start, currLimit, reqURL)
+ 
+ 		// Retries 429/5xx/timeouts with backoff (honouring Retry-After); every attempt waits on c.lim; a non-200 is never parsed.
+-		body, err := arxiv.GetAPI(ctx, c.client, c.lim, reqURL, arxiv.UserAgent("Research Pipeline"), c.retry)
++		body, err := arxiv.GetAPI(ctx, c.client, nil, reqURL, arxiv.UserAgent("Research Pipeline"), c.retry)
+ 		if err != nil {
+ 			return totalDiscovered, fmt.Errorf("arxiv page start=%d: %w", start, err)
+ 		}
+
+## E2 NewCrawler: no 3 s floor
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/crawler/crawler.go	2026-11-28 05:15:58.400962234 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-3op5na_y/internal/crawler/crawler.go	2026-11-28 05:21:28.606804726 +0000
+@@ -60,7 +60,7 @@
+ 		database: database,
+ 		producer: producer,
+ 		client:   &http.Client{Timeout: 30 * time.Second},
+-		lim:      arxiv.NewLimiter(max(rateLimit, arxiv.DefaultInterval)),
++		lim:      arxiv.NewLimiter(rateLimit),
+ 		retry:    arxiv.DefaultRetry,
+ 	}
+ }
+
+## L1 dry run takes the lock
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-ouynedpe/internal/dlq/manager.go	2026-11-28 05:21:30.044940330 +0000
+@@ -245,7 +245,7 @@
+ 	if m.reader == nil || m.store == nil || (m.pub == nil && !opt.DryRun) {
+ 		return res, errors.New("dlq: Replay needs a Reader, a Store and (unless --dry-run) a Publisher")
+ 	}
+-	if !opt.DryRun {
++	if true {
+ 		unlock, ok, holder, err := m.store.TryLock(ctx, topic)
+ 		if err != nil {
+ 			return res, storeError(err)
+
+## L2 refused lock ignored (run proceeds)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-2o4e6hxc/internal/dlq/manager.go	2026-11-28 05:21:33.431175009 +0000
+@@ -251,7 +251,7 @@
+ 			return res, storeError(err)
+ 		}
+ 		if !ok {
+-			return res, &lockedError{topic, holder}
++			unlock = func() {}
+ 		}
+ 		defer unlock()
+ 	}
+
+FAIL	arxivlens/internal/dlq [build failed]
+FAIL
+# arxivlens/internal/dlq [arxivlens/internal/dlq.test]
+internal/dlq/manager.go:249:15: declared and not used: holder
+
+FAIL	arxivlens/cmd/arxivlens [build failed]
+FAIL
+# arxivlens/internal/dlq
+internal/dlq/manager.go:249:15: declared and not used: holder
+
+## L3 unlock never called
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-7brs4unf/internal/dlq/manager.go	2026-11-28 05:21:34.740842825 +0000
+@@ -253,7 +253,7 @@
+ 		if !ok {
+ 			return res, &lockedError{topic, holder}
+ 		}
+-		defer unlock()
++		_ = unlock
+ 	}
+ 	if res.Checkpoints, err = m.store.Checkpoints(ctx, topic); err != nil {
+ 		return res, storeError(err) // before any Kafka read
+
+## L4 lock taken after the Kafka watermarks
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-fvisqucn/internal/dlq/manager.go	2026-11-28 05:21:36.244078099 +0000
+@@ -245,6 +245,9 @@
+ 	if m.reader == nil || m.store == nil || (m.pub == nil && !opt.DryRun) {
+ 		return res, errors.New("dlq: Replay needs a Reader, a Store and (unless --dry-run) a Publisher")
+ 	}
++	if _, err := m.reader.Watermarks(ctx, topic); err != nil {
++		return res, err
++	}
+ 	if !opt.DryRun {
+ 		unlock, ok, holder, err := m.store.TryLock(ctx, topic)
+ 		if err != nil {
+
+## L5 lockedError not ErrLocked
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-o28hp_1i/internal/dlq/manager.go	2026-11-28 05:21:39.552805436 +0000
+@@ -208,7 +208,7 @@
+ 	return s + "; wait for it to finish, or see README \"DLQ replay\" for a hung holder"
+ }
+ 
+-func (e *lockedError) Is(target error) bool { return target == ErrLocked }
++func (e *lockedError) Is(target error) bool { return false }
+ 
+ // ReplayOptions: ErrorType filters (case-insensitive); Limit caps published records across partitions (<= 0: no cap).
+ type ReplayOptions struct {
+
+## L6 lock key ignores the topic
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-cz1g4ngf/internal/dlq/store.go	2026-11-28 05:21:42.900950995 +0000
+@@ -17,7 +17,7 @@
+ func NewPGStore(pool *pgxpool.Pool) *PGStore { return &PGStore{pool: pool} }
+ 
+ // lockKeySQL is the per-DLQ-topic advisory lock key: replays of different DLQs run in parallel.
+-const lockKeySQL = `hashtextextended('arxivlens.dlq.replay/' || $1, 0)`
++const lockKeySQL = `hashtextextended('arxivlens.dlq.replay', 0 * length($1))`
+ 
+ // lockHolderSQL finds the session holding the key (a bigint key is split into classid/objid, objsubid 1).
+ const lockHolderSQL = `
+
+## L7 xact-level lock (released at once)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-okw475qv/internal/dlq/store.go	2026-11-28 05:21:44.367344438 +0000
+@@ -37,7 +37,7 @@
+ 	}
+ 	// Bounds how long a network-partitioned holder keeps the lock (design Q4); best effort.
+ 	_, _ = conn.Exec(ctx, `SET tcp_keepalives_idle = 30`)
+-	if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(`+lockKeySQL+`)`, dlqTopic).Scan(&ok); err != nil || !ok {
++	if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_xact_lock(`+lockKeySQL+`)`, dlqTopic).Scan(&ok); err != nil || !ok {
+ 		if err == nil {
+ 			var pid int
+ 			var addr string
+
+## L8 unlock does not unlock (conn back to pool still holding it)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-84_of1qo/internal/dlq/store.go	2026-11-28 05:23:15.485073305 +0000
+@@ -55,7 +55,7 @@
+ 	return func() {
+ 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+ 		defer cancel()
+-		if _, err := conn.Exec(ctx, `SELECT pg_advisory_unlock(`+lockKeySQL+`)`, dlqTopic); err != nil {
++		if false {
+ 			_ = conn.Conn().Close(ctx) // closing the session releases the lock; the pool drops the closed connection
+ 		}
+ 		conn.Release()
+
+## L9 refused path leaks the connection
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-vd058x_x/internal/dlq/store.go	2026-11-28 05:23:16.911482237 +0000
+@@ -46,7 +46,6 @@
+ 				holder = fmt.Sprintf("pid %d on %s, since %s", pid, addr, since.UTC().Format(time.RFC3339))
+ 			}
+ 		}
+-		conn.Release()
+ 		if err != nil {
+ 			return nil, false, "", fmt.Errorf("replay lock: %w", err)
+ 		}
+
+## L10 holder query never matches
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-xj154ph4/internal/dlq/store.go	2026-11-28 05:24:48.070890297 +0000
+@@ -23,7 +23,7 @@
+ const lockHolderSQL = `
+ 	SELECT a.pid, coalesce(host(a.client_addr), 'local socket'), a.backend_start
+ 	FROM (SELECT ` + lockKeySQL + ` AS k) key, pg_locks l JOIN pg_stat_activity a ON a.pid = l.pid
+-	WHERE l.locktype = 'advisory' AND l.granted AND l.objsubid = 1
++	WHERE l.locktype = 'advisory' AND l.granted AND l.objsubid = 2
+ 	  AND l.classid = ((key.k >> 32) & 4294967295)::oid AND l.objid = (key.k & 4294967295)::oid
+ 	LIMIT 1`
+ 
+
+## L11 lock taken on a pooled conn, not the dedicated one
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-r31ng405/internal/dlq/store.go	2026-11-28 05:24:49.486543578 +0000
+@@ -37,7 +37,7 @@
+ 	}
+ 	// Bounds how long a network-partitioned holder keeps the lock (design Q4); best effort.
+ 	_, _ = conn.Exec(ctx, `SET tcp_keepalives_idle = 30`)
+-	if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(`+lockKeySQL+`)`, dlqTopic).Scan(&ok); err != nil || !ok {
++	if err := s.pool.QueryRow(ctx, `SELECT pg_try_advisory_lock(`+lockKeySQL+`)`, dlqTopic).Scan(&ok); err != nil || !ok {
+ 		if err == nil {
+ 			var pid int
+ 			var addr string
+
+## L12 TryLock error ignored (run without the lock)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-qbhix8fv/internal/dlq/manager.go	2026-11-28 05:24:50.942903323 +0000
+@@ -248,7 +248,7 @@
+ 	if !opt.DryRun {
+ 		unlock, ok, holder, err := m.store.TryLock(ctx, topic)
+ 		if err != nil {
+-			return res, storeError(err)
++			ok, unlock = true, func() {}
+ 		}
+ 		if !ok {
+ 			return res, &lockedError{topic, holder}
+
+## I1 ID ignores the offset
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/envelope.go	2026-11-28 05:15:58.401386879 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-v_tz00ny/internal/dlq/envelope.go	2026-11-28 05:24:52.428558363 +0000
+@@ -32,8 +32,7 @@
+ // Kafka timestamp in ms, the entropy is the first 10 bytes of SHA-256 over the record's (topic, partition, offset). The same
+ // record always gets the same ID, so a re-publish after a crash dedupes in the processor's ledger.
+ func replayID(s source) string {
+-	h := sha256.Sum256([]byte("arxivlens/dlq-replay\x00" + s.Topic + "\x00" + strconv.Itoa(int(s.Partition)) + "\x00" +
+-		strconv.FormatInt(s.Offset, 10)))
++	h := sha256.Sum256([]byte("arxivlens/dlq-replay\x00" + s.Topic + "\x00" + strconv.Itoa(int(s.Partition))))
+ 	var ms uint64 // a record without a timestamp (before 1970) gets time part 0, never a panic
+ 	if s.Timestamp.UnixMilli() > 0 {
+ 		ms = ulid.Timestamp(s.Timestamp)
+
+## I2 ID ignores the topic
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/envelope.go	2026-11-28 05:15:58.401386879 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-p47eodu5/internal/dlq/envelope.go	2026-11-28 05:24:53.809280975 +0000
+@@ -32,7 +32,7 @@
+ // Kafka timestamp in ms, the entropy is the first 10 bytes of SHA-256 over the record's (topic, partition, offset). The same
+ // record always gets the same ID, so a re-publish after a crash dedupes in the processor's ledger.
+ func replayID(s source) string {
+-	h := sha256.Sum256([]byte("arxivlens/dlq-replay\x00" + s.Topic + "\x00" + strconv.Itoa(int(s.Partition)) + "\x00" +
++	h := sha256.Sum256([]byte("arxivlens/dlq-replay\x00" + strconv.Itoa(int(s.Partition)) + "\x00" +
+ 		strconv.FormatInt(s.Offset, 10)))
+ 	var ms uint64 // a record without a timestamp (before 1970) gets time part 0, never a panic
+ 	if s.Timestamp.UnixMilli() > 0 {
+
+## I3 ID time part = now
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/envelope.go	2026-11-28 05:15:58.401386879 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-2k2bpjio/internal/dlq/envelope.go	2026-11-28 05:24:55.308893001 +0000
+@@ -36,7 +36,7 @@
+ 		strconv.FormatInt(s.Offset, 10)))
+ 	var ms uint64 // a record without a timestamp (before 1970) gets time part 0, never a panic
+ 	if s.Timestamp.UnixMilli() > 0 {
+-		ms = ulid.Timestamp(s.Timestamp)
++		ms = ulid.Now()
+ 	}
+ 	return ulid.MustNew(ms, bytes.NewReader(h[:10])).String()
+ }
+
+## I4 no separator partition|offset (digit-shift collisions)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/envelope.go	2026-11-28 05:15:58.401386879 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-jvspp4wi/internal/dlq/envelope.go	2026-11-28 05:24:56.735954210 +0000
+@@ -32,7 +32,7 @@
+ // Kafka timestamp in ms, the entropy is the first 10 bytes of SHA-256 over the record's (topic, partition, offset). The same
+ // record always gets the same ID, so a re-publish after a crash dedupes in the processor's ledger.
+ func replayID(s source) string {
+-	h := sha256.Sum256([]byte("arxivlens/dlq-replay\x00" + s.Topic + "\x00" + strconv.Itoa(int(s.Partition)) + "\x00" +
++	h := sha256.Sum256([]byte("arxivlens/dlq-replay\x00" + s.Topic + "\x00" + strconv.Itoa(int(s.Partition)) +
+ 		strconv.FormatInt(s.Offset, 10)))
+ 	var ms uint64 // a record without a timestamp (before 1970) gets time part 0, never a panic
+ 	if s.Timestamp.UnixMilli() > 0 {
+
+## I5 raw payload keeps the random NewEventEnvelope ID
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/envelope.go	2026-11-28 05:15:58.401386879 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-rm55cp_8/internal/dlq/envelope.go	2026-11-28 05:24:58.148452588 +0000
+@@ -71,7 +71,7 @@
+ 		return events.EventEnvelope{}, skipNoKey, false
+ 	}
+ 	env = events.NewEventEnvelope(targetTopic, p.OriginalKey, 1, v)
+-	env.EventID, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)
++	_, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)
+ 	env.Traceparent = p.Traceparent
+ 	return env, "", true
+ }
+
+## I6 occurred_at not the DLQ timestamp
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/envelope.go	2026-11-28 05:15:58.401386879 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-nnida7xi/internal/dlq/envelope.go	2026-11-28 05:24:59.649047425 +0000
+@@ -71,7 +71,7 @@
+ 		return events.EventEnvelope{}, skipNoKey, false
+ 	}
+ 	env = events.NewEventEnvelope(targetTopic, p.OriginalKey, 1, v)
+-	env.EventID, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)
++	env.EventID = replayID(src)
+ 	env.Traceparent = p.Traceparent
+ 	return env, "", true
+ }
+
+## I7 manager passes offset 0 (all raw records of a partition share one ID)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-7d2en4fl/internal/dlq/manager.go	2026-11-28 05:25:01.069207659 +0000
+@@ -325,7 +325,7 @@
+ 				item.Target = strings.TrimSuffix(topic, ".dlq")
+ 			}
+ 			var ok bool
+-			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
++			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, 0, r.Timestamp}); ok {
+ 				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
+ 					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+ 					return true
+
+## I8 manager passes a zero timestamp
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-r0l1jugy/internal/dlq/manager.go	2026-11-28 05:25:04.275779397 +0000
+@@ -325,7 +325,7 @@
+ 				item.Target = strings.TrimSuffix(topic, ".dlq")
+ 			}
+ 			var ok bool
+-			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
++			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, time.Time{}}); ok {
+ 				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
+ 					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+ 					return true
+
+FAIL	arxivlens/internal/dlq [build failed]
+FAIL
+# arxivlens/internal/dlq [arxivlens/internal/dlq.test]
+internal/dlq/manager.go:328:97: undefined: time
+
+FAIL	arxivlens/cmd/arxivlens [build failed]
+FAIL
+# arxivlens/internal/dlq
+internal/dlq/manager.go:328:97: undefined: time
+
+## I9 manager passes partition 0
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-7lsxfxoe/internal/dlq/manager.go	2026-11-28 05:25:05.527901782 +0000
+@@ -325,7 +325,7 @@
+ 				item.Target = strings.TrimSuffix(topic, ".dlq")
+ 			}
+ 			var ok bool
+-			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
++			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, 0, r.Offset, r.Timestamp}); ok {
+ 				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
+ 					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+ 					return true
+
+## I10 full envelope also gets the derived ID
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/envelope.go	2026-11-28 05:15:58.401386879 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134/m-y8elfjd8/internal/dlq/envelope.go	2026-11-28 05:25:08.796015155 +0000
+@@ -63,6 +63,7 @@
+ 	if b, err := json.Marshal(v); err == nil && json.Unmarshal(b, &env) == nil &&
+ 		env.EventID != "" && env.EventType != "" && env.PaperID != "" {
+ 		env.Attempt = 0 // Reset attempt counter (§6)
++		env.EventID = replayID(src)
+ 		env.Traceparent = p.Traceparent
+ 		return env, "", true
+ 	}
+
+
+### re-run of the 2 INVALID mutants with fixed anchors (mutants134-only.py, QA_ONLY='L2 |I8 ')
+mutant                                                     | suite | result
+CONTROL (unmutated head + QA probe)                        | dlq   | pass
+CONTROL (unmutated head + QA probe)                        | probe | pass
+CONTROL (unmutated head + QA probe)                        | cmd   | pass
+CONTROL (unmutated head + QA probe)                        | crawl | pass
+L2 refused lock ignored (run proceeds)                     | dlq   | FAIL TestReplayRefusedWhileLocked
+L2 refused lock ignored (run proceeds)                     | cmd   | FAIL TestDLQReplayCLI,TestDLQReplayCLI/lock_held:_nothing_read_or_published
+L2 refused lock ignored (run proceeds)                     | =>    | KILLED
+I8 manager passes a zero timestamp                         | dlq   | pass
+I8 manager passes a zero timestamp                         | cmd   | pass
+I8 manager passes a zero timestamp                         | =>    | SURVIVED
+
+suites: {'dlq': 'go test -tags integration -count=1 -timeout=90s -skip QAProbe ./internal/dlq/', 'probe': 'go test -tags integration -count=1 -timeout=90s -run QAProbe ./internal/dlq/', 'cmd': 'go test -count=1 -timeout=90s ./cmd/arxivlens/', 'crawl': 'go test -count=1 -timeout=90s ./internal/crawler/'}
+
+==== mutant diffs (local scratch copies only, never pushed) ====
+## L2 refused lock ignored (run proceeds)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134b/m-98lxejok/internal/dlq/manager.go	2026-11-28 05:25:31.858472796 +0000
+@@ -251,7 +251,8 @@
+ 			return res, storeError(err)
+ 		}
+ 		if !ok {
+-			return res, &lockedError{topic, holder}
++			_ = holder
++			unlock = func() {}
+ 		}
+ 		defer unlock()
+ 	}
+
+## I8 manager passes a zero timestamp
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134b/m-9qd59c5a/internal/dlq/manager.go	2026-11-28 05:25:35.382932546 +0000
+@@ -325,7 +325,7 @@
+ 				item.Target = strings.TrimSuffix(topic, ".dlq")
+ 			}
+ 			var ok bool
+-			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
++			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{Topic: topic, Partition: p, Offset: r.Offset}); ok {
+ 				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
+ 					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+ 					return true
+
+
+### survivors against the #134 QA probes (mutants134-probe.py)
+mutant                                                     | suite | result
+CONTROL (unmutated head + QA probe)                        | dlq   | pass
+CONTROL (unmutated head + QA probe)                        | probe | pass
+CONTROL (unmutated head + QA probe)                        | probe134 | pass
+CONTROL (unmutated head + QA probe)                        | cmd   | pass
+CONTROL (unmutated head + QA probe)                        | crawl | pass
+W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish) | dlq   | pass
+W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish) | =>    | SURVIVED
+W2 tail checkpoint write uses the cancellable ctx          | dlq   | pass
+W2 tail checkpoint write uses the cancellable ctx          | =>    | SURVIVED
+L8 unlock does not unlock (conn back to pool still holding it) | dlq   | pass
+L8 unlock does not unlock (conn back to pool still holding it) | probe134 | FAIL TestQAProbe134UnlockReleases
+L8 unlock does not unlock (conn back to pool still holding it) | =>    | SURVIVED (PR tests) / caught by QA probe
+L11 lock taken on a pooled conn, not the dedicated one     | dlq   | pass
+L11 lock taken on a pooled conn, not the dedicated one     | probe134 | FAIL TestQAProbe134UnlockReleases
+L11 lock taken on a pooled conn, not the dedicated one     | =>    | SURVIVED (PR tests) / caught by QA probe
+L12 TryLock error ignored (run without the lock)           | dlq   | pass
+L12 TryLock error ignored (run without the lock)           | probe134 | FAIL TestQAProbe134LockErrorStops
+L12 TryLock error ignored (run without the lock)           | =>    | SURVIVED (PR tests) / caught by QA probe
+I7 manager passes offset 0 (all raw records of a partition share one ID) | dlq   | pass
+I7 manager passes offset 0 (all raw records of a partition share one ID) | cmd   | pass
+I7 manager passes offset 0 (all raw records of a partition share one ID) | probe134 | FAIL TestQAProbe134RawIDsPerRecord
+I7 manager passes offset 0 (all raw records of a partition share one ID) | =>    | SURVIVED (PR tests) / caught by QA probe
+I8 manager passes a zero timestamp                         | dlq   | pass
+I8 manager passes a zero timestamp                         | cmd   | pass
+I8 manager passes a zero timestamp                         | probe134 | FAIL TestQAProbe134RawIDsPerRecord
+I8 manager passes a zero timestamp                         | =>    | SURVIVED (PR tests) / caught by QA probe
+I9 manager passes partition 0                              | dlq   | pass
+I9 manager passes partition 0                              | cmd   | pass
+I9 manager passes partition 0                              | probe134 | FAIL TestQAProbe134RawIDsPerRecord
+I9 manager passes partition 0                              | =>    | SURVIVED (PR tests) / caught by QA probe
+
+suites: {'dlq': 'go test -tags integration -count=1 -timeout=90s -skip QAProbe ./internal/dlq/', 'probe': 'go test -tags integration -count=1 -timeout=90s -run QAProbe ./internal/dlq/', 'probe134': 'go test -tags integration -count=1 -timeout=90s -run QAProbe134 ./internal/dlq/', 'cmd': 'go test -count=1 -timeout=90s ./cmd/arxivlens/', 'crawl': 'go test -count=1 -timeout=90s ./internal/crawler/'}
+
+==== mutant diffs (local scratch copies only, never pushed) ====
+## W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134c/m-ilzmsae3/internal/dlq/manager.go	2026-11-28 05:26:05.012366042 +0000
+@@ -303,7 +303,7 @@
+ 			return nil
+ 		}
+ 		// WithoutCancel: a Ctrl-C right after a publish ack still records it, so the next run doesn't re-publish it.
+-		if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {
++		if err := m.store.MarkResolved(ctx, r); err != nil {
+ 			return fmt.Errorf("dlq: mark %d/%d resolved (a published record is re-published by the next run, same event_id): %w",
+ 				r.Partition, r.Offset, storeError(err))
+ 		}
+
+## W2 tail checkpoint write uses the cancellable ctx
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134c/m-kjsjfu4u/internal/dlq/manager.go	2026-11-28 05:26:06.432579825 +0000
+@@ -355,7 +355,7 @@
+ 	}
+ 	if err == nil && !done && !opt.DryRun && contiguous && next > written {
+ 		// The partition ended on already-resolved records: move the checkpoint over them.
+-		err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: next})
++		err = m.store.MarkResolved(ctx, Resolution{DLQTopic: topic, Partition: p, Next: next})
+ 	}
+ 	return done, err
+ }
+
+## L8 unlock does not unlock (conn back to pool still holding it)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134c/m-7y6lrkh7/internal/dlq/store.go	2026-11-28 05:26:07.888386681 +0000
+@@ -55,7 +55,7 @@
+ 	return func() {
+ 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+ 		defer cancel()
+-		if _, err := conn.Exec(ctx, `SELECT pg_advisory_unlock(`+lockKeySQL+`)`, dlqTopic); err != nil {
++		if false {
+ 			_ = conn.Conn().Close(ctx) // closing the session releases the lock; the pool drops the closed connection
+ 		}
+ 		conn.Release()
+
+## L11 lock taken on a pooled conn, not the dedicated one
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/store.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134c/m-uctb7l4z/internal/dlq/store.go	2026-11-28 05:26:09.972889923 +0000
+@@ -37,7 +37,7 @@
+ 	}
+ 	// Bounds how long a network-partitioned holder keeps the lock (design Q4); best effort.
+ 	_, _ = conn.Exec(ctx, `SET tcp_keepalives_idle = 30`)
+-	if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(`+lockKeySQL+`)`, dlqTopic).Scan(&ok); err != nil || !ok {
++	if err := s.pool.QueryRow(ctx, `SELECT pg_try_advisory_lock(`+lockKeySQL+`)`, dlqTopic).Scan(&ok); err != nil || !ok {
+ 		if err == nil {
+ 			var pid int
+ 			var addr string
+
+## L12 TryLock error ignored (run without the lock)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134c/m-0khkxcp8/internal/dlq/manager.go	2026-11-28 05:26:12.007494901 +0000
+@@ -248,7 +248,7 @@
+ 	if !opt.DryRun {
+ 		unlock, ok, holder, err := m.store.TryLock(ctx, topic)
+ 		if err != nil {
+-			return res, storeError(err)
++			ok, unlock = true, func() {}
+ 		}
+ 		if !ok {
+ 			return res, &lockedError{topic, holder}
+
+## I7 manager passes offset 0 (all raw records of a partition share one ID)
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134c/m-fq8pfpfy/internal/dlq/manager.go	2026-11-28 05:26:14.143579360 +0000
+@@ -325,7 +325,7 @@
+ 				item.Target = strings.TrimSuffix(topic, ".dlq")
+ 			}
+ 			var ok bool
+-			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
++			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, 0, r.Timestamp}); ok {
+ 				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
+ 					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+ 					return true
+
+## I8 manager passes a zero timestamp
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134c/m-m9kk69i_/internal/dlq/manager.go	2026-11-28 05:26:18.236687575 +0000
+@@ -325,7 +325,7 @@
+ 				item.Target = strings.TrimSuffix(topic, ".dlq")
+ 			}
+ 			var ok bool
+-			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
++			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{Topic: topic, Partition: p, Offset: r.Offset}); ok {
+ 				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
+ 					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+ 					return true
+
+## I9 manager passes partition 0
+--- /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/wt134/internal/dlq/manager.go	2026-11-28 05:15:58.401587027 +0000
++++ /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mut134c/m-ql0941u2/internal/dlq/manager.go	2026-11-28 05:26:22.214552483 +0000
+@@ -325,7 +325,7 @@
+ 				item.Target = strings.TrimSuffix(topic, ".dlq")
+ 			}
+ 			var ok bool
+-			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {
++			if env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, 0, r.Offset, r.Timestamp}); ok {
+ 				if opt.ErrorType != "" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {
+ 					contiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)
+ 					return true
+
+

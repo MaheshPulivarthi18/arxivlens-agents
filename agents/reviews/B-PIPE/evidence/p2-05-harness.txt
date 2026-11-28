@@ -1,0 +1,526 @@
+$ bash -c for f in /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mutants134.py /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mutants134-only.py /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mutants134-probe.py /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/probe134/qa_probe134_integration_test.go; do echo "==== $f"; cat $f; echo; done; echo '==== diff mutants.py r1 -> r2 (09-harness.txt holds r1)'; diff <(sed -n '/^==== .*mutants.py/,/^==== /p' /home/claude/arxivlens-agents/agents/reviews/B-PIPE/evidence/09-harness.txt | sed '1d;$d') /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mutants.py
+==== /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mutants134.py
+#!/usr/bin/env python3
+"""B-PIPE-1 QA r1 mutation run. Each mutant: git-archive the PR head (9ac8978) into a fresh dir, apply anchored
+substitutions (each anchor must match exactly once, on code), run the suites. Build failure => INVALID, never KILLED.
+Suites: pr = the PR's own tests for that package (dlq: unit + -tags integration TestPGStore_Integration on local PG16;
+Kafka-only tests skip); probe = QA-only probes (qa_probe_integration_test.go, local, never pushed)."""
+import os, subprocess, tempfile
+HEAD = os.environ.get("QA_HEAD", "/home/claude/arxivlens-agents/app")
+S = os.path.dirname(os.path.abspath(__file__))
+DSN = "postgres://postgres@/arxivlens?host=/tmp/qapg&port=55432&sslmode=disable"
+ENV = dict(os.environ, PATH="/usr/local/go1.25.1/bin:" + os.environ["PATH"], GOPROXY="off", GOSUMDB="off",
+           GOFLAGS="-modfile=" + os.path.join(S, "qa.mod"), GOTOOLCHAIN="local", DATABASE_URL=DSN)
+SUITES = {
+ "dlq":   ["go", "test", "-tags", "integration", "-count=1", "-timeout=90s", "-skip", "QAProbe", "./internal/dlq/"],
+ "probe": ["go", "test", "-tags", "integration", "-count=1", "-timeout=90s", "-run", "QAProbe", "./internal/dlq/"],
+ "cmd":   ["go", "test", "-count=1", "-timeout=90s", "./cmd/arxivlens/"],
+ "crawl": ["go", "test", "-count=1", "-timeout=90s", "./internal/crawler/"],
+}
+EN = "internal/dlq/envelope.go"
+MG, ST, MN, CR = "internal/dlq/manager.go", "internal/dlq/store.go", "cmd/arxivlens/main.go", "internal/crawler/crawler.go"
+MARK = ("\t\tif stepErr = mark(Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: item.Outcome,\n"
+        "\t\t\tTargetTopic: item.Target, EventID: item.EventID}); stepErr != nil {\n\t\t\treturn false\n\t\t}\n")
+PUB = "\t\tif item.Outcome == OutcomeReplayed && !opt.DryRun {\n"
+FILT = "\t\t\t\t\tcontiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)\n\t\t\t\t\treturn true\n"
+M = [  # id, [(file, old, new)], suites
+ ("R1 checkpoint written BEFORE the publish ack", [(MG, MARK + "\t\tres.Items", "\t\tres.Items"), (MG, PUB, MARK + PUB)], ["dlq", "probe"]),
+ ("R2 filter skip does not pin the checkpoint", [(MG, FILT, "\t\t\t\t\treturn true\n")], ["dlq", "probe"]),
+ ("R3 filter advances the checkpoint past a skipped record", [(MG, FILT, "\t\t\t\t\tif contiguous {\n\t\t\t\t\t\tnext = r.Offset + 1\n\t\t\t\t\t}\n\t\t\t\t\treturn true\n")], ["dlq", "probe"]),
+ ("R4 filter skip writes a log row (marks skipped done)", [(MG, FILT, "\t\t\t\t\tcontiguous = false\n\t\t\t\t\tstepErr = m.store.MarkResolved(ctx, Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: OutcomeUnreplayable})\n\t\t\t\t\treturn stepErr == nil\n")], ["dlq", "probe"]),
+ ("R5 filter applied before the envelope rule (unreplayables pinned)", [(MG, "\t\t\tif env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {\n\t\t\t\tif opt.ErrorType != \"\" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {",
+   "\t\t\tif opt.ErrorType != \"\" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {\n\t\t\t\tcontiguous = false\n\t\t\t\treturn true\n\t\t\t}\n\t\t\tif env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {\n\t\t\t\tif false {")], ["dlq", "probe"]),
+ ("R6 filter case-sensitive", [(MG, "!strings.EqualFold(r.Payload.ErrorType, opt.ErrorType)", "r.Payload.ErrorType != opt.ErrorType")], ["dlq"]),
+ ("R7 already-resolved records re-published", [(MG, "\t\tif resolved[r.Offset] {", "\t\tif false && resolved[r.Offset] {")], ["dlq", "probe"]),
+ ("R8 resolved records do not advance the tail checkpoint", [(MG, "\t\tif resolved[r.Offset] {\n\t\t\tif contiguous {\n\t\t\t\tnext = r.Offset + 1\n\t\t\t}", "\t\tif resolved[r.Offset] {\n\t\t\tif contiguous {\n\t\t\t}")], ["dlq", "probe"]),
+ ("R9 mark moves the checkpoint even when not contiguous", [(MG, "\t\tif contiguous {\n\t\t\tr.Next, next, written", "\t\tif true {\n\t\t\tr.Next, next, written")], ["dlq", "probe"]),
+ ("R10 dry run calls MarkResolved", [(MG, "\t\tif opt.DryRun {\n\t\t\treturn nil\n\t\t}\n", "")], ["dlq", "cmd"]),
+ ("R11 dry run publishes", [(MG, PUB, "\t\tif item.Outcome == OutcomeReplayed {\n")], ["dlq", "cmd"]),
+ ("R12 publish error swallowed, record skipped", [(MG, "\t\t\t\tstepErr = fmt.Errorf(\"dlq: publish %d/%d to %s (nothing marked resolved): %w\", p, r.Offset, item.Target, stepErr)\n\t\t\t\treturn false",
+   "\t\t\t\tstepErr = nil\n\t\t\t\treturn true")], ["dlq"]),
+ ("R13 MarkResolved error swallowed", [(MG, "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {", "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil && false {")], ["dlq"]),
+ ("W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish)", [(MG, "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {", "if err := m.store.MarkResolved(ctx, r); err != nil {")], ["dlq"]),
+ ("W2 tail checkpoint write uses the cancellable ctx", [(MG, "err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: next})", "err = m.store.MarkResolved(ctx, Resolution{DLQTopic: topic, Partition: p, Next: next})")], ["dlq"]),
+ ("R14 stepErr not returned", [(MG, "\tif err == nil {\n\t\terr = stepErr\n\t}\n", "")], ["dlq"]),
+ ("R15 --limit counts unreplayables", [(MG, "done = opt.Limit > 0 && res.Published >= opt.Limit", "done = opt.Limit > 0 && len(res.Items) >= opt.Limit")], ["dlq", "cmd"]),
+ ("R16 --limit off by one", [(MG, "res.Published >= opt.Limit", "res.Published > opt.Limit")], ["dlq", "cmd"]),
+ ("R17 --limit ignored", [(MG, "\t\treturn !done\n", "\t\treturn true\n")], ["dlq", "cmd"]),
+ ("R18 partitions in descending order", [(MG, "\tsort.Slice(parts, func(i, j int) bool { return parts[i] < parts[j] })\n\tfor _, p := range parts {\n\t\tif done, err := m.replayPartition(", "\tsort.Slice(parts, func(i, j int) bool { return parts[i] > parts[j] })\n\tfor _, p := range parts {\n\t\tif done, err := m.replayPartition(")], ["dlq"]),
+ ("R19 Checkpoints read after Kafka Watermarks", [(MG, "\tif res.Checkpoints, err = m.store.Checkpoints(ctx, topic); err != nil {\n\t\treturn res, storeError(err) // before any Kafka read\n\t}\n", ""),
+   (MG, "\tparts := make(", "\tif res.Checkpoints, err = m.store.Checkpoints(ctx, topic); err != nil {\n\t\treturn res, storeError(err)\n\t}\n\tparts := make(")], ["dlq"]),
+ ("R20 stored checkpoints ignored (start at 0)", [(MG, "wm, cp := res.Watermarks[p], res.Checkpoints[p]", "wm, cp := res.Watermarks[p], int64(0)")], ["dlq", "probe"]),
+ ("R21 Resolved() error ignored", [(MG, "\tresolved, err := m.store.Resolved(ctx, topic, p, from)\n\tif err != nil {\n\t\treturn false, storeError(err)\n\t}\n", "\tresolved, _ := m.store.Resolved(ctx, topic, p, from)\n")], ["dlq", "probe"]),
+ ("R22 tail checkpoint write dropped", [(MG, "if err == nil && !done && !opt.DryRun && contiguous && next > written {", "if false && next > written {")], ["dlq", "probe"]),
+ ("R23 tail checkpoint write in a dry run", [(MG, "if err == nil && !done && !opt.DryRun && contiguous && next > written {", "if err == nil && !done && contiguous && next > written {")], ["dlq", "probe"]),
+ ("R24 expired: reader not moved to Low", [(MG, "\t\tfrom = wm.Low\n", "")], ["dlq", "probe"]),
+ ("R25 all expired: checkpoint not moved to Low", [(MG, "\t\tif from > cp && !opt.DryRun { // every record left", "\t\tif false { // every record left")], ["dlq", "probe"]),
+ ("R26 all expired: dry run moves the checkpoint", [(MG, "\t\tif from > cp && !opt.DryRun { // every record left", "\t\tif from > cp { // every record left")], ["dlq", "probe"]),
+ ("R27 unreplayables not resolved (pin forever)", [(MG, MARK + "\t\tres.Items", "\t\tif item.Outcome == OutcomeUnreplayable {\n\t\t\tcontiguous = false\n\t\t\treturn true\n\t\t}\n" + MARK + "\t\tres.Items")], ["dlq"]),
+ ("R28 empty original_topic replays into the DLQ itself", [(MG, "\t\t\t\titem.Target = strings.TrimSuffix(topic, \".dlq\")", "\t\t\t\titem.Target = topic")], ["dlq", "probe"]),
+ ("S1 checkpoint upsert without GREATEST (can move down)", [(ST, "next_offset = GREATEST(dlq_replay_checkpoints.next_offset, EXCLUDED.next_offset)", "next_offset = EXCLUDED.next_offset")], ["dlq", "probe"]),
+ ("S2 checkpoint written outside the tx, before the row", [(ST, "\t\tif r.Outcome != \"\" {\n\t\t\tif _, err := tx.Exec(", "\t\tif r.Next > 0 {\n\t\t\t_, _ = s.pool.Exec(ctx, `INSERT INTO dlq_replay_checkpoints (dlq_topic, partition, next_offset) VALUES ($1, $2, $3) ON CONFLICT (dlq_topic, partition) DO UPDATE SET next_offset = GREATEST(dlq_replay_checkpoints.next_offset, EXCLUDED.next_offset)`, r.DLQTopic, r.Partition, r.Next)\n\t\t}\n\t\tif r.Outcome != \"\" {\n\t\t\tif _, err := tx.Exec(")], ["dlq", "probe"]),
+ ("S3 log insert without ON CONFLICT DO NOTHING", [(ST, "\n\t\t\t\tON CONFLICT (dlq_topic, partition, dlq_offset) DO NOTHING`", "`")], ["dlq", "probe"]),
+ ("S4 Resolved uses > from (drops the offset at from)", [(ST, "AND dlq_offset >= $3`", "AND dlq_offset > $3`")], ["dlq", "probe"]),
+ ("S5 Checkpoints not filtered by dlq_topic", [(ST, "FROM dlq_replay_checkpoints WHERE dlq_topic = $1`", "FROM dlq_replay_checkpoints WHERE dlq_topic = $1 OR true`")], ["dlq", "probe"]),
+ ("S6 Resolved not filtered by partition", [(ST, "AND partition = $2 AND", "AND $2::int IS NOT NULL AND")], ["dlq", "probe"]),
+ ("S7 Resolved not filtered by dlq_topic", [(ST, "FROM dlq_replay_log WHERE dlq_topic = $1 AND", "FROM dlq_replay_log WHERE $1::text IS NOT NULL AND")], ["dlq", "probe"]),
+ ("C1 footer: --limit not printed as --page-size", [(MN, "if cmd.Flags().Changed(\"page-size\") || cmd.Flags().Changed(\"limit\") {", "if cmd.Flags().Changed(\"page-size\") {")], ["cmd"]),
+ ("C2 footer: --partition never repeated", [(MN, "\tif cmd.Flags().Changed(\"partition\") {\n\t\tfmt.Fprintf(&b, \" --partition %d\", partition)", "\tif false {\n\t\tfmt.Fprintf(&b, \" --partition %d\", partition)")], ["cmd"]),
+ ("C3 SilenceErrors off (double Error: line)", [(MN, "\t\tSilenceErrors: true,", "\t\tSilenceErrors: false,")], ["cmd"]),
+ ("C4 inspect: no empty-topic line", [(MN, "} else if seen == 0 {", "} else if seen < 0 {")], ["cmd"]),
+ ("C5 replay: Postgres error without the migrate hint", [(MN, "return nil, nil, nil, fmt.Errorf(\"dlq replay needs a migrated PostgreSQL (DATABASE_URL; run 'arxivlens migrate'): %w\", err)", "return nil, nil, nil, err")], ["cmd"]),
+ ("C6 replay: no DRY RUN banner", [(MN, "\t\tfmt.Fprintln(out, \"DRY RUN (no lock taken; may race a concurrent replay)\")\n", "")], ["cmd"]),
+ ("C7 crawl: --rate-limit check removed", [(MN, "if rateLimit < arxiv.DefaultInterval { // before any connection", "if false { // before any connection")], ["cmd"]),
+ ("C8 crawl: check <= (rejects the 3s default)", [(MN, "if rateLimit < arxiv.DefaultInterval { // before any connection", "if rateLimit <= arxiv.DefaultInterval { // before any connection")], ["cmd"]),
+ ("E1 crawl: GetAPI without the limiter", [(CR, "arxiv.GetAPI(ctx, c.client, c.lim,", "arxiv.GetAPI(ctx, c.client, nil,")], ["crawl"]),
+ ("E2 NewCrawler: no 3 s floor", [(CR, "arxiv.NewLimiter(max(rateLimit, arxiv.DefaultInterval))", "arxiv.NewLimiter(rateLimit)")], ["crawl"]),
+("L1 dry run takes the lock", [(MG, "\tif !opt.DryRun {\n\t\tunlock, ok, holder, err := m.store.TryLock", "\tif true {\n\t\tunlock, ok, holder, err := m.store.TryLock")], ["dlq", "cmd"]),
+ ("L2 refused lock ignored (run proceeds)", [(MG, "\t\tif !ok {\n\t\t\treturn res, &lockedError{topic, holder}\n\t\t}\n\t\tdefer unlock()", "\t\tif !ok {\n\t\t\tunlock = func() {}\n\t\t}\n\t\tdefer unlock()")], ["dlq", "cmd"]),
+ ("L3 unlock never called", [(MG, "\t\tdefer unlock()\n", "\t\t_ = unlock\n")], ["dlq"]),
+ ("L4 lock taken after the Kafka watermarks", [(MG, "\tif !opt.DryRun {\n\t\tunlock, ok, holder, err := m.store.TryLock(ctx, topic)", "\tif _, err := m.reader.Watermarks(ctx, topic); err != nil {\n\t\treturn res, err\n\t}\n\tif !opt.DryRun {\n\t\tunlock, ok, holder, err := m.store.TryLock(ctx, topic)")], ["dlq", "cmd"]),
+ ("L5 lockedError not ErrLocked", [(MG, "func (e *lockedError) Is(target error) bool { return target == ErrLocked }", "func (e *lockedError) Is(target error) bool { return false }")], ["dlq", "cmd"]),
+ ("L6 lock key ignores the topic", [(ST, "const lockKeySQL = `hashtextextended('arxivlens.dlq.replay/' || $1, 0)`", "const lockKeySQL = `hashtextextended('arxivlens.dlq.replay', 0 * length($1))`")], ["dlq"]),
+ ("L7 xact-level lock (released at once)", [(ST, "`SELECT pg_try_advisory_lock(`", "`SELECT pg_try_advisory_xact_lock(`")], ["dlq"]),
+ ("L8 unlock does not unlock (conn back to pool still holding it)", [(ST, "\t\tif _, err := conn.Exec(ctx, `SELECT pg_advisory_unlock(`+lockKeySQL+`)`, dlqTopic); err != nil {", "\t\tif false {")], ["dlq"]),
+ ("L9 refused path leaks the connection", [(ST, "\t\tconn.Release()\n\t\tif err != nil {\n\t\t\treturn nil, false, \"\", fmt.Errorf(\"replay lock: %w\", err)", "\t\tif err != nil {\n\t\t\treturn nil, false, \"\", fmt.Errorf(\"replay lock: %w\", err)")], ["dlq"]),
+ ("L10 holder query never matches", [(ST, "AND l.objsubid = 1", "AND l.objsubid = 2")], ["dlq"]),
+ ("L11 lock taken on a pooled conn, not the dedicated one", [(ST, "if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(`", "if err := s.pool.QueryRow(ctx, `SELECT pg_try_advisory_lock(`")], ["dlq"]),
+ ("L12 TryLock error ignored (run without the lock)", [(MG, "\t\tif err != nil {\n\t\t\treturn res, storeError(err)\n\t\t}\n\t\tif !ok {", "\t\tif err != nil {\n\t\t\tok, unlock = true, func() {}\n\t\t}\n\t\tif !ok {")], ["dlq"]),
+ ("I1 ID ignores the offset", [(EN, " + \"\\x00\" +\n\t\tstrconv.FormatInt(s.Offset, 10))", ")")], ["dlq"]),
+ ("I2 ID ignores the topic", [(EN, "\"arxivlens/dlq-replay\\x00\" + s.Topic + \"\\x00\" +", "\"arxivlens/dlq-replay\\x00\" +")], ["dlq"]),
+ ("I3 ID time part = now", [(EN, "\t\tms = ulid.Timestamp(s.Timestamp)", "\t\tms = ulid.Now()")], ["dlq"]),
+ ("I4 no separator partition|offset (digit-shift collisions)", [(EN, "strconv.Itoa(int(s.Partition)) + \"\\x00\" +", "strconv.Itoa(int(s.Partition)) +")], ["dlq"]),
+ ("I5 raw payload keeps the random NewEventEnvelope ID", [(EN, "\tenv.EventID, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)", "\t_, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)")], ["dlq"]),
+ ("I6 occurred_at not the DLQ timestamp", [(EN, "\tenv.EventID, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)", "\tenv.EventID = replayID(src)")], ["dlq"]),
+ ("I7 manager passes offset 0 (all raw records of a partition share one ID)", [(MG, "source{topic, p, r.Offset, r.Timestamp}", "source{topic, p, 0, r.Timestamp}")], ["dlq", "cmd"]),
+ ("I8 manager passes a zero timestamp", [(MG, "source{topic, p, r.Offset, r.Timestamp}", "source{topic, p, r.Offset, time.Time{}}")], ["dlq", "cmd"]),
+ ("I9 manager passes partition 0", [(MG, "source{topic, p, r.Offset, r.Timestamp}", "source{topic, 0, r.Offset, r.Timestamp}")], ["dlq", "cmd"]),
+ ("I10 full envelope also gets the derived ID", [(EN, "\t\tenv.Attempt = 0 // Reset attempt counter (§6)", "\t\tenv.Attempt = 0 // Reset attempt counter (§6)\n\t\tenv.EventID = replayID(src)")], ["dlq"]),
+]
+def tree():
+    d = tempfile.mkdtemp(prefix="m-", dir=os.path.join(S, os.environ.get("QA_MUT", "mut")))
+    subprocess.run(f"git -C {HEAD} archive HEAD | tar -x -C {d}", shell=True, check=True)
+    subprocess.run(f"cp {S}/probe/qa_probe_integration_test.go {d}/internal/dlq/", shell=True, check=True)
+    return d
+def run(d, suite):
+    subprocess.run(["psql", "-h", "/tmp/qapg", "-p", "55432", "-U", "postgres", "-d", "arxivlens", "-qc",
+                    "DELETE FROM dlq_replay_log; DELETE FROM dlq_replay_checkpoints"], capture_output=True)
+    r = subprocess.run(SUITES[suite], cwd=d, env=ENV, capture_output=True, text=True, timeout=300)
+    out = r.stdout + r.stderr
+    if "[build failed]" in out or "[setup failed]" in out:
+        return "INVALID", out
+    fails = sorted({l.strip().split(" ")[2] for l in out.splitlines() if l.strip().startswith("--- FAIL:")})
+    if "panic:" in out and not fails: fails.append("PANIC")
+    return ("pass" if r.returncode == 0 else "FAIL " + ",".join(fails)), out
+os.makedirs(os.path.join(S, os.environ.get("QA_MUT", "mut")), exist_ok=True)
+rows, diffs = [], []
+d = tree()
+for s in SUITES:
+    v, _ = run(d, s); rows.append(("CONTROL (unmutated head + QA probe)", s, v))
+for mid, subs, suites in M:
+    d = tree(); bad = None
+    for f, old, new in subs:
+        p = os.path.join(d, f); src = open(p).read()
+        if src.count(old) != 1: bad = f"NOT APPLIED (anchor count {src.count(old)} in {f})"; break
+        open(p, "w").write(src.replace(old, new))
+    if bad: rows.append((mid, "-", bad)); continue
+    for f in sorted({x[0] for x in subs}):
+        diffs.append("## " + mid + "\n" + subprocess.run(["diff", "-u", os.path.join(HEAD, f), os.path.join(d, f)], capture_output=True, text=True).stdout)
+    res = {}
+    for s in suites:
+        v, out = run(d, s); res[s] = v
+        if v == "INVALID": diffs.append(out[-1500:])
+    pr = [s for s in suites if s != "probe"]
+    verdict = "KILLED" if any(res[s].startswith("FAIL") for s in pr) else ("INVALID" if any(res[s] == "INVALID" for s in suites) else "SURVIVED")
+    if verdict == "SURVIVED" and "probe" in res and res["probe"].startswith("FAIL"): verdict = "SURVIVED (PR tests) / caught by QA probe"
+    for s in suites: rows.append((mid, s, res[s]))
+    rows.append((mid, "=>", verdict))
+print(f"{'mutant':58} | suite | result")
+for r in rows: print(f"{r[0]:58} | {r[1]:5} | {r[2]}")
+print("\nsuites:", {k: " ".join(v) for k, v in SUITES.items()})
+print("\n==== mutant diffs (local scratch copies only, never pushed) ====")
+for x in diffs: print(x)
+
+==== /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mutants134-only.py
+#!/usr/bin/env python3
+"""B-PIPE-1 QA r1 mutation run. Each mutant: git-archive the PR head (9ac8978) into a fresh dir, apply anchored
+substitutions (each anchor must match exactly once, on code), run the suites. Build failure => INVALID, never KILLED.
+Suites: pr = the PR's own tests for that package (dlq: unit + -tags integration TestPGStore_Integration on local PG16;
+Kafka-only tests skip); probe = QA-only probes (qa_probe_integration_test.go, local, never pushed)."""
+import os, re, subprocess, tempfile
+HEAD = os.environ.get("QA_HEAD", "/home/claude/arxivlens-agents/app")
+S = os.path.dirname(os.path.abspath(__file__))
+DSN = "postgres://postgres@/arxivlens?host=/tmp/qapg&port=55432&sslmode=disable"
+ENV = dict(os.environ, PATH="/usr/local/go1.25.1/bin:" + os.environ["PATH"], GOPROXY="off", GOSUMDB="off",
+           GOFLAGS="-modfile=" + os.path.join(S, "qa.mod"), GOTOOLCHAIN="local", DATABASE_URL=DSN)
+SUITES = {
+ "dlq":   ["go", "test", "-tags", "integration", "-count=1", "-timeout=90s", "-skip", "QAProbe", "./internal/dlq/"],
+ "probe": ["go", "test", "-tags", "integration", "-count=1", "-timeout=90s", "-run", "QAProbe", "./internal/dlq/"],
+ "cmd":   ["go", "test", "-count=1", "-timeout=90s", "./cmd/arxivlens/"],
+ "crawl": ["go", "test", "-count=1", "-timeout=90s", "./internal/crawler/"],
+}
+EN = "internal/dlq/envelope.go"
+MG, ST, MN, CR = "internal/dlq/manager.go", "internal/dlq/store.go", "cmd/arxivlens/main.go", "internal/crawler/crawler.go"
+MARK = ("\t\tif stepErr = mark(Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: item.Outcome,\n"
+        "\t\t\tTargetTopic: item.Target, EventID: item.EventID}); stepErr != nil {\n\t\t\treturn false\n\t\t}\n")
+PUB = "\t\tif item.Outcome == OutcomeReplayed && !opt.DryRun {\n"
+FILT = "\t\t\t\t\tcontiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)\n\t\t\t\t\treturn true\n"
+M = [  # id, [(file, old, new)], suites
+ ("R1 checkpoint written BEFORE the publish ack", [(MG, MARK + "\t\tres.Items", "\t\tres.Items"), (MG, PUB, MARK + PUB)], ["dlq", "probe"]),
+ ("R2 filter skip does not pin the checkpoint", [(MG, FILT, "\t\t\t\t\treturn true\n")], ["dlq", "probe"]),
+ ("R3 filter advances the checkpoint past a skipped record", [(MG, FILT, "\t\t\t\t\tif contiguous {\n\t\t\t\t\t\tnext = r.Offset + 1\n\t\t\t\t\t}\n\t\t\t\t\treturn true\n")], ["dlq", "probe"]),
+ ("R4 filter skip writes a log row (marks skipped done)", [(MG, FILT, "\t\t\t\t\tcontiguous = false\n\t\t\t\t\tstepErr = m.store.MarkResolved(ctx, Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: OutcomeUnreplayable})\n\t\t\t\t\treturn stepErr == nil\n")], ["dlq", "probe"]),
+ ("R5 filter applied before the envelope rule (unreplayables pinned)", [(MG, "\t\t\tif env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {\n\t\t\t\tif opt.ErrorType != \"\" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {",
+   "\t\t\tif opt.ErrorType != \"\" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {\n\t\t\t\tcontiguous = false\n\t\t\t\treturn true\n\t\t\t}\n\t\t\tif env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {\n\t\t\t\tif false {")], ["dlq", "probe"]),
+ ("R6 filter case-sensitive", [(MG, "!strings.EqualFold(r.Payload.ErrorType, opt.ErrorType)", "r.Payload.ErrorType != opt.ErrorType")], ["dlq"]),
+ ("R7 already-resolved records re-published", [(MG, "\t\tif resolved[r.Offset] {", "\t\tif false && resolved[r.Offset] {")], ["dlq", "probe"]),
+ ("R8 resolved records do not advance the tail checkpoint", [(MG, "\t\tif resolved[r.Offset] {\n\t\t\tif contiguous {\n\t\t\t\tnext = r.Offset + 1\n\t\t\t}", "\t\tif resolved[r.Offset] {\n\t\t\tif contiguous {\n\t\t\t}")], ["dlq", "probe"]),
+ ("R9 mark moves the checkpoint even when not contiguous", [(MG, "\t\tif contiguous {\n\t\t\tr.Next, next, written", "\t\tif true {\n\t\t\tr.Next, next, written")], ["dlq", "probe"]),
+ ("R10 dry run calls MarkResolved", [(MG, "\t\tif opt.DryRun {\n\t\t\treturn nil\n\t\t}\n", "")], ["dlq", "cmd"]),
+ ("R11 dry run publishes", [(MG, PUB, "\t\tif item.Outcome == OutcomeReplayed {\n")], ["dlq", "cmd"]),
+ ("R12 publish error swallowed, record skipped", [(MG, "\t\t\t\tstepErr = fmt.Errorf(\"dlq: publish %d/%d to %s (nothing marked resolved): %w\", p, r.Offset, item.Target, stepErr)\n\t\t\t\treturn false",
+   "\t\t\t\tstepErr = nil\n\t\t\t\treturn true")], ["dlq"]),
+ ("R13 MarkResolved error swallowed", [(MG, "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {", "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil && false {")], ["dlq"]),
+ ("W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish)", [(MG, "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {", "if err := m.store.MarkResolved(ctx, r); err != nil {")], ["dlq"]),
+ ("W2 tail checkpoint write uses the cancellable ctx", [(MG, "err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: next})", "err = m.store.MarkResolved(ctx, Resolution{DLQTopic: topic, Partition: p, Next: next})")], ["dlq"]),
+ ("R14 stepErr not returned", [(MG, "\tif err == nil {\n\t\terr = stepErr\n\t}\n", "")], ["dlq"]),
+ ("R15 --limit counts unreplayables", [(MG, "done = opt.Limit > 0 && res.Published >= opt.Limit", "done = opt.Limit > 0 && len(res.Items) >= opt.Limit")], ["dlq", "cmd"]),
+ ("R16 --limit off by one", [(MG, "res.Published >= opt.Limit", "res.Published > opt.Limit")], ["dlq", "cmd"]),
+ ("R17 --limit ignored", [(MG, "\t\treturn !done\n", "\t\treturn true\n")], ["dlq", "cmd"]),
+ ("R18 partitions in descending order", [(MG, "\tsort.Slice(parts, func(i, j int) bool { return parts[i] < parts[j] })\n\tfor _, p := range parts {\n\t\tif done, err := m.replayPartition(", "\tsort.Slice(parts, func(i, j int) bool { return parts[i] > parts[j] })\n\tfor _, p := range parts {\n\t\tif done, err := m.replayPartition(")], ["dlq"]),
+ ("R19 Checkpoints read after Kafka Watermarks", [(MG, "\tif res.Checkpoints, err = m.store.Checkpoints(ctx, topic); err != nil {\n\t\treturn res, storeError(err) // before any Kafka read\n\t}\n", ""),
+   (MG, "\tparts := make(", "\tif res.Checkpoints, err = m.store.Checkpoints(ctx, topic); err != nil {\n\t\treturn res, storeError(err)\n\t}\n\tparts := make(")], ["dlq"]),
+ ("R20 stored checkpoints ignored (start at 0)", [(MG, "wm, cp := res.Watermarks[p], res.Checkpoints[p]", "wm, cp := res.Watermarks[p], int64(0)")], ["dlq", "probe"]),
+ ("R21 Resolved() error ignored", [(MG, "\tresolved, err := m.store.Resolved(ctx, topic, p, from)\n\tif err != nil {\n\t\treturn false, storeError(err)\n\t}\n", "\tresolved, _ := m.store.Resolved(ctx, topic, p, from)\n")], ["dlq", "probe"]),
+ ("R22 tail checkpoint write dropped", [(MG, "if err == nil && !done && !opt.DryRun && contiguous && next > written {", "if false && next > written {")], ["dlq", "probe"]),
+ ("R23 tail checkpoint write in a dry run", [(MG, "if err == nil && !done && !opt.DryRun && contiguous && next > written {", "if err == nil && !done && contiguous && next > written {")], ["dlq", "probe"]),
+ ("R24 expired: reader not moved to Low", [(MG, "\t\tfrom = wm.Low\n", "")], ["dlq", "probe"]),
+ ("R25 all expired: checkpoint not moved to Low", [(MG, "\t\tif from > cp && !opt.DryRun { // every record left", "\t\tif false { // every record left")], ["dlq", "probe"]),
+ ("R26 all expired: dry run moves the checkpoint", [(MG, "\t\tif from > cp && !opt.DryRun { // every record left", "\t\tif from > cp { // every record left")], ["dlq", "probe"]),
+ ("R27 unreplayables not resolved (pin forever)", [(MG, MARK + "\t\tres.Items", "\t\tif item.Outcome == OutcomeUnreplayable {\n\t\t\tcontiguous = false\n\t\t\treturn true\n\t\t}\n" + MARK + "\t\tres.Items")], ["dlq"]),
+ ("R28 empty original_topic replays into the DLQ itself", [(MG, "\t\t\t\titem.Target = strings.TrimSuffix(topic, \".dlq\")", "\t\t\t\titem.Target = topic")], ["dlq", "probe"]),
+ ("S1 checkpoint upsert without GREATEST (can move down)", [(ST, "next_offset = GREATEST(dlq_replay_checkpoints.next_offset, EXCLUDED.next_offset)", "next_offset = EXCLUDED.next_offset")], ["dlq", "probe"]),
+ ("S2 checkpoint written outside the tx, before the row", [(ST, "\t\tif r.Outcome != \"\" {\n\t\t\tif _, err := tx.Exec(", "\t\tif r.Next > 0 {\n\t\t\t_, _ = s.pool.Exec(ctx, `INSERT INTO dlq_replay_checkpoints (dlq_topic, partition, next_offset) VALUES ($1, $2, $3) ON CONFLICT (dlq_topic, partition) DO UPDATE SET next_offset = GREATEST(dlq_replay_checkpoints.next_offset, EXCLUDED.next_offset)`, r.DLQTopic, r.Partition, r.Next)\n\t\t}\n\t\tif r.Outcome != \"\" {\n\t\t\tif _, err := tx.Exec(")], ["dlq", "probe"]),
+ ("S3 log insert without ON CONFLICT DO NOTHING", [(ST, "\n\t\t\t\tON CONFLICT (dlq_topic, partition, dlq_offset) DO NOTHING`", "`")], ["dlq", "probe"]),
+ ("S4 Resolved uses > from (drops the offset at from)", [(ST, "AND dlq_offset >= $3`", "AND dlq_offset > $3`")], ["dlq", "probe"]),
+ ("S5 Checkpoints not filtered by dlq_topic", [(ST, "FROM dlq_replay_checkpoints WHERE dlq_topic = $1`", "FROM dlq_replay_checkpoints WHERE dlq_topic = $1 OR true`")], ["dlq", "probe"]),
+ ("S6 Resolved not filtered by partition", [(ST, "AND partition = $2 AND", "AND $2::int IS NOT NULL AND")], ["dlq", "probe"]),
+ ("S7 Resolved not filtered by dlq_topic", [(ST, "FROM dlq_replay_log WHERE dlq_topic = $1 AND", "FROM dlq_replay_log WHERE $1::text IS NOT NULL AND")], ["dlq", "probe"]),
+ ("C1 footer: --limit not printed as --page-size", [(MN, "if cmd.Flags().Changed(\"page-size\") || cmd.Flags().Changed(\"limit\") {", "if cmd.Flags().Changed(\"page-size\") {")], ["cmd"]),
+ ("C2 footer: --partition never repeated", [(MN, "\tif cmd.Flags().Changed(\"partition\") {\n\t\tfmt.Fprintf(&b, \" --partition %d\", partition)", "\tif false {\n\t\tfmt.Fprintf(&b, \" --partition %d\", partition)")], ["cmd"]),
+ ("C3 SilenceErrors off (double Error: line)", [(MN, "\t\tSilenceErrors: true,", "\t\tSilenceErrors: false,")], ["cmd"]),
+ ("C4 inspect: no empty-topic line", [(MN, "} else if seen == 0 {", "} else if seen < 0 {")], ["cmd"]),
+ ("C5 replay: Postgres error without the migrate hint", [(MN, "return nil, nil, nil, fmt.Errorf(\"dlq replay needs a migrated PostgreSQL (DATABASE_URL; run 'arxivlens migrate'): %w\", err)", "return nil, nil, nil, err")], ["cmd"]),
+ ("C6 replay: no DRY RUN banner", [(MN, "\t\tfmt.Fprintln(out, \"DRY RUN (no lock taken; may race a concurrent replay)\")\n", "")], ["cmd"]),
+ ("C7 crawl: --rate-limit check removed", [(MN, "if rateLimit < arxiv.DefaultInterval { // before any connection", "if false { // before any connection")], ["cmd"]),
+ ("C8 crawl: check <= (rejects the 3s default)", [(MN, "if rateLimit < arxiv.DefaultInterval { // before any connection", "if rateLimit <= arxiv.DefaultInterval { // before any connection")], ["cmd"]),
+ ("E1 crawl: GetAPI without the limiter", [(CR, "arxiv.GetAPI(ctx, c.client, c.lim,", "arxiv.GetAPI(ctx, c.client, nil,")], ["crawl"]),
+ ("E2 NewCrawler: no 3 s floor", [(CR, "arxiv.NewLimiter(max(rateLimit, arxiv.DefaultInterval))", "arxiv.NewLimiter(rateLimit)")], ["crawl"]),
+("L1 dry run takes the lock", [(MG, "\tif !opt.DryRun {\n\t\tunlock, ok, holder, err := m.store.TryLock", "\tif true {\n\t\tunlock, ok, holder, err := m.store.TryLock")], ["dlq", "cmd"]),
+ ("L2 refused lock ignored (run proceeds)", [(MG, "\t\tif !ok {\n\t\t\treturn res, &lockedError{topic, holder}\n\t\t}\n\t\tdefer unlock()", "\t\tif !ok {\n\t\t\t_ = holder\n\t\t\tunlock = func() {}\n\t\t}\n\t\tdefer unlock()")], ["dlq", "cmd"]),
+ ("L3 unlock never called", [(MG, "\t\tdefer unlock()\n", "\t\t_ = unlock\n")], ["dlq"]),
+ ("L4 lock taken after the Kafka watermarks", [(MG, "\tif !opt.DryRun {\n\t\tunlock, ok, holder, err := m.store.TryLock(ctx, topic)", "\tif _, err := m.reader.Watermarks(ctx, topic); err != nil {\n\t\treturn res, err\n\t}\n\tif !opt.DryRun {\n\t\tunlock, ok, holder, err := m.store.TryLock(ctx, topic)")], ["dlq", "cmd"]),
+ ("L5 lockedError not ErrLocked", [(MG, "func (e *lockedError) Is(target error) bool { return target == ErrLocked }", "func (e *lockedError) Is(target error) bool { return false }")], ["dlq", "cmd"]),
+ ("L6 lock key ignores the topic", [(ST, "const lockKeySQL = `hashtextextended('arxivlens.dlq.replay/' || $1, 0)`", "const lockKeySQL = `hashtextextended('arxivlens.dlq.replay', 0 * length($1))`")], ["dlq"]),
+ ("L7 xact-level lock (released at once)", [(ST, "`SELECT pg_try_advisory_lock(`", "`SELECT pg_try_advisory_xact_lock(`")], ["dlq"]),
+ ("L8 unlock does not unlock (conn back to pool still holding it)", [(ST, "\t\tif _, err := conn.Exec(ctx, `SELECT pg_advisory_unlock(`+lockKeySQL+`)`, dlqTopic); err != nil {", "\t\tif false {")], ["dlq"]),
+ ("L9 refused path leaks the connection", [(ST, "\t\tconn.Release()\n\t\tif err != nil {\n\t\t\treturn nil, false, \"\", fmt.Errorf(\"replay lock: %w\", err)", "\t\tif err != nil {\n\t\t\treturn nil, false, \"\", fmt.Errorf(\"replay lock: %w\", err)")], ["dlq"]),
+ ("L10 holder query never matches", [(ST, "AND l.objsubid = 1", "AND l.objsubid = 2")], ["dlq"]),
+ ("L11 lock taken on a pooled conn, not the dedicated one", [(ST, "if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(`", "if err := s.pool.QueryRow(ctx, `SELECT pg_try_advisory_lock(`")], ["dlq"]),
+ ("L12 TryLock error ignored (run without the lock)", [(MG, "\t\tif err != nil {\n\t\t\treturn res, storeError(err)\n\t\t}\n\t\tif !ok {", "\t\tif err != nil {\n\t\t\tok, unlock = true, func() {}\n\t\t}\n\t\tif !ok {")], ["dlq"]),
+ ("I1 ID ignores the offset", [(EN, " + \"\\x00\" +\n\t\tstrconv.FormatInt(s.Offset, 10))", ")")], ["dlq"]),
+ ("I2 ID ignores the topic", [(EN, "\"arxivlens/dlq-replay\\x00\" + s.Topic + \"\\x00\" +", "\"arxivlens/dlq-replay\\x00\" +")], ["dlq"]),
+ ("I3 ID time part = now", [(EN, "\t\tms = ulid.Timestamp(s.Timestamp)", "\t\tms = ulid.Now()")], ["dlq"]),
+ ("I4 no separator partition|offset (digit-shift collisions)", [(EN, "strconv.Itoa(int(s.Partition)) + \"\\x00\" +", "strconv.Itoa(int(s.Partition)) +")], ["dlq"]),
+ ("I5 raw payload keeps the random NewEventEnvelope ID", [(EN, "\tenv.EventID, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)", "\t_, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)")], ["dlq"]),
+ ("I6 occurred_at not the DLQ timestamp", [(EN, "\tenv.EventID, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)", "\tenv.EventID = replayID(src)")], ["dlq"]),
+ ("I7 manager passes offset 0 (all raw records of a partition share one ID)", [(MG, "source{topic, p, r.Offset, r.Timestamp}", "source{topic, p, 0, r.Timestamp}")], ["dlq", "cmd"]),
+ ("I8 manager passes a zero timestamp", [(MG, "source{topic, p, r.Offset, r.Timestamp}", "source{Topic: topic, Partition: p, Offset: r.Offset}")], ["dlq", "cmd"]),
+ ("I9 manager passes partition 0", [(MG, "source{topic, p, r.Offset, r.Timestamp}", "source{topic, 0, r.Offset, r.Timestamp}")], ["dlq", "cmd"]),
+ ("I10 full envelope also gets the derived ID", [(EN, "\t\tenv.Attempt = 0 // Reset attempt counter (§6)", "\t\tenv.Attempt = 0 // Reset attempt counter (§6)\n\t\tenv.EventID = replayID(src)")], ["dlq"]),
+]
+def tree():
+    d = tempfile.mkdtemp(prefix="m-", dir=os.path.join(S, os.environ.get("QA_MUT", "mut")))
+    subprocess.run(f"git -C {HEAD} archive HEAD | tar -x -C {d}", shell=True, check=True)
+    subprocess.run(f"cp {S}/probe/qa_probe_integration_test.go {d}/internal/dlq/", shell=True, check=True)
+    return d
+def run(d, suite):
+    subprocess.run(["psql", "-h", "/tmp/qapg", "-p", "55432", "-U", "postgres", "-d", "arxivlens", "-qc",
+                    "DELETE FROM dlq_replay_log; DELETE FROM dlq_replay_checkpoints"], capture_output=True)
+    r = subprocess.run(SUITES[suite], cwd=d, env=ENV, capture_output=True, text=True, timeout=300)
+    out = r.stdout + r.stderr
+    if "[build failed]" in out or "[setup failed]" in out:
+        return "INVALID", out
+    fails = sorted({l.strip().split(" ")[2] for l in out.splitlines() if l.strip().startswith("--- FAIL:")})
+    if "panic:" in out and not fails: fails.append("PANIC")
+    return ("pass" if r.returncode == 0 else "FAIL " + ",".join(fails)), out
+os.makedirs(os.path.join(S, os.environ.get("QA_MUT", "mut")), exist_ok=True)
+rows, diffs = [], []
+d = tree()
+for s in SUITES:
+    v, _ = run(d, s); rows.append(("CONTROL (unmutated head + QA probe)", s, v))
+for mid, subs, suites in M:
+    if os.environ.get("QA_ONLY") and not re.match(os.environ["QA_ONLY"], mid): continue
+    d = tree(); bad = None
+    for f, old, new in subs:
+        p = os.path.join(d, f); src = open(p).read()
+        if src.count(old) != 1: bad = f"NOT APPLIED (anchor count {src.count(old)} in {f})"; break
+        open(p, "w").write(src.replace(old, new))
+    if bad: rows.append((mid, "-", bad)); continue
+    for f in sorted({x[0] for x in subs}):
+        diffs.append("## " + mid + "\n" + subprocess.run(["diff", "-u", os.path.join(HEAD, f), os.path.join(d, f)], capture_output=True, text=True).stdout)
+    res = {}
+    for s in suites:
+        v, out = run(d, s); res[s] = v
+        if v == "INVALID": diffs.append(out[-1500:])
+    pr = [s for s in suites if s != "probe"]
+    verdict = "KILLED" if any(res[s].startswith("FAIL") for s in pr) else ("INVALID" if any(res[s] == "INVALID" for s in suites) else "SURVIVED")
+    if verdict == "SURVIVED" and "probe" in res and res["probe"].startswith("FAIL"): verdict = "SURVIVED (PR tests) / caught by QA probe"
+    for s in suites: rows.append((mid, s, res[s]))
+    rows.append((mid, "=>", verdict))
+print(f"{'mutant':58} | suite | result")
+for r in rows: print(f"{r[0]:58} | {r[1]:5} | {r[2]}")
+print("\nsuites:", {k: " ".join(v) for k, v in SUITES.items()})
+print("\n==== mutant diffs (local scratch copies only, never pushed) ====")
+for x in diffs: print(x)
+
+==== /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/mutants134-probe.py
+#!/usr/bin/env python3
+"""B-PIPE-1 QA r1 mutation run. Each mutant: git-archive the PR head (9ac8978) into a fresh dir, apply anchored
+substitutions (each anchor must match exactly once, on code), run the suites. Build failure => INVALID, never KILLED.
+Suites: pr = the PR's own tests for that package (dlq: unit + -tags integration TestPGStore_Integration on local PG16;
+Kafka-only tests skip); probe = QA-only probes (qa_probe_integration_test.go, local, never pushed)."""
+import os, re, subprocess, tempfile
+HEAD = os.environ.get("QA_HEAD", "/home/claude/arxivlens-agents/app")
+S = os.path.dirname(os.path.abspath(__file__))
+DSN = "postgres://postgres@/arxivlens?host=/tmp/qapg&port=55432&sslmode=disable"
+ENV = dict(os.environ, PATH="/usr/local/go1.25.1/bin:" + os.environ["PATH"], GOPROXY="off", GOSUMDB="off",
+           GOFLAGS="-modfile=" + os.path.join(S, "qa.mod"), GOTOOLCHAIN="local", DATABASE_URL=DSN)
+SUITES = {
+ "dlq":   ["go", "test", "-tags", "integration", "-count=1", "-timeout=90s", "-skip", "QAProbe", "./internal/dlq/"],
+ "probe": ["go", "test", "-tags", "integration", "-count=1", "-timeout=90s", "-run", "QAProbe", "./internal/dlq/"],
+ "probe134": ["go", "test", "-tags", "integration", "-count=1", "-timeout=90s", "-run", "QAProbe134", "./internal/dlq/"],
+ "cmd":   ["go", "test", "-count=1", "-timeout=90s", "./cmd/arxivlens/"],
+ "crawl": ["go", "test", "-count=1", "-timeout=90s", "./internal/crawler/"],
+}
+EN = "internal/dlq/envelope.go"
+MG, ST, MN, CR = "internal/dlq/manager.go", "internal/dlq/store.go", "cmd/arxivlens/main.go", "internal/crawler/crawler.go"
+MARK = ("\t\tif stepErr = mark(Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: item.Outcome,\n"
+        "\t\t\tTargetTopic: item.Target, EventID: item.EventID}); stepErr != nil {\n\t\t\treturn false\n\t\t}\n")
+PUB = "\t\tif item.Outcome == OutcomeReplayed && !opt.DryRun {\n"
+FILT = "\t\t\t\t\tcontiguous = false // filtered out: no row, stays eligible, pins the checkpoint (design Q6)\n\t\t\t\t\treturn true\n"
+M = [  # id, [(file, old, new)], suites
+ ("R1 checkpoint written BEFORE the publish ack", [(MG, MARK + "\t\tres.Items", "\t\tres.Items"), (MG, PUB, MARK + PUB)], ["dlq", "probe"]),
+ ("R2 filter skip does not pin the checkpoint", [(MG, FILT, "\t\t\t\t\treturn true\n")], ["dlq", "probe"]),
+ ("R3 filter advances the checkpoint past a skipped record", [(MG, FILT, "\t\t\t\t\tif contiguous {\n\t\t\t\t\t\tnext = r.Offset + 1\n\t\t\t\t\t}\n\t\t\t\t\treturn true\n")], ["dlq", "probe"]),
+ ("R4 filter skip writes a log row (marks skipped done)", [(MG, FILT, "\t\t\t\t\tcontiguous = false\n\t\t\t\t\tstepErr = m.store.MarkResolved(ctx, Resolution{DLQTopic: topic, Partition: p, Offset: r.Offset, Outcome: OutcomeUnreplayable})\n\t\t\t\t\treturn stepErr == nil\n")], ["dlq", "probe"]),
+ ("R5 filter applied before the envelope rule (unreplayables pinned)", [(MG, "\t\t\tif env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {\n\t\t\t\tif opt.ErrorType != \"\" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {",
+   "\t\t\tif opt.ErrorType != \"\" && !strings.EqualFold(r.Payload.ErrorType, opt.ErrorType) {\n\t\t\t\tcontiguous = false\n\t\t\t\treturn true\n\t\t\t}\n\t\t\tif env, item.Reason, ok = replayEnvelope(*r.Payload, item.Target, source{topic, p, r.Offset, r.Timestamp}); ok {\n\t\t\t\tif false {")], ["dlq", "probe"]),
+ ("R6 filter case-sensitive", [(MG, "!strings.EqualFold(r.Payload.ErrorType, opt.ErrorType)", "r.Payload.ErrorType != opt.ErrorType")], ["dlq"]),
+ ("R7 already-resolved records re-published", [(MG, "\t\tif resolved[r.Offset] {", "\t\tif false && resolved[r.Offset] {")], ["dlq", "probe"]),
+ ("R8 resolved records do not advance the tail checkpoint", [(MG, "\t\tif resolved[r.Offset] {\n\t\t\tif contiguous {\n\t\t\t\tnext = r.Offset + 1\n\t\t\t}", "\t\tif resolved[r.Offset] {\n\t\t\tif contiguous {\n\t\t\t}")], ["dlq", "probe"]),
+ ("R9 mark moves the checkpoint even when not contiguous", [(MG, "\t\tif contiguous {\n\t\t\tr.Next, next, written", "\t\tif true {\n\t\t\tr.Next, next, written")], ["dlq", "probe"]),
+ ("R10 dry run calls MarkResolved", [(MG, "\t\tif opt.DryRun {\n\t\t\treturn nil\n\t\t}\n", "")], ["dlq", "cmd"]),
+ ("R11 dry run publishes", [(MG, PUB, "\t\tif item.Outcome == OutcomeReplayed {\n")], ["dlq", "cmd"]),
+ ("R12 publish error swallowed, record skipped", [(MG, "\t\t\t\tstepErr = fmt.Errorf(\"dlq: publish %d/%d to %s (nothing marked resolved): %w\", p, r.Offset, item.Target, stepErr)\n\t\t\t\treturn false",
+   "\t\t\t\tstepErr = nil\n\t\t\t\treturn true")], ["dlq"]),
+ ("R13 MarkResolved error swallowed", [(MG, "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {", "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil && false {")], ["dlq"]),
+ ("W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish)", [(MG, "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {", "if err := m.store.MarkResolved(ctx, r); err != nil {")], ["dlq"]),
+ ("W2 tail checkpoint write uses the cancellable ctx", [(MG, "err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: next})", "err = m.store.MarkResolved(ctx, Resolution{DLQTopic: topic, Partition: p, Next: next})")], ["dlq"]),
+ ("R14 stepErr not returned", [(MG, "\tif err == nil {\n\t\terr = stepErr\n\t}\n", "")], ["dlq"]),
+ ("R15 --limit counts unreplayables", [(MG, "done = opt.Limit > 0 && res.Published >= opt.Limit", "done = opt.Limit > 0 && len(res.Items) >= opt.Limit")], ["dlq", "cmd"]),
+ ("R16 --limit off by one", [(MG, "res.Published >= opt.Limit", "res.Published > opt.Limit")], ["dlq", "cmd"]),
+ ("R17 --limit ignored", [(MG, "\t\treturn !done\n", "\t\treturn true\n")], ["dlq", "cmd"]),
+ ("R18 partitions in descending order", [(MG, "\tsort.Slice(parts, func(i, j int) bool { return parts[i] < parts[j] })\n\tfor _, p := range parts {\n\t\tif done, err := m.replayPartition(", "\tsort.Slice(parts, func(i, j int) bool { return parts[i] > parts[j] })\n\tfor _, p := range parts {\n\t\tif done, err := m.replayPartition(")], ["dlq"]),
+ ("R19 Checkpoints read after Kafka Watermarks", [(MG, "\tif res.Checkpoints, err = m.store.Checkpoints(ctx, topic); err != nil {\n\t\treturn res, storeError(err) // before any Kafka read\n\t}\n", ""),
+   (MG, "\tparts := make(", "\tif res.Checkpoints, err = m.store.Checkpoints(ctx, topic); err != nil {\n\t\treturn res, storeError(err)\n\t}\n\tparts := make(")], ["dlq"]),
+ ("R20 stored checkpoints ignored (start at 0)", [(MG, "wm, cp := res.Watermarks[p], res.Checkpoints[p]", "wm, cp := res.Watermarks[p], int64(0)")], ["dlq", "probe"]),
+ ("R21 Resolved() error ignored", [(MG, "\tresolved, err := m.store.Resolved(ctx, topic, p, from)\n\tif err != nil {\n\t\treturn false, storeError(err)\n\t}\n", "\tresolved, _ := m.store.Resolved(ctx, topic, p, from)\n")], ["dlq", "probe"]),
+ ("R22 tail checkpoint write dropped", [(MG, "if err == nil && !done && !opt.DryRun && contiguous && next > written {", "if false && next > written {")], ["dlq", "probe"]),
+ ("R23 tail checkpoint write in a dry run", [(MG, "if err == nil && !done && !opt.DryRun && contiguous && next > written {", "if err == nil && !done && contiguous && next > written {")], ["dlq", "probe"]),
+ ("R24 expired: reader not moved to Low", [(MG, "\t\tfrom = wm.Low\n", "")], ["dlq", "probe"]),
+ ("R25 all expired: checkpoint not moved to Low", [(MG, "\t\tif from > cp && !opt.DryRun { // every record left", "\t\tif false { // every record left")], ["dlq", "probe"]),
+ ("R26 all expired: dry run moves the checkpoint", [(MG, "\t\tif from > cp && !opt.DryRun { // every record left", "\t\tif from > cp { // every record left")], ["dlq", "probe"]),
+ ("R27 unreplayables not resolved (pin forever)", [(MG, MARK + "\t\tres.Items", "\t\tif item.Outcome == OutcomeUnreplayable {\n\t\t\tcontiguous = false\n\t\t\treturn true\n\t\t}\n" + MARK + "\t\tres.Items")], ["dlq"]),
+ ("R28 empty original_topic replays into the DLQ itself", [(MG, "\t\t\t\titem.Target = strings.TrimSuffix(topic, \".dlq\")", "\t\t\t\titem.Target = topic")], ["dlq", "probe"]),
+ ("S1 checkpoint upsert without GREATEST (can move down)", [(ST, "next_offset = GREATEST(dlq_replay_checkpoints.next_offset, EXCLUDED.next_offset)", "next_offset = EXCLUDED.next_offset")], ["dlq", "probe"]),
+ ("S2 checkpoint written outside the tx, before the row", [(ST, "\t\tif r.Outcome != \"\" {\n\t\t\tif _, err := tx.Exec(", "\t\tif r.Next > 0 {\n\t\t\t_, _ = s.pool.Exec(ctx, `INSERT INTO dlq_replay_checkpoints (dlq_topic, partition, next_offset) VALUES ($1, $2, $3) ON CONFLICT (dlq_topic, partition) DO UPDATE SET next_offset = GREATEST(dlq_replay_checkpoints.next_offset, EXCLUDED.next_offset)`, r.DLQTopic, r.Partition, r.Next)\n\t\t}\n\t\tif r.Outcome != \"\" {\n\t\t\tif _, err := tx.Exec(")], ["dlq", "probe"]),
+ ("S3 log insert without ON CONFLICT DO NOTHING", [(ST, "\n\t\t\t\tON CONFLICT (dlq_topic, partition, dlq_offset) DO NOTHING`", "`")], ["dlq", "probe"]),
+ ("S4 Resolved uses > from (drops the offset at from)", [(ST, "AND dlq_offset >= $3`", "AND dlq_offset > $3`")], ["dlq", "probe"]),
+ ("S5 Checkpoints not filtered by dlq_topic", [(ST, "FROM dlq_replay_checkpoints WHERE dlq_topic = $1`", "FROM dlq_replay_checkpoints WHERE dlq_topic = $1 OR true`")], ["dlq", "probe"]),
+ ("S6 Resolved not filtered by partition", [(ST, "AND partition = $2 AND", "AND $2::int IS NOT NULL AND")], ["dlq", "probe"]),
+ ("S7 Resolved not filtered by dlq_topic", [(ST, "FROM dlq_replay_log WHERE dlq_topic = $1 AND", "FROM dlq_replay_log WHERE $1::text IS NOT NULL AND")], ["dlq", "probe"]),
+ ("C1 footer: --limit not printed as --page-size", [(MN, "if cmd.Flags().Changed(\"page-size\") || cmd.Flags().Changed(\"limit\") {", "if cmd.Flags().Changed(\"page-size\") {")], ["cmd"]),
+ ("C2 footer: --partition never repeated", [(MN, "\tif cmd.Flags().Changed(\"partition\") {\n\t\tfmt.Fprintf(&b, \" --partition %d\", partition)", "\tif false {\n\t\tfmt.Fprintf(&b, \" --partition %d\", partition)")], ["cmd"]),
+ ("C3 SilenceErrors off (double Error: line)", [(MN, "\t\tSilenceErrors: true,", "\t\tSilenceErrors: false,")], ["cmd"]),
+ ("C4 inspect: no empty-topic line", [(MN, "} else if seen == 0 {", "} else if seen < 0 {")], ["cmd"]),
+ ("C5 replay: Postgres error without the migrate hint", [(MN, "return nil, nil, nil, fmt.Errorf(\"dlq replay needs a migrated PostgreSQL (DATABASE_URL; run 'arxivlens migrate'): %w\", err)", "return nil, nil, nil, err")], ["cmd"]),
+ ("C6 replay: no DRY RUN banner", [(MN, "\t\tfmt.Fprintln(out, \"DRY RUN (no lock taken; may race a concurrent replay)\")\n", "")], ["cmd"]),
+ ("C7 crawl: --rate-limit check removed", [(MN, "if rateLimit < arxiv.DefaultInterval { // before any connection", "if false { // before any connection")], ["cmd"]),
+ ("C8 crawl: check <= (rejects the 3s default)", [(MN, "if rateLimit < arxiv.DefaultInterval { // before any connection", "if rateLimit <= arxiv.DefaultInterval { // before any connection")], ["cmd"]),
+ ("E1 crawl: GetAPI without the limiter", [(CR, "arxiv.GetAPI(ctx, c.client, c.lim,", "arxiv.GetAPI(ctx, c.client, nil,")], ["crawl"]),
+ ("E2 NewCrawler: no 3 s floor", [(CR, "arxiv.NewLimiter(max(rateLimit, arxiv.DefaultInterval))", "arxiv.NewLimiter(rateLimit)")], ["crawl"]),
+("L1 dry run takes the lock", [(MG, "\tif !opt.DryRun {\n\t\tunlock, ok, holder, err := m.store.TryLock", "\tif true {\n\t\tunlock, ok, holder, err := m.store.TryLock")], ["dlq", "cmd"]),
+ ("L2 refused lock ignored (run proceeds)", [(MG, "\t\tif !ok {\n\t\t\treturn res, &lockedError{topic, holder}\n\t\t}\n\t\tdefer unlock()", "\t\tif !ok {\n\t\t\t_ = holder\n\t\t\tunlock = func() {}\n\t\t}\n\t\tdefer unlock()")], ["dlq", "cmd"]),
+ ("L3 unlock never called", [(MG, "\t\tdefer unlock()\n", "\t\t_ = unlock\n")], ["dlq"]),
+ ("L4 lock taken after the Kafka watermarks", [(MG, "\tif !opt.DryRun {\n\t\tunlock, ok, holder, err := m.store.TryLock(ctx, topic)", "\tif _, err := m.reader.Watermarks(ctx, topic); err != nil {\n\t\treturn res, err\n\t}\n\tif !opt.DryRun {\n\t\tunlock, ok, holder, err := m.store.TryLock(ctx, topic)")], ["dlq", "cmd"]),
+ ("L5 lockedError not ErrLocked", [(MG, "func (e *lockedError) Is(target error) bool { return target == ErrLocked }", "func (e *lockedError) Is(target error) bool { return false }")], ["dlq", "cmd"]),
+ ("L6 lock key ignores the topic", [(ST, "const lockKeySQL = `hashtextextended('arxivlens.dlq.replay/' || $1, 0)`", "const lockKeySQL = `hashtextextended('arxivlens.dlq.replay', 0 * length($1))`")], ["dlq"]),
+ ("L7 xact-level lock (released at once)", [(ST, "`SELECT pg_try_advisory_lock(`", "`SELECT pg_try_advisory_xact_lock(`")], ["dlq"]),
+ ("L8 unlock does not unlock (conn back to pool still holding it)", [(ST, "\t\tif _, err := conn.Exec(ctx, `SELECT pg_advisory_unlock(`+lockKeySQL+`)`, dlqTopic); err != nil {", "\t\tif false {")], ["dlq", "probe134"]),
+ ("L9 refused path leaks the connection", [(ST, "\t\tconn.Release()\n\t\tif err != nil {\n\t\t\treturn nil, false, \"\", fmt.Errorf(\"replay lock: %w\", err)", "\t\tif err != nil {\n\t\t\treturn nil, false, \"\", fmt.Errorf(\"replay lock: %w\", err)")], ["dlq"]),
+ ("L10 holder query never matches", [(ST, "AND l.objsubid = 1", "AND l.objsubid = 2")], ["dlq"]),
+ ("L11 lock taken on a pooled conn, not the dedicated one", [(ST, "if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(`", "if err := s.pool.QueryRow(ctx, `SELECT pg_try_advisory_lock(`")], ["dlq", "probe134"]),
+ ("L12 TryLock error ignored (run without the lock)", [(MG, "\t\tif err != nil {\n\t\t\treturn res, storeError(err)\n\t\t}\n\t\tif !ok {", "\t\tif err != nil {\n\t\t\tok, unlock = true, func() {}\n\t\t}\n\t\tif !ok {")], ["dlq", "probe134"]),
+ ("I1 ID ignores the offset", [(EN, " + \"\\x00\" +\n\t\tstrconv.FormatInt(s.Offset, 10))", ")")], ["dlq"]),
+ ("I2 ID ignores the topic", [(EN, "\"arxivlens/dlq-replay\\x00\" + s.Topic + \"\\x00\" +", "\"arxivlens/dlq-replay\\x00\" +")], ["dlq"]),
+ ("I3 ID time part = now", [(EN, "\t\tms = ulid.Timestamp(s.Timestamp)", "\t\tms = ulid.Now()")], ["dlq"]),
+ ("I4 no separator partition|offset (digit-shift collisions)", [(EN, "strconv.Itoa(int(s.Partition)) + \"\\x00\" +", "strconv.Itoa(int(s.Partition)) +")], ["dlq"]),
+ ("I5 raw payload keeps the random NewEventEnvelope ID", [(EN, "\tenv.EventID, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)", "\t_, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)")], ["dlq"]),
+ ("I6 occurred_at not the DLQ timestamp", [(EN, "\tenv.EventID, env.OccurredAt = replayID(src), src.Timestamp.UTC().Format(time.RFC3339Nano)", "\tenv.EventID = replayID(src)")], ["dlq"]),
+ ("I7 manager passes offset 0 (all raw records of a partition share one ID)", [(MG, "source{topic, p, r.Offset, r.Timestamp}", "source{topic, p, 0, r.Timestamp}")], ["dlq", "cmd", "probe134"]),
+ ("I8 manager passes a zero timestamp", [(MG, "source{topic, p, r.Offset, r.Timestamp}", "source{Topic: topic, Partition: p, Offset: r.Offset}")], ["dlq", "cmd", "probe134"]),
+ ("I9 manager passes partition 0", [(MG, "source{topic, p, r.Offset, r.Timestamp}", "source{topic, 0, r.Offset, r.Timestamp}")], ["dlq", "cmd", "probe134"]),
+ ("I10 full envelope also gets the derived ID", [(EN, "\t\tenv.Attempt = 0 // Reset attempt counter (§6)", "\t\tenv.Attempt = 0 // Reset attempt counter (§6)\n\t\tenv.EventID = replayID(src)")], ["dlq"]),
+]
+def tree():
+    d = tempfile.mkdtemp(prefix="m-", dir=os.path.join(S, os.environ.get("QA_MUT", "mut")))
+    subprocess.run(f"git -C {HEAD} archive HEAD | tar -x -C {d}", shell=True, check=True)
+    subprocess.run(f"cp {S}/probe/qa_probe_integration_test.go {S}/probe134/qa_probe134_integration_test.go {d}/internal/dlq/", shell=True, check=True)
+    return d
+def run(d, suite):
+    subprocess.run(["psql", "-h", "/tmp/qapg", "-p", "55432", "-U", "postgres", "-d", "arxivlens", "-qc",
+                    "DELETE FROM dlq_replay_log; DELETE FROM dlq_replay_checkpoints"], capture_output=True)
+    r = subprocess.run(SUITES[suite], cwd=d, env=ENV, capture_output=True, text=True, timeout=300)
+    out = r.stdout + r.stderr
+    if "[build failed]" in out or "[setup failed]" in out:
+        return "INVALID", out
+    fails = sorted({l.strip().split(" ")[2] for l in out.splitlines() if l.strip().startswith("--- FAIL:")})
+    if "panic:" in out and not fails: fails.append("PANIC")
+    return ("pass" if r.returncode == 0 else "FAIL " + ",".join(fails)), out
+os.makedirs(os.path.join(S, os.environ.get("QA_MUT", "mut")), exist_ok=True)
+rows, diffs = [], []
+d = tree()
+for s in SUITES:
+    v, _ = run(d, s); rows.append(("CONTROL (unmutated head + QA probe)", s, v))
+for mid, subs, suites in M:
+    if os.environ.get("QA_ONLY") and not re.match(os.environ["QA_ONLY"], mid): continue
+    d = tree(); bad = None
+    for f, old, new in subs:
+        p = os.path.join(d, f); src = open(p).read()
+        if src.count(old) != 1: bad = f"NOT APPLIED (anchor count {src.count(old)} in {f})"; break
+        open(p, "w").write(src.replace(old, new))
+    if bad: rows.append((mid, "-", bad)); continue
+    for f in sorted({x[0] for x in subs}):
+        diffs.append("## " + mid + "\n" + subprocess.run(["diff", "-u", os.path.join(HEAD, f), os.path.join(d, f)], capture_output=True, text=True).stdout)
+    res = {}
+    for s in suites:
+        v, out = run(d, s); res[s] = v
+        if v == "INVALID": diffs.append(out[-1500:])
+    pr = [s for s in suites if not s.startswith("probe")]
+    verdict = "KILLED" if any(res[s].startswith("FAIL") for s in pr) else ("INVALID" if any(res[s] == "INVALID" for s in suites) else "SURVIVED")
+    if verdict == "SURVIVED" and any(k.startswith("probe") and res[k].startswith("FAIL") for k in res): verdict = "SURVIVED (PR tests) / caught by QA probe"
+    for s in suites: rows.append((mid, s, res[s]))
+    rows.append((mid, "=>", verdict))
+print(f"{'mutant':58} | suite | result")
+for r in rows: print(f"{r[0]:58} | {r[1]:5} | {r[2]}")
+print("\nsuites:", {k: " ".join(v) for k, v in SUITES.items()})
+print("\n==== mutant diffs (local scratch copies only, never pushed) ====")
+for x in diffs: print(x)
+
+==== /tmp/claude-0/-home-claude/67e2add1-e9b7-5ce0-b3be-88a19838307a/scratchpad/qa/probe134/qa_probe134_integration_test.go
+//go:build integration
+
+// QA probe (B-PIPE-2 QA r1, local only, never pushed).
+package dlq
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"testing"
+	"time"
+)
+
+// Q1 (I7/I8/I9): each raw-payload record is published with replayID of ITS OWN (topic, partition, offset, Kafka ts).
+func TestQAProbe134RawIDsPerRecord(t *testing.T) {
+	r, pub, st := dlqTopic(map[int32]string{0: "RR", 1: "R"}), &fakePublisher{}, newFakeStore()
+	if _, err := NewManager(r, pub, st).Replay(context.Background(), "papers.downloaded.dlq", ReplayOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	for p, offs := range map[int32][]int64{0: {0, 1}, 1: {0}} {
+		for _, o := range offs {
+			po := fmt.Sprintf("%d/%d", p, o)
+			rec := r.log[p][o]
+			want := replayID(source{"papers.downloaded.dlq", p, o, rec.Timestamp})
+			var got string
+			for k, id := range pub.ids {
+				if len(k) > len(po) && k[:len(po)+1] == po+"#" {
+					got = id
+				}
+			}
+			if got != want {
+				t.Errorf("%s published with %q, want replayID of its own coordinates %q", po, got, want)
+			}
+		}
+	}
+}
+
+// Q2 (L8/L11): after the holder unlocks, another session gets the lock at once.
+func TestQAProbe134UnlockReleases(t *testing.T) {
+	topic := fmt.Sprintf("it.dlq.qalock.%d", time.Now().UnixNano())
+	a, b, ctx := NewPGStore(pgIT(t, topic)), NewPGStore(pgIT(t, topic)), context.Background()
+	unlockA, ok, _, err := a.TryLock(ctx, topic)
+	if err != nil || !ok {
+		t.Fatalf("A: %v %v", ok, err)
+	}
+	unlockA()
+	unlockB, ok, holder, err := b.TryLock(ctx, topic)
+	if err != nil || !ok {
+		t.Fatalf("B after A unlocked: ok %v holder %q err %v; want the lock", ok, holder, err)
+	}
+	unlockB()
+}
+
+// Q3 (L12): a TryLock error stops the run before any read or publish.
+type qaLockErrStore struct{ *fakeStore }
+
+func (qaLockErrStore) TryLock(context.Context, string) (func(), bool, string, error) {
+	return nil, false, "", errors.New("conn reset")
+}
+
+func TestQAProbe134LockErrorStops(t *testing.T) {
+	r, pub, st := dlqTopic(map[int32]string{0: "AA"}), &fakePublisher{}, newFakeStore()
+	_, err := NewManager(r, pub, qaLockErrStore{st}).Replay(context.Background(), "t.dlq", ReplayOptions{})
+	if err == nil || pub.calls != 0 || len(r.reads) != 0 {
+		t.Errorf("err %v, %d publishes, %d reads; want an error and nothing read or published", err, pub.calls, len(r.reads))
+	}
+}
+
+==== diff mutants.py r1 -> r2 (09-harness.txt holds r1)
+7c7
+< HEAD = "/home/claude/arxivlens-agents/app"
+---
+> HEAD = os.environ.get("QA_HEAD", "/home/claude/arxivlens-agents/app")
+34c34
+<  ("R10 dry run calls MarkResolved", [(MG, "\t\tif opt.DryRun {\n\t\t\treturn nil\n\t\t}\n\t\tif err := m.store.MarkResolved(ctx, r)", "\t\tif err := m.store.MarkResolved(ctx, r)")], ["dlq", "cmd"]),
+---
+>  ("R10 dry run calls MarkResolved", [(MG, "\t\tif opt.DryRun {\n\t\t\treturn nil\n\t\t}\n", "")], ["dlq", "cmd"]),
+38c38,40
+<  ("R13 MarkResolved error swallowed", [(MG, "if err := m.store.MarkResolved(ctx, r); err != nil {", "if err := m.store.MarkResolved(ctx, r); err != nil && false {")], ["dlq"]),
+---
+>  ("R13 MarkResolved error swallowed", [(MG, "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {", "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil && false {")], ["dlq"]),
+>  ("W1 commit uses the cancellable ctx (Ctrl-C after ack => re-publish)", [(MG, "if err := m.store.MarkResolved(context.WithoutCancel(ctx), r); err != nil {", "if err := m.store.MarkResolved(ctx, r); err != nil {")], ["dlq"]),
+>  ("W2 tail checkpoint write uses the cancellable ctx", [(MG, "err = m.store.MarkResolved(context.WithoutCancel(ctx), Resolution{DLQTopic: topic, Partition: p, Next: next})", "err = m.store.MarkResolved(ctx, Resolution{DLQTopic: topic, Partition: p, Next: next})")], ["dlq"]),
+74c76
+<     d = tempfile.mkdtemp(prefix="m-", dir=os.path.join(S, "mut"))
+---
+>     d = tempfile.mkdtemp(prefix="m-", dir=os.path.join(S, os.environ.get("QA_MUT", "mut")))
+88c90
+< os.makedirs(os.path.join(S, "mut"), exist_ok=True)
+---
+> os.makedirs(os.path.join(S, os.environ.get("QA_MUT", "mut")), exist_ok=True)
+116d117
+< 
+
+[exit code 1]

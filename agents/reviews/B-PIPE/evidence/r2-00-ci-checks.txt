@@ -1,0 +1,19 @@
+$ bash -c for s in bbb2657f34a8a5092503424a8254af00af41e7cf 96025da58d49df62ae1dc554b2a3be884171792f; do echo "== $s"; gh api repos/MaheshPulivarthi18/ArxivLens/commits/$s/check-runs --jq ".check_runs[] | \"\(.name) | \(.status) | \(.conclusion) | job \(.id)\""; done
+== bbb2657f34a8a5092503424a8254af00af41e7cf
+Agent ownership check | completed | success | job 140872082806
+Frontend (lint, test, build) | completed | success | job 140872082775
+Go (vet, gofmt, test, build) | completed | success | job 140872082738
+Python M0 unit tests | completed | success | job 140872082577
+DB (migrate twice, HNSW plan + recall) | completed | success | job 140872082531
+Full stack (compose + make test-full) | completed | success | job 140872082281
+Pinned digests resolve | completed | success | job 140872082268
+== 96025da58d49df62ae1dc554b2a3be884171792f
+Full stack (compose + make test-full) | completed | success | job 140872794018
+Frontend (lint, test, build) | completed | success | job 140872793871
+Agent ownership check | completed | success | job 140872793855
+Go (vet, gofmt, test, build) | completed | success | job 140872793788
+DB (migrate twice, HNSW plan + recall) | completed | success | job 140872793623
+Python M0 unit tests | completed | success | job 140872793577
+Pinned digests resolve | completed | success | job 140872793563
+
+[exit code 0]

@@ -1,0 +1,120 @@
+$ gh api .../actions/jobs/140872794018/logs (lines 3739-3855)
+Full stack job 140872794018 on #134 head 96025da (success); raw log lines 3739-3855 (the B-PIPE step), ANSI stripped
+2026-11-28T05:14:05.1260276Z ##[group]Run T=papers.downloaded.dlq
+2026-11-28T05:14:05.1260616Z T=papers.downloaded.dlq
+2026-11-28T05:14:05.1260870Z fail() { echo "::error::$1"; exit 1; }
+2026-11-28T05:14:05.1261229Z q() { docker compose exec -T postgres psql -U postgres -d arxivlens -tA -c "$1"; }
+2026-11-28T05:14:05.1261736Z ends() { docker compose exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+2026-11-28T05:14:05.1262244Z   --topic papers.downloaded --time -1 | awk -F: '{s += $3} END {print s + 0}'; }
+2026-11-28T05:14:05.1262752Z state() { q "select partition, next_offset from dlq_replay_checkpoints where dlq_topic = '$T' order by 1"
+2026-11-28T05:14:05.1263288Z   q "select partition, dlq_offset, outcome, event_id from dlq_replay_log where dlq_topic = '$T' order by 1, 2"; }
+2026-11-28T05:14:05.1263762Z echo "== dlq list --all (before)"; ./bin/arxivlens dlq list --topic "$T" --all
+2026-11-28T05:14:05.1264225Z echo "== dlq replay --dry-run"; ./bin/arxivlens dlq replay --topic "$T" --limit 1 --dry-run
+2026-11-28T05:14:05.1264562Z for run in 1 2; do
+2026-11-28T05:14:05.1264764Z   before="$(ends)"
+2026-11-28T05:14:05.1265051Z   ./bin/arxivlens dlq replay --topic "$T" --limit 1 | tee "replay$run.log"
+2026-11-28T05:14:05.1265353Z   after="$(ends)"
+2026-11-28T05:14:05.1265660Z   pub="$(sed -n 's/^replay summary: published=\([0-9]*\) .*/\1/p' "replay$run.log")"
+2026-11-28T05:14:05.1266294Z   echo "run $run: kafka-get-offsets papers.downloaded (sum of end offsets) $before -> $after; replay summary published=$pub"
+2026-11-28T05:14:05.1266813Z   echo "replay state after run $run (checkpoints, then log rows):"; state
+2026-11-28T05:14:05.1267241Z   if [ "$pub" != 0 ] && [ "$pub" != 1 ]; then fail "run $run: published=$pub, want 0 or 1 with --limit 1"; fi
+2026-11-28T05:14:05.1267776Z   [ "$((after - before))" = "$pub" ] || fail "run $run: papers.downloaded grew by $((after - before)), replay says published=$pub"
+2026-11-28T05:14:05.1268184Z done
+2026-11-28T05:14:05.1268524Z [ "$(sed -n 's/^replay summary: published=\([0-9]*\) .*/\1/p' replay1.log)" = 1 ] || fail "run 1 published nothing"
+2026-11-28T05:14:05.1269191Z r1="$(grep -Eo '^[0-9]+/[0-9]+  replayed' replay1.log)"; r2="$(grep -Eo '^[0-9]+/[0-9]+  replayed' replay2.log || true)"
+2026-11-28T05:14:05.1269642Z [ "$r1" != "$r2" ] || fail "run 2 replayed the same record as run 1 ($r1)"
+2026-11-28T05:14:05.1270024Z echo "== dlq list --all (after)"; ./bin/arxivlens dlq list --topic "$T" --all
+2026-11-28T05:14:05.1270322Z 
+2026-11-28T05:14:05.1270660Z lockheld() { q "select count(*) from pg_locks l, (select hashtextextended('arxivlens.dlq.replay/$T', 0) k) key
+2026-11-28T05:14:05.1271118Z   where l.locktype = 'advisory' and l.granted and l.objsubid = 1
+2026-11-28T05:14:05.1271521Z     and l.classid = ((key.k >> 32) & 4294967295)::oid and l.objid = (key.k & 4294967295)::oid"; }
+2026-11-28T05:14:05.1271860Z docker compose pause kafka
+2026-11-28T05:14:05.1272168Z ./bin/arxivlens dlq replay --topic "$T" --limit 1 > replayA.log 2>&1 &
+2026-11-28T05:14:05.1272467Z a=$!
+2026-11-28T05:14:05.1272704Z for _ in $(seq 50); do [ "$(lockheld)" = 1 ] && break; sleep 0.2; done
+2026-11-28T05:14:05.1272986Z held="$(lockheld)"
+2026-11-28T05:14:05.1273183Z rcB=0
+2026-11-28T05:14:05.1273504Z if [ "$held" = 1 ]; then ./bin/arxivlens dlq replay --topic "$T" --limit 1 > replayB.log 2>&1 || rcB=$?; fi
+2026-11-28T05:14:05.1273888Z docker compose unpause kafka
+2026-11-28T05:14:05.1274123Z rcA=0; wait "$a" || rcA=$?
+2026-11-28T05:14:05.1274414Z echo "== concurrent replay A (started first; exit $rcA)"; cat replayA.log
+2026-11-28T05:14:05.1275102Z echo "== concurrent replay B (started while A held the lock: $held; exit $rcB)"; cat replayB.log 2>/dev/null || true
+2026-11-28T05:14:05.1275565Z [ "$held" = 1 ] || fail "replay A never showed up in pg_locks"
+2026-11-28T05:14:05.1275943Z if [ "$rcA" != 0 ] || [ "$rcB" != 1 ]; then fail "want exactly one exit 1 (B); got A=$rcA B=$rcB"; fi
+2026-11-28T05:14:05.1276401Z grep -q "another 'dlq replay' holds the lock for $T (pid " replayB.log || fail "B: no lock message"
+2026-11-28T05:14:05.1276880Z if grep -q '^replay summary' replayB.log; then fail "B printed a replay summary"; fi
+2026-11-28T05:14:05.1277319Z echo "AC10: exactly one of two concurrent replays exited 1 with the lock message"
+2026-11-28T05:14:05.1309740Z shell: /usr/bin/bash -e {0}
+2026-11-28T05:14:05.1309971Z env:
+2026-11-28T05:14:05.1310196Z   ARXIVLENS_HF_CACHE: /home/runner/.cache/huggingface
+2026-11-28T05:14:05.1310839Z   F1_TESTS: tests/test_m3_query.py::test_rag_ask_with_groundedness_support tests/test_m3_query.py::test_rag_early_refusal_on_unrelated_query tests/test_m3_query.py::test_hybrid_search_with_rrf_and_rerank
+2026-11-28T05:14:05.1311493Z   PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
+2026-11-28T05:14:05.1311804Z   ARXIV_API_URL: http://127.0.0.1:8099/api/query
+2026-11-28T05:14:05.1312064Z   ARXIV_PDF_BASE: http://127.0.0.1:8099/pdf
+2026-11-28T05:14:05.1312350Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-28T05:14:05.1312680Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-28T05:14:05.1313140Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-28T05:14:05.1313456Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-28T05:14:05.1313752Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-28T05:14:05.1314061Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-28T05:14:05.1314325Z ##[endgroup]
+2026-11-28T05:14:05.1365453Z == dlq list --all (before)
+2026-11-28T05:14:05.1401030Z === DLQ topic: papers.downloaded.dlq ===
+2026-11-28T05:14:05.1505990Z 6/0  key=9999.00001  error=FileDataError  failed_at=2026-11-28T05:13:31.792077+00:00  -> papers.downloaded
+2026-11-28T05:14:05.1506783Z     message: Failed to open stream
+2026-11-28T05:14:05.1509351Z 7/0  key=unknown  error=FileDataError  failed_at=2026-11-28T05:13:31.267343+00:00  -> papers.downloaded
+2026-11-28T05:14:05.1509935Z     message: Failed to open stream
+2026-11-28T05:14:05.1510388Z end of topic (high watermarks at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=1 7=1 8=0 9=0 10=0 11=0; 2 records)
+2026-11-28T05:14:05.1518531Z == dlq replay --dry-run
+2026-11-28T05:14:05.1682936Z DRY RUN (no lock taken; may race a concurrent replay)
+2026-11-28T05:14:05.1683995Z === DLQ replay: papers.downloaded.dlq (checkpoints at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=0 7=0 8=0 9=0 10=0 11=0; high watermarks at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=1 7=1 8=0 9=0 10=0 11=0) ===
+2026-11-28T05:14:05.1690600Z 6/0  would replay -> papers.downloaded  event_id=01M8G95995TECQ2RFPH02W1VKJ
+2026-11-28T05:14:05.1691874Z replay summary: published=1 unreplayable=0 dry_run=true
+2026-11-28T05:14:05.2070525Z time="2026-11-28T05:14:05Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:06.3276150Z === DLQ replay: papers.downloaded.dlq (checkpoints at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=0 7=0 8=0 9=0 10=0 11=0; high watermarks at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=1 7=1 8=0 9=0 10=0 11=0) ===
+2026-11-28T05:14:06.3296926Z 6/0  replayed -> papers.downloaded  event_id=01M8G95995TECQ2RFPH02W1VKJ
+2026-11-28T05:14:06.3297644Z replay summary: published=1 unreplayable=0 dry_run=false
+2026-11-28T05:14:06.3726703Z time="2026-11-28T05:14:06Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:07.4647204Z run 1: kafka-get-offsets papers.downloaded (sum of end offsets) 3 -> 4; replay summary published=1
+2026-11-28T05:14:07.4647694Z replay state after run 1 (checkpoints, then log rows):
+2026-11-28T05:14:07.5033697Z time="2026-11-28T05:14:07Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:07.5693778Z 6|1
+2026-11-28T05:14:07.6101365Z time="2026-11-28T05:14:07Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:07.6711344Z 6|0|replayed|01M8G95995TECQ2RFPH02W1VKJ
+2026-11-28T05:14:07.7132931Z time="2026-11-28T05:14:07Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:08.8651463Z === DLQ replay: papers.downloaded.dlq (checkpoints at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=1 7=0 8=0 9=0 10=0 11=0; high watermarks at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=2 7=1 8=0 9=0 10=0 11=0) ===
+2026-11-28T05:14:08.8652564Z 6/1  replayed -> papers.downloaded  event_id=01M8G95995TECQ2RFPH02W1VKJ
+2026-11-28T05:14:08.8653272Z replay summary: published=1 unreplayable=0 dry_run=false
+2026-11-28T05:14:08.9193192Z time="2026-11-28T05:14:08Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:10.2645359Z run 2: kafka-get-offsets papers.downloaded (sum of end offsets) 4 -> 5; replay summary published=1
+2026-11-28T05:14:10.2645834Z replay state after run 2 (checkpoints, then log rows):
+2026-11-28T05:14:10.3121892Z time="2026-11-28T05:14:10Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:10.3720471Z 6|2
+2026-11-28T05:14:10.4134515Z time="2026-11-28T05:14:10Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:10.4783820Z 6|0|replayed|01M8G95995TECQ2RFPH02W1VKJ
+2026-11-28T05:14:10.4784241Z 6|1|replayed|01M8G95995TECQ2RFPH02W1VKJ
+2026-11-28T05:14:10.4869944Z == dlq list --all (after)
+2026-11-28T05:14:10.4904960Z === DLQ topic: papers.downloaded.dlq ===
+2026-11-28T05:14:10.5006907Z 6/0  key=9999.00001  error=FileDataError  failed_at=2026-11-28T05:13:31.792077+00:00  -> papers.downloaded
+2026-11-28T05:14:10.5009303Z     message: Failed to open stream
+2026-11-28T05:14:10.5015044Z 6/1  key=9999.00001  error=FileDataError  failed_at=2026-11-28T05:14:06.936398+00:00  -> papers.downloaded
+2026-11-28T05:14:10.5015551Z     message: Failed to open stream
+2026-11-28T05:14:10.5016533Z 6/2  key=9999.00001  error=FileDataError  failed_at=2026-11-28T05:14:09.470264+00:00  -> papers.downloaded
+2026-11-28T05:14:10.5017139Z     message: Failed to open stream
+2026-11-28T05:14:10.5017567Z 7/0  key=unknown  error=FileDataError  failed_at=2026-11-28T05:13:31.267343+00:00  -> papers.downloaded
+2026-11-28T05:14:10.5017960Z     message: Failed to open stream
+2026-11-28T05:14:10.5018300Z end of topic (high watermarks at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=3 7=1 8=0 9=0 10=0 11=0; 4 records)
+2026-11-28T05:14:10.5382214Z time="2026-11-28T05:14:10Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:10.5564528Z  Container arxivlens-kafka Paused 
+2026-11-28T05:14:10.6007471Z time="2026-11-28T05:14:10Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:10.7063571Z time="2026-11-28T05:14:10Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:10.8238694Z time="2026-11-28T05:14:10Z" level=warning msg="/home/runner/work/ArxivLens/ArxivLens/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2026-11-28T05:14:10.8434899Z  Container arxivlens-kafka Unpaused 
+2026-11-28T05:14:10.8606599Z == concurrent replay A (started first; exit 0)
+2026-11-28T05:14:10.8628405Z === DLQ replay: papers.downloaded.dlq (checkpoints at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=2 7=0 8=0 9=0 10=0 11=0; high watermarks at start: 0=0 1=0 2=0 3=0 4=0 5=0 6=3 7=1 8=0 9=0 10=0 11=0) ===
+2026-11-28T05:14:10.8629261Z 6/2  replayed -> papers.downloaded  event_id=01M8G95995TECQ2RFPH02W1VKJ
+2026-11-28T05:14:10.8629634Z replay summary: published=1 unreplayable=0 dry_run=false
+2026-11-28T05:14:10.8631148Z == concurrent replay B (started while A held the lock: 1; exit 1)
+2026-11-28T05:14:10.8655297Z Error: another 'dlq replay' holds the lock for papers.downloaded.dlq (pid 1089 on 172.18.0.1, since 2026-11-28T05:14:10Z); wait for it to finish, or see README "DLQ replay" for a hung holder
+2026-11-28T05:14:10.8679374Z AC10: exactly one of two concurrent replays exited 1 with the lock message
+
