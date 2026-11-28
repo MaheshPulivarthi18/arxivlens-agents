@@ -355,3 +355,18 @@ The split covers all eight ACs: AC1 is in a, AC2 in b, AC3 in c, AC4 is spread a
 when the operator gave them: `next page: arxivlens dlq list --topic T [--partition P] [--page-size N] --from P/O`. Without them the footer is as Q3 shows.
 Reason: `--from` alone continues into the later partitions at the default page size, so pasting the footer after `--partition 1 --page-size 10` left
 partition 1. PR #93 ships Q3's original text (it matched OPS-H7a2b AC5, and following it never hides records). [OPS-H7a2c](../../agents/tasks/OPS-H7a2c.md) makes the change.
+
+### Build notes (B-PIPE-1, PR #133, 2026-11-28)
+These internal Go API changes in `internal/dlq/` amend § Shape. None touches a shared contract (envelope, `DLQPayload`, HTTP API), so no ADR is needed. Migration `000004` is additive.
+- **`NewManager(reader Reader, pub Publisher, store Store)`.** This replaces `NewManager(brokers, reader)`. `list` and `inspect` pass `nil, nil`. `Replay` errors
+  if the reader or store is nil, or if `pub` is nil outside a dry run. **`ListEvents` and the old `Replay(ctx, topic, errorType, limit, dryRun)` are removed**, so no CLI path keeps a nil reader.
+- **`Store` (B-PIPE-1):** `Checkpoints`, `Resolved` and `MarkResolved(ctx, Resolution)`. `TryLock` arrives in B-PIPE-2.
+  `Resolution{DLQTopic, Partition, Offset, Outcome, TargetTopic, EventID, Next}`:
+  - `Next > 0` moves the checkpoint up to `Next`, never down (`GREATEST`).
+  - `Next == 0` leaves it alone, because an earlier filter-skipped record pins it.
+  - **`Outcome == ""` is a checkpoint-only mark** with no log row. It is used when a partition ends on already-resolved records, or when every record left has expired (the checkpoint moves to `Low`).
+- **`ReplayOptions{ErrorType, Limit, DryRun}`** and **`ReplayResult{Published, Items []ReplayItem, Checkpoints, Watermarks, Warnings}`**. `ReplayItem` is
+  `{Partition, Offset, Outcome, Target, EventID, Reason}`. `Checkpoints` and `Watermarks` are the values read at the start. `Warnings` holds Q2's expiry lines,
+  which the CLI prints to stderr, so `Replay` itself does no I/O. `Limit` counts published records only.
+- **Commit path.** `MarkResolved` runs with `context.WithoutCancel(ctx)`, so a SIGINT right after a publish ack still records that publish. The run then stops.
+- CLI: `newRootCmd(dlqCmd)` sets `SilenceErrors`, so `main` prints each error once. `newDLQCmdWith(newReader, replayDeps)` injects the producer and `PGStore` for tests.
